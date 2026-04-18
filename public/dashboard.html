@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaludDigital — Dashboard</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    :root {
+      --primary: #0891b2;
+      --primary-hover: #0e7490;
+      --primary-light: #f0f9ff;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --sidebar-w: 240px;
+    }
+
+    /* ── Reset & Base ── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { color: var(--primary-hover); }
+    button { font-family: inherit; cursor: pointer; }
+    svg { stroke: currentColor; }
+
+
+    /* ── Content Area ── */
+    .content { padding: 1.5rem 1.75rem; flex: 1; }
+
+    /* ── Stat Cards ── */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-bottom: 1.5rem; }
+    .stat-card {
+      background: var(--card); border-radius: 12px;
+      padding: 1.5rem 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      display: flex; align-items: center; gap: 1.25rem;
+    }
+    .stat-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--primary-light);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary); flex-shrink: 0; font-size: 1.6rem;
+    }
+    .stat-body { flex: 1; }
+    .stat-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+    .stat-value { font-size: 2rem; font-weight: 700; color: var(--text); line-height: 1.1; }
+    .stat-sub { font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem; }
+
+    /* ── Mid Row (Donut + Appointments) ── */
+    .mid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.5rem; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card); border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .card-hdr {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 1rem;
+    }
+    .card-title { font-size: 1rem; font-weight: 600; color: var(--text); }
+    .card-badge {
+      background: var(--primary-light); color: var(--primary);
+      font-size: 0.72rem; font-weight: 600;
+      padding: 0.2rem 0.6rem; border-radius: 9999px;
+    }
+
+    /* ── Patient Summary (Donut) ── */
+    .donut-wrap {
+      display: flex; align-items: center;
+      justify-content: center; gap: 1.5rem;
+    }
+    .donut-container {
+      position: relative;
+      width: 200px;
+      height: 200px;
+    }
+    .donut-svg {
+      width: 100%;
+      height: 100%;
+    }
+    .donut-label-wrap {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+    .donut-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1;
+    }
+    .donut-text {
+      font-size: 0.85rem;
+      color: #64748b;
+      font-weight: 600;
+      margin-top: 0.3rem;
+    }
+    .donut-legend { display: flex; flex-direction: column; gap: 0.75rem; }
+    .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .legend-label { color: var(--muted); flex: 1; }
+    .legend-val { font-weight: 600; color: var(--text); }
+
+    /* ── Appointments List ── */
+    .appt-scroll { max-height: 300px; overflow-y: auto; }
+    .appt-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem 0; border-bottom: 1px solid var(--bg);
+    }
+    .appt-row:last-child { border-bottom: none; }
+    .appt-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 600; flex-shrink: 0;
+    }
+    .appt-info { flex: 1; min-width: 0; }
+    .appt-name {
+      font-size: 0.85rem; font-weight: 500; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .appt-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+    .appt-time-badge {
+      background: var(--bg); border-radius: 6px;
+      padding: 0.25rem 0.5rem; font-size: 0.72rem;
+      font-weight: 500; color: var(--muted); white-space: nowrap;
+    }
+    .empty { text-align: center; padding: 2rem 1rem; color: #94a3b8; font-size: 0.9rem; }
+
+    /* ── Bottom Row (Next Patient + Calendar) ── */
+    .bot-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+
+    /* ── Next Patient ── */
+    .next-patient {
+      display: flex; flex-direction: column;
+      align-items: center; text-align: center; gap: 0.5rem;
+      padding-top: 0.5rem;
+    }
+    .next-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: var(--primary); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: 700;
+    }
+    .next-name { font-size: 1rem; font-weight: 600; color: var(--text); }
+    .next-meta { font-size: 0.8rem; color: var(--muted); }
+    .next-time-row {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem;
+      justify-content: center;
+    }
+    .next-time-row svg { width: 14px; height: 14px; }
+    .btn-consult-full {
+      margin-top: 0.75rem; width: 100%; display: block;
+      background: var(--primary); color: white; text-align: center;
+      padding: 0.6rem; border-radius: 8px; text-decoration: none;
+      font-size: 0.85rem; font-weight: 600; transition: all 0.15s;
+      border: none; cursor: pointer;
+    }
+    .btn-consult-full:hover {
+      background: var(--primary-hover);
+      color: white;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+      transform: translateY(-2px);
+    }
+    .status-badge {
+      font-size: 0.72rem; font-weight: 600;
+      padding: 0.2rem 0.65rem; border-radius: 9999px;
+    }
+    .status-waiting { background: #dcfce7; color: #16a34a; }
+    .status-pending { background: #fef9c3; color: #854d0e; }
+    .status-completed { background: #f1f5f9; color: #94a3b8; }
+
+    /* ── Mini Calendar ── */
+    .cal-nav { display: flex; gap: 0.25rem; }
+    .cal-btn {
+      width: 28px; height: 28px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--bg);
+      cursor: pointer; font-size: 1rem; color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .cal-btn:hover { background: var(--primary-light); color: var(--primary); }
+    .cal-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      gap: 2px; margin-top: 0.5rem;
+    }
+    .cal-dow {
+      text-align: center; font-size: 0.68rem;
+      font-weight: 600; color: var(--muted);
+      padding: 0.25rem 0;
+    }
+    .cal-day {
+      text-align: center; font-size: 0.75rem;
+      padding: 0.3rem; border-radius: 6px;
+      cursor: default; color: var(--text);
+    }
+    .cal-day.today {
+      background: var(--primary); color: white; font-weight: 700;
+    }
+    .cal-day.has-appt {
+      background: var(--primary-light); color: var(--primary); font-weight: 600;
+    }
+    .cal-day.other-month { color: #cbd5e1; }
+    .cal-day.empty { background: none; }
+
+    /* ── Responsive ── */
+    @media (max-width: 860px) {
+      .stats { grid-template-columns: 1fr; }
+      .mid-row { grid-template-columns: 1fr; }
+      .bot-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="layout-main content">
+      <!-- Stat Cards -->
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-body">
+            <div class="stat-label">Total Pacientes</div>
+            <div class="stat-value" id="statPatients">—</div>
+            <div class="stat-sub">Pacientes registrados</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📅</div>
+          <div class="stat-body">
+            <div class="stat-label">Citas de Hoy</div>
+            <div class="stat-value" id="statToday">—</div>
+            <div class="stat-sub">Citas programadas para hoy</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-body">
+            <div class="stat-label">Ingresos del Mes</div>
+            <div class="stat-value" id="statMonth">—</div>
+            <div class="stat-sub">Consultas pagadas este mes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mid Row: Donut + Appointments -->
+      <div class="mid-row">
+        <!-- Patient Summary Donut -->
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-title">Resumen de Pacientes</span>
+            <span class="card-badge" id="totalPatientsLabel">0 total</span>
+          </div>
+          <div class="donut-wrap">
+            <div class="donut-container">
+              <svg class="donut-svg" id="donutSvg" viewBox="0 0 200 200">
+                <!-- Segmento azul (con cita) -->
+                <circle cx="100" cy="100" r="80" fill="none" stroke="#0891b2" stroke-width="35"
+                        stroke-dasharray="326.73 502.65" stroke-dashoffset="0" id="donutWith"
+                        stroke-linecap="round"/>
+                <!-- Segmento gris claro (sin cita) -->
+                <circle cx="100" cy="100" r="80" fill="none" stroke="#e2e8f0" stroke-width="35"
+                        stroke-dasharray="175.93 502.65" stroke-dashoffset="-326.73" id="donutWithout"
+                        stroke-linecap="round"/>
+              </svg>
+              <div class="donut-label-wrap">
+                <div class="donut-value" id="donutCenter">0</div>
+                <div class="donut-text" id="donutLabel">pacientes</div>
+              </div>
+            </div>
+            <div class="donut-legend">
+              <div class="legend-item">
+                <span class="legend-dot" style="background:#0891b2"></span>
+                <span class="legend-label">Con cita hoy</span>
+                <span class="legend-val" id="legendWith">0</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background:#e2e8f0"></span>
+                <span class="legend-label">Sin cita hoy</span>
+                <span class="legend-val" id="legendWithout">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Appointments -->
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-title">Citas de Hoy</span>
+            <span class="card-badge" id="apptCountBadge">0</span>
+          </div>
+          <div id="apptList" class="appt-scroll">
+            <p class="empty">No hay citas para hoy.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row: Next Patient + Calendar -->
+      <div class="bot-row">
+        <!-- Next Patient -->
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-title">Próximo Paciente</span>
+            <span id="nextStatusBadge" class="status-badge">—</span>
+          </div>
+          <div id="nextPatientContent">
+            <p class="empty">Sin próximo paciente.</p>
+          </div>
+        </div>
+
+        <!-- Mini Calendar -->
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-title" id="calMonthLabel">—</span>
+            <div class="cal-nav">
+              <button class="cal-btn" id="calPrev">‹</button>
+              <button class="cal-btn" id="calNext">›</button>
+            </div>
+          </div>
+          <div class="cal-grid">
+            <span class="cal-dow">Lu</span>
+            <span class="cal-dow">Ma</span>
+            <span class="cal-dow">Mi</span>
+            <span class="cal-dow">Ju</span>
+            <span class="cal-dow">Vi</span>
+            <span class="cal-dow">Sá</span>
+            <span class="cal-dow">Do</span>
+          </div>
+          <div class="cal-grid" id="calDays"></div>
+        </div>
+      </div>
+  </main>
+
+  <script src="/common.js"></script>
+  <script src="/layout.js"></script>
+  <script>
+    requireAuth(['clinic_admin', 'doctor']);
+
+    const today = new Date();
+    let apptDatesSet = new Set();
+    let calYear, calMonth;
+
+    // Donut chart render
+    function renderDonut(withAppt, withoutAppt) {
+      const C = 502.65; // Circumference for r=80
+      const total = withAppt + withoutAppt || 1;
+      const withLen = (withAppt / total) * C;
+      const withoutLen = (withoutAppt / total) * C;
+
+      const withEl = document.getElementById('donutWith');
+      withEl.setAttribute('stroke-dasharray', `${withLen} ${C}`);
+      withEl.setAttribute('stroke-dashoffset', '0');
+
+      const withoutEl = document.getElementById('donutWithout');
+      withoutEl.setAttribute('stroke-dasharray', `${withoutLen} ${C}`);
+      withoutEl.setAttribute('stroke-dashoffset', `-${withLen}`);
+
+      document.getElementById('donutCenter').textContent = withAppt + withoutAppt;
+      document.getElementById('legendWith').textContent = withAppt;
+      document.getElementById('legendWithout').textContent = withoutAppt;
+      document.getElementById('totalPatientsLabel').textContent = `${withAppt + withoutAppt} total`;
+    }
+
+    // Render appointments list
+    function renderAppointments(appointments) {
+      document.getElementById('apptCountBadge').textContent = appointments.length;
+      if (!appointments.length) {
+        document.getElementById('apptList').innerHTML = '<p class="empty">No hay citas para hoy.</p>';
+        return;
+      }
+
+      const html = appointments.map(a => {
+        const initials = (a.patient_name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+        const time = new Date(a.scheduled_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        return `
+          <div class="appt-row">
+            <div class="appt-avatar">${esc(initials)}</div>
+            <div class="appt-info">
+              <div class="appt-name">${esc(a.patient_name)}</div>
+              <div class="appt-sub">${esc(a.specialty || a.doctor_name || 'Consulta')}</div>
+            </div>
+            <span class="appt-time-badge">${esc(time)}</span>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('apptList').innerHTML = html;
+    }
+
+    // Render next patient
+    function renderNextPatient(appointments) {
+      const next = appointments
+        .filter(a => a.status !== 'completed')
+        .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))[0];
+
+      if (!next) {
+        document.getElementById('nextStatusBadge').textContent = '—';
+        document.getElementById('nextStatusBadge').className = 'status-badge';
+        document.getElementById('nextPatientContent').innerHTML = '<p class="empty">Sin próximo paciente.</p>';
+        return;
+      }
+
+      const initials = (next.patient_name || '??').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+      const time = new Date(next.scheduled_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+      const statusClass = next.status === 'waiting' ? 'status-waiting' : 'status-pending';
+      const statusLabel = next.status === 'waiting' ? 'En sala' : 'Pendiente';
+
+      document.getElementById('nextStatusBadge').textContent = statusLabel;
+      document.getElementById('nextStatusBadge').className = `status-badge ${statusClass}`;
+
+      document.getElementById('nextPatientContent').innerHTML = `
+        <div class="next-patient">
+          <div class="next-avatar">${esc(initials)}</div>
+          <div class="next-name">${esc(next.patient_name)}</div>
+          <div class="next-meta">${esc(next.specialty || next.doctor_name || 'Consulta general')}</div>
+          <div class="next-time-row">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+            </svg>
+            ${esc(time)}
+          </div>
+          <a class="btn-consult-full" href="/patient.html?id=${next.patient_id}">Ver Paciente</a>
+        </div>
+      `;
+    }
+
+    // Render calendar
+    function renderCalendar(year, month, apptDatesSet) {
+      calYear = year;
+      calMonth = month;
+
+      const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      document.getElementById('calMonthLabel').textContent = `${monthNames[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const startOffset = (firstDay + 6) % 7;
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+      let html = '';
+      for (let i = 0; i < startOffset; i++) {
+        html += '<span class="cal-day empty"></span>';
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        let cls = 'cal-day';
+        if (isCurrentMonth && d === today.getDate()) cls += ' today';
+        else if (apptDatesSet && apptDatesSet.has(dateStr)) cls += ' has-appt';
+        html += `<span class="${cls}">${d}</span>`;
+      }
+
+      document.getElementById('calDays').innerHTML = html;
+    }
+
+    // Calendar navigation
+    document.getElementById('calPrev').addEventListener('click', () => {
+      let m = calMonth - 1, y = calYear;
+      if (m < 0) { m = 11; y--; }
+      renderCalendar(y, m, apptDatesSet);
+    });
+
+    document.getElementById('calNext').addEventListener('click', () => {
+      let m = calMonth + 1, y = calYear;
+      if (m > 11) { m = 0; y++; }
+      renderCalendar(y, m, apptDatesSet);
+    });
+
+    // Load data
+    (async () => {
+      try {
+        const [me, patients, appointments, finances] = await Promise.all([
+          api('/api/auth/me'),
+          api('/api/patients'),
+          api('/api/appointments/today'),
+          api('/api/consultations/finances/summary').catch(() => ({ month_revenue: 0 }))
+        ]);
+
+        // Stat cards
+        document.getElementById('statPatients').textContent = patients.length;
+        document.getElementById('statToday').textContent = appointments.length;
+        const monthRevenue = finances.month_revenue || 0;
+        document.getElementById('statMonth').textContent = `L. ${monthRevenue.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+        // Donut chart
+        const patientIdsWithAppt = new Set(appointments.map(a => a.patient_id));
+        const withAppt = patients.filter(p => patientIdsWithAppt.has(p.id)).length;
+        const withoutAppt = patients.length - withAppt;
+        renderDonut(withAppt, withoutAppt);
+
+        // Appointments list
+        renderAppointments(appointments);
+
+        // Next patient
+        renderNextPatient(appointments);
+
+        // Calendar
+        if (appointments.length > 0) {
+          const todayStr = today.toISOString().slice(0, 10);
+          apptDatesSet.add(todayStr);
+        }
+        renderCalendar(today.getFullYear(), today.getMonth(), apptDatesSet);
+
+      } catch (e) {
+        console.error('Error loading dashboard:', e);
+      }
+    })();
+  </script>
+</body>
+</html>

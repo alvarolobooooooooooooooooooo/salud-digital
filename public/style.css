@@ -1,0 +1,248 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f3f4f6; color: #111827; }
+
+nav {
+  background: #1e3a5f;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.brand { font-weight: 700; font-size: 1.1rem; letter-spacing: -0.01em; }
+nav a { color: #93c5fd; text-decoration: none; }
+nav a:hover { color: white; }
+
+main { width: 100%; margin: 2rem auto; padding: 0 1rem; }
+h2 { font-size: 1.4rem; margin-bottom: 1.5rem; }
+h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; }
+h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: #374151; }
+
+section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* Stats row */
+.stats { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
+.stat-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  flex: 1;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+.stat-card strong { display: block; font-size: 2rem; color: #1e3a5f; line-height: 1.1; margin-top: 0.25rem; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th { text-align: left; padding: 0.5rem 0.75rem; background: #f9fafb; font-weight: 600; font-size: 0.8rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid #e5e7eb; }
+td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #f3f4f6; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: #f9fafb; }
+
+/* Forms */
+.form-row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end; margin-top: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: 0.25rem; min-width: 180px; }
+.form-group label { font-size: 0.78rem; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.03em; }
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: white;
+}
+select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: white;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+  cursor: pointer;
+  color: #374151;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid #3b82f6; outline-offset: -1px; border-color: transparent; }
+textarea { width: 100%; min-height: 72px; resize: vertical; }
+
+button {
+  padding: 0.5rem 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: inherit;
+  white-space: nowrap;
+}
+button:hover { background: #1d4ed8; }
+
+/* Medical Alerts — the WOW feature */
+.alerts { margin-bottom: 1.25rem; }
+.alert-item {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  font-size: 0.92rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  line-height: 1.4;
+}
+.alert-allergy    { background: #fef2f2; border-left: 4px solid #ef4444; color: #7f1d1d; }
+.alert-medication { background: #fffbeb; border-left: 4px solid #f59e0b; color: #78350f; }
+.alert-condition  { background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e3a5f; }
+.alert-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+/* Dashboard nav cards */
+.dashboard-nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+.nav-card {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  cursor: pointer;
+  border: 2px solid transparent;
+  text-decoration: none;
+  color: #1e3a5f;
+  font-size: 1rem;
+  font-weight: 600;
+  display: block;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.nav-card:hover { border-color: #2563eb; box-shadow: 0 2px 8px rgba(37,99,235,0.15); }
+.nav-card .icon { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+
+/* Misc */
+.back-link { display: inline-block; margin-bottom: 1rem; color: #2563eb; font-size: 0.85rem; text-decoration: none; cursor: pointer; background: none; border: none; padding: 0; font-family: inherit; }
+.back-link:hover { text-decoration: underline; }
+.patient-link { color: #2563eb; text-decoration: none; }
+.patient-link:hover { text-decoration: underline; }
+.tag { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+.tag-doctor { background: #dbeafe; color: #1e40af; }
+.tag-admin  { background: #ede9fe; color: #5b21b6; }
+.msg { font-size: 0.85rem; margin-top: 0.5rem; min-height: 1.2em; }
+.msg.ok  { color: #16a34a; }
+.msg.err { color: #dc2626; }
+.empty { color: #9ca3af; font-size: 0.9rem; padding: 0.5rem 0; }
+.divider { border: none; border-top: 1px solid #f3f4f6; margin: 0.75rem 0; }
+.consult-item { padding: 0.75rem 0; }
+.consult-item + .consult-item { border-top: 1px solid #f3f4f6; }
+.consult-date { font-size: 0.78rem; color: #9ca3af; margin-bottom: 0.35rem; }
+.consult-field { font-size: 0.9rem; margin-bottom: 0.2rem; }
+.consult-field span { color: #374151; }
+
+/* Odontograma */
+.odonto-tooth {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.75rem;
+  transition: transform 0.1s, box-shadow 0.1s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.odonto-tooth:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.odonto-endodontic {
+  background: linear-gradient(135deg, transparent 45%, #1e3a5f 45%, #1e3a5f 55%, transparent 55%) !important;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  main { max-width: 100%; margin: 1rem auto; padding: 0 0.75rem; }
+  h2 { font-size: 1.1rem; margin-bottom: 1rem; }
+  section { padding: 1rem; margin-bottom: 1rem; }
+  nav { padding: 0.5rem 1rem; }
+  .brand { font-size: 0.95rem; }
+
+  .stats { flex-direction: column; }
+  .stat-card { flex: none; }
+
+  .form-row { flex-direction: column; gap: 0; }
+  .form-group { width: 100%; }
+  input[type="text"], input[type="email"], input[type="password"], input[type="number"], select, textarea {
+    width: 100%;
+  }
+  select { padding-right: 2.5rem; }
+
+  button {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  table { font-size: 0.8rem; }
+  th, td { padding: 0.4rem 0.5rem; }
+
+  .dashboard-nav { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+  .nav-card { padding: 1.5rem 1rem; font-size: 0.9rem; }
+  .nav-card .icon { font-size: 1.5rem; }
+
+  .alert-item { font-size: 0.85rem; padding: 0.6rem 0.75rem; }
+
+  .odonto-tooth { width: 24px; height: 24px; font-size: 0.65rem; }
+
+  .tooth-container { overflow: visible; }
+  .tooth-surfaces { overflow: hidden; }
+
+  textarea { min-height: 60px; }
+}
+
+@media (max-width: 480px) {
+  main { padding: 0 0.5rem; }
+  nav { padding: 0.4rem 0.75rem; }
+  .brand { font-size: 0.85rem; }
+
+  h2 { font-size: 1rem; margin-bottom: 0.75rem; }
+  h3 { font-size: 0.9rem; margin-bottom: 0.5rem; }
+  h4 { font-size: 0.8rem; }
+
+  section { padding: 0.75rem; margin-bottom: 0.75rem; }
+
+  button { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
+
+  table { font-size: 0.75rem; }
+  th, td { padding: 0.3rem 0.4rem; }
+
+  .dashboard-nav { grid-template-columns: 1fr; gap: 0.5rem; }
+  .nav-card { padding: 1rem 0.75rem; font-size: 0.8rem; }
+
+  .form-group label { font-size: 0.7rem; }
+  input, textarea { font-size: 0.9rem; padding: 0.4rem 0.5rem; }
+  select { font-size: 0.9rem; padding: 0.4rem 0.5rem; padding-right: 2rem; }
+
+  .alert-item { font-size: 0.8rem; padding: 0.5rem 0.6rem; gap: 0.3rem; }
+  .alert-icon { font-size: 1rem; }
+
+  .odonto-tooth { width: 20px; height: 20px; font-size: 0.6rem; }
+
+  .consult-item { padding: 0.5rem 0; }
+  .consult-date { font-size: 0.7rem; }
+  .consult-field { font-size: 0.8rem; }
+
+  textarea { min-height: 50px; }
+
+  #odontogramContainer { transform: scale(0.85); transform-origin: top center; margin-bottom: 1rem; }
+}

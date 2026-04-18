@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaludDigital — Admin</title>
+  <link rel="stylesheet" href="/layout.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="layout-main">
+    <h2>Panel de Administración</h2>
+
+    <div class="stats" id="stats">
+      <div class="stat-card">Clínicas<strong id="sTotal">—</strong></div>
+      <div class="stat-card">Pacientes<strong id="sPat">—</strong></div>
+      <div class="stat-card">Doctores<strong id="sDoc">—</strong></div>
+    </div>
+
+    <section>
+      <h3>Clínicas registradas</h3>
+      <div id="clinicsList"><span class="empty">Cargando...</span></div>
+
+      <hr class="divider" style="margin-top:1rem;">
+      <h4>Nueva clínica</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" id="clinicName" placeholder="Nombre de la clínica">
+        </div>
+        <button onclick="createClinic()">Crear clínica</button>
+      </div>
+      <div class="msg" id="clinicMsg"></div>
+    </section>
+
+    <section>
+      <h3>Crear administrador de clínica</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="adminEmail" placeholder="admin@clinica.com">
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="adminPassword" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label>Clínica</label>
+          <select id="adminClinic" style="height:36px;">
+            <option value="">Seleccionar clínica...</option>
+          </select>
+        </div>
+        <button onclick="createAdmin()">Crear admin</button>
+      </div>
+      <div class="msg" id="adminMsg"></div>
+    </section>
+  </main>
+
+  <script src="/common.js"></script>
+  <script>
+    requireAuth(['super_admin']);
+
+    async function loadStats() {
+      try {
+        const s = await api('/api/clinics/stats');
+        document.getElementById('sTotal').textContent = s.clinics;
+        document.getElementById('sPat').textContent   = s.patients;
+        document.getElementById('sDoc').textContent   = s.doctors;
+      } catch {}
+    }
+
+    async function loadClinics() {
+      try {
+        const clinics = await api('/api/clinics');
+        document.getElementById('clinicsList').innerHTML = clinics.length === 0
+          ? '<span class="empty">No hay clínicas aún.</span>'
+          : `<table>
+               <thead><tr><th>ID</th><th>Nombre</th></tr></thead>
+               <tbody>${clinics.map(c => `<tr><td>${esc(String(c.id))}</td><td>${esc(c.name)}</td></tr>`).join('')}</tbody>
+             </table>`;
+
+        const sel = document.getElementById('adminClinic');
+        const prev = sel.value;
+        sel.innerHTML = '<option value="">Seleccionar clínica...</option>';
+        clinics.forEach(c => {
+          const o = document.createElement('option');
+          o.value = c.id; o.textContent = c.name; sel.appendChild(o);
+        });
+        if (prev) sel.value = prev;
+      } catch {}
+    }
+
+    async function createClinic() {
+      const name = document.getElementById('clinicName').value.trim();
+      if (!name) { msg('clinicMsg', 'El nombre es requerido', true); return; }
+      try {
+        await api('/api/clinics', { method: 'POST', body: { name } });
+        document.getElementById('clinicName').value = '';
+        msg('clinicMsg', 'Clínica creada exitosamente');
+        loadStats(); loadClinics();
+      } catch (e) { msg('clinicMsg', e.message, true); }
+    }
+
+    async function createAdmin() {
+      const email    = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value;
+      const clinic_id = parseInt(document.getElementById('adminClinic').value);
+      if (!email || !password) { msg('adminMsg', 'Email y contraseña son requeridos', true); return; }
+      if (!clinic_id) { msg('adminMsg', 'Seleccione una clínica', true); return; }
+      try {
+        await api('/api/users', { method: 'POST', body: { email, password, role: 'clinic_admin', clinic_id } });
+        document.getElementById('adminEmail').value = '';
+        document.getElementById('adminPassword').value = '';
+        msg('adminMsg', 'Administrador creado exitosamente');
+      } catch (e) { msg('adminMsg', e.message, true); }
+    }
+
+    loadStats();
+    loadClinics();
+  </script>
+  <script src="/layout.js"></script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+/* ── Layout CSS — Sidebar + Header Global ── */
+
+:root {
+  --primary: #0891b2;
+  --primary-hover: #0e7490;
+  --primary-light: #f0f9ff;
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --sidebar-w: 240px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+/* ── Sidebar ── */
+#sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  overflow-y: auto;
+  padding: 0;
+  margin: 0;
+  transition: width 0.3s ease;
+}
+
+.sb-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--primary);
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+}
+
+.sb-logo svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  fill: var(--primary);
+}
+
+.sb-profile {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.sb-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.sb-user-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.sb-clinic {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-align: center;
+  margin: 0;
+}
+
+.sb-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  gap: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  transition: all 0.15s;
+  border: none;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  margin: 0.25rem 0;
+  width: 100%;
+}
+
+.sb-item:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.sb-item.active {
+  background: var(--primary);
+  color: white;
+  font-weight: 500;
+}
+
+.sb-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.sb-logout {
+  margin: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.sb-logout:hover {
+  background: #fff1f2;
+  color: #e11d48;
+}
+
+.sb-logout svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* ── Page Slide-In Animation ── */
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ── Layout Main Content ── */
+.layout-main {
+  margin-left: var(--sidebar-w);
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 0;
+  padding: 2rem 1.5rem;
+  min-height: 100vh;
+  background: var(--bg);
+  box-sizing: border-box;
+  transition: margin-left 0.3s ease;
+  width: calc(100% - var(--sidebar-w));
+  animation: pageSlideIn 0.25s ease forwards;
+}
+
+.layout-main.page-exit {
+  animation: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  opacity: 0;
+  transform: translateX(24px);
+}
+
+/* ── Remove old nav ── */
+nav.old-nav {
+  display: none;
+}
+
+/* ── Sidebar Collapse State ── */
+.sb-toggle {
+  display: none;
+  width: 100%;
+  padding: 0.75rem 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  transition: all 0.3s;
+  flex-shrink: 0;
+  pointer-events: auto;
+  border-top: 1px solid var(--border);
+}
+
+.sb-toggle:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.sb-toggle svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s;
+}
+
+/* ── Responsive Collapse ── */
+@media (max-width: 1400px) {
+  #sidebar {
+    width: 70px;
+    z-index: 101;
+  }
+
+  #sidebar .sb-logo,
+  #sidebar .sb-user-name,
+  #sidebar .sb-clinic,
+  #sidebar .sb-item span:last-child,
+  #sidebar .sb-logout span:last-child {
+    display: none;
+  }
+
+  #sidebar .sb-profile {
+    padding: 1rem 0.5rem;
+    gap: 0.5rem;
+  }
+
+  #sidebar .sb-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 1rem;
+  }
+
+  #sidebar .sb-item {
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  #sidebar .sb-logout {
+    justify-content: center;
+    margin: 0.5rem;
+    padding: 0.6rem;
+  }
+
+  .sb-toggle {
+    display: flex;
+  }
+
+  #sidebar.expanded {
+    width: var(--sidebar-w);
+  }
+
+  #sidebar.expanded .sb-logo,
+  #sidebar.expanded .sb-user-name,
+  #sidebar.expanded .sb-clinic,
+  #sidebar.expanded .sb-item span:last-child,
+  #sidebar.expanded .sb-logout span:last-child {
+    display: block;
+  }
+
+  #sidebar.expanded .sb-profile {
+    padding: 1.25rem;
+    gap: 0.4rem;
+  }
+
+  #sidebar.expanded .sb-avatar {
+    width: 52px;
+    height: 52px;
+    font-size: 1.2rem;
+  }
+
+  #sidebar.expanded .sb-item {
+    justify-content: flex-start;
+    padding: 0.75rem 1rem;
+  }
+
+  #sidebar.expanded .sb-logout {
+    justify-content: flex-start;
+    margin: 0.75rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  #sidebar.expanded .sb-toggle svg {
+    transform: rotate(180deg);
+  }
+
+  .layout-main {
+    margin-left: 70px;
+    padding: 1.5rem 1rem 1.5rem 0.5rem;
+    width: calc(100% - 70px);
+  }
+
+  #sidebar.expanded ~ .layout-main {
+    margin-left: var(--sidebar-w);
+    padding: 2rem 1.5rem;
+    width: calc(100% - var(--sidebar-w));
+  }
+}
+
+@media (max-width: 860px) {
+  #sidebar {
+    display: none;
+  }
+  .layout-main {
+    margin-left: 0;
+    width: 100%;
+  }
+  .sb-toggle {
+    display: none;
+  }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaludDigital — Paciente</title>
+  <link rel="stylesheet" href="/layout.css">  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; color: #1e293b; }
+
+    /* ── Nav ── */
+    nav { background: white; border-bottom: 1px solid #e2e8f0; padding: 0 2rem; display: flex; align-items: center; height: 58px; }
+    .logo { display: flex; align-items: center; gap: 0.45rem; font-weight: 700; font-size: 1.05rem; color: #0891b2; margin-right: 2rem; text-decoration: none; }
+    .nav-tabs { display: flex; flex: 1; height: 100%; align-items: center; gap: 0.15rem; }
+    .nav-tab { padding: 0.3rem 0.9rem; display: flex; align-items: center; font-size: 0.875rem; color: #64748b; text-decoration: none; border-radius: 6px; transition: all .15s; }
+    .nav-tab:hover { color: #0891b2; background: #f0f9ff; }
+    .nav-tab.active { background: #0891b2; color: white; font-weight: 500; }
+    .nav-logout { background: none; border: none; color: #64748b; font-size: 0.875rem; cursor: pointer; font-family: inherit; }
+    .nav-logout:hover { color: #1e293b; }
+
+    /* ── Main ── */
+    main { width: 100%; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* ── Back link ── */
+    .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #0891b2; font-size: 0.875rem; text-decoration: none; margin-bottom: 1.5rem; }
+    .back-link:hover { text-decoration: underline; }
+
+    /* ── Header Profile ── */
+    .profile-header {
+      display: flex;
+      gap: 1.5rem;
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      align-items: flex-start;
+    }
+    .avatar-large {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      flex-shrink: 0;
+      font-size: 2.5rem;
+    }
+    .profile-info { flex: 1; }
+    .profile-name { font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem; }
+    .profile-meta { display: flex; flex-wrap: wrap; gap: 2rem; font-size: 0.875rem; margin-bottom: 1rem; }
+    .meta-item { display: flex; flex-direction: column; gap: 0.2rem; }
+    .meta-label { color: #64748b; }
+    .meta-value { color: #0f172a; font-weight: 500; }
+
+    /* ── Tabs ── */
+    .tabs-nav {
+      display: flex;
+      gap: 0;
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      border-radius: 10px 10px 0 0;
+      overflow: hidden;
+    }
+    .tab-btn {
+      padding: 0.75rem 1.25rem;
+      border: none;
+      background: none;
+      color: #64748b;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: #0891b2; }
+    .tab-btn.active {
+      color: #0891b2;
+      border-bottom-color: #0891b2;
+    }
+
+    /* ── Sections ── */
+    .section {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .section h3 { font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: 0.5rem; }
+    .section p { font-size: 0.875rem; color: #64748b; margin-bottom: 1rem; }
+
+    /* ── Treatment Plans ── */
+    .treatment-plan {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .plan-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+    }
+    .plan-id { font-weight: 600; color: #0891b2; font-size: 0.95rem; }
+    .plan-status {
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .plan-status.active { background: #dbeafe; color: #1e40af; }
+    .plan-status.completed { background: #dcfce7; color: #166534; }
+    .plan-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 1rem;
+      margin: 0.75rem 0;
+      font-size: 0.85rem;
+    }
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .detail-label { color: #94a3b8; font-size: 0.72rem; text-transform: uppercase; }
+    .detail-value { color: #0f172a; font-weight: 500; }
+    .plan-progress {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #0891b2;
+      transition: width .3s;
+    }
+    .progress-text { font-size: 0.75rem; color: #64748b; min-width: 35px; }
+
+    /* ── Info Grid ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .info-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 600; }
+    .info-value { font-size: 0.9rem; color: #0f172a; }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1.25rem;
+      background: #0891b2;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .btn-primary:hover { background: #0e7490; }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 1rem;
+      border: 1.5px solid #0891b2;
+      background: white;
+      color: #0891b2;
+      border-radius: 7px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .btn-secondary:hover { background: #f0f9ff; }
+
+    /* ── Alerts ── */
+    .alerts { margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
+    .alert-item { padding: 1rem; border-radius: 8px; display: flex; gap: 0.75rem; font-size: 0.9rem; line-height: 1.5; }
+    .alert-allergy { background: #fef2f2; border-left: 4px solid #ef4444; color: #7f1d1d; }
+    .alert-medication { background: #fffbeb; border-left: 4px solid #f59e0b; color: #78350f; }
+    .alert-condition { background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e3a5f; }
+    .alert-icon { font-size: 1.2rem; flex-shrink: 0; }
+
+    /* ── Tab Content ── */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Empty State ── */
+    .empty-state { text-align: center; padding: 2rem; color: #94a3b8; }
+
+    @media (max-width: 768px) {
+      .profile-header { flex-direction: column; align-items: center; text-align: center; }
+      .profile-meta { justify-content: center; }
+      .plan-details { grid-template-columns: 1fr 1fr; }
+      .info-grid { grid-template-columns: 1fr; }
+      .tabs-nav { flex-wrap: wrap; }
+      .tab-btn { padding: 0.6rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+
+<main class="layout-main">
+  <a href="/patients.html" class="back-link">← Volver a pacientes</a>
+
+  <!-- Patient Profile Header -->
+  <div class="profile-header" id="profileHeader">
+    <div class="avatar-large" id="patientAvatar">👤</div>
+    <div class="profile-info" id="profileInfo">
+      <h1 class="profile-name">Cargando...</h1>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div id="alerts"></div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-nav">
+    <button class="tab-btn active" onclick="switchTab('personal')">Datos personales</button>
+    <button class="tab-btn" onclick="switchTab('medical')">Ficha médica</button>
+    <button class="tab-btn" onclick="switchTab('treatments')">Planes de tratamiento</button>
+    <button class="tab-btn" onclick="switchTab('appointments')">Citas</button>
+  </div>
+
+  <!-- Tab Content: Personal Data -->
+  <div class="tab-content active" id="tab-personal">
+    <div class="section">
+      <h3>Información Personal</h3>
+      <div class="info-grid" id="personalInfo">
+        <div class="info-item">
+          <span class="info-label">Número de Identidad</span>
+          <span class="info-value" id="pIdentity">—</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Edad</span>
+          <span class="info-value" id="pAge">—</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Fecha de Nacimiento</span>
+          <span class="info-value" id="pBirth">—</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Sexo</span>
+          <span class="info-value" id="pGender">—</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Teléfono</span>
+          <span class="info-value" id="pPhone">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Content: Medical File -->
+  <div class="tab-content" id="tab-medical">
+    <div class="section">
+      <h3>Expediente Médico</h3>
+      <p>Información crítica, alergias, medicamentos y condiciones médicas</p>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Alergias</span>
+          <span class="info-value" id="mAllergies">—</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Medicamentos</span>
+          <span class="info-value" id="mMedications">—</span>
+        </div>
+        <div class="info-item full-width">
+          <span class="info-label">Condiciones Médicas</span>
+          <span class="info-value" id="mConditions">—</span>
+        </div>
+      </div>
+      <div style="margin-top: 1.5rem;">
+        <a href="" id="medicalRecordLink" class="btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+          </svg>
+          Expediente Médico Completo
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Content: Treatment Plans -->
+  <div class="tab-content" id="tab-treatments">
+    <div id="treatmentsContainer">
+      <div class="empty-state">Cargando planes de tratamiento...</div>
+    </div>
+  </div>
+
+  <!-- Tab Content: Appointments -->
+  <div class="tab-content" id="tab-appointments">
+    <div class="section">
+      <h3>Próximas Citas</h3>
+      <p>Gestiona las citas del paciente</p>
+      <a href="" id="appointmentLink" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h6"/>
+        </svg>
+        Ver Citas
+      </a>
+    </div>
+  </div>
+
+</main>
+
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script>
+  requireAuth(['clinic_admin', 'doctor']);
+
+  const params = new URLSearchParams(window.location.search);
+  const patientId = params.get('id');
+  if (!patientId) window.location.href = '/patients.html';
+
+  let patientData = null;
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    const date = new Date(d + 'T12:00:00');
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function renderProfile() {
+    document.title = `SaludDigital — ${patientData.name}`;
+
+    const initial = patientData.name.charAt(0).toUpperCase();
+    document.getElementById('patientAvatar').textContent = initial;
+
+    document.getElementById('profileInfo').innerHTML = `
+      <div class="profile-name">${esc(patientData.name)}</div>
+      <div class="profile-meta">
+        <div class="meta-item">
+          <span class="meta-label">N° de Identidad</span>
+          <span class="meta-value">${esc(patientData.identity_number)}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Edad</span>
+          <span class="meta-value">${patientData.age} años</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Teléfono</span>
+          <span class="meta-value">${esc(patientData.phone) || '—'}</span>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('pIdentity').textContent = esc(patientData.identity_number);
+    document.getElementById('pAge').textContent = `${patientData.age} años`;
+    document.getElementById('pBirth').textContent = fmtDate(patientData.birth_date);
+    document.getElementById('pGender').textContent = esc(patientData.gender) || '—';
+    document.getElementById('pPhone').textContent = esc(patientData.phone) || '—';
+
+    const ci = patientData.critical_info || {};
+    document.getElementById('mAllergies').textContent = esc(ci.allergies) || '—';
+    document.getElementById('mMedications').textContent = esc(ci.medications) || '—';
+    document.getElementById('mConditions').textContent = esc(ci.conditions) || '—';
+
+    document.getElementById('medicalRecordLink').href = `/medical-record.html?id=${patientId}`;
+    document.getElementById('appointmentLink').href = `/citas.html?patient=${patientId}`;
+
+    renderAlerts(ci);
+    renderTreatments();
+  }
+
+  function renderAlerts(ci) {
+    let html = '';
+    if (ci?.allergies?.trim()) {
+      html += `<div class="alert-item alert-allergy">
+        <span class="alert-icon">⚠️</span>
+        <div><strong>Alergia:</strong> ${esc(ci.allergies)}</div>
+      </div>`;
+    }
+    if (ci?.medications?.trim()) {
+      html += `<div class="alert-item alert-medication">
+        <span class="alert-icon">💊</span>
+        <div><strong>Medicamentos:</strong> ${esc(ci.medications)}</div>
+      </div>`;
+    }
+    if (ci?.conditions?.trim()) {
+      html += `<div class="alert-item alert-condition">
+        <span class="alert-icon">🏥</span>
+        <div><strong>Condición:</strong> ${esc(ci.conditions)}</div>
+      </div>`;
+    }
+    const container = document.getElementById('alerts');
+    container.innerHTML = html ? `<div class="alerts">${html}</div>` : '';
+  }
+
+  async function renderTreatments() {
+    const container = document.getElementById('treatmentsContainer');
+    try {
+      const treatments = await api(`/api/patients/${patientId}/treatment-plans`) || [];
+
+      if (treatments.length === 0) {
+        container.innerHTML = '<div class="empty-state">No hay planes de tratamiento registrados</div>';
+        return;
+      }
+
+      let html = '<div class="section"><h3>Planes de Tratamiento Activos</h3>';
+      treatments.forEach(t => {
+        const progress = t.progress || 0;
+        const status = t.status === 'completed' ? 'Completado' : 'En ejecución';
+        const statusClass = t.status === 'completed' ? 'completed' : 'active';
+
+        html += `
+          <div class="treatment-plan">
+            <div class="plan-header">
+              <div>
+                <div class="plan-id">#${t.id}: ${esc(t.name)}</div>
+              </div>
+              <span class="plan-status ${statusClass}">${status}</span>
+            </div>
+            <div class="plan-details">
+              <div class="detail-item">
+                <span class="detail-label">Profesional</span>
+                <span class="detail-value">${esc(t.professional) || '—'}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Última cita</span>
+                <span class="detail-value">${fmtDate(t.last_appointment) || 'Sin sesiones'}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Costo</span>
+                <span class="detail-value">${t.cost ? '$' + t.cost : '—'}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Estado</span>
+                <span class="detail-value" style="color: ${t.payment_status === 'paid' ? '#16a34a' : '#f59e0b'};">
+                  ${t.payment_status === 'paid' ? '✓ Pagado' : t.payment_status === 'pending' ? '⏳ Pendiente' : '—'}
+                </span>
+              </div>
+            </div>
+            <div class="plan-progress">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${progress}%"></div>
+              </div>
+              <span class="progress-text">${progress}%</span>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    } catch (e) {
+      container.innerHTML = '<div class="empty-state">Error al cargar planes de tratamiento</div>';
+    }
+  }
+
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+    event.target.classList.add('active');
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+  }
+
+  (async () => {
+    try {
+      patientData = await api(`/api/patients/${patientId}`);
+      renderProfile();
+    } catch (e) {
+      document.getElementById('profileInfo').innerHTML = `
+        <h1 style="color:#dc2626">Error al cargar el paciente</h1>`;
+    }
+  })();
+</script>
+</body>
+</html>

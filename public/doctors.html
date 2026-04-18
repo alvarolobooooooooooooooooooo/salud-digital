@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaludDigital — Doctores</title>
+  <link rel="stylesheet" href="/layout.css">  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="layout-main">
+    <a href="/dashboard.html" class="back-link">← Volver al dashboard</a>
+    <h2>Doctores</h2>
+
+    <section>
+      <div id="doctorsList"><span class="empty">Cargando...</span></div>
+    </section>
+
+    <section id="createSection" style="display:none">
+      <h3>Agregar doctor</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="docEmail" placeholder="doctor@clinica.com">
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="docPassword" placeholder="••••••••">
+        </div>
+        <button onclick="createDoctor()">Agregar doctor</button>
+      </div>
+      <div class="msg" id="docMsg"></div>
+    </section>
+  </main>
+
+  <script src="/common.js"></script>
+<script src="/layout.js"></script>
+  <script>
+    requireAuth(['clinic_admin', 'doctor']);
+
+    let currentRole = '';
+
+    (async () => {
+      try {
+        const me = await api('/api/auth/me');
+        currentRole = me.role;
+        document.getElementById('navUser').innerHTML =
+          `${esc(me.email)} &nbsp;|&nbsp; <a href="#" onclick="logout()">Cerrar sesión</a>`;
+        if (me.role === 'clinic_admin') {
+          document.getElementById('createSection').style.display = 'block';
+        }
+        loadDoctors();
+      } catch {}
+    })();
+
+    async function loadDoctors() {
+      try {
+        const doctors = await api('/api/users/doctors');
+        document.getElementById('doctorsList').innerHTML = doctors.length === 0
+          ? '<span class="empty">No hay doctores registrados aún.</span>'
+          : `<table>
+               <thead><tr><th>Email</th><th>Rol</th></tr></thead>
+               <tbody>
+                 ${doctors.map(d => `
+                   <tr>
+                     <td>${esc(d.email)}</td>
+                     <td><span class="tag tag-doctor">Doctor</span></td>
+                   </tr>`).join('')}
+               </tbody>
+             </table>`;
+      } catch (e) {
+        document.getElementById('doctorsList').innerHTML = `<span class="empty">Error al cargar.</span>`;
+      }
+    }
+
+    async function createDoctor() {
+      const email    = document.getElementById('docEmail').value.trim();
+      const password = document.getElementById('docPassword').value;
+      if (!email || !password) { msg('docMsg', 'Email y contraseña son requeridos', true); return; }
+      try {
+        await api('/api/users', { method: 'POST', body: { email, password, role: 'doctor' } });
+        document.getElementById('docEmail').value = '';
+        document.getElementById('docPassword').value = '';
+        msg('docMsg', 'Doctor creado exitosamente');
+        loadDoctors();
+      } catch (e) { msg('docMsg', e.message, true); }
+    }
+  </script>
+</body>
+</html>

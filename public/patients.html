@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaludDigital — Pacientes</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; color: #1e293b; }
+
+    /* ── Main Layout ── */
+    .layout-main {
+      display: flex;
+      height: 100vh;
+      padding: 0 !important;
+      gap: 0;
+      background: white;
+    }
+
+    /* ── Left Panel (Queue) ── */
+    .patient-queue {
+      width: 300px;
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      background: #fafbfc;
+    }
+
+    .queue-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .queue-header h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+    }
+
+    .btn-add-patient {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: none;
+      background: #0891b2;
+      color: white;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.15s;
+    }
+
+    .btn-add-patient:hover {
+      background: #0e7490;
+    }
+
+    /* ── Search ── */
+    .queue-search {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #e2e8f0;
+      background: white;
+    }
+
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      background: white;
+    }
+
+    .search-wrap svg {
+      color: #94a3b8;
+      flex-shrink: 0;
+    }
+
+    .search-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: transparent;
+    }
+
+    .search-input::placeholder {
+      color: #cbd5e1;
+    }
+
+    /* ── Tabs ── */
+    .queue-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #e2e8f0;
+      background: white;
+      padding: 0 0.75rem;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      background: none;
+      color: #64748b;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .tab-btn:hover {
+      color: #0891b2;
+    }
+
+    .tab-btn.active {
+      color: #0891b2;
+      border-bottom-color: #0891b2;
+    }
+
+    /* ── Patient List ── */
+    .queue-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.5rem;
+    }
+
+    .patient-card {
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      border-radius: 8px;
+      background: white;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .patient-card:hover {
+      border-color: #0891b2;
+      box-shadow: 0 2px 8px rgba(8, 145, 178, 0.1);
+    }
+
+    .patient-card.selected {
+      background: #f0f9ff;
+      border-color: #0891b2;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.15);
+    }
+
+    .patient-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #0891b2;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .patient-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .patient-card-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 0.25rem;
+    }
+
+    .patient-card-date {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .patient-card-arrow {
+      color: #0891b2;
+      font-size: 1.1rem;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .patient-card:hover .patient-card-arrow {
+      opacity: 1;
+    }
+
+    .empty-queue {
+      padding: 2rem 1.5rem;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 0.85rem;
+    }
+
+    /* ── Right Panel (Detail) ── */
+    .patient-detail {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #94a3b8;
+    }
+
+    .empty-state svg {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+
+    .empty-state p {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    /* ── Detail Header ── */
+    .detail-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .detail-avatar-lg {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #0891b2;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .detail-header-info {
+      flex: 1;
+    }
+
+    .detail-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.25rem;
+    }
+
+    .detail-badge {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0891b2;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 0.75rem;
+    }
+
+    .detail-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      padding: 0.6rem 1rem;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      background: white;
+      color: #0891b2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 0.85rem;
+      font-weight: 500;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .action-btn:hover {
+      background: #f0f9ff;
+      border-color: #0891b2;
+    }
+
+    /* ── Cards ── */
+    .info-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-card h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    .info-field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+    }
+
+    .info-value {
+      font-size: 0.9rem;
+      color: #0f172a;
+      font-weight: 500;
+    }
+
+    .info-value.empty {
+      color: #cbd5e1;
+    }
+
+    /* ── Appointments ── */
+    .appointments-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .appointment-item {
+      padding: 1rem;
+      border: 1px solid #e0e7ff;
+      background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
+      border-radius: 8px;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      transition: all 0.15s;
+    }
+
+    .appointment-item:hover {
+      border-color: #0891b2;
+      box-shadow: 0 2px 8px rgba(8, 145, 178, 0.1);
+    }
+
+    .appointment-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      background: #dbeafe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0891b2;
+      font-weight: 600;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .appointment-info {
+      flex: 1;
+    }
+
+    .appointment-date {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #0891b2;
+      margin-bottom: 0.2rem;
+    }
+
+    .appointment-title {
+      font-size: 0.95rem;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    .appointment-doctor {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: 0.25rem;
+    }
+
+    /* ── Table ── */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .history-table th {
+      font-weight: 600;
+      color: #475569;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0.75rem;
+      text-align: left;
+    }
+
+    .history-table td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #f1f5f9;
+      color: #475569;
+    }
+
+    .history-table tr:hover {
+      background: #f8fafc;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-completed {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    /* ── Modal ── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(15,23,42,0.4);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; padding: 1rem;
+    }
+    .modal {
+      background: white; border-radius: 12px; width: 100%; max-width: 560px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal-hdr {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9;
+    }
+    .modal-hdr h3 { font-size: 1rem; font-weight: 600; }
+    .modal-close { background: none; border: none; font-size: 1.2rem; color: #94a3b8; cursor: pointer; padding: 0.1rem 0.3rem; }
+    .modal-close:hover { color: #1e293b; }
+    .modal-body { padding: 1.25rem 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; }
+    .field { display: flex; flex-direction: column; gap: 0.3rem; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 0.75rem; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.03em; }
+    .field input, .field select {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-family: inherit;
+    }
+    .field select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      padding-right: 2rem;
+      cursor: pointer;
+      color: #475569;
+      background-color: white;
+    }
+    .field input:focus, .field select:focus { outline: 2px solid #0891b2; outline-offset: -1px; border-color: transparent; }
+    .modal-ftr {
+      display: flex; justify-content: flex-end; gap: 0.5rem;
+      padding: 1rem 1.5rem; border-top: 1px solid #f1f5f9;
+    }
+    .btn-cancel { padding: 0.45rem 1rem; border: 1px solid #e2e8f0; background: white; color: #64748b; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.875rem; }
+    .btn-cancel:hover { background: #f8fafc; }
+    .btn-save { padding: 0.45rem 1.25rem; background: #0891b2; color: white; border: none; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.875rem; font-weight: 500; }
+    .btn-save:hover { background: #0e7490; }
+    .form-msg { padding: 0 1.5rem 0.75rem; font-size: 0.82rem; min-height: 1.2em; }
+    .form-msg.err { color: #dc2626; }
+    .form-msg.ok  { color: #16a34a; }
+
+    /* ── Responsive ── */
+
+    @media (max-width: 1024px) {
+      .patient-queue { width: 240px; }
+      .info-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .layout-main { flex-direction: column; height: auto; }
+      .patient-queue { width: 100%; border-right: none; border-bottom: 1px solid #e2e8f0; max-height: 40vh; }
+      .patient-detail { padding: 1rem; }
+      .detail-header { flex-direction: column; align-items: center; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="layout-main">
+  <!-- Left Panel: Patient Queue -->
+  <div class="patient-queue">
+    <!-- Header -->
+    <div class="queue-header">
+      <h3>Cola de Pacientes</h3>
+      <button class="btn-add-patient" onclick="openModal()" title="Nuevo paciente">+</button>
+    </div>
+
+    <!-- Search -->
+    <div class="queue-search">
+      <div class="search-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input class="search-input" id="searchInput" placeholder="Buscar paciente..."
+          oninput="onSearch(this.value)">
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="queue-tabs">
+      <button class="tab-btn active" onclick="setSort('all')">Todos</button>
+      <button class="tab-btn" onclick="setSort('newest')">Recientes</button>
+      <button class="tab-btn" onclick="setSort('oldest')">Antiguos</button>
+    </div>
+
+    <!-- Patient List -->
+    <div class="queue-list" id="queueList">
+      <div class="empty-queue">Cargando...</div>
+    </div>
+  </div>
+
+  <!-- Right Panel: Patient Detail -->
+  <div class="patient-detail" id="detailPanel">
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <p>Selecciona un paciente para ver los detalles</p>
+    </div>
+  </div>
+</main>
+
+<!-- Modal: New Patient -->
+<div class="overlay" id="overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3>Nuevo Paciente</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <form id="createForm" onsubmit="submitPatient(event)">
+      <div class="modal-body">
+        <div class="field full">
+          <label>Nombre completo *</label>
+          <input type="text" id="fName" required placeholder="Ej. María González">
+        </div>
+        <div class="field">
+          <label>Número de identidad *</label>
+          <input type="text" id="fId" required placeholder="0801-2004-20128" oninput="formatIdentityNumber(this)">
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="tel" id="fPhone" placeholder="31515887">
+        </div>
+        <div class="field">
+          <label>Sexo</label>
+          <select id="fGender">
+            <option value="">Seleccionar...</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Fecha de nacimiento</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+            <select id="fBirthDay">
+              <option value="">Día</option>
+            </select>
+            <select id="fBirthMonth">
+              <option value="">Mes</option>
+              <option value="01">Enero</option>
+              <option value="02">Febrero</option>
+              <option value="03">Marzo</option>
+              <option value="04">Abril</option>
+              <option value="05">Mayo</option>
+              <option value="06">Junio</option>
+              <option value="07">Julio</option>
+              <option value="08">Agosto</option>
+              <option value="09">Septiembre</option>
+              <option value="10">Octubre</option>
+              <option value="11">Noviembre</option>
+              <option value="12">Diciembre</option>
+            </select>
+            <select id="fBirthYear">
+              <option value="">Año</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="form-msg" id="formMsg"></div>
+      <div class="modal-ftr">
+        <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn-save">Guardar Paciente</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Update Payment Status -->
+<div class="overlay" id="paymentOverlay" style="display:none" onclick="if(event.target===this)closePaymentModal()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3>Cambiar Estado de Pago</h3>
+      <button class="modal-close" onclick="closePaymentModal()">✕</button>
+    </div>
+    <div class="modal-body" style="display: block; grid-template-columns: 1fr;">
+      <div class="field full">
+        <label>Consulta</label>
+        <p id="paymentTreatment" style="margin: 0; padding: 0.5rem 0.75rem; background: #f9fafb; border-radius: 6px; font-weight: 500; color: #0f172a;"></p>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem;">
+        <div class="field">
+          <label>Fecha</label>
+          <p id="paymentDate" style="margin: 0; padding: 0.5rem 0.75rem; background: #f9fafb; border-radius: 6px; font-weight: 500; color: #0f172a;"></p>
+        </div>
+        <div class="field">
+          <label>Costo</label>
+          <p id="paymentCost" style="margin: 0; padding: 0.5rem 0.75rem; background: #f9fafb; border-radius: 6px; font-weight: 500; color: #0f172a;"></p>
+        </div>
+      </div>
+      <div class="field full" style="margin-top: 0.5rem;">
+        <label>Marcar como</label>
+        <select id="paymentStatus">
+          <option value="pending">Pendiente</option>
+          <option value="paid">Pagado</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button type="button" class="btn-cancel" onclick="closePaymentModal()">Cancelar</button>
+      <button type="button" class="btn-save" onclick="updatePaymentStatus()">Actualizar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script src="/common-date-picker.js"></script>
+<script src="/odontogram.types.js"></script>
+<script src="/odontogram.data.js"></script>
+<script src="/odontogram.utils.js"></script>
+<script src="/odontogram-tooth.js"></script>
+<script src="/odontogram-arch.js"></script>
+<script src="/odontogram-toolbar.js"></script>
+<script src="/odontogram-legend.js"></script>
+<script src="/odontogram-container.js"></script>
+<script>
+  requireAuth(['clinic_admin', 'doctor']);
+
+  let allPatients = [];
+  let selectedPatientId = null;
+  let searchTerm = '';
+  let sortMode = 'all';
+
+  // ── Load Patients ──
+  (async () => {
+    try {
+      allPatients = await api('/api/patients');
+      renderQueue();
+    } catch (e) {
+      console.error(e);
+    }
+  })();
+
+  // ── Search ──
+  function onSearch(val) {
+    searchTerm = val.trim().toLowerCase();
+    renderQueue();
+  }
+
+  function setSort(mode) {
+    sortMode = mode;
+    document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+      btn.classList.toggle('active',
+        (mode === 'all' && i === 0) ||
+        (mode === 'newest' && i === 1) ||
+        (mode === 'oldest' && i === 2)
+      );
+    });
+    renderQueue();
+  }
+
+  // ── Get filtered & sorted list ──
+  function getFilteredList() {
+    let list = allPatients;
+
+    // Filter by search
+    if (searchTerm) {
+      list = list.filter(p =>
+        p.name.toLowerCase().includes(searchTerm) ||
+        p.identity_number.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Sort
+    if (sortMode === 'newest') {
+      list = [...list].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    } else if (sortMode === 'oldest') {
+      list = [...list].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    }
+
+    return list;
+  }
+
+  // ── Render Queue ──
+  function renderQueue() {
+    const list = getFilteredList();
+    const queueEl = document.getElementById('queueList');
+
+    if (list.length === 0) {
+      queueEl.innerHTML = '<div class="empty-queue">No se encontraron pacientes.</div>';
+      return;
+    }
+
+    queueEl.innerHTML = list.map(p => {
+      const initials = p.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      const isSelected = p.id === selectedPatientId;
+      return `
+        <div class="patient-card ${isSelected ? 'selected' : ''}" onclick="selectPatient(${p.id})">
+          <div class="patient-avatar">${initials}</div>
+          <div class="patient-card-info">
+            <div class="patient-card-name">${esc(p.name)}</div>
+            <div class="patient-card-date">${esc(p.identity_number)}</div>
+          </div>
+          <div class="patient-card-arrow">→</div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Select Patient ──
+  async function selectPatient(patientId) {
+    selectedPatientId = patientId;
+    renderQueue();
+    await loadPatientDetail(patientId);
+  }
+
+  // ── Load Patient Detail ──
+  async function loadPatientDetail(patientId) {
+    try {
+      const patient = await api(`/api/patients/${patientId}`);
+      const appointments = await api('/api/appointments');
+      renderPatientDetail(patient, appointments);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    const date = new Date(d + 'T12:00:00');
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function getAge(birthDate) {
+    if (!birthDate) return null;
+    const today = new Date();
+    const birth = new Date(birthDate + 'T00:00:00');
+    let age = today.getFullYear() - birth.getFullYear();
+    const month = today.getMonth() - birth.getMonth();
+    if (month < 0 || (month === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  }
+
+  // ── Render Patient Detail ──
+  function renderPatientDetail(patient, allAppointments) {
+    const initials = patient.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const age = getAge(patient.birth_date);
+    const userAppointments = (allAppointments || []).filter(a => a.patient_id === patient.id).slice(0, 3);
+    const consultations = patient.consultations || [];
+
+    let html = `
+      <!-- Header -->
+      <div class="detail-header">
+        <div class="detail-avatar-lg">${initials}</div>
+        <div class="detail-header-info">
+          <div class="detail-name">${esc(patient.name)}</div>
+          <div class="detail-badge">ID: ${esc(formatIdentityDisplay(patient.identity_number))}</div>
+          <div class="detail-actions">
+            <button class="action-btn" title="Teléfono" onclick="window.location.href='tel:${patient.phone}'">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+            </button>
+            <button class="action-btn" title="Expediente Médico" onclick="openExpedMedic(${patient.id})">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11H7.5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2H15M13 7H9a2 2 0 0 0-2 2v4h8V9a2 2 0 0 0-2-2z"/>
+                <path d="M12 13v4M10 15h4"/>
+              </svg>
+              <span>Expediente Médico</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Basic Info -->
+      <div class="info-card">
+        <h4>Información Básica</h4>
+        <div class="info-grid">
+          <div class="info-field">
+            <div class="info-label">Sexo</div>
+            <div class="info-value ${!patient.gender ? 'empty' : ''}">${patient.gender || '—'}</div>
+          </div>
+          <div class="info-field">
+            <div class="info-label">Edad</div>
+            <div class="info-value ${age === null ? 'empty' : ''}">${age !== null ? age + ' años' : '—'}</div>
+          </div>
+          <div class="info-field">
+            <div class="info-label">Fecha de Nacimiento</div>
+            <div class="info-value">${fmtDate(patient.birth_date)}</div>
+          </div>
+          <div class="info-field">
+            <div class="info-label">Teléfono</div>
+            <div class="info-value ${!patient.phone ? 'empty' : ''}">${patient.phone || '—'}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    html += `
+      <div class="info-card">
+        <h4>Programación de Citas</h4>
+        <div class="appointments-list">
+          ${userAppointments.length === 0 ? '<p style="color: #94a3b8; font-size: 0.9rem;">No hay citas programadas</p>' : userAppointments.map(apt => {
+            if (!apt.scheduled_at) return '';
+            const aptDate = new Date(apt.scheduled_at);
+            if (isNaN(aptDate)) return '';
+            const day = String(aptDate.getDate()).padStart(2, '0');
+            const month = aptDate.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase();
+            return `
+              <div class="appointment-item">
+                <div class="appointment-icon">${day}</div>
+                <div class="appointment-info">
+                  <div class="appointment-date">${day} ${month}</div>
+                  <div class="appointment-title">${apt.treatment ? esc(apt.treatment) : (apt.doctor_name ? 'Dr. ' + esc(apt.doctor_name) : 'Consulta')}</div>
+                </div>
+              </div>`;
+          }).filter(x => x).join('')}
+        </div>
+      </div>`;
+
+    html += `
+      <div class="info-card">
+        <h4>Historial Clínico</h4>
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Diagnóstico</th>
+              <th>Doctor</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${consultations.length === 0 ? '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: #94a3b8;">No hay consultas registradas</td></tr>' : consultations.map(c => {
+              const cDate = new Date(c.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' });
+              const diagnosis = c.diagnosis || c.visit_reason || 'Consulta';
+              const doctor = c.doctor_name || '—';
+              return `
+                <tr>
+                  <td>${cDate}</td>
+                  <td>${esc(diagnosis)}</td>
+                  <td>${esc(doctor)}</td>
+                  <td style="text-align: center;">
+                    <button onclick="window.location.href='/view-consultation.html?id=${c.id}'" style="background: none; border: none; color: #0891b2; cursor: pointer; font-weight: 500; padding: 0.25rem 0.5rem; border-radius: 4px;">Ver</button>
+                  </td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+    const totalCost = consultations.reduce((sum, c) => sum + (c.payment_status === 'paid' ? (c.cost || 0) : 0), 0);
+    html += `
+      <div class="info-card">
+        <h4>Historial Dental</h4>
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tratamiento</th>
+              <th>Fecha</th>
+              <th>Estado de Pago</th>
+              <th>Costo</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${consultations.length === 0 ? '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #94a3b8;">No hay consultas registradas</td></tr>' : consultations.slice(0, 8).map((c, idx) => {
+              const cDate = new Date(c.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' });
+              const treatment = c.diagnosis || c.treatment || 'Consulta';
+              const payment = c.payment_status || 'completed';
+              const statusBadge = payment === 'paid' ? 'status-completed' : 'status-pending';
+              const statusText = payment === 'paid' ? 'Pagado' : 'Pendiente';
+              const costFormatted = c.cost ? c.cost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0.00';
+              const cost = 'L. ' + costFormatted;
+              return `
+                <tr style="cursor: ${payment === 'paid' ? 'default' : 'pointer'};" onclick="${payment === 'paid' ? '' : `openPaymentModal(${c.id}, '${esc(treatment)}', '${cDate}', '${cost}')`}">
+                  <td>#${c.id || idx + 1}</td>
+                  <td>${esc(treatment)}</td>
+                  <td>${cDate}</td>
+                  <td><span class="status-badge ${statusBadge}">${statusText}</span></td>
+                  <td>${cost}</td>
+                </tr>`;
+            }).join('')}
+            ${consultations.length > 0 ? `<tr style="font-weight: 600; background: #f9fafb; border-top: 2px solid #e2e8f0;">
+              <td colspan="4" style="text-align: right;">Total pagado:</td>
+              <td>L. ${totalCost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+            </tr>` : ''}
+          </tbody>
+        </table>
+      </div>`;
+
+    // Agregar sección del Odontograma
+    html += `
+      <div class="info-card">
+        <h4>Odontograma</h4>
+        <div id="odontogramViewer" style="background:#f9fafb;padding:1rem;border-radius:8px;"></div>
+      </div>`;
+
+    document.getElementById('detailPanel').innerHTML = html;
+
+    // Inicializar odontograma en modo visualización (readOnly = true)
+    setTimeout(() => {
+      try {
+        const odontogramState = patient.odontogram_state ? JSON.parse(patient.odontogram_state) : {};
+        window.odontogramViewer = new OdontogramContainer('odontogramViewer', odontogramState, true);
+      } catch (e) {
+        console.log('No odontogram data available');
+      }
+    }, 100);
+  }
+
+  // ── Modal ──
+  function openModal() {
+    // Fill day dropdown
+    const daySelect = document.getElementById('fBirthDay');
+    if (daySelect.children.length === 1) {
+      for (let i = 1; i <= 31; i++) {
+        const opt = document.createElement('option');
+        opt.value = String(i).padStart(2, '0');
+        opt.textContent = i;
+        daySelect.appendChild(opt);
+      }
+    }
+    // Fill year dropdown
+    const yearSelect = document.getElementById('fBirthYear');
+    if (yearSelect.children.length === 1) {
+      const now = new Date().getFullYear();
+      for (let y = now; y >= 1920; y--) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        yearSelect.appendChild(opt);
+      }
+    }
+    document.getElementById('overlay').style.display = 'flex';
+    document.getElementById('fName').focus();
+  }
+
+  function closeModal() {
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('createForm').reset();
+    const m = document.getElementById('formMsg');
+    m.textContent = ''; m.className = 'form-msg';
+  }
+
+  function formatIdentityDisplay(value) {
+    if (!value) return value;
+    const clean = value.replace(/[^0-9]/g, '');
+    if (clean.length <= 4) return clean;
+    if (clean.length <= 8) return clean.slice(0, 4) + '-' + clean.slice(4);
+    return clean.slice(0, 4) + '-' + clean.slice(4, 8) + '-' + clean.slice(8, 13);
+  }
+  function formatIdentityNumber(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length > 13) value = value.slice(0, 13);
+    let formatted = '';
+    if (value.length > 0) formatted += value.slice(0, 4);
+    if (value.length > 4) formatted += '-' + value.slice(4, 8);
+    if (value.length > 8) formatted += '-' + value.slice(8, 13);
+    input.value = formatted;
+  }
+  async function submitPatient(e) {
+    e.preventDefault();
+    const msgEl = document.getElementById('formMsg');
+    const name   = document.getElementById('fName').value.trim();
+    const id_num = document.getElementById('fId').value.replace(/-/g, '').trim();
+    if (!name || !id_num) { msgEl.textContent = 'Nombre e identidad son requeridos'; msgEl.className = 'form-msg err'; return; }
+
+    const day = document.getElementById('fBirthDay').value;
+    const month = document.getElementById('fBirthMonth').value;
+    const year = document.getElementById('fBirthYear').value;
+    const birth_date = (day && month && year) ? `${year}-${month}-${day}` : '';
+
+    try {
+      const p = await api('/api/patients', {
+        method: 'POST',
+        body: {
+          name,
+          identity_number: id_num,
+          phone:      document.getElementById('fPhone').value.trim(),
+          birth_date: birth_date,
+          gender:     document.getElementById('fGender').value
+        }
+      });
+      allPatients.unshift(p);
+      closeModal();
+      selectedPatientId = p.id;
+      renderQueue();
+      await loadPatientDetail(p.id);
+    } catch (err) {
+      msgEl.textContent = err.message;
+      msgEl.className = 'form-msg err';
+    }
+  }
+
+  // ── Payment Modal ──
+  let currentPaymentConsultationId = null;
+
+  function openPaymentModal(consultationId, treatment, date, cost) {
+    currentPaymentConsultationId = consultationId;
+    document.getElementById('paymentTreatment').textContent = treatment;
+    document.getElementById('paymentDate').textContent = date;
+    document.getElementById('paymentCost').textContent = cost;
+
+    const patient = allPatients.find(p => p.id === selectedPatientId);
+    const consultation = patient?.consultations?.find(c => c.id === consultationId);
+    document.getElementById('paymentStatus').value = consultation?.payment_status || 'pending';
+
+    document.getElementById('paymentOverlay').style.display = 'flex';
+  }
+
+  function closePaymentModal() {
+    document.getElementById('paymentOverlay').style.display = 'none';
+    currentPaymentConsultationId = null;
+  }
+
+  async function updatePaymentStatus() {
+    if (!currentPaymentConsultationId) return;
+
+    const newStatus = document.getElementById('paymentStatus').value;
+    const body = { payment_status: newStatus };
+
+    // If marking as paid, assign current doctor
+    if (newStatus === 'paid') {
+      try {
+        const userInfo = await api('/api/auth/me');
+        if (userInfo && userInfo.id) {
+          body.doctor_id = userInfo.id;
+        }
+      } catch (e) {
+        console.log('Could not get user info');
+      }
+    }
+
+    try {
+      await api(`/api/consultations/${currentPaymentConsultationId}`, {
+        method: 'PUT',
+        body: body
+      });
+
+      const patientIdx = allPatients.findIndex(p => p.id === selectedPatientId);
+      if (patientIdx !== -1) {
+        const consultation = allPatients[patientIdx].consultations?.find(c => c.id === currentPaymentConsultationId);
+        if (consultation) {
+          consultation.payment_status = newStatus;
+        }
+      }
+
+      closePaymentModal();
+      await loadPatientDetail(selectedPatientId);
+    } catch (err) {
+      alert('Error al actualizar: ' + err.message);
+    }
+  }
+
+  // ── Navigation ──
+  function openExpedMedic(patientId) {
+    window.location.href = `/patient.html?id=${patientId}`;
+  }
+
+  function openExpedClinico(patientId) {
+    window.location.href = `/clinical-record.html?id=${patientId}`;
+  }
+</script>
+</body>
+</html>

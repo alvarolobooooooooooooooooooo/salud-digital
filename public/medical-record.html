@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expediente Médico</title>
+  <link rel="stylesheet" href="/layout.css">  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; color: #1e293b; }
+
+    nav { background: white; border-bottom: 1px solid #e2e8f0; padding: 0 2rem; display: flex; align-items: center; height: 58px; }
+    .logo { display: flex; align-items: center; gap: .45rem; font-weight: 700; font-size: 1.05rem; color: #0891b2; margin-right: 2rem; text-decoration: none; }
+    .nav-tabs { display: flex; flex: 1; height: 100%; align-items: center; gap: .15rem; }
+    .nav-tab { padding: .3rem .9rem; display: flex; align-items: center; font-size: .875rem; color: #64748b; text-decoration: none; border-radius: 6px; transition: all .15s; }
+    .nav-tab:hover { color: #0891b2; background: #f0f9ff; }
+    .nav-logout { background: none; border: none; color: #64748b; font-size: .875rem; cursor: pointer; font-family: inherit; }
+
+    main { width: 100%; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    .header-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+    .header-section h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: .2rem; }
+    .header-section p { color: #64748b; font-size: .875rem; }
+    .btn-back { display: flex; align-items: center; gap: .4rem; padding: .6rem 1.25rem; border: 1px solid #e2e8f0; background: white; color: #0891b2; border-radius: 8px; font-size: .9rem; font-family: inherit; cursor: pointer; white-space: nowrap; }
+    .btn-back:hover { background: #f0f9ff; }
+
+    .tab-buttons { display: flex; gap: .5rem; margin-bottom: 2rem; }
+    .tab-btn { padding: .6rem 1.25rem; border: none; background: #0891b2; color: white; border-radius: 8px; font-size: .9rem; cursor: pointer; font-family: inherit; font-weight: 500; }
+    .tab-btn:hover { background: #0e7490; }
+
+    .section { background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.07); padding: 1.5rem; margin-bottom: 1.5rem; }
+    .section h3 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-grid.full { grid-template-columns: 1fr; }
+
+    .form-group { display: flex; flex-direction: column; gap: .3rem; }
+    .form-group label { font-size: .8rem; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: .03em; }
+    .form-group input, .form-group textarea { padding: .5rem .75rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: .875rem; font-family: inherit; }
+    .form-group select {
+      padding: .5rem .75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: .875rem;
+      font-family: inherit;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right .75rem center;
+      padding-right: 2rem;
+      cursor: pointer;
+      color: #475569;
+      background-color: white;
+    }
+    .form-group input:disabled, .form-group select:disabled, .form-group textarea:disabled { background: #f9fafb; color: #94a3b8; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: 2px solid #0891b2; outline-offset: -1px; border-color: transparent; }
+
+    .fieldset { border: none; margin-bottom: 1.5rem; }
+    .fieldset.full { grid-column: 1 / -1; }
+    .fieldset legend { font-size: .9rem; font-weight: 600; margin-bottom: .75rem; }
+
+    .msg { padding: .75rem; border-radius: 6px; margin-bottom: 1rem; font-size: .875rem; display: none; }
+    .msg.err { color: #dc2626; background: #fef2f2; border: 1px solid #fca5a5; display: block; }
+    .msg.ok { color: #16a34a; background: #f0fdf4; border: 1px solid #86efac; display: block; }
+
+    .btn-group { display: flex; gap: .5rem; justify-content: flex-end; }
+    button { padding: .45rem 1rem; border: none; background: #0891b2; color: white; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: .875rem; font-weight: 500; }
+    button:hover { background: #0e7490; }
+    .btn-cancel { background: white; color: #64748b; border: 1px solid #e2e8f0; }
+    .btn-cancel:hover { background: #f8fafc; }
+  </style>
+</head>
+<body>
+
+
+<main class="layout-main">
+  <div class="header-section">
+    <div>
+      <h1>Expediente Médico</h1>
+      <p id="patientInfo">Cargando...</p>
+    </div>
+    <button class="btn-back" onclick="history.back()">← Volver</button>
+  </div>
+
+  <div class="tab-buttons">
+    <button class="tab-btn" onclick="window.location.href='/clinical-record.html?id='+new URLSearchParams(window.location.search).get('id')">Expediente Clínico</button>
+    <button class="tab-btn" onclick="toggleEditMode()" id="btnEditMode">Editar</button>
+  </div>
+
+  <form id="medicForm" onsubmit="submitMedic(event)">
+    <!-- Datos Básicos -->
+    <div class="section">
+      <h3>Datos Básicos</h3>
+      <div class="form-grid">
+        <div class="form-group full"><label>Nombre completo</label><input type="text" id="emName" disabled></div>
+        <div class="form-group"><label>Número de identificación</label><input type="text" id="emId" disabled></div>
+        <div class="form-group"><label>Fecha de nacimiento</label><input type="date" id="emBirth" data-date-picker disabled></div>
+        <div class="form-group"><label>Sexo</label><input type="text" id="emGender" disabled></div>
+        <div class="form-group"><label>Teléfono</label><input type="text" id="emPhone" disabled></div>
+      </div>
+      <div style="font-size:.8rem;color:#94a3b8;">Última actualización: <span id="lastUpdated">—</span></div>
+    </div>
+
+    <!-- Información Crítica -->
+    <div class="section">
+      <h3>Información Crítica</h3>
+      <div class="fieldset">
+        <div style="margin-bottom:1rem;">
+          <label style="font-size:.8rem;font-weight:600;">¿Tiene alergias?</label>
+          <div style="margin-top:.5rem;">
+            <label><input type="radio" name="emAllergies" value="si" disabled> Sí</label>
+            <label style="margin-left:1.5rem;"><input type="radio" name="emAllergies" value="no" disabled> No</label>
+          </div>
+        </div>
+        <div id="allergiesField" style="display:none;"><input type="text" id="emAllergiesText" placeholder="Especificar alergias..." disabled></div>
+      </div>
+    </div>
+
+    <!-- Medicamentos Actuales -->
+    <div class="section">
+      <h3>Medicamentos Actuales</h3>
+      <div class="fieldset">
+        <div style="margin-bottom:1rem;">
+          <label style="font-size:.8rem;font-weight:600;">¿Está tomando medicamentos?</label>
+          <div style="margin-top:.5rem;">
+            <label><input type="radio" name="emMeds" value="si" disabled> Sí</label>
+            <label style="margin-left:1.5rem;"><input type="radio" name="emMeds" value="no" disabled> No</label>
+          </div>
+        </div>
+        <div id="medsField" style="display:none;"><input type="text" id="emMedsText" placeholder="Especificar medicamentos..." disabled></div>
+      </div>
+    </div>
+
+    <!-- Enfermedades / Condiciones -->
+    <div class="section">
+      <h3>Enfermedades / Condiciones</h3>
+      <div class="fieldset">
+        <div style="margin-bottom:.75rem;"><label><input type="radio" name="diabetes" value="si" disabled style="margin-right:.3rem;"/>Diabetes</label><label style="margin-left:1rem;"><input type="radio" name="diabetes" value="no" disabled style="margin-right:.3rem;"/>No</label></div>
+        <div style="margin-bottom:.75rem;"><label><input type="radio" name="hipertension" value="si" disabled style="margin-right:.3rem;"/>Hipertensión</label><label style="margin-left:1rem;"><input type="radio" name="hipertension" value="no" disabled style="margin-right:.3rem;"/>No</label></div>
+        <div style="margin-bottom:.75rem;"><label><input type="radio" name="heart" value="si" disabled style="margin-right:.3rem;"/>Problemas cardíacos</label><label style="margin-left:1rem;"><input type="radio" name="heart" value="no" disabled style="margin-right:.3rem;"/>No</label></div>
+        <div style="margin-bottom:.75rem;"><label><input type="radio" name="asthma" value="si" disabled style="margin-right:.3rem;"/>Asma</label><label style="margin-left:1rem;"><input type="radio" name="asthma" value="no" disabled style="margin-right:.3rem;"/>No</label></div>
+        <div><label style="font-size:.8rem;font-weight:600;">Otras</label><textarea id="emOtherConditions" placeholder="Escriba otras enfermedades aquí..." disabled style="width:100%;padding:.5rem;border:1px solid #e2e8f0;border-radius:6px;margin-top:.3rem;min-height:60px;"></textarea></div>
+      </div>
+    </div>
+
+    <div class="msg" id="medicMsg"></div>
+
+    <div class="btn-group">
+      <button type="button" class="btn-cancel" id="btnCancel" onclick="toggleEditMode()" style="display:none;">Cancelar</button>
+      <button type="button" class="btn-cancel" id="btnClose" onclick="history.back()">Cerrar</button>
+      <button type="submit" id="btnSave" style="display:none;">Guardar</button>
+    </div>
+  </form>
+</main>
+
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script src="/common-date-picker.js"></script>
+<script>
+  requireAuth(['clinic_admin', 'doctor']);
+
+  const params = new URLSearchParams(window.location.search);
+  const patientId = params.get('id');
+  if (!patientId) window.location.href = '/patients.html';
+
+  let patientData = null;
+  let expedEditMode = false;
+
+  function fillCriticalForm() {
+    document.getElementById('emName').value = patientData.name;
+    document.getElementById('emId').value = patientData.identity_number;
+    document.getElementById('emBirth').value = patientData.birth_date;
+    document.getElementById('emGender').value = patientData.gender;
+    document.getElementById('emPhone').value = patientData.phone;
+    document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString('es-ES');
+
+    const ci = patientData.critical_info || {};
+    document.querySelectorAll('input[name="emAllergies"]').forEach(r => r.checked = (ci.allergies ? 'si' : 'no') === r.value);
+    document.getElementById('emAllergiesText').value = ci.allergies || '';
+    document.getElementById('allergiesField').style.display = ci.allergies ? 'block' : 'none';
+
+    document.querySelectorAll('input[name="emMeds"]').forEach(r => r.checked = (ci.medications ? 'si' : 'no') === r.value);
+    document.getElementById('emMedsText').value = ci.medications || '';
+    document.getElementById('medsField').style.display = ci.medications ? 'block' : 'none';
+
+    const conditions = ci.conditions || '';
+    document.querySelector('input[name="diabetes"][value="no"]').checked = true;
+    document.querySelector('input[name="hipertension"][value="no"]').checked = true;
+    document.querySelector('input[name="heart"][value="no"]').checked = true;
+    document.querySelector('input[name="asthma"][value="no"]').checked = true;
+    document.getElementById('emOtherConditions').value = conditions;
+  }
+
+  function toggleEditMode() {
+    expedEditMode = !expedEditMode;
+    const disabled = !expedEditMode;
+    document.querySelectorAll('#medicForm input, #medicForm textarea').forEach(el => el.disabled = disabled);
+    document.getElementById('btnEditMode').textContent = expedEditMode ? 'Cancelar' : 'Editar';
+    document.getElementById('btnCancel').style.display = expedEditMode ? 'inline-block' : 'none';
+    document.getElementById('btnClose').style.display = expedEditMode ? 'none' : 'inline-block';
+    document.getElementById('btnSave').style.display = expedEditMode ? 'inline-block' : 'none';
+  }
+
+  async function submitMedic(e) {
+    e.preventDefault();
+    const msgEl = document.getElementById('medicMsg');
+    try {
+      await api(`/api/patients/${patientData.id}`, { method: 'PUT', body: { name: document.getElementById('emName').value, birth_date: document.getElementById('emBirth').value, gender: document.getElementById('emGender').value, phone: document.getElementById('emPhone').value } });
+      await api(`/api/patients/${patientData.id}/critical-info`, { method: 'PUT', body: { allergies: document.getElementById('emAllergiesText').value, medications: document.getElementById('emMedsText').value, conditions: document.getElementById('emOtherConditions').value } });
+      toggleEditMode();
+      msgEl.textContent = 'Datos guardados';
+      msgEl.className = 'msg ok';
+    } catch(e) { msgEl.textContent = e.message; msgEl.className = 'msg err'; }
+  }
+
+  (async () => {
+    try {
+      const me = await api('/api/auth/me');
+      document.getElementById('navUser').innerHTML = `<a href="#" onclick="logout()">Cerrar sesión</a>`;
+      patientData = await api(`/api/patients/${patientId}`);
+      document.getElementById('patientInfo').innerHTML = `N° Identidad: <strong>${esc(patientData.identity_number)}</strong> | Edad: <strong>${patientData.age} años</strong>`;
+      fillCriticalForm(patientData.critical_info);
+    } catch (e) {
+      console.error(e);
+      alert('Error al cargar');
+    }
+  })();
+</script>
+</body>
+</html>

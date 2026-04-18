@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ver Consulta</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .error { color: red; background: #ffe0e0; padding: 1rem; border-radius: 8px; }
+    .success { color: green; background: #e0ffe0; padding: 1rem; border-radius: 8px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Ver Consulta Dental</h1>
+  
+  <div id="message" class="success" style="display:none;"></div>
+  
+  <div id="content" style="display:none;">
+    <p><strong>Paciente:</strong> <span id="patientName">--</span></p>
+    <p><strong>Diagnóstico:</strong> <span id="diagnosis">--</span></p>
+    <p><strong>Costo:</strong> <span id="cost">--</span></p>
+  </div>
+</div>
+
+<script>
+async function test() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  
+  const msg = document.getElementById('message');
+  
+  if (!id) {
+    msg.textContent = 'Error: No hay ID de consulta en la URL';
+    msg.className = 'error';
+    msg.style.display = 'block';
+    return;
+  }
+  
+  const token = localStorage.getItem('sd_token');
+  if (!token) {
+    msg.textContent = 'Error: No hay sesión activa. Debes estar logueado.';
+    msg.className = 'error';
+    msg.style.display = 'block';
+    return;
+  }
+  
+  try {
+    const res = await fetch(`/api/consultations/${id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!res.ok) {
+      throw new Error(`API error: ${res.status} ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    
+    document.getElementById('patientName').textContent = data.patient_name || '--';
+    document.getElementById('diagnosis').textContent = data.diagnosis || '--';
+    document.getElementById('cost').textContent = data.cost || '--';
+    document.getElementById('content').style.display = 'block';
+    msg.textContent = 'Consulta cargada exitosamente ✓';
+    msg.className = 'success';
+    msg.style.display = 'block';
+  } catch (e) {
+    msg.textContent = `Error: ${e.message}`;
+    msg.className = 'error';
+    msg.style.display = 'block';
+  }
+}
+
+test();
+</script>
+</body>
+</html>

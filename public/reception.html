@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaludDigital — Recepción</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; color: #1e293b; }
+
+    /* ── Nav ── */
+    nav {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 58px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #0891b2;
+      text-decoration: none;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .nav-logout {
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 0.875rem;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 0.4rem 0.75rem;
+    }
+    .nav-logout:hover {
+      color: #1e293b;
+    }
+
+    /* ── Main ── */
+    main {
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      max-width: 1400px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+    }
+    .hero-content h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.3rem;
+    }
+    .hero-content p {
+      color: #64748b;
+      font-size: 0.875rem;
+    }
+    .btn-new-appointment {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 1.25rem;
+      background: #0891b2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .btn-new-appointment:hover {
+      background: #0e7490;
+    }
+
+    /* ── Search Section ── */
+    .search-section {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .search-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.75rem;
+    }
+    .search-input-group {
+      display: flex;
+      gap: 0.75rem;
+    }
+    .search-input {
+      flex: 1;
+      padding: 0.6rem 0.9rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+    .search-input:focus {
+      outline: 2px solid #0891b2;
+      outline-offset: -1px;
+      border-color: transparent;
+    }
+    .btn-search {
+      padding: 0.6rem 1.5rem;
+      background: #0891b2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-search:hover {
+      background: #0e7490;
+    }
+
+    /* ── Doctors Section ── */
+    .section {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 1.5rem;
+    }
+    .doctors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .doctor-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .doctor-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-color: #0891b2;
+    }
+    .doctor-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #0891b2;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 auto 1rem;
+    }
+    .doctor-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 0.3rem;
+    }
+    .doctor-specialty {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 1rem;
+    }
+    .doctor-phone {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+    }
+    .btn-appointment {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      background: #f0f9ff;
+      color: #0891b2;
+      border: 1px solid #bae6fd;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .btn-appointment:hover {
+      background: #e0f2fe;
+    }
+
+    /* ── Appointments Today Section ── */
+    .appointments-today {
+      margin-top: 2rem;
+    }
+    .appointments-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .appointment-item {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 4px solid #0891b2;
+    }
+    .appointment-info {
+      flex: 1;
+    }
+    .appointment-time {
+      font-size: 0.75rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+    }
+    .appointment-patient {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 0.15rem;
+    }
+    .appointment-doctor {
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+    .appointment-status {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.3rem 0.75rem;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .badge-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .badge-waiting {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .badge-completed {
+      background: #dbeafe;
+      color: #075985;
+    }
+
+    /* ── Modal ── */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 20px 25px rgba(0,0,0,0.15);
+    }
+    .modal-header {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 1.5rem;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #94a3b8;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #375569;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+    }
+    .form-input,
+    .form-select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+    .form-input:focus,
+    .form-select:focus {
+      outline: 2px solid #0891b2;
+      outline-offset: -1px;
+      border-color: transparent;
+    }
+    .form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      padding-right: 2rem;
+      cursor: pointer;
+    }
+    .form-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 2rem;
+    }
+    .btn-cancel {
+      padding: 0.6rem 1.25rem;
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-cancel:hover {
+      background: #e2e8f0;
+    }
+    .btn-submit {
+      padding: 0.6rem 1.25rem;
+      background: #0891b2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-submit:hover {
+      background: #0e7490;
+    }
+
+    /* ── Empty State ── */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: #94a3b8;
+    }
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .empty-state-text {
+      font-size: 0.95rem;
+    }
+
+    /* ── Message ── */
+    .msg {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      z-index: 2000;
+    }
+    .msg.ok {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .msg.err {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/reception.html" class="logo">
+      <span>🏥</span>
+      <span>SaludDigital</span>
+    </a>
+    <div class="nav-right">
+      <button class="nav-logout" onclick="logout()">Cerrar Sesión</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="hero">
+      <div class="hero-content">
+        <h1>Recepción</h1>
+        <p>Agenda y visualiza citas de la clínica</p>
+      </div>
+      <button class="btn-new-appointment" onclick="openNewAppointmentModal()">
+        <span>+</span> Nueva cita
+      </button>
+    </div>
+
+    <!-- Search Section -->
+    <div class="search-section">
+      <div class="search-label">Buscar Doctor</div>
+      <div class="search-input-group">
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder="Buscar por nombre..."
+          onkeyup="filterDoctors()"
+        >
+        <button class="btn-search" onclick="filterDoctors()">Buscar</button>
+      </div>
+    </div>
+
+    <!-- Doctors Section -->
+    <div class="section">
+      <div class="section-title">
+        <span>👨‍⚕️</span>
+        <span>Doctores de la Clínica</span>
+      </div>
+      <div class="doctors-grid" id="doctorsGrid">
+        <div class="empty-state">
+          <div class="empty-state-icon">⏳</div>
+          <div class="empty-state-text">Cargando doctores...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointments Today Section -->
+    <div class="section appointments-today">
+      <div class="section-title">
+        <span>📅</span>
+        <span>Citas de Hoy</span>
+      </div>
+      <div class="appointments-list" id="appointmentsList">
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <div class="empty-state-text">No hay citas programadas para hoy</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- New Appointment Modal -->
+  <div class="modal" id="appointmentModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-header">Nueva Cita</div>
+
+      <form id="appointmentForm" onsubmit="saveAppointment(event)">
+        <div class="form-group">
+          <label class="form-label">Paciente</label>
+          <input
+            type="text"
+            id="patientInput"
+            class="form-input"
+            placeholder="Nombre del paciente"
+            required
+          >
+          <div id="patientSuggestions" style="margin-top: 0.5rem; max-height: 200px; overflow-y: auto;"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Doctor</label>
+          <select id="doctorSelect" class="form-select" required>
+            <option value="">Seleccionar doctor...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Especialidad</label>
+          <input
+            type="text"
+            id="specialtyInput"
+            class="form-input"
+            placeholder="Ej: Medicina General"
+            readonly
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fecha y Hora</label>
+          <input
+            type="datetime-local"
+            id="appointmentDateTime"
+            class="form-input"
+            required
+          >
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" onclick="closeModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-submit">
+            Agendar Cita
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="msg" id="message"></div>
+
+  <script src="/common.js"></script>
+  <script>
+    let doctors = [];
+    let patients = [];
+    let selectedDoctor = null;
+
+    function init() {
+      requireAuth(['receptionist']);
+      loadDoctors();
+      loadAppointmentsToday();
+    }
+
+    async function loadDoctors() {
+      try {
+        const data = await api('/api/users');
+        doctors = data.filter(u => u.role === 'doctor');
+        renderDoctors();
+        populateDoctorSelect();
+      } catch (err) {
+        msg('message', 'Error cargando doctores', true);
+        console.error(err);
+      }
+    }
+
+    async function loadPatients() {
+      try {
+        patients = await api('/api/patients');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadAppointmentsToday() {
+      try {
+        const data = await api('/api/appointments/today');
+        renderAppointmentsToday(data);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderDoctors() {
+      const grid = document.getElementById('doctorsGrid');
+      if (!doctors.length) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-state-text">No hay doctores disponibles</div></div>';
+        return;
+      }
+
+      grid.innerHTML = doctors.map(doc => `
+        <div class="doctor-card">
+          <div class="doctor-avatar">${doc.name.charAt(0)}</div>
+          <div class="doctor-name">Dr. ${doc.name}</div>
+          <div class="doctor-specialty">${doc.specialty || 'Especialidad no especificada'}</div>
+          <div class="doctor-phone">📞 ${doc.phone || 'Sin teléfono'}</div>
+          <button class="btn-appointment" onclick="selectDoctor(${doc.id}, '${doc.name}', '${doc.specialty || ''}')">
+            Nueva cita
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function filterDoctors() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = doctors.filter(d =>
+        d.name.toLowerCase().includes(query) ||
+        (d.specialty && d.specialty.toLowerCase().includes(query))
+      );
+
+      const grid = document.getElementById('doctorsGrid');
+      if (!filtered.length) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-state-text">No se encontraron doctores</div></div>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map(doc => `
+        <div class="doctor-card">
+          <div class="doctor-avatar">${doc.name.charAt(0)}</div>
+          <div class="doctor-name">Dr. ${doc.name}</div>
+          <div class="doctor-specialty">${doc.specialty || 'Especialidad no especificada'}</div>
+          <div class="doctor-phone">📞 ${doc.phone || 'Sin teléfono'}</div>
+          <button class="btn-appointment" onclick="selectDoctor(${doc.id}, '${doc.name}', '${doc.specialty || ''}')">
+            Nueva cita
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function populateDoctorSelect() {
+      const select = document.getElementById('doctorSelect');
+      select.innerHTML = '<option value="">Seleccionar doctor...</option>' +
+        doctors.map(d => `
+          <option value="${d.id}" data-specialty="${d.specialty || ''}">Dr. ${d.name}</option>
+        `).join('');
+    }
+
+    function selectDoctor(id, name, specialty) {
+      selectedDoctor = { id, name, specialty };
+      openNewAppointmentModal();
+      document.getElementById('doctorSelect').value = id;
+      document.getElementById('specialtyInput').value = specialty;
+    }
+
+    function openNewAppointmentModal() {
+      loadPatients();
+      document.getElementById('appointmentModal').classList.add('active');
+
+      // Set min datetime to now
+      const now = new Date();
+      const dateTimeInput = document.getElementById('appointmentDateTime');
+      dateTimeInput.min = now.toISOString().slice(0, 16);
+    }
+
+    function closeModal() {
+      document.getElementById('appointmentModal').classList.remove('active');
+      document.getElementById('appointmentForm').reset();
+      selectedDoctor = null;
+    }
+
+    document.getElementById('doctorSelect').addEventListener('change', function() {
+      const option = this.options[this.selectedIndex];
+      document.getElementById('specialtyInput').value = option.dataset.specialty || '';
+    });
+
+    document.getElementById('patientInput').addEventListener('input', async function() {
+      const query = this.value;
+      if (!query) {
+        document.getElementById('patientSuggestions').innerHTML = '';
+        return;
+      }
+
+      const suggestions = patients.filter(p =>
+        p.name.toLowerCase().includes(query.toLowerCase())
+      );
+
+      const container = document.getElementById('patientSuggestions');
+      if (!suggestions.length) {
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = suggestions.map(p => `
+        <div style="padding: 0.5rem; background: #f0f9ff; border-radius: 4px; cursor: pointer; margin-bottom: 0.25rem;" onclick="selectPatient('${p.name}', ${p.id})">
+          ${p.name} (${p.identity_number})
+        </div>
+      `).join('');
+    });
+
+    function selectPatient(name, id) {
+      document.getElementById('patientInput').value = name;
+      document.getElementById('patientInput').dataset.patientId = id;
+      document.getElementById('patientSuggestions').innerHTML = '';
+    }
+
+    async function saveAppointment(e) {
+      e.preventDefault();
+
+      const doctorId = document.getElementById('doctorSelect').value;
+      const patientId = document.getElementById('patientInput').dataset.patientId;
+      const specialty = document.getElementById('specialtyInput').value;
+      const scheduledAt = document.getElementById('appointmentDateTime').value;
+
+      if (!doctorId || !patientId || !scheduledAt) {
+        msg('message', 'Completa todos los campos', true);
+        return;
+      }
+
+      try {
+        await api('/api/appointments', {
+          method: 'POST',
+          body: {
+            patient_id: parseInt(patientId),
+            doctor_id: parseInt(doctorId),
+            specialty,
+            scheduled_at: new Date(scheduledAt).toISOString()
+          }
+        });
+        msg('message', 'Cita agendada exitosamente');
+        closeModal();
+        loadAppointmentsToday();
+        renderDoctors();
+      } catch (err) {
+        msg('message', err.message || 'Error agendando cita', true);
+      }
+    }
+
+    function renderAppointmentsToday(appointments) {
+      const list = document.getElementById('appointmentsList');
+      if (!appointments.length) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">No hay citas programadas para hoy</div></div>';
+        return;
+      }
+
+      list.innerHTML = appointments.map(appt => {
+        const dt = new Date(appt.scheduled_at);
+        const time = dt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        const badgeClass = appt.status === 'pending' ? 'badge-pending' : appt.status === 'waiting' ? 'badge-waiting' : 'badge-completed';
+        const statusText = appt.status === 'pending' ? 'Pendiente' : appt.status === 'waiting' ? 'En Sala de Espera' : 'Completada';
+
+        return `
+          <div class="appointment-item">
+            <div class="appointment-info">
+              <div class="appointment-time">${time}</div>
+              <div class="appointment-patient">${appt.patient_name}</div>
+              <div class="appointment-doctor">Dr. ${appt.doctor_name} • ${appt.specialty}</div>
+            </div>
+            <div class="appointment-status">
+              <span class="badge ${badgeClass}">${statusText}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    init();
+  </script>
+</body>
+</html>

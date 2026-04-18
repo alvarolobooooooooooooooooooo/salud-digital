@@ -1,0 +1,34 @@
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const db = require('../db');
+const { authenticate, SECRET } = require('../middleware/auth');
+
+router.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+
+  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  if (!user || !bcrypt.compareSync(password, user.password)) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+
+  const token = jwt.sign(
+    { id: user.id, email: user.email, role: user.role, clinic_id: user.clinic_id },
+    SECRET,
+    { expiresIn: '24h' }
+  );
+
+  res.json({ token, role: user.role, clinic_id: user.clinic_id });
+});
+
+router.get('/me', authenticate, (req, res) => {
+  const user = db.prepare(
+    'SELECT u.id, u.email, u.role, u.clinic_id, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.id = ?'
+  ).get(req.user.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  res.json(user);
+});
+
+module.exports = router;
