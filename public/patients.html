@@ -472,15 +472,16 @@
     .modal {
       background: white; border-radius: 12px; width: 100%; max-width: 560px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column;
     }
     .modal-hdr {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9;
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; flex-shrink: 0;
     }
     .modal-hdr h3 { font-size: 1rem; font-weight: 600; }
     .modal-close { background: none; border: none; font-size: 1.2rem; color: #94a3b8; cursor: pointer; padding: 0.1rem 0.3rem; }
     .modal-close:hover { color: #1e293b; }
-    .modal-body { padding: 1.25rem 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; }
+    .modal-body { padding: 1.25rem 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; flex: 1; overflow-y: auto; }
     .field { display: flex; flex-direction: column; gap: 0.3rem; }
     .field.full { grid-column: 1 / -1; }
     .field label { font-size: 0.75rem; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.03em; }
@@ -504,7 +505,7 @@
     .field input:focus, .field select:focus { outline: 2px solid #0891b2; outline-offset: -1px; border-color: transparent; }
     .modal-ftr {
       display: flex; justify-content: flex-end; gap: 0.5rem;
-      padding: 1rem 1.5rem; border-top: 1px solid #f1f5f9;
+      padding: 1rem 1.5rem; border-top: 1px solid #f1f5f9; flex-shrink: 0;
     }
     .btn-cancel { padding: 0.45rem 1rem; border: 1px solid #e2e8f0; background: white; color: #64748b; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.875rem; }
     .btn-cancel:hover { background: #f8fafc; }
@@ -526,6 +527,7 @@
       .patient-queue { width: 100%; border-right: none; border-bottom: 1px solid #e2e8f0; max-height: 40vh; }
       .patient-detail { padding: 1rem; }
       .detail-header { flex-direction: column; align-items: center; text-align: center; }
+      .modal-body { grid-template-columns: 1fr !important; }
     }
     @media (max-width: 860px) {
       .layout-main { padding: 0 !important; margin: 0 !important; padding-top: 90px !important; height: auto !important; flex-direction: column !important; width: 100% !important; }
@@ -533,6 +535,8 @@
       .patient-detail { width: 100% !important; min-width: 100% !important; max-width: 100% !important; padding: 0.75rem !important; }
       .queue-header { padding: 0.75rem !important; }
       .queue-search { padding: 0.5rem !important; }
+      .modal { width: calc(100% - 2rem) !important; max-width: calc(100% - 2rem) !important; }
+      .modal-body { grid-template-columns: 1fr !important; }
     }
   </style>
 </head>

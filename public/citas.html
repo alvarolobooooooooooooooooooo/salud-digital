@@ -24,11 +24,12 @@
     main { width: 100%; margin: 0; padding: 1.5rem 1rem; overflow-x: visible; }
 
     /* ── Hero ── */
-    .hero { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.75rem; }
-    .hero h2 { font-size: 1.6rem; font-weight: 700; color: #0f172a; margin-bottom: .2rem; }
-    .hero p { color: #64748b; font-size: .875rem; line-height: 1.6; }
-    .btn-nueva { display: flex; align-items: center; gap: .4rem; padding: .6rem 1.25rem; border: none; background: #0891b2; color: white; border-radius: 8px; font-size: .9rem; font-family: inherit; cursor: pointer; font-weight: 600; white-space: nowrap; }
-    .btn-nueva:hover { background: #0e7490; }
+    .hero { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 2rem; }
+    .hero-content { flex: 1; }
+    .hero h2 { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin-bottom: .5rem; letter-spacing: -.02em; }
+    .hero p { color: #64748b; font-size: .95rem; line-height: 1.7; margin-bottom: 0; }
+    .btn-nueva { display: flex; align-items: center; gap: .5rem; padding: .7rem 1.5rem; border: none; background: #0891b2; color: white; border-radius: 10px; font-size: .95rem; font-family: inherit; cursor: pointer; font-weight: 600; white-space: nowrap; transition: all .2s; box-shadow: 0 2px 8px rgba(8,145,178,.15); flex-shrink: 0; }
+    .btn-nueva:hover { background: #0e7490; box-shadow: 0 4px 12px rgba(8,145,178,.25); transform: translateY(-1px); }
 
     /* ── Filters ── */
     .filter-section { margin-bottom: 1.25rem; }
@@ -188,9 +189,14 @@
       .month-hcell { padding: .2rem .1rem; font-size: .55rem; }
       .cal-pill { font-size: .55rem; padding: .05rem .1rem; }
       .cell-num { width: 16px; height: 16px; font-size: .6rem; }
-      .hero h2 { font-size: 1.3rem; }
-      .hero { flex-direction: column; gap: .5rem; }
-      .btn-nueva { width: 100%; }
+      .hero { flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+      .hero h2 { font-size: 1.8rem; }
+      .hero p { font-size: .9rem; }
+      .btn-nueva { width: 100%; justify-content: center; }
+      .cal-toolbar { display: flex; flex-direction: column; align-items: center; gap: .75rem; padding: .875rem 1.25rem; }
+      .cal-period { font-size: 1.4rem; font-weight: 700; margin: 0; text-align: center; order: -1; width: 100%; }
+      .cal-nav-group { display: flex; justify-content: center; width: 100%; }
+      .view-switcher { width: 100%; justify-content: center; display: flex; }
     }
     @media (max-width: 650px) {
       .modal { max-width: 95vw; }
@@ -198,6 +204,10 @@
     }
     @media (max-width: 860px) {
       main { padding: 0.75rem !important; padding-top: 90px !important; margin: 0 !important; width: 100% !important; }
+      .cal-toolbar { display: flex !important; flex-direction: column !important; align-items: center !important; gap: .75rem !important; padding: .875rem 1.25rem !important; }
+      .cal-period { font-size: 1.4rem !important; font-weight: 700 !important; margin: 0 !important; text-align: center !important; order: -1 !important; width: 100% !important; }
+      .cal-nav-group { display: flex !important; justify-content: center !important; width: 100% !important; }
+      .view-switcher { width: 100% !important; justify-content: center !important; display: flex !important; }
     }
   </style>
 </head>
@@ -205,12 +215,12 @@
 
 <main class="layout-main">
   <div class="hero">
-    <div>
+    <div class="hero-content">
       <h2>Citas</h2>
-      <p>Gestiona tus citas y consultas<br>Aquí está el resumen de actividad para hoy.</p>
+      <p>Gestiona tus citas y consultas médicas de forma eficiente</p>
     </div>
     <button class="btn-nueva" onclick="openModal()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
       Nueva Cita
     </button>
   </div>
