@@ -50,6 +50,15 @@
       </a>`;
     }).join('');
 
+    // Mobile menu items (same items as sidebar)
+    const mobileMenuItems = items.map(item => {
+      const isActive = item.key === activePage ? 'active' : '';
+      return `<a href="${item.href}" class="mobile-nav-item ${isActive}">
+        <span>${item.icon}</span>
+        <span>${item.label}</span>
+      </a>`;
+    }).join('');
+
     return `
       <aside id="sidebar">
         <div class="sb-logo">
@@ -84,6 +93,10 @@
           </svg>
         </button>
       </aside>
+
+      <nav id="mobileNav" class="mobile-nav">
+        ${mobileMenuItems}
+      </nav>
     `;
   }
 
@@ -91,17 +104,22 @@
     console.log('[layout.js] injectSidebar called');
     // Remove old nav if exists
     const oldNav = document.querySelector('nav');
-    if (oldNav) oldNav.remove();
+    if (oldNav && oldNav.id !== 'mobileNav') oldNav.remove();
 
-    // Create and insert sidebar
-    const sidebarWrapper = document.createElement('div');
-    sidebarWrapper.innerHTML = buildSidebarHTML();
+    // Create and insert sidebar + mobile nav
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = buildSidebarHTML();
     // Get the aside element (skip text nodes)
-    const sidebarEl = sidebarWrapper.querySelector('aside');
+    const sidebarEl = wrapper.querySelector('aside');
+    const mobileNavEl = wrapper.querySelector('nav#mobileNav');
     console.log('[layout.js] Sidebar element:', sidebarEl);
     if (sidebarEl) {
       document.body.insertBefore(sidebarEl, document.body.firstChild);
       console.log('[layout.js] Sidebar injected');
+    }
+    if (mobileNavEl) {
+      document.body.insertBefore(mobileNavEl, document.body.firstChild);
+      console.log('[layout.js] Mobile nav injected');
     }
 
     // Mark main content for margin-left
