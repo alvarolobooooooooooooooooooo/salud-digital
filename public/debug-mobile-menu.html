@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug Mobile Menu</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    body { margin: 0; padding: 0; font-family: system-ui; }
+    main { padding: 2rem; max-width: 600px; margin: 0 auto; }
+    .debug-box {
+      background: #f0f9ff;
+      border: 2px solid #0891b2;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+    .status-ok { color: #16a34a; font-weight: 700; }
+    .status-error { color: #dc2626; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>🔍 Debug Mobile Menu</h1>
+    <p>Redimensiona a menos de 860px y abre DevTools (F12)</p>
+
+    <div class="debug-box">
+      <strong>Elements:</strong><br>
+      Hamburger: <span id="hamburgerStatus">—</span><br>
+      Sidebar: <span id="sidebarStatus">—</span><br>
+      Overlay: <span id="overlayStatus">—</span>
+    </div>
+
+    <div class="debug-box">
+      <strong>Events:</strong><br>
+      Click detection: <span id="clickStatus">—</span>
+    </div>
+
+    <div class="debug-box">
+      <strong>Console output:</strong><br>
+      <pre id="console-output" style="background: white; padding: 1rem; border-radius: 4px; max-height: 300px; overflow-y: auto; font-size: 0.8rem;"></pre>
+    </div>
+  </main>
+
+  <script>
+    // Mock auth
+    localStorage.setItem('sd_role', 'doctor');
+    localStorage.setItem('sd_token', 'test-token');
+
+    window.api = async (url) => {
+      if (url === '/api/auth/me') {
+        return { id: 1, name: 'Test Doctor', email: 'doctor@test.com', role: 'doctor', clinic_name: 'Test Clinic' };
+      }
+    };
+
+    window.logout = () => alert('Logout');
+
+    function esc(str) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(str ?? ''));
+      return d.innerHTML;
+    }
+
+    // Capture console.log
+    const logs = [];
+    const originalLog = console.log;
+    console.log = function(...args) {
+      originalLog.apply(console, args);
+      logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
+      document.getElementById('console-output').textContent = logs.join('\n');
+    };
+
+    // Check for elements after a delay
+    setTimeout(() => {
+      const hamburger = document.getElementById('mobileMenuToggle');
+      const sidebar = document.getElementById('mobileSidebar');
+      const overlay = document.getElementById('mobileSidebarOverlay');
+
+      document.getElementById('hamburgerStatus').textContent = hamburger ?
+        '<span class="status-ok">✓ Found</span>' : '<span class="status-error">✗ Not found</span>';
+      document.getElementById('sidebarStatus').textContent = sidebar ?
+        '<span class="status-ok">✓ Found</span>' : '<span class="status-error">✗ Not found</span>';
+      document.getElementById('overlayStatus').textContent = overlay ?
+        '<span class="status-ok">✓ Found</span>' : '<span class="status-error">✗ Not found</span>';
+
+      if (hamburger) {
+        hamburger.addEventListener('click', () => {
+          document.getElementById('clickStatus').innerHTML = '<span class="status-ok">✓ Click detected!</span>';
+        });
+      }
+    }, 500);
+  </script>
+
+  <script src="/common.js"></script>
+  <script src="/layout.js"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Mobile Menu</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    main {
+      padding: 2rem;
+    }
+    .content-section {
+      padding: 2rem;
+      background: white;
+      margin: 1rem 0;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Test Mobile Menu</h1>
+    <p>Redimensiona la ventana a menos de 860px para ver el menú móvil.</p>
+
+    <div class="content-section">
+      <h2>Sección 1</h2>
+      <p>Esta es la primera sección de contenido.</p>
+    </div>
+
+    <div class="content-section">
+      <h2>Sección 2</h2>
+      <p>Esta es la segunda sección de contenido.</p>
+    </div>
+
+    <div class="content-section">
+      <h2>Sección 3</h2>
+      <p>Esta es la tercera sección de contenido.</p>
+    </div>
+  </main>
+
+  <script>
+    // Mock auth
+    localStorage.setItem('sd_role', 'doctor');
+    localStorage.setItem('sd_token', 'test-token');
+
+    // Mock api function
+    window.api = async (url) => {
+      if (url === '/api/auth/me') {
+        return {
+          id: 1,
+          name: 'Test Doctor',
+          email: 'doctor@test.com',
+          role: 'doctor',
+          clinic_name: 'Test Clinic'
+        };
+      }
+    };
+
+    // Mock logout function
+    window.logout = () => {
+      alert('Logout clicked');
+    };
+
+    // Helper function for test
+    function esc(str) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(str ?? ''));
+      return d.innerHTML;
+    }
+  </script>
+
+  <script src="/common.js"></script>
+  <script src="/layout.js"></script>
+
+  <script>
+    // Test: Add some sample notifications after a delay
+    setTimeout(() => {
+      window.updateNotifications([
+        {
+          title: 'Cita confirmada',
+          message: 'Juan Pérez tiene cita mañana a las 10:00 AM',
+          time: 'hace 5 min'
+        },
+        {
+          title: 'Recordatorio',
+          message: 'Tienes 3 pacientes esperando',
+          time: 'hace 12 min'
+        },
+        {
+          title: 'Pago recibido',
+          message: 'Consulta completada - L. 500.00',
+          time: 'hace 1 hora'
+        }
+      ]);
+    }, 1000);
+  </script>
+</body>
+</html>

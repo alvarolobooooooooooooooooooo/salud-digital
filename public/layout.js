@@ -186,7 +186,7 @@
         // Mobile nav icons
         document.querySelectorAll('.mobile-nav-item[data-icon]').forEach(item => {
           const icon = item.querySelector('.mobile-icon');
-          if (icon) icon.innerHTML = Icons.render(item.dataset.icon, 16);
+          if (icon) icon.innerHTML = Icons.render(item.dataset.icon, 22);
         });
 
         // Logout icons
