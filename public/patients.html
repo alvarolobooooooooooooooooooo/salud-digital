@@ -530,13 +530,19 @@
       .modal-body { grid-template-columns: 1fr !important; }
     }
     @media (max-width: 860px) {
-      .layout-main { padding: 0 !important; margin: 0 !important; padding-top: 90px !important; height: auto !important; flex-direction: column !important; width: 100% !important; }
-      .patient-queue { width: 100% !important; min-width: 100% !important; max-width: 100% !important; border-right: none !important; border-bottom: 1px solid #e2e8f0 !important; max-height: 50vh !important; }
-      .patient-detail { width: 100% !important; min-width: 100% !important; max-width: 100% !important; padding: 0.75rem !important; }
+      .layout-main { padding: 0 !important; margin: 0 !important; padding-top: 90px !important; height: 100vh !important; flex-direction: column !important; width: 100% !important; position: relative !important; box-sizing: border-box !important; }
+      .patient-queue { width: 100% !important; flex: 1 !important; min-height: 0 !important; border-right: none !important; border-bottom: none !important; }
+      .patient-detail { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: white !important; z-index: 1000 !important; overflow-y: auto !important; padding: 90px 0.75rem 0.75rem 0.75rem !important; display: none !important; flex-direction: column !important; }
+      .patient-detail.active { display: flex !important; }
       .queue-header { padding: 0.75rem !important; }
       .queue-search { padding: 0.5rem !important; }
       .modal { width: calc(100% - 2rem) !important; max-width: calc(100% - 2rem) !important; }
       .modal-body { grid-template-columns: 1fr !important; }
+
+      /* ── Mobile Table ── */
+      .history-table { font-size: 0.75rem !important; }
+      .history-table th { padding: 0.5rem 0.4rem !important; }
+      .history-table td { padding: 0.5rem 0.4rem !important; }
     }
   </style>
 </head>
@@ -576,15 +582,7 @@
   </div>
 
   <!-- Right Panel: Patient Detail -->
-  <div class="patient-detail" id="detailPanel">
-    <div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
-      <p>Selecciona un paciente para ver los detalles</p>
-    </div>
-  </div>
+  <div class="patient-detail" id="detailPanel"></div>
 </main>
 
 <!-- Modal: New Patient -->
@@ -973,7 +971,9 @@
         <div id="odontogramViewer" style="background:#f9fafb;padding:1rem;border-radius:8px;"></div>
       </div>`;
 
-    document.getElementById('detailPanel').innerHTML = html;
+    const detailPanel = document.getElementById('detailPanel');
+    detailPanel.innerHTML = html;
+    detailPanel.classList.add('active');
 
     // Inicializar odontograma en modo visualización (readOnly = true)
     setTimeout(() => {

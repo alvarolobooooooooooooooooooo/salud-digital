@@ -214,7 +214,35 @@
     /* ── Empty State ── */
     .empty-state { text-align: center; padding: 2rem; color: #94a3b8; }
 
+    /* ── Mobile Back Button ── */
+    .mobile-back-btn {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 15px;
+      z-index: 999;
+      background: none;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      color: #0891b2;
+      padding: 0;
+      font-weight: 600;
+      transition: opacity 0.15s;
+    }
+
+    .mobile-back-btn:hover {
+      opacity: 0.7;
+    }
+
+    @media (max-width: 860px) {
+      .mobile-back-btn {
+        display: block;
+      }
+    }
+
     @media (max-width: 768px) {
+      main { padding-top: 90px !important; max-width: 100% !important; width: 100% !important; margin: 0 !important; }
       .profile-header { flex-direction: column; align-items: center; text-align: center; }
       .profile-meta { justify-content: center; }
       .plan-details { grid-template-columns: 1fr 1fr; }
@@ -225,6 +253,9 @@
   </style>
 </head>
 <body>
+
+<!-- Mobile Back Button -->
+<button class="mobile-back-btn" onclick="window.history.back()">←</button>
 
 <!-- Nav -->
 
