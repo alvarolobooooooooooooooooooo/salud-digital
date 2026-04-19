@@ -202,7 +202,7 @@ html, body {
   box-sizing: border-box;
   transition: margin-left 0.3s ease;
   width: calc(100% - var(--sidebar-w));
-  animation: pageSlideIn 0.25s ease forwards;
+  animation: pageSlideIn 0.15s ease forwards;
 }
 
 .layout-main.page-exit {
