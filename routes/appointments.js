@@ -12,14 +12,22 @@ function getLocalDateString(date = new Date()) {
 }
 
 router.get('/', authenticate, (req, res) => {
-  const rows = db.prepare(`
+  let query = `
     SELECT a.*, p.name AS patient_name, u.name AS doctor_name, u.email AS doctor_email
     FROM appointments a
     JOIN patients p ON a.patient_id = p.id
     JOIN users u ON a.doctor_id = u.id
     WHERE a.clinic_id = ?
-    ORDER BY a.scheduled_at DESC
-  `).all(req.user.clinic_id);
+  `;
+  const params = [req.user.clinic_id];
+
+  if (req.user.role === 'doctor') {
+    query += ' AND a.doctor_id = ?';
+    params.push(req.user.id);
+  }
+
+  query += ' ORDER BY a.scheduled_at DESC';
+  const rows = db.prepare(query).all(...params);
   res.json(rows);
 });
 

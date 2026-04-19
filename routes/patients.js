@@ -4,9 +4,18 @@ const db = require('../db');
 const { authenticate } = require('../middleware/auth');
 
 router.get('/', authenticate, (req, res) => {
-  const patients = db.prepare(
-    'SELECT * FROM patients WHERE clinic_id = ? ORDER BY name'
-  ).all(req.user.clinic_id);
+  let query = 'SELECT * FROM patients WHERE clinic_id = ?';
+  const params = [req.user.clinic_id];
+
+  if (req.user.role === 'doctor') {
+    query = `SELECT DISTINCT p.* FROM patients p
+      JOIN appointments a ON a.patient_id = p.id
+      WHERE p.clinic_id = ? AND a.doctor_id = ?`;
+    params.push(req.user.id);
+  }
+
+  query += ' ORDER BY name';
+  const patients = db.prepare(query).all(...params);
   res.json(patients);
 });
 
@@ -15,13 +24,28 @@ router.get('/:id', authenticate, (req, res) => {
     .get(req.params.id, req.user.clinic_id);
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
+  // If doctor, verify they have access to this patient
+  if (req.user.role === 'doctor') {
+    const hasAccess = db.prepare(
+      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = ? AND doctor_id = ? AND clinic_id = ?'
+    ).get(patient.id, req.user.id, req.user.clinic_id);
+    if (!hasAccess.count) return res.status(403).json({ error: 'Access denied' });
+  }
+
   const critical_info = db.prepare('SELECT * FROM critical_info WHERE patient_id = ?').get(patient.id) || {};
 
   let consultations = [];
   if (req.user.role !== 'clinic_admin') {
-    consultations = db.prepare(
-      'SELECT c.id, c.patient_id, c.notes, c.diagnosis, c.treatment, c.specialty, c.odontogram_state, c.cost, c.payment_status, c.lifestyle, c.procedures, c.radiography_notes, c.observations, c.doctor_id, c.visit_reason, c.created_at, c.clinic_id, u.name as doctor_name FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = ? AND c.clinic_id = ? ORDER BY c.created_at DESC'
-    ).all(patient.id, req.user.clinic_id);
+    let query = 'SELECT c.id, c.patient_id, c.notes, c.diagnosis, c.treatment, c.specialty, c.odontogram_state, c.cost, c.payment_status, c.lifestyle, c.procedures, c.radiography_notes, c.observations, c.doctor_id, c.visit_reason, c.created_at, c.clinic_id, u.name as doctor_name FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = ? AND c.clinic_id = ?';
+    const params = [patient.id, req.user.clinic_id];
+
+    if (req.user.role === 'doctor') {
+      query += ' AND c.doctor_id = ?';
+      params.push(req.user.id);
+    }
+
+    query += ' ORDER BY c.created_at DESC';
+    consultations = db.prepare(query).all(...params);
   }
 
   res.json({ ...patient, critical_info, consultations });
@@ -92,14 +116,38 @@ router.get('/:id/consultations', authenticate, (req, res) => {
     .get(req.params.id, req.user.clinic_id);
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
+  if (req.user.role === 'doctor') {
+    const hasAccess = db.prepare(
+      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = ? AND doctor_id = ? AND clinic_id = ?'
+    ).get(patient.id, req.user.id, req.user.clinic_id);
+    if (!hasAccess.count) return res.status(403).json({ error: 'Access denied' });
+  }
+
   const offset = parseInt(req.query.offset) || 0;
   const limit = parseInt(req.query.limit) || 5;
 
-  const total = db.prepare('SELECT COUNT(*) as count FROM consultations WHERE patient_id = ? AND clinic_id = ?')
-    .get(patient.id, req.user.clinic_id);
+  let query = 'SELECT COUNT(*) as count FROM consultations WHERE patient_id = ? AND clinic_id = ?';
+  let params = [patient.id, req.user.clinic_id];
 
-  const consultations = db.prepare('SELECT c.*, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = ? AND c.clinic_id = ? ORDER BY c.created_at DESC LIMIT ? OFFSET ?')
-    .all(patient.id, req.user.clinic_id, limit, offset);
+  if (req.user.role === 'doctor') {
+    query += ' AND doctor_id = ?';
+    params.push(req.user.id);
+  }
+
+  const total = db.prepare(query).get(...params);
+
+  query = 'SELECT c.*, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = ? AND c.clinic_id = ?';
+  params = [patient.id, req.user.clinic_id];
+
+  if (req.user.role === 'doctor') {
+    query += ' AND c.doctor_id = ?';
+    params.push(req.user.id);
+  }
+
+  query += ' ORDER BY c.created_at DESC LIMIT ? OFFSET ?';
+  params.push(limit, offset);
+
+  const consultations = db.prepare(query).all(...params);
 
   res.json({ consultations, total: total.count, offset, limit });
 });

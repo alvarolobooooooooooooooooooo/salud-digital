@@ -152,17 +152,32 @@ router.get('/appointment/:appointment_id', authenticate, (req, res) => {
   const { appointment_id } = req.params;
 
   // First try to find by appointment_id
-  let consultation = db.prepare('SELECT c.*, p.name as patient_name, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.appointment_id = ? AND c.clinic_id = ?')
-    .get(appointment_id, req.user.clinic_id);
+  let query = 'SELECT c.*, p.name as patient_name, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.appointment_id = ? AND c.clinic_id = ?';
+  let params = [appointment_id, req.user.clinic_id];
+
+  if (req.user.role === 'doctor') {
+    query += ' AND c.doctor_id = ?';
+    params.push(req.user.id);
+  }
+
+  let consultation = db.prepare(query).get(...params);
 
   // If not found, get the appointment's patient and find their most recent consultation
   if (!consultation) {
-    const appointment = db.prepare('SELECT patient_id FROM appointments WHERE id = ? AND clinic_id = ?')
+    const appointment = db.prepare('SELECT patient_id, doctor_id FROM appointments WHERE id = ? AND clinic_id = ?')
       .get(appointment_id, req.user.clinic_id);
 
-    if (appointment) {
-      consultation = db.prepare('SELECT c.*, p.name as patient_name, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = ? AND c.clinic_id = ? ORDER BY c.created_at DESC LIMIT 1')
-        .get(appointment.patient_id, req.user.clinic_id);
+    if (appointment && (req.user.role !== 'doctor' || appointment.doctor_id === req.user.id)) {
+      query = 'SELECT c.*, p.name as patient_name, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = ? AND c.clinic_id = ?';
+      params = [appointment.patient_id, req.user.clinic_id];
+
+      if (req.user.role === 'doctor') {
+        query += ' AND c.doctor_id = ?';
+        params.push(req.user.id);
+      }
+
+      query += ' ORDER BY c.created_at DESC LIMIT 1';
+      consultation = db.prepare(query).get(...params);
     }
   }
 
@@ -177,8 +192,16 @@ router.get('/appointment/:appointment_id', authenticate, (req, res) => {
 // GET - Retrieve single consultation by ID
 router.get('/:id', authenticate, (req, res) => {
   const { id } = req.params;
-  const consultation = db.prepare('SELECT c.*, p.name as patient_name, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.id = ? AND c.clinic_id = ?')
-    .get(id, req.user.clinic_id);
+
+  let query = 'SELECT c.*, p.name as patient_name, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.id = ? AND c.clinic_id = ?';
+  const params = [id, req.user.clinic_id];
+
+  if (req.user.role === 'doctor') {
+    query += ' AND c.doctor_id = ?';
+    params.push(req.user.id);
+  }
+
+  const consultation = db.prepare(query).get(...params);
 
   if (!consultation) return res.status(404).json({ error: 'Consultation not found' });
 
