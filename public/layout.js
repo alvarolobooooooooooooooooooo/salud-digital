@@ -59,6 +59,54 @@
       </a>`;
     }).join('');
 
+    const hamburgerMenu = `<button class="mobile-nav-hamburger" id="mobileMenuToggle" title="Menú">
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="hamburger-icon">
+        <path d="M3 6h18M3 12h18M3 18h18"/>
+      </svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="close-icon" style="display: none;">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>`;
+
+    const mobileSidebar = `<div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
+      <aside class="mobile-sidebar" id="mobileSidebar">
+        <div class="mobile-sidebar-header">
+          <h2 class="mobile-sidebar-title">Menú</h2>
+          <button class="mobile-sidebar-close" id="closeSidebarBtn">
+            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="mobile-sidebar-content">
+          <div class="sidebar-section">
+            <div class="sidebar-label">Notificaciones</div>
+            <div class="notification-item" id="notificationPanel">
+              <div style="text-align: center; padding: 1.5rem; color: #94a3b8;">
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 32px; height: 32px; margin-bottom: 0.5rem; opacity: 0.6;">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <p style="font-size: 0.85rem;">Sin notificaciones</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-label">Sesión</div>
+            <button class="sidebar-logout-btn" onclick="logout()">
+              <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              <span>Cerrar Sesión</span>
+            </button>
+          </div>
+        </div>
+      </aside>`;
+
     return `
       <aside id="sidebar">
         <div class="sb-logo">
@@ -96,7 +144,9 @@
 
       <nav id="mobileNav" class="mobile-nav">
         ${mobileMenuItems}
+        ${hamburgerMenu}
       </nav>
+      ${mobileSidebar}
     `;
   }
 
@@ -109,10 +159,15 @@
     // Create and insert sidebar + mobile nav
     const wrapper = document.createElement('div');
     wrapper.innerHTML = buildSidebarHTML();
-    // Get the aside element (skip text nodes)
-    const sidebarEl = wrapper.querySelector('aside');
+
+    // Get all elements (desktop sidebar, mobile nav, mobile overlay, mobile sidebar)
+    const sidebarEl = wrapper.querySelector('aside#sidebar');
     const mobileNavEl = wrapper.querySelector('nav#mobileNav');
+    const mobileOverlayEl = wrapper.querySelector('.mobile-sidebar-overlay');
+    const mobileSidebarEl = wrapper.querySelector('aside.mobile-sidebar');
+
     console.log('[layout.js] Sidebar element:', sidebarEl);
+
     if (sidebarEl) {
       document.body.insertBefore(sidebarEl, document.body.firstChild);
       console.log('[layout.js] Sidebar injected');
@@ -120,6 +175,14 @@
     if (mobileNavEl) {
       document.body.insertBefore(mobileNavEl, document.body.firstChild);
       console.log('[layout.js] Mobile nav injected');
+    }
+    if (mobileOverlayEl) {
+      document.body.insertBefore(mobileOverlayEl, document.body.firstChild);
+      console.log('[layout.js] Mobile overlay injected');
+    }
+    if (mobileSidebarEl) {
+      document.body.insertBefore(mobileSidebarEl, document.body.firstChild);
+      console.log('[layout.js] Mobile sidebar injected');
     }
 
     // Mark main content for margin-left
@@ -182,6 +245,108 @@
 
   // Inject sidebar immediately (DOM is always ready when this script runs)
   injectSidebar();
+
+  // Update notifications in sidebar
+  window.updateNotifications = function(notifications) {
+    const panel = document.getElementById('notificationPanel');
+    if (!panel) return;
+
+    // Handle both array and count formats
+    const notifyArray = Array.isArray(notifications) ? notifications : [];
+    const count = Array.isArray(notifications) ? notifications.length : (typeof notifications === 'number' ? notifications : 0);
+
+    if (count === 0) {
+      panel.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: #94a3b8;">
+        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 32px; height: 32px; margin-bottom: 0.5rem; opacity: 0.6;">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <p style="font-size: 0.85rem;">Sin notificaciones</p>
+      </div>`;
+    } else if (notifyArray.length > 0) {
+      const html = notifyArray.map(n => `
+        <div class="notification-item-content">
+          <div class="notification-item-title">${esc(n.title || 'Notificación')}</div>
+          <div class="notification-item-text">${esc(n.message || '')}</div>
+          <div class="notification-item-time">${esc(n.time || '')}</div>
+        </div>
+      `).join('');
+      panel.innerHTML = html;
+    }
+  };
+
+  // Handle mobile sidebar toggle
+  function initMobileSidebar() {
+    const toggleBtn = document.getElementById('mobileMenuToggle');
+    const closeBtn = document.getElementById('closeSidebarBtn');
+    const sidebar = document.getElementById('mobileSidebar');
+    const overlay = document.getElementById('mobileSidebarOverlay');
+
+    console.log('[layout.js] initMobileSidebar - toggleBtn:', !!toggleBtn, 'sidebar:', !!sidebar, 'overlay:', !!overlay);
+
+    if (!toggleBtn || !sidebar || !overlay) {
+      console.warn('[layout.js] Mobile sidebar elements not found');
+      return;
+    }
+
+    const hamburgerIcon = toggleBtn.querySelector('.hamburger-icon');
+    const closeIcon = toggleBtn.querySelector('.close-icon');
+
+    function openSidebar() {
+      console.log('[layout.js] Opening sidebar');
+      sidebar.classList.add('active');
+      overlay.classList.add('active');
+      if (hamburgerIcon) hamburgerIcon.style.display = 'none';
+      if (closeIcon) closeIcon.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+      console.log('[layout.js] Closing sidebar');
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+      if (hamburgerIcon) hamburgerIcon.style.display = 'block';
+      if (closeIcon) closeIcon.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    toggleBtn.addEventListener('click', (e) => {
+      console.log('[layout.js] Hamburger clicked');
+      e.preventDefault();
+      if (sidebar.classList.contains('active')) {
+        closeSidebar();
+      } else {
+        openSidebar();
+      }
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeSidebar);
+    }
+
+    overlay.addEventListener('click', closeSidebar);
+
+    // Close on navigation
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('a[href]');
+      if (link && !link.classList.contains('mobile-nav-item') && sidebar.classList.contains('active')) {
+        closeSidebar();
+      }
+    });
+
+    console.log('[layout.js] Mobile sidebar initialized');
+  }
+
+  // Try to initialize multiple times with delays
+  let initAttempts = 0;
+  const initInterval = setInterval(() => {
+    initAttempts++;
+    const sidebar = document.getElementById('mobileSidebar');
+    if (sidebar || initAttempts > 20) {
+      clearInterval(initInterval);
+      setTimeout(() => initMobileSidebar(), 50);
+    }
+  }, 50);
 
   // Initialize toggle (retry if needed)
   function tryInitToggle(attempt = 1) {
