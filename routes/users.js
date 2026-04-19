@@ -87,7 +87,7 @@ router.delete('/:id', authenticate, requireRole('super_admin', 'clinic_admin'), 
     return res.status(403).json({ error: 'Can only delete doctors from your own clinic' });
   }
 
-  db.prepare('DELETE FROM users WHERE id = ?').run(userId);
+  db.prepare('UPDATE users SET clinic_id = NULL WHERE id = ?').run(userId);
   res.json({ success: true });
 });
 

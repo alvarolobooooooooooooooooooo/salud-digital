@@ -14,6 +14,10 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
+  if (!user.clinic_id) {
+    return res.status(403).json({ error: 'Your account has been deactivated. Contact your clinic administrator.' });
+  }
+
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role, clinic_id: user.clinic_id },
     SECRET,
