@@ -4,19 +4,22 @@ const db = require('../db');
 const { authenticate } = require('../middleware/auth');
 
 router.get('/', authenticate, (req, res) => {
-  let query = 'SELECT * FROM patients WHERE clinic_id = ?';
-  const params = [req.user.clinic_id];
+  let query;
+  let params;
 
   if (req.user.role === 'doctor') {
     query = `SELECT DISTINCT p.* FROM patients p
       WHERE p.clinic_id = ? AND (
         p.created_by = ? OR
         p.id IN (SELECT DISTINCT patient_id FROM appointments WHERE doctor_id = ? AND clinic_id = ?)
-      )`;
-    params.push(req.user.id, req.user.id, req.user.clinic_id);
+      )
+      ORDER BY p.name`;
+    params = [req.user.clinic_id, req.user.id, req.user.id, req.user.clinic_id];
+  } else {
+    query = 'SELECT * FROM patients WHERE clinic_id = ? ORDER BY name';
+    params = [req.user.clinic_id];
   }
 
-  query += ' ORDER BY name';
   const patients = db.prepare(query).all(...params);
   res.json(patients);
 });
