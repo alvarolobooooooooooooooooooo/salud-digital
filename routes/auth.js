@@ -14,7 +14,7 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  if (!user.clinic_id) {
+  if (!user.clinic_id && user.role === 'doctor') {
     return res.status(403).json({ error: 'Your account has been deactivated. Contact your clinic administrator.' });
   }
 
