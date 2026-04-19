@@ -656,7 +656,7 @@ nav.old-nav {
 }
 
 @media (max-width: 860px) {
-  body {
+  html, body {
     overflow-x: hidden;
     width: 100%;
     margin: 0;
