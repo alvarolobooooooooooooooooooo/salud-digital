@@ -164,6 +164,7 @@
       padding: 2rem;
       box-shadow: 0 2px 8px rgba(8, 145, 178, 0.08);
       border: 1px solid rgba(8, 145, 178, 0.05);
+      margin-bottom: 2rem;
     }
     .section h3 {
       font-size: 1.05rem;
@@ -285,10 +286,11 @@
       width: 100%;
       border-collapse: collapse;
       font-size: .85rem;
+      table-layout: fixed;
     }
     th {
       text-align: left;
-      padding: .85rem 0.75rem;
+      padding: .85rem 0.5rem;
       background: #f9fafb;
       font-weight: 700;
       font-size: .75rem;
@@ -296,8 +298,15 @@
       text-transform: uppercase;
       letter-spacing: .04em;
       border-bottom: 2px solid #e5e7eb;
+      word-break: break-word;
     }
-    td { padding: .85rem 0.75rem; border-bottom: 1px solid #f3f4f6; font-weight: 500; }
+    td {
+      padding: .85rem 0.5rem;
+      border-bottom: 1px solid #f3f4f6;
+      font-weight: 500;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
     tbody tr:last-child td { border-bottom: none; }
     tbody tr:hover td {
       background: #f9fafb;
@@ -307,15 +316,19 @@
 
     /* Mobile responsive table */
     @media (max-width: 860px) {
+      .section {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
       .section table {
-        font-size: .7rem;
+        font-size: .65rem;
       }
       th {
-        font-size: .65rem;
-        padding: .5rem 0.4rem;
+        font-size: .6rem;
+        padding: .4rem 0.3rem;
       }
       td {
-        padding: .5rem 0.4rem;
+        padding: .4rem 0.3rem;
       }
       .empty-table {
         padding: 1.5rem 0.5rem;

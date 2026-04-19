@@ -364,22 +364,33 @@
     // Donut chart render
     function renderDonut(withAppt, withoutAppt) {
       const C = 502.65; // Circumference for r=80
-      const total = withAppt + withoutAppt || 1;
-      const withLen = (withAppt / total) * C;
-      const withoutLen = (withoutAppt / total) * C;
+      const total = withAppt + withoutAppt;
 
-      const withEl = document.getElementById('donutWith');
-      withEl.setAttribute('stroke-dasharray', `${withLen} ${C}`);
-      withEl.setAttribute('stroke-dashoffset', '0');
+      if (total === 0) {
+        const withEl = document.getElementById('donutWith');
+        withEl.setAttribute('stroke-dasharray', `0 ${C}`);
+        withEl.setAttribute('stroke-dashoffset', '0');
 
-      const withoutEl = document.getElementById('donutWithout');
-      withoutEl.setAttribute('stroke-dasharray', `${withoutLen} ${C}`);
-      withoutEl.setAttribute('stroke-dashoffset', `-${withLen}`);
+        const withoutEl = document.getElementById('donutWithout');
+        withoutEl.setAttribute('stroke-dasharray', `0 ${C}`);
+        withoutEl.setAttribute('stroke-dashoffset', '0');
+      } else {
+        const withLen = (withAppt / total) * C;
+        const withoutLen = (withoutAppt / total) * C;
 
-      document.getElementById('donutCenter').textContent = withAppt + withoutAppt;
+        const withEl = document.getElementById('donutWith');
+        withEl.setAttribute('stroke-dasharray', `${withLen} ${C}`);
+        withEl.setAttribute('stroke-dashoffset', '0');
+
+        const withoutEl = document.getElementById('donutWithout');
+        withoutEl.setAttribute('stroke-dasharray', `${withoutLen} ${C}`);
+        withoutEl.setAttribute('stroke-dashoffset', `-${withLen}`);
+      }
+
+      document.getElementById('donutCenter').textContent = total;
       document.getElementById('legendWith').textContent = withAppt;
       document.getElementById('legendWithout').textContent = withoutAppt;
-      document.getElementById('totalPatientsLabel').textContent = `${withAppt + withoutAppt} total`;
+      document.getElementById('totalPatientsLabel').textContent = `${total} total`;
     }
 
     // Render appointments list
