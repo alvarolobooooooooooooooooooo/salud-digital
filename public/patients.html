@@ -586,10 +586,7 @@
 
     <!-- Search -->
     <div class="queue-search">
-      <div class="search-wrap">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-        </svg>
+      <div class="search-wrap" id="searchIconWrap">
         <input class="search-input" id="searchInput" placeholder="Buscar paciente..."
           oninput="onSearch(this.value)">
       </div>
@@ -617,7 +614,7 @@
   <div class="modal">
     <div class="modal-hdr">
       <h3>Nuevo Paciente</h3>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()" id="closeModalBtn"></button>
     </div>
     <form id="createForm" onsubmit="submitPatient(event)">
       <div class="modal-body">
@@ -683,7 +680,7 @@
   <div class="modal">
     <div class="modal-hdr">
       <h3>Cambiar Estado de Pago</h3>
-      <button class="modal-close" onclick="closePaymentModal()">✕</button>
+      <button class="modal-close" onclick="closePaymentModal()" id="closePaymentModalBtn"></button>
     </div>
     <div class="modal-body" style="display: block; grid-template-columns: 1fr;">
       <div class="field full">
@@ -717,6 +714,7 @@
 
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
+<script src="/icons.js"></script>
 <script src="/common-date-picker.js"></script>
 <script src="/odontogram.types.js"></script>
 <script src="/odontogram.data.js"></script>
@@ -733,6 +731,13 @@
   let selectedPatientId = null;
   let searchTerm = '';
   let sortMode = 'all';
+
+  // Renderizar icono de búsqueda
+  const searchWrap = document.getElementById('searchIconWrap');
+  const searchIcon = document.createElement('div');
+  searchIcon.innerHTML = Icons.render('search', 14);
+  searchIcon.style.flexShrink = '0';
+  searchWrap.insertBefore(searchIcon, searchWrap.firstChild);
 
   // ── Load Patients ──
   (async () => {
@@ -804,7 +809,7 @@
             <div class="patient-card-name">${esc(p.name)}</div>
             <div class="patient-card-date">${esc(p.identity_number)}</div>
           </div>
-          <div class="patient-card-arrow">→</div>
+          <div class="patient-card-arrow">${Icons.render('chevronRight', 16)}</div>
         </div>`;
     }).join('');
   }
@@ -862,15 +867,10 @@
           <div class="detail-badge">ID: ${esc(formatIdentityDisplay(patient.identity_number))}</div>
           <div class="detail-actions">
             <button class="action-btn" title="Teléfono" onclick="window.location.href='tel:${patient.phone}'">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-              </svg>
+              ${Icons.render('phone', 18)}
             </button>
             <button class="action-btn" title="Expediente Médico" onclick="openExpedMedic(${patient.id})">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 11H7.5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2H15M13 7H9a2 2 0 0 0-2 2v4h8V9a2 2 0 0 0-2-2z"/>
-                <path d="M12 13v4M10 15h4"/>
-              </svg>
+              ${Icons.render('fileText', 18)}
               <span>Expediente Médico</span>
             </button>
           </div>
@@ -1035,6 +1035,12 @@
 
   // ── Modal ──
   function openModal() {
+    // Renderizar icono de cerrar
+    const closeBtn = document.getElementById('closeModalBtn');
+    if (closeBtn && closeBtn.innerHTML === '') {
+      closeBtn.innerHTML = Icons.render('x', 20);
+      closeBtn.style.padding = '0.1rem 0.3rem';
+    }
     // Fill day dropdown
     const daySelect = document.getElementById('fBirthDay');
     if (daySelect.children.length === 1) {
@@ -1137,6 +1143,17 @@
     document.getElementById('paymentOverlay').style.display = 'none';
     currentPaymentConsultationId = null;
   }
+
+  // Renderizar botones de cerrar
+  setTimeout(() => {
+    const closeBtns = document.querySelectorAll('.modal-close');
+    closeBtns.forEach(btn => {
+      if (!btn.innerHTML.includes('svg')) {
+        btn.innerHTML = Icons.render('x', 20);
+        btn.style.padding = '0.1rem 0.3rem';
+      }
+    });
+  }, 100);
 
   async function updatePaymentStatus() {
     if (!currentPaymentConsultationId) return;

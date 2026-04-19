@@ -361,6 +361,7 @@
 
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
+<script src="/icons.js"></script>
 <script>
   requireAuth(['clinic_admin', 'doctor']);
 
@@ -481,8 +482,11 @@
               </div>
               <div class="detail-item">
                 <span class="detail-label">Estado</span>
-                <span class="detail-value" style="color: ${t.payment_status === 'paid' ? '#16a34a' : '#f59e0b'};">
-                  ${t.payment_status === 'paid' ? '✓ Pagado' : t.payment_status === 'pending' ? '⏳ Pendiente' : '—'}
+                <span class="detail-value" style="display: flex; align-items: center; gap: 0.5rem; color: ${t.payment_status === 'paid' ? '#16a34a' : '#f59e0b'};">
+                  <span style="display: flex; align-items: center; justify-content: center; width: 18px; height: 18px;">
+                    ${t.payment_status === 'paid' ? Icons.render('checkmark', 16) : t.payment_status === 'pending' ? Icons.render('clock', 16) : ''}
+                  </span>
+                  <span>${t.payment_status === 'paid' ? 'Pagado' : t.payment_status === 'pending' ? 'Pendiente' : '—'}</span>
                 </span>
               </div>
             </div>

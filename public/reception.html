@@ -473,7 +473,7 @@
       </div>
       <div class="doctors-grid" id="doctorsGrid">
         <div class="empty-state">
-          <div class="empty-state-icon">⏳</div>
+          <div class="empty-state-icon" id="emptyQueueIcon"></div>
           <div class="empty-state-text">Cargando doctores...</div>
         </div>
       </div>
@@ -482,7 +482,7 @@
     <!-- Appointments Today Section -->
     <div class="section appointments-today">
       <div class="section-title">
-        <span>📅</span>
+        <span id="appointmentTimeIcon"></span>
         <span>Citas de Hoy</span>
       </div>
       <div class="appointments-list" id="appointmentsList">
@@ -556,7 +556,14 @@
   <div class="msg" id="message"></div>
 
   <script src="/common.js"></script>
+  <script src="/icons.js"></script>
   <script>
+    // Renderizar iconos
+    const emptyQueueIcon = document.getElementById('emptyQueueIcon');
+    const appointmentTimeIcon = document.getElementById('appointmentTimeIcon');
+    if (emptyQueueIcon) emptyQueueIcon.innerHTML = Icons.render('clock', 32);
+    if (appointmentTimeIcon) appointmentTimeIcon.innerHTML = Icons.render('calendar', 16);
+
     let doctors = [];
     let patients = [];
     let selectedDoctor = null;

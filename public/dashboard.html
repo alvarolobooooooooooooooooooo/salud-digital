@@ -233,7 +233,7 @@
       <!-- Stat Cards -->
       <div class="stats">
         <div class="stat-card">
-          <div class="stat-icon">👥</div>
+          <div class="stat-icon" id="iconUsers"></div>
           <div class="stat-body">
             <div class="stat-label">Total Pacientes</div>
             <div class="stat-value" id="statPatients">—</div>
@@ -241,7 +241,7 @@
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">📅</div>
+          <div class="stat-icon" id="iconCalendar"></div>
           <div class="stat-body">
             <div class="stat-label">Citas de Hoy</div>
             <div class="stat-value" id="statToday">—</div>
@@ -249,7 +249,7 @@
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon">💰</div>
+          <div class="stat-icon" id="iconWallet"></div>
           <div class="stat-body">
             <div class="stat-label">Ingresos del Mes</div>
             <div class="stat-value" id="statMonth">—</div>
@@ -348,8 +348,14 @@
 
   <script src="/common.js"></script>
   <script src="/layout.js"></script>
+  <script src="/icons.js"></script>
   <script>
     requireAuth(['clinic_admin', 'doctor']);
+
+    // Renderizar iconos
+    document.getElementById('iconUsers').innerHTML = Icons.render('users', 24);
+    document.getElementById('iconCalendar').innerHTML = Icons.render('calendar', 24);
+    document.getElementById('iconWallet').innerHTML = Icons.render('wallet', 24);
 
     const today = new Date();
     let apptDatesSet = new Set();
@@ -428,9 +434,7 @@
           <div class="next-name">${esc(next.patient_name)}</div>
           <div class="next-meta">${esc(next.specialty || next.doctor_name || 'Consulta general')}</div>
           <div class="next-time-row">
-            <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5">
-              <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
-            </svg>
+            ${Icons.render('clock', 16)}
             ${esc(time)}
           </div>
           <a class="btn-consult-full" href="/patient.html?id=${next.patient_id}">Ver Paciente</a>

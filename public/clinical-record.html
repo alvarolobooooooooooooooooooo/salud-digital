@@ -234,6 +234,7 @@
 
   <script src="/common.js"></script>
 <script src="/layout.js"></script>
+  <script src="/icons.js"></script>
   <script src="/odontogram.types.js"></script>
   <script src="/odontogram.data.js"></script>
   <script src="/odontogram.utils.js"></script>
@@ -243,6 +244,12 @@
   <script src="/odontogram-legend.js"></script>
   <script src="/odontogram-container.js"></script>
   <script>
+    // Renderizar icono de completado
+    setTimeout(() => {
+      const badgeDoneIcon = document.getElementById('badgeDoneIcon');
+      if (badgeDoneIcon) badgeDoneIcon.innerHTML = Icons.render('checkmark', 14);
+    }, 100);
+
     requireAuth(['clinic_admin', 'doctor']);
 
     const params = new URLSearchParams(window.location.search);
@@ -279,7 +286,7 @@
           <td>#${idx + 1}</td>
           <td>${c.treatment || '-'}</td>
           <td>${new Date(c.created_at).toLocaleDateString('es-ES')}</td>
-          <td><span class="badge done">✓ Completado</span></td>
+          <td><span class="badge done" style="display: flex; align-items: center; gap: 0.5rem; width: fit-content;"><span style="display: flex; align-items: center; justify-content: center; width: 14px; height: 14px;" id="badgeDoneIcon"></span>Completado</span></td>
         </tr>`).join('');
       document.getElementById('treatmentHistory').innerHTML = `
         <table class="treatment-table">

@@ -236,8 +236,8 @@
       <h2>Citas</h2>
       <p>Gestiona tus citas y consultas médicas de forma eficiente</p>
     </div>
-    <button class="btn-nueva" onclick="openModal()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+    <button class="btn-nueva" onclick="openModal()" id="btnNewAppointment">
+      <span id="btnNewIcon"></span>
       Nueva Cita
     </button>
   </div>
@@ -405,6 +405,7 @@
 
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
+<script src="/icons.js"></script>
 <script src="/common-date-picker.js"></script>
 <script src="/odontogram.types.js"></script>
 <script src="/odontogram.data.js"></script>
@@ -416,6 +417,10 @@
 <script src="/odontogram-container.js"></script>
 <script>
 requireAuth(['clinic_admin', 'doctor']);
+
+// Renderizar icono del botón Nueva Cita
+const btnNewIcon = document.getElementById('btnNewIcon');
+if (btnNewIcon) btnNewIcon.innerHTML = Icons.render('plus', 14);
 
 function formatCostLive(el) {
   if (!el.value) return;
@@ -763,7 +768,7 @@ function showPopup(id, e) {
     <div>${drLabel(a)}</div>
     <div>${fmtDt(a.scheduled_at)}</div>
     <div style="margin:.15rem 0">${statusBadge(a.status)}</div>
-    <a href="/patient.html?id=${a.patient_id}" class="popup-link">Ver expediente →</a>
+    <a href="/patient.html?id=${a.patient_id}" class="popup-link">Ver expediente <span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; margin-left: 0.3rem;">${Icons.render('arrowRight', 14)}</span></a>
     ${a.status === 'completed'
       ? `<div style="margin-top:.5rem"><button class="popup-status-btn" style="width:100%;background:#f0f9ff;border-color:#0891b2;color:#0891b2;padding:.5rem;font-weight:600;" onclick="viewConsultation(${a.id})">Ver Consulta</button></div>`
       : `<div style="margin-top:.5rem"><button class="popup-status-btn" style="width:100%;background:#0891b2;color:white;padding:.5rem;font-weight:600;border:none;cursor:pointer;" onclick="closePopup();window.location.href='/consultation.html?id=${a.id}'">Registrar Consulta</button></div>`

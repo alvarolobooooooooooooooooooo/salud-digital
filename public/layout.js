@@ -1,6 +1,14 @@
 // ── layout.js — Global Sidebar & Header Injection ──
 
 (function() {
+  // Cargar icons.js si no está disponible
+  if (typeof Icons === 'undefined') {
+    const script = document.createElement('script');
+    script.src = '/icons.js';
+    script.onload = () => console.log('[layout.js] Icons library loaded');
+    document.head.appendChild(script);
+  }
+
   console.log('[layout.js] Loading...');
   // Detect active page
   const path = window.location.pathname;
@@ -30,22 +38,22 @@
     if (isSuperAdmin) {
       // Super admin sidebar
       items = [
-        { href: '/admin.html', key: 'admin', icon: '⚙️', label: 'Administración' }
+        { href: '/admin.html', key: 'admin', iconName: 'settings', label: 'Administración' }
       ];
     } else {
       // clinic_admin / doctor sidebar
       items = [
-        { href: '/dashboard.html', key: 'dashboard', icon: '📊', label: 'Inicio' },
-        { href: '/citas.html', key: 'citas', icon: '📅', label: 'Citas' },
-        { href: '/patients.html', key: 'patients', icon: '👥', label: 'Pacientes' },
-        { href: '/finanzas.html', key: 'finanzas', icon: '💰', label: 'Finanzas' }
+        { href: '/dashboard.html', key: 'dashboard', iconName: 'home', label: 'Inicio' },
+        { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
+        { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
+        { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
       ];
     }
 
     const navItems = items.map(item => {
       const isActive = item.key === activePage ? 'active' : '';
-      return `<a href="${item.href}" class="sb-item ${isActive}">
-        <span style="font-size: 1.1rem;">${item.icon}</span>
+      return `<a href="${item.href}" class="sb-item ${isActive}" data-icon="${item.iconName}">
+        <span class="sb-icon"></span>
         <span>${item.label}</span>
       </a>`;
     }).join('');
@@ -53,30 +61,22 @@
     // Mobile menu items (same items as sidebar)
     const mobileMenuItems = items.map(item => {
       const isActive = item.key === activePage ? 'active' : '';
-      return `<a href="${item.href}" class="mobile-nav-item ${isActive}">
-        <span>${item.icon}</span>
+      return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
+        <span class="mobile-icon"></span>
         <span>${item.label}</span>
       </a>`;
     }).join('');
 
     const hamburgerMenu = `<button class="mobile-nav-hamburger" id="mobileMenuToggle" title="Menú">
-      <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="hamburger-icon">
-        <path d="M3 6h18M3 12h18M3 18h18"/>
-      </svg>
-      <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="close-icon" style="display: none;">
-        <path d="M18 6L6 18M6 6l12 12"/>
-      </svg>
+      <span class="hamburger-icon" id="hamburgerIcon"></span>
+      <span class="close-icon" id="closeIcon" style="display: none;"></span>
     </button>`;
 
     const mobileSidebar = `<div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
       <aside class="mobile-sidebar" id="mobileSidebar">
         <div class="mobile-sidebar-header">
           <h2 class="mobile-sidebar-title">Menú</h2>
-          <button class="mobile-sidebar-close" id="closeSidebarBtn">
-            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
-          </button>
+          <button class="mobile-sidebar-close" id="closeSidebarBtn"></button>
         </div>
 
         <div class="mobile-sidebar-content">
@@ -84,10 +84,7 @@
             <div class="sidebar-label">Notificaciones</div>
             <div class="notification-item" id="notificationPanel">
               <div style="text-align: center; padding: 1.5rem; color: #94a3b8;">
-                <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 32px; height: 32px; margin-bottom: 0.5rem; opacity: 0.6;">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                </svg>
+                <div id="notificationIcon" style="margin-bottom: 0.5rem; opacity: 0.6;"></div>
                 <p style="font-size: 0.85rem;">Sin notificaciones</p>
               </div>
             </div>
@@ -96,11 +93,7 @@
           <div class="sidebar-section">
             <div class="sidebar-label">Sesión</div>
             <button class="sidebar-logout-btn" onclick="logout()">
-              <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
-              </svg>
+              <span id="logoutIcon"></span>
               <span>Cerrar Sesión</span>
             </button>
           </div>
@@ -109,10 +102,8 @@
 
     return `
       <aside id="sidebar">
-        <div class="sb-logo">
-          <svg fill="#0891b2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L7.5 7H9.5V15H14.5V7H16.5L12 2M4 17H20V18H4V17Z"/>
-          </svg>
+        <div class="sb-logo" id="sbLogoIcon">
+          <span></span>
           <span>SaludDigital</span>
         </div>
 
@@ -127,18 +118,12 @@
         </nav>
 
         <button class="sb-logout" onclick="logout()">
-          <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
+          <span id="sidebarLogoutIcon"></span>
           <span>Cerrar Sesión</span>
         </button>
 
         <button class="sb-toggle" id="sidebarToggle" title="Expandir/contraer">
-          <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path d="M9 5l7 7-7 7"/>
-          </svg>
+          <span id="toggleIcon"></span>
         </button>
       </aside>
 
@@ -184,6 +169,52 @@
       document.body.insertBefore(mobileSidebarEl, document.body.firstChild);
       console.log('[layout.js] Mobile sidebar injected');
     }
+
+    // Renderizar iconos
+    setTimeout(() => {
+      if (typeof Icons !== 'undefined') {
+        // Logo icon
+        const logoIcon = document.querySelector('#sbLogoIcon span:first-child');
+        if (logoIcon) logoIcon.innerHTML = Icons.render('stethoscope', 20);
+
+        // Sidebar nav icons
+        document.querySelectorAll('.sb-item[data-icon]').forEach(item => {
+          const icon = item.querySelector('.sb-icon');
+          if (icon) icon.innerHTML = Icons.render(item.dataset.icon, 16);
+        });
+
+        // Mobile nav icons
+        document.querySelectorAll('.mobile-nav-item[data-icon]').forEach(item => {
+          const icon = item.querySelector('.mobile-icon');
+          if (icon) icon.innerHTML = Icons.render(item.dataset.icon, 16);
+        });
+
+        // Logout icons
+        const sidebarLogout = document.querySelector('#sidebarLogoutIcon');
+        if (sidebarLogout) sidebarLogout.innerHTML = Icons.render('logOut', 16);
+
+        const mobileLogout = document.querySelector('#logoutIcon');
+        if (mobileLogout) mobileLogout.innerHTML = Icons.render('logOut', 16);
+
+        // Toggle icon
+        const toggleIcon = document.querySelector('#toggleIcon');
+        if (toggleIcon) toggleIcon.innerHTML = Icons.render('chevronRight', 16);
+
+        // Hamburger and close icons
+        const hamburgerIcon = document.querySelector('#hamburgerIcon');
+        const closeIcon = document.querySelector('#closeIcon');
+        if (hamburgerIcon) hamburgerIcon.innerHTML = Icons.render('menu', 20);
+        if (closeIcon) closeIcon.innerHTML = Icons.render('x', 20);
+
+        // Close sidebar button icon
+        const closeSidebarBtn = document.querySelector('#closeSidebarBtn');
+        if (closeSidebarBtn) closeSidebarBtn.innerHTML = Icons.render('x', 18);
+
+        // Notification icon
+        const notificationIcon = document.querySelector('#notificationIcon');
+        if (notificationIcon) notificationIcon.innerHTML = Icons.render('bell', 24);
+      }
+    }, 50);
 
     // Mark main content for margin-left
     const mainEl = document.querySelector('main');
@@ -257,12 +288,13 @@
 
     if (count === 0) {
       panel.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: #94a3b8;">
-        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 32px; height: 32px; margin-bottom: 0.5rem; opacity: 0.6;">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
+        <div style="margin-bottom: 0.5rem; opacity: 0.6;" id="emptyNotificationIcon"></div>
         <p style="font-size: 0.85rem;">Sin notificaciones</p>
       </div>`;
+      if (typeof Icons !== 'undefined') {
+        const icon = document.getElementById('emptyNotificationIcon');
+        if (icon) icon.innerHTML = Icons.render('bell', 32);
+      }
     } else if (notifyArray.length > 0) {
       const html = notifyArray.map(n => `
         <div class="notification-item-content">

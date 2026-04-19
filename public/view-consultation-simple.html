@@ -23,6 +23,7 @@
   </div>
 </div>
 
+<script src="/icons.js"></script>
 <script>
 async function test() {
   const params = new URLSearchParams(window.location.search);
@@ -60,9 +61,14 @@ async function test() {
     document.getElementById('diagnosis').textContent = data.diagnosis || '--';
     document.getElementById('cost').textContent = data.cost || '--';
     document.getElementById('content').style.display = 'block';
-    msg.textContent = 'Consulta cargada exitosamente ✓';
+    msg.innerHTML = '<span style="display: flex; align-items: center; gap: 0.5rem;"><span style="display: flex; align-items: center; justify-content: center; width: 16px; height: 16px;" id="successIcon"></span>Consulta cargada exitosamente</span>';
     msg.className = 'success';
-    msg.style.display = 'block';
+    msg.style.display = 'flex';
+    msg.style.alignItems = 'center';
+    const successIcon = document.getElementById('successIcon');
+    if (typeof Icons !== 'undefined' && successIcon) {
+      successIcon.innerHTML = Icons.render('checkmark', 16);
+    }
   } catch (e) {
     msg.textContent = `Error: ${e.message}`;
     msg.className = 'error';
