@@ -661,6 +661,7 @@ nav.old-nav {
     width: 100%;
     margin: 0;
     padding: 0;
+    background: var(--card);
   }
   #sidebar {
     display: none;
@@ -682,6 +683,9 @@ nav.old-nav {
     margin: 0;
     box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     backdrop-filter: blur(12px);
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+    padding-left: max(0.5rem, env(safe-area-inset-left));
+    padding-right: max(0.5rem, env(safe-area-inset-right));
   }
   .mobile-nav-logout {
     border-left: none !important;
