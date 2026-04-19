@@ -2,88 +2,664 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SaludDigital — Doctores</title>
-  <link rel="stylesheet" href="/layout.css">  <link rel="stylesheet" href="/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SaludDigital — Gestión de Personal</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; color: #1e293b; }
+
+    .layout-main {
+      padding: 2.5rem 2rem;
+      max-width: calc(100% - 240px);
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3rem;
+      gap: 2rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(8, 145, 178, 0.15);
+    }
+
+    .header-content h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: white;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .header-content p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1rem;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    .btn-add-doctor {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.9rem 2rem;
+      border: none;
+      background: white;
+      color: #0891b2;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
+    }
+
+    .btn-add-doctor:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      background: #f0f9ff;
+    }
+
+    .search-section { margin-bottom: 2.5rem; }
+
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.85rem 1.5rem;
+      background: white;
+      max-width: 450px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .search-wrap:focus-within {
+      border-color: #0891b2;
+      box-shadow: 0 8px 24px rgba(8, 145, 178, 0.12);
+    }
+
+    .search-wrap svg { color: #0891b2; flex-shrink: 0; width: 20px; height: 20px; }
+
+    .search-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: transparent;
+      color: #0f172a;
+    }
+
+    .search-input::placeholder { color: #cbd5e1; font-weight: 500; }
+
+    .doctors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .doctor-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      transition: all 0.2s ease;
+      border: 1px solid #f1f5f9;
+    }
+
+    .doctor-card:hover {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      border-color: #e2e8f0;
+    }
+
+    .doctor-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.25rem;
+    }
+
+    .doctor-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 10px;
+      background: #0891b2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .doctor-info { flex: 1; }
+
+    .doctor-name {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+    }
+
+    .doctor-specialty {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #0891b2;
+      background: #f0f9ff;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+
+    .doctor-email {
+      font-size: 0.85rem;
+      color: #64748b;
+      word-break: break-all;
+      font-weight: 500;
+    }
+
+    .doctor-details {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.9rem;
+      color: #0891b2;
+      padding: 0.75rem 0;
+      font-weight: 600;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .btn-edit {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
+      background: white;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      color: #0891b2;
+      transition: all 0.3s ease;
+      display: none;
+    }
+
+    .btn-edit:hover {
+      background: #f0f9ff;
+      border-color: #0891b2;
+      transform: translateY(-2px);
+    }
+
+    .btn-delete {
+      flex: 1;
+      padding: 0.65rem 1rem;
+      border: 1px solid #fecaca;
+      background: white;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      color: #dc2626;
+      transition: all 0.2s ease;
+    }
+
+    .btn-delete:hover {
+      background: #fef2f2;
+      border-color: #fca5a5;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 3rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 16px;
+      border: 2px dashed #cbd5e1;
+      color: #64748b;
+    }
+
+    .empty-state p {
+      margin-bottom: 1rem;
+      font-size: 1.05rem;
+      font-weight: 500;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.5);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .overlay.active { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 18px;
+      width: calc(100% - 2rem);
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+      scrollbar-width: none;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    .modal::-webkit-scrollbar { display: none; }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      border-bottom: none;
+      border-radius: 18px 18px 0 0;
+    }
+
+    .modal-header h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: white;
+      letter-spacing: -0.01em;
+    }
+
+    .modal-close {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      font-size: 1.4rem;
+      color: white;
+      cursor: pointer;
+      padding: 0.3rem 0.6rem;
+      border-radius: 8px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(90deg);
+    }
+
+    .modal-body { padding: 2.5rem; }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.7rem;
+      letter-spacing: -0.01em;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 0.9rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: white;
+      color: #0f172a;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #0891b2;
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 1rem;
+      padding: 2rem;
+      border-top: 1px solid #f1f5f9;
+      justify-content: flex-end;
+      background: #f9fafb;
+      border-radius: 0 0 18px 18px;
+    }
+
+    .btn-cancel {
+      padding: 0.8rem 1.5rem;
+      border: 2px solid #e2e8f0;
+      background: white;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      color: #64748b;
+      transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      transform: translateY(-2px);
+    }
+
+    .btn-submit {
+      padding: 0.8rem 2rem;
+      border: none;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      color: white;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.4);
+    }
+
+    .btn-submit:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .msg {
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 7px;
+      display: none;
+    }
+
+    .msg.ok {
+      background: #f0fdf4;
+      color: #15803d;
+      display: block;
+    }
+
+    .msg.err {
+      background: #fef2f2;
+      color: #dc2626;
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .page-header {
+        flex-direction: column;
+      }
+
+      .doctors-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .layout-main {
+        padding: 1.5rem 1rem;
+        padding-top: 90px;
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
   <main class="layout-main">
-    <a href="/dashboard.html" class="back-link">← Volver al dashboard</a>
-    <h2>Doctores</h2>
+    <div class="page-header">
+      <div class="header-content">
+        <h1>Gestión de Personal</h1>
+        <p>Administra los médicos y usuarios de tu clínica</p>
+      </div>
+      <button class="btn-add-doctor" onclick="openModal()">
+        <span id="plusIcon"></span>
+        <span>Doctor</span>
+      </button>
+    </div>
 
-    <section>
-      <div id="doctorsList"><span class="empty">Cargando...</span></div>
-    </section>
+    <div class="search-section">
+      <div class="search-wrap">
+        <span id="searchIcon"></span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre...">
+      </div>
+    </div>
 
-    <section id="createSection" style="display:none">
-      <h3>Agregar doctor</h3>
-      <div class="form-row">
+    <div class="doctors-grid" id="doctorsList">
+      <div class="empty-state">
+        <p>Cargando doctores...</p>
+      </div>
+    </div>
+  </main>
+
+  <div class="overlay" id="overlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Invitar Doctor</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" id="fName" placeholder="Ej: Dr. Juan Pérez">
+        </div>
         <div class="form-group">
           <label>Email</label>
-          <input type="email" id="docEmail" placeholder="doctor@clinica.com">
+          <input type="email" id="fEmail" placeholder="doctor@clinica.com">
         </div>
         <div class="form-group">
           <label>Contraseña</label>
-          <input type="password" id="docPassword" placeholder="••••••••">
+          <input type="password" id="fPassword" placeholder="••••••••">
         </div>
-        <button onclick="createDoctor()">Agregar doctor</button>
+        <div class="form-group">
+          <label>Especialidad</label>
+          <input type="text" id="fSpecialty" placeholder="Ej: Medicina General">
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="tel" id="fPhone" placeholder="Ej: 3151234567">
+        </div>
+        <div class="msg" id="formMsg"></div>
       </div>
-      <div class="msg" id="docMsg"></div>
-    </section>
-  </main>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button class="btn-submit" onclick="createDoctor()">Invitar Doctor</button>
+      </div>
+    </div>
+  </div>
 
   <script src="/common.js"></script>
-<script src="/layout.js"></script>
+  <script src="/layout.js"></script>
+  <script src="/icons.js"></script>
   <script>
-    requireAuth(['clinic_admin', 'doctor']);
+    requireAuth(['clinic_admin']);
 
-    let currentRole = '';
-
-    (async () => {
-      try {
-        const me = await api('/api/auth/me');
-        currentRole = me.role;
-        document.getElementById('navUser').innerHTML =
-          `${esc(me.email)} &nbsp;|&nbsp; <a href="#" onclick="logout()">Cerrar sesión</a>`;
-        if (me.role === 'clinic_admin') {
-          document.getElementById('createSection').style.display = 'block';
-        }
-        loadDoctors();
-      } catch {}
-    })();
+    let allDoctors = [];
 
     async function loadDoctors() {
       try {
         const doctors = await api('/api/users/doctors');
-        document.getElementById('doctorsList').innerHTML = doctors.length === 0
-          ? '<span class="empty">No hay doctores registrados aún.</span>'
-          : `<table>
-               <thead><tr><th>Email</th><th>Rol</th></tr></thead>
-               <tbody>
-                 ${doctors.map(d => `
-                   <tr>
-                     <td>${esc(d.email)}</td>
-                     <td><span class="tag tag-doctor">Doctor</span></td>
-                   </tr>`).join('')}
-               </tbody>
-             </table>`;
+        allDoctors = doctors;
+        renderDoctors(doctors);
       } catch (e) {
-        document.getElementById('doctorsList').innerHTML = `<span class="empty">Error al cargar.</span>`;
+        console.error('Error loading doctors:', e);
+        document.getElementById('doctorsList').innerHTML = '<div class="empty-state"><p>Error al cargar doctores</p></div>';
       }
     }
 
-    async function createDoctor() {
-      const email    = document.getElementById('docEmail').value.trim();
-      const password = document.getElementById('docPassword').value;
-      if (!email || !password) { msg('docMsg', 'Email y contraseña son requeridos', true); return; }
-      try {
-        await api('/api/users', { method: 'POST', body: { email, password, role: 'doctor' } });
-        document.getElementById('docEmail').value = '';
-        document.getElementById('docPassword').value = '';
-        msg('docMsg', 'Doctor creado exitosamente');
-        loadDoctors();
-      } catch (e) { msg('docMsg', e.message, true); }
+    function renderDoctors(doctors) {
+      const list = document.getElementById('doctorsList');
+      if (doctors.length === 0) {
+        list.innerHTML = '<div class="empty-state"><p>No hay doctores registrados aún</p><p style="font-size: 0.85rem;">Invita a tu primer doctor haciendo clic en el botón "+ Doctor"</p></div>';
+        return;
+      }
+
+      list.innerHTML = doctors.map(doctor => {
+        const initials = (doctor.name || doctor.email)
+          .split(' ')
+          .slice(0, 2)
+          .map(n => n[0])
+          .join('')
+          .toUpperCase();
+
+        return `
+          <div class="doctor-card">
+            <div class="doctor-header">
+              <div class="doctor-avatar">${initials}</div>
+              <div class="doctor-info">
+                <div class="doctor-name">${esc(doctor.name || doctor.email.split('@')[0])}</div>
+                ${doctor.specialty ? `<div class="doctor-specialty">${esc(doctor.specialty)}</div>` : ''}
+                <div class="doctor-email">${esc(doctor.email)}</div>
+              </div>
+            </div>
+            ${doctor.phone ? `<div class="doctor-details">
+              <span id="phoneIcon-${doctor.id}"></span>
+              <span>${esc(doctor.phone)}</span>
+            </div>` : ''}
+            <div class="card-actions">
+              <button class="btn-edit" onclick="editDoctor(${doctor.id})">Editar</button>
+              <button class="btn-delete" onclick="deleteDoctor(${doctor.id})">Eliminar Doctor</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (typeof Icons !== 'undefined') {
+        doctors.forEach(d => {
+          if (d.phone) {
+            const phoneIcon = document.querySelector(`#phoneIcon-${d.id}`);
+            if (phoneIcon) phoneIcon.innerHTML = Icons.render('phone', 16);
+          }
+        });
+      }
     }
+
+    function openModal() {
+      document.getElementById('overlay').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('overlay').classList.remove('active');
+      document.getElementById('formMsg').className = 'msg';
+      document.getElementById('formMsg').textContent = '';
+      document.getElementById('fName').value = '';
+      document.getElementById('fEmail').value = '';
+      document.getElementById('fPassword').value = '';
+      document.getElementById('fSpecialty').value = '';
+      document.getElementById('fPhone').value = '';
+    }
+
+    async function createDoctor() {
+      const name = document.getElementById('fName').value.trim();
+      const email = document.getElementById('fEmail').value.trim();
+      const password = document.getElementById('fPassword').value.trim();
+      const specialty = document.getElementById('fSpecialty').value.trim();
+      const phone = document.getElementById('fPhone').value.trim();
+
+      const msgEl = document.getElementById('formMsg');
+
+      if (!name || !email || !password) {
+        msgEl.className = 'msg err';
+        msgEl.textContent = 'Nombre, email y contraseña son requeridos';
+        return;
+      }
+
+      if (password.length < 6) {
+        msgEl.className = 'msg err';
+        msgEl.textContent = 'La contraseña debe tener al menos 6 caracteres';
+        return;
+      }
+
+      try {
+        await api('/api/users', {
+          method: 'POST',
+          body: { email, password, name, specialty, phone, role: 'doctor' }
+        });
+        msgEl.className = 'msg ok';
+        msgEl.textContent = 'Doctor invitado exitosamente';
+        setTimeout(() => {
+          closeModal();
+          loadDoctors();
+        }, 1500);
+      } catch (e) {
+        msgEl.className = 'msg err';
+        msgEl.textContent = e.message || 'Error al crear doctor';
+      }
+    }
+
+    async function deleteDoctor(doctorId) {
+      const doctor = allDoctors.find(d => d.id === doctorId);
+      if (!doctor) return;
+
+      const confirmDelete = confirm(`¿Está seguro que desea eliminar a ${esc(doctor.name || doctor.email)}?`);
+      if (!confirmDelete) return;
+
+      try {
+        await api(`/api/users/${doctorId}`, { method: 'DELETE' });
+        loadDoctors();
+      } catch (e) {
+        alert('Error al eliminar doctor: ' + (e.message || 'Error desconocido'));
+      }
+    }
+
+    function editDoctor(doctorId) {
+      alert('La función de edición estará disponible próximamente');
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = allDoctors.filter(d => {
+        const name = (d.name || d.email).toLowerCase();
+        const email = d.email.toLowerCase();
+        const specialty = (d.specialty || '').toLowerCase();
+        return name.includes(query) || email.includes(query) || specialty.includes(query);
+      });
+      renderDoctors(filtered);
+    });
+
+    setTimeout(() => {
+      if (typeof Icons !== 'undefined') {
+        const plusIcon = document.getElementById('plusIcon');
+        if (plusIcon) plusIcon.innerHTML = Icons.render('plus', 18);
+
+        const searchIcon = document.getElementById('searchIcon');
+        if (searchIcon) searchIcon.innerHTML = Icons.render('search', 18);
+      }
+    }, 100);
+
+    loadDoctors();
   </script>
 </body>
 </html>

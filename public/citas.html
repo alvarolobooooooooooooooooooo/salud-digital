@@ -23,13 +23,57 @@
     /* ── Main ── */
     main { width: 100%; margin: 0; padding: 1.5rem 1rem; overflow-x: visible; }
 
-    /* ── Hero ── */
-    .hero { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 2rem; }
-    .hero-content { flex: 1; }
-    .hero h2 { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin-bottom: .5rem; letter-spacing: -.02em; }
-    .hero p { color: #64748b; font-size: .95rem; line-height: 1.7; margin-bottom: 0; }
-    .btn-nueva { display: flex; align-items: center; gap: .5rem; padding: .7rem 1.5rem; border: none; background: #0891b2; color: white; border-radius: 10px; font-size: .95rem; font-family: inherit; cursor: pointer; font-weight: 600; white-space: nowrap; transition: all .2s; box-shadow: 0 2px 8px rgba(8,145,178,.15); flex-shrink: 0; }
-    .btn-nueva:hover { background: #0e7490; box-shadow: 0 4px 12px rgba(8,145,178,.25); transform: translateY(-1px); }
+    /* ── Page Header ── */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3rem;
+      gap: 2rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(8, 145, 178, 0.15);
+    }
+
+    .header-content h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: white;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .header-content p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1rem;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    .btn-nueva {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .9rem 2rem;
+      border: none;
+      background: white;
+      color: #0891b2;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
+    }
+    .btn-nueva:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      background: #f0f9ff;
+    }
 
     /* ── Filters ── */
     .filter-section { margin-bottom: 1.25rem; }
@@ -190,9 +234,9 @@
       .month-hcell { padding: .2rem .1rem; font-size: .55rem; }
       .cal-pill { font-size: .55rem; padding: .05rem .1rem; }
       .cell-num { width: 16px; height: 16px; font-size: .6rem; }
-      .hero { flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
-      .hero h2 { font-size: 1.8rem; }
-      .hero p { font-size: .9rem; }
+      .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; padding: 1.5rem; }
+      .header-content h1 { font-size: 1.8rem; }
+      .header-content p { font-size: .9rem; }
       .btn-nueva { width: 100%; justify-content: center; }
       .cal-toolbar { display: flex; flex-direction: column; align-items: center; gap: .75rem; padding: .875rem 1.25rem; }
       .cal-period { font-size: 1.4rem; font-weight: 700; margin: 0; text-align: center; order: -1; width: 100%; }
@@ -231,9 +275,9 @@
 <body>
 
 <main class="layout-main">
-  <div class="hero">
-    <div class="hero-content">
-      <h2>Citas</h2>
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Citas</h1>
       <p>Gestiona tus citas y consultas médicas de forma eficiente</p>
     </div>
     <button class="btn-nueva" onclick="openModal()" id="btnNewAppointment">
@@ -417,6 +461,12 @@
 <script src="/odontogram-container.js"></script>
 <script>
 requireAuth(['clinic_admin', 'doctor']);
+
+// Hide "Nueva Cita" button for clinic_admin
+if (getRole() === 'clinic_admin') {
+  const btnNewAppointment = document.getElementById('btnNewAppointment');
+  if (btnNewAppointment) btnNewAppointment.style.display = 'none';
+}
 
 // Renderizar icono del botón Nueva Cita
 const btnNewIcon = document.getElementById('btnNewIcon');
