@@ -420,8 +420,9 @@
 
     // Render next patient
     function renderNextPatient(appointments) {
+      const now = new Date();
       const next = appointments
-        .filter(a => a.status !== 'completed')
+        .filter(a => a.status !== 'completed' && new Date(a.scheduled_at) >= now)
         .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))[0];
 
       if (!next) {
