@@ -28,9 +28,10 @@
   };
   const activePage = activeMap[path] || '';
 
-  // Determine if super_admin
+  // Determine user role
   const role = localStorage.getItem('sd_role');
   const isSuperAdmin = role === 'super_admin';
+  const isClinicAdmin = role === 'clinic_admin';
 
   function buildSidebarHTML() {
     let items = [];
@@ -40,8 +41,17 @@
       items = [
         { href: '/admin.html', key: 'admin', iconName: 'settings', label: 'Administración' }
       ];
+    } else if (isClinicAdmin) {
+      // Clinic admin sidebar
+      items = [
+        { href: '/dashboard.html', key: 'dashboard', iconName: 'home', label: 'Inicio' },
+        { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
+        { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
+        { href: '/doctors.html', key: 'doctors', iconName: 'staff', label: 'Personal' },
+        { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
+      ];
     } else {
-      // clinic_admin / doctor sidebar
+      // Doctor sidebar
       items = [
         { href: '/dashboard.html', key: 'dashboard', iconName: 'home', label: 'Inicio' },
         { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },

@@ -71,6 +71,10 @@ const Icons = {
 
   inbox: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 21 6 12 2 12"/><path d="M9 11a3 3 0 0 1 6 0c0 1-.6 2-1.5 2.5"/></svg>`,
 
+  user: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+
+  staff: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="5" r="2"/><circle cx="16" cy="6" r="2"/><path d="M4 10h6v6H4z"/><path d="M14 10h6v6h-6z"/></svg>`,
+
   // Helper function para crear un icono con tamaño personalizado
   render(name, size = 24) {
     if (!Icons[name]) return '';

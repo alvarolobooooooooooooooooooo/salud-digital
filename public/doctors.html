@@ -12,7 +12,7 @@
 
     .layout-main {
       padding: 2.5rem 2rem;
-      max-width: calc(100% - 240px);
+      max-width: 100%;
     }
 
     .page-header {
@@ -267,10 +267,10 @@
       width: calc(100% - 2rem);
       max-width: 520px;
       max-height: 90vh;
-      overflow-y: auto;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
       box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
-      scrollbar-width: none;
-      border: 1px solid rgba(255, 255, 255, 0.8);
     }
     .modal::-webkit-scrollbar { display: none; }
 
@@ -310,7 +310,8 @@
       transform: rotate(90deg);
     }
 
-    .modal-body { padding: 2.5rem; }
+    .modal-body { padding: 2.5rem; overflow-y: auto; flex: 1; scrollbar-width: none; }
+    .modal-body::-webkit-scrollbar { display: none; }
 
     .form-group {
       margin-bottom: 1.5rem;
@@ -480,10 +481,6 @@
           <input type="email" id="fEmail" placeholder="doctor@clinica.com">
         </div>
         <div class="form-group">
-          <label>Contraseña</label>
-          <input type="password" id="fPassword" placeholder="••••••••">
-        </div>
-        <div class="form-group">
           <label>Especialidad</label>
           <input type="text" id="fSpecialty" placeholder="Ej: Medicina General">
         </div>
@@ -576,7 +573,6 @@
       document.getElementById('formMsg').textContent = '';
       document.getElementById('fName').value = '';
       document.getElementById('fEmail').value = '';
-      document.getElementById('fPassword').value = '';
       document.getElementById('fSpecialty').value = '';
       document.getElementById('fPhone').value = '';
     }
@@ -584,31 +580,24 @@
     async function createDoctor() {
       const name = document.getElementById('fName').value.trim();
       const email = document.getElementById('fEmail').value.trim();
-      const password = document.getElementById('fPassword').value.trim();
       const specialty = document.getElementById('fSpecialty').value.trim();
       const phone = document.getElementById('fPhone').value.trim();
 
       const msgEl = document.getElementById('formMsg');
 
-      if (!name || !email || !password) {
+      if (!name || !email) {
         msgEl.className = 'msg err';
-        msgEl.textContent = 'Nombre, email y contraseña son requeridos';
-        return;
-      }
-
-      if (password.length < 6) {
-        msgEl.className = 'msg err';
-        msgEl.textContent = 'La contraseña debe tener al menos 6 caracteres';
+        msgEl.textContent = 'Nombre y email son requeridos';
         return;
       }
 
       try {
-        await api('/api/users', {
+        await api('/api/invitations', {
           method: 'POST',
-          body: { email, password, name, specialty, phone, role: 'doctor' }
+          body: { email, name, specialty, phone }
         });
         msgEl.className = 'msg ok';
-        msgEl.textContent = 'Doctor invitado exitosamente';
+        msgEl.textContent = 'Invitación enviada al correo del doctor';
         setTimeout(() => {
           closeModal();
           loadDoctors();

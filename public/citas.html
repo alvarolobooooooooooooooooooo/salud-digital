@@ -421,7 +421,7 @@
         </div>
         <div class="field full">
           <label>Especialidad</label>
-          <input type="text" id="fSpecialty" placeholder="Medicina General">
+          <input type="text" id="fSpecialty" placeholder="Medicina General" readonly style="background:#f8fafc;color:#64748b;">
         </div>
         <div class="field full">
           <label>Fecha y hora *</label>
@@ -518,6 +518,18 @@ let calDate = new Date();
     // modal doctor
     const dd = document.getElementById('fDoctor');
     doctors.forEach(d => { const o = document.createElement('option'); o.value = d.id; o.textContent = `Dr. ${esc(d.name || d.email.split('@')[0])}`; dd.appendChild(o); });
+
+    // Auto-fill specialty when doctor is selected
+    dd.addEventListener('change', (e) => {
+      const doctorId = parseInt(e.target.value);
+      const doctor = allDoctors.find(d => d.id === doctorId);
+      const specialtyField = document.getElementById('fSpecialty');
+      if (doctor && specialtyField) {
+        specialtyField.value = doctor.specialty || 'Medicina General';
+      } else if (specialtyField) {
+        specialtyField.value = '';
+      }
+    });
 
     renderList(appts);
     renderCalendar();
@@ -930,7 +942,15 @@ function openEdit(id) {
   document.getElementById('btnDelete').style.display = 'inline-block';
   document.getElementById('fPatient').value  = a.patient_id;
   document.getElementById('fDoctor').value   = a.doctor_id;
-  document.getElementById('fSpecialty').value = a.specialty || '';
+
+  // Auto-fill specialty from selected doctor
+  const doctor = allDoctors.find(d => d.id === a.doctor_id);
+  if (doctor) {
+    document.getElementById('fSpecialty').value = doctor.specialty || 'Medicina General';
+  } else {
+    document.getElementById('fSpecialty').value = '';
+  }
+
   document.getElementById('fDatetime').value = a.scheduled_at.slice(0,16);
   document.getElementById('fStatus').value   = a.status;
 

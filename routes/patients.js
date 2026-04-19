@@ -16,9 +16,13 @@ router.get('/:id', authenticate, (req, res) => {
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
   const critical_info = db.prepare('SELECT * FROM critical_info WHERE patient_id = ?').get(patient.id) || {};
-  const consultations = db.prepare(
-    'SELECT c.id, c.patient_id, c.notes, c.diagnosis, c.treatment, c.specialty, c.odontogram_state, c.cost, c.payment_status, c.lifestyle, c.procedures, c.radiography_notes, c.observations, c.doctor_id, c.visit_reason, c.created_at, c.clinic_id, u.name as doctor_name FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = ? AND c.clinic_id = ? ORDER BY c.created_at DESC'
-  ).all(patient.id, req.user.clinic_id);
+
+  let consultations = [];
+  if (req.user.role !== 'clinic_admin') {
+    consultations = db.prepare(
+      'SELECT c.id, c.patient_id, c.notes, c.diagnosis, c.treatment, c.specialty, c.odontogram_state, c.cost, c.payment_status, c.lifestyle, c.procedures, c.radiography_notes, c.observations, c.doctor_id, c.visit_reason, c.created_at, c.clinic_id, u.name as doctor_name FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = ? AND c.clinic_id = ? ORDER BY c.created_at DESC'
+    ).all(patient.id, req.user.clinic_id);
+  }
 
   res.json({ ...patient, critical_info, consultations });
 });

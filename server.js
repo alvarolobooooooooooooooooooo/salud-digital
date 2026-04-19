@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 
@@ -9,6 +10,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/invitations', require('./routes/invitations'));
 app.use('/api/clinics', require('./routes/clinics'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/patients', require('./routes/patients'));

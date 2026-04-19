@@ -24,14 +24,24 @@ router.get('/', authenticate, (req, res) => {
 });
 
 router.put('/:id', authenticate, (req, res) => {
-  const { doctor_id, specialty, scheduled_at, status } = req.body;
-  const appt = db.prepare('SELECT id FROM appointments WHERE id = ? AND clinic_id = ?')
+  const { doctor_id, scheduled_at, status } = req.body;
+  const appt = db.prepare('SELECT id, doctor_id as current_doctor_id FROM appointments WHERE id = ? AND clinic_id = ?')
     .get(req.params.id, req.user.clinic_id);
   if (!appt) return res.status(404).json({ error: 'Cita no encontrada' });
+
   const fields = [];
   const vals   = [];
-  if (doctor_id    !== undefined) { fields.push('doctor_id = ?');    vals.push(doctor_id); }
-  if (specialty    !== undefined) { fields.push('specialty = ?');    vals.push(specialty); }
+
+  let specialty = null;
+  if (doctor_id !== undefined) {
+    const doctor = db.prepare('SELECT specialty FROM users WHERE id = ? AND clinic_id = ? AND role = ?')
+      .get(doctor_id, req.user.clinic_id, 'doctor');
+    if (!doctor) return res.status(404).json({ error: 'Doctor no encontrado' });
+    specialty = doctor.specialty || '';
+    fields.push('doctor_id = ?');    vals.push(doctor_id);
+    fields.push('specialty = ?');    vals.push(specialty);
+  }
+
   if (scheduled_at !== undefined) { fields.push('scheduled_at = ?'); vals.push(scheduled_at); }
   if (status       !== undefined) { fields.push('status = ?');       vals.push(status); }
   if (!fields.length) return res.status(400).json({ error: 'Nada que actualizar' });
@@ -53,7 +63,10 @@ router.get('/today', authenticate, (req, res) => {
 });
 
 router.post('/', authenticate, (req, res) => {
-  const { patient_id, doctor_id, specialty, scheduled_at } = req.body;
+  if (req.user.role === 'clinic_admin') {
+    return res.status(403).json({ error: 'Clinic admin cannot create appointments' });
+  }
+  const { patient_id, doctor_id, scheduled_at } = req.body;
   if (!patient_id || !doctor_id || !scheduled_at) {
     return res.status(400).json({ error: 'patient_id, doctor_id y scheduled_at son requeridos' });
   }
@@ -61,9 +74,13 @@ router.post('/', authenticate, (req, res) => {
     .get(patient_id, req.user.clinic_id);
   if (!patient) return res.status(404).json({ error: 'Paciente no encontrado' });
 
+  const doctor = db.prepare('SELECT specialty FROM users WHERE id = ? AND clinic_id = ? AND role = ?')
+    .get(doctor_id, req.user.clinic_id, 'doctor');
+  if (!doctor) return res.status(404).json({ error: 'Doctor no encontrado' });
+
   const result = db.prepare(
     'INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(patient_id, doctor_id, req.user.clinic_id, specialty || '', scheduled_at, 'pending');
+  ).run(patient_id, doctor_id, req.user.clinic_id, doctor.specialty || '', scheduled_at, 'pending');
   res.json({ id: result.lastInsertRowid });
 });
 

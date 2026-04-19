@@ -100,6 +100,32 @@ router.get('/finances/pending', authenticate, (req, res) => {
   res.json(consultations);
 });
 
+// GET - Breakdown by doctor (clinic_admin only)
+router.get('/finances/by-doctor', authenticate, (req, res) => {
+  if (req.user.role === 'doctor') {
+    return res.status(403).json({ error: 'Only clinic admin can view this' });
+  }
+
+  const query = `
+    SELECT
+      u.id as doctor_id,
+      u.name as doctor_name,
+      u.specialty,
+      COUNT(DISTINCT c.id) as consultation_count,
+      COALESCE(SUM(CASE WHEN c.payment_status = 'paid' THEN c.cost ELSE 0 END), 0) as paid_amount,
+      COALESCE(SUM(CASE WHEN c.payment_status = 'pending' THEN c.cost ELSE 0 END), 0) as pending_amount,
+      COALESCE(SUM(c.cost), 0) as total_amount
+    FROM users u
+    LEFT JOIN consultations c ON u.id = c.doctor_id AND c.clinic_id = ? AND u.clinic_id = ?
+    WHERE u.clinic_id = ? AND u.role = 'doctor'
+    GROUP BY u.id
+    ORDER BY total_amount DESC
+  `;
+
+  const doctors = db.prepare(query).all(req.user.clinic_id, req.user.clinic_id, req.user.clinic_id);
+  res.json(doctors);
+});
+
 // POST - Create consultation
 router.post('/', authenticate, (req, res) => {
   const { patient_id, notes, diagnosis, treatment, specialty, odontogram_state, cost, payment_status, lifestyle, procedures, radiography_notes, observations, doctor_id, visit_reason, appointment_id } = req.body;

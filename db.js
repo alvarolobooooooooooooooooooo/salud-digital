@@ -67,6 +67,21 @@ db.exec(`
   );
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS invitations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE,
+    name TEXT DEFAULT '',
+    specialty TEXT DEFAULT '',
+    phone TEXT DEFAULT '',
+    clinic_id INTEGER NOT NULL,
+    token TEXT NOT NULL UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL,
+    FOREIGN KEY (clinic_id) REFERENCES clinics(id)
+  );
+`);
+
 // Add user fields
 try { db.exec('ALTER TABLE users ADD COLUMN specialty TEXT DEFAULT ""'); } catch {}
 try { db.exec('ALTER TABLE users ADD COLUMN phone TEXT DEFAULT ""'); } catch {}
