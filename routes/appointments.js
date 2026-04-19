@@ -59,14 +59,22 @@ router.put('/:id', authenticate, (req, res) => {
 
 router.get('/today', authenticate, (req, res) => {
   const today = getLocalDateString();
-  const rows = db.prepare(`
+  let query = `
     SELECT a.*, p.name AS patient_name, u.name AS doctor_name, u.email AS doctor_email
     FROM appointments a
     JOIN patients p ON a.patient_id = p.id
     JOIN users u ON a.doctor_id = u.id
     WHERE a.clinic_id = ? AND DATE(a.scheduled_at) = ?
-    ORDER BY a.scheduled_at
-  `).all(req.user.clinic_id, today);
+  `;
+  const params = [req.user.clinic_id, today];
+
+  if (req.user.role === 'doctor') {
+    query += ' AND a.doctor_id = ?';
+    params.push(req.user.id);
+  }
+
+  query += ' ORDER BY a.scheduled_at';
+  const rows = db.prepare(query).all(...params);
   res.json(rows);
 });
 
