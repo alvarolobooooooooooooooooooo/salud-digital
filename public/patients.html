@@ -531,12 +531,35 @@
       .detail-header { flex-direction: column; align-items: center; text-align: center; }
       .modal-body { grid-template-columns: 1fr !important; }
     }
+    /* ── Mobile Back Button ── */
+    .detail-back-btn-mobile {
+      display: none;
+      background: white;
+      border: 1px solid #e2e8f0;
+      color: #0891b2;
+      cursor: pointer;
+      padding: 0.6rem 1rem;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      font-family: inherit;
+      align-self: flex-start;
+      transition: all 0.15s;
+    }
+
+    .detail-back-btn-mobile:hover {
+      background: #f0f9ff;
+      border-color: #0891b2;
+    }
+
     @media (max-width: 860px) {
       .layout-main { padding: 0 !important; margin: 0 !important; padding-top: 90px !important; height: 100vh !important; flex-direction: column !important; width: 100% !important; position: relative !important; box-sizing: border-box !important; }
       .patient-queue { width: 100% !important; flex: 1 !important; min-height: 0 !important; border-right: none !important; border-bottom: none !important; display: flex !important; flex-direction: column !important; }
       .queue-list { flex: 1 !important; min-height: 0 !important; overflow-y: auto !important; }
       .patient-detail { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: white !important; z-index: 1000 !important; overflow-y: auto !important; padding: 90px 0.75rem 0.75rem 0.75rem !important; display: none !important; flex-direction: column !important; }
       .patient-detail.active { display: flex !important; }
+      .detail-back-btn-mobile { display: block !important; }
       .queue-header { padding: 0.75rem !important; flex-shrink: 0 !important; }
       .queue-search { padding: 0.5rem !important; flex-shrink: 0 !important; }
       .queue-tabs { flex-shrink: 0 !important; }
@@ -828,6 +851,9 @@
     const consultations = patient.consultations || [];
 
     let html = `
+      <!-- Mobile Back Button -->
+      <button class="detail-back-btn-mobile" onclick="closeDetailPanel()">← Volver</button>
+
       <!-- Header -->
       <div class="detail-header">
         <div class="detail-avatar-lg">${initials}</div>
@@ -978,6 +1004,23 @@
     const detailPanel = document.getElementById('detailPanel');
     detailPanel.innerHTML = html;
     detailPanel.classList.add('active');
+
+    // Add swipe to close listener
+    let swipeStartX = 0;
+    const onSwipeStart = (e) => { swipeStartX = e.touches[0].clientX; };
+    const onSwipeEnd = (e) => {
+      const swipeEndX = e.changedTouches[0].clientX;
+      if (swipeStartX - swipeEndX > 50) {
+        e.preventDefault();
+        e.stopPropagation();
+        selectedPatientId = null;
+        detailPanel.classList.remove('active');
+        detailPanel.removeEventListener('touchstart', onSwipeStart);
+        detailPanel.removeEventListener('touchend', onSwipeEnd);
+      }
+    };
+    detailPanel.addEventListener('touchstart', onSwipeStart, false);
+    detailPanel.addEventListener('touchend', onSwipeEnd, false);
 
     // Inicializar odontograma en modo visualización (readOnly = true)
     setTimeout(() => {
@@ -1141,6 +1184,14 @@
 
   function openExpedClinico(patientId) {
     window.location.href = `/clinical-record.html?id=${patientId}`;
+  }
+
+  function closeDetailPanel() {
+    selectedPatientId = null;
+    const detailPanel = document.getElementById('detailPanel');
+    detailPanel.classList.remove('active');
+    detailPanel.innerHTML = '';
+    renderQueue();
   }
 </script>
 </body>
