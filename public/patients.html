@@ -518,24 +518,28 @@
     /* ── Responsive ── */
 
     @media (max-width: 1024px) {
-      .patient-queue { width: 240px; }
+      .patient-queue { width: 240px; display: flex; flex-direction: column; }
+      .queue-list { flex: 1; min-height: 0; overflow-y: auto; }
       .info-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 768px) {
-      .layout-main { flex-direction: column; height: auto; }
-      .patient-queue { width: 100%; border-right: none; border-bottom: 1px solid #e2e8f0; max-height: 40vh; }
+      .layout-main { flex-direction: column; height: 100vh; padding-top: 90px; box-sizing: border-box; }
+      .patient-queue { width: 100%; border-right: none; border-bottom: none; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+      .queue-list { flex: 1; min-height: 0; overflow-y: auto; }
       .patient-detail { padding: 1rem; }
       .detail-header { flex-direction: column; align-items: center; text-align: center; }
       .modal-body { grid-template-columns: 1fr !important; }
     }
     @media (max-width: 860px) {
       .layout-main { padding: 0 !important; margin: 0 !important; padding-top: 90px !important; height: 100vh !important; flex-direction: column !important; width: 100% !important; position: relative !important; box-sizing: border-box !important; }
-      .patient-queue { width: 100% !important; flex: 1 !important; min-height: 0 !important; border-right: none !important; border-bottom: none !important; }
+      .patient-queue { width: 100% !important; flex: 1 !important; min-height: 0 !important; border-right: none !important; border-bottom: none !important; display: flex !important; flex-direction: column !important; }
+      .queue-list { flex: 1 !important; min-height: 0 !important; overflow-y: auto !important; }
       .patient-detail { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: white !important; z-index: 1000 !important; overflow-y: auto !important; padding: 90px 0.75rem 0.75rem 0.75rem !important; display: none !important; flex-direction: column !important; }
       .patient-detail.active { display: flex !important; }
-      .queue-header { padding: 0.75rem !important; }
-      .queue-search { padding: 0.5rem !important; }
+      .queue-header { padding: 0.75rem !important; flex-shrink: 0 !important; }
+      .queue-search { padding: 0.5rem !important; flex-shrink: 0 !important; }
+      .queue-tabs { flex-shrink: 0 !important; }
       .modal { width: calc(100% - 2rem) !important; max-width: calc(100% - 2rem) !important; }
       .modal-body { grid-template-columns: 1fr !important; }
 
