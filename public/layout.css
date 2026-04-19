@@ -661,7 +661,7 @@ nav.old-nav {
     width: 100%;
     margin: 0;
     padding: 0;
-    background: var(--card);
+    background: #e8eef7;
   }
   #sidebar {
     display: none;
@@ -674,7 +674,7 @@ nav.old-nav {
     right: 0;
     width: 100%;
     height: 76px;
-    background: var(--card);
+    background: #e8eef7;
     border-bottom: none;
     z-index: 100;
     align-items: center;

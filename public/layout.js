@@ -308,6 +308,7 @@
       if (hamburgerIcon) hamburgerIcon.style.display = 'block';
       if (closeIcon) closeIcon.style.display = 'none';
       document.body.style.overflow = '';
+      toggleBtn.blur();
     }
 
     toggleBtn.addEventListener('click', (e) => {
