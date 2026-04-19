@@ -82,6 +82,9 @@ db.exec(`
   );
 `);
 
+// Add patient fields
+try { db.exec('ALTER TABLE patients ADD COLUMN created_by INTEGER'); } catch {}
+
 // Add user fields
 try { db.exec('ALTER TABLE users ADD COLUMN specialty TEXT DEFAULT ""'); } catch {}
 try { db.exec('ALTER TABLE users ADD COLUMN phone TEXT DEFAULT ""'); } catch {}

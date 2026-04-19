@@ -9,9 +9,11 @@ router.get('/', authenticate, (req, res) => {
 
   if (req.user.role === 'doctor') {
     query = `SELECT DISTINCT p.* FROM patients p
-      JOIN appointments a ON a.patient_id = p.id
-      WHERE p.clinic_id = ? AND a.doctor_id = ?`;
-    params.push(req.user.id);
+      WHERE p.clinic_id = ? AND (
+        p.created_by = ? OR
+        p.id IN (SELECT DISTINCT patient_id FROM appointments WHERE doctor_id = ? AND clinic_id = ?)
+      )`;
+    params.push(req.user.id, req.user.id, req.user.clinic_id);
   }
 
   query += ' ORDER BY name';
@@ -68,11 +70,11 @@ router.post('/', authenticate, (req, res) => {
   }
 
   const result = db.prepare(
-    'INSERT INTO patients (name, identity_number, age, birth_date, gender, phone, clinic_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    'INSERT INTO patients (name, identity_number, age, birth_date, gender, phone, clinic_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
   ).run(
     name.trim(), identity_number.trim(), resolvedAge,
     birth_date || '', gender || '', phone || '',
-    req.user.clinic_id
+    req.user.clinic_id, req.user.role === 'doctor' ? req.user.id : null
   );
 
   db.prepare('INSERT INTO critical_info (patient_id, allergies, medications, conditions) VALUES (?, ?, ?, ?)')
