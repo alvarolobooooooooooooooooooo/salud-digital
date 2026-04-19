@@ -262,7 +262,11 @@
     }
 
     /* ── Table ── */
-    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .section table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .85rem;
+    }
     th {
       text-align: left;
       padding: .85rem 0.75rem;
@@ -281,6 +285,24 @@
     }
 
     .empty-table { padding: 2.5rem; text-align: center; color: #94a3b8; font-size: .9rem; }
+
+    /* Mobile responsive table */
+    @media (max-width: 860px) {
+      .section table {
+        font-size: .7rem;
+      }
+      th {
+        font-size: .65rem;
+        padding: .5rem 0.4rem;
+      }
+      td {
+        padding: .5rem 0.4rem;
+      }
+      .empty-table {
+        padding: 1.5rem 0.5rem;
+        font-size: .8rem;
+      }
+    }
 
     /* ── Empty Chart State ── */
     .chart-empty {
