@@ -465,52 +465,58 @@
 
     /* ── Modal ── */
     .overlay {
-      position: fixed; inset: 0; background: rgba(15,23,42,0.4);
+      position: fixed; inset: 0; background: rgba(15,23,42,.65); backdrop-filter: blur(6px);
       display: flex; align-items: center; justify-content: center;
-      z-index: 200; padding: 1rem;
+      z-index: 200; padding: 1rem; animation: fadeIn .25s ease-out;
     }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .modal {
-      background: white; border-radius: 12px; width: 100%; max-width: 560px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-      max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column;
+      background: white; border-radius: 24px; width: 100%; max-width: 560px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3), 0 0 1px rgba(0,0,0,.1);
+      max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; animation: slideUp .3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     .modal-hdr {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9; flex-shrink: 0;
+      padding: 2.25rem 2rem; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); border-radius: 24px 24px 0 0; box-shadow: 0 4px 20px rgba(8,145,178,.15); flex-shrink: 0;
     }
-    .modal-hdr h3 { font-size: 1rem; font-weight: 600; }
-    .modal-close { background: none; border: none; font-size: 1.2rem; color: #94a3b8; cursor: pointer; padding: 0.1rem 0.3rem; }
-    .modal-close:hover { color: #1e293b; }
-    .modal-body { padding: 1.25rem 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; flex: 1; overflow-y: auto; }
-    .field { display: flex; flex-direction: column; gap: 0.3rem; }
+    .modal-hdr h3 { font-size: 1.3rem; font-weight: 800; color: white; letter-spacing: -0.02em; margin: 0; }
+    .modal-close { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2); font-size: 1.2rem; color: white; cursor: pointer; padding: .35rem .65rem; border-radius: 8px; transition: all .25s; }
+    .modal-close:hover { background: rgba(255,255,255,.25); transform: rotate(90deg); }
+    .modal-body { padding: 2.5rem 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; flex: 1; overflow-y: auto; min-height: 0; }
+    .field { display: flex; flex-direction: column; gap: .6rem; }
     .field.full { grid-column: 1 / -1; }
-    .field label { font-size: 0.75rem; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.03em; }
+    .field label { font-size: .8rem; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .15rem; }
     .field input, .field select {
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      font-size: 0.875rem;
+      padding: .95rem 1.1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: .95rem;
       font-family: inherit;
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 500;
     }
+    .field input::placeholder { color: #cbd5e1; font-weight: 500; }
     .field select {
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
-      background-position: right 0.75rem center;
-      padding-right: 2rem;
+      background-position: right 1.1rem center;
+      padding-right: 2.7rem;
       cursor: pointer;
-      color: #475569;
+      color: #1e293b;
       background-color: white;
     }
-    .field input:focus, .field select:focus { outline: 2px solid #0891b2; outline-offset: -1px; border-color: transparent; }
+    .field input:focus, .field select:focus { outline: none; border-color: #0891b2; box-shadow: 0 0 0 4px rgba(8,145,178,.12); background-color: #f0f9ff; }
+    .field input:hover, .field select:hover { border-color: #0891b2; box-shadow: 0 2px 8px rgba(8,145,178,.08); }
     .modal-ftr {
-      display: flex; justify-content: flex-end; gap: 0.5rem;
-      padding: 1rem 1.5rem; border-top: 1px solid #f1f5f9; flex-shrink: 0;
+      display: flex; justify-content: flex-end; gap: .9rem;
+      padding: 2rem; border-top: 1px solid #f1f5f9; background: linear-gradient(to bottom, #ffffff, #f8fafc); flex-shrink: 0;
     }
-    .btn-cancel { padding: 0.45rem 1rem; border: 1px solid #e2e8f0; background: white; color: #64748b; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.875rem; }
-    .btn-cancel:hover { background: #f8fafc; }
-    .btn-save { padding: 0.45rem 1.25rem; background: #0891b2; color: white; border: none; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.875rem; font-weight: 500; }
-    .btn-save:hover { background: #0e7490; }
+    .btn-cancel { padding: .55rem 1.2rem; border: 1.5px solid #e2e8f0; background: white; color: #64748b; border-radius: 9px; cursor: pointer; font-family: inherit; font-size: .875rem; font-weight: 600; transition: all .25s; }
+    .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .btn-save { padding: .55rem 1.5rem; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; border: none; border-radius: 9px; cursor: pointer; font-family: inherit; font-size: .875rem; font-weight: 600; transition: all .25s; box-shadow: 0 4px 15px rgba(8,145,178,.25); }
+    .btn-save:hover { box-shadow: 0 6px 20px rgba(8,145,178,.35); transform: translateY(-1px); }
     .form-msg { padding: 0 1.5rem 0.75rem; font-size: 0.82rem; min-height: 1.2em; }
     .form-msg.err { color: #dc2626; }
     .form-msg.ok  { color: #16a34a; }
@@ -611,12 +617,12 @@
 
 <!-- Modal: New Patient -->
 <div class="overlay" id="overlay" style="display:none" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
+  <div class="modal" style="display: flex; flex-direction: column;">
     <div class="modal-hdr">
       <h3>Nuevo Paciente</h3>
-      <button class="modal-close" onclick="closeModal()" id="closeModalBtn"></button>
+      <button class="modal-close" onclick="closeModal()" id="closeModalBtn">✕</button>
     </div>
-    <form id="createForm" onsubmit="submitPatient(event)">
+    <form id="createForm" onsubmit="submitPatient(event)" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
       <div class="modal-body">
         <div class="field full">
           <label>Nombre completo *</label>
@@ -677,10 +683,10 @@
 
 <!-- Modal: Update Payment Status -->
 <div class="overlay" id="paymentOverlay" style="display:none" onclick="if(event.target===this)closePaymentModal()">
-  <div class="modal">
+  <div class="modal" style="display: flex; flex-direction: column;">
     <div class="modal-hdr">
       <h3>Cambiar Estado de Pago</h3>
-      <button class="modal-close" onclick="closePaymentModal()" id="closePaymentModalBtn"></button>
+      <button class="modal-close" onclick="closePaymentModal()" id="closePaymentModalBtn">✕</button>
     </div>
     <div class="modal-body" style="display: block; grid-template-columns: 1fr;">
       <div class="field full">
