@@ -253,22 +253,40 @@
 
   async function loadUserProfile() {
     try {
+      // Try to use cached profile first
+      const cached = localStorage.getItem('sd_user_profile');
+      if (cached) {
+        const cachedData = JSON.parse(cached);
+        updateProfileUI(cachedData);
+      }
+
+      // Load fresh data from API
       const me = await api('/api/auth/me');
-      const displayName = me.role === 'doctor'
-        ? `Dr. ${me.name || me.email.split('@')[0]}`
-        : (me.name || me.email.split('@')[0]);
-      const initials = displayName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-
-      const avatarEl = document.getElementById('sbAvatar');
-      const nameEl = document.getElementById('sbName');
-      const clinicEl = document.getElementById('sbClinic');
-
-      if (avatarEl) avatarEl.textContent = initials;
-      if (nameEl) nameEl.textContent = displayName;
-      if (clinicEl) clinicEl.textContent = me.clinic_name || '';
+      if (me) {
+        // Cache the profile
+        localStorage.setItem('sd_user_profile', JSON.stringify(me));
+        updateProfileUI(me);
+      }
     } catch (e) {
       console.error('Error loading user profile:', e);
     }
+  }
+
+  function updateProfileUI(user) {
+    if (!user) return;
+
+    const displayName = user.role === 'doctor'
+      ? `Dr. ${user.name || user.email.split('@')[0]}`
+      : (user.name || user.email.split('@')[0]);
+    const initials = displayName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+    const avatarEl = document.getElementById('sbAvatar');
+    const nameEl = document.getElementById('sbName');
+    const clinicEl = document.getElementById('sbClinic');
+
+    if (avatarEl) avatarEl.textContent = initials;
+    if (nameEl) nameEl.textContent = displayName;
+    if (clinicEl) clinicEl.textContent = user.clinic_name || '';
   }
 
   function initSidebarToggle() {
