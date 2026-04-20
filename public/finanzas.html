@@ -494,18 +494,19 @@
       document.getElementById('pendingCount').textContent = stats.pending_count;
 
       // Render weekly chart
-      const hasData = weekly.values.some(v => v > 0);
-      const maxValue = Math.max(...weekly.values, 1);
+      const numValues = weekly.values.map(v => Number(v));
+      const hasData = numValues.some(v => v > 0);
+      const maxValue = Math.max(...numValues, 1);
       const chartContainer = document.getElementById('chartContainer');
 
       if (!hasData) {
         chartContainer.innerHTML = '<div class="chart-empty"><div class="chart-empty-icon">📊</div><div class="chart-empty-text">Sin ingresos en los últimos 7 días</div></div>';
       } else {
         chartContainer.innerHTML = weekly.days.map((date, i) => {
-          const value = weekly.values[i];
-          const height = (value / maxValue) * 100;
-          const formatted = value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-          return `<div class="chart-bar" style="height: ${height}%" data-value="L. ${formatted}"></div>`;
+          const value = numValues[i];
+          const height = Math.max((value / maxValue) * 100, 0);
+          const formatted = Number(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          return `<div class="chart-bar" style="height: ${height}%; min-height: ${value > 0 ? '2px' : '0px'};" data-value="L. ${formatted}"></div>`;
         }).join('');
       }
 
