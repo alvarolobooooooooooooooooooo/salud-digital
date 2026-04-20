@@ -103,7 +103,7 @@
       border-radius: 12px;
       padding: 0.85rem 1.5rem;
       background: white;
-      max-width: 450px;
+      width: 100%;
       transition: all 0.3s ease;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
@@ -667,7 +667,7 @@
     setTimeout(() => {
       if (typeof Icons !== 'undefined') {
         const plusIcon = document.getElementById('plusIcon');
-        if (plusIcon) plusIcon.innerHTML = Icons.render('plus', 22);
+        if (plusIcon) plusIcon.innerHTML = Icons.render('plus', 18);
 
         const searchIcon = document.getElementById('searchIcon');
         if (searchIcon) searchIcon.innerHTML = Icons.render('search', 18);
