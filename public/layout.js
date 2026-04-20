@@ -145,13 +145,67 @@
     `;
   }
 
+  function renderSidebarIcons() {
+    if (typeof Icons === 'undefined') return;
+
+    // Logo icon
+    const logoIcon = document.querySelector('#sbLogoIcon span:first-child');
+    if (logoIcon && !logoIcon.innerHTML.trim()) logoIcon.innerHTML = Icons.render('stethoscope', 20);
+
+    // Sidebar nav icons
+    document.querySelectorAll('.sb-item[data-icon]').forEach(item => {
+      const icon = item.querySelector('.sb-icon');
+      if (icon && !icon.innerHTML.trim()) icon.innerHTML = Icons.render(item.dataset.icon, 16);
+    });
+
+    // Mobile nav icons
+    document.querySelectorAll('.mobile-nav-item[data-icon]').forEach(item => {
+      const icon = item.querySelector('.mobile-icon');
+      if (icon && !icon.innerHTML.trim()) icon.innerHTML = Icons.render(item.dataset.icon, 22);
+    });
+
+    // Logout icons
+    const sidebarLogout = document.querySelector('#sidebarLogoutIcon');
+    if (sidebarLogout && !sidebarLogout.innerHTML.trim()) sidebarLogout.innerHTML = Icons.render('logOut', 16);
+
+    const mobileLogout = document.querySelector('#logoutIcon');
+    if (mobileLogout && !mobileLogout.innerHTML.trim()) mobileLogout.innerHTML = Icons.render('logOut', 16);
+
+    // Toggle icon
+    const toggleIcon = document.querySelector('#toggleIcon');
+    if (toggleIcon && !toggleIcon.innerHTML.trim()) toggleIcon.innerHTML = Icons.render('chevronRight', 16);
+
+    // Hamburger and close icons
+    const hamburgerIcon = document.querySelector('#hamburgerIcon');
+    const closeIcon = document.querySelector('#closeIcon');
+    if (hamburgerIcon && !hamburgerIcon.innerHTML.trim()) hamburgerIcon.innerHTML = Icons.render('menu', 20);
+    if (closeIcon && !closeIcon.innerHTML.trim()) closeIcon.innerHTML = Icons.render('x', 20);
+
+    // Close sidebar button icon
+    const closeSidebarBtn = document.querySelector('#closeSidebarBtn');
+    if (closeSidebarBtn && !closeSidebarBtn.innerHTML.trim()) closeSidebarBtn.innerHTML = Icons.render('x', 18);
+
+    // Notification icon
+    const notificationIcon = document.querySelector('#notificationIcon');
+    if (notificationIcon && !notificationIcon.innerHTML.trim()) notificationIcon.innerHTML = Icons.render('bell', 24);
+  }
+
   function injectSidebar() {
     console.log('[layout.js] injectSidebar called');
-    // Remove old nav if exists
-    const oldNav = document.querySelector('nav');
-    if (oldNav && oldNav.id !== 'mobileNav') oldNav.remove();
 
-    // Create and insert sidebar + mobile nav
+    // Check if sidebar already exists (to avoid re-injection on page navigation)
+    const existingSidebar = document.getElementById('sidebar');
+    if (existingSidebar) {
+      console.log('[layout.js] Sidebar already exists, updating only active state');
+      // Just update the active state for navigation
+      document.querySelectorAll('.sb-item').forEach(el => el.classList.remove('active'));
+      const activeItem = document.querySelector(`.sb-item[href="${window.location.pathname}"]`);
+      if (activeItem) activeItem.classList.add('active');
+      renderSidebarIcons();
+      return;
+    }
+
+    // Create and insert sidebar + mobile nav (first load only)
     const wrapper = document.createElement('div');
     wrapper.innerHTML = buildSidebarHTML();
 
@@ -180,51 +234,12 @@
       console.log('[layout.js] Mobile sidebar injected');
     }
 
-    // Renderizar iconos
-    setTimeout(() => {
-      if (typeof Icons !== 'undefined') {
-        // Logo icon
-        const logoIcon = document.querySelector('#sbLogoIcon span:first-child');
-        if (logoIcon) logoIcon.innerHTML = Icons.render('stethoscope', 20);
-
-        // Sidebar nav icons
-        document.querySelectorAll('.sb-item[data-icon]').forEach(item => {
-          const icon = item.querySelector('.sb-icon');
-          if (icon) icon.innerHTML = Icons.render(item.dataset.icon, 16);
-        });
-
-        // Mobile nav icons
-        document.querySelectorAll('.mobile-nav-item[data-icon]').forEach(item => {
-          const icon = item.querySelector('.mobile-icon');
-          if (icon) icon.innerHTML = Icons.render(item.dataset.icon, 22);
-        });
-
-        // Logout icons
-        const sidebarLogout = document.querySelector('#sidebarLogoutIcon');
-        if (sidebarLogout) sidebarLogout.innerHTML = Icons.render('logOut', 16);
-
-        const mobileLogout = document.querySelector('#logoutIcon');
-        if (mobileLogout) mobileLogout.innerHTML = Icons.render('logOut', 16);
-
-        // Toggle icon
-        const toggleIcon = document.querySelector('#toggleIcon');
-        if (toggleIcon) toggleIcon.innerHTML = Icons.render('chevronRight', 16);
-
-        // Hamburger and close icons
-        const hamburgerIcon = document.querySelector('#hamburgerIcon');
-        const closeIcon = document.querySelector('#closeIcon');
-        if (hamburgerIcon) hamburgerIcon.innerHTML = Icons.render('menu', 20);
-        if (closeIcon) closeIcon.innerHTML = Icons.render('x', 20);
-
-        // Close sidebar button icon
-        const closeSidebarBtn = document.querySelector('#closeSidebarBtn');
-        if (closeSidebarBtn) closeSidebarBtn.innerHTML = Icons.render('x', 18);
-
-        // Notification icon
-        const notificationIcon = document.querySelector('#notificationIcon');
-        if (notificationIcon) notificationIcon.innerHTML = Icons.render('bell', 24);
-      }
-    }, 50);
+    // Render icons immediately if available, or after Icons loads
+    if (typeof Icons !== 'undefined') {
+      renderSidebarIcons();
+    } else {
+      setTimeout(() => renderSidebarIcons(), 100);
+    }
 
     // Mark main content for margin-left
     const mainEl = document.querySelector('main');
