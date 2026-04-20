@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const db = require('../db');
+const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { sendDoctorInvitation } = require('../utils/mailer');
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
 
 router.get('/stats', authenticate, requireRole('super_admin'), (req, res) => {

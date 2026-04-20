@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const { query } = require('../db');
 const { authenticate } = require('../middleware/auth');
 
 // Helper: Get local date string (YYYY-MM-DD) in user's timezone
