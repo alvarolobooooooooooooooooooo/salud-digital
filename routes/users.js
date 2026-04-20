@@ -5,35 +5,37 @@ const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { sendDoctorInvitation } = require('../utils/mailer');
 
-router.get('/', authenticate, (req, res) => {
-  let users;
+router.get('/', authenticate, async (req, res) => {
+  let result;
   if (req.user.role === 'super_admin') {
-    users = db.prepare(
+    result = await query(
       "SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.specialty, u.phone, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id ORDER BY c.name, u.email"
-    ).all();
+    );
   } else {
-    users = db.prepare(
-      "SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.specialty, u.phone, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.clinic_id = ? ORDER BY u.email"
-    ).all(req.user.clinic_id);
+    result = await query(
+      "SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.specialty, u.phone, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.clinic_id = $1 ORDER BY u.email",
+      [req.user.clinic_id]
+    );
   }
-  res.json(users);
+  res.json(result.rows);
 });
 
-router.get('/doctors', authenticate, (req, res) => {
-  let doctors;
+router.get('/doctors', authenticate, async (req, res) => {
+  let result;
   if (req.user.role === 'super_admin') {
-    doctors = db.prepare(
+    result = await query(
       "SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.specialty, u.phone, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.role = 'doctor' ORDER BY c.name, u.email"
-    ).all();
+    );
   } else {
-    doctors = db.prepare(
-      "SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.specialty, u.phone, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.role = 'doctor' AND u.clinic_id = ? ORDER BY u.email"
-    ).all(req.user.clinic_id);
+    result = await query(
+      "SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.specialty, u.phone, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.role = 'doctor' AND u.clinic_id = $1 ORDER BY u.email",
+      [req.user.clinic_id]
+    );
   }
-  res.json(doctors);
+  res.json(result.rows);
 });
 
-router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), (req, res) => {
+router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async (req, res) => {
   const { email, password, role, clinic_id, name, specialty, phone } = req.body;
   if (!email || !password || !role) {
     return res.status(400).json({ error: 'Email, password and role required' });
@@ -51,16 +53,19 @@ router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), (req,
     assignedClinicId = clinic_id;
   }
 
-  const clinic = db.prepare('SELECT id FROM clinics WHERE id = ?').get(assignedClinicId);
-  if (!clinic) return res.status(400).json({ error: 'Clinic not found' });
+  const clinicResult = await query('SELECT id FROM clinics WHERE id = $1', [assignedClinicId]);
+  if (clinicResult.rows.length === 0) return res.status(400).json({ error: 'Clinic not found' });
 
   const hashed = bcrypt.hashSync(password, 10);
   try {
-    const result = db.prepare('INSERT INTO users (email, password, role, clinic_id, name, specialty, phone) VALUES (?, ?, ?, ?, ?, ?, ?)')
-      .run(email, hashed, role, assignedClinicId, name || '', specialty || '', phone || '');
+    const result = await query(
+      'INSERT INTO users (email, password, role, clinic_id, name, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+      [email, hashed, role, assignedClinicId, name || '', specialty || '', phone || '']
+    );
 
     if (role === 'doctor') {
-      const clinic = db.prepare('SELECT name FROM clinics WHERE id = ?').get(assignedClinicId);
+      const clinicResult = await query('SELECT name FROM clinics WHERE id = $1', [assignedClinicId]);
+      const clinic = clinicResult.rows[0];
       sendDoctorInvitation({
         to: email,
         doctorName: name || email,
@@ -68,15 +73,24 @@ router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), (req,
       }).catch(err => console.error('SendGrid error:', err.message));
     }
 
-    res.json({ id: result.lastInsertRowid, email, role, clinic_id: assignedClinicId, name: name || '', specialty: specialty || '', phone: phone || '' });
+    res.json({
+      id: result.rows[0].id,
+      email,
+      role,
+      clinic_id: assignedClinicId,
+      name: name || '',
+      specialty: specialty || '',
+      phone: phone || ''
+    });
   } catch {
     res.status(400).json({ error: 'Email already exists' });
   }
 });
 
-router.delete('/:id', authenticate, requireRole('super_admin', 'clinic_admin'), (req, res) => {
+router.delete('/:id', authenticate, requireRole('super_admin', 'clinic_admin'), async (req, res) => {
   const userId = parseInt(req.params.id);
-  const user = db.prepare('SELECT id, role, clinic_id FROM users WHERE id = ?').get(userId);
+  const userResult = await query('SELECT id, role, clinic_id FROM users WHERE id = $1', [userId]);
+  const user = userResult.rows[0];
   if (!user) return res.status(404).json({ error: 'User not found' });
 
   if (user.role !== 'doctor') {
@@ -87,7 +101,7 @@ router.delete('/:id', authenticate, requireRole('super_admin', 'clinic_admin'), 
     return res.status(403).json({ error: 'Can only delete doctors from your own clinic' });
   }
 
-  db.prepare('UPDATE users SET clinic_id = NULL WHERE id = ?').run(userId);
+  await query('UPDATE users SET clinic_id = NULL WHERE id = $1', [userId]);
   res.json({ success: true });
 });
 
