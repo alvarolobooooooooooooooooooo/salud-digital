@@ -483,15 +483,15 @@
     .modal-hdr h3 { font-size: 1.3rem; font-weight: 800; color: white; letter-spacing: -0.02em; margin: 0; }
     .modal-close { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2); font-size: 1.3rem; color: white; cursor: pointer; padding: .3rem .5rem; border-radius: 8px; transition: all .25s; line-height: 1; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; }
     .modal-close:hover { background: rgba(255,255,255,.25); transform: rotate(90deg); }
-    .modal-body { padding: 2.5rem 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; flex: 1; overflow-y: auto; min-height: 0; }
-    .field { display: flex; flex-direction: column; gap: .6rem; }
+    .modal-body { padding: 1.8rem 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; flex: 1; overflow-y: auto; min-height: 0; }
+    .field { display: flex; flex-direction: column; gap: .35rem; }
     .field.full { grid-column: 1 / -1; }
-    .field label { font-size: .8rem; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .15rem; }
+    .field label { font-size: .72rem; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: .04em; margin-bottom: .15rem; }
     .field input, .field select {
-      padding: .95rem 1.1rem;
+      padding: .65rem .85rem;
       border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      font-size: .95rem;
+      border-radius: 9px;
+      font-size: .88rem;
       font-family: inherit;
       transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
       font-weight: 500;
@@ -499,15 +499,15 @@
     .field input::placeholder { color: #cbd5e1; font-weight: 500; }
     .field select {
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
-      background-position: right 1.1rem center;
-      padding-right: 2.7rem;
+      background-position: right .85rem center;
+      padding-right: 2.3rem;
       cursor: pointer;
       color: #1e293b;
       background-color: white;
     }
-    .field input:focus, .field select:focus { outline: none; border-color: #0891b2; box-shadow: 0 0 0 4px rgba(8,145,178,.12); background-color: #f0f9ff; }
+    .field input:focus, .field select:focus { outline: none; border-color: #0891b2; box-shadow: 0 0 0 3px rgba(8,145,178,.12); background-color: #f0f9ff; }
     .field input:hover, .field select:hover { border-color: #0891b2; box-shadow: 0 2px 8px rgba(8,145,178,.08); }
     .modal-ftr {
       display: flex; justify-content: flex-end; gap: .9rem;
