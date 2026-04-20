@@ -3,66 +3,69 @@ const router = express.Router();
 const { query } = require('../db');
 const { authenticate } = require('../middleware/auth');
 
-router.get('/', authenticate, (req, res) => {
-  let query;
+router.get('/', authenticate, async (req, res) => {
+  let queryStr;
   let params;
 
   if (req.user.role === 'doctor') {
-    query = `SELECT DISTINCT p.* FROM patients p
-      WHERE p.clinic_id = ? AND (
-        p.created_by = ? OR
-        p.id IN (SELECT DISTINCT patient_id FROM appointments WHERE doctor_id = ? AND clinic_id = ?)
+    queryStr = `SELECT DISTINCT p.* FROM patients p
+      WHERE p.clinic_id = $1 AND (
+        p.created_by = $2 OR
+        p.id IN (SELECT DISTINCT patient_id FROM appointments WHERE doctor_id = $3 AND clinic_id = $4)
       )
       ORDER BY p.name`;
     params = [req.user.clinic_id, req.user.id, req.user.id, req.user.clinic_id];
   } else {
-    query = 'SELECT * FROM patients WHERE clinic_id = ? ORDER BY name';
+    queryStr = 'SELECT * FROM patients WHERE clinic_id = $1 ORDER BY name';
     params = [req.user.clinic_id];
   }
 
-  const patients = db.prepare(query).all(...params);
-  res.json(patients);
+  const result = await query(queryStr, params);
+  res.json(result.rows);
 });
 
-router.get('/:id', authenticate, (req, res) => {
-  const patient = db.prepare('SELECT * FROM patients WHERE id = ? AND clinic_id = ?')
-    .get(req.params.id, req.user.clinic_id);
+router.get('/:id', authenticate, async (req, res) => {
+  const patientResult = await query('SELECT * FROM patients WHERE id = $1 AND clinic_id = $2',
+    [req.params.id, req.user.clinic_id]);
+  const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
-  // If doctor, verify they have access to this patient
   if (req.user.role === 'doctor') {
-    const hasAccess = db.prepare(
-      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = ? AND doctor_id = ? AND clinic_id = ?'
-    ).get(patient.id, req.user.id, req.user.clinic_id);
-    if (!hasAccess.count) return res.status(403).json({ error: 'Access denied' });
+    const accessResult = await query(
+      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = $1 AND doctor_id = $2 AND clinic_id = $3',
+      [patient.id, req.user.id, req.user.clinic_id]
+    );
+    if (parseInt(accessResult.rows[0].count) === 0) return res.status(403).json({ error: 'Access denied' });
   }
 
-  const critical_info = db.prepare('SELECT * FROM critical_info WHERE patient_id = ?').get(patient.id) || {};
+  const criticalResult = await query('SELECT * FROM critical_info WHERE patient_id = $1', [patient.id]);
+  const critical_info = criticalResult.rows[0] || {};
 
   let consultations = [];
   if (req.user.role !== 'clinic_admin') {
-    let query = 'SELECT c.id, c.patient_id, c.notes, c.diagnosis, c.treatment, c.specialty, c.odontogram_state, c.cost, c.payment_status, c.lifestyle, c.procedures, c.radiography_notes, c.observations, c.doctor_id, c.visit_reason, c.created_at, c.clinic_id, u.name as doctor_name FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = ? AND c.clinic_id = ?';
+    let queryStr = 'SELECT c.id, c.patient_id, c.notes, c.diagnosis, c.treatment, c.specialty, c.odontogram_state, c.cost, c.payment_status, c.lifestyle, c.procedures, c.radiography_notes, c.observations, c.doctor_id, c.visit_reason, c.created_at, c.clinic_id, u.name as doctor_name FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = $1 AND c.clinic_id = $2';
     const params = [patient.id, req.user.clinic_id];
+    let paramIndex = 3;
 
     if (req.user.role === 'doctor') {
-      query += ' AND c.doctor_id = ?';
+      queryStr += ` AND c.doctor_id = $${paramIndex}`;
       params.push(req.user.id);
     }
 
-    query += ' ORDER BY c.created_at DESC';
-    consultations = db.prepare(query).all(...params);
+    queryStr += ' ORDER BY c.created_at DESC';
+    const consResult = await query(queryStr, params);
+    consultations = consResult.rows;
   }
 
   res.json({ ...patient, critical_info, consultations });
 });
 
-router.post('/', authenticate, (req, res) => {
+router.post('/', authenticate, async (req, res) => {
   const { name, identity_number, age, birth_date, gender, phone } = req.body;
   if (!name || !identity_number) {
     return res.status(400).json({ error: 'name e identity_number son requeridos' });
   }
 
-  // Calculate age from birth_date if not provided
   let resolvedAge = parseInt(age) || 0;
   if (birth_date && !age) {
     const birth = new Date(birth_date);
@@ -72,101 +75,113 @@ router.post('/', authenticate, (req, res) => {
     if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) resolvedAge--;
   }
 
-  const result = db.prepare(
-    'INSERT INTO patients (name, identity_number, age, birth_date, gender, phone, clinic_id, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-  ).run(
-    name.trim(), identity_number.trim(), resolvedAge,
-    birth_date || '', gender || '', phone || '',
-    req.user.clinic_id, req.user.role === 'doctor' ? req.user.id : null
+  const result = await query(
+    'INSERT INTO patients (name, identity_number, age, birth_date, gender, phone, clinic_id, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
+    [
+      name.trim(), identity_number.trim(), resolvedAge,
+      birth_date || '', gender || '', phone || '',
+      req.user.clinic_id, req.user.role === 'doctor' ? req.user.id : null
+    ]
   );
 
-  db.prepare('INSERT INTO critical_info (patient_id, allergies, medications, conditions) VALUES (?, ?, ?, ?)')
-    .run(result.lastInsertRowid, '', '', '');
+  const patientId = result.rows[0].id;
+  await query('INSERT INTO critical_info (patient_id, allergies, medications, conditions) VALUES ($1, $2, $3, $4)',
+    [patientId, '', '', '']);
 
-  res.json({ id: result.lastInsertRowid, name, identity_number, age: resolvedAge, birth_date, gender, phone, clinic_id: req.user.clinic_id });
+  res.json({ id: patientId, name, identity_number, age: resolvedAge, birth_date, gender, phone, clinic_id: req.user.clinic_id });
 });
 
-router.put('/:id', authenticate, (req, res) => {
-  const patient = db.prepare('SELECT * FROM patients WHERE id = ? AND clinic_id = ?')
-    .get(req.params.id, req.user.clinic_id);
+router.put('/:id', authenticate, async (req, res) => {
+  const patientResult = await query('SELECT * FROM patients WHERE id = $1 AND clinic_id = $2',
+    [req.params.id, req.user.clinic_id]);
+  const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
   const { name, birth_date, gender, phone } = req.body;
-  db.prepare('UPDATE patients SET name = ?, birth_date = ?, gender = ?, phone = ? WHERE id = ? AND clinic_id = ?')
-    .run(name || patient.name, birth_date || patient.birth_date, gender || patient.gender, phone || patient.phone, patient.id, req.user.clinic_id);
+  await query('UPDATE patients SET name = $1, birth_date = $2, gender = $3, phone = $4 WHERE id = $5 AND clinic_id = $6',
+    [name || patient.name, birth_date || patient.birth_date, gender || patient.gender, phone || patient.phone, patient.id, req.user.clinic_id]);
 
   res.json({ success: true });
 });
 
-router.put('/:id/critical-info', authenticate, (req, res) => {
-  const patient = db.prepare('SELECT * FROM patients WHERE id = ? AND clinic_id = ?')
-    .get(req.params.id, req.user.clinic_id);
+router.put('/:id/critical-info', authenticate, async (req, res) => {
+  const patientResult = await query('SELECT * FROM patients WHERE id = $1 AND clinic_id = $2',
+    [req.params.id, req.user.clinic_id]);
+  const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
   const { allergies = '', medications = '', conditions = '' } = req.body;
-  const existing = db.prepare('SELECT id FROM critical_info WHERE patient_id = ?').get(patient.id);
+  const existingResult = await query('SELECT id FROM critical_info WHERE patient_id = $1', [patient.id]);
 
-  if (existing) {
-    db.prepare('UPDATE critical_info SET allergies = ?, medications = ?, conditions = ? WHERE patient_id = ?')
-      .run(allergies, medications, conditions, patient.id);
+  if (existingResult.rows.length > 0) {
+    await query('UPDATE critical_info SET allergies = $1, medications = $2, conditions = $3 WHERE patient_id = $4',
+      [allergies, medications, conditions, patient.id]);
   } else {
-    db.prepare('INSERT INTO critical_info (patient_id, allergies, medications, conditions) VALUES (?, ?, ?, ?)')
-      .run(patient.id, allergies, medications, conditions);
+    await query('INSERT INTO critical_info (patient_id, allergies, medications, conditions) VALUES ($1, $2, $3, $4)',
+      [patient.id, allergies, medications, conditions]);
   }
   res.json({ success: true });
 });
 
-router.get('/:id/consultations', authenticate, (req, res) => {
-  const patient = db.prepare('SELECT * FROM patients WHERE id = ? AND clinic_id = ?')
-    .get(req.params.id, req.user.clinic_id);
+router.get('/:id/consultations', authenticate, async (req, res) => {
+  const patientResult = await query('SELECT * FROM patients WHERE id = $1 AND clinic_id = $2',
+    [req.params.id, req.user.clinic_id]);
+  const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
   if (req.user.role === 'doctor') {
-    const hasAccess = db.prepare(
-      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = ? AND doctor_id = ? AND clinic_id = ?'
-    ).get(patient.id, req.user.id, req.user.clinic_id);
-    if (!hasAccess.count) return res.status(403).json({ error: 'Access denied' });
+    const accessResult = await query(
+      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = $1 AND doctor_id = $2 AND clinic_id = $3',
+      [patient.id, req.user.id, req.user.clinic_id]
+    );
+    if (parseInt(accessResult.rows[0].count) === 0) return res.status(403).json({ error: 'Access denied' });
   }
 
   const offset = parseInt(req.query.offset) || 0;
   const limit = parseInt(req.query.limit) || 5;
 
-  let query = 'SELECT COUNT(*) as count FROM consultations WHERE patient_id = ? AND clinic_id = ?';
+  let countQueryStr = 'SELECT COUNT(*) as count FROM consultations WHERE patient_id = $1 AND clinic_id = $2';
   let params = [patient.id, req.user.clinic_id];
+  let paramIndex = 3;
 
   if (req.user.role === 'doctor') {
-    query += ' AND doctor_id = ?';
+    countQueryStr += ` AND doctor_id = $${paramIndex}`;
     params.push(req.user.id);
+    paramIndex++;
   }
 
-  const total = db.prepare(query).get(...params);
+  const totalResult = await query(countQueryStr, params);
+  const total = parseInt(totalResult.rows[0].count);
 
-  query = 'SELECT c.*, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = ? AND c.clinic_id = ?';
+  let queryStr = 'SELECT c.*, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = $1 AND c.clinic_id = $2';
   params = [patient.id, req.user.clinic_id];
+  paramIndex = 3;
 
   if (req.user.role === 'doctor') {
-    query += ' AND c.doctor_id = ?';
+    queryStr += ` AND c.doctor_id = $${paramIndex}`;
     params.push(req.user.id);
+    paramIndex++;
   }
 
-  query += ' ORDER BY c.created_at DESC LIMIT ? OFFSET ?';
+  queryStr += ` ORDER BY c.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
   params.push(limit, offset);
 
-  const consultations = db.prepare(query).all(...params);
+  const consResult = await query(queryStr, params);
 
-  res.json({ consultations, total: total.count, offset, limit });
+  res.json({ consultations: consResult.rows, total, offset, limit });
 });
 
-router.put('/:id/odontogram', authenticate, (req, res) => {
-  const patient = db.prepare('SELECT * FROM patients WHERE id = ? AND clinic_id = ?')
-    .get(req.params.id, req.user.clinic_id);
+router.put('/:id/odontogram', authenticate, async (req, res) => {
+  const patientResult = await query('SELECT * FROM patients WHERE id = $1 AND clinic_id = $2',
+    [req.params.id, req.user.clinic_id]);
+  const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
   const { odontogram_state } = req.body;
   const odontoStr = typeof odontogram_state === 'string' ? odontogram_state : JSON.stringify(odontogram_state || {});
 
-  db.prepare('UPDATE patients SET odontogram_state = ? WHERE id = ? AND clinic_id = ?')
-    .run(odontoStr, patient.id, req.user.clinic_id);
+  await query('UPDATE patients SET odontogram_state = $1 WHERE id = $2 AND clinic_id = $3',
+    [odontoStr, patient.id, req.user.clinic_id]);
 
   res.json({ success: true });
 });
