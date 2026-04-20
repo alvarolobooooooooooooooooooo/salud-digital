@@ -6,7 +6,6 @@ const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { sendDoctorInvitation } = require('../utils/mailer');
 
-// POST /api/invitations — create invitation (replaces user creation for doctors)
 router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async (req, res) => {
   const { email, name, specialty, phone, clinic_id } = req.body;
   if (!email || !name) return res.status(400).json({ error: 'Email y nombre son requeridos' });
@@ -19,20 +18,21 @@ router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async
     assignedClinicId = clinic_id;
   }
 
-  const clinic = db.prepare('SELECT name FROM clinics WHERE id = ?').get(assignedClinicId);
+  const clinicResult = await query('SELECT name FROM clinics WHERE id = $1', [assignedClinicId]);
+  const clinic = clinicResult.rows[0];
   if (!clinic) return res.status(400).json({ error: 'Clínica no encontrada' });
 
-  // Check if already a user
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-  if (existing) return res.status(400).json({ error: 'Este email ya tiene una cuenta activa' });
+  const existingResult = await query('SELECT id FROM users WHERE email = $1', [email]);
+  if (existingResult.rows.length > 0) return res.status(400).json({ error: 'Este email ya tiene una cuenta activa' });
 
   const token = crypto.randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
   try {
-    db.prepare(
-      'INSERT OR REPLACE INTO invitations (email, name, specialty, phone, clinic_id, token, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
-    ).run(email, name || '', specialty || '', phone || '', assignedClinicId, token, expiresAt);
+    await query(
+      'INSERT INTO invitations (email, name, specialty, phone, clinic_id, token, expires_at) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (email) DO UPDATE SET name=$2, specialty=$3, phone=$4, clinic_id=$5, token=$6, expires_at=$7',
+      [email, name || '', specialty || '', phone || '', assignedClinicId, token, expiresAt]
+    );
   } catch (err) {
     return res.status(400).json({ error: 'Error al crear invitación' });
   }
@@ -45,45 +45,47 @@ router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async
   }
 });
 
-// GET /api/invitations/:token — validate token and return invitation info
-router.get('/:token', (req, res) => {
-  const inv = db.prepare(
-    'SELECT i.*, c.name as clinic_name FROM invitations i JOIN clinics c ON i.clinic_id = c.id WHERE i.token = ?'
-  ).get(req.params.token);
+router.get('/:token', async (req, res) => {
+  const invResult = await query(
+    'SELECT i.*, c.name as clinic_name FROM invitations i JOIN clinics c ON i.clinic_id = c.id WHERE i.token = $1',
+    [req.params.token]
+  );
+  const inv = invResult.rows[0];
 
   if (!inv) return res.status(404).json({ error: 'Invitación no válida o ya fue usada' });
   if (new Date(inv.expires_at) < new Date()) {
-    db.prepare('DELETE FROM invitations WHERE token = ?').run(req.params.token);
+    await query('DELETE FROM invitations WHERE token = $1', [req.params.token]);
     return res.status(410).json({ error: 'Esta invitación ha expirado' });
   }
 
   res.json({ email: inv.email, name: inv.name, specialty: inv.specialty, clinicName: inv.clinic_name });
 });
 
-// POST /api/invitations/:token/accept — create user and delete invitation
 router.post('/:token/accept', async (req, res) => {
   const { password } = req.body;
   if (!password || password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
 
-  const inv = db.prepare('SELECT * FROM invitations WHERE token = ?').get(req.params.token);
+  const invResult = await query('SELECT * FROM invitations WHERE token = $1', [req.params.token]);
+  const inv = invResult.rows[0];
   if (!inv) return res.status(404).json({ error: 'Invitación no válida o ya fue usada' });
   if (new Date(inv.expires_at) < new Date()) {
-    db.prepare('DELETE FROM invitations WHERE token = ?').run(req.params.token);
+    await query('DELETE FROM invitations WHERE token = $1', [req.params.token]);
     return res.status(410).json({ error: 'Esta invitación ha expirado' });
   }
 
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(inv.email);
-  if (existing) {
-    db.prepare('DELETE FROM invitations WHERE token = ?').run(req.params.token);
+  const existingResult = await query('SELECT id FROM users WHERE email = $1', [inv.email]);
+  if (existingResult.rows.length > 0) {
+    await query('DELETE FROM invitations WHERE token = $1', [req.params.token]);
     return res.status(400).json({ error: 'Este email ya tiene una cuenta. Inicia sesión.' });
   }
 
   const hashed = bcrypt.hashSync(password, 10);
   try {
-    db.prepare(
-      'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES (?, ?, ?, ?, ?, ?, ?)'
-    ).run(inv.email, hashed, 'doctor', inv.name, inv.clinic_id, inv.specialty, inv.phone);
-    db.prepare('DELETE FROM invitations WHERE token = ?').run(req.params.token);
+    await query(
+      'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [inv.email, hashed, 'doctor', inv.name, inv.clinic_id, inv.specialty, inv.phone]
+    );
+    await query('DELETE FROM invitations WHERE token = $1', [req.params.token]);
     res.json({ success: true });
   } catch {
     res.status(500).json({ error: 'Error al crear la cuenta' });

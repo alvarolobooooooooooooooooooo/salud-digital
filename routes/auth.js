@@ -5,11 +5,12 @@ const jwt = require('jsonwebtoken');
 const { query } = require('../db');
 const { authenticate, SECRET } = require('../middleware/auth');
 
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
 
-  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  const result = await query('SELECT * FROM users WHERE email = $1', [email]);
+  const user = result.rows[0];
   if (!user || !bcrypt.compareSync(password, user.password)) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
@@ -27,10 +28,12 @@ router.post('/login', (req, res) => {
   res.json({ token, role: user.role, clinic_id: user.clinic_id });
 });
 
-router.get('/me', authenticate, (req, res) => {
-  const user = db.prepare(
-    'SELECT u.id, u.email, u.role, u.clinic_id, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.id = ?'
-  ).get(req.user.id);
+router.get('/me', authenticate, async (req, res) => {
+  const result = await query(
+    'SELECT u.id, u.email, u.role, u.clinic_id, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.id = $1',
+    [req.user.id]
+  );
+  const user = result.rows[0];
   if (!user) return res.status(404).json({ error: 'User not found' });
   res.json(user);
 });
