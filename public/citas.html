@@ -412,8 +412,8 @@
       <h3 id="modalTitle">Nueva Cita</h3>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
-    <form id="citaForm" onsubmit="submitCita(event)">
-      <div class="modal-body">
+    <form id="citaForm" onsubmit="submitCita(event)" style="display: flex; flex-direction: column; height: 100%;">
+      <div class="modal-body" style="overflow-y: auto; flex: 1;">
         <div class="field full">
           <label>Paciente *</label>
           <select id="fPatient" required><option value="">Seleccionar...</option></select>
@@ -439,8 +439,8 @@
             <option value="cancelled">Cancelado</option>
           </select>
         </div>
+        <div class="form-msg" id="formMsg"></div>
       </div>
-      <div class="form-msg" id="formMsg"></div>
       <div class="modal-ftr">
         <button type="button" class="btn-delete" id="btnDelete" style="display:none" onclick="deleteCita()">Eliminar</button>
         <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
