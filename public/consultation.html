@@ -467,6 +467,16 @@ document.getElementById('consCost').addEventListener('input', (e) => {
   e.target.value = value;
 });
 
+document.getElementById('consultForm').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const odontogramEl = document.getElementById('odontogram1');
+    const activeEl = document.activeElement;
+    if (odontogramEl && odontogramEl.contains(activeEl)) {
+      e.preventDefault();
+    }
+  }
+});
+
 loadAppointment();
 </script>
 </body>

@@ -61,6 +61,7 @@ class OdontogramToolbar {
 
     CONDITION_LIST.forEach(condition => {
       const btn = document.createElement('button');
+      btn.type = 'button';
       btn.className = 'condition-btn';
       btn.setAttribute('data-condition', condition.id);
       btn.style.cssText = `
@@ -124,6 +125,7 @@ class OdontogramToolbar {
     `;
 
     const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
     clearBtn.textContent = 'Limpiar Selección';
     clearBtn.style.cssText = `
       padding: 0.5rem 1rem;
@@ -145,6 +147,7 @@ class OdontogramToolbar {
     };
 
     const resetBtn = document.createElement('button');
+    resetBtn.type = 'button';
     resetBtn.textContent = 'Restablecer Todos';
     resetBtn.style.cssText = `
       padding: 0.5rem 1rem;
