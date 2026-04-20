@@ -404,7 +404,7 @@ async function loadConsultation() {
 
     // Load cost and payment status
     if (consultation.cost) {
-      const formatted = consultation.cost.toFixed(2);
+      const formatted = Number(consultation.cost).toFixed(2);
       const parts = formatted.split('.');
       const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       document.getElementById('consCost').value = 'L. ' + intPart + '.' + parts[1];

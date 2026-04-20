@@ -982,7 +982,7 @@
           </table>
         </div>`;
 
-      const totalCost = consultations.reduce((sum, c) => sum + (c.payment_status === 'paid' ? (c.cost || 0) : 0), 0);
+      const totalCost = consultations.reduce((sum, c) => sum + (c.payment_status === 'paid' ? (Number(c.cost) || 0) : 0), 0);
       html += `
         <div class="info-card">
           <h4>Historial Dental</h4>
@@ -1003,7 +1003,7 @@
                 const payment = c.payment_status || 'completed';
                 const statusBadge = payment === 'paid' ? 'status-completed' : 'status-pending';
                 const statusText = payment === 'paid' ? 'Pagado' : 'Pendiente';
-                const costFormatted = c.cost ? c.cost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0.00';
+                const costFormatted = c.cost ? Number(c.cost).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0.00';
                 const cost = 'L. ' + costFormatted;
                 return `
                   <tr style="cursor: ${payment === 'paid' ? 'default' : 'pointer'};" onclick="${payment === 'paid' ? '' : `openPaymentModal(${c.id}, '${esc(treatment)}', '${cDate}', '${cost}')`}">

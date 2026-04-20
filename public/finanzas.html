@@ -543,7 +543,7 @@
         table.innerHTML = '<tr><td colspan="4" class="empty-table">No hay consultas pendientes de cobro</td></tr>';
       } else {
         table.innerHTML = pending.map(c => {
-          const formatted = c.cost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          const formatted = Number(c.cost).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
           return `
           <tr>
             <td>${new Date(c.created_at).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
