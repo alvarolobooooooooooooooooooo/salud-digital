@@ -616,6 +616,15 @@
       btn.disabled = true;
       btn.textContent = 'Consultando...';
 
+      // En iOS, activar el contexto de audio inmediatamente
+      if ('speechSynthesis' in window) {
+        try {
+          const warmup = new SpeechSynthesisUtterance('');
+          speechSynthesis.speak(warmup);
+          speechSynthesis.cancel();
+        } catch (e) {}
+      }
+
       try {
         const data = await api('/api/assistant/today-appointments');
 
@@ -639,8 +648,9 @@
 
         responseEl.innerHTML = html;
         responseEl.style.display = 'block';
+        responseEl.style.cursor = 'pointer';
 
-        // En iPhone, reproducir en respuesta a un gesto del usuario
+        // Función para reproducir audio
         const playAudio = () => {
           if ('speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(data.spoken_response);
@@ -668,57 +678,7 @@
 
 
         // TTS - reproducir en voz alta (automático)
-        if ('speechSynthesis' in window) {
-          const utterance = new SpeechSynthesisUtterance(data.spoken_response);
-          utterance.rate = 1;
-          utterance.pitch = 1;
-          utterance.volume = 1;
-
-          // Intenta con múltiples idiomas/variantes de español
-          const langsTryOrder = ['es-ES', 'es-MX', 'es-AR', 'es'];
-
-          function trySpeak() {
-            if (speechSynthesis.speaking) {
-              speechSynthesis.cancel();
-            }
-
-            const voices = speechSynthesis.getVoices();
-            let voiceFound = false;
-
-            // Busca voz en español
-            for (const lang of langsTryOrder) {
-              const voice = voices.find(v => v.lang.includes(lang.substring(0, 2)));
-              if (voice) {
-                utterance.voice = voice;
-                utterance.lang = lang;
-                voiceFound = true;
-                break;
-              }
-            }
-
-            // Si no encuentra voz en español, usa la primera disponible
-            if (!voiceFound && voices.length > 0) {
-              utterance.voice = voices[0];
-              utterance.lang = 'es';
-            }
-
-            speechSynthesis.speak(utterance);
-          }
-
-          // Si no hay voces, esperar y reintentar con delay
-          if (speechSynthesis.getVoices().length === 0) {
-            const attempt = () => {
-              if (speechSynthesis.getVoices().length > 0) {
-                trySpeak();
-              } else {
-                setTimeout(attempt, 100);
-              }
-            };
-            setTimeout(attempt, 500);
-          } else {
-            trySpeak();
-          }
-        }
+        playAudio();
       } catch (err) {
         responseEl.innerHTML = `<div class="assistant-reply error">
           Error al consultar las citas: ${esc(err.message)}
