@@ -670,8 +670,11 @@
       recognition.continuous = false;
       recognition.interimResults = true;
 
+      let lastTranscript = '';
+
       recognition.onstart = () => {
         isListening = true;
+        lastTranscript = '';
         const btn = document.getElementById('btnMicrophone');
         btn.classList.add('listening');
         document.getElementById('listeningStatus').style.display = 'block';
@@ -681,6 +684,9 @@
         let transcript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           transcript += event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            lastTranscript = transcript;
+          }
         }
         document.getElementById('listeningText').textContent = `"${transcript}"`;
       };
@@ -690,6 +696,21 @@
         const btn = document.getElementById('btnMicrophone');
         btn.classList.remove('listening');
         document.getElementById('listeningStatus').style.display = 'none';
+
+        // Buscar palabras clave en el texto capturado
+        if (lastTranscript.trim()) {
+          const text = lastTranscript.toLowerCase();
+          if ((text.includes('cita') || text.includes('citas')) && text.includes('hoy')) {
+            askTodayAppointments();
+          } else {
+            const responseEl = document.getElementById('assistantResponse');
+            responseEl.innerHTML = `<div class="assistant-reply">
+              No entendí: "${esc(lastTranscript)}".
+              Intenta decir: "¿Qué citas tengo hoy?"
+            </div>`;
+            responseEl.style.display = 'block';
+          }
+        }
       };
 
       recognition.onerror = (event) => {
@@ -697,43 +718,6 @@
         const statusEl = document.getElementById('listeningStatus');
         statusEl.textContent = `Error: ${event.error}`;
         statusEl.style.display = 'block';
-      };
-
-      let lastTranscript = '';
-
-      recognition.onend = () => {
-        isListening = false;
-        const btn = document.getElementById('btnMicrophone');
-        btn.classList.remove('listening');
-
-        // Buscar palabras clave en el texto capturado
-        const text = lastTranscript.toLowerCase();
-        if ((text.includes('cita') || text.includes('citas')) && text.includes('hoy')) {
-          // Llamar a la función de consultar citas
-          setTimeout(() => askTodayAppointments(), 500);
-        } else if (lastTranscript.trim()) {
-          // Mostrar lo que se escuchó si no contiene palabras clave
-          const responseEl = document.getElementById('assistantResponse');
-          responseEl.innerHTML = `<div class="assistant-reply">
-            No entendí: "${esc(lastTranscript)}".
-            Intenta decir: "¿Qué citas tengo hoy?"
-          </div>`;
-          responseEl.style.display = 'block';
-        }
-
-        document.getElementById('listeningStatus').style.display = 'none';
-      };
-
-      // Actualizar lastTranscript cuando termina la escucha
-      recognition.onresult = (event) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            lastTranscript = transcript;
-          }
-        }
-        document.getElementById('listeningText').textContent = `"${transcript}"`;
       };
     } else {
       // Si el navegador no soporta, desactivar el botón
