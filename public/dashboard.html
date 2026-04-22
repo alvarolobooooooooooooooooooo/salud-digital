@@ -704,17 +704,23 @@
         if (silenceTimeout) clearTimeout(silenceTimeout);
 
         let transcript = '';
+        let hasFinal = false;
         for (let i = event.resultIndex; i < event.results.length; i++) {
           transcript += event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            lastTranscript = transcript;
-            console.log('[Mic] Final result:', lastTranscript);
+            hasFinal = true;
           }
         }
         document.getElementById('listeningText').textContent = `"${transcript}"`;
 
-        // Si hay resultado final, esperar silencio
-        if (event.results[event.results.length - 1].isFinal) {
+        // Guardar transcript - en Render isFinal podría no funcionar, así que guardamos siempre
+        if (transcript.trim()) {
+          lastTranscript = transcript;
+        }
+        console.log('[Mic] Transcript update:', lastTranscript, 'isFinal:', hasFinal);
+
+        // Si hay resultado final o si hay largo silencio, detener
+        if (hasFinal || transcript.trim()) {
           silenceTimeout = setTimeout(() => {
             console.log('[Mic] Silence timeout, stopping. Transcript:', lastTranscript);
             recognition.abort();
