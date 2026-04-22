@@ -640,27 +640,18 @@
         responseEl.innerHTML = html;
         responseEl.style.display = 'block';
 
-        // Leer en voz alta usando la API nativa de síntesis de voz del navegador
-        if ('speechSynthesis' in window) {
-          // Cancelar cualquier síntesis anterior
+        // TTS solo en localhost (Render bloquea speechSynthesis por seguridad)
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isLocalhost && 'speechSynthesis' in window) {
           if (speechSynthesis.speaking) {
             speechSynthesis.cancel();
           }
-
           const utterance = new SpeechSynthesisUtterance(data.spoken_response);
           utterance.lang = 'es-ES';
           utterance.rate = 1;
           utterance.pitch = 1;
           utterance.volume = 1;
-
-          utterance.onstart = () => console.log('[TTS] Audio iniciado');
-          utterance.onend = () => console.log('[TTS] Audio terminado');
-          utterance.onerror = (e) => console.error('[TTS] Error:', e.error);
-
-          console.log('[TTS] Iniciando síntesis:', data.spoken_response);
           speechSynthesis.speak(utterance);
-        } else {
-          console.warn('[TTS] speechSynthesis no disponible en este navegador');
         }
       } catch (err) {
         responseEl.innerHTML = `<div class="assistant-reply error">
@@ -684,8 +675,11 @@
       recognition.lang = 'es-ES';
       recognition.continuous = false;
       recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
 
       let lastTranscript = '';
+      let silenceTimeout = null;
+      const SILENCE_DURATION = 2000; // 2 segundos de silencio para detener
 
       recognition.onstart = () => {
         isListening = true;
@@ -696,6 +690,9 @@
       };
 
       recognition.onresult = (event) => {
+        // Limpiar timeout anterior
+        if (silenceTimeout) clearTimeout(silenceTimeout);
+
         let transcript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           transcript += event.results[i][0].transcript;
@@ -704,6 +701,13 @@
           }
         }
         document.getElementById('listeningText').textContent = `"${transcript}"`;
+
+        // Si hay resultado final, esperar a que termine el silencio
+        if (event.results[event.results.length - 1].isFinal) {
+          silenceTimeout = setTimeout(() => {
+            recognition.abort();
+          }, SILENCE_DURATION);
+        }
       };
 
       recognition.onend = () => {
