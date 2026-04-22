@@ -642,12 +642,25 @@
 
         // Leer en voz alta usando la API nativa de síntesis de voz del navegador
         if ('speechSynthesis' in window) {
+          // Cancelar cualquier síntesis anterior
+          if (speechSynthesis.speaking) {
+            speechSynthesis.cancel();
+          }
+
           const utterance = new SpeechSynthesisUtterance(data.spoken_response);
           utterance.lang = 'es-ES';
           utterance.rate = 1;
           utterance.pitch = 1;
           utterance.volume = 1;
+
+          utterance.onstart = () => console.log('[TTS] Audio iniciado');
+          utterance.onend = () => console.log('[TTS] Audio terminado');
+          utterance.onerror = (e) => console.error('[TTS] Error:', e.error);
+
+          console.log('[TTS] Iniciando síntesis:', data.spoken_response);
           speechSynthesis.speak(utterance);
+        } else {
+          console.warn('[TTS] speechSynthesis no disponible en este navegador');
         }
       } catch (err) {
         responseEl.innerHTML = `<div class="assistant-reply error">
