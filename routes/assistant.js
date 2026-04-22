@@ -14,9 +14,12 @@ function getLocalDateString() {
 // Solo doctores autenticados; devuelve citas propias de hoy con spoken_response
 router.get('/today-appointments', authenticate, requireRole('doctor'), async (req, res) => {
   try {
+    console.log('[assistant] Request received. User:', req.user);
     const today = getLocalDateString();
     const doctorId  = req.user.id;
     const clinicId  = req.user.clinic_id;
+
+    console.log('[assistant] Querying appointments for doctor:', doctorId, 'clinic:', clinicId, 'date:', today);
 
     // Consulta segura: siempre filtra por doctor_id y clinic_id del token (imposible consultar otro doctor)
     const result = await query(`
@@ -33,6 +36,8 @@ router.get('/today-appointments', authenticate, requireRole('doctor'), async (re
         AND a.status != 'cancelled'
       ORDER BY a.scheduled_at ASC
     `, [doctorId, clinicId, today]);
+
+    console.log('[assistant] Database query result:', result.rows.length, 'appointments found');
 
     const appointments = result.rows.map(row => ({
       appointment_id: row.appointment_id,
@@ -65,8 +70,8 @@ router.get('/today-appointments', authenticate, requireRole('doctor'), async (re
       spoken_response
     });
   } catch (err) {
-    console.error('[assistant] Error:', err);
-    res.status(500).json({ success: false, error: 'Error al consultar las citas.' });
+    console.error('[assistant] Error:', err.message, err.stack);
+    res.status(500).json({ success: false, error: 'Error al consultar las citas.', debug: err.message });
   }
 });
 
