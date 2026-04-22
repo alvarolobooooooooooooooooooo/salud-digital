@@ -645,11 +645,20 @@
           if (speechSynthesis.speaking) {
             speechSynthesis.cancel();
           }
+
           const utterance = new SpeechSynthesisUtterance(data.spoken_response);
           utterance.lang = 'es-ES';
           utterance.rate = 1;
           utterance.pitch = 1;
           utterance.volume = 1;
+
+          // Intentar encontrar una voz en español
+          const voices = speechSynthesis.getVoices();
+          const spanishVoice = voices.find(v => v.lang.startsWith('es'));
+          if (spanishVoice) {
+            utterance.voice = spanishVoice;
+          }
+
           speechSynthesis.speak(utterance);
         }
       } catch (err) {
