@@ -652,14 +652,22 @@
           utterance.pitch = 1;
           utterance.volume = 1;
 
-          // Intentar encontrar una voz en español
-          const voices = speechSynthesis.getVoices();
-          const spanishVoice = voices.find(v => v.lang.startsWith('es'));
-          if (spanishVoice) {
-            utterance.voice = spanishVoice;
+          // Función para reproducir cuando las voces estén disponibles
+          function playWithVoice() {
+            const voices = speechSynthesis.getVoices();
+            const spanishVoice = voices.find(v => v.lang.startsWith('es'));
+            if (spanishVoice) {
+              utterance.voice = spanishVoice;
+            }
+            speechSynthesis.speak(utterance);
           }
 
-          speechSynthesis.speak(utterance);
+          // En iOS, las voces se cargan asincronamente
+          if (speechSynthesis.getVoices().length === 0) {
+            speechSynthesis.onvoiceschanged = playWithVoice;
+          } else {
+            playWithVoice();
+          }
         }
       } catch (err) {
         responseEl.innerHTML = `<div class="assistant-reply error">
