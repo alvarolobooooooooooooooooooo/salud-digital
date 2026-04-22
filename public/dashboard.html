@@ -212,6 +212,35 @@
     .cal-day.other-month { color: #cbd5e1; }
     .cal-day.empty { background: none; }
 
+    /* ── Assistant Widget ── */
+    .btn-ask {
+      width: 100%; padding: 0.65rem 1rem;
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white; border: none; border-radius: 8px;
+      font-size: 0.875rem; font-family: inherit; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center;
+      gap: 0.5rem; justify-content: center; transition: all 0.2s;
+    }
+    .btn-ask:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-ask:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .assistant-reply {
+      margin-top: 0.75rem; padding: 0.75rem 1rem;
+      background: #f0f9ff; border-radius: 8px;
+      font-size: 0.875rem; color: #0f172a; line-height: 1.5;
+      border-left: 3px solid #0891b2;
+    }
+    .assistant-reply.error {
+      background: #fef2f2; border-left-color: #dc2626; color: #dc2626;
+    }
+    .assistant-list { margin-top: 0.5rem; padding-left: 0; list-style: none; }
+    .assistant-list li {
+      padding: 0.3rem 0; border-bottom: 1px solid #e2e8f0;
+      font-size: 0.8rem; color: #475569; display: flex;
+      justify-content: space-between; align-items: center;
+    }
+    .assistant-list li:last-child { border-bottom: none; }
+    .assistant-status { font-size: 0.7rem; color: #94a3b8; font-weight: 500; }
+
     /* ── Responsive ── */
     @media (max-width: 860px) {
       .content { padding: 0 0.5rem; width: 100%; display: block; }
@@ -342,6 +371,21 @@
             <span class="cal-dow">Do</span>
           </div>
           <div class="cal-grid" id="calDays"></div>
+        </div>
+
+        <!-- Asistente: "¿Qué citas tengo hoy?" -->
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-title">Asistente</span>
+            <span class="card-badge" id="assistantBadge">IA</span>
+          </div>
+          <div id="assistantBody">
+            <button class="btn-ask" id="btnAskToday" onclick="askTodayAppointments()">
+              <span id="askIcon"></span>
+              ¿Qué citas tengo hoy?
+            </button>
+            <div id="assistantResponse" style="display:none"></div>
+          </div>
         </div>
       </div>
   </main>
@@ -536,6 +580,59 @@
         console.error('Error loading dashboard:', e);
       }
     })();
+
+    // ── Assistant: "¿Qué citas tengo hoy?" ──
+    // Renderizar ícono del botón
+    document.getElementById('askIcon').innerHTML = Icons.render('calendar', 16);
+
+    async function askTodayAppointments() {
+      const btn = document.getElementById('btnAskToday');
+      const responseEl = document.getElementById('assistantResponse');
+
+      btn.disabled = true;
+      btn.textContent = 'Consultando...';
+
+      try {
+        const data = await api('/api/assistant/today-appointments');
+
+        // Mostrar frase natural conversacional
+        let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
+
+        // Si hay citas, listarlas en formato compacto
+        if (data.appointments.length > 0) {
+          html += `<ul class="assistant-list">`;
+          data.appointments.forEach(a => {
+            const statusLabel = a.status === 'completed' ? 'Atendido' :
+                               a.status === 'waiting' ? 'En sala' :
+                               a.status === 'cancelled' ? 'Cancelado' : 'Pendiente';
+            html += `<li>
+              <span>${esc(a.time)} — ${esc(a.patient_name)}</span>
+              <span class="assistant-status">${esc(statusLabel)}</span>
+            </li>`;
+          });
+          html += `</ul>`;
+        }
+
+        responseEl.innerHTML = html;
+        responseEl.style.display = 'block';
+
+        // Leer en voz alta usando la API nativa de síntesis de voz del navegador
+        // Esto funciona sin dependencias externas; requiere permisos de audio en el navegador
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(data.spoken_response);
+          utterance.lang = 'es-HN';  // Español Honduras
+          speechSynthesis.speak(utterance);
+        }
+      } catch (err) {
+        responseEl.innerHTML = `<div class="assistant-reply error">
+          Error al consultar las citas: ${esc(err.message)}
+        </div>`;
+        responseEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = Icons.render('calendar', 16) + ' ¿Qué citas tengo hoy?';
+      }
+    }
   </script>
 </body>
 </html>
