@@ -679,7 +679,9 @@
 
       let lastTranscript = '';
       let silenceTimeout = null;
-      const SILENCE_DURATION = 2000; // 2 segundos de silencio para detener
+      let maxTimeout = null;
+      const SILENCE_DURATION = 1500; // 1.5 segundos de silencio
+      const MAX_LISTEN_TIME = 8000; // 8 segundos máximo de escucha
 
       recognition.onstart = () => {
         isListening = true;
@@ -687,10 +689,17 @@
         const btn = document.getElementById('btnMicrophone');
         btn.classList.add('listening');
         document.getElementById('listeningStatus').style.display = 'block';
+
+        // Timeout máximo para garantizar que se detiene
+        if (maxTimeout) clearTimeout(maxTimeout);
+        maxTimeout = setTimeout(() => {
+          console.log('[Mic] Max listen time reached, stopping');
+          recognition.abort();
+        }, MAX_LISTEN_TIME);
       };
 
       recognition.onresult = (event) => {
-        // Limpiar timeout anterior
+        // Limpiar timeout de silencio anterior
         if (silenceTimeout) clearTimeout(silenceTimeout);
 
         let transcript = '';
@@ -702,9 +711,10 @@
         }
         document.getElementById('listeningText').textContent = `"${transcript}"`;
 
-        // Si hay resultado final, esperar a que termine el silencio
+        // Si hay resultado final, esperar silencio
         if (event.results[event.results.length - 1].isFinal) {
           silenceTimeout = setTimeout(() => {
+            console.log('[Mic] Silence timeout, stopping');
             recognition.abort();
           }, SILENCE_DURATION);
         }
@@ -712,6 +722,10 @@
 
       recognition.onend = () => {
         isListening = false;
+        // Limpiar todos los timeouts
+        if (silenceTimeout) clearTimeout(silenceTimeout);
+        if (maxTimeout) clearTimeout(maxTimeout);
+
         const btn = document.getElementById('btnMicrophone');
         btn.classList.remove('listening');
         document.getElementById('listeningStatus').style.display = 'none';
