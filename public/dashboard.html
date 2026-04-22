@@ -666,9 +666,6 @@
           }
         };
 
-        // En iPhone, clickear en la respuesta reproducirá el audio
-        responseEl.style.cursor = 'pointer';
-        responseEl.onclick = playAudio;
 
         // TTS - reproducir en voz alta (automático)
         if ('speechSynthesis' in window) {
@@ -850,6 +847,22 @@
         recognition.abort();
         return;
       }
+
+      // En iOS, reanudar el contexto de audio para permitir TTS después
+      if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          try {
+            const audioCtx = new AudioCtx();
+            if (audioCtx.state === 'suspended') {
+              audioCtx.resume().then(() => console.log('[Audio] Context resumed'));
+            }
+          } catch (e) {
+            // Ignorar si no se puede crear contexto
+          }
+        }
+      }
+
       recognition.start();
     }
 
