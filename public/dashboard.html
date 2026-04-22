@@ -640,21 +640,17 @@
         responseEl.innerHTML = html;
         responseEl.style.display = 'block';
 
-        // TTS - intenta reproducir en voz alta
+        // TTS - reproducir en voz alta
         if ('speechSynthesis' in window) {
-          try {
-            if (speechSynthesis.speaking) {
-              speechSynthesis.cancel();
-            }
-            const utterance = new SpeechSynthesisUtterance(data.spoken_response);
-            utterance.lang = 'es';
-            utterance.rate = 1;
-            utterance.pitch = 1;
-            utterance.volume = 1;
-            speechSynthesis.speak(utterance);
-          } catch (e) {
-            console.log('[TTS] Error:', e.message);
+          if (speechSynthesis.speaking) {
+            speechSynthesis.cancel();
           }
+          const utterance = new SpeechSynthesisUtterance(data.spoken_response);
+          utterance.lang = 'es-ES';
+          utterance.rate = 1;
+          utterance.pitch = 1;
+          utterance.volume = 1;
+          speechSynthesis.speak(utterance);
         }
       } catch (err) {
         responseEl.innerHTML = `<div class="assistant-reply error">
