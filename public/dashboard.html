@@ -641,10 +641,12 @@
         responseEl.style.display = 'block';
 
         // Leer en voz alta usando la API nativa de síntesis de voz del navegador
-        // Esto funciona sin dependencias externas; requiere permisos de audio en el navegador
         if ('speechSynthesis' in window) {
           const utterance = new SpeechSynthesisUtterance(data.spoken_response);
-          utterance.lang = 'es-HN';  // Español Honduras
+          utterance.lang = 'es-ES';
+          utterance.rate = 1;
+          utterance.pitch = 1;
+          utterance.volume = 1;
           speechSynthesis.speak(utterance);
         }
       } catch (err) {
@@ -666,7 +668,7 @@
     // Inicializar reconocimiento de voz si está disponible
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
-      recognition.lang = 'es-HN';
+      recognition.lang = 'es-ES';
       recognition.continuous = false;
       recognition.interimResults = true;
 
