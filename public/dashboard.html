@@ -642,31 +642,54 @@
 
         // TTS - reproducir en voz alta
         if ('speechSynthesis' in window) {
-          if (speechSynthesis.speaking) {
-            speechSynthesis.cancel();
-          }
-
           const utterance = new SpeechSynthesisUtterance(data.spoken_response);
-          utterance.lang = 'es-ES';
           utterance.rate = 1;
           utterance.pitch = 1;
           utterance.volume = 1;
 
-          // Función para reproducir cuando las voces estén disponibles
-          function playWithVoice() {
-            const voices = speechSynthesis.getVoices();
-            const spanishVoice = voices.find(v => v.lang.startsWith('es'));
-            if (spanishVoice) {
-              utterance.voice = spanishVoice;
+          // Intenta con múltiples idiomas/variantes de español
+          const langsTryOrder = ['es-ES', 'es-MX', 'es-AR', 'es'];
+
+          function trySpeak() {
+            if (speechSynthesis.speaking) {
+              speechSynthesis.cancel();
             }
+
+            const voices = speechSynthesis.getVoices();
+            let voiceFound = false;
+
+            // Busca voz en español
+            for (const lang of langsTryOrder) {
+              const voice = voices.find(v => v.lang.includes(lang.substring(0, 2)));
+              if (voice) {
+                utterance.voice = voice;
+                utterance.lang = lang;
+                voiceFound = true;
+                break;
+              }
+            }
+
+            // Si no encuentra voz en español, usa la primera disponible
+            if (!voiceFound && voices.length > 0) {
+              utterance.voice = voices[0];
+              utterance.lang = 'es';
+            }
+
             speechSynthesis.speak(utterance);
           }
 
-          // En iOS, las voces se cargan asincronamente
+          // Si no hay voces, esperar y reintentar con delay
           if (speechSynthesis.getVoices().length === 0) {
-            speechSynthesis.onvoiceschanged = playWithVoice;
+            const attempt = () => {
+              if (speechSynthesis.getVoices().length > 0) {
+                trySpeak();
+              } else {
+                setTimeout(attempt, 100);
+              }
+            };
+            setTimeout(attempt, 500);
           } else {
-            playWithVoice();
+            trySpeak();
           }
         }
       } catch (err) {
