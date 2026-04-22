@@ -689,11 +689,12 @@
         const btn = document.getElementById('btnMicrophone');
         btn.classList.add('listening');
         document.getElementById('listeningStatus').style.display = 'block';
+        console.log('[Mic] Listening started');
 
         // Timeout máximo para garantizar que se detiene
         if (maxTimeout) clearTimeout(maxTimeout);
         maxTimeout = setTimeout(() => {
-          console.log('[Mic] Max listen time reached, stopping');
+          console.log('[Mic] Max listen time reached, stopping. Transcript:', lastTranscript);
           recognition.abort();
         }, MAX_LISTEN_TIME);
       };
@@ -707,6 +708,7 @@
           transcript += event.results[i][0].transcript;
           if (event.results[i].isFinal) {
             lastTranscript = transcript;
+            console.log('[Mic] Final result:', lastTranscript);
           }
         }
         document.getElementById('listeningText').textContent = `"${transcript}"`;
@@ -714,26 +716,20 @@
         // Si hay resultado final, esperar silencio
         if (event.results[event.results.length - 1].isFinal) {
           silenceTimeout = setTimeout(() => {
-            console.log('[Mic] Silence timeout, stopping');
+            console.log('[Mic] Silence timeout, stopping. Transcript:', lastTranscript);
             recognition.abort();
           }, SILENCE_DURATION);
         }
       };
 
-      recognition.onend = () => {
-        isListening = false;
-        // Limpiar todos los timeouts
-        if (silenceTimeout) clearTimeout(silenceTimeout);
-        if (maxTimeout) clearTimeout(maxTimeout);
-
-        const btn = document.getElementById('btnMicrophone');
-        btn.classList.remove('listening');
-        document.getElementById('listeningStatus').style.display = 'none';
-
-        // Buscar palabras clave en el texto capturado
+      // Función para procesar el transcript capturado
+      function processTranscript() {
+        console.log('[Mic] Processing transcript:', lastTranscript);
         if (lastTranscript.trim()) {
           const text = lastTranscript.toLowerCase();
+          console.log('[Mic] Checking for keywords. Contains cita(s):', (text.includes('cita') || text.includes('citas')), 'Contains hoy:', text.includes('hoy'));
           if ((text.includes('cita') || text.includes('citas')) && text.includes('hoy')) {
+            console.log('[Mic] Keywords found! Calling askTodayAppointments');
             askTodayAppointments();
           } else {
             const responseEl = document.getElementById('assistantResponse');
@@ -744,6 +740,20 @@
             responseEl.style.display = 'block';
           }
         }
+      }
+
+      recognition.onend = () => {
+        console.log('[Mic] onend event fired');
+        isListening = false;
+        // Limpiar todos los timeouts
+        if (silenceTimeout) clearTimeout(silenceTimeout);
+        if (maxTimeout) clearTimeout(maxTimeout);
+
+        const btn = document.getElementById('btnMicrophone');
+        btn.classList.remove('listening');
+        document.getElementById('listeningStatus').style.display = 'none';
+
+        processTranscript();
       };
 
       recognition.onerror = (event) => {
