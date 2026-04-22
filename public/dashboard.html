@@ -240,6 +240,22 @@
     }
     .assistant-list li:last-child { border-bottom: none; }
     .assistant-status { font-size: 0.7rem; color: #94a3b8; font-weight: 500; }
+    .btn-mic {
+      background: white;
+      border: 2px solid #0891b2;
+      color: #0891b2;
+    }
+    .btn-mic:hover { background: #f0f9ff; }
+    .btn-mic.listening {
+      animation: pulse-mic 1.5s infinite;
+      background: #0891b2;
+      color: white;
+      border-color: #0891b2;
+    }
+    @keyframes pulse-mic {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
 
     /* ── Responsive ── */
     @media (max-width: 860px) {
@@ -380,10 +396,18 @@
             <span class="card-badge" id="assistantBadge">IA</span>
           </div>
           <div id="assistantBody">
-            <button class="btn-ask" id="btnAskToday" onclick="askTodayAppointments()">
-              <span id="askIcon"></span>
-              ¿Qué citas tengo hoy?
-            </button>
+            <div style="display: flex; gap: 0.75rem;">
+              <button class="btn-ask" id="btnAskToday" onclick="askTodayAppointments()" style="flex: 1;">
+                <span id="askIcon"></span>
+                ¿Qué citas tengo hoy?
+              </button>
+              <button class="btn-ask btn-mic" id="btnMicrophone" onclick="startListening()" title="Escuchar" style="flex: 0 0 auto; width: auto; padding: 0.65rem 1rem;">
+                <span id="micIcon"></span>
+              </button>
+            </div>
+            <div id="listeningStatus" style="display:none; margin-top: 0.75rem; padding: 0.75rem 1rem; background: #fff3cd; border-radius: 8px; font-size: 0.875rem; color: #854d0e;">
+              <span id="listeningText">Escuchando...</span>
+            </div>
             <div id="assistantResponse" style="display:none"></div>
           </div>
         </div>
@@ -632,6 +656,104 @@
         btn.disabled = false;
         btn.innerHTML = Icons.render('calendar', 16) + ' ¿Qué citas tengo hoy?';
       }
+    }
+
+    // ── Speech Recognition: Micrófono ──
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isListening = false;
+
+    // Inicializar reconocimiento de voz si está disponible
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = 'es-HN';
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        isListening = true;
+        const btn = document.getElementById('btnMicrophone');
+        btn.classList.add('listening');
+        document.getElementById('listeningStatus').style.display = 'block';
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        document.getElementById('listeningText').textContent = `"${transcript}"`;
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        const btn = document.getElementById('btnMicrophone');
+        btn.classList.remove('listening');
+        document.getElementById('listeningStatus').style.display = 'none';
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Error en reconocimiento de voz:', event.error);
+        const statusEl = document.getElementById('listeningStatus');
+        statusEl.textContent = `Error: ${event.error}`;
+        statusEl.style.display = 'block';
+      };
+
+      let lastTranscript = '';
+
+      recognition.onend = () => {
+        isListening = false;
+        const btn = document.getElementById('btnMicrophone');
+        btn.classList.remove('listening');
+
+        // Buscar palabras clave en el texto capturado
+        const text = lastTranscript.toLowerCase();
+        if ((text.includes('cita') || text.includes('citas')) && text.includes('hoy')) {
+          // Llamar a la función de consultar citas
+          setTimeout(() => askTodayAppointments(), 500);
+        } else if (lastTranscript.trim()) {
+          // Mostrar lo que se escuchó si no contiene palabras clave
+          const responseEl = document.getElementById('assistantResponse');
+          responseEl.innerHTML = `<div class="assistant-reply">
+            No entendí: "${esc(lastTranscript)}".
+            Intenta decir: "¿Qué citas tengo hoy?"
+          </div>`;
+          responseEl.style.display = 'block';
+        }
+
+        document.getElementById('listeningStatus').style.display = 'none';
+      };
+
+      // Actualizar lastTranscript cuando termina la escucha
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            lastTranscript = transcript;
+          }
+        }
+        document.getElementById('listeningText').textContent = `"${transcript}"`;
+      };
+    } else {
+      // Si el navegador no soporta, desactivar el botón
+      const btn = document.getElementById('btnMicrophone');
+      btn.disabled = true;
+      btn.title = 'Tu navegador no soporta reconocimiento de voz';
+    }
+
+    function startListening() {
+      if (!recognition) return;
+      if (isListening) {
+        recognition.abort();
+        return;
+      }
+      recognition.start();
+    }
+
+    // Renderizar ícono del micrófono
+    if (document.getElementById('micIcon')) {
+      document.getElementById('micIcon').innerHTML = Icons.render('mic', 16);
     }
   </script>
 </body>
