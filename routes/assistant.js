@@ -89,7 +89,7 @@ router.get('/last-appointment', authenticate, requireRole('doctor'), async (req,
 
     console.log('[assistant] Searching last appointment for patient:', patient_name, 'doctor:', doctorId);
 
-    // Buscar citas del paciente (case-insensitive, sin acentos)
+    // Buscar citas del paciente (case-insensitive)
     const result = await query(`
       SELECT
         a.id            AS appointment_id,
@@ -100,7 +100,7 @@ router.get('/last-appointment', authenticate, requireRole('doctor'), async (req,
       JOIN patients p ON a.patient_id = p.id
       WHERE a.doctor_id  = $1
         AND a.clinic_id  = $2
-        AND LOWER(UNACCENT(p.name)) LIKE LOWER(UNACCENT($3))
+        AND LOWER(p.name) LIKE LOWER($3)
       ORDER BY a.scheduled_at DESC
       LIMIT 1
     `, [doctorId, clinicId, `%${patient_name}%`]);
