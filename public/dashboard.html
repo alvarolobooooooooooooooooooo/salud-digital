@@ -609,6 +609,36 @@
     // Renderizar ícono del botón
     document.getElementById('askIcon').innerHTML = Icons.render('calendar', 16);
 
+    async function askLastAppointment(patientName) {
+      const responseEl = document.getElementById('assistantResponse');
+
+      try {
+        const data = await api(`/api/assistant/last-appointment?patient_name=${encodeURIComponent(patientName)}`);
+
+        let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
+
+        if (data.found && data.appointment) {
+          html += `<div style="margin-top: 0.75rem; padding: 0.75rem; background: #f0f9ff; border-radius: 8px; font-size: 0.875rem;">
+            <strong>Paciente:</strong> ${esc(data.patient_name)}<br>
+            <strong>Fecha:</strong> ${esc(data.appointment.date)}<br>
+            <strong>Hora:</strong> ${esc(data.appointment.time)}<br>
+            <strong>Estado:</strong> ${esc(data.appointment.status)}
+          </div>`;
+        }
+
+        responseEl.innerHTML = html;
+        responseEl.style.display = 'block';
+
+        // TTS
+        playAudio();
+      } catch (err) {
+        responseEl.innerHTML = `<div class="assistant-reply error">
+          Error al buscar la cita: ${esc(err.message)}
+        </div>`;
+        responseEl.style.display = 'block';
+      }
+    }
+
     async function askTodayAppointments() {
       const btn = document.getElementById('btnAskToday');
       const responseEl = document.getElementById('assistantResponse');
@@ -759,15 +789,33 @@
         console.log('[Mic] Processing transcript:', lastTranscript);
         if (lastTranscript.trim()) {
           const text = lastTranscript.toLowerCase();
-          console.log('[Mic] Checking for keywords. Contains cita(s):', (text.includes('cita') || text.includes('citas')), 'Contains hoy:', text.includes('hoy'));
+
+          // Intención 1: Citas de hoy
           if ((text.includes('cita') || text.includes('citas')) && text.includes('hoy')) {
             console.log('[Mic] Keywords found! Calling askTodayAppointments');
             askTodayAppointments();
+          }
+          // Intención 2: Última cita de un paciente
+          else if (text.includes('última cita') || text.includes('ultima cita')) {
+            // Extraer nombre del paciente (lo que viene después de "última cita de" o "última cita del")
+            const match = text.match(/última cita\s+(?:de\s+)?(?:la\s+)?(?:del\s+)?(.+)/i) ||
+                         text.match(/ultima cita\s+(?:de\s+)?(?:la\s+)?(?:del\s+)?(.+)/i);
+            if (match && match[1]) {
+              const patientName = match[1].trim();
+              console.log('[Mic] Last appointment command! Patient:', patientName);
+              askLastAppointment(patientName);
+            } else {
+              const responseEl = document.getElementById('assistantResponse');
+              responseEl.innerHTML = `<div class="assistant-reply">
+                No entendí el nombre del paciente. Intenta decir: "¿Cuándo fue la última cita de María González?"
+              </div>`;
+              responseEl.style.display = 'block';
+            }
           } else {
             const responseEl = document.getElementById('assistantResponse');
             responseEl.innerHTML = `<div class="assistant-reply">
               No entendí: "${esc(lastTranscript)}".
-              Intenta decir: "¿Qué citas tengo hoy?"
+              Puedes decir: "¿Qué citas tengo hoy?" o "¿Cuándo fue la última cita de [nombre del paciente]?"
             </div>`;
             responseEl.style.display = 'block';
           }
