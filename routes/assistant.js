@@ -148,7 +148,7 @@ router.get('/last-appointment', authenticate, requireRole('doctor'), async (req,
       spoken_response
     });
   } catch (err) {
-    console.error('[assistant] Error:', err.message, err.stack);
+    console.error('[assistant] Error in last-appointment:', err.message, err.stack);
     res.status(500).json({ success: false, error: 'Error al consultar la cita.', debug: err.message });
   }
 });
