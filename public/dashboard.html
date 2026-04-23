@@ -796,11 +796,18 @@
           }
           // Intención 2: Última cita de un paciente
           else if (text.includes('última cita') || text.includes('ultima cita')) {
-            // Extraer nombre del paciente (lo que viene después de "última cita de" o "última cita del")
-            const match = text.match(/última cita\s+(?:de\s+)?(?:la\s+)?(?:del\s+)?(.+)/i) ||
-                         text.match(/ultima cita\s+(?:de\s+)?(?:la\s+)?(?:del\s+)?(.+)/i);
-            if (match && match[1]) {
-              const patientName = match[1].trim();
+            // Extraer nombre del paciente - buscar después de "última cita"
+            let patientName = null;
+            const match1 = text.match(/(?:última|ultima)\s+cita\s+(?:de\s+)?(?:la\s+)?(?:del\s+)?([a-záéíóú\s]+)/i);
+            const match2 = text.match(/(?:cuándo|cuando)\s+(?:fue|era)\s+(?:la\s+)?(?:última|ultima)\s+cita\s+(?:de\s+)?(?:la\s+)?(?:del\s+)?([a-záéíóú\s]+)/i);
+
+            if (match1 && match1[1]) {
+              patientName = match1[1].trim();
+            } else if (match2 && match2[1]) {
+              patientName = match2[1].trim();
+            }
+
+            if (patientName) {
               console.log('[Mic] Last appointment command! Patient:', patientName);
               askLastAppointment(patientName);
             } else {
