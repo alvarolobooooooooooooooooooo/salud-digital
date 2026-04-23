@@ -609,6 +609,32 @@
     // Renderizar ícono del botón
     document.getElementById('askIcon').innerHTML = Icons.render('calendar', 16);
 
+    // Función global para reproducir audio
+    function playAudio(text) {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        const voices = speechSynthesis.getVoices();
+        const langsTryOrder = ['es-ES', 'es-MX', 'es-AR', 'es'];
+        for (const lang of langsTryOrder) {
+          const voice = voices.find(v => v.lang.includes(lang.substring(0, 2)));
+          if (voice) {
+            utterance.voice = voice;
+            utterance.lang = lang;
+            break;
+          }
+        }
+
+        if (speechSynthesis.speaking) {
+          speechSynthesis.cancel();
+        }
+        speechSynthesis.speak(utterance);
+      }
+    }
+
     async function askLastAppointment(patientName) {
       const responseEl = document.getElementById('assistantResponse');
 
@@ -630,7 +656,7 @@
         responseEl.style.display = 'block';
 
         // TTS
-        playAudio();
+        playAudio(data.spoken_response);
       } catch (err) {
         responseEl.innerHTML = `<div class="assistant-reply error">
           Error al buscar la cita: ${esc(err.message)}
@@ -680,35 +706,8 @@
         responseEl.style.display = 'block';
         responseEl.style.cursor = 'pointer';
 
-        // Función para reproducir audio
-        const playAudio = () => {
-          if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(data.spoken_response);
-            utterance.rate = 1;
-            utterance.pitch = 1;
-            utterance.volume = 1;
-
-            const voices = speechSynthesis.getVoices();
-            const langsTryOrder = ['es-ES', 'es-MX', 'es-AR', 'es'];
-            for (const lang of langsTryOrder) {
-              const voice = voices.find(v => v.lang.includes(lang.substring(0, 2)));
-              if (voice) {
-                utterance.voice = voice;
-                utterance.lang = lang;
-                break;
-              }
-            }
-
-            if (speechSynthesis.speaking) {
-              speechSynthesis.cancel();
-            }
-            speechSynthesis.speak(utterance);
-          }
-        };
-
-
         // TTS - reproducir en voz alta (automático)
-        playAudio();
+        playAudio(data.spoken_response);
       } catch (err) {
         responseEl.innerHTML = `<div class="assistant-reply error">
           Error al consultar las citas: ${esc(err.message)}
