@@ -75,4 +75,82 @@ router.get('/today-appointments', authenticate, requireRole('doctor'), async (re
   }
 });
 
+// GET /api/assistant/last-appointment?patient_name=...
+// Busca la última cita de un paciente para el doctor autenticado
+router.get('/last-appointment', authenticate, requireRole('doctor'), async (req, res) => {
+  try {
+    const { patient_name } = req.query;
+    if (!patient_name || patient_name.trim().length === 0) {
+      return res.status(400).json({ success: false, error: 'Patient name is required' });
+    }
+
+    const doctorId = req.user.id;
+    const clinicId = req.user.clinic_id;
+
+    console.log('[assistant] Searching last appointment for patient:', patient_name, 'doctor:', doctorId);
+
+    // Buscar citas del paciente (búsqueda case-insensitive parcial)
+    const result = await query(`
+      SELECT
+        a.id            AS appointment_id,
+        a.scheduled_at,
+        a.status,
+        p.name          AS patient_name
+      FROM appointments a
+      JOIN patients p ON a.patient_id = p.id
+      WHERE a.doctor_id  = $1
+        AND a.clinic_id  = $2
+        AND LOWER(p.name) LIKE LOWER($3)
+      ORDER BY a.scheduled_at DESC
+      LIMIT 1
+    `, [doctorId, clinicId, `%${patient_name}%`]);
+
+    if (result.rows.length === 0) {
+      const spoken_response = `No encontré citas de ${patient_name} en tu historial.`;
+      return res.json({
+        success: true,
+        intent: 'get_last_appointment',
+        patient_name,
+        found: false,
+        spoken_response
+      });
+    }
+
+    const appointment = result.rows[0];
+    const appointmentDate = new Date(appointment.scheduled_at);
+    const dateStr = appointmentDate.toLocaleDateString('es-HN', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: process.env.TZ || 'America/Chicago'
+    });
+    const timeStr = appointmentDate.toLocaleTimeString('es-HN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: process.env.TZ || 'America/Chicago'
+    });
+
+    const spoken_response = `La última cita de ${appointment.patient_name} fue el ${dateStr} a las ${timeStr}.`;
+
+    res.json({
+      success: true,
+      intent: 'get_last_appointment',
+      patient_name: appointment.patient_name,
+      found: true,
+      appointment: {
+        appointment_id: appointment.appointment_id,
+        date: dateStr,
+        time: timeStr,
+        status: appointment.status
+      },
+      spoken_response
+    });
+  } catch (err) {
+    console.error('[assistant] Error:', err.message, err.stack);
+    res.status(500).json({ success: false, error: 'Error al consultar la cita.', debug: err.message });
+  }
+});
+
 module.exports = router;
