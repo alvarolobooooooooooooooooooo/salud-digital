@@ -232,6 +232,51 @@ const initDb = async () => {
       );
     }
 
+    // Initialize conversation tables for NLU assistant
+    await query(`
+      CREATE TABLE IF NOT EXISTS conversation_sessions (
+        id UUID PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        clinic_id INTEGER NOT NULL,
+        user_role TEXT NOT NULL,
+        state TEXT DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS conversation_messages (
+        id UUID PRIMARY KEY,
+        session_id UUID NOT NULL,
+        role TEXT NOT NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (session_id) REFERENCES conversation_sessions(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        clinic_id INTEGER NOT NULL,
+        action TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        reason TEXT,
+        tool_input TEXT,
+        tool_output TEXT,
+        error TEXT,
+        duration_ms INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_conversation_sessions_user ON conversation_sessions(user_id);
+      CREATE INDEX IF NOT EXISTS idx_conversation_messages_session ON conversation_messages(session_id);
+      CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs(user_id);
+      CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
+    `);
+
     console.log('Database initialized successfully');
   } catch (err) {
     console.error('Database initialization error:', err);

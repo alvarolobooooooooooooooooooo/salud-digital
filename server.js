@@ -18,6 +18,7 @@ app.use('/api/patients', require('./routes/patients'));
 app.use('/api/consultations', require('./routes/consultations'));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/assistant', require('./routes/assistant'));
+app.use('/api/conversation', require('./routes/conversation'));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
