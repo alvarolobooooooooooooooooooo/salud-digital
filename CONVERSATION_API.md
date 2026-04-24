@@ -11,7 +11,7 @@ User Input
     ↓
 ConversationService (orchestrates)
     ↓
-ClaudeClient (calls Claude API with tool definitions)
+OpenAIClient (calls OpenAI API with function calling)
     ↓
 ToolExecutor (validates permissions + executes tools)
     ↓
@@ -50,7 +50,7 @@ curl -X POST http://localhost:3000/api/conversation/session \
 ### 2. Send Message
 **POST** `/api/conversation/:sessionId/message`
 
-Send a message in an active conversation. Claude processes it and may call tools.
+Send a message in an active conversation. OpenAI processes it and may call tools.
 
 ```bash
 curl -X POST http://localhost:3000/api/conversation/abc123/message \
@@ -198,7 +198,7 @@ The JWT token must include:
 
 Add to `.env`:
 ```
-ANTHROPIC_API_KEY=sk-...
+OPENAI_API_KEY=sk-...
 TZ=America/Chicago
 ```
 
