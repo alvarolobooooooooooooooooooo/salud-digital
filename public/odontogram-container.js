@@ -116,6 +116,12 @@ class OdontogramContainer {
   }
 
   selectSurface(fdi, surface, e) {
+    // Desselect previous
+    if(this.selectedTooth && this.selectedTooth !== fdi) {
+      this.state[this.selectedTooth].isSelected = false;
+    }
+
+    // Select new
     this.selectedTooth = fdi;
     this.selectedSurface = surface;
     this.state[fdi].isSelected = true;
@@ -202,32 +208,98 @@ class OdontogramContainer {
       position: fixed;
       z-index: 1000;
       background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      padding: 1rem;
-      min-width: 260px;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25), 0 0 1px rgba(0,0,0,0.1);
+      padding: 0;
+      min-width: 280px;
       display: none;
+      animation: popupSlideIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      overflow: hidden;
     `;
 
-    // Header with tooth info
+    // Add animation
+    if (!document.getElementById('odonto-popup-styles')) {
+      const style = document.createElement('style');
+      style.id = 'odonto-popup-styles';
+      style.textContent = `
+        @keyframes popupSlideIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Header with tooth info and close button
+    const headerContainer = document.createElement('div');
+    headerContainer.style.cssText = `
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      border-bottom: none;
+    `;
+
     const header = document.createElement('div');
     header.id = 'odonto-popup-header';
     header.style.cssText = `
-      font-weight: 600;
-      margin-bottom: 0.75rem;
-      color: #1e3a5f;
-      font-size: 0.9rem;
+      font-weight: 700;
+      color: white;
+      font-size: 0.95rem;
+      flex: 1;
+      letter-spacing: 0.3px;
     `;
-    popup.appendChild(header);
+    headerContainer.appendChild(header);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = `
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      margin-left: 0.75rem;
+    `;
+    closeBtn.onmouseover = () => {
+      closeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+      closeBtn.style.transform = 'scale(1.1)';
+    };
+    closeBtn.onmouseout = () => {
+      closeBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+      closeBtn.style.transform = 'scale(1)';
+    };
+    closeBtn.onclick = () => popup.style.display = 'none';
+    headerContainer.appendChild(closeBtn);
+
+    popup.appendChild(headerContainer);
 
     // Condition buttons grid
     const buttonsContainer = document.createElement('div');
     buttonsContainer.style.cssText = `
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
+      gap: 0.65rem;
+      padding: 1.25rem;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
     `;
 
     CONDITION_LIST.forEach(condition => {
@@ -236,31 +308,32 @@ class OdontogramContainer {
       btn.textContent = condition.label;
       btn.title = condition.label;
       btn.style.cssText = `
-        padding: 0.5rem;
+        padding: 0.6rem 0.5rem;
         background: white;
-        border: 1px solid #d1d5db;
+        border: 1.5px solid #e5e7eb;
         border-left: 3px solid ${condition.color};
-        border-radius: 4px;
+        border-radius: 6px;
         cursor: pointer;
         font-size: 0.7rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        transition: all 0.2s;
+        transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         color: #1e293b;
-        font-weight: 500;
+        font-weight: 600;
+        text-transform: capitalize;
       `;
       btn.onmouseover = () => {
-        btn.style.borderRightColor = '#0891b2';
-        btn.style.borderTopColor = '#0891b2';
-        btn.style.borderBottomColor = '#0891b2';
+        btn.style.borderColor = '#0891b2';
         btn.style.backgroundColor = '#f0f9ff';
+        btn.style.boxShadow = '0 4px 12px rgba(8, 145, 178, 0.15)';
+        btn.style.transform = 'translateY(-2px)';
       };
       btn.onmouseout = () => {
-        btn.style.borderRightColor = '#d1d5db';
-        btn.style.borderTopColor = '#d1d5db';
-        btn.style.borderBottomColor = '#d1d5db';
+        btn.style.borderColor = '#e5e7eb';
         btn.style.backgroundColor = 'white';
+        btn.style.boxShadow = 'none';
+        btn.style.transform = 'translateY(0)';
       };
 
       const self = this;
@@ -276,20 +349,31 @@ class OdontogramContainer {
 
     // Clear selection button
     const clearBtn = document.createElement('button');
-    clearBtn.textContent = 'Limpiar Selección';
+    clearBtn.textContent = '🗑️ Limpiar Selección';
     clearBtn.style.cssText = `
-      width: 100%;
-      padding: 0.5rem;
-      background: #ef4444;
+      width: calc(100% - 2.5rem);
+      margin: 1rem 1.25rem;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 0.8rem;
-      font-weight: 500;
+      font-weight: 600;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
     `;
-    clearBtn.onmouseover = () => clearBtn.style.backgroundColor = '#dc2626';
-    clearBtn.onmouseout = () => clearBtn.style.backgroundColor = '#ef4444';
+    clearBtn.onmouseover = () => {
+      clearBtn.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
+      clearBtn.style.boxShadow = '0 6px 16px rgba(220, 38, 38, 0.3)';
+      clearBtn.style.transform = 'translateY(-2px)';
+    };
+    clearBtn.onmouseout = () => {
+      clearBtn.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+      clearBtn.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.2)';
+      clearBtn.style.transform = 'translateY(0)';
+    };
     const self = this;
     clearBtn.onclick = () => {
       self.clearToothSelection();
@@ -363,30 +447,36 @@ class OdontogramContainer {
 
       style.textContent = `
         .tooth-svg {
-          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05));
-          transition: filter 0.2s;
+          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .tooth-outline {
-          transition: all 0.2s;
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .tooth-container:hover .tooth-svg {
+          filter: drop-shadow(0 4px 12px rgba(8, 145, 178, 0.2));
+          transform: scale(1.05);
         }
 
         .tooth-container:hover .tooth-outline {
-          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+          filter: drop-shadow(0 4px 12px rgba(8, 145, 178, 0.2));
         }
 
         .tooth-surface {
-          box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.3);
-          transition: all 0.2s;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
         }
 
         .tooth-surface:hover {
-          transform: scale(1.15);
-          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          transform: scale(1.2);
+          box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
         }
 
         .tooth-surface:active {
-          transform: scale(0.95) !important;
+          transform: scale(0.92) !important;
         }
 
         .condition-btn {

@@ -28,14 +28,15 @@ class OdontogramTooth {
       flex-direction: column;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.5rem;
+      padding: 0.65rem;
       background: white;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
       cursor: ${this.isEditable ? 'pointer' : 'default'};
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       position: relative;
       min-width: 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     `;
 
     // Hover effects
@@ -43,13 +44,15 @@ class OdontogramTooth {
       container.style.cursor = 'pointer';
       container.onmouseenter = () => {
         container.style.borderColor = '#0891b2';
-        container.style.boxShadow = '0 4px 12px rgba(8, 145, 178, 0.15)';
-        container.style.transform = 'translateY(-2px)';
+        container.style.boxShadow = '0 8px 20px rgba(8, 145, 178, 0.2)';
+        container.style.transform = 'translateY(-3px)';
+        container.style.background = '#f8fbfc';
       };
       container.onmouseleave = () => {
-        container.style.borderColor = this.isSelected ? '#0891b2' : '#e2e8f0';
-        container.style.boxShadow = this.isSelected ? '0 4px 12px rgba(8, 145, 178, 0.15)' : 'none';
+        container.style.borderColor = this.isSelected ? '#0891b2' : '#e5e7eb';
+        container.style.boxShadow = this.isSelected ? '0 6px 16px rgba(8, 145, 178, 0.15)' : '0 1px 3px rgba(0, 0, 0, 0.08)';
         container.style.transform = 'translateY(0)';
+        container.style.background = this.isSelected ? '#f0f9ff' : 'white';
       };
 
       // Main click handler
@@ -63,7 +66,7 @@ class OdontogramTooth {
     if(this.isSelected) {
       container.style.borderColor = '#0891b2';
       container.style.background = '#f0f9ff';
-      container.style.boxShadow = '0 4px 12px rgba(8, 145, 178, 0.15)';
+      container.style.boxShadow = '0 6px 16px rgba(8, 145, 178, 0.15)';
     }
 
     // Tooth SVG

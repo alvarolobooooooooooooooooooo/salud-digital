@@ -47,12 +47,13 @@ class OdontogramArch {
     label.className = 'arch-label';
     label.textContent = this.getArchLabel();
     label.style.cssText = `
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #475569;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #0891b2;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
-      padding-left: 0.75rem;
+      letter-spacing: 0.06em;
+      padding-left: 0.5rem;
+      margin-bottom: 0.5rem;
     `;
     container.appendChild(label);
 
@@ -62,13 +63,15 @@ class OdontogramArch {
 
     grid.style.cssText = `
       display: grid;
-      gap: 0.25rem;
-      padding: 0.75rem;
-      background: linear-gradient(135deg, #f9fafb 0%, #f0f9ff 100%);
-      border-radius: 10px;
-      border: 1px solid #e2e8f0;
+      gap: 0.4rem;
+      padding: 1rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%);
+      border-radius: 12px;
+      border: 1.5px solid #e5e7eb;
       width: 100%;
       box-sizing: border-box;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
     `;
 
     this.updateGridColumns(grid);
