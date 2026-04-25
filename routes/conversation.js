@@ -50,6 +50,7 @@ router.post('/:sessionId/message', authenticate, async (req, res) => {
       });
     }
 
+    console.log('[conversation] Processing message for session:', req.params.sessionId, 'user:', req.user.id);
     const userRole = req.user.role || 'doctor';
     const result = await conversationService.processUserInput(
       req.params.sessionId,
@@ -59,12 +60,14 @@ router.post('/:sessionId/message', authenticate, async (req, res) => {
       userRole
     );
 
+    console.log('[conversation] Message processed successfully');
     res.json({
       success: true,
       result
     });
   } catch (err) {
-    console.error('[conversation] Error processing message:', err);
+    console.error('[conversation] Error processing message:', err.message);
+    console.error('[conversation] Stack:', err.stack);
     res.status(500).json({
       success: false,
       error: 'Error processing message',

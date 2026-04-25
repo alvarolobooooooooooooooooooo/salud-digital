@@ -721,11 +721,16 @@
           body: { message: '¿Qué citas tengo hoy?' }
         });
 
+        if (!result.success) {
+          throw new Error(result.debug || result.error || 'Unknown error');
+        }
+
         const response = result.result.assistant_response;
         responseEl.innerHTML = `<div class="assistant-reply">${esc(response)}</div>`;
         responseEl.style.display = 'block';
         playAudio(response);
       } catch (err) {
+        console.error('[askTodayAppointments] Error:', err);
         responseEl.innerHTML = `<div class="assistant-reply error">
           Error: ${esc(err.message)}
         </div>`;
@@ -826,12 +831,16 @@
             body: { message: lastTranscript }
           });
 
+          if (!result.success) {
+            throw new Error(result.debug || result.error || 'Unknown error');
+          }
+
           const response = result.result.assistant_response;
           responseEl.innerHTML = `<div class="assistant-reply">${esc(response)}</div>`;
           responseEl.style.display = 'block';
           playAudio(response);
         } catch (err) {
-          console.error('[Conversation] Error:', err);
+          console.error('[processTranscript] Error:', err);
           responseEl.innerHTML = `<div class="assistant-reply error">
             Error: ${esc(err.message)}
           </div>`;
