@@ -305,16 +305,16 @@ class OdontogramContainer {
     CONDITION_LIST.forEach(condition => {
       const btn = document.createElement('button');
       btn.className = 'odonto-condition-btn';
-      btn.textContent = condition.label;
+      btn.innerHTML = `<span style="font-size: 0.9rem; margin-right: 0.3rem;">${condition.icon}</span>${condition.label}`;
       btn.title = condition.label;
       btn.style.cssText = `
         padding: 0.6rem 0.5rem;
         background: white;
         border: 1.5px solid #e5e7eb;
-        border-left: 3px solid ${condition.color};
+        border-left: 4px solid ${condition.color};
         border-radius: 6px;
         cursor: pointer;
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -322,15 +322,23 @@ class OdontogramContainer {
         color: #1e293b;
         font-weight: 600;
         text-transform: capitalize;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.2rem;
       `;
       btn.onmouseover = () => {
-        btn.style.borderColor = '#0891b2';
+        btn.style.borderRightColor = '#0891b2';
+        btn.style.borderTopColor = '#0891b2';
+        btn.style.borderBottomColor = '#0891b2';
         btn.style.backgroundColor = '#f0f9ff';
         btn.style.boxShadow = '0 4px 12px rgba(8, 145, 178, 0.15)';
         btn.style.transform = 'translateY(-2px)';
       };
       btn.onmouseout = () => {
-        btn.style.borderColor = '#e5e7eb';
+        btn.style.borderRightColor = '#e5e7eb';
+        btn.style.borderTopColor = '#e5e7eb';
+        btn.style.borderBottomColor = '#e5e7eb';
         btn.style.backgroundColor = 'white';
         btn.style.boxShadow = 'none';
         btn.style.transform = 'translateY(0)';

@@ -27,32 +27,41 @@ class OdontogramTooth {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.65rem;
-      background: white;
-      border: 1.5px solid #e5e7eb;
-      border-radius: 10px;
+      gap: 0.8rem;
+      padding: 1rem 0.85rem;
+      background: linear-gradient(180deg, #ffffff 0%, #f5f9fb 100%);
+      border: 1px solid rgba(8, 145, 178, 0.15);
+      border-radius: 16px;
       cursor: ${this.isEditable ? 'pointer' : 'default'};
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       position: relative;
       min-width: 0;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      box-shadow:
+        0 0 0 1px rgba(8, 145, 178, 0.08),
+        0 4px 12px rgba(8, 145, 178, 0.1),
+        0 20px 40px rgba(8, 145, 178, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
     `;
 
     // Hover effects
     if(this.isEditable) {
       container.style.cursor = 'pointer';
       container.onmouseenter = () => {
-        container.style.borderColor = '#0891b2';
-        container.style.boxShadow = '0 8px 20px rgba(8, 145, 178, 0.2)';
-        container.style.transform = 'translateY(-3px)';
-        container.style.background = '#f8fbfc';
+        container.style.borderColor = 'rgba(8, 145, 178, 0.4)';
+        container.style.boxShadow = '0 0 0 1px rgba(8, 145, 178, 0.2), 0 8px 20px rgba(8, 145, 178, 0.25), 0 20px 50px rgba(8, 145, 178, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.95)';
+        container.style.transform = 'translateY(-6px) scale(1.03)';
+        container.style.background = 'linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%)';
+        svgContainer.style.transform = 'scale(1.1)';
+        number.style.transform = 'scale(1.1)';
       };
       container.onmouseleave = () => {
-        container.style.borderColor = this.isSelected ? '#0891b2' : '#e5e7eb';
-        container.style.boxShadow = this.isSelected ? '0 6px 16px rgba(8, 145, 178, 0.15)' : '0 1px 3px rgba(0, 0, 0, 0.08)';
-        container.style.transform = 'translateY(0)';
-        container.style.background = this.isSelected ? '#f0f9ff' : 'white';
+        container.style.borderColor = this.isSelected ? 'rgba(8, 145, 178, 0.3)' : 'rgba(8, 145, 178, 0.15)';
+        container.style.boxShadow = this.isSelected ? '0 0 0 1px rgba(8, 145, 178, 0.15), 0 6px 16px rgba(8, 145, 178, 0.18), 0 20px 40px rgba(8, 145, 178, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)' : '0 0 0 1px rgba(8, 145, 178, 0.08), 0 4px 12px rgba(8, 145, 178, 0.1), 0 20px 40px rgba(8, 145, 178, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9)';
+        container.style.transform = 'translateY(0) scale(1)';
+        container.style.background = this.isSelected ? 'linear-gradient(180deg, #f0f9ff 0%, #e8f5f9 100%)' : 'linear-gradient(180deg, #ffffff 0%, #f5f9fb 100%)';
+        svgContainer.style.transform = 'scale(1)';
+        number.style.transform = 'scale(1)';
       };
 
       // Main click handler
@@ -64,36 +73,46 @@ class OdontogramTooth {
     }
 
     if(this.isSelected) {
-      container.style.borderColor = '#0891b2';
-      container.style.background = '#f0f9ff';
-      container.style.boxShadow = '0 6px 16px rgba(8, 145, 178, 0.15)';
+      container.style.borderColor = 'rgba(8, 145, 178, 0.3)';
+      container.style.background = 'linear-gradient(180deg, #f0f9ff 0%, #e8f5f9 100%)';
+      container.style.boxShadow = '0 0 0 1px rgba(8, 145, 178, 0.15), 0 6px 16px rgba(8, 145, 178, 0.18), 0 20px 40px rgba(8, 145, 178, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)';
     }
 
-    // Tooth SVG
+    // Tooth SVG with background
     const svgContainer = document.createElement('div');
     svgContainer.style.cssText = `
       width: 100%;
       height: auto;
-      aspect-ratio: 0.9;
+      aspect-ratio: 0.85;
       display: flex;
       align-items: center;
       justify-content: center;
-      max-width: 90px;
+      max-width: 110px;
+      background: radial-gradient(circle at 30% 30%, rgba(8, 145, 178, 0.06), transparent);
+      border-radius: 12px;
+      padding: 0.5rem;
+      transition: all 0.3s ease;
     `;
 
     const svg = createToothSVG(this.tooth.type, this.condition, this.isSelected, this.isEditable);
     svgContainer.appendChild(svg);
     container.appendChild(svgContainer);
 
-    // Tooth number
+    // Tooth number badge
     const number = document.createElement('div');
     number.className = 'tooth-number';
     number.textContent = this.tooth.name;
     number.style.cssText = `
-      font-weight: 700;
-      font-size: 0.85rem;
-      color: #0f172a;
+      font-weight: 900;
+      font-size: 1rem;
+      color: white;
       white-space: nowrap;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      padding: 0.4rem 0.7rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+      transition: all 0.3s ease;
     `;
     container.appendChild(number);
 
