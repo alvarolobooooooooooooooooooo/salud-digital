@@ -766,7 +766,7 @@ nav.old-nav {
   }
   .layout-main {
     margin: 0;
-    padding: 0;
+    padding: 0 1.5rem;
     padding-top: 75px;
     width: 100%;
     max-width: 100%;

@@ -253,7 +253,7 @@ button:hover { background: #1d4ed8; }
 }
 
 @media (max-width: 768px) {
-  main { max-width: 100%; margin: 1rem auto; padding: 0 0.75rem; }
+  main { max-width: 100%; margin: 1rem auto; padding: 1rem 2rem; }
 
   /* Form sections padding on mobile */
   .form-section {
@@ -322,7 +322,7 @@ button:hover { background: #1d4ed8; }
 }
 
 @media (max-width: 480px) {
-  main { padding: 0 0.5rem; }
+  main { padding: 0 1.5rem; }
   nav { padding: 0.4rem 0.75rem; }
   .brand { font-size: 0.85rem; }
 
