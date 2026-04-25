@@ -724,10 +724,11 @@
             body: { message: '¿Qué citas tengo hoy?' }
           });
         } catch (err) {
-          console.warn('[askTodayAppointments] OpenAI failed, using echo fallback:', err);
+          console.error('[askTodayAppointments] OpenAI error:', err.message);
+          const errorMsg = `[OpenAI Error: ${err.message}]`;
           result = await api(`/api/conversation/test/echo`, {
             method: 'POST',
-            body: { message: '¿Qué citas tengo hoy?' }
+            body: { message: errorMsg }
           });
         }
 
@@ -850,10 +851,11 @@
               body: { message: lastTranscript }
             });
           } catch (err) {
-            console.warn('[processTranscript] OpenAI failed, using echo fallback:', err);
+            console.error('[processTranscript] OpenAI error:', err.message);
+            const errorMsg = `[OpenAI Error: ${err.message}]`;
             result = await api(`/api/conversation/test/echo`, {
               method: 'POST',
-              body: { message: lastTranscript }
+              body: { message: errorMsg }
             });
           }
 
