@@ -721,14 +721,20 @@
           body: { message: '¿Qué citas tengo hoy?' }
         });
 
-        if (!result.success) {
-          throw new Error(result.debug || result.error || 'Unknown error');
+        console.log('[askTodayAppointments] Response:', result);
+
+        if (result.error) {
+          throw new Error(result.debug || result.error);
         }
 
-        const response = result.result.assistant_response;
-        responseEl.innerHTML = `<div class="assistant-reply">${esc(response)}</div>`;
-        responseEl.style.display = 'block';
-        playAudio(response);
+        if (result.result?.assistant_response) {
+          const response = result.result.assistant_response;
+          responseEl.innerHTML = `<div class="assistant-reply">${esc(response)}</div>`;
+          responseEl.style.display = 'block';
+          playAudio(response);
+        } else {
+          throw new Error('No response from assistant');
+        }
       } catch (err) {
         console.error('[askTodayAppointments] Error:', err);
         responseEl.innerHTML = `<div class="assistant-reply error">
@@ -831,14 +837,20 @@
             body: { message: lastTranscript }
           });
 
-          if (!result.success) {
-            throw new Error(result.debug || result.error || 'Unknown error');
+          console.log('[processTranscript] Response:', result);
+
+          if (result.error) {
+            throw new Error(result.debug || result.error);
           }
 
-          const response = result.result.assistant_response;
-          responseEl.innerHTML = `<div class="assistant-reply">${esc(response)}</div>`;
-          responseEl.style.display = 'block';
-          playAudio(response);
+          if (result.result?.assistant_response) {
+            const response = result.result.assistant_response;
+            responseEl.innerHTML = `<div class="assistant-reply">${esc(response)}</div>`;
+            responseEl.style.display = 'block';
+            playAudio(response);
+          } else {
+            throw new Error('No response from assistant');
+          }
         } catch (err) {
           console.error('[processTranscript] Error:', err);
           responseEl.innerHTML = `<div class="assistant-reply error">
