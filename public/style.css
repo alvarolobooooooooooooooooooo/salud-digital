@@ -262,10 +262,10 @@ button:hover { background: #1d4ed8; }
     margin-right: 0.75rem !important;
     background: white !important;
     border-radius: 8px !important;
-    margin-bottom: 1rem !important;
+    margin-bottom: 2.5rem !important;
   }
   h2 { font-size: 1.1rem; margin-bottom: 1rem; }
-  section { padding: 1rem; margin-bottom: 1rem; }
+  section { padding: 1rem; margin-bottom: 2.5rem; }
   nav { padding: 0.5rem 1rem; }
   .brand { font-size: 0.95rem; }
 
