@@ -5,6 +5,11 @@ const ConversationService = require('../lib/conversation/service');
 
 const conversationService = new ConversationService();
 
+// Health check (no auth)
+router.get('/health', (req, res) => {
+  res.json({ success: true, message: 'Conversation API is alive' });
+});
+
 // POST /api/conversation/session
 // Create a new conversation session
 router.post('/session', authenticate, async (req, res) => {
