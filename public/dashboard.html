@@ -805,7 +805,10 @@
             hasFinal = true;
           }
         }
-        document.getElementById('listeningText').textContent = `"${transcript}"`;
+        const listeningEl = document.getElementById('listeningText');
+        if (listeningEl) {
+          listeningEl.textContent = `"${transcript}"`;
+        }
 
         // Guardar transcript - en Render isFinal podría no funcionar, así que guardamos siempre
         if (transcript.trim()) {
@@ -899,8 +902,10 @@
       recognition.onerror = (event) => {
         console.error('Error en reconocimiento de voz:', event.error);
         const statusEl = document.getElementById('listeningStatus');
-        statusEl.textContent = `Error: ${event.error}`;
-        statusEl.style.display = 'block';
+        if (statusEl) {
+          statusEl.textContent = `Error: ${event.error}`;
+          statusEl.style.display = 'block';
+        }
       };
     } else {
       // Si el navegador no soporta, desactivar el botón
