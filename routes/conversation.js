@@ -14,6 +14,7 @@ router.get('/health', (req, res) => {
 // Create a new conversation session
 router.post('/session', authenticate, async (req, res) => {
   try {
+    console.log('[conversation] Creating session for user:', req.user?.id);
     const userRole = req.user.role || 'doctor';
     const session = await conversationService.createSession(
       req.user.id,
@@ -21,12 +22,13 @@ router.post('/session', authenticate, async (req, res) => {
       userRole
     );
 
+    console.log('[conversation] Session created:', session.session_id);
     res.json({
       success: true,
       session
     });
   } catch (err) {
-    console.error('[conversation] Error creating session:', err);
+    console.error('[conversation] Error creating session:', err.message, err.stack);
     res.status(500).json({
       success: false,
       error: 'Error creating conversation session',
