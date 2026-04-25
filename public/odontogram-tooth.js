@@ -55,7 +55,7 @@ class OdontogramTooth {
       // Main click handler
       container.onclick = (e) => {
         if(this.handlers && typeof this.handlers.onSelect === 'function') {
-          this.handlers.onSelect(this.fdi);
+          this.handlers.onSelect(this.fdi, e);
         }
       };
     }
@@ -118,7 +118,7 @@ class OdontogramTooth {
     if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
       buccalEl.onclick = (e) => {
         e.stopPropagation();
-        this.handlers.onSurfaceSelect(this.fdi, SURFACES.BUCCAL);
+        this.handlers.onSurfaceSelect(this.fdi, SURFACES.BUCCAL, e);
       };
     }
     surfacesDiv.appendChild(buccalEl);

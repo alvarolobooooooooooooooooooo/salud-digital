@@ -83,8 +83,8 @@ class OdontogramArch {
       const self = this;
       const tooth = new OdontogramTooth(toothData.fdi, toothState, {
         isEditable: this.isEditable,
-        onSelect: this.handlers.onToothSelect ? (fdi) => self.handlers.onToothSelect(fdi) : undefined,
-        onSurfaceSelect: this.handlers.onSurfaceSelect ? (fdi, surface) => self.handlers.onSurfaceSelect(fdi, surface) : undefined
+        onSelect: this.handlers.onToothSelect ? (fdi, e) => self.handlers.onToothSelect(fdi, e) : undefined,
+        onSurfaceSelect: this.handlers.onSurfaceSelect ? (fdi, surface, e) => self.handlers.onSurfaceSelect(fdi, surface, e) : undefined
       });
 
       const toothEl = tooth.render();

@@ -10,6 +10,10 @@ class OdontogramContainer {
     this.selectedSurface = null;
     this.components = {};
     this.firstRender = true;
+
+    // Build floating popup for conditions
+    this._popup = this._buildPopup();
+
     this.render();
   }
 
@@ -54,43 +58,23 @@ class OdontogramContainer {
     ];
 
     this.components.arches = {};
-    this.components.toolbars = {};
 
     quadrants.forEach(quadrant => {
       const self = this;
 
-      // Create toolbar before each quadrant (if editable)
-      if(!this.readOnly) {
-        const toolbar = new OdontogramToolbar({
-          onConditionSelect: function(condition, fdi, surface) {
-            self.applyCondition(condition, fdi, surface);
-          },
-          onReset: function() {
-            self.resetAll();
-          },
-          onClearSelection: function() {
-            self.clearToothSelection();
-          }
-        });
-        this.components.toolbars[quadrant] = toolbar;
-        archesContainer.appendChild(toolbar.render());
-      }
-
       const arch = new OdontogramArch(quadrant, this.getQuadrantState(quadrant), {
         isEditable: !this.readOnly,
-        onToothSelect: function(fdi) {
-          self.selectTooth(fdi);
+        onToothSelect: function(fdi, e) {
+          self.selectTooth(fdi, e);
         },
-        onSurfaceSelect: function(fdi, surface) {
-          self.selectSurface(fdi, surface);
+        onSurfaceSelect: function(fdi, surface, e) {
+          self.selectSurface(fdi, surface, e);
         }
       });
 
       this.components.arches[quadrant] = arch;
       archesContainer.appendChild(arch.render());
     });
-
-    container.appendChild(archesContainer);
 
     container.appendChild(archesContainer);
 
@@ -113,7 +97,7 @@ class OdontogramContainer {
     return quadrantState;
   }
 
-  selectTooth(fdi) {
+  selectTooth(fdi, e) {
     // Desselect previous
     if(this.selectedTooth && this.selectedTooth !== fdi) {
       this.state[this.selectedTooth].isSelected = false;
@@ -124,23 +108,23 @@ class OdontogramContainer {
     this.selectedSurface = null;
     this.state[fdi].isSelected = true;
 
-    if(this.components.toolbar) {
-      this.components.toolbar.setSelectedTooth(fdi);
-    }
-
     this.updateTeethVisuals();
+
+    if(e) {
+      this._showPopup(fdi, null, e);
+    }
   }
 
-  selectSurface(fdi, surface) {
+  selectSurface(fdi, surface, e) {
     this.selectedTooth = fdi;
     this.selectedSurface = surface;
     this.state[fdi].isSelected = true;
 
-    if(this.components.toolbar) {
-      this.components.toolbar.setSelectedSurface(fdi, surface);
-    }
-
     this.updateTeethVisuals();
+
+    if(e) {
+      this._showPopup(fdi, surface, e);
+    }
   }
 
   applyCondition(condition, fdi, surface) {
@@ -209,6 +193,141 @@ class OdontogramContainer {
       this.selectedSurface = null;
       this.updateTeethVisuals();
     }
+  }
+
+  _buildPopup() {
+    const popup = document.createElement('div');
+    popup.id = 'odonto-popup';
+    popup.style.cssText = `
+      position: fixed;
+      z-index: 1000;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      padding: 1rem;
+      min-width: 260px;
+      display: none;
+    `;
+
+    // Header with tooth info
+    const header = document.createElement('div');
+    header.id = 'odonto-popup-header';
+    header.style.cssText = `
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: #1e3a5f;
+      font-size: 0.9rem;
+    `;
+    popup.appendChild(header);
+
+    // Condition buttons grid
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.style.cssText = `
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    `;
+
+    CONDITION_LIST.forEach(condition => {
+      const btn = document.createElement('button');
+      btn.className = 'odonto-condition-btn';
+      btn.textContent = condition.label;
+      btn.title = condition.label;
+      btn.style.cssText = `
+        padding: 0.5rem;
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.7rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: all 0.2s;
+        color: ${condition.color};
+        font-weight: 500;
+      `;
+      btn.onmouseover = () => {
+        btn.style.borderColor = '#0891b2';
+        btn.style.backgroundColor = '#f0f9ff';
+      };
+      btn.onmouseout = () => {
+        btn.style.borderColor = '#d1d5db';
+        btn.style.backgroundColor = 'white';
+      };
+
+      const self = this;
+      btn.onclick = () => {
+        self.applyCondition(condition.id, self.selectedTooth, self.selectedSurface);
+        popup.style.display = 'none';
+      };
+
+      buttonsContainer.appendChild(btn);
+    });
+
+    popup.appendChild(buttonsContainer);
+
+    // Clear selection button
+    const clearBtn = document.createElement('button');
+    clearBtn.textContent = 'Limpiar Selección';
+    clearBtn.style.cssText = `
+      width: 100%;
+      padding: 0.5rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+    `;
+    clearBtn.onmouseover = () => clearBtn.style.backgroundColor = '#dc2626';
+    clearBtn.onmouseout = () => clearBtn.style.backgroundColor = '#ef4444';
+    const self = this;
+    clearBtn.onclick = () => {
+      self.clearToothSelection();
+      popup.style.display = 'none';
+    };
+    popup.appendChild(clearBtn);
+
+    // Outside click handler
+    document.addEventListener('click', (e) => {
+      if(popup.style.display === 'block' && !popup.contains(e.target)) {
+        popup.style.display = 'none';
+      }
+    }, true);
+
+    document.body.appendChild(popup);
+    return popup;
+  }
+
+  _showPopup(fdi, surface, e) {
+    if(!this._popup) return;
+
+    const tooth = getToothByFDI(fdi);
+    let header = tooth.name;
+    if(surface) {
+      header += ` - ${surface.charAt(0).toUpperCase() + surface.slice(1)}`;
+    }
+    document.getElementById('odonto-popup-header').textContent = header;
+
+    const rect = e.target.getBoundingClientRect();
+    let top = rect.bottom + 8;
+    let left = rect.left;
+
+    if(top + 320 > window.innerHeight) {
+      top = rect.top - 320 - 8;
+    }
+    if(left + 260 > window.innerWidth) {
+      left = window.innerWidth - 260 - 16;
+    }
+    left = Math.max(16, left);
+
+    this._popup.style.top = top + 'px';
+    this._popup.style.left = left + 'px';
+    this._popup.style.display = 'block';
   }
 
   updateTeethVisuals() {
