@@ -428,19 +428,23 @@
     // Sesión de conversación NLU
     let conversationSessionId = null;
 
-    // Inicializar sesión de conversación
-    async function initConversationSession() {
+    // Crear sesión bajo demanda (cuando se necesite)
+    async function ensureConversationSession() {
+      if (conversationSessionId) return true;
+
       try {
         const res = await api('/api/conversation/session', { method: 'POST' });
+        if (!res.session?.session_id) {
+          throw new Error('No session ID returned');
+        }
         conversationSessionId = res.session.session_id;
-        console.log('[Conversation] Session initialized:', conversationSessionId);
+        console.log('[Conversation] Session created:', conversationSessionId);
+        return true;
       } catch (err) {
-        console.error('[Conversation] Failed to init session:', err);
+        console.error('[Conversation] Failed to create session:', err);
+        return false;
       }
     }
-
-    // Iniciar sesión cuando carga el dashboard
-    initConversationSession();
 
     const today = new Date();
     let apptDatesSet = new Set();
@@ -686,13 +690,21 @@
       const btn = document.getElementById('btnAskToday');
       const responseEl = document.getElementById('assistantResponse');
 
-      if (!conversationSessionId) {
-        responseEl.innerHTML = `<div class="assistant-reply error">Sesión no inicializada</div>`;
+      btn.disabled = true;
+      btn.innerHTML = Icons.render('calendar', 16) + ' Iniciando...';
+
+      // Asegurar que hay sesión activa
+      const hasSession = await ensureConversationSession();
+      if (!hasSession) {
+        responseEl.innerHTML = `<div class="assistant-reply error">
+          No se pudo iniciar la sesión. Intenta recargando la página.
+        </div>`;
         responseEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = Icons.render('calendar', 16) + ' ¿Qué citas tengo hoy?';
         return;
       }
 
-      btn.disabled = true;
       btn.innerHTML = Icons.render('calendar', 16) + ' Consultando...';
 
       if ('speechSynthesis' in window) {
@@ -706,7 +718,7 @@
       try {
         const result = await api(`/api/conversation/${conversationSessionId}/message`, {
           method: 'POST',
-          body: JSON.stringify({ message: '¿Qué citas tengo hoy?' })
+          body: { message: '¿Qué citas tengo hoy?' }
         });
 
         const response = result.result.assistant_response;
@@ -795,19 +807,23 @@
 
         if (!lastTranscript.trim()) return;
 
-        if (!conversationSessionId) {
-          responseEl.innerHTML = `<div class="assistant-reply error">Sesión no inicializada</div>`;
+        responseEl.innerHTML = `<div class="assistant-reply">Procesando...</div>`;
+        responseEl.style.display = 'block';
+
+        // Asegurar que hay sesión activa
+        const hasSession = await ensureConversationSession();
+        if (!hasSession) {
+          responseEl.innerHTML = `<div class="assistant-reply error">
+            No se pudo iniciar la sesión. Intenta recargando la página.
+          </div>`;
           responseEl.style.display = 'block';
           return;
         }
 
         try {
-          responseEl.innerHTML = `<div class="assistant-reply">Procesando...</div>`;
-          responseEl.style.display = 'block';
-
           const result = await api(`/api/conversation/${conversationSessionId}/message`, {
             method: 'POST',
-            body: JSON.stringify({ message: lastTranscript })
+            body: { message: lastTranscript }
           });
 
           const response = result.result.assistant_response;
