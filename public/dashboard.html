@@ -770,17 +770,134 @@
           );
         }
 
-        // Sin match
-        showAssistantResponse(`<div class="assistant-reply">
-          No entendí el comando. Prueba:<br>
-          <span style="color:#0891b2">• "¿Qué citas tengo hoy?"</span><br>
-          <span style="color:#0891b2">• "Última cita de Juan"</span><br>
-          <span style="color:#0891b2">• "Disponibilidad el lunes"</span><br>
-          <span style="color:#0891b2">• "Agenda cita con Juan el 25 a las 10"</span>
-        </div>`, null);
+        // Sin match en regex → fallback a OpenAI para entender lenguaje natural
+        await processWithIntentLayer(text);
 
       } catch (err) {
         showAssistantResponse(`<div class="assistant-reply error">Error: ${esc(err.message)}</div>`, null);
+      }
+    }
+
+    // ── Fallback: capa de intención con OpenAI ──
+    function resolveDateToken(token) {
+      if (!token) return null;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(token)) return token;
+      const t = String(token).toLowerCase();
+      if (t === 'today' || t === 'hoy') return toYMD(new Date());
+      if (t === 'tomorrow' || t === 'mañana' || t === 'manana') {
+        const d = new Date(); d.setDate(d.getDate()+1); return toYMD(d);
+      }
+      const dayIdx = DAY_NAMES.findIndex(n => n === t);
+      if (dayIdx >= 0) return toYMD(nextWeekday(dayIdx % 7, new Date()));
+      return null;
+    }
+
+    async function processWithIntentLayer(originalText) {
+      const responseEl = document.getElementById('assistantResponse');
+      try {
+        const result = await api('/api/assistant/parse-intent', {
+          method: 'POST',
+          body: { text: originalText }
+        });
+
+        if (!result || !result.success) {
+          return showAssistantResponse(
+            `<div class="assistant-reply error">No pude procesar tu solicitud.</div>`, null
+          );
+        }
+
+        const { intent, params = {}, missing_fields = [], assistant_reply, requires_confirmation } = result;
+
+        // GREETING / HELP / UNKNOWN → solo responder texto
+        if (intent === 'GREETING' || intent === 'HELP' || intent === 'UNKNOWN') {
+          const reply = assistant_reply || 'Puedo ayudarte con citas, pacientes y disponibilidad.';
+          return showAssistantResponse(`<div class="assistant-reply">${esc(reply)}</div>`, reply);
+        }
+
+        // MISSING_INFO → pedir solo lo que falta o abrir formulario para crear cita
+        if (intent === 'MISSING_INFO') {
+          const reply = assistant_reply || `Faltan datos: ${missing_fields.join(', ')}.`;
+          return showAssistantResponse(`<div class="assistant-reply">${esc(reply)}</div>`, reply);
+        }
+
+        // GET_TODAY_APPOINTMENTS / GET_NEXT_APPOINTMENT
+        if (intent === 'GET_TODAY_APPOINTMENTS' || intent === 'GET_NEXT_APPOINTMENT') {
+          const data = await api('/api/assistant/today-appointments');
+          let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
+          if (data.appointments?.length > 0) {
+            html += `<ul class="assistant-list">`;
+            data.appointments.forEach(a => {
+              html += `<li><span>${esc(a.time)} — ${esc(a.patient_name)}</span><span class="assistant-status">${esc(a.status)}</span></li>`;
+            });
+            html += `</ul>`;
+          }
+          return showAssistantResponse(html, data.spoken_response);
+        }
+
+        // GET_APPOINTMENTS_BY_DATE / CHECK_AVAILABILITY
+        if (intent === 'GET_APPOINTMENTS_BY_DATE' || intent === 'CHECK_AVAILABILITY') {
+          const dateStr = resolveDateToken(params.date) || extractDate(originalText);
+          if (!dateStr) {
+            return showAssistantResponse(
+              `<div class="assistant-reply error">¿Para qué fecha?</div>`, null
+            );
+          }
+          const data = await api(`/api/assistant/availability?date=${dateStr}`);
+          let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
+          if (data.available_slots?.length > 0) {
+            html += `<div style="margin-top:.5rem;font-size:.8rem;color:#475569;line-height:1.8">${data.available_slots.join(' · ')}</div>`;
+          }
+          return showAssistantResponse(html, data.spoken_response);
+        }
+
+        // SEARCH_PATIENT / GET_PATIENT_SUMMARY / GET_PATIENT_CONDITIONS / GET_PATIENT_ALLERGIES
+        if (intent === 'SEARCH_PATIENT' || intent.startsWith('GET_PATIENT_')) {
+          const name = params.patient_name || extractPatientName(originalText);
+          if (!name) {
+            return showAssistantResponse(
+              `<div class="assistant-reply error">¿De qué paciente?</div>`, null
+            );
+          }
+          const data = await api(`/api/assistant/last-appointment?patient_name=${encodeURIComponent(name)}`);
+          let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
+          if (data.found && data.appointment) {
+            html += `<div style="margin-top:.5rem;padding:.6rem;background:#f0f9ff;border-radius:8px;font-size:.8rem">
+              <strong>Paciente:</strong> ${esc(data.patient_name)}<br>
+              <strong>Fecha:</strong> ${esc(data.appointment.date)}<br>
+              <strong>Hora:</strong> ${esc(data.appointment.time)}<br>
+              <strong>Estado:</strong> ${esc(data.appointment.status)}
+            </div>`;
+          }
+          return showAssistantResponse(html, data.spoken_response);
+        }
+
+        // CREATE_APPOINTMENT → siempre requiere confirmación → mostrar formulario
+        if (intent === 'CREATE_APPOINTMENT') {
+          const name = params.patient_name || extractPatientName(originalText);
+          const date = resolveDateToken(params.date) || extractDate(originalText);
+          const time = params.time || extractTime(originalText);
+          const intro = assistant_reply
+            ? `<div class="assistant-reply" style="padding-bottom:.5rem">${esc(assistant_reply)}</div>`
+            : '';
+          responseEl.innerHTML = intro;
+          showScheduleForm(name, date, time);
+          if (intro && assistant_reply) playAudio(assistant_reply);
+          return;
+        }
+
+        // RESCHEDULE_APPOINTMENT / CANCEL_APPOINTMENT → aún no implementadas en REST directo
+        if (intent === 'RESCHEDULE_APPOINTMENT' || intent === 'CANCEL_APPOINTMENT') {
+          const reply = assistant_reply || 'Para reprogramar o cancelar, abre la cita en el calendario.';
+          return showAssistantResponse(`<div class="assistant-reply">${esc(reply)}</div>`, reply);
+        }
+
+        // Fallback final
+        const fallback = assistant_reply || 'No entendí el comando.';
+        showAssistantResponse(`<div class="assistant-reply">${esc(fallback)}</div>`, fallback);
+      } catch (err) {
+        showAssistantResponse(
+          `<div class="assistant-reply error">Error: ${esc(err.message)}</div>`, null
+        );
       }
     }
 
