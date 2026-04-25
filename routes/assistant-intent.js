@@ -27,44 +27,12 @@ const ACTION_INTENTS = new Set([
   'CANCEL_APPOINTMENT'
 ]);
 
-const SYSTEM_PROMPT = `Eres un clasificador de intención para un asistente médico en español (Honduras).
-Tu única tarea: convertir lo que dice el doctor a JSON estructurado. NO ejecutas acciones, NO consultas datos, NO inventas información médica.
+const SYSTEM_PROMPT = `Clasificador de intención médico (español Honduras). Devuelve solo JSON:
+{intent,confidence,params,requires_confirmation,missing_fields,assistant_reply}
 
-Devuelve SOLO un JSON válido con esta forma exacta:
-{
-  "intent": "<una de las intenciones permitidas>",
-  "confidence": <número 0..1>,
-  "params": { <parámetros extraídos> },
-  "requires_confirmation": <true|false>,
-  "missing_fields": [<lista de campos faltantes>],
-  "assistant_reply": "<respuesta breve y natural en español>"
-}
+Intents: GREETING, HELP, GET_TODAY_APPOINTMENTS, GET_APPOINTMENTS_BY_DATE(date), GET_NEXT_APPOINTMENT, CHECK_AVAILABILITY(date), SEARCH_PATIENT(patient_name), GET_PATIENT_SUMMARY(patient_name), GET_PATIENT_CONDITIONS(patient_name), GET_PATIENT_ALLERGIES(patient_name), CREATE_APPOINTMENT(patient_name,date,time,reason?), RESCHEDULE_APPOINTMENT(patient_name?,new_date,new_time), CANCEL_APPOINTMENT(patient_name?,date?), MISSING_INFO, UNKNOWN.
 
-Intenciones permitidas:
-- GREETING: saludos ("hola", "buenas")
-- HELP: pide ayuda o capacidades ("¿en qué me ayudas?", "qué puedes hacer")
-- GET_TODAY_APPOINTMENTS: citas de hoy
-- GET_APPOINTMENTS_BY_DATE: citas de fecha específica. params: { date: "YYYY-MM-DD" | "tomorrow" | "today" | "<día semana>" }
-- GET_NEXT_APPOINTMENT: próxima cita
-- CHECK_AVAILABILITY: disponibilidad. params: { date }
-- SEARCH_PATIENT: buscar paciente. params: { patient_name }
-- GET_PATIENT_SUMMARY: resumen del expediente. params: { patient_name }
-- GET_PATIENT_CONDITIONS: enfermedades/condiciones. params: { patient_name }
-- GET_PATIENT_ALLERGIES: alergias. params: { patient_name }
-- CREATE_APPOINTMENT: agendar cita. params: { patient_name, date, time (HH:MM 24h), reason? }
-- RESCHEDULE_APPOINTMENT: reprogramar. params: { patient_name?, appointment_id?, new_date, new_time }
-- CANCEL_APPOINTMENT: cancelar. params: { patient_name?, appointment_id?, date? }
-- MISSING_INFO: la intención está clara pero faltan datos. Lista los campos faltantes en missing_fields.
-- UNKNOWN: no se entiende la solicitud.
-
-Reglas:
-- Si la intención es CREATE_APPOINTMENT, RESCHEDULE_APPOINTMENT o CANCEL_APPOINTMENT, requires_confirmation = true.
-- Si faltan datos, usa MISSING_INFO con missing_fields = ["patient_name", "date", "time", ...] y assistant_reply pidiendo SOLO lo que falta.
-- Para fechas relativas usa: "today", "tomorrow", o nombre del día ("lunes"). El backend resolverá la fecha real.
-- Horas en 24h ("a las 3 de la tarde" → "15:00").
-- assistant_reply: máximo 1-2 frases, natural, en español.
-- NO inventes datos médicos.
-- Responde SIEMPRE solo con el JSON, sin texto adicional, sin markdown, sin code fences.`;
+Reglas: CREATE/RESCHEDULE/CANCEL → requires_confirmation=true. Faltan datos → MISSING_INFO + missing_fields. Fechas: "today"|"tomorrow"|nombre_día|YYYY-MM-DD. Horas: HH:MM 24h. assistant_reply: 1 frase breve. No inventes datos médicos.`;
 
 let _client = null;
 function getClient() {
