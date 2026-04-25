@@ -149,19 +149,20 @@ function createSurfaceElement(surface, fdi, condition = CONDITIONS.HEALTHY, isEd
   container.className = 'tooth-surface';
 
   const condData = getConditionById(condition);
+  const surfaceLabel = getSurfaceLabel(surface);
 
   container.style.cssText = `
-    width: 1.3rem;
-    height: 1.3rem;
-    border-radius: 3px;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 4px;
     background-color: ${condData.color};
     border: 1px solid #1e293b;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: bold;
-    color: #fff;
+    color: #0f172a;
     transition: all 0.2s;
     cursor: ${isEditable ? 'pointer' : 'default'};
     position: relative;
@@ -170,8 +171,8 @@ function createSurfaceElement(surface, fdi, condition = CONDITIONS.HEALTHY, isEd
   if(isEditable) {
     container.style.cursor = 'pointer';
     container.onmouseenter = () => {
-      container.style.transform = 'scale(1.15)';
-      container.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+      container.style.transform = 'scale(1.1)';
+      container.style.boxShadow = '0 4px 8px rgba(8, 145, 178, 0.3)';
     };
     container.onmouseleave = () => {
       container.style.transform = 'scale(1)';
@@ -179,14 +180,39 @@ function createSurfaceElement(surface, fdi, condition = CONDITIONS.HEALTHY, isEd
     };
   }
 
-  // Add surface label
-  const label = document.createElement('span');
-  label.textContent = condData.icon;
-  label.style.cssText = 'line-height: 1;';
-  container.appendChild(label);
+  // Add condition icon and surface label
+  const labelContainer = document.createElement('div');
+  labelContainer.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.1rem;
+    line-height: 1;
+  `;
 
-  // Add tooltip
-  container.title = `${surface.charAt(0).toUpperCase() + surface.slice(1)}: ${condData.label}`;
+  const iconEl = document.createElement('span');
+  iconEl.textContent = condData.icon;
+  iconEl.style.cssText = 'font-size: 0.8rem;';
+  labelContainer.appendChild(iconEl);
+
+  const labelEl = document.createElement('span');
+  labelEl.textContent = surfaceLabel;
+  labelEl.style.cssText = 'font-size: 0.65rem; font-weight: 700;';
+  labelContainer.appendChild(labelEl);
+
+  container.appendChild(labelContainer);
+
+  // Add tooltip with full surface name
+  const surfaceNames = {
+    mesial: 'Mesial',
+    distal: 'Distal',
+    buccal: 'Vestibular/Bucal',
+    lingual: 'Lingual/Palatino',
+    occlusal: 'Occlusal/Incisal',
+    incisal: 'Occlusal/Incisal'
+  };
+  container.title = `${surfaceNames[surface]}: ${condData.label}`;
 
   return container;
 }

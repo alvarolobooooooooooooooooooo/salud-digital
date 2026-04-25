@@ -94,36 +94,97 @@ class OdontogramTooth {
     `;
     container.appendChild(number);
 
-    // Surfaces grid (always show, but only interactive if editable)
+    // Surfaces in anatomical cross layout: [B] / [M O D] / [L]
     const surfacesDiv = document.createElement('div');
     surfacesDiv.className = 'tooth-surfaces';
     surfacesDiv.style.cssText = `
-      display: grid;
-      grid-template-columns: repeat(3, auto);
-      gap: 0.12rem;
-      margin-top: 0.15rem;
-      width: 100%;
-      justify-content: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.1rem;
+      margin-top: 0.25rem;
     `;
 
-    const surfaces = getSurfacesForToothType(this.tooth.type);
-    surfaces.forEach(surface => {
-      const surfaceEl = createSurfaceElement(
-        surface,
-        this.fdi,
-        this.getSurfaceCondition(surface),
-        this.isEditable
-      );
+    const isAnterior = this.tooth.type === TOOTH_TYPES.INCISOR || this.tooth.type === TOOTH_TYPES.CANINE;
+    const apicalSurface = isAnterior ? SURFACES.INCISAL : SURFACES.OCCLUSAL;
 
-      if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
-        surfaceEl.onclick = (e) => {
-          e.stopPropagation();
-          this.handlers.onSurfaceSelect(this.fdi, surface);
-        };
-      }
+    // Row 1: B alone
+    const buccalEl = createSurfaceElement(
+      SURFACES.BUCCAL,
+      this.fdi,
+      this.getSurfaceCondition(SURFACES.BUCCAL),
+      this.isEditable
+    );
+    if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+      buccalEl.onclick = (e) => {
+        e.stopPropagation();
+        this.handlers.onSurfaceSelect(this.fdi, SURFACES.BUCCAL);
+      };
+    }
+    surfacesDiv.appendChild(buccalEl);
 
-      surfacesDiv.appendChild(surfaceEl);
-    });
+    // Row 2: M O D together
+    const row2 = document.createElement('div');
+    row2.style.cssText = `display: flex; gap: 0.1rem;`;
+
+    const mesialEl = createSurfaceElement(
+      SURFACES.MESIAL,
+      this.fdi,
+      this.getSurfaceCondition(SURFACES.MESIAL),
+      this.isEditable
+    );
+    if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+      mesialEl.onclick = (e) => {
+        e.stopPropagation();
+        this.handlers.onSurfaceSelect(this.fdi, SURFACES.MESIAL);
+      };
+    }
+    row2.appendChild(mesialEl);
+
+    const centralEl = createSurfaceElement(
+      apicalSurface,
+      this.fdi,
+      this.getSurfaceCondition(apicalSurface),
+      this.isEditable
+    );
+    if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+      centralEl.onclick = (e) => {
+        e.stopPropagation();
+        this.handlers.onSurfaceSelect(this.fdi, apicalSurface);
+      };
+    }
+    row2.appendChild(centralEl);
+
+    const distalEl = createSurfaceElement(
+      SURFACES.DISTAL,
+      this.fdi,
+      this.getSurfaceCondition(SURFACES.DISTAL),
+      this.isEditable
+    );
+    if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+      distalEl.onclick = (e) => {
+        e.stopPropagation();
+        this.handlers.onSurfaceSelect(this.fdi, SURFACES.DISTAL);
+      };
+    }
+    row2.appendChild(distalEl);
+
+    surfacesDiv.appendChild(row2);
+
+    // Row 3: L alone
+    const lingualEl = createSurfaceElement(
+      SURFACES.LINGUAL,
+      this.fdi,
+      this.getSurfaceCondition(SURFACES.LINGUAL),
+      this.isEditable
+    );
+    if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+      lingualEl.onclick = (e) => {
+        e.stopPropagation();
+        this.handlers.onSurfaceSelect(this.fdi, SURFACES.LINGUAL);
+      };
+    }
+    surfacesDiv.appendChild(lingualEl);
 
     container.appendChild(surfacesDiv);
 

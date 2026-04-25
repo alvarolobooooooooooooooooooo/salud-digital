@@ -179,6 +179,78 @@ button:hover { background: #1d4ed8; }
 }
 
 /* Mobile Responsive */
+@media (min-width: 768px) and (max-width: 1349px) {
+  /* 4-column layout: increase tooth card size */
+  .tooth-container {
+    min-width: 120px !important;
+    padding: 0.75rem !important;
+  }
+
+  .odonto-tooth {
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .tooth-number {
+    font-size: 1rem !important;
+  }
+
+  .tooth-surface {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    font-size: 0.6rem !important;
+  }
+}
+
+@media (min-width: 700px) and (max-width: 949px) {
+  /* 3-column layout */
+  .tooth-container {
+    min-width: 130px !important;
+    padding: 0.9rem !important;
+  }
+
+  .odonto-tooth {
+    width: 55px !important;
+    height: 55px !important;
+    font-size: 0.85rem !important;
+  }
+
+  .tooth-number {
+    font-size: 1.05rem !important;
+  }
+
+  .tooth-surface {
+    width: 1.7rem !important;
+    height: 1.7rem !important;
+    font-size: 0.63rem !important;
+  }
+}
+
+@media (max-width: 699px) {
+  /* 2-column layout: larger tooth cards */
+  .tooth-container {
+    min-width: 140px !important;
+    padding: 1rem !important;
+  }
+
+  .odonto-tooth {
+    width: 60px !important;
+    height: 60px !important;
+    font-size: 0.9rem !important;
+  }
+
+  .tooth-number {
+    font-size: 1.1rem !important;
+  }
+
+  .tooth-surface {
+    width: 1.8rem !important;
+    height: 1.8rem !important;
+    font-size: 0.65rem !important;
+  }
+}
+
 @media (max-width: 768px) {
   main { max-width: 100%; margin: 1rem auto; padding: 0 0.75rem; }
   h2 { font-size: 1.1rem; margin-bottom: 1rem; }
@@ -274,14 +346,43 @@ button:hover { background: #1d4ed8; }
   }
 
   .tooth-surfaces {
-    display: grid !important;
-    grid-template-columns: auto auto auto !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
     gap: 0.1rem !important;
     margin-top: 0.25rem !important;
+    justify-content: center !important;
+  }
+
+  /* Hide empty spacers */
+  .tooth-surfaces > div:nth-child(1),
+  .tooth-surfaces > div:nth-child(3),
+  .tooth-surfaces > div:nth-child(7),
+  .tooth-surfaces > div:nth-child(9) {
+    display: none !important;
+  }
+
+  /* B full width */
+  .tooth-surfaces > div:nth-child(2) {
+    flex: 1 100% !important;
+    text-align: center !important;
+  }
+
+  /* M O D lado a lado */
+  .tooth-surfaces > div:nth-child(4),
+  .tooth-surfaces > div:nth-child(5),
+  .tooth-surfaces > div:nth-child(6) {
+    flex: 0 1 auto !important;
+  }
+
+  /* L full width */
+  .tooth-surfaces > div:nth-child(8) {
+    flex: 1 100% !important;
+    text-align: center !important;
   }
 
   .tooth-container {
-    min-width: 7rem !important;
+    min-width: auto !important;
+    align-items: center !important;
   }
 
   .consult-item { padding: 0.5rem 0; }

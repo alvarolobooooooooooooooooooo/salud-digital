@@ -296,7 +296,7 @@ class OdontogramContainer {
           .arch-grid {
             padding: 0.75rem !important;
             gap: 0.4rem !important;
-            grid-template-columns: repeat(4, 1fr) !important;
+            grid-template-columns: repeat(2, 1fr) !important;
           }
 
           .tooth-container {
@@ -349,7 +349,7 @@ class OdontogramContainer {
           .arch-grid {
             padding: 0.5rem !important;
             gap: 0.35rem !important;
-            grid-template-columns: repeat(4, 1fr) !important;
+            grid-template-columns: repeat(2, 1fr) !important;
           }
 
           .arch-label {
@@ -384,7 +384,7 @@ class OdontogramContainer {
         }
 
         /* Very small phones (320px) */
-        @media (max-width: 360px) {
+        @media (max-width: 450px) {
           .tooth-container {
             padding: 0.25rem !important;
             gap: 0.15rem !important;
@@ -398,6 +398,7 @@ class OdontogramContainer {
           .arch-grid {
             padding: 0.4rem !important;
             gap: 0.25rem !important;
+            grid-template-columns: repeat(1, 1fr) !important;
           }
 
           .condition-buttons {

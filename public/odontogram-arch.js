@@ -21,8 +21,11 @@ class OdontogramArch {
 
   updateGridColumns(grid) {
     let cols = 4;
-    if (window.innerWidth >= 1200) cols = 8;
-    else if (window.innerWidth < 768) cols = 2;
+    const w = window.innerWidth;
+    if (w >= 1350) cols = 8;
+    else if (w >= 950) cols = 4;
+    else if (w >= 700) cols = 3;
+    else cols = 2;
     grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   }
 
