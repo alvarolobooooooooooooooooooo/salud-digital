@@ -22,8 +22,10 @@ router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async
   const clinic = clinicResult.rows[0];
   if (!clinic) return res.status(400).json({ error: 'Clínica no encontrada' });
 
-  const existingResult = await query('SELECT id FROM users WHERE email = $1', [email]);
-  if (existingResult.rows.length > 0) return res.status(400).json({ error: 'Este email ya tiene una cuenta activa' });
+  const existingResult = await query('SELECT id, clinic_id FROM users WHERE email = $1', [email]);
+  if (existingResult.rows.length > 0 && existingResult.rows[0].clinic_id !== null) {
+    return res.status(400).json({ error: 'Este email ya tiene una cuenta activa' });
+  }
 
   const token = crypto.randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -73,18 +75,26 @@ router.post('/:token/accept', async (req, res) => {
     return res.status(410).json({ error: 'Esta invitación ha expirado' });
   }
 
-  const existingResult = await query('SELECT id FROM users WHERE email = $1', [inv.email]);
-  if (existingResult.rows.length > 0) {
-    await query('DELETE FROM invitations WHERE token = $1', [req.params.token]);
-    return res.status(400).json({ error: 'Este email ya tiene una cuenta. Inicia sesión.' });
-  }
-
+  const existingResult = await query('SELECT id, clinic_id FROM users WHERE email = $1', [inv.email]);
   const hashed = bcrypt.hashSync(password, 10);
+
   try {
-    await query(
-      'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      [inv.email, hashed, 'doctor', inv.name, inv.clinic_id, inv.specialty, inv.phone]
-    );
+    if (existingResult.rows.length > 0) {
+      const existingUser = existingResult.rows[0];
+      if (existingUser.clinic_id !== null) {
+        await query('DELETE FROM invitations WHERE token = $1', [req.params.token]);
+        return res.status(400).json({ error: 'Este email ya tiene una cuenta. Inicia sesión.' });
+      }
+      await query(
+        'UPDATE users SET password = $1, clinic_id = $2, specialty = $3, name = $4, phone = $5 WHERE id = $6',
+        [hashed, inv.clinic_id, inv.specialty, inv.name, inv.phone, existingUser.id]
+      );
+    } else {
+      await query(
+        'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [inv.email, hashed, 'doctor', inv.name, inv.clinic_id, inv.specialty, inv.phone]
+      );
+    }
     await query('DELETE FROM invitations WHERE token = $1', [req.params.token]);
     res.json({ success: true });
   } catch {
