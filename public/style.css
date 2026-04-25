@@ -169,6 +169,15 @@ button:hover { background: #1d4ed8; }
   background: linear-gradient(135deg, transparent 45%, #1e3a5f 45%, #1e3a5f 55%, transparent 55%) !important;
 }
 
+/* Tooth surfaces layout */
+.tooth-surface {
+  transition: all 0.2s;
+}
+
+.tooth-surface:hover {
+  box-shadow: 0 4px 8px rgba(8, 145, 178, 0.3);
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   main { max-width: 100%; margin: 1rem auto; padding: 0 0.75rem; }
@@ -207,7 +216,26 @@ button:hover { background: #1d4ed8; }
   .tooth-container { overflow: visible; }
   .tooth-surfaces { overflow: hidden; }
 
+  .tooth-surface {
+    width: 1.2rem !important;
+    height: 1.2rem !important;
+    font-size: 0.5rem !important;
+  }
+
   textarea { min-height: 60px; }
+}
+
+@media (max-width: 450px) {
+  .tooth-surface {
+    width: 0.8rem !important;
+    height: 0.8rem !important;
+    font-size: 0.3rem !important;
+    border: 0.5px solid #1e293b !important;
+  }
+
+  .tooth-surfaces {
+    gap: 0.05rem !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -237,6 +265,24 @@ button:hover { background: #1d4ed8; }
   .alert-icon { font-size: 1rem; }
 
   .odonto-tooth { width: 20px; height: 20px; font-size: 0.6rem; }
+
+  .tooth-surface {
+    width: 0.75rem !important;
+    height: 0.75rem !important;
+    font-size: 0.28rem !important;
+    border: 0.5px solid #1e293b !important;
+  }
+
+  .tooth-surfaces {
+    display: grid !important;
+    grid-template-columns: auto auto auto !important;
+    gap: 0.1rem !important;
+    margin-top: 0.25rem !important;
+  }
+
+  .tooth-container {
+    min-width: 7rem !important;
+  }
 
   .consult-item { padding: 0.5rem 0; }
   .consult-date { font-size: 0.7rem; }
