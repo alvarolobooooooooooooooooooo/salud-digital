@@ -10,6 +10,24 @@ router.get('/health', (req, res) => {
   res.json({ success: true, message: 'Conversation API is alive' });
 });
 
+// Test endpoint - echo message without AI
+router.post('/test/echo', authenticate, async (req, res) => {
+  try {
+    const { message } = req.body;
+    res.json({
+      success: true,
+      result: {
+        assistant_response: `Echo: ${message}`
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+});
+
 // POST /api/conversation/session
 // Create a new conversation session
 router.post('/session', authenticate, async (req, res) => {

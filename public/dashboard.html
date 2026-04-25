@@ -716,7 +716,8 @@
       }
 
       try {
-        const result = await api(`/api/conversation/${conversationSessionId}/message`, {
+        // Try test endpoint first
+        const result = await api(`/api/conversation/test/echo`, {
           method: 'POST',
           body: { message: '¿Qué citas tengo hoy?' }
         });
