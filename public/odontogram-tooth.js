@@ -136,7 +136,7 @@ class OdontogramTooth {
     if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
       mesialEl.onclick = (e) => {
         e.stopPropagation();
-        this.handlers.onSurfaceSelect(this.fdi, SURFACES.MESIAL);
+        this.handlers.onSurfaceSelect(this.fdi, SURFACES.MESIAL, e);
       };
     }
     row2.appendChild(mesialEl);
@@ -150,7 +150,7 @@ class OdontogramTooth {
     if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
       centralEl.onclick = (e) => {
         e.stopPropagation();
-        this.handlers.onSurfaceSelect(this.fdi, apicalSurface);
+        this.handlers.onSurfaceSelect(this.fdi, apicalSurface, e);
       };
     }
     row2.appendChild(centralEl);
@@ -164,7 +164,7 @@ class OdontogramTooth {
     if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
       distalEl.onclick = (e) => {
         e.stopPropagation();
-        this.handlers.onSurfaceSelect(this.fdi, SURFACES.DISTAL);
+        this.handlers.onSurfaceSelect(this.fdi, SURFACES.DISTAL, e);
       };
     }
     row2.appendChild(distalEl);
@@ -181,7 +181,7 @@ class OdontogramTooth {
     if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
       lingualEl.onclick = (e) => {
         e.stopPropagation();
-        this.handlers.onSurfaceSelect(this.fdi, SURFACES.LINGUAL);
+        this.handlers.onSurfaceSelect(this.fdi, SURFACES.LINGUAL, e);
       };
     }
     surfacesDiv.appendChild(lingualEl);

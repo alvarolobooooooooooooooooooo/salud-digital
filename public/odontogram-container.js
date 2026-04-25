@@ -239,6 +239,7 @@ class OdontogramContainer {
         padding: 0.5rem;
         background: white;
         border: 1px solid #d1d5db;
+        border-left: 3px solid ${condition.color};
         border-radius: 4px;
         cursor: pointer;
         font-size: 0.7rem;
@@ -246,15 +247,19 @@ class OdontogramContainer {
         overflow: hidden;
         text-overflow: ellipsis;
         transition: all 0.2s;
-        color: ${condition.color};
+        color: #1e293b;
         font-weight: 500;
       `;
       btn.onmouseover = () => {
-        btn.style.borderColor = '#0891b2';
+        btn.style.borderRightColor = '#0891b2';
+        btn.style.borderTopColor = '#0891b2';
+        btn.style.borderBottomColor = '#0891b2';
         btn.style.backgroundColor = '#f0f9ff';
       };
       btn.onmouseout = () => {
-        btn.style.borderColor = '#d1d5db';
+        btn.style.borderRightColor = '#d1d5db';
+        btn.style.borderTopColor = '#d1d5db';
+        btn.style.borderBottomColor = '#d1d5db';
         btn.style.backgroundColor = 'white';
       };
 
