@@ -240,6 +240,12 @@
     }
     .assistant-list li:last-child { border-bottom: none; }
     .assistant-status { font-size: 0.7rem; color: #94a3b8; font-weight: 500; }
+    .sf-input {
+      width: 100%; padding: .5rem .75rem; border: 1px solid #e2e8f0;
+      border-radius: 8px; font-size: .875rem; font-family: inherit;
+      box-sizing: border-box; outline: none;
+    }
+    .sf-input:focus { border-color: #0891b2; }
     .btn-mic {
       background: white;
       border: 2px solid #0891b2;
@@ -425,26 +431,6 @@
     document.getElementById('iconCalendar').innerHTML = Icons.render('calendar', 24);
     document.getElementById('iconWallet').innerHTML = Icons.render('wallet', 24);
 
-    // Sesión de conversación NLU
-    let conversationSessionId = null;
-
-    // Crear sesión bajo demanda (cuando se necesite)
-    async function ensureConversationSession() {
-      if (conversationSessionId) return true;
-
-      try {
-        const res = await api('/api/conversation/session', { method: 'POST' });
-        if (!res.session?.session_id) {
-          throw new Error('No session ID returned');
-        }
-        conversationSessionId = res.session.session_id;
-        console.log('[Conversation] Session created:', conversationSessionId);
-        return true;
-      } catch (err) {
-        console.error('[Conversation] Failed to create session:', err);
-        return false;
-      }
-    }
 
     const today = new Date();
     let apptDatesSet = new Set();
@@ -626,132 +612,215 @@
       }
     })();
 
-    // ── Assistant: "¿Qué citas tengo hoy?" ──
-    // Renderizar ícono del botón
+    // ── Asistente de voz sin OpenAI ──
     document.getElementById('askIcon').innerHTML = Icons.render('calendar', 16);
 
-    // Función global para reproducir audio
     function playAudio(text) {
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 1;
-        utterance.pitch = 1;
-        utterance.volume = 1;
+      if (!('speechSynthesis' in window)) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1; utterance.pitch = 1; utterance.volume = 1;
+      const voices = speechSynthesis.getVoices();
+      for (const lang of ['es-HN', 'es-MX', 'es-ES', 'es']) {
+        const voice = voices.find(v => v.lang.startsWith(lang.slice(0, 2)));
+        if (voice) { utterance.voice = voice; utterance.lang = lang; break; }
+      }
+      if (speechSynthesis.speaking) speechSynthesis.cancel();
+      speechSynthesis.speak(utterance);
+    }
 
-        const voices = speechSynthesis.getVoices();
-        const langsTryOrder = ['es-ES', 'es-MX', 'es-AR', 'es'];
-        for (const lang of langsTryOrder) {
-          const voice = voices.find(v => v.lang.includes(lang.substring(0, 2)));
-          if (voice) {
-            utterance.voice = voice;
-            utterance.lang = lang;
-            break;
+    function showAssistantResponse(html, spokenText) {
+      const el = document.getElementById('assistantResponse');
+      el.innerHTML = html;
+      el.style.display = 'block';
+      if (spokenText) playAudio(spokenText);
+    }
+
+    // ── Extracción de entidades (español) ──
+    const MONTH_NAMES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const DAY_NAMES   = ['domingo','lunes','martes','miércoles','miercoles','jueves','viernes','sábado','sabado'];
+
+    function toYMD(d) {
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function nextWeekday(targetDay, from) {
+      const d = new Date(from);
+      const diff = (targetDay - d.getDay() + 7) % 7 || 7;
+      d.setDate(d.getDate() + diff);
+      return d;
+    }
+
+    function extractDate(text) {
+      const t = text.toLowerCase();
+      if (/\bhoy\b/.test(t)) return toYMD(new Date());
+      if (/\bmañana\b/.test(t)) { const d = new Date(); d.setDate(d.getDate()+1); return toYMD(d); }
+      for (let i = 0; i < DAY_NAMES.length; i++) {
+        if (t.includes(DAY_NAMES[i])) return toYMD(nextWeekday(i % 7, new Date()));
+      }
+      const m = t.match(/el\s+(\d{1,2})(?:\s+de\s+(\w+))?/);
+      if (m) {
+        const day = parseInt(m[1]);
+        let month = new Date().getMonth();
+        if (m[2]) { const mi = MONTH_NAMES.findIndex(n => m[2].startsWith(n.slice(0,3))); if (mi >= 0) month = mi; }
+        return `${new Date().getFullYear()}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      }
+      return null;
+    }
+
+    function extractTime(text) {
+      const t = text.toLowerCase();
+      const m = t.match(/a\s+las\s+(\d{1,2})(?::(\d{2}))?\s*(?:de\s+la\s+(\w+))?|(\d{1,2}):(\d{2})\s*(am|pm)?/);
+      if (!m) return null;
+      let hour, mins;
+      if (m[1]) {
+        hour = parseInt(m[1]); mins = m[2] || '00';
+        const period = m[3];
+        if (period === 'tarde' || period === 'noche') { if (hour < 12) hour += 12; }
+        else if (period === 'mañana') { if (hour === 12) hour = 0; }
+      } else {
+        hour = parseInt(m[4]); mins = m[5];
+        if (m[6] === 'pm' && hour < 12) hour += 12;
+        if (m[6] === 'am' && hour === 12) hour = 0;
+      }
+      return `${String(hour).padStart(2,'0')}:${mins}`;
+    }
+
+    function extractPatientName(text) {
+      // "con [Nombre]" before a date keyword or end of string
+      let m = text.match(/\bcon\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*)/i);
+      if (m) return m[1].trim();
+      m = text.match(/\bdel\s+paciente\s+(.+?)(?:\s+el\s+|\s+para\s+|$)/i);
+      if (m) return m[1].trim();
+      m = text.match(/\bde\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*)/i);
+      if (m) return m[1].trim();
+      return null;
+    }
+
+    // ── Clasificador local + despachador ──
+    async function processVoiceCommand(text) {
+      const t = text.toLowerCase().trim();
+      const responseEl = document.getElementById('assistantResponse');
+
+      responseEl.innerHTML = `<div class="assistant-reply">Procesando: "<em>${esc(text)}</em>"…</div>`;
+      responseEl.style.display = 'block';
+
+      try {
+        // INTENTO 1: citas de hoy
+        if (/citas?.*(hoy|de hoy)|hoy.*citas?|qu[eé].*citas?|tengo hoy|agenda.*hoy/.test(t)) {
+          const data = await api('/api/assistant/today-appointments');
+          let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
+          if (data.appointments?.length > 0) {
+            html += `<ul class="assistant-list">`;
+            data.appointments.forEach(a => {
+              html += `<li><span>${esc(a.time)} — ${esc(a.patient_name)}</span><span class="assistant-status">${esc(a.status)}</span></li>`;
+            });
+            html += `</ul>`;
           }
+          return showAssistantResponse(html, data.spoken_response);
         }
 
-        if (speechSynthesis.speaking) {
-          speechSynthesis.cancel();
+        // INTENTO 2: última cita de paciente
+        if (/[uú]ltima?\s+cita|cita\s+de\s+[A-ZÁÉÍÓÚÑ]|cu[aá]ndo.*(cita|vino)/i.test(text)) {
+          const name = extractPatientName(text);
+          if (!name) return showAssistantResponse(`<div class="assistant-reply error">¿De qué paciente? Di "última cita de [nombre]".</div>`, null);
+          const data = await api(`/api/assistant/last-appointment?patient_name=${encodeURIComponent(name)}`);
+          let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
+          if (data.found && data.appointment) {
+            html += `<div style="margin-top:.5rem;padding:.6rem;background:#f0f9ff;border-radius:8px;font-size:.8rem">
+              <strong>Paciente:</strong> ${esc(data.patient_name)}<br>
+              <strong>Fecha:</strong> ${esc(data.appointment.date)}<br>
+              <strong>Hora:</strong> ${esc(data.appointment.time)}<br>
+              <strong>Estado:</strong> ${esc(data.appointment.status)}
+            </div>`;
+          }
+          return showAssistantResponse(html, data.spoken_response);
         }
-        speechSynthesis.speak(utterance);
+
+        // INTENTO 3: disponibilidad
+        if (/disponibilidad|horarios?\s+(el|para|disponibles?)|espacios?\s+(el|disponibles?)/.test(t)) {
+          const dateStr = extractDate(text);
+          if (!dateStr) return showAssistantResponse(`<div class="assistant-reply error">¿Para qué fecha? Di "disponibilidad el lunes" o "el 25 de mayo".</div>`, null);
+          const data = await api(`/api/assistant/availability?date=${dateStr}`);
+          let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
+          if (data.available_slots?.length > 0) {
+            html += `<div style="margin-top:.5rem;font-size:.8rem;color:#475569;line-height:1.8">${data.available_slots.join(' · ')}</div>`;
+          }
+          return showAssistantResponse(html, data.spoken_response);
+        }
+
+        // INTENTO 4: agendar cita
+        if (/\b(agenda|agendar|program[ao]|cita\s+con|nueva\s+cita)\b/.test(t)) {
+          const name   = extractPatientName(text);
+          const date   = extractDate(text);
+          const time   = extractTime(text);
+
+          // Si faltan datos, mostrar formulario
+          if (!name || !date || !time) {
+            return showScheduleForm(name, date, time);
+          }
+
+          const data = await api('/api/assistant/schedule', {
+            method: 'POST',
+            body: { patient_name: name, date, time }
+          });
+          const cls = data.success ? '' : ' error';
+          return showAssistantResponse(
+            `<div class="assistant-reply${cls}">${esc(data.spoken_response || data.error)}</div>`,
+            data.spoken_response || null
+          );
+        }
+
+        // Sin match
+        showAssistantResponse(`<div class="assistant-reply">
+          No entendí el comando. Prueba:<br>
+          <span style="color:#0891b2">• "¿Qué citas tengo hoy?"</span><br>
+          <span style="color:#0891b2">• "Última cita de Juan"</span><br>
+          <span style="color:#0891b2">• "Disponibilidad el lunes"</span><br>
+          <span style="color:#0891b2">• "Agenda cita con Juan el 25 a las 10"</span>
+        </div>`, null);
+
+      } catch (err) {
+        showAssistantResponse(`<div class="assistant-reply error">Error: ${esc(err.message)}</div>`, null);
       }
     }
 
-    async function askLastAppointment(patientName) {
+    // Formulario rápido cuando faltan datos para agendar
+    function showScheduleForm(name, date, time) {
       const responseEl = document.getElementById('assistantResponse');
-
-      try {
-        const data = await api(`/api/assistant/last-appointment?patient_name=${encodeURIComponent(patientName)}`);
-
-        let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
-
-        if (data.found && data.appointment) {
-          html += `<div style="margin-top: 0.75rem; padding: 0.75rem; background: #f0f9ff; border-radius: 8px; font-size: 0.875rem;">
-            <strong>Paciente:</strong> ${esc(data.patient_name)}<br>
-            <strong>Fecha:</strong> ${esc(data.appointment.date)}<br>
-            <strong>Hora:</strong> ${esc(data.appointment.time)}<br>
-            <strong>Estado:</strong> ${esc(data.appointment.status)}
-          </div>`;
-        }
-
-        responseEl.innerHTML = html;
-        responseEl.style.display = 'block';
-
-        // TTS
-        playAudio(data.spoken_response);
-      } catch (err) {
-        responseEl.innerHTML = `<div class="assistant-reply error">
-          Error al buscar la cita: ${esc(err.message)}
+      responseEl.innerHTML = `
+        <div class="assistant-reply" style="padding-bottom:.5rem">Faltan datos para agendar. Completa:</div>
+        <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem">
+          <input id="sf_name" class="sf-input" placeholder="Nombre del paciente" value="${esc(name||'')}">
+          <input id="sf_date" class="sf-input" type="date" value="${date||''}">
+          <input id="sf_time" class="sf-input" type="time" value="${time||''}">
+          <button class="btn-ask" onclick="submitScheduleForm()" style="margin-top:.25rem">Agendar</button>
         </div>`;
-        responseEl.style.display = 'block';
+      responseEl.style.display = 'block';
+    }
+
+    async function submitScheduleForm() {
+      const name = document.getElementById('sf_name').value.trim();
+      const date = document.getElementById('sf_date').value;
+      const time = document.getElementById('sf_time').value;
+      if (!name || !date || !time) {
+        alert('Completa todos los campos.');
+        return;
+      }
+      try {
+        const data = await api('/api/assistant/schedule', { method: 'POST', body: { patient_name: name, date, time } });
+        const cls = data.success ? '' : ' error';
+        showAssistantResponse(`<div class="assistant-reply${cls}">${esc(data.spoken_response || data.error)}</div>`, data.success ? data.spoken_response : null);
+      } catch (err) {
+        showAssistantResponse(`<div class="assistant-reply error">Error: ${esc(err.message)}</div>`, null);
       }
     }
 
     async function askTodayAppointments() {
       const btn = document.getElementById('btnAskToday');
-      const responseEl = document.getElementById('assistantResponse');
-
       btn.disabled = true;
-      btn.innerHTML = Icons.render('calendar', 16) + ' Iniciando...';
-
-      // Asegurar que hay sesión activa
-      const hasSession = await ensureConversationSession();
-      if (!hasSession) {
-        responseEl.innerHTML = `<div class="assistant-reply error">
-          No se pudo iniciar la sesión. Intenta recargando la página.
-        </div>`;
-        responseEl.style.display = 'block';
-        btn.disabled = false;
-        btn.innerHTML = Icons.render('calendar', 16) + ' ¿Qué citas tengo hoy?';
-        return;
-      }
-
       btn.innerHTML = Icons.render('calendar', 16) + ' Consultando...';
-
-      if ('speechSynthesis' in window) {
-        try {
-          const warmup = new SpeechSynthesisUtterance('');
-          speechSynthesis.speak(warmup);
-          speechSynthesis.cancel();
-        } catch (e) {}
-      }
-
       try {
-        // Try real endpoint, fall back to echo if it fails
-        let result;
-        try {
-          result = await api(`/api/conversation/${conversationSessionId}/message`, {
-            method: 'POST',
-            body: { message: '¿Qué citas tengo hoy?' }
-          });
-        } catch (err) {
-          console.error('[askTodayAppointments] OpenAI error:', err.message);
-          const errorMsg = `[OpenAI Error: ${err.message}]`;
-          result = await api(`/api/conversation/test/echo`, {
-            method: 'POST',
-            body: { message: errorMsg }
-          });
-        }
-
-        console.log('[askTodayAppointments] Response:', result);
-
-        if (result.error) {
-          throw new Error(result.debug || result.error);
-        }
-
-        if (result.result?.assistant_response) {
-          const response = result.result.assistant_response;
-          responseEl.innerHTML = `<div class="assistant-reply">${esc(response)}</div>`;
-          responseEl.style.display = 'block';
-          playAudio(response);
-        } else {
-          throw new Error('No response from assistant');
-        }
-      } catch (err) {
-        console.error('[askTodayAppointments] Error:', err);
-        responseEl.innerHTML = `<div class="assistant-reply error">
-          Error: ${esc(err.message)}
-        </div>`;
-        responseEl.style.display = 'block';
+        await processVoiceCommand('¿Qué citas tengo hoy?');
       } finally {
         btn.disabled = false;
         btn.innerHTML = Icons.render('calendar', 16) + ' ¿Qué citas tengo hoy?';
@@ -825,64 +894,10 @@
         }
       };
 
-      // Función para procesar el transcript capturado - envía a OpenAI NLU
       async function processTranscript() {
         console.log('[Mic] Processing transcript:', lastTranscript);
-        const responseEl = document.getElementById('assistantResponse');
-
         if (!lastTranscript.trim()) return;
-
-        responseEl.innerHTML = `<div class="assistant-reply">Procesando...</div>`;
-        responseEl.style.display = 'block';
-
-        // Asegurar que hay sesión activa
-        const hasSession = await ensureConversationSession();
-        if (!hasSession) {
-          responseEl.innerHTML = `<div class="assistant-reply error">
-            No se pudo iniciar la sesión. Intenta recargando la página.
-          </div>`;
-          responseEl.style.display = 'block';
-          return;
-        }
-
-        try {
-          // Try real endpoint, fall back to echo if it fails
-          let result;
-          try {
-            result = await api(`/api/conversation/${conversationSessionId}/message`, {
-              method: 'POST',
-              body: { message: lastTranscript }
-            });
-          } catch (err) {
-            console.error('[processTranscript] OpenAI error:', err.message);
-            const errorMsg = `[OpenAI Error: ${err.message}]`;
-            result = await api(`/api/conversation/test/echo`, {
-              method: 'POST',
-              body: { message: errorMsg }
-            });
-          }
-
-          console.log('[processTranscript] Response:', result);
-
-          if (result.error) {
-            throw new Error(result.debug || result.error);
-          }
-
-          if (result.result?.assistant_response) {
-            const response = result.result.assistant_response;
-            responseEl.innerHTML = `<div class="assistant-reply">${esc(response)}</div>`;
-            responseEl.style.display = 'block';
-            playAudio(response);
-          } else {
-            throw new Error('No response from assistant');
-          }
-        } catch (err) {
-          console.error('[processTranscript] Error:', err);
-          responseEl.innerHTML = `<div class="assistant-reply error">
-            Error: ${esc(err.message)}
-          </div>`;
-          responseEl.style.display = 'block';
-        }
+        await processVoiceCommand(lastTranscript);
       }
 
       recognition.onend = () => {

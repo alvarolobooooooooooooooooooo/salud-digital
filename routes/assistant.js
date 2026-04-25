@@ -153,4 +153,114 @@ router.get('/last-appointment', authenticate, requireRole('doctor'), async (req,
   }
 });
 
+// GET /api/assistant/availability?date=YYYY-MM-DD
+router.get('/availability', authenticate, requireRole('doctor'), async (req, res) => {
+  try {
+    const { date } = req.query;
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res.status(400).json({ success: false, error: 'Fecha requerida en formato YYYY-MM-DD' });
+    }
+
+    const dateObj = new Date(date + 'T12:00:00');
+    const dayOfWeek = dateObj.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return res.json({
+        success: true, intent: 'get_availability', date,
+        available_slots: [], total: 0,
+        spoken_response: `El ${date} es fin de semana, no hay disponibilidad.`
+      });
+    }
+
+    const slots = [];
+    for (let hour = 8; hour < 18; hour++) {
+      for (const min of [0, 30]) {
+        slots.push(`${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`);
+      }
+    }
+
+    const result = await query(`
+      SELECT scheduled_at FROM appointments
+      WHERE doctor_id = $1 AND clinic_id = $2
+        AND scheduled_at::date = $3 AND status != 'cancelled'
+    `, [req.user.id, req.user.clinic_id, date]);
+
+    const bookedTimes = result.rows.map(row =>
+      new Date(row.scheduled_at).toLocaleTimeString('es-HN', {
+        hour: '2-digit', minute: '2-digit', hour12: false,
+        timeZone: process.env.TZ || 'America/Chicago'
+      })
+    );
+    const availableSlots = slots.filter(s => !bookedTimes.includes(s));
+
+    let spoken_response;
+    if (availableSlots.length === 0) {
+      spoken_response = `No tienes espacios disponibles el ${date}.`;
+    } else {
+      const first3 = availableSlots.slice(0, 3).join(', ');
+      spoken_response = `El ${date} tienes ${availableSlots.length} espacios disponibles. Los primeros son: ${first3}.`;
+    }
+
+    res.json({ success: true, intent: 'get_availability', date, available_slots: availableSlots, total: availableSlots.length, spoken_response });
+  } catch (err) {
+    console.error('[assistant] Error in availability:', err.message);
+    res.status(500).json({ success: false, error: 'Error al consultar disponibilidad.' });
+  }
+});
+
+// POST /api/assistant/schedule  body: { patient_name, date, time }
+router.post('/schedule', authenticate, requireRole('doctor'), async (req, res) => {
+  try {
+    const { patient_name, date, time } = req.body;
+    console.log(`[assistant/schedule] CALLED doctor=${req.user.id} patient="${patient_name}" date=${date} time=${time}`);
+
+    if (!patient_name || !date || !time) {
+      return res.status(400).json({ success: false, error: 'Nombre del paciente, fecha y hora son requeridos' });
+    }
+
+    const patientResult = await query(`
+      SELECT id, name FROM patients
+      WHERE clinic_id = $1 AND LOWER(name) LIKE LOWER($2)
+      ORDER BY LENGTH(name) ASC LIMIT 5
+    `, [req.user.clinic_id, `%${patient_name}%`]);
+
+    if (patientResult.rows.length === 0) {
+      return res.json({
+        success: false,
+        error: `Paciente "${patient_name}" no encontrado.`,
+        spoken_response: `No encontré al paciente ${patient_name} en esta clínica. ¿Está registrado?`
+      });
+    }
+
+    if (patientResult.rows.length > 1) {
+      const names = patientResult.rows.map(r => r.name).join(', ');
+      return res.json({
+        success: false,
+        error: 'Varios pacientes coinciden',
+        matches: patientResult.rows.map(r => ({ id: r.id, name: r.name })),
+        spoken_response: `Hay varios pacientes que coinciden con "${patient_name}": ${names}. Especifica el nombre completo.`
+      });
+    }
+
+    const patient = patientResult.rows[0];
+    const scheduledAt = new Date(`${date}T${time}:00-06:00`);
+
+    const result = await query(`
+      INSERT INTO appointments (doctor_id, patient_id, clinic_id, scheduled_at, status)
+      VALUES ($1, $2, $3, $4, 'scheduled') RETURNING id
+    `, [req.user.id, patient.id, req.user.clinic_id, scheduledAt]);
+
+    console.log(`[assistant/schedule] SUCCESS appointment_id=${result.rows[0].id}`);
+
+    res.json({
+      success: true, intent: 'schedule_appointment',
+      appointment_id: result.rows[0].id,
+      patient_name: patient.name, date, time,
+      spoken_response: `Listo. Cita agendada con ${patient.name} el ${date} a las ${time}.`
+    });
+  } catch (err) {
+    console.error('[assistant] Error in schedule:', err.message);
+    res.status(500).json({ success: false, error: 'Error al agendar la cita.' });
+  }
+});
+
 module.exports = router;
