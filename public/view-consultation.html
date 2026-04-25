@@ -380,6 +380,13 @@ async function loadConsultation() {
   }
 
   try {
+    const me = await api('/api/auth/me');
+
+    if (me.role === 'doctor' && me.specialty !== 'Odontología') {
+      window.location.href = '/citas.html';
+      return;
+    }
+
     const consultation = await api(`/api/consultations/${consultationId}`);
 
     document.getElementById('patientName').textContent = consultation.patient_name || 'Paciente';

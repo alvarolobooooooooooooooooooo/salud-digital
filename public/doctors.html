@@ -508,7 +508,11 @@
         </div>
         <div class="form-group">
           <label>Especialidad</label>
-          <input type="text" id="fSpecialty" placeholder="Ej: Medicina General">
+          <select id="fSpecialty">
+            <option value="">Seleccionar especialidad...</option>
+            <option value="Odontología">Odontología</option>
+            <option value="Podología">Podología</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Teléfono</label>
@@ -611,9 +615,9 @@
 
       const msgEl = document.getElementById('formMsg');
 
-      if (!name || !email) {
+      if (!name || !email || !specialty) {
         msgEl.className = 'msg err';
-        msgEl.textContent = 'Nombre y email son requeridos';
+        msgEl.textContent = 'Nombre, email y especialidad son requeridos';
         return;
       }
 

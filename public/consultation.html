@@ -370,6 +370,13 @@ async function loadAppointment() {
   }
 
   try {
+    const me = await api('/api/auth/me');
+
+    if (me.role === 'doctor' && me.specialty !== 'Odontología') {
+      window.location.href = '/citas.html';
+      return;
+    }
+
     const appts = await api('/api/appointments');
     const appt = appts.find(a => a.id === appointmentId);
 
