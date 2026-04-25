@@ -716,11 +716,20 @@
       }
 
       try {
-        // Try test endpoint first
-        const result = await api(`/api/conversation/test/echo`, {
-          method: 'POST',
-          body: { message: '¿Qué citas tengo hoy?' }
-        });
+        // Try real endpoint, fall back to echo if it fails
+        let result;
+        try {
+          result = await api(`/api/conversation/${conversationSessionId}/message`, {
+            method: 'POST',
+            body: { message: '¿Qué citas tengo hoy?' }
+          });
+        } catch (err) {
+          console.warn('[askTodayAppointments] OpenAI failed, using echo fallback:', err);
+          result = await api(`/api/conversation/test/echo`, {
+            method: 'POST',
+            body: { message: '¿Qué citas tengo hoy?' }
+          });
+        }
 
         console.log('[askTodayAppointments] Response:', result);
 
@@ -833,10 +842,20 @@
         }
 
         try {
-          const result = await api(`/api/conversation/${conversationSessionId}/message`, {
-            method: 'POST',
-            body: { message: lastTranscript }
-          });
+          // Try real endpoint, fall back to echo if it fails
+          let result;
+          try {
+            result = await api(`/api/conversation/${conversationSessionId}/message`, {
+              method: 'POST',
+              body: { message: lastTranscript }
+            });
+          } catch (err) {
+            console.warn('[processTranscript] OpenAI failed, using echo fallback:', err);
+            result = await api(`/api/conversation/test/echo`, {
+              method: 'POST',
+              body: { message: lastTranscript }
+            });
+          }
 
           console.log('[processTranscript] Response:', result);
 
