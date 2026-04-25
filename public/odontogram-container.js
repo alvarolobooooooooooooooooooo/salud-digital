@@ -36,23 +36,6 @@ class OdontogramContainer {
       gap: 2rem;
     `;
 
-    // Toolbar (only if editable)
-    if(!this.readOnly) {
-      const self = this;
-      this.components.toolbar = new OdontogramToolbar({
-        onConditionSelect: function(condition, fdi, surface) {
-          self.applyCondition(condition, fdi, surface);
-        },
-        onReset: function() {
-          self.resetAll();
-        },
-        onClearSelection: function() {
-          self.clearToothSelection();
-        }
-      });
-      container.appendChild(this.components.toolbar.render());
-    }
-
     // Arches (quadrants)
     const archesContainer = document.createElement('div');
     archesContainer.style.cssText = `
@@ -71,8 +54,28 @@ class OdontogramContainer {
     ];
 
     this.components.arches = {};
+    this.components.toolbars = {};
+
     quadrants.forEach(quadrant => {
       const self = this;
+
+      // Create toolbar before each quadrant (if editable)
+      if(!this.readOnly) {
+        const toolbar = new OdontogramToolbar({
+          onConditionSelect: function(condition, fdi, surface) {
+            self.applyCondition(condition, fdi, surface);
+          },
+          onReset: function() {
+            self.resetAll();
+          },
+          onClearSelection: function() {
+            self.clearToothSelection();
+          }
+        });
+        this.components.toolbars[quadrant] = toolbar;
+        archesContainer.appendChild(toolbar.render());
+      }
+
       const arch = new OdontogramArch(quadrant, this.getQuadrantState(quadrant), {
         isEditable: !this.readOnly,
         onToothSelect: function(fdi) {
@@ -86,6 +89,8 @@ class OdontogramContainer {
       this.components.arches[quadrant] = arch;
       archesContainer.appendChild(arch.render());
     });
+
+    container.appendChild(archesContainer);
 
     container.appendChild(archesContainer);
 
