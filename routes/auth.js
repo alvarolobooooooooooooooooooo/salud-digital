@@ -30,7 +30,7 @@ router.post('/login', async (req, res) => {
 
 router.get('/me', authenticate, async (req, res) => {
   const result = await query(
-    'SELECT u.id, u.email, u.role, u.clinic_id, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.id = $1',
+    'SELECT u.id, u.email, u.role, u.clinic_id, u.specialty, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.id = $1',
     [req.user.id]
   );
   const user = result.rows[0];
