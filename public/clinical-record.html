@@ -115,11 +115,6 @@
     }
     .btn-view:hover { background: #0e7490; }
 
-    #dentalSections { display: block; }
-    #dentalSections.hidden { display: none !important; }
-    #podiatrySections { display: none !important; }
-    #podiatrySections.visible { display: block !important; }
-
     @media (max-width: 768px) {
       main { padding-top: 90px !important; max-width: 100% !important; width: 100% !important; margin: 0 !important; }
       .patient-header { flex-direction: column; text-align: center; }
@@ -197,66 +192,8 @@
     </div>
   </div>
 
-  <!-- Dental Sections (Odontología) -->
-  <div id="dentalSections">
-    <!-- Odontograma Section -->
-    <div class="section section-dental">
-      <h3>Odontograma</h3>
-      <p style="font-size:0.82rem;color:#6b7280;margin-bottom:1rem;">Haga clic en cada diente para cambiar su estado</p>
-      <div class="odontogram-container" id="odontogramContainer"></div>
-      <button onclick="saveOdontogram()">Guardar Odontograma</button>
-      <div class="msg" id="odontMsg"></div>
-    </div>
-
-    <!-- Treatment History Section -->
-    <div class="section section-dental">
-      <h3>Historial de Tratamientos</h3>
-      <div id="treatmentHistory">
-        <p style="color: #94a3b8; font-size: .9rem;">Sin tratamientos registrados</p>
-      </div>
-    </div>
-
-    <!-- Consultas Dentales Section -->
-    <div class="section section-dental">
-      <h3>Registrar Nueva Consulta Dental</h3>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Diagnóstico</label>
-          <input type="text" id="consDiagnosis" placeholder="Diagnóstico dental">
-        </div>
-        <div class="form-group">
-          <label>Tratamiento</label>
-          <input type="text" id="consTreatment" placeholder="Plan de tratamiento">
-        </div>
-        <div class="form-group">
-          <label>Notas</label>
-          <textarea id="consNotes" placeholder="Notas adicionales" style="resize:vertical;min-height:60px;"></textarea>
-        </div>
-        <button onclick="addConsultation()" style="align-self: flex-start;">Agregar Consulta</button>
-      </div>
-      <div class="msg" id="consMsg"></div>
-    </div>
-  </div>
-
-  <!-- Podiatry Sections (Podología) -->
-  <div id="podiatrySections" class="section-podiatry">
-    <!-- Podogram Section -->
-    <div class="section">
-      <h3>Podograma</h3>
-      <p style="font-size:0.82rem;color:#6b7280;margin-bottom:1rem;">Registro de las consultas podológicas del paciente</p>
-      <div id="podiatryConsultations">
-        <p style="color: #94a3b8; font-size: .9rem;">Sin consultas podológicas registradas</p>
-      </div>
-    </div>
-
-    <!-- Consultas Podológicas Section -->
-    <div class="section">
-      <h3>Historial de Consultas Podológicas</h3>
-      <div id="podiatryHistory">
-        <p style="color: #94a3b8; font-size: .9rem;">Sin consultas registradas</p>
-      </div>
-    </div>
-  </div>
+  <!-- Specialty-based content will be rendered here -->
+  <div id="specialtyContent"></div>
 </main>
   </main>
 
@@ -290,21 +227,59 @@
 
     function setSpecialtyView(specialty) {
       currentUserSpecialty = specialty;
-      const dentalSections = document.getElementById('dentalSections');
-      const podiatrySections = document.getElementById('podiatrySections');
-
-      const normalized = (specialty || '').toLowerCase().trim();
-      const isDental = normalized.includes('odont');
-      const isPodiatry = normalized.includes('podol');
-
-      console.log('Setting specialty view:', specialty, '-> isDental:', isDental, 'isPodiatry:', isPodiatry);
+      const isPodiatry = (specialty || '').toLowerCase().includes('podol');
+      const contentDiv = document.getElementById('specialtyContent');
 
       if (isPodiatry) {
-        dentalSections.classList.add('hidden');
-        podiatrySections.classList.add('visible');
-      } else if (isDental) {
-        dentalSections.classList.remove('hidden');
-        podiatrySections.classList.remove('visible');
+        contentDiv.innerHTML = `
+          <!-- Historial de Consultas Podológicas -->
+          <div class="section">
+            <h3>Historial de Consultas Podológicas</h3>
+            <div id="podiatryHistory">
+              <p style="color: #94a3b8; font-size: .9rem;">Sin consultas registradas</p>
+            </div>
+          </div>
+        `;
+      } else {
+        contentDiv.innerHTML = `
+          <!-- Odontograma Section -->
+          <div class="section">
+            <h3>Odontograma</h3>
+            <p style="font-size:0.82rem;color:#6b7280;margin-bottom:1rem;">Haga clic en cada diente para cambiar su estado</p>
+            <div class="odontogram-container" id="odontogramContainer"></div>
+            <button onclick="saveOdontogram()">Guardar Odontograma</button>
+            <div class="msg" id="odontMsg"></div>
+          </div>
+
+          <!-- Treatment History Section -->
+          <div class="section">
+            <h3>Historial de Tratamientos</h3>
+            <div id="treatmentHistory">
+              <p style="color: #94a3b8; font-size: .9rem;">Sin tratamientos registrados</p>
+            </div>
+          </div>
+
+          <!-- Consultas Dentales Section -->
+          <div class="section">
+            <h3>Registrar Nueva Consulta Dental</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Diagnóstico</label>
+                <input type="text" id="consDiagnosis" placeholder="Diagnóstico dental">
+              </div>
+              <div class="form-group">
+                <label>Tratamiento</label>
+                <input type="text" id="consTreatment" placeholder="Plan de tratamiento">
+              </div>
+              <div class="form-group">
+                <label>Notas</label>
+                <textarea id="consNotes" placeholder="Notas adicionales" style="resize:vertical;min-height:60px;"></textarea>
+              </div>
+              <button onclick="addConsultation()" style="align-self: flex-start;">Agregar Consulta</button>
+            </div>
+            <div class="msg" id="consMsg"></div>
+          </div>
+        `;
       }
     }
 
@@ -450,18 +425,7 @@
     (async () => {
       try {
         const me = await api('/api/auth/me');
-        console.log('🔍 User data from API:', me);
-        console.log('🔍 Specialty from API:', me.specialty);
-
         setSpecialtyView(me.specialty || 'Odontología');
-        console.log('✅ setSpecialtyView called with:', me.specialty || 'Odontología');
-
-        // Double-check the DOM state
-        console.log('🔍 dentalSections display:', document.getElementById('dentalSections').style.display);
-        console.log('🔍 dentalSections classes:', document.getElementById('dentalSections').className);
-        console.log('🔍 podiatrySections display:', document.getElementById('podiatrySections').style.display);
-        console.log('🔍 podiatrySections classes:', document.getElementById('podiatrySections').className);
-
         await refreshPatient();
       } catch (e) {
         console.error('Error loading patient data:', e);
@@ -495,18 +459,19 @@
         : '<p style="color: #94a3b8; font-size: .9rem;">Sin citas programadas</p>';
       document.getElementById('appointmentsList').innerHTML = appointmentsHtml;
 
-      let initialState = {};
-      try {
-        initialState = JSON.parse(patientData.odontogram_state || '{}');
-      } catch {}
+      const isPodiatry = (currentUserSpecialty || '').toLowerCase().includes('podol');
 
-      if (currentUserSpecialty === 'Odontología') {
+      if (isPodiatry) {
+        renderPodiatryHistory(patientData.consultations);
+      } else {
+        let initialState = {};
+        try {
+          initialState = JSON.parse(patientData.odontogram_state || '{}');
+        } catch {}
+
         odontogram = new OdontogramContainer('odontogramContainer', initialState, true);
         renderConsultations(patientData.consultations);
         renderTreatmentHistory(patientData.consultations);
-      } else if (currentUserSpecialty === 'Podología') {
-        renderPodiatryConsultations(patientData.consultations);
-        renderPodiatryHistory(patientData.consultations);
       }
     }
 
