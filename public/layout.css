@@ -447,18 +447,18 @@ nav.old-nav {
   align-items: center;
   justify-content: center;
   gap: 0.3rem;
-  padding: 0.5rem;
+  padding: 0.45rem 0.5rem;
   flex: 1;
-  font-size: 0.7rem;
-  font-weight: 500;
+  font-size: 0.68rem;
+  font-weight: 600;
   color: #64748b;
   text-decoration: none;
-  transition: all 0.15s;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   border: none;
   background: transparent;
   cursor: pointer;
   font-family: inherit;
-  border-radius: 0;
+  border-radius: 12px;
   margin: 0;
   position: relative;
   outline: none;
@@ -472,20 +472,24 @@ nav.old-nav {
 
 .mobile-nav-item:active {
   outline: none;
+  transform: scale(0.92);
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.1), rgba(6, 182, 212, 0.08));
 }
 
 .mobile-nav-item.active {
   color: var(--primary);
-  font-weight: 600;
-  background: rgba(8, 145, 178, 0.12);
-  border-radius: 8px;
-  padding: 0.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.15) 0%, rgba(6, 182, 212, 0.12) 100%);
+  border-radius: 12px;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid rgba(8, 145, 178, 0.2);
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.12);
 }
 
 .mobile-nav-item span:first-child {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   line-height: 1;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .mobile-nav-item:active span:first-child {
@@ -508,16 +512,16 @@ nav.old-nav {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 0.35rem;
+  padding: 0.45rem 0.5rem;
   flex: 1;
   border: none;
   background: transparent;
   cursor: pointer;
   font-family: inherit;
   color: var(--muted);
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   border-radius: 12px;
-  margin: 0.35rem 0.2rem;
+  margin: 0;
   position: relative;
 }
 
@@ -529,9 +533,10 @@ nav.old-nav {
 }
 
 .mobile-nav-logout:active {
-  background: #fee2e2;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
   color: #e11d48;
   transform: scale(0.92);
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.15);
 }
 
 .mobile-nav-logout:active svg {
@@ -544,15 +549,15 @@ nav.old-nav {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
+  padding: 0.45rem 0.5rem;
   flex: 1;
   border: none;
   background: transparent;
   cursor: pointer;
   font-family: inherit;
   color: #64748b;
-  transition: all 0.15s;
-  border-radius: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 12px;
   margin: 0;
   position: relative;
   outline: none;
@@ -566,6 +571,9 @@ nav.old-nav {
 
 .mobile-nav-hamburger:active {
   outline: none;
+  transform: scale(0.92);
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.12), rgba(6, 182, 212, 0.08));
+  color: var(--primary);
 }
 
 .mobile-nav-hamburger svg {
@@ -790,17 +798,20 @@ nav.old-nav {
     left: 0;
     right: 0;
     width: 100%;
-    height: 60px;
-    background: white;
-    border-bottom: 1px solid #e2e8f0;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(8, 145, 178, 0.1);
     z-index: 100;
     align-items: center;
     justify-content: space-around;
-    padding: 0.5rem;
+    padding: 0.4rem 0.75rem;
     margin: 0;
-    box-shadow: none;
+    box-shadow: 0 4px 24px rgba(8, 145, 178, 0.08), 0 1px 0 rgba(255, 255, 255, 0.8);
     border-radius: 0;
-    padding-top: max(0.5rem, env(safe-area-inset-top));
+    padding-top: max(0.4rem, env(safe-area-inset-top));
+    gap: 0.25rem;
   }
   .mobile-nav-logout {
     border-left: none !important;
@@ -808,14 +819,14 @@ nav.old-nav {
   .layout-main {
     margin: 0;
     padding: 0 1.5rem;
-    padding-top: 75px;
+    padding-top: 80px;
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
   }
   .content {
     padding: 0.75rem !important;
-    padding-top: 75px !important;
+    padding-top: 80px !important;
     margin: 0 !important;
     width: 100% !important;
   }
