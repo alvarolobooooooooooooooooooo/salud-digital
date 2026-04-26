@@ -1080,6 +1080,26 @@ let calDate = new Date();
       }
     });
 
+    // Update header stats
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const apptToday = appts.filter(a => {
+      const apptDate = new Date(a.scheduled_at);
+      apptDate.setHours(0, 0, 0, 0);
+      return apptDate.getTime() === today.getTime();
+    }).length;
+
+    const apptThisMonth = appts.filter(a => {
+      const apptDate = new Date(a.scheduled_at);
+      return apptDate.getMonth() === today.getMonth() && apptDate.getFullYear() === today.getFullYear();
+    }).length;
+
+    document.getElementById('hstatToday').textContent = apptToday;
+    document.getElementById('hstatMonth').textContent = apptThisMonth;
+
     renderList(appts);
     renderCalendar();
   } catch(e) { console.error(e); }
