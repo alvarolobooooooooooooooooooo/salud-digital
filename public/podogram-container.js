@@ -22,69 +22,114 @@ class PodogramContainer {
   }
 
   getFootTypeSVG(type, selected) {
-    const color = selected ? this.skinColor : '#E8D4C8';
-    const toes = {
-      'Espiguio': [30, 50, 65, 80, 95],
-      'Romano': [40, 55, 70, 80, 90],
-      'Griego': [35, 65, 75, 80, 85],
-      'Germánico': [50, 62, 72, 82, 92],
-      'Celta': [48, 60, 70, 80, 90]
+    const fillColor = selected ? this.skinColor : 'white';
+    const strokeColor = '#333';
+    const strokeWidth = '1.5';
+
+    // Each foot type has 5 toes with different lengths
+    // [toe1_height, toe2_height, toe3_height, toe4_height, toe5_height] - higher value = longer toe
+    const toeLengths = {
+      'Espiguio': [55, 35, 30, 28, 25],
+      'Romano': [45, 45, 40, 35, 30],
+      'Griego': [40, 55, 45, 38, 30],
+      'Germánico': [50, 38, 32, 28, 25],
+      'Celta': [45, 40, 42, 35, 28]
     };
 
-    const toePositions = toes[type] || [50, 60, 70, 80, 90];
-    const toeSvgs = toePositions.map((x, i) => {
-      const height = 35 - (i * 3);
-      return `<rect x="${x - 4}" y="60" width="8" height="${height}" fill="${color}" rx="4"/>`;
-    }).join('');
+    const lengths = toeLengths[type] || [50, 45, 40, 35, 30];
+    const toeXPositions = [25, 40, 55, 70, 83];
+    const toeWidths = [13, 11, 10, 9, 8];
+
+    let toes = '';
+    let nails = '';
+    let lines = '';
+
+    for (let i = 0; i < 5; i++) {
+      const x = toeXPositions[i];
+      const w = toeWidths[i];
+      const h = lengths[i];
+      const yTop = 80 - h;
+
+      // Toe shape
+      toes += `<path d="M ${x - w/2} 80 L ${x - w/2} ${yTop + 8} Q ${x - w/2} ${yTop} ${x} ${yTop} Q ${x + w/2} ${yTop} ${x + w/2} ${yTop + 8} L ${x + w/2} 80 Z" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-linejoin="round"/>`;
+
+      // Nail
+      nails += `<rect x="${x - w/2 + 2}" y="${yTop + 3}" width="${w - 4}" height="${Math.min(6, h/4)}" fill="none" stroke="${strokeColor}" stroke-width="1" rx="2"/>`;
+
+      // Vertical line on toe
+      lines += `<line x1="${x}" y1="${yTop + 10}" x2="${x}" y2="78" stroke="${strokeColor}" stroke-width="0.8" opacity="0.5"/>`;
+    }
 
     return `
-      <svg viewBox="0 0 120 110" width="80" height="80" style="margin: 0 auto; display: block;">
-        <!-- Heel -->
-        <ellipse cx="60" cy="95" rx="20" ry="12" fill="${color}"/>
-        <!-- Foot -->
-        <path d="M 40 80 Q 35 50 50 20 L 100 25 Q 110 50 95 90 Z" fill="${color}"/>
+      <svg viewBox="0 0 110 110" width="80" height="80" style="margin: 0 auto; display: block;">
+        <!-- Foot base (sole) -->
+        <path d="M 15 80 Q 12 95 20 105 L 90 105 Q 98 95 95 80 Z" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-linejoin="round"/>
         <!-- Toes -->
-        ${toeSvgs}
+        ${toes}
+        <!-- Nails -->
+        ${nails}
+        <!-- Lines on toes -->
+        ${lines}
       </svg>
     `;
   }
 
   getFootShapeSVG(shape, selected) {
-    const color = selected ? this.skinColor : '#E8D4C8';
+    const fillColor = selected ? this.skinColor : 'white';
+    const orangeColor = selected ? '#F39C5C' : '#FAD4B0';
+
     const svgs = {
       'Normal': `
-        <svg viewBox="0 0 120 100" width="80" height="80" style="margin: 0 auto; display: block;">
-          <!-- Foot side view -->
-          <path d="M 20 60 Q 20 40 30 25 Q 40 15 60 10 L 100 20 Q 110 40 100 75 Q 80 85 40 80 Z" fill="${color}"/>
-          <!-- Toes -->
-          <circle cx="65" cy="12" r="4" fill="${color}"/>
-          <circle cx="75" cy="13" r="4" fill="${color}"/>
-          <circle cx="85" cy="15" r="4" fill="${color}"/>
-          <circle cx="95" cy="18" r="4" fill="${color}"/>
+        <svg viewBox="0 0 140 130" width="100" height="90" style="margin: 0 auto; display: block;">
+          <!-- Side view of foot (top part) -->
+          <path d="M 15 55 Q 15 40 25 30 Q 35 22 55 18 Q 75 16 95 20 Q 115 25 125 35 Q 130 50 125 65 Q 120 72 110 75 L 25 75 Q 15 70 15 55 Z"
+                fill="${fillColor}" stroke="#333" stroke-width="1.5"/>
+          <!-- Ankle indent -->
+          <ellipse cx="40" cy="40" rx="6" ry="4" fill="none" stroke="#333" stroke-width="1" opacity="0.4"/>
+          <!-- Footprint (bottom - orange) - normal full footprint -->
+          <path d="M 30 95 Q 25 95 25 105 Q 25 118 35 120 Q 50 122 70 120 Q 95 118 110 115 Q 120 110 118 100 Q 115 92 105 92 Q 70 90 30 95 Z"
+                fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <!-- Toes on footprint -->
+          <circle cx="115" cy="98" r="4" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <circle cx="123" cy="103" r="3" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <circle cx="127" cy="110" r="2.5" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <circle cx="129" cy="116" r="2" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
         </svg>
       `,
       'Plano': `
-        <svg viewBox="0 0 120 100" width="80" height="80" style="margin: 0 auto; display: block;">
-          <!-- Flat foot -->
-          <path d="M 20 70 L 25 35 Q 35 20 50 12 Q 70 8 100 15 L 105 70 Z" fill="${color}"/>
-          <!-- Toes -->
-          <circle cx="55" cy="14" r="4" fill="${color}"/>
-          <circle cx="70" cy="11" r="4" fill="${color}"/>
-          <circle cx="85" cy="12" r="4" fill="${color}"/>
-          <circle cx="98" cy="16" r="4" fill="${color}"/>
+        <svg viewBox="0 0 140 130" width="100" height="90" style="margin: 0 auto; display: block;">
+          <!-- Side view of foot (top) -->
+          <path d="M 15 55 Q 15 40 25 30 Q 35 22 55 18 Q 75 16 95 20 Q 115 25 125 35 Q 130 50 125 65 Q 120 72 110 75 L 25 75 Q 15 70 15 55 Z"
+                fill="${fillColor}" stroke="#333" stroke-width="1.5"/>
+          <!-- Ankle indent -->
+          <ellipse cx="40" cy="40" rx="6" ry="4" fill="none" stroke="#333" stroke-width="1" opacity="0.4"/>
+          <!-- Footprint (bottom - orange) - flat foot, full contact wider -->
+          <path d="M 25 95 Q 18 95 18 108 Q 18 122 32 122 Q 55 124 80 122 Q 105 120 115 117 Q 122 112 120 102 Q 115 92 100 92 Q 60 88 25 95 Z"
+                fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <!-- Toes on footprint -->
+          <circle cx="118" cy="100" r="4" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <circle cx="125" cy="105" r="3" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <circle cx="128" cy="111" r="2.5" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <circle cx="130" cy="117" r="2" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
         </svg>
       `,
       'Cavo': `
-        <svg viewBox="0 0 120 100" width="80" height="80" style="margin: 0 auto; display: block;">
-          <!-- Arched foot -->
-          <path d="M 20 75 Q 25 50 35 30 Q 50 10 70 8 Q 85 10 100 20 L 102 75 Z" fill="${color}"/>
-          <!-- Arch indication -->
-          <path d="M 25 70 Q 40 55 75 50" stroke="#D4A574" stroke-width="1" fill="none" opacity="0.5"/>
-          <!-- Toes -->
-          <circle cx="75" cy="10" r="4" fill="${color}"/>
-          <circle cx="85" cy="9" r="4" fill="${color}"/>
-          <circle cx="95" cy="12" r="4" fill="${color}"/>
-          <circle cx="103" cy="18" r="4" fill="${color}"/>
+        <svg viewBox="0 0 140 130" width="100" height="90" style="margin: 0 auto; display: block;">
+          <!-- Side view of foot (top) - higher arch -->
+          <path d="M 15 55 Q 15 38 25 28 Q 35 20 55 16 Q 75 14 95 18 Q 115 23 125 33 Q 132 48 125 65 Q 120 72 110 75 L 25 75 Q 15 70 15 55 Z"
+                fill="${fillColor}" stroke="#333" stroke-width="1.5"/>
+          <!-- Ankle indent -->
+          <ellipse cx="40" cy="40" rx="6" ry="4" fill="none" stroke="#333" stroke-width="1" opacity="0.4"/>
+          <!-- Footprint (bottom - orange) - cavo, only heel and ball of foot visible -->
+          <!-- Heel -->
+          <ellipse cx="35" cy="108" rx="14" ry="10" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <!-- Ball of foot -->
+          <ellipse cx="105" cy="105" rx="18" ry="11" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <!-- Toes on footprint -->
+          <circle cx="120" cy="98" r="4" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <circle cx="126" cy="103" r="3" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <circle cx="129" cy="110" r="2.5" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
+          <circle cx="131" cy="116" r="2" fill="${orangeColor}" stroke="#333" stroke-width="1"/>
         </svg>
       `
     };
@@ -194,8 +239,11 @@ class PodogramContainer {
           filter: brightness(1.1);
         }
         .foot-svg {
-          width: 80px;
-          height: 80px;
+          width: 90px;
+          height: 90px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .button-label {
           font-size: 0.8rem;
