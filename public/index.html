@@ -351,12 +351,19 @@
       color: #dc2626;
       font-size: 0.85rem;
       margin-top: 1.25rem;
+      min-height: 0;
+      padding: 0;
+      background: transparent;
+      border-radius: 8px;
+      border-left: none;
+      font-weight: 500;
+    }
+
+    .error:not(:empty) {
       min-height: 1.2em;
       padding: 0.75rem 1rem;
       background: linear-gradient(135deg, rgba(220, 38, 38, 0.08) 0%, rgba(220, 38, 38, 0.04) 100%);
-      border-radius: 8px;
       border-left: 4px solid #dc2626;
-      font-weight: 500;
     }
 
     .features {
@@ -518,8 +525,8 @@
     logoIcon.innerHTML = Icons.render('stethoscope', 24);
 
     document.getElementById('featureIcon1').innerHTML = Icons.render('lock', 18);
-    document.getElementById('featureIcon2').innerHTML = Icons.render('checkCircle', 18);
-    document.getElementById('featureIcon3').innerHTML = Icons.render('sparkles', 18);
+    document.getElementById('featureIcon2').innerHTML = Icons.render('check', 18);
+    document.getElementById('featureIcon3').innerHTML = Icons.render('settings', 18);
 
     // Redirigir si ya está logueado
     if (localStorage.getItem('sd_token')) {
