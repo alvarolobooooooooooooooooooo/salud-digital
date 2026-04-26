@@ -236,31 +236,8 @@
         </div>
       </div>
 
-      <!-- Tipo de Pie -->
-      <h4 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1rem; font-weight: 600; color: #0f172a;">Tipo de Pie</h4>
-      <div class="form-grid two">
-        <div class="form-group">
-          <label>Pie Derecho</label>
-          <input type="text" id="consFootTypeRight" disabled>
-        </div>
-        <div class="form-group">
-          <label>Pie Izquierdo</label>
-          <input type="text" id="consFootTypeLeft" disabled>
-        </div>
-      </div>
-
-      <!-- Forma de Pie -->
-      <h4 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1rem; font-weight: 600; color: #0f172a;">Forma de Pie</h4>
-      <div class="form-grid two">
-        <div class="form-group">
-          <label>Pie Derecho</label>
-          <input type="text" id="consFootShapeRight" disabled>
-        </div>
-        <div class="form-group">
-          <label>Pie Izquierdo</label>
-          <input type="text" id="consFootShapeLeft" disabled>
-        </div>
-      </div>
+      <!-- Podogram (solo lectura) -->
+      <div id="podogram1"></div>
     </div>
 
     <!-- Exploración Dermatológica -->
@@ -411,10 +388,12 @@
 
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
+<script src="/podogram-container.js"></script>
 <script>
 requireAuth(['clinic_admin', 'doctor']);
 
 let consultationId = null;
+let podogram1 = null;
 
 async function loadConsultation() {
   const params = new URLSearchParams(window.location.search);
@@ -456,10 +435,7 @@ async function loadConsultation() {
     document.getElementById('consTreatmentPlan').value = consultation.treatment || '';
     document.getElementById('consProcedures').value = consultation.procedures || '';
 
-    document.getElementById('consFootTypeRight').value = extraData.foot_type_right || '';
-    document.getElementById('consFootTypeLeft').value = extraData.foot_type_left || '';
-    document.getElementById('consFootShapeRight').value = extraData.foot_shape_right || '';
-    document.getElementById('consFootShapeLeft').value = extraData.foot_shape_left || '';
+    podogram1 = new PodogramContainer('podogram1', extraData, true);
 
     if (consultation.cost) {
       const formatted = Number(consultation.cost).toFixed(2);
