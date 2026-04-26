@@ -26,7 +26,6 @@ class OdontogramArch {
     const w = container ? container.offsetWidth : window.innerWidth;
     if (w >= 1350) cols = 8;
     else if (w >= 950) cols = 4;
-    else if (w >= 700) cols = 3;
     else cols = 2;
     grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   }
