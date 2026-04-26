@@ -450,7 +450,18 @@
     (async () => {
       try {
         const me = await api('/api/auth/me');
+        console.log('🔍 User data from API:', me);
+        console.log('🔍 Specialty from API:', me.specialty);
+
         setSpecialtyView(me.specialty || 'Odontología');
+        console.log('✅ setSpecialtyView called with:', me.specialty || 'Odontología');
+
+        // Double-check the DOM state
+        console.log('🔍 dentalSections display:', document.getElementById('dentalSections').style.display);
+        console.log('🔍 dentalSections classes:', document.getElementById('dentalSections').className);
+        console.log('🔍 podiatrySections display:', document.getElementById('podiatrySections').style.display);
+        console.log('🔍 podiatrySections classes:', document.getElementById('podiatrySections').className);
+
         await refreshPatient();
       } catch (e) {
         console.error('Error loading patient data:', e);
