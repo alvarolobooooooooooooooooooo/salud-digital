@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ver Consulta Podológica</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; color: #1e293b; }
+
+    main { width: 100%; margin: 0; padding: 2rem 1.5rem; }
+
+    .header {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .header h1 { font-size: 1.8rem; font-weight: 700; color: #0f172a; margin-bottom: .5rem; }
+    .header-meta { font-size: .875rem; color: #64748b; }
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .6rem 1.25rem;
+      border: 1px solid #e2e8f0;
+      background: white;
+      color: #0891b2;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-back:hover { background: #f0f9ff; border-color: #0891b2; }
+
+    .form-section {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+      border: 1px solid #f1f5f9;
+    }
+    .form-section h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #f1f5f9;
+    }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .form-grid.full { grid-template-columns: 1fr; }
+    .form-grid.two { grid-template-columns: 1fr 1fr; }
+
+    .form-group { display: flex; flex-direction: column; gap: .4rem; }
+    .form-group label {
+      font-size: .75rem;
+      font-weight: 600;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .form-group input, .form-group textarea {
+      padding: .75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+      background-color: #f9fafb;
+      color: #64748b;
+      cursor: not-allowed;
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    .read-only-badge {
+      display: inline-block;
+      background: #fef3c7;
+      color: #92400e;
+      padding: .3rem .6rem;
+      border-radius: 4px;
+      font-size: .75rem;
+      font-weight: 600;
+      margin-left: .5rem;
+    }
+
+    .clinical-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      border: 1px solid #e2e8f0;
+    }
+    .clinical-table thead {
+      background: #f1f5f9;
+    }
+    .clinical-table th {
+      padding: 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+    }
+    .clinical-table td {
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+      font-size: 0.875rem;
+    }
+    .clinical-table input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      background-color: #f9fafb;
+      cursor: not-allowed;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: .75rem;
+      padding: 2rem;
+      background: white;
+      border-top: 1px solid #f1f5f9;
+      border-radius: 0 0 12px 12px;
+      margin-top: -2rem;
+    }
+    .btn-cancel {
+      padding: .6rem 1.5rem;
+      border: 1.5px solid #e2e8f0;
+      background: white;
+      color: #64748b;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: .875rem;
+      font-weight: 500;
+      transition: all .15s;
+    }
+    .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+    @media (max-width: 768px) {
+      main { padding: 1.5rem 2rem; padding-top: 90px !important; }
+      .header { padding: 1.5rem; flex-direction: column; gap: 1rem; }
+      .header h1 { font-size: 1.4rem; }
+      .form-section { padding: 1.5rem; }
+      .form-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .footer { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="layout-main">
+  <div class="header">
+    <div>
+      <h1>Consulta Podológica <span class="read-only-badge">VER SOLO</span></h1>
+      <p class="header-meta">Paciente: <strong id="patientName">Cargando...</strong></p>
+    </div>
+    <button class="btn-back" onclick="history.back()">← Volver</button>
+  </div>
+
+  <form id="consultForm">
+    <!-- Datos Personales -->
+    <div class="form-section">
+      <h3>Datos Personales</h3>
+      <div class="form-grid two">
+        <div class="form-group">
+          <label>Edad</label>
+          <input type="number" id="consAge" disabled>
+        </div>
+        <div class="form-group">
+          <label>Profesión / Ocupación</label>
+          <input type="text" id="consOccupation" disabled>
+        </div>
+      </div>
+    </div>
+
+    <!-- Antecedentes Personales No Patológicos -->
+    <div class="form-section">
+      <h3>Antecedentes Personales No Patológicos</h3>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Hábitos (Fumar, Alcohol, Toxicomanías, Otros)</label>
+          <textarea id="consHabits" disabled></textarea>
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Tipo de Calzado Habitual</label>
+          <textarea id="consFootwear" disabled></textarea>
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Actividad Física (días/semana)</label>
+          <input type="text" id="consPhysicalActivity" disabled>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historia de Enfermedad Actual -->
+    <div class="form-section">
+      <h3>Historia de Enfermedad Actual (HEA)</h3>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Queja Principal y Duración</label>
+          <textarea id="consMainComplaint" disabled></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exploración Física -->
+    <div class="form-section">
+      <h3>Exploración Física</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Peso (kg)</label>
+          <input type="number" id="consWeight" disabled>
+        </div>
+        <div class="form-group">
+          <label>Talla (cm)</label>
+          <input type="number" id="consHeight" disabled>
+        </div>
+        <div class="form-group">
+          <label>IMC</label>
+          <input type="number" id="consIMC" disabled>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exploración Dermatológica -->
+    <div class="form-section">
+      <h3>Exploración Dermatológica</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th>Hallazgo</th>
+            <th>Pie Derecho</th>
+            <th>Pie Izquierdo</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Hiperqueratosis / Helomas</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="text" disabled></td>
+          </tr>
+          <tr>
+            <td>Onicocriptosis</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="text" disabled></td>
+          </tr>
+          <tr>
+            <td>Onicomicosis</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="text" disabled></td>
+          </tr>
+          <tr>
+            <td>Hiperhidrosis / Sudoración</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="text" disabled></td>
+          </tr>
+          <tr>
+            <td>Pie Plano / Pie Cavo</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="text" disabled></td>
+          </tr>
+          <tr>
+            <td>Talipes (Pie Varo / Valgo)</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="text" disabled></td>
+          </tr>
+          <tr>
+            <td>Otros Hallazgos</td>
+            <td colspan="3"><input type="text" disabled style="width: 100%;"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Examen Neurológico -->
+    <div class="form-section">
+      <h3>Examen Neurológico</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th>Examen</th>
+            <th>Pie Derecho</th>
+            <th>Pie Izquierdo</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Recepción Vibratoria</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="text" disabled></td>
+          </tr>
+          <tr>
+            <td>Reflejo Rotuliano</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="text" disabled></td>
+          </tr>
+          <tr>
+            <td>Reflejo Aquíleo</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="text" disabled></td>
+          </tr>
+          <tr>
+            <td>Recepción Táctil</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="text" disabled></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Diagnóstico y Plan -->
+    <div class="form-section">
+      <h3>Diagnóstico y Plan de Manejo</h3>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Diagnóstico</label>
+          <textarea id="consDiagnosis" disabled></textarea>
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Plan y Manejo</label>
+          <textarea id="consTreatmentPlan" disabled></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Procedimientos -->
+    <div class="form-section">
+      <h3>Procedimientos Realizados</h3>
+      <div class="form-grid full">
+        <div class="form-group">
+          <textarea id="consProcedures" disabled></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Costos y Pago -->
+    <div class="form-section">
+      <h3>Información de Pago</h3>
+      <div class="form-grid two">
+        <div class="form-group">
+          <label>Costo de la Consulta (L.)</label>
+          <input type="text" id="consCost" disabled>
+        </div>
+        <div class="form-group">
+          <label>Estado de Pago</label>
+          <input type="text" id="consPayment" disabled>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button type="button" class="btn-cancel" onclick="history.back()">Volver</button>
+    </div>
+  </form>
+</main>
+
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script>
+requireAuth(['clinic_admin', 'doctor']);
+
+let consultationId = null;
+
+async function loadConsultation() {
+  const params = new URLSearchParams(window.location.search);
+  consultationId = params.get('id');
+
+  if (!consultationId) {
+    document.body.innerHTML = '<div style="padding:2rem;color:red;"><h2>Error: ID de consulta no proporcionado</h2></div>';
+    return;
+  }
+
+  try {
+    const me = await api('/api/auth/me');
+
+    if (me.role === 'doctor' && me.specialty !== 'Podología') {
+      window.location.href = '/citas.html';
+      return;
+    }
+
+    const consultation = await api(`/api/consultations/${consultationId}`);
+
+    document.getElementById('patientName').textContent = consultation.patient_name || 'Paciente';
+
+    let extraData = {};
+    try {
+      extraData = JSON.parse(consultation.radiography_notes || '{}');
+    } catch {}
+
+    document.getElementById('consAge').value = extraData.age || '';
+    document.getElementById('consOccupation').value = extraData.occupation || '';
+    document.getElementById('consHabits').value = extraData.habits || '';
+    document.getElementById('consFootwear').value = extraData.footwear || '';
+    document.getElementById('consPhysicalActivity').value = extraData.physical_activity || '';
+    document.getElementById('consWeight').value = extraData.weight || '';
+    document.getElementById('consHeight').value = extraData.height || '';
+    document.getElementById('consIMC').value = extraData.imc || '';
+
+    document.getElementById('consMainComplaint').value = consultation.notes || '';
+    document.getElementById('consDiagnosis').value = consultation.diagnosis || '';
+    document.getElementById('consTreatmentPlan').value = consultation.treatment || '';
+    document.getElementById('consProcedures').value = consultation.procedures || '';
+
+    if (consultation.cost) {
+      const formatted = Number(consultation.cost).toFixed(2);
+      const parts = formatted.split('.');
+      const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      document.getElementById('consCost').value = 'L. ' + intPart + '.' + parts[1];
+    } else {
+      document.getElementById('consCost').value = 'L. 0.00';
+    }
+
+    const statusLabels = { pending: 'Pendiente', paid: 'Pagado' };
+    document.getElementById('consPayment').value = statusLabels[consultation.payment_status] || consultation.payment_status;
+  } catch (e) {
+    console.error(e);
+    document.body.innerHTML = '<div style="padding:2rem;color:red;"><h2>Error al cargar consulta</h2><p>' + e.message + '</p></div>';
+  }
+}
+
+loadConsultation();
+</script>
+</body>
+</html>

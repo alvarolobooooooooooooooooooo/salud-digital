@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta Podológica</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; color: #1e293b; }
+
+    main { width: 100%; margin: 0; padding: 2rem 1.5rem; }
+
+    .header {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .header h1 { font-size: 1.8rem; font-weight: 700; color: #0f172a; margin-bottom: .5rem; }
+    .header-meta { font-size: .875rem; color: #64748b; }
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .6rem 1.25rem;
+      border: 1px solid #e2e8f0;
+      background: white;
+      color: #0891b2;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-back:hover { background: #f0f9ff; border-color: #0891b2; }
+
+    .form-section {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+      border: 1px solid #f1f5f9;
+    }
+    .form-section h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #f1f5f9;
+    }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .form-grid.full { grid-template-columns: 1fr; }
+    .form-grid.two { grid-template-columns: 1fr 1fr; }
+
+    .form-group { display: flex; flex-direction: column; gap: .4rem; }
+    .form-group label {
+      font-size: .75rem;
+      font-weight: 600;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .form-group input, .form-group textarea {
+      padding: .75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+      transition: all .15s;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      outline: 2px solid #0891b2;
+      outline-offset: -1px;
+      border-color: transparent;
+    }
+    .form-group select {
+      padding: .75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: .875rem;
+      font-family: inherit;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right .75rem center;
+      padding-right: 2.25rem;
+      cursor: pointer;
+      color: #475569;
+      background-color: white;
+      transition: all .15s;
+    }
+    .form-group select:focus { outline: 2px solid #0891b2; outline-offset: -1px; border-color: transparent; }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    .radio-group {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: .5rem;
+      flex-wrap: wrap;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .875rem;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 400;
+      cursor: pointer;
+      transition: color .15s;
+    }
+    .radio-group label:hover { color: #0891b2; }
+    .radio-group input[type="radio"], .radio-group input[type="checkbox"] {
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      accent-color: #0891b2;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: .75rem;
+      padding: 2rem;
+      background: white;
+      border-top: 1px solid #f1f5f9;
+      border-radius: 0 0 12px 12px;
+      margin-top: -2rem;
+    }
+    .btn-cancel {
+      padding: .6rem 1.5rem;
+      border: 1.5px solid #e2e8f0;
+      background: white;
+      color: #64748b;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: .875rem;
+      font-weight: 500;
+      transition: all .15s;
+    }
+    .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .btn-save {
+      padding: .6rem 1.75rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: .875rem;
+      font-weight: 600;
+      transition: all .15s;
+      box-shadow: 0 2px 8px rgba(8, 145, 178, 0.2);
+    }
+    .btn-save:hover {
+      background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .form-msg {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: .875rem;
+      font-weight: 500;
+      display: none;
+      border-left: 4px solid;
+    }
+    .form-msg.err { color: #dc2626; background: #fef2f2; border-left-color: #dc2626; }
+    .form-msg.ok { color: #16a34a; background: #f0fdf4; border-left-color: #16a34a; }
+
+    .clinical-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      border: 1px solid #e2e8f0;
+    }
+    .clinical-table thead {
+      background: #f1f5f9;
+    }
+    .clinical-table th {
+      padding: 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+    }
+    .clinical-table td {
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+      font-size: 0.875rem;
+    }
+    .clinical-table input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+
+    @media (max-width: 768px) {
+      main { padding: 1.5rem 2rem; padding-top: 90px !important; }
+      .header { padding: 1.5rem; flex-direction: column; gap: 1rem; }
+      .header h1 { font-size: 1.4rem; }
+      .form-section { padding: 1.5rem; }
+      .form-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .radio-group { gap: 1rem; }
+      .footer { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="layout-main">
+  <div class="header">
+    <div>
+      <h1>Consulta Podológica</h1>
+      <p class="header-meta">Paciente: <strong id="patientName">Cargando...</strong></p>
+    </div>
+    <button class="btn-back" onclick="history.back()">← Volver</button>
+  </div>
+
+  <form id="consultForm" onsubmit="submitConsult(event)">
+    <!-- Datos Personales -->
+    <div class="form-section">
+      <h3>Datos Personales</h3>
+      <div class="form-grid two">
+        <div class="form-group">
+          <label>Edad</label>
+          <input type="number" id="consAge" placeholder="Ej: 45">
+        </div>
+        <div class="form-group">
+          <label>Profesión / Ocupación</label>
+          <input type="text" id="consOccupation" placeholder="Ej: Ingeniero">
+        </div>
+      </div>
+    </div>
+
+    <!-- Antecedentes Personales No Patológicos -->
+    <div class="form-section">
+      <h3>Antecedentes Personales No Patológicos</h3>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Hábitos (Fumar, Alcohol, Toxicomanías, Otros)</label>
+          <textarea id="consHabits" placeholder="Describa los hábitos del paciente"></textarea>
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Tipo de Calzado Habitual</label>
+          <textarea id="consFootwear" placeholder="Describa el tipo de calzado que usa regularmente"></textarea>
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Actividad Física (días/semana)</label>
+          <input type="text" id="consPhysicalActivity" placeholder="Ej: 3 días/semana">
+        </div>
+      </div>
+    </div>
+
+    <!-- Historia de Enfermedad Actual -->
+    <div class="form-section">
+      <h3>Historia de Enfermedad Actual (HEA)</h3>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Queja Principal y Duración</label>
+          <textarea id="consMainComplaint" placeholder="Describa la razón principal de la consulta"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exploración Física -->
+    <div class="form-section">
+      <h3>Exploración Física</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Peso (kg)</label>
+          <input type="number" id="consWeight" step="0.1" placeholder="Ej: 70.5">
+        </div>
+        <div class="form-group">
+          <label>Talla (cm)</label>
+          <input type="number" id="consHeight" step="0.1" placeholder="Ej: 175">
+        </div>
+        <div class="form-group">
+          <label>IMC</label>
+          <input type="number" id="consIMC" step="0.1" placeholder="Calculado">
+        </div>
+      </div>
+    </div>
+
+    <!-- Exploración Dermatológica -->
+    <div class="form-section">
+      <h3>Exploración Dermatológica</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th>Hallazgo</th>
+            <th>Pie Derecho</th>
+            <th>Pie Izquierdo</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Hiperqueratosis / Helomas</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="text"></td>
+          </tr>
+          <tr>
+            <td>Onicocriptosis</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="text"></td>
+          </tr>
+          <tr>
+            <td>Onicomicosis</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="text"></td>
+          </tr>
+          <tr>
+            <td>Hiperhidrosis / Sudoración</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="text"></td>
+          </tr>
+          <tr>
+            <td>Pie Plano / Pie Cavo</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="text"></td>
+          </tr>
+          <tr>
+            <td>Talipes (Pie Varo / Valgo)</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="text"></td>
+          </tr>
+          <tr>
+            <td>Otros Hallazgos</td>
+            <td colspan="3"><input type="text" style="width: 100%;"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Examen Neurológico -->
+    <div class="form-section">
+      <h3>Examen Neurológico</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th>Examen</th>
+            <th>Pie Derecho</th>
+            <th>Pie Izquierdo</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Recepción Vibratoria</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="text"></td>
+          </tr>
+          <tr>
+            <td>Reflejo Rotuliano</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="text"></td>
+          </tr>
+          <tr>
+            <td>Reflejo Aquíleo</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="text"></td>
+          </tr>
+          <tr>
+            <td>Recepción Táctil</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="text"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Diagnóstico y Plan -->
+    <div class="form-section">
+      <h3>Diagnóstico y Plan de Manejo</h3>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Diagnóstico</label>
+          <textarea id="consDiagnosis" placeholder="Describa el diagnóstico"></textarea>
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Plan y Manejo</label>
+          <textarea id="consTreatmentPlan" placeholder="Describa el plan de tratamiento"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Procedimientos -->
+    <div class="form-section">
+      <h3>Procedimientos Realizados</h3>
+      <div class="form-grid full">
+        <div class="form-group">
+          <textarea id="consProcedures" placeholder="Describa los procedimientos realizados"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Costos y Pago -->
+    <div class="form-section">
+      <h3>Información de Pago</h3>
+      <div class="form-grid two">
+        <div class="form-group">
+          <label>Costo de la Consulta (L.)</label>
+          <input type="text" id="consCost" placeholder="0.00" inputmode="decimal">
+        </div>
+        <div class="form-group">
+          <label>Estado de Pago</label>
+          <select id="consPayment">
+            <option value="pending">Pendiente</option>
+            <option value="paid">Pagado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="consultMsg" class="form-msg" style="display:none;"></div>
+
+    <div class="footer">
+      <button type="button" class="btn-cancel" onclick="history.back()">Cancelar</button>
+      <button type="submit" class="btn-save">Guardar Consulta</button>
+    </div>
+  </form>
+</main>
+
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script>
+requireAuth(['clinic_admin', 'doctor']);
+
+let appointmentId = null;
+let patientId = null;
+
+async function loadAppointment() {
+  const params = new URLSearchParams(window.location.search);
+  appointmentId = parseInt(params.get('id'));
+
+  if (!appointmentId) {
+    alert('ID de cita no proporcionado');
+    history.back();
+    return;
+  }
+
+  try {
+    const me = await api('/api/auth/me');
+
+    if (me.role === 'doctor' && me.specialty !== 'Podología') {
+      window.location.href = '/citas.html';
+      return;
+    }
+
+    const appts = await api('/api/appointments');
+    const appt = appts.find(a => a.id === appointmentId);
+
+    if (!appt) {
+      alert('Cita no encontrada');
+      history.back();
+      return;
+    }
+
+    patientId = appt.patient_id;
+    document.getElementById('patientName').textContent = appt.patient_name;
+  } catch (e) {
+    console.error(e);
+    alert('Error al cargar la cita');
+  }
+}
+
+async function submitConsult(e) {
+  e.preventDefault();
+  const msgEl = document.getElementById('consultMsg');
+
+  try {
+    let costInput = document.getElementById('consCost').value.trim();
+    costInput = costInput.replace(/^L\.\s*/, '').replace(/,/g, '');
+    if (costInput && !/^\d+(\.\d{1,2})?$/.test(costInput)) {
+      throw new Error('El costo debe ser un número válido');
+    }
+    let cost = parseFloat(costInput) || 0;
+
+    const me = await api('/api/auth/me');
+
+    const body = {
+      patient_id: patientId,
+      doctor_id: me.id,
+      appointment_id: appointmentId,
+      specialty: 'Podología',
+      cost,
+      payment_status: document.getElementById('consPayment').value,
+      notes: document.getElementById('consMainComplaint').value || null,
+      diagnosis: document.getElementById('consDiagnosis').value || null,
+      treatment: document.getElementById('consTreatmentPlan').value || null,
+      procedures: document.getElementById('consProcedures').value || null,
+      radiography_notes: JSON.stringify({
+        age: document.getElementById('consAge').value,
+        occupation: document.getElementById('consOccupation').value,
+        habits: document.getElementById('consHabits').value,
+        footwear: document.getElementById('consFootwear').value,
+        physical_activity: document.getElementById('consPhysicalActivity').value,
+        weight: document.getElementById('consWeight').value,
+        height: document.getElementById('consHeight').value,
+        imc: document.getElementById('consIMC').value
+      }),
+      observations: JSON.stringify({
+        dermatological: document.getElementById('consMainComplaint').value,
+        neurological: document.getElementById('consTreatmentPlan').value
+      })
+    };
+
+    msgEl.style.display = 'block';
+    msgEl.textContent = 'Guardando...';
+    msgEl.className = 'form-msg ok';
+
+    await api('/api/consultations', {
+      method: 'POST',
+      body
+    });
+
+    await api(`/api/appointments/${appointmentId}/status`, {
+      method: 'PUT',
+      body: { status: 'completed' }
+    });
+
+    msgEl.textContent = 'Consulta guardada correctamente';
+    msgEl.className = 'form-msg ok';
+    setTimeout(() => window.location.href = '/citas.html', 1500);
+  } catch (err) {
+    msgEl.style.display = 'block';
+    msgEl.textContent = err.message;
+    msgEl.className = 'form-msg err';
+  }
+}
+
+document.getElementById('consCost').addEventListener('input', (e) => {
+  let value = e.target.value;
+  value = value.replace(/[^\d.]/g, '');
+  if ((value.match(/\./g) || []).length > 1) {
+    value = value.replace(/\.(?=.*\.)/, '');
+  }
+  e.target.value = value;
+});
+
+loadAppointment();
+</script>
+</body>
+</html>
