@@ -115,6 +115,11 @@
     }
     .btn-view:hover { background: #0e7490; }
 
+    .section-dental { display: block; }
+    .section-dental.hidden { display: none; }
+    .section-podiatry { display: none; }
+    .section-podiatry.visible { display: block; }
+
     @media (max-width: 768px) {
       main { padding-top: 90px !important; max-width: 100% !important; width: 100% !important; margin: 0 !important; }
       .patient-header { flex-direction: column; text-align: center; }
@@ -192,42 +197,65 @@
     </div>
   </div>
 
-  <!-- Odontograma Section -->
-  <div class="section">
-    <h3>Odontograma</h3>
-    <p style="font-size:0.82rem;color:#6b7280;margin-bottom:1rem;">Haga clic en cada diente para cambiar su estado</p>
-    <div class="odontogram-container" id="odontogramContainer"></div>
-    <button onclick="saveOdontogram()">Guardar Odontograma</button>
-    <div class="msg" id="odontMsg"></div>
-  </div>
+  <!-- Dental Sections (Odontología) -->
+  <div id="dentalSections">
+    <!-- Odontograma Section -->
+    <div class="section section-dental">
+      <h3>Odontograma</h3>
+      <p style="font-size:0.82rem;color:#6b7280;margin-bottom:1rem;">Haga clic en cada diente para cambiar su estado</p>
+      <div class="odontogram-container" id="odontogramContainer"></div>
+      <button onclick="saveOdontogram()">Guardar Odontograma</button>
+      <div class="msg" id="odontMsg"></div>
+    </div>
 
-  <!-- Treatment History Section -->
-  <div class="section">
-    <h3>Historial de Tratamientos</h3>
-    <div id="treatmentHistory">
-      <p style="color: #94a3b8; font-size: .9rem;">Sin tratamientos registrados</p>
+    <!-- Treatment History Section -->
+    <div class="section section-dental">
+      <h3>Historial de Tratamientos</h3>
+      <div id="treatmentHistory">
+        <p style="color: #94a3b8; font-size: .9rem;">Sin tratamientos registrados</p>
+      </div>
+    </div>
+
+    <!-- Consultas Dentales Section -->
+    <div class="section section-dental">
+      <h3>Registrar Nueva Consulta Dental</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Diagnóstico</label>
+          <input type="text" id="consDiagnosis" placeholder="Diagnóstico dental">
+        </div>
+        <div class="form-group">
+          <label>Tratamiento</label>
+          <input type="text" id="consTreatment" placeholder="Plan de tratamiento">
+        </div>
+        <div class="form-group">
+          <label>Notas</label>
+          <textarea id="consNotes" placeholder="Notas adicionales" style="resize:vertical;min-height:60px;"></textarea>
+        </div>
+        <button onclick="addConsultation()" style="align-self: flex-start;">Agregar Consulta</button>
+      </div>
+      <div class="msg" id="consMsg"></div>
     </div>
   </div>
 
-  <!-- Consultas Dentales Section -->
-  <div class="section">
-    <h3>Registrar Nueva Consulta</h3>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Diagnóstico</label>
-        <input type="text" id="consDiagnosis" placeholder="Diagnóstico dental">
+  <!-- Podiatry Sections (Podología) -->
+  <div id="podiatrySections" class="section-podiatry">
+    <!-- Podogram Section -->
+    <div class="section">
+      <h3>Podograma</h3>
+      <p style="font-size:0.82rem;color:#6b7280;margin-bottom:1rem;">Registro de las consultas podológicas del paciente</p>
+      <div id="podiatryConsultations">
+        <p style="color: #94a3b8; font-size: .9rem;">Sin consultas podológicas registradas</p>
       </div>
-      <div class="form-group">
-        <label>Tratamiento</label>
-        <input type="text" id="consTreatment" placeholder="Plan de tratamiento">
-      </div>
-      <div class="form-group">
-        <label>Notas</label>
-        <textarea id="consNotes" placeholder="Notas adicionales" style="resize:vertical;min-height:60px;"></textarea>
-      </div>
-      <button onclick="addConsultation()" style="align-self: flex-start;">Agregar Consulta</button>
     </div>
-    <div class="msg" id="consMsg"></div>
+
+    <!-- Consultas Podológicas Section -->
+    <div class="section">
+      <h3>Historial de Consultas Podológicas</h3>
+      <div id="podiatryHistory">
+        <p style="color: #94a3b8; font-size: .9rem;">Sin consultas registradas</p>
+      </div>
+    </div>
   </div>
 </main>
   </main>
@@ -258,6 +286,21 @@
 
     let patientData = null;
     let odontogram = null;
+    let currentUserSpecialty = null;
+
+    function setSpecialtyView(specialty) {
+      currentUserSpecialty = specialty;
+      const dentalSections = document.getElementById('dentalSections');
+      const podiatrySections = document.getElementById('podiatrySections');
+
+      if (specialty === 'Odontología') {
+        dentalSections.style.display = 'block';
+        podiatrySections.classList.remove('visible');
+      } else if (specialty === 'Podología') {
+        dentalSections.style.display = 'none';
+        podiatrySections.classList.add('visible');
+      }
+    }
 
     function renderConsultations(consultations) {
       if (!consultations || consultations.length === 0) {
@@ -296,6 +339,61 @@
               <th>Tratamiento</th>
               <th>Fecha</th>
               <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    function renderPodiatryConsultations(consultations) {
+      if (!consultations || consultations.length === 0) {
+        document.getElementById('podiatryConsultations').innerHTML =
+          '<p style="color: #94a3b8; font-size: .9rem;">Sin consultas podológicas registradas</p>';
+        return;
+      }
+      const podiatryConsults = consultations.filter(c => c.specialty === 'Podología' || c.specialty === 'podiatry');
+      if (podiatryConsults.length === 0) {
+        document.getElementById('podiatryConsultations').innerHTML =
+          '<p style="color: #94a3b8; font-size: .9rem;">Sin consultas podológicas registradas</p>';
+        return;
+      }
+      const recent = podiatryConsults.slice(0, 5);
+      document.getElementById('podiatryConsultations').innerHTML = recent.map(c => `
+        <div class="consult-item">
+          <div class="consult-date">${new Date(c.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+          ${c.diagnosis  ? `<div class="consult-field"><strong>Diagnóstico:</strong> ${esc(c.diagnosis)}</div>`  : ''}
+          ${c.treatment  ? `<div class="consult-field"><strong>Tratamiento:</strong> ${esc(c.treatment)}</div>`  : ''}
+          ${c.notes  ? `<div class="consult-field"><strong>Notas:</strong> ${esc(c.notes)}</div>`  : ''}
+        </div>`).join('');
+    }
+
+    function renderPodiatryHistory(consultations) {
+      if (!consultations || consultations.length === 0) {
+        document.getElementById('podiatryHistory').innerHTML =
+          '<p style="color: #94a3b8; font-size: .9rem;">Sin consultas registradas</p>';
+        return;
+      }
+      const podiatryConsults = consultations.filter(c => c.specialty === 'Podología' || c.specialty === 'podiatry');
+      if (podiatryConsults.length === 0) {
+        document.getElementById('podiatryHistory').innerHTML =
+          '<p style="color: #94a3b8; font-size: .9rem;">Sin consultas registradas</p>';
+        return;
+      }
+      const rows = podiatryConsults.map((c, idx) => `
+        <tr>
+          <td>#${idx + 1}</td>
+          <td>${c.diagnosis || '-'}</td>
+          <td>${new Date(c.created_at).toLocaleDateString('es-ES')}</td>
+          <td><a href="/view-consultation-podiatry.html?id=${c.id}" class="btn-view">Ver</a></td>
+        </tr>`).join('');
+      document.getElementById('podiatryHistory').innerHTML = `
+        <table class="treatment-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Diagnóstico</th>
+              <th>Fecha</th>
+              <th>Acción</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -346,6 +444,7 @@
     (async () => {
       try {
         const me = await api('/api/auth/me');
+        setSpecialtyView(me.specialty || 'Odontología');
         await refreshPatient();
       } catch (e) {
         console.error('Error loading patient data:', e);
@@ -384,9 +483,14 @@
         initialState = JSON.parse(patientData.odontogram_state || '{}');
       } catch {}
 
-      odontogram = new OdontogramContainer('odontogramContainer', initialState, true);
-      renderConsultations(patientData.consultations);
-      renderTreatmentHistory(patientData.consultations);
+      if (currentUserSpecialty === 'Odontología') {
+        odontogram = new OdontogramContainer('odontogramContainer', initialState, true);
+        renderConsultations(patientData.consultations);
+        renderTreatmentHistory(patientData.consultations);
+      } else if (currentUserSpecialty === 'Podología') {
+        renderPodiatryConsultations(patientData.consultations);
+        renderPodiatryHistory(patientData.consultations);
+      }
     }
 
   </script>
