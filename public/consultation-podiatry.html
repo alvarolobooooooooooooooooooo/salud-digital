@@ -7,37 +7,141 @@
   <link rel="stylesheet" href="/layout.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; color: #1e293b; }
+    html, body { width: 100%; margin: 0; padding: 0; overflow-x: visible; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      color: #1e293b;
+      position: relative;
+      overflow-x: hidden;
+    }
 
-    main { width: 100%; margin: 0; padding: 2rem 1.5rem; }
+    /* ── Animated Background Orbs ── */
+    @keyframes floatBg {
+      0%, 100% { transform: translateY(0px) translateX(0px); }
+      50% { transform: translateY(50px) translateX(30px); }
+    }
 
+    body::before {
+      content: '';
+      position: fixed;
+      width: 1000px;
+      height: 1000px;
+      background: radial-gradient(circle, rgba(8, 145, 178, 0.12) 0%, transparent 70%);
+      top: -200px;
+      right: -300px;
+      border-radius: 50%;
+      z-index: 0;
+      animation: floatBg 20s ease-in-out infinite;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
+      bottom: -200px;
+      left: -200px;
+      border-radius: 50%;
+      z-index: 0;
+      animation: floatBg 25s ease-in-out infinite reverse;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+
+    main { width: 100%; margin: 0; padding: 1.5rem 1rem; overflow-x: visible; }
+
+    /* ── Floating Orb Animations ── */
+    @keyframes floatSlow { from { transform: translateY(0px); } to { transform: translateY(20px); } }
+
+    /* ── Page Header — Ultra Premium Radical ── */
     .header {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      padding: 2rem;
-      margin-bottom: 2rem;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
+      margin-bottom: 2.5rem;
+      gap: 3rem;
+      background: linear-gradient(135deg, #0891b2 0%, #0369a1 50%, #06b6d4 100%);
+      padding: 3rem 3.5rem;
+      border-radius: 28px;
+      box-shadow: 0 30px 80px rgba(8, 145, 178, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      position: relative;
+      overflow: hidden;
+      min-height: 180px;
     }
-    .header h1 { font-size: 1.8rem; font-weight: 700; color: #0f172a; margin-bottom: .5rem; }
-    .header-meta { font-size: .875rem; color: #64748b; }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      right: -25%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent);
+      border-radius: 50%;
+      animation: floatSlow 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -40%;
+      left: -15%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.15), transparent);
+      border-radius: 50%;
+      animation: floatSlow 10s ease-in-out infinite reverse;
+      pointer-events: none;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+    }
+
+    .header-content h1 {
+      font-size: 3rem;
+      font-weight: 900;
+      color: white;
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    .header-content p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.1rem;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
     .btn-back {
+      position: relative;
+      z-index: 2;
       display: flex;
       align-items: center;
       gap: .4rem;
       padding: .6rem 1.25rem;
-      border: 1px solid #e2e8f0;
-      background: white;
-      color: #0891b2;
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
       border-radius: 8px;
       font-size: .9rem;
       font-family: inherit;
       cursor: pointer;
       transition: all .15s;
+      backdrop-filter: blur(10px);
     }
-    .btn-back:hover { background: #f0f9ff; border-color: #0891b2; }
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
 
     .form-section {
       background: white;
@@ -208,15 +312,50 @@
       border-radius: 4px;
       font-size: 0.875rem;
     }
+    .clinical-table textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-family: inherit;
+      min-height: 60px;
+      max-height: 120px;
+      resize: none;
+      overflow-y: auto;
+    }
 
     @media (max-width: 768px) {
-      main { padding: 1.5rem 2rem; padding-top: 90px !important; }
-      .header { padding: 1.5rem; flex-direction: column; gap: 1rem; }
-      .header h1 { font-size: 1.4rem; }
+      main { padding: 1rem 0.75rem; overflow-x: visible; }
+      .header { padding: 2rem 1.5rem; flex-direction: column; gap: 1.5rem; min-height: auto; }
+      .header-content h1 { font-size: 1.8rem; }
+      .header-content p { font-size: 0.95rem; }
+      .btn-back { width: 100%; justify-content: center; }
       .form-section { padding: 1.5rem; }
       .form-grid { grid-template-columns: 1fr; gap: 1rem; }
       .radio-group { gap: 1rem; }
       .footer { padding: 1.5rem; }
+    }
+
+    @media (max-width: 380px) {
+      main { padding: 0.75rem 0.5rem; }
+      .header { padding: 1.5rem 1rem; }
+      .header-content h1 { font-size: 1.4rem; }
+      .header-content p { font-size: 0.85rem; }
+      .form-section { padding: 1rem; }
+      .form-section h3 { font-size: 0.95rem; margin-bottom: 1rem; }
+      .form-grid { gap: 0.75rem; grid-template-columns: 1fr !important; }
+      .form-grid.two { grid-template-columns: 1fr; }
+      .form-group label { font-size: 0.7rem; }
+      .form-group input, .form-group textarea, .form-group select {
+        padding: 0.6rem;
+        font-size: 14px;
+      }
+      .clinical-table th { padding: 0.35rem; font-size: 0.65rem; }
+      .clinical-table td { padding: 0.35rem; font-size: 0.7rem; }
+      .clinical-table input { padding: 0.3rem; font-size: 0.65rem; width: 100% !important; }
+      .footer { padding: 1rem; gap: 0.5rem; }
+      .btn-cancel, .btn-save { padding: 0.5rem 1rem; font-size: 0.8rem; }
     }
   </style>
 </head>
@@ -224,9 +363,9 @@
 
 <main class="layout-main">
   <div class="header">
-    <div>
+    <div class="header-content">
       <h1>Consulta Podológica</h1>
-      <p class="header-meta">Paciente: <strong id="patientName">Cargando...</strong></p>
+      <p class="header-content p">Paciente: <strong id="patientName">Cargando...</strong></p>
     </div>
     <button class="btn-back" onclick="history.back()">← Volver</button>
   </div>
@@ -262,57 +401,57 @@
           <tr>
             <td colspan="2">Diabetes Mellitus</td>
             <td style="text-align: center;"><input type="checkbox" id="consFamDiabetes"></td>
-            <td><input type="text" id="consFamDiabetesObs"></td>
+            <td><textarea id="consFamDiabetesObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Hipertensión</td>
             <td style="text-align: center;"><input type="checkbox" id="consFamHypertension"></td>
-            <td><input type="text" id="consFamHypertensionObs"></td>
+            <td><textarea id="consFamHypertensionObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Cardiopatías</td>
             <td style="text-align: center;"><input type="checkbox" id="consFamCardiopathy"></td>
-            <td><input type="text" id="consFamCardioppathyObs"></td>
+            <td><textarea id="consFamCardioppathyObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Enfermedad Vascular</td>
             <td style="text-align: center;"><input type="checkbox" id="consFamVascular"></td>
-            <td><input type="text" id="consFamVascularObs"></td>
+            <td><textarea id="consFamVascularObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Psoriasis</td>
             <td style="text-align: center;"><input type="checkbox" id="consFamPsoriasis"></td>
-            <td><input type="text" id="consFamPsoriasisObs"></td>
+            <td><textarea id="consFamPsoriasisObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Artritis</td>
             <td style="text-align: center;"><input type="checkbox" id="consFamArthritis"></td>
-            <td><input type="text" id="consFamArthritisObs"></td>
+            <td><textarea id="consFamArthritisObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Cáncer</td>
             <td style="text-align: center;"><input type="checkbox" id="consFamCancer"></td>
-            <td><input type="text" id="consFamCancerObs"></td>
+            <td><textarea id="consFamCancerObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Enfermedades Dermatológicas</td>
             <td style="text-align: center;"><input type="checkbox" id="consFamDermatological"></td>
-            <td><input type="text" id="consFamDermatologicalObs"></td>
+            <td><textarea id="consFamDermatologicalObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">VIH</td>
             <td style="text-align: center;"><input type="checkbox" id="consFamHIV"></td>
-            <td><input type="text" id="consFamHIVObs"></td>
+            <td><textarea id="consFamHIVObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Tuberculosis (TB)</td>
             <td style="text-align: center;"><input type="checkbox" id="consFamTB"></td>
-            <td><input type="text" id="consFamTBObs"></td>
+            <td><textarea id="consFamTBObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Enfermedad Renal</td>
             <td style="text-align: center;"><input type="checkbox" id="consFamRenal"></td>
-            <td><input type="text" id="consFamRenalObs"></td>
+            <td><textarea id="consFamRenalObs"></textarea></td>
           </tr>
         </tbody>
       </table>
@@ -333,40 +472,40 @@
           <tr>
             <td colspan="2">Antecedentes Traumáticos</td>
             <td style="text-align: center;"><input type="checkbox" id="consPerTraumatic"></td>
-            <td><input type="text" id="consPerTraumaticObs"></td>
+            <td><textarea id="consPerTraumaticObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Antecedentes Quirúrgicos</td>
             <td style="text-align: center;"><input type="checkbox" id="consPerSurgical"></td>
-            <td><input type="text" id="consPerSurgicalObs"></td>
+            <td><textarea id="consPerSurgicalObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Alergias</td>
             <td style="text-align: center;"><input type="checkbox" id="consPerAllergies"></td>
-            <td><input type="text" id="consPerAllergiesObs"></td>
+            <td><textarea id="consPerAllergiesObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Toma Aspirina o Anticoagulante</td>
             <td style="text-align: center;"><input type="checkbox" id="consPerAspirin"></td>
-            <td><input type="text" id="consPerAspirinObs"></td>
+            <td><textarea id="consPerAspirinObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Embarazo</td>
             <td style="text-align: center;"><input type="checkbox" id="consPerPregnancy"></td>
-            <td><input type="text" id="consPerPregnancyObs"></td>
+            <td><textarea id="consPerPregnancyObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Hábitos (Fumar, Alcohol, Toxicomanías)</td>
             <td style="text-align: center;"><input type="checkbox" id="consPerHabits"></td>
-            <td><input type="text" id="consPerHabitsObs"></td>
+            <td><textarea id="consPerHabitsObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Tipo de Calzado Habitual</td>
-            <td colspan="2"><input type="text" id="consFootwear" style="width: 100%;"></td>
+            <td colspan="2"><textarea id="consFootwear" style="width: 100%;"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Actividad Física (días/semana)</td>
-            <td colspan="2"><input type="text" id="consPhysicalActivity" style="width: 100%;"></td>
+            <td colspan="2"><textarea id="consPhysicalActivity" style="width: 100%;"></textarea></td>
           </tr>
         </tbody>
       </table>
@@ -422,41 +561,41 @@
             <td>Hiperqueratosis / Helomas</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
-            <td><input type="text"></td>
+            <td><textarea></textarea></td>
           </tr>
           <tr>
             <td>Onicocriptosis</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
-            <td><input type="text"></td>
+            <td><textarea></textarea></td>
           </tr>
           <tr>
             <td>Onicomicosis</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
-            <td><input type="text"></td>
+            <td><textarea></textarea></td>
           </tr>
           <tr>
             <td>Hiperhidrosis / Sudoración</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
-            <td><input type="text"></td>
+            <td><textarea></textarea></td>
           </tr>
           <tr>
             <td>Pie Plano / Pie Cavo</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
-            <td><input type="text"></td>
+            <td><textarea></textarea></td>
           </tr>
           <tr>
             <td>Talipes (Pie Varo / Valgo)</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
-            <td><input type="text"></td>
+            <td><textarea></textarea></td>
           </tr>
           <tr>
             <td>Otros Hallazgos</td>
-            <td colspan="3"><input type="text" style="width: 100%;"></td>
+            <td colspan="3"><textarea style="width: 100%;"></textarea></td>
           </tr>
         </tbody>
       </table>
@@ -479,25 +618,25 @@
             <td>Recepción Vibratoria</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
-            <td><input type="text"></td>
+            <td><textarea></textarea></td>
           </tr>
           <tr>
             <td>Reflejo Rotuliano</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
-            <td><input type="text"></td>
+            <td><textarea></textarea></td>
           </tr>
           <tr>
             <td>Reflejo Aquíleo</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
-            <td><input type="text"></td>
+            <td><textarea></textarea></td>
           </tr>
           <tr>
             <td>Recepción Táctil</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
-            <td><input type="text"></td>
+            <td><textarea></textarea></td>
           </tr>
         </tbody>
       </table>
@@ -567,6 +706,7 @@ requireAuth(['clinic_admin', 'doctor']);
 let appointmentId = null;
 let patientId = null;
 let podogram1 = null;
+let consultSubmitting = false;
 
 async function loadAppointment() {
   const params = new URLSearchParams(window.location.search);
@@ -606,7 +746,11 @@ async function loadAppointment() {
 
 async function submitConsult(e) {
   e.preventDefault();
+  if (consultSubmitting) return;
+  consultSubmitting = true;
   const msgEl = document.getElementById('consultMsg');
+  const submitBtn = document.querySelector('#consultForm button[type="submit"]');
+  if (submitBtn) submitBtn.disabled = true;
 
   try {
     let costInput = document.getElementById('consCost').value.trim();
@@ -691,6 +835,8 @@ async function submitConsult(e) {
     msgEl.style.display = 'block';
     msgEl.textContent = err.message;
     msgEl.className = 'form-msg err';
+    if (submitBtn) submitBtn.disabled = false;
+    consultSubmitting = false;
   }
 }
 

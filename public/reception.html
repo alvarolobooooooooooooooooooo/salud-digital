@@ -426,6 +426,226 @@
       background: #fee2e2;
       color: #991b1b;
     }
+
+    /* ── Create Patient Modal — Ultra Premium ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .premium-modal {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border-radius: 24px;
+      padding: 3rem;
+      width: 90%;
+      max-width: 550px;
+      box-shadow: 0 50px 100px rgba(8, 145, 178, 0.15), 0 0 1px rgba(8, 145, 178, 0.3);
+      position: relative;
+      overflow: hidden;
+      animation: slideUp 0.3s ease-out;
+      border: 1px solid rgba(8, 145, 178, 0.1);
+    }
+    .premium-modal::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(8, 145, 178, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .premium-modal::after {
+      content: '';
+      position: absolute;
+      bottom: -30%;
+      left: -10%;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.06) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .premium-modal-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+    }
+    .premium-modal-title {
+      font-size: 1.75rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+    }
+    .premium-modal-subtitle {
+      color: #64748b;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-top: 0.25rem;
+    }
+    .premium-modal-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 40px;
+      height: 40px;
+      background: #f1f5f9;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.25rem;
+      cursor: pointer;
+      color: #94a3b8;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .premium-modal-close:hover {
+      background: #e2e8f0;
+      color: #475569;
+      transform: rotate(90deg);
+    }
+    .premium-form {
+      position: relative;
+      z-index: 1;
+    }
+    .premium-form-group {
+      margin-bottom: 1.5rem;
+    }
+    .premium-form-group:last-of-type {
+      margin-bottom: 0;
+    }
+    .premium-form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.6rem;
+    }
+    .premium-form-input {
+      width: 100%;
+      padding: 0.875rem 1.125rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: white;
+      transition: all 0.2s;
+      color: #1e293b;
+    }
+    .premium-form-input:focus {
+      outline: none;
+      border-color: #0891b2;
+      background: #f0f9ff;
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+    }
+    .premium-form-input::placeholder {
+      color: #cbd5e1;
+    }
+    .premium-form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    .btn-premium-cancel {
+      flex: 1;
+      padding: 0.875rem;
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .btn-premium-cancel:hover {
+      background: #e2e8f0;
+      color: #1e293b;
+      border-color: #cbd5e1;
+    }
+    .btn-premium-create {
+      flex: 1;
+      padding: 0.875rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      box-shadow: 0 8px 16px rgba(8, 145, 178, 0.2);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .btn-premium-create:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(8, 145, 178, 0.3);
+    }
+    .btn-premium-create:active {
+      transform: translateY(0);
+    }
+    .btn-create-patient {
+      width: 100%;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, #ecf9fc 0%, #f0f9ff 100%);
+      border: 2px dashed #0891b2;
+      border-radius: 12px;
+      color: #0891b2;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      margin-top: 1rem;
+    }
+    .btn-create-patient:hover {
+      background: linear-gradient(135deg, #e0f7fa 0%, #e0f7fa 100%);
+      border-color: #06b6d4;
+      color: #06b6d4;
+      transform: scale(1.02);
+    }
   </style>
 </head>
 <body>
@@ -511,6 +731,9 @@
             required
           >
           <div id="patientSuggestions" style="margin-top: 0.5rem; max-height: 200px; overflow-y: auto;"></div>
+          <button type="button" class="btn-create-patient" onclick="openCreatePatientModal()">
+            ✨ Crear Nuevo Paciente
+          </button>
         </div>
 
         <div class="form-group">
@@ -547,6 +770,75 @@
           </button>
           <button type="submit" class="btn-submit">
             Agendar Cita
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create Patient Modal -->
+  <div class="modal-overlay" id="createPatientModal">
+    <div class="premium-modal">
+      <button class="premium-modal-close" onclick="closeCreatePatientModal()">✕</button>
+      <div class="premium-modal-header">
+        <div>
+          <div class="premium-modal-title">Nuevo Paciente</div>
+          <div class="premium-modal-subtitle">Registra un paciente en el sistema</div>
+        </div>
+      </div>
+
+      <form id="createPatientForm" onsubmit="saveNewPatient(event)" class="premium-form">
+        <div class="premium-form-group">
+          <label class="premium-form-label">Nombre Completo</label>
+          <input
+            type="text"
+            id="newPatientName"
+            class="premium-form-input"
+            placeholder="Ej: Juan Pérez"
+            required
+          >
+        </div>
+
+        <div class="premium-form-group">
+          <label class="premium-form-label">Cédula / DNI</label>
+          <input
+            type="text"
+            id="newPatientId"
+            class="premium-form-input"
+            placeholder="Ej: 0801-1990-00001"
+            required
+          >
+        </div>
+
+        <div class="premium-form-group">
+          <label class="premium-form-label">Edad</label>
+          <input
+            type="number"
+            id="newPatientAge"
+            class="premium-form-input"
+            placeholder="Ej: 35"
+            min="0"
+            max="150"
+            required
+          >
+        </div>
+
+        <div class="premium-form-group">
+          <label class="premium-form-label">Teléfono</label>
+          <input
+            type="tel"
+            id="newPatientPhone"
+            class="premium-form-input"
+            placeholder="Ej: +504 9999-9999"
+          >
+        </div>
+
+        <div class="premium-form-actions">
+          <button type="button" class="btn-premium-cancel" onclick="closeCreatePatientModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-premium-create">
+            Crear Paciente
           </button>
         </div>
       </form>
@@ -713,6 +1005,51 @@
       document.getElementById('patientInput').value = name;
       document.getElementById('patientInput').dataset.patientId = id;
       document.getElementById('patientSuggestions').innerHTML = '';
+    }
+
+    function openCreatePatientModal() {
+      document.getElementById('createPatientModal').classList.add('active');
+    }
+
+    function closeCreatePatientModal() {
+      document.getElementById('createPatientModal').classList.remove('active');
+      document.getElementById('createPatientForm').reset();
+    }
+
+    async function saveNewPatient(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('newPatientName').value;
+      const identityNumber = document.getElementById('newPatientId').value;
+      const age = document.getElementById('newPatientAge').value;
+      const phone = document.getElementById('newPatientPhone').value;
+
+      try {
+        const newPatient = await api('/api/patients', {
+          method: 'POST',
+          body: {
+            name,
+            identity_number: identityNumber,
+            age: parseInt(age),
+            phone,
+            gender: '',
+            birth_date: ''
+          }
+        });
+
+        // Auto-select the new patient
+        selectPatient(newPatient.name, newPatient.id);
+
+        // Reload patients list
+        await loadPatients();
+
+        // Close the create patient modal
+        closeCreatePatientModal();
+
+        msg('message', '✨ Paciente creado exitosamente');
+      } catch (err) {
+        msg('message', err.message || 'Error creando paciente', true);
+      }
     }
 
     async function saveAppointment(e) {
