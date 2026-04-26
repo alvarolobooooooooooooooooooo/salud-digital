@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Expediente Clínico Podológico</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; color: #1e293b; }
+    main { width: 100%; margin: 0; padding: 2rem 1.5rem; }
+    .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+    .patient-header { display: flex; align-items: center; gap: 2rem; background: white; border-radius: 12px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+    .patient-avatar { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2.5rem; font-weight: 700; }
+    .patient-header-info { flex: 1; }
+    .patient-name { font-size: 1.8rem; font-weight: 700; margin-bottom: .3rem; }
+    .patient-id { color: #0891b2; font-weight: 600; margin-bottom: .5rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .panel { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+    .panel h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem; color: #0f172a; border-bottom: 2px solid #f0f9ff; padding-bottom: .75rem; }
+    .info-item { display: flex; flex-direction: column; gap: .2rem; margin-bottom: 1.25rem; }
+    .info-label { font-size: .75rem; font-weight: 600; text-transform: uppercase; color: #64748b; letter-spacing: .03em; }
+    .info-value { font-size: .95rem; color: #0f172a; font-weight: 500; }
+    .section { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.07); padding: 1.5rem; margin-bottom: 2.5rem; }
+    .section h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; }
+    .treatment-table { width: 100%; border-collapse: collapse; }
+    .treatment-table th { padding: .75rem; text-align: left; font-size: .8rem; font-weight: 600; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #f0f9ff; }
+    .treatment-table td { padding: .75rem; border-bottom: 1px solid #f1f5f9; font-size: .85rem; }
+    .treatment-table tr:hover { background: #f9fafb; }
+    .btn-back { display: flex; align-items: center; gap: .4rem; padding: .6rem 1.25rem; border: 1px solid #e2e8f0; background: white; color: #0891b2; border-radius: 8px; font-size: .9rem; cursor: pointer; }
+    .btn-back:hover { background: #f0f9ff; }
+    .btn-view { padding: .4rem .8rem; background: #0891b2; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: .75rem; font-weight: 600; text-decoration: none; display: inline-block; }
+    .btn-view:hover { background: #0e7490; }
+    @media (max-width: 768px) {
+      main { padding-top: 90px !important; }
+      .patient-header { flex-direction: column; text-align: center; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="layout-main">
+  <div class="header-top">
+    <div>
+      <h1>Expediente Clínico Podológico</h1>
+    </div>
+    <button class="btn-back" onclick="history.back()">← Volver</button>
+  </div>
+
+  <!-- Patient Header Card -->
+  <div class="patient-header">
+    <div class="patient-avatar" id="patientAvatar">CR</div>
+    <div class="patient-header-info">
+      <div class="patient-name" id="patientName">Cargando...</div>
+      <div class="patient-id" id="patientIdDisplay">ID: --</div>
+      <div style="color: #64748b; font-size: .9rem;">Registrado el <span id="registerDate">--</span></div>
+    </div>
+  </div>
+
+  <div class="tab-buttons">
+    <button class="tab-btn" onclick="window.location.href='/medical-record.html?id='+new URLSearchParams(window.location.search).get('id')" style="background: white; color: #0891b2; border: 1px solid #e2e8f0; padding: .6rem 1.25rem; border-radius: 6px; cursor: pointer;">Expediente Médico</button>
+  </div>
+
+  <!-- Info Panels Grid -->
+  <div class="grid">
+    <div class="panel">
+      <h3>Información Básica</h3>
+      <div class="info-item">
+        <div class="info-label">Género</div>
+        <div class="info-value" id="infoGender">--</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Fecha de Nacimiento</div>
+        <div class="info-value" id="infoBirthDate">--</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Edad</div>
+        <div class="info-value" id="infoAge">--</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Teléfono</div>
+        <div class="info-value" id="infoPhone">--</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Próximas Citas</h3>
+      <div id="appointmentsList">
+        <p style="color: #94a3b8; font-size: .9rem;">Sin citas programadas</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Consultas Recientes</h3>
+      <div id="recentConsultations">
+        <p style="color: #94a3b8; font-size: .9rem;">Sin consultas registradas</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historial de Consultas Podológicas -->
+  <div class="section">
+    <h3>Historial de Consultas Podológicas</h3>
+    <div id="podiatryHistory">
+      <p style="color: #94a3b8; font-size: .9rem;">Sin consultas registradas</p>
+    </div>
+  </div>
+
+</main>
+
+<script src="/icons.js"></script>
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script>
+  requireAuth(['clinic_admin', 'doctor']);
+
+  const params = new URLSearchParams(window.location.search);
+  const patientId = params.get('id');
+  if (!patientId) window.location.href = '/patients.html';
+
+  let patientData = null;
+
+  function renderPodiatryHistory(consultations) {
+    if (!consultations || consultations.length === 0) {
+      document.getElementById('podiatryHistory').innerHTML =
+        '<p style="color: #94a3b8; font-size: .9rem;">Sin consultas registradas</p>';
+      return;
+    }
+    const podiatryConsults = consultations.filter(c => c.specialty === 'Podología' || c.specialty === 'podiatry');
+    if (podiatryConsults.length === 0) {
+      document.getElementById('podiatryHistory').innerHTML =
+        '<p style="color: #94a3b8; font-size: .9rem;">Sin consultas podológicas registradas</p>';
+      return;
+    }
+    const rows = podiatryConsults.map((c, idx) => `
+      <tr>
+        <td>#${idx + 1}</td>
+        <td>${c.diagnosis || '-'}</td>
+        <td>${new Date(c.created_at).toLocaleDateString('es-ES')}</td>
+        <td><a href="/view-consultation-podiatry.html?id=${c.id}" class="btn-view">Ver</a></td>
+      </tr>`).join('');
+    document.getElementById('podiatryHistory').innerHTML = `
+      <table class="treatment-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Diagnóstico</th>
+            <th>Fecha</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  (async () => {
+    try {
+      const me = await api('/api/auth/me');
+      if (me.role === 'doctor' && me.specialty !== 'Podología') {
+        window.location.href = '/clinical-record.html?id=' + patientId;
+        return;
+      }
+
+      await refreshPatient();
+    } catch (e) {
+      console.error('Error:', e);
+      document.body.innerHTML = `<div style="color:#dc2626;padding:2rem;"><h2>Error al cargar</h2></div>`;
+    }
+  })();
+
+  async function refreshPatient() {
+    patientData = await api(`/api/patients/${patientId}`);
+    document.title = `SaludDigital — ${patientData.name}`;
+
+    const initials = patientData.name.split(' ').map(n => n[0]).join('').toUpperCase();
+    document.getElementById('patientAvatar').innerHTML = initials;
+    document.getElementById('patientName').innerHTML = patientData.name;
+    document.getElementById('patientIdDisplay').innerHTML = `ID: ${patientData.identity_number}`;
+    document.getElementById('registerDate').innerHTML = patientData.created_at ? new Date(patientData.created_at).toLocaleDateString('es-ES') : '--';
+
+    document.getElementById('infoGender').innerHTML = patientData.gender || '--';
+    document.getElementById('infoBirthDate').innerHTML = patientData.birth_date ? new Date(patientData.birth_date).toLocaleDateString('es-ES') : '--';
+    document.getElementById('infoAge').innerHTML = patientData.age ? `${patientData.age} años` : '--';
+    document.getElementById('infoPhone').innerHTML = patientData.phone || '--';
+
+    const appointmentsHtml = patientData.appointments && patientData.appointments.length > 0
+      ? patientData.appointments.slice(0, 3).map(a => `
+        <div style="padding: .75rem; background: #f0f9ff; border-radius: 8px; margin-bottom: .75rem; border-left: 3px solid #0891b2;">
+          <div style="font-size: .85rem; font-weight: 600; color: #0891b2;">${new Date(a.appointment_date).toLocaleDateString('es-ES')}</div>
+          <div style="font-size: .9rem; font-weight: 600; color: #0f172a;">${a.treatment || 'Cita'}</div>
+          <div style="font-size: .8rem; color: #64748b;">Dr. ${a.doctor_name || 'Sin asignar'}</div>
+        </div>`).join('')
+      : '<p style="color: #94a3b8; font-size: .9rem;">Sin citas programadas</p>';
+    document.getElementById('appointmentsList').innerHTML = appointmentsHtml;
+
+    const recentHtml = patientData.consultations && patientData.consultations.length > 0
+      ? patientData.consultations.slice(0, 3).map(c => `
+        <div style="padding: .75rem; background: #f9fafb; border-radius: 8px; margin-bottom: .75rem; border-left: 3px solid #0891b2;">
+          <div style="font-size: .85rem; font-weight: 600; color: #0891b2;">${new Date(c.created_at).toLocaleDateString('es-ES')}</div>
+          ${c.diagnosis ? `<div style="font-size: .85rem; color: #475569;"><strong>Diagnóstico:</strong> ${c.diagnosis}</div>` : ''}
+        </div>`).join('')
+      : '<p style="color: #94a3b8; font-size: .9rem;">Sin consultas registradas</p>';
+    document.getElementById('recentConsultations').innerHTML = recentHtml;
+
+    renderPodiatryHistory(patientData.consultations);
+  }
+</script>
+</body>
+</html>

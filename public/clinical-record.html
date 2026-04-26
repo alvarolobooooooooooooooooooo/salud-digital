@@ -200,24 +200,28 @@
   <script src="/icons.js"></script>
   <script src="/common.js"></script>
   <script>
-    // Get user specialty IMMEDIATELY before anything else
-    let userSpecialty = 'Odontología';
+    // Redirect podiatry doctors to podiatry-specific clinical record
     const token = localStorage.getItem('sd_token');
-
-    // Fetch user data synchronously to get specialty before loading scripts
     if (token) {
       fetch('/api/auth/me', {
         headers: { 'Authorization': 'Bearer ' + token }
       })
       .then(r => r.json())
       .then(user => {
-        userSpecialty = user.specialty || 'Odontología';
-        localStorage.setItem('sd_user_specialty', userSpecialty);
-        console.log('[clinical-record] Fetched specialty:', userSpecialty);
-        loadOdontogramScripts();
+        const specialty = user.specialty || '';
+        const isPodiatry = specialty.toLowerCase().includes('podol');
+
+        if (isPodiatry) {
+          // Redirect podiatry doctors to podiatry version
+          const patientId = new URLSearchParams(window.location.search).get('id');
+          window.location.href = `/clinical-record-podiatry.html?id=${patientId}`;
+        } else {
+          // Load odontogram scripts for dental doctors
+          loadOdontogramScripts();
+        }
       })
       .catch(e => {
-        console.error('Failed to fetch specialty:', e);
+        console.error('Failed to fetch specialty, loading odontogram by default:', e);
         loadOdontogramScripts();
       });
     } else {
@@ -225,27 +229,21 @@
     }
 
     function loadOdontogramScripts() {
-      const specialty = localStorage.getItem('sd_user_specialty') || userSpecialty || 'Odontología';
-      const isPodiatry = specialty.toLowerCase().includes('podol');
-      console.log('[clinical-record] Loading scripts for specialty:', specialty, 'isPodiatry:', isPodiatry);
-
-      if (!isPodiatry) {
-        const scripts = [
-          '/odontogram.types.js',
-          '/odontogram.data.js',
-          '/odontogram.utils.js',
-          '/odontogram-tooth.js',
-          '/odontogram-arch.js',
-          '/odontogram-toolbar.js',
-          '/odontogram-legend.js',
-          '/odontogram-container.js'
-        ];
-        scripts.forEach(src => {
-          const script = document.createElement('script');
-          script.src = src;
-          document.head.appendChild(script);
-        });
-      }
+      const scripts = [
+        '/odontogram.types.js',
+        '/odontogram.data.js',
+        '/odontogram.utils.js',
+        '/odontogram-tooth.js',
+        '/odontogram-arch.js',
+        '/odontogram-toolbar.js',
+        '/odontogram-legend.js',
+        '/odontogram-container.js'
+      ];
+      scripts.forEach(src => {
+        const script = document.createElement('script');
+        script.src = src;
+        document.head.appendChild(script);
+      });
     }
   </script>
 <script src="/layout.js"></script>
