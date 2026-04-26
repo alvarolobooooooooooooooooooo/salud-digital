@@ -18,7 +18,6 @@
       --sidebar-w: 240px;
     }
 
-    /* ── Reset & Base ── */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
     a { color: var(--primary); text-decoration: none; }
@@ -26,53 +25,146 @@
     button { font-family: inherit; cursor: pointer; }
     svg { stroke: currentColor; }
 
-
     /* ── Content Area ── */
-    .content { padding: 1.5rem 1.75rem; flex: 1; }
+    .content {
+      padding: 2rem 2rem;
+      flex: 1;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e8f4f8 100%);
+    }
 
-    /* ── Stat Cards ── */
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-bottom: 1.5rem; }
+    /* ── Stat Cards - Premium ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
     .stat-card {
-      background: var(--card); border-radius: 12px;
-      padding: 1.5rem 1.5rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      display: flex; align-items: center; gap: 1.25rem;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 1.75rem;
+      box-shadow: 0 15px 40px rgba(8, 145, 178, 0.1), inset 0 0 1px rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      animation: slideUp 0.6s ease-out;
     }
+
+    .stat-card:hover {
+      box-shadow: 0 25px 50px rgba(8, 145, 178, 0.15);
+      transform: translateY(-4px);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .stat-icon {
-      width: 48px; height: 48px; border-radius: 12px;
-      background: var(--primary-light);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--primary); flex-shrink: 0; font-size: 1.6rem;
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      flex-shrink: 0;
+      font-size: 1.8rem;
+      box-shadow: 0 8px 16px rgba(8, 145, 178, 0.1);
     }
+
     .stat-body { flex: 1; }
-    .stat-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
-    .stat-value { font-size: 2rem; font-weight: 700; color: var(--text); line-height: 1.1; }
-    .stat-sub { font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem; }
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+      background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-sub { font-size: 0.8rem; color: #94a3b8; margin-top: 0.3rem; font-weight: 500; }
 
-    /* ── Mid Row (Donut + Appointments) ── */
-    .mid-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.5rem; }
+    /* ── Mid Row ── */
+    .mid-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
 
-    /* ── Card ── */
+    /* ── Card Premium ── */
     .card {
-      background: var(--card); border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    }
-    .card-hdr {
-      display: flex; justify-content: space-between;
-      align-items: center; margin-bottom: 1rem;
-    }
-    .card-title { font-size: 1rem; font-weight: 600; color: var(--text); }
-    .card-badge {
-      background: var(--primary-light); color: var(--primary);
-      font-size: 0.72rem; font-weight: 600;
-      padding: 0.2rem 0.6rem; border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(15px);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 15px 40px rgba(8, 145, 178, 0.1), inset 0 0 1px rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      animation: slideUp 0.6s ease-out;
     }
 
-    /* ── Patient Summary (Donut) ── */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+      border-radius: 16px;
+    }
+
+    .card-hdr {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+    .card-badge {
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
+      color: var(--primary);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: 1px solid rgba(8, 145, 178, 0.2);
+    }
+
+    /* ── Donut Chart ── */
     .donut-wrap {
-      display: flex; align-items: center;
-      justify-content: center; gap: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
     }
     .donut-container {
       position: relative;
@@ -82,6 +174,7 @@
     .donut-svg {
       width: 100%;
       height: 100%;
+      filter: drop-shadow(0 8px 16px rgba(8, 145, 178, 0.1));
     }
     .donut-label-wrap {
       position: absolute;
@@ -93,189 +186,353 @@
     }
     .donut-value {
       font-size: 2.5rem;
-      font-weight: 800;
-      color: #0f172a;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       line-height: 1;
     }
     .donut-text {
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       color: #64748b;
       font-weight: 600;
-      margin-top: 0.3rem;
+      margin-top: 0.4rem;
     }
-    .donut-legend { display: flex; flex-direction: column; gap: 0.75rem; }
-    .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
-    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .legend-label { color: var(--muted); flex: 1; }
-    .legend-val { font-weight: 600; color: var(--text); }
+    .donut-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      padding: 0.75rem 1rem;
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
+      border-radius: 10px;
+      border: 1px solid rgba(8, 145, 178, 0.1);
+    }
+    .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .legend-label { color: var(--muted); flex: 1; font-weight: 600; }
+    .legend-val { font-weight: 700; color: var(--text); }
 
     /* ── Appointments List ── */
-    .appt-scroll { max-height: 300px; overflow-y: auto; }
-    .appt-row {
-      display: flex; align-items: center; gap: 0.75rem;
-      padding: 0.75rem 0; border-bottom: 1px solid var(--bg);
+    .appt-scroll {
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 0.5rem;
     }
-    .appt-row:last-child { border-bottom: none; }
+
+    .appt-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .appt-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .appt-scroll::-webkit-scrollbar-thumb {
+      background: rgba(8, 145, 178, 0.2);
+      border-radius: 3px;
+    }
+
+    .appt-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(8, 145, 178, 0.4);
+    }
+
+    .appt-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      border-bottom: 1px solid rgba(8, 145, 178, 0.05);
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .appt-row:hover {
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
+    }
+
+    .appt-row:last-child { border-bottom: none; margin-bottom: 0; }
     .appt-avatar {
-      width: 38px; height: 38px; border-radius: 50%;
-      background: var(--primary-light); color: var(--primary);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.8rem; font-weight: 600; flex-shrink: 0;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary) 0%, #06b6d4 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.2);
     }
     .appt-info { flex: 1; min-width: 0; }
     .appt-name {
-      font-size: 0.85rem; font-weight: 500; color: var(--text);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .appt-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+    .appt-sub {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+      font-weight: 500;
+    }
     .appt-time-badge {
-      background: var(--bg); border-radius: 6px;
-      padding: 0.25rem 0.5rem; font-size: 0.72rem;
-      font-weight: 500; color: var(--muted); white-space: nowrap;
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
+      border: 1px solid rgba(8, 145, 178, 0.2);
+      border-radius: 8px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
     }
-    .empty { text-align: center; padding: 2rem 1rem; color: #94a3b8; font-size: 0.9rem; }
+    .empty {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: #94a3b8;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
 
-    /* ── Bottom Row (Next Patient + Calendar) ── */
-    .bot-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+    /* ── Bottom Row ── */
+    .bot-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
 
     /* ── Next Patient ── */
     .next-patient {
-      display: flex; flex-direction: column;
-      align-items: center; text-align: center; gap: 0.5rem;
-      padding-top: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1rem;
+      padding: 1rem;
     }
     .next-avatar {
-      width: 72px; height: 72px; border-radius: 50%;
-      background: var(--primary); color: white;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; font-weight: 700;
-    }
-    .next-name { font-size: 1rem; font-weight: 600; color: var(--text); }
-    .next-meta { font-size: 0.8rem; color: var(--muted); }
-    .next-time-row {
-      display: flex; align-items: center; gap: 0.4rem;
-      font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem;
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--primary) 0%, #06b6d4 100%);
+      color: white;
+      display: flex;
+      align-items: center;
       justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 800;
+      box-shadow: 0 12px 32px rgba(8, 145, 178, 0.3);
     }
-    .next-time-row svg { width: 14px; height: 14px; }
+    .next-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .next-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .next-time-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--primary);
+      margin-top: 0.5rem;
+      justify-content: center;
+      font-weight: 700;
+    }
+    .next-time-row svg { width: 16px; height: 16px; }
     .btn-consult-full {
-      margin-top: 0.75rem; width: 100%; display: block;
-      background: var(--primary); color: white; text-align: center;
-      padding: 0.6rem; border-radius: 8px; text-decoration: none;
-      font-size: 0.85rem; font-weight: 600; transition: all 0.15s;
-      border: none; cursor: pointer;
+      margin-top: 1rem;
+      width: 100%;
+      display: block;
+      background: linear-gradient(135deg, var(--primary) 0%, #06b6d4 100%);
+      color: white;
+      text-align: center;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 700;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border: none;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.2);
     }
     .btn-consult-full:hover {
-      background: var(--primary-hover);
-      color: white;
-      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
-      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(8, 145, 178, 0.3);
+      transform: translateY(-3px);
     }
+
     .status-badge {
-      font-size: 0.72rem; font-weight: 600;
-      padding: 0.2rem 0.65rem; border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
-    .status-waiting { background: #dcfce7; color: #16a34a; }
-    .status-pending { background: #fef9c3; color: #854d0e; }
-    .status-completed { background: #f1f5f9; color: #94a3b8; }
+    .status-waiting {
+      background: linear-gradient(135deg, rgba(22, 163, 74, 0.15) 0%, rgba(34, 197, 94, 0.15) 100%);
+      color: #16a34a;
+      border: 1px solid rgba(22, 163, 74, 0.2);
+    }
+    .status-pending {
+      background: linear-gradient(135deg, rgba(217, 119, 6, 0.15) 0%, rgba(251, 146, 60, 0.15) 100%);
+      color: #b45309;
+      border: 1px solid rgba(217, 119, 6, 0.2);
+    }
+    .status-completed {
+      background: linear-gradient(135deg, rgba(148, 163, 184, 0.15) 0%, rgba(203, 213, 225, 0.15) 100%);
+      color: #64748b;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
 
     /* ── Mini Calendar ── */
-    .cal-nav { display: flex; gap: 0.25rem; }
-    .cal-btn {
-      width: 28px; height: 28px; border-radius: 6px;
-      border: 1px solid var(--border); background: var(--bg);
-      cursor: pointer; font-size: 1rem; color: var(--muted);
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.15s;
+    .cal-nav {
+      display: flex;
+      gap: 0.5rem;
     }
-    .cal-btn:hover { background: var(--primary-light); color: var(--primary); }
+    .cal-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid rgba(8, 145, 178, 0.2);
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-weight: 700;
+    }
+    .cal-btn:hover {
+      background: linear-gradient(135deg, var(--primary) 0%, #06b6d4 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.2);
+    }
     .cal-grid {
-      display: grid; grid-template-columns: repeat(7, 1fr);
-      gap: 2px; margin-top: 0.5rem;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-top: 1rem;
     }
     .cal-dow {
-      text-align: center; font-size: 0.68rem;
-      font-weight: 600; color: var(--muted);
-      padding: 0.25rem 0;
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      padding: 0.5rem 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     .cal-day {
-      text-align: center; font-size: 0.75rem;
-      padding: 0.3rem; border-radius: 6px;
-      cursor: default; color: var(--text);
+      text-align: center;
+      font-size: 0.85rem;
+      padding: 0.5rem;
+      border-radius: 8px;
+      cursor: default;
+      color: var(--text);
+      font-weight: 600;
+      transition: all 0.2s;
     }
     .cal-day.today {
-      background: var(--primary); color: white; font-weight: 700;
+      background: linear-gradient(135deg, var(--primary) 0%, #06b6d4 100%);
+      color: white;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
     }
     .cal-day.has-appt {
-      background: var(--primary-light); color: var(--primary); font-weight: 600;
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%));
+      color: var(--primary);
+      font-weight: 700;
+      border: 1px solid rgba(8, 145, 178, 0.2);
     }
     .cal-day.other-month { color: #cbd5e1; }
     .cal-day.empty { background: none; }
 
-    /* ── Assistant Widget ── */
+    /* ── Button Ask ── */
     .btn-ask {
-      width: 100%; padding: 0.65rem 1rem;
-      background: linear-gradient(135deg, #0891b2, #06b6d4);
-      color: white; border: none; border-radius: 8px;
-      font-size: 0.875rem; font-family: inherit; font-weight: 600;
-      cursor: pointer; display: flex; align-items: center;
-      gap: 0.5rem; justify-content: center; transition: all 0.2s;
+      width: 100%;
+      padding: 0.85rem 1.25rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      justify-content: center;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.2);
     }
-    .btn-ask:hover { opacity: 0.9; transform: translateY(-1px); }
-    .btn-ask:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-ask:hover {
+      box-shadow: 0 15px 40px rgba(8, 145, 178, 0.3);
+      transform: translateY(-2px);
+    }
+    .btn-ask:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     .assistant-reply {
-      margin-top: 0.75rem; padding: 0.75rem 1rem;
-      background: #f0f9ff; border-radius: 8px;
-      font-size: 0.875rem; color: #0f172a; line-height: 1.5;
-      border-left: 3px solid #0891b2;
+      margin-top: 1rem;
+      padding: 1rem 1.25rem;
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      color: var(--text);
+      line-height: 1.6;
+      border-left: 4px solid var(--primary);
+      border: 1px solid rgba(8, 145, 178, 0.2);
     }
     .assistant-reply.error {
-      background: #fef2f2; border-left-color: #dc2626; color: #dc2626;
-    }
-    .assistant-list { margin-top: 0.5rem; padding-left: 0; list-style: none; }
-    .assistant-list li {
-      padding: 0.3rem 0; border-bottom: 1px solid #e2e8f0;
-      font-size: 0.8rem; color: #475569; display: flex;
-      justify-content: space-between; align-items: center;
-    }
-    .assistant-list li:last-child { border-bottom: none; }
-    .assistant-status { font-size: 0.7rem; color: #94a3b8; font-weight: 500; }
-    .sf-input {
-      width: 100%; padding: .5rem .75rem; border: 1px solid #e2e8f0;
-      border-radius: 8px; font-size: .875rem; font-family: inherit;
-      box-sizing: border-box; outline: none;
-    }
-    .sf-input:focus { border-color: #0891b2; }
-    .btn-mic {
-      background: white;
-      border: 2px solid #0891b2;
-      color: #0891b2;
-    }
-    .btn-mic:hover { background: #f0f9ff; }
-    .btn-mic.listening {
-      animation: pulse-mic 1.5s infinite;
-      background: #0891b2;
-      color: white;
-      border-color: #0891b2;
-    }
-    @keyframes pulse-mic {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.08) 0%, rgba(239, 68, 68, 0.08) 100%);
+      border-left-color: #dc2626;
+      color: #991b1b;
     }
 
     /* ── Responsive ── */
-    @media (max-width: 860px) {
-      .content { padding: 0 0.5rem; width: 100%; display: block; }
-      .stats { grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 0.75rem; margin-top: 1rem; width: 100%; }
-      .stat-card { padding: 1rem; gap: 0.75rem; width: 100%; }
-      .stat-icon { width: 40px; height: 40px; font-size: 1.2rem; }
-      .stat-label { font-size: 0.7rem; }
-      .stat-value { font-size: 1.5rem; }
-      .stat-sub { font-size: 0.7rem; }
-      .mid-row { grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 0.75rem; width: 100%; }
-      .bot-row { grid-template-columns: 1fr; gap: 0.75rem; width: 100%; }
-      .card { padding: 1rem; margin-bottom: 0.75rem; width: 100%; }
-      .card-title { font-size: 0.9rem; }
+    @media (max-width: 1024px) {
+      .stats { grid-template-columns: 1fr; }
+      .mid-row { grid-template-columns: 1fr; }
+      .bot-row { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .content { padding: 1.5rem 1rem; }
+      .stats { gap: 1rem; margin-bottom: 1.5rem; }
+      .stat-card { padding: 1.25rem; gap: 1rem; }
+      .stat-value { font-size: 1.8rem; }
+      .card { padding: 1.5rem; }
+      .mid-row { gap: 1rem; margin-bottom: 1.5rem; }
+      .bot-row { gap: 1rem; }
     }
   </style>
 </head>
@@ -288,7 +545,7 @@
           <div class="stat-body">
             <div class="stat-label">Total Pacientes</div>
             <div class="stat-value" id="statPatients">—</div>
-            <div class="stat-sub">Pacientes registrados</div>
+            <div class="stat-sub">Registrados en el sistema</div>
           </div>
         </div>
         <div class="stat-card">
@@ -296,7 +553,7 @@
           <div class="stat-body">
             <div class="stat-label">Citas de Hoy</div>
             <div class="stat-value" id="statToday">—</div>
-            <div class="stat-sub">Citas programadas para hoy</div>
+            <div class="stat-sub">Programadas para hoy</div>
           </div>
         </div>
         <div class="stat-card">
@@ -304,7 +561,7 @@
           <div class="stat-body">
             <div class="stat-label">Ingresos del Mes</div>
             <div class="stat-value" id="statMonth">—</div>
-            <div class="stat-sub">Consultas pagadas este mes</div>
+            <div class="stat-sub">Consultas pagadas</div>
           </div>
         </div>
       </div>
@@ -320,11 +577,9 @@
           <div class="donut-wrap">
             <div class="donut-container">
               <svg class="donut-svg" id="donutSvg" viewBox="0 0 200 200">
-                <!-- Segmento azul (con cita) -->
                 <circle cx="100" cy="100" r="80" fill="none" stroke="#0891b2" stroke-width="35"
                         stroke-dasharray="326.73 502.65" stroke-dashoffset="0" id="donutWith"
                         stroke-linecap="round"/>
-                <!-- Segmento gris claro (sin cita) -->
                 <circle cx="100" cy="100" r="80" fill="none" stroke="#e2e8f0" stroke-width="35"
                         stroke-dasharray="175.93 502.65" stroke-dashoffset="-326.73" id="donutWithout"
                         stroke-linecap="round"/>
@@ -336,7 +591,7 @@
             </div>
             <div class="donut-legend">
               <div class="legend-item">
-                <span class="legend-dot" style="background:#0891b2"></span>
+                <span class="legend-dot" style="background:linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)"></span>
                 <span class="legend-label">Con cita hoy</span>
                 <span class="legend-val" id="legendWith">0</span>
               </div>
@@ -356,7 +611,7 @@
             <span class="card-badge" id="apptCountBadge">0</span>
           </div>
           <div id="apptList" class="appt-scroll">
-            <p class="empty">No hay citas para hoy.</p>
+            <p class="empty">No hay citas programadas para hoy.</p>
           </div>
         </div>
       </div>
@@ -370,7 +625,7 @@
             <span id="nextStatusBadge" class="status-badge">—</span>
           </div>
           <div id="nextPatientContent">
-            <p class="empty">Sin próximo paciente.</p>
+            <p class="empty">Sin próximo paciente programado.</p>
           </div>
         </div>
 
@@ -394,29 +649,6 @@
           </div>
           <div class="cal-grid" id="calDays"></div>
         </div>
-
-        <!-- Asistente: "¿Qué citas tengo hoy?" -->
-        <div class="card">
-          <div class="card-hdr">
-            <span class="card-title">Asistente</span>
-            <span class="card-badge" id="assistantBadge">IA</span>
-          </div>
-          <div id="assistantBody">
-            <div style="display: flex; gap: 0.75rem;">
-              <button class="btn-ask" id="btnAskToday" onclick="askTodayAppointments()" style="flex: 1;">
-                <span id="askIcon"></span>
-                ¿Qué citas tengo hoy?
-              </button>
-              <button class="btn-ask btn-mic" id="btnMicrophone" onclick="startListening()" title="Escuchar" style="flex: 0 0 auto; width: auto; padding: 0.65rem 1rem;">
-                <span id="micIcon"></span>
-              </button>
-            </div>
-            <div id="listeningStatus" style="display:none; margin-top: 0.75rem; padding: 0.75rem 1rem; background: #fff3cd; border-radius: 8px; font-size: 0.875rem; color: #854d0e;">
-              <span id="listeningText">Escuchando...</span>
-            </div>
-            <div id="assistantResponse" style="display:none"></div>
-          </div>
-        </div>
       </div>
   </main>
 
@@ -431,14 +663,13 @@
     document.getElementById('iconCalendar').innerHTML = Icons.render('calendar', 24);
     document.getElementById('iconWallet').innerHTML = Icons.render('wallet', 24);
 
-
     const today = new Date();
     let apptDatesSet = new Set();
     let calYear, calMonth;
 
     // Donut chart render
     function renderDonut(withAppt, withoutAppt) {
-      const C = 502.65; // Circumference for r=80
+      const C = 502.65;
       const total = withAppt + withoutAppt;
 
       if (total === 0) {
@@ -472,7 +703,7 @@
     function renderAppointments(appointments) {
       document.getElementById('apptCountBadge').textContent = appointments.length;
       if (!appointments.length) {
-        document.getElementById('apptList').innerHTML = '<p class="empty">No hay citas para hoy.</p>';
+        document.getElementById('apptList').innerHTML = '<p class="empty">No hay citas programadas para hoy.</p>';
         return;
       }
 
@@ -503,7 +734,7 @@
       if (!next) {
         document.getElementById('nextStatusBadge').textContent = '—';
         document.getElementById('nextStatusBadge').className = 'status-badge';
-        document.getElementById('nextPatientContent').innerHTML = '<p class="empty">Sin próximo paciente.</p>';
+        document.getElementById('nextPatientContent').innerHTML = '<p class="empty">Sin próximo paciente programado.</p>';
         return;
       }
 
@@ -611,464 +842,6 @@
         console.error('Error loading dashboard:', e);
       }
     })();
-
-    // ── Asistente de voz sin OpenAI ──
-    document.getElementById('askIcon').innerHTML = Icons.render('calendar', 16);
-
-    function playAudio(text) {
-      if (!('speechSynthesis' in window)) return;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1; utterance.pitch = 1; utterance.volume = 1;
-      const voices = speechSynthesis.getVoices();
-      for (const lang of ['es-HN', 'es-MX', 'es-ES', 'es']) {
-        const voice = voices.find(v => v.lang.startsWith(lang.slice(0, 2)));
-        if (voice) { utterance.voice = voice; utterance.lang = lang; break; }
-      }
-      if (speechSynthesis.speaking) speechSynthesis.cancel();
-      speechSynthesis.speak(utterance);
-    }
-
-    function showAssistantResponse(html, spokenText) {
-      const el = document.getElementById('assistantResponse');
-      el.innerHTML = html;
-      el.style.display = 'block';
-      if (spokenText) playAudio(spokenText);
-    }
-
-    // ── Extracción de entidades (español) ──
-    const MONTH_NAMES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-    const DAY_NAMES   = ['domingo','lunes','martes','miércoles','miercoles','jueves','viernes','sábado','sabado'];
-
-    function toYMD(d) {
-      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-
-    function nextWeekday(targetDay, from) {
-      const d = new Date(from);
-      const diff = (targetDay - d.getDay() + 7) % 7 || 7;
-      d.setDate(d.getDate() + diff);
-      return d;
-    }
-
-    function extractDate(text) {
-      const t = text.toLowerCase();
-      if (/\bhoy\b/.test(t)) return toYMD(new Date());
-      if (/\bmañana\b/.test(t)) { const d = new Date(); d.setDate(d.getDate()+1); return toYMD(d); }
-      for (let i = 0; i < DAY_NAMES.length; i++) {
-        if (t.includes(DAY_NAMES[i])) return toYMD(nextWeekday(i % 7, new Date()));
-      }
-      const m = t.match(/el\s+(\d{1,2})(?:\s+de\s+(\w+))?/);
-      if (m) {
-        const day = parseInt(m[1]);
-        let month = new Date().getMonth();
-        if (m[2]) { const mi = MONTH_NAMES.findIndex(n => m[2].startsWith(n.slice(0,3))); if (mi >= 0) month = mi; }
-        return `${new Date().getFullYear()}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-      }
-      return null;
-    }
-
-    function extractTime(text) {
-      const t = text.toLowerCase();
-      const m = t.match(/a\s+las\s+(\d{1,2})(?::(\d{2}))?\s*(?:de\s+la\s+(\w+))?|(\d{1,2}):(\d{2})\s*(am|pm)?/);
-      if (!m) return null;
-      let hour, mins;
-      if (m[1]) {
-        hour = parseInt(m[1]); mins = m[2] || '00';
-        const period = m[3];
-        if (period === 'tarde' || period === 'noche') { if (hour < 12) hour += 12; }
-        else if (period === 'mañana') { if (hour === 12) hour = 0; }
-      } else {
-        hour = parseInt(m[4]); mins = m[5];
-        if (m[6] === 'pm' && hour < 12) hour += 12;
-        if (m[6] === 'am' && hour === 12) hour = 0;
-      }
-      return `${String(hour).padStart(2,'0')}:${mins}`;
-    }
-
-    function extractPatientName(text) {
-      // "con [Nombre]" before a date keyword or end of string
-      let m = text.match(/\bcon\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*)/i);
-      if (m) return m[1].trim();
-      m = text.match(/\bdel\s+paciente\s+(.+?)(?:\s+el\s+|\s+para\s+|$)/i);
-      if (m) return m[1].trim();
-      m = text.match(/\bde\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*)/i);
-      if (m) return m[1].trim();
-      return null;
-    }
-
-    // ── Clasificador local + despachador ──
-    async function processVoiceCommand(text) {
-      const t = text.toLowerCase().trim();
-      const responseEl = document.getElementById('assistantResponse');
-
-      responseEl.innerHTML = `<div class="assistant-reply">Procesando: "<em>${esc(text)}</em>"…</div>`;
-      responseEl.style.display = 'block';
-
-      try {
-        // INTENTO 1: citas de hoy
-        if (/citas?.*(hoy|de hoy)|hoy.*citas?|qu[eé].*citas?|tengo hoy|agenda.*hoy/.test(t)) {
-          const data = await api('/api/assistant/today-appointments');
-          let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
-          if (data.appointments?.length > 0) {
-            html += `<ul class="assistant-list">`;
-            data.appointments.forEach(a => {
-              html += `<li><span>${esc(a.time)} — ${esc(a.patient_name)}</span><span class="assistant-status">${esc(a.status)}</span></li>`;
-            });
-            html += `</ul>`;
-          }
-          return showAssistantResponse(html, data.spoken_response);
-        }
-
-        // INTENTO 2: última cita de paciente
-        if (/[uú]ltima?\s+cita|cita\s+de\s+[A-ZÁÉÍÓÚÑ]|cu[aá]ndo.*(cita|vino)/i.test(text)) {
-          const name = extractPatientName(text);
-          if (!name) return showAssistantResponse(`<div class="assistant-reply error">¿De qué paciente? Di "última cita de [nombre]".</div>`, null);
-          const data = await api(`/api/assistant/last-appointment?patient_name=${encodeURIComponent(name)}`);
-          let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
-          if (data.found && data.appointment) {
-            html += `<div style="margin-top:.5rem;padding:.6rem;background:#f0f9ff;border-radius:8px;font-size:.8rem">
-              <strong>Paciente:</strong> ${esc(data.patient_name)}<br>
-              <strong>Fecha:</strong> ${esc(data.appointment.date)}<br>
-              <strong>Hora:</strong> ${esc(data.appointment.time)}<br>
-              <strong>Estado:</strong> ${esc(data.appointment.status)}
-            </div>`;
-          }
-          return showAssistantResponse(html, data.spoken_response);
-        }
-
-        // INTENTO 3: disponibilidad
-        if (/disponibilidad|horarios?\s+(el|para|disponibles?)|espacios?\s+(el|disponibles?)/.test(t)) {
-          const dateStr = extractDate(text);
-          if (!dateStr) return showAssistantResponse(`<div class="assistant-reply error">¿Para qué fecha? Di "disponibilidad el lunes" o "el 25 de mayo".</div>`, null);
-          const data = await api(`/api/assistant/availability?date=${dateStr}`);
-          let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
-          if (data.available_slots?.length > 0) {
-            html += `<div style="margin-top:.5rem;font-size:.8rem;color:#475569;line-height:1.8">${data.available_slots.join(' · ')}</div>`;
-          }
-          return showAssistantResponse(html, data.spoken_response);
-        }
-
-        // INTENTO 4: agendar cita
-        if (/\b(agenda|agendar|program[ao]|cita\s+con|nueva\s+cita)\b/.test(t)) {
-          const name   = extractPatientName(text);
-          const date   = extractDate(text);
-          const time   = extractTime(text);
-
-          // Si faltan datos, mostrar formulario
-          if (!name || !date || !time) {
-            return showScheduleForm(name, date, time);
-          }
-
-          const data = await api('/api/assistant/schedule', {
-            method: 'POST',
-            body: { patient_name: name, date, time }
-          });
-          const cls = data.success ? '' : ' error';
-          return showAssistantResponse(
-            `<div class="assistant-reply${cls}">${esc(data.spoken_response || data.error)}</div>`,
-            data.spoken_response || null
-          );
-        }
-
-        // Sin match en regex → fallback a OpenAI para entender lenguaje natural
-        await processWithIntentLayer(text);
-
-      } catch (err) {
-        showAssistantResponse(`<div class="assistant-reply error">Error: ${esc(err.message)}</div>`, null);
-      }
-    }
-
-    // ── Fallback: capa de intención con OpenAI ──
-    function resolveDateToken(token) {
-      if (!token) return null;
-      if (/^\d{4}-\d{2}-\d{2}$/.test(token)) return token;
-      const t = String(token).toLowerCase();
-      if (t === 'today' || t === 'hoy') return toYMD(new Date());
-      if (t === 'tomorrow' || t === 'mañana' || t === 'manana') {
-        const d = new Date(); d.setDate(d.getDate()+1); return toYMD(d);
-      }
-      const dayIdx = DAY_NAMES.findIndex(n => n === t);
-      if (dayIdx >= 0) return toYMD(nextWeekday(dayIdx % 7, new Date()));
-      return null;
-    }
-
-    async function processWithIntentLayer(originalText) {
-      const responseEl = document.getElementById('assistantResponse');
-      try {
-        const result = await api('/api/assistant/parse-intent', {
-          method: 'POST',
-          body: { text: originalText }
-        });
-
-        if (!result || !result.success) {
-          return showAssistantResponse(
-            `<div class="assistant-reply error">No pude procesar tu solicitud.</div>`, null
-          );
-        }
-
-        const { intent, params = {}, missing_fields = [], assistant_reply, requires_confirmation } = result;
-
-        // GREETING / HELP / UNKNOWN → solo responder texto
-        if (intent === 'GREETING' || intent === 'HELP' || intent === 'UNKNOWN') {
-          const reply = assistant_reply || 'Puedo ayudarte con citas, pacientes y disponibilidad.';
-          return showAssistantResponse(`<div class="assistant-reply">${esc(reply)}</div>`, reply);
-        }
-
-        // MISSING_INFO → pedir solo lo que falta o abrir formulario para crear cita
-        if (intent === 'MISSING_INFO') {
-          const reply = assistant_reply || `Faltan datos: ${missing_fields.join(', ')}.`;
-          return showAssistantResponse(`<div class="assistant-reply">${esc(reply)}</div>`, reply);
-        }
-
-        // GET_TODAY_APPOINTMENTS / GET_NEXT_APPOINTMENT
-        if (intent === 'GET_TODAY_APPOINTMENTS' || intent === 'GET_NEXT_APPOINTMENT') {
-          const data = await api('/api/assistant/today-appointments');
-          let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
-          if (data.appointments?.length > 0) {
-            html += `<ul class="assistant-list">`;
-            data.appointments.forEach(a => {
-              html += `<li><span>${esc(a.time)} — ${esc(a.patient_name)}</span><span class="assistant-status">${esc(a.status)}</span></li>`;
-            });
-            html += `</ul>`;
-          }
-          return showAssistantResponse(html, data.spoken_response);
-        }
-
-        // GET_APPOINTMENTS_BY_DATE / CHECK_AVAILABILITY
-        if (intent === 'GET_APPOINTMENTS_BY_DATE' || intent === 'CHECK_AVAILABILITY') {
-          const dateStr = resolveDateToken(params.date) || extractDate(originalText);
-          if (!dateStr) {
-            return showAssistantResponse(
-              `<div class="assistant-reply error">¿Para qué fecha?</div>`, null
-            );
-          }
-          const data = await api(`/api/assistant/availability?date=${dateStr}`);
-          let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
-          if (data.available_slots?.length > 0) {
-            html += `<div style="margin-top:.5rem;font-size:.8rem;color:#475569;line-height:1.8">${data.available_slots.join(' · ')}</div>`;
-          }
-          return showAssistantResponse(html, data.spoken_response);
-        }
-
-        // SEARCH_PATIENT / GET_PATIENT_SUMMARY / GET_PATIENT_CONDITIONS / GET_PATIENT_ALLERGIES
-        if (intent === 'SEARCH_PATIENT' || intent.startsWith('GET_PATIENT_')) {
-          const name = params.patient_name || extractPatientName(originalText);
-          if (!name) {
-            return showAssistantResponse(
-              `<div class="assistant-reply error">¿De qué paciente?</div>`, null
-            );
-          }
-          const data = await api(`/api/assistant/last-appointment?patient_name=${encodeURIComponent(name)}`);
-          let html = `<div class="assistant-reply">${esc(data.spoken_response)}</div>`;
-          if (data.found && data.appointment) {
-            html += `<div style="margin-top:.5rem;padding:.6rem;background:#f0f9ff;border-radius:8px;font-size:.8rem">
-              <strong>Paciente:</strong> ${esc(data.patient_name)}<br>
-              <strong>Fecha:</strong> ${esc(data.appointment.date)}<br>
-              <strong>Hora:</strong> ${esc(data.appointment.time)}<br>
-              <strong>Estado:</strong> ${esc(data.appointment.status)}
-            </div>`;
-          }
-          return showAssistantResponse(html, data.spoken_response);
-        }
-
-        // CREATE_APPOINTMENT → siempre requiere confirmación → mostrar formulario
-        if (intent === 'CREATE_APPOINTMENT') {
-          const name = params.patient_name || extractPatientName(originalText);
-          const date = resolveDateToken(params.date) || extractDate(originalText);
-          const time = params.time || extractTime(originalText);
-          const intro = assistant_reply
-            ? `<div class="assistant-reply" style="padding-bottom:.5rem">${esc(assistant_reply)}</div>`
-            : '';
-          responseEl.innerHTML = intro;
-          showScheduleForm(name, date, time);
-          if (intro && assistant_reply) playAudio(assistant_reply);
-          return;
-        }
-
-        // RESCHEDULE_APPOINTMENT / CANCEL_APPOINTMENT → aún no implementadas en REST directo
-        if (intent === 'RESCHEDULE_APPOINTMENT' || intent === 'CANCEL_APPOINTMENT') {
-          const reply = assistant_reply || 'Para reprogramar o cancelar, abre la cita en el calendario.';
-          return showAssistantResponse(`<div class="assistant-reply">${esc(reply)}</div>`, reply);
-        }
-
-        // Fallback final
-        const fallback = assistant_reply || 'No entendí el comando.';
-        showAssistantResponse(`<div class="assistant-reply">${esc(fallback)}</div>`, fallback);
-      } catch (err) {
-        showAssistantResponse(
-          `<div class="assistant-reply error">Error: ${esc(err.message)}</div>`, null
-        );
-      }
-    }
-
-    // Formulario rápido cuando faltan datos para agendar
-    function showScheduleForm(name, date, time) {
-      const responseEl = document.getElementById('assistantResponse');
-      responseEl.innerHTML = `
-        <div class="assistant-reply" style="padding-bottom:.5rem">Faltan datos para agendar. Completa:</div>
-        <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem">
-          <input id="sf_name" class="sf-input" placeholder="Nombre del paciente" value="${esc(name||'')}">
-          <input id="sf_date" class="sf-input" type="date" value="${date||''}">
-          <input id="sf_time" class="sf-input" type="time" value="${time||''}">
-          <button class="btn-ask" onclick="submitScheduleForm()" style="margin-top:.25rem">Agendar</button>
-        </div>`;
-      responseEl.style.display = 'block';
-    }
-
-    async function submitScheduleForm() {
-      const name = document.getElementById('sf_name').value.trim();
-      const date = document.getElementById('sf_date').value;
-      const time = document.getElementById('sf_time').value;
-      if (!name || !date || !time) {
-        alert('Completa todos los campos.');
-        return;
-      }
-      try {
-        const data = await api('/api/assistant/schedule', { method: 'POST', body: { patient_name: name, date, time } });
-        const cls = data.success ? '' : ' error';
-        showAssistantResponse(`<div class="assistant-reply${cls}">${esc(data.spoken_response || data.error)}</div>`, data.success ? data.spoken_response : null);
-      } catch (err) {
-        showAssistantResponse(`<div class="assistant-reply error">Error: ${esc(err.message)}</div>`, null);
-      }
-    }
-
-    async function askTodayAppointments() {
-      const btn = document.getElementById('btnAskToday');
-      btn.disabled = true;
-      btn.innerHTML = Icons.render('calendar', 16) + ' Consultando...';
-      try {
-        await processVoiceCommand('¿Qué citas tengo hoy?');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = Icons.render('calendar', 16) + ' ¿Qué citas tengo hoy?';
-      }
-    }
-
-    // ── Speech Recognition: Micrófono ──
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let recognition = null;
-    let isListening = false;
-
-    // Inicializar reconocimiento de voz si está disponible
-    if (SpeechRecognition) {
-      recognition = new SpeechRecognition();
-      recognition.lang = 'es-ES';
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
-
-      let lastTranscript = '';
-      let silenceTimeout = null;
-      let maxTimeout = null;
-      const SILENCE_DURATION = 2500; // 2.5 segundos de silencio (tolera pausas naturales)
-      const MAX_LISTEN_TIME = 20000; // 20 segundos máximo de escucha
-
-      recognition.onstart = () => {
-        isListening = true;
-        lastTranscript = '';
-        const btn = document.getElementById('btnMicrophone');
-        btn.classList.add('listening');
-        document.getElementById('listeningStatus').style.display = 'block';
-        console.log('[Mic] Listening started');
-
-        // Timeout máximo para garantizar que se detiene
-        if (maxTimeout) clearTimeout(maxTimeout);
-        maxTimeout = setTimeout(() => {
-          console.log('[Mic] Max listen time reached, stopping. Transcript:', lastTranscript);
-          recognition.abort();
-        }, MAX_LISTEN_TIME);
-      };
-
-      recognition.onresult = (event) => {
-        // Limpiar timeout de silencio anterior
-        if (silenceTimeout) clearTimeout(silenceTimeout);
-
-        let transcript = '';
-        let hasFinal = false;
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            hasFinal = true;
-          }
-        }
-        const listeningEl = document.getElementById('listeningText');
-        if (listeningEl) {
-          listeningEl.textContent = `"${transcript}"`;
-        }
-
-        // Guardar transcript - en Render isFinal podría no funcionar, así que guardamos siempre
-        if (transcript.trim()) {
-          lastTranscript = transcript;
-        }
-        console.log('[Mic] Transcript update:', lastTranscript, 'isFinal:', hasFinal);
-
-        // Si hay resultado final o si hay largo silencio, detener
-        if (hasFinal || transcript.trim()) {
-          silenceTimeout = setTimeout(() => {
-            console.log('[Mic] Silence timeout, stopping. Transcript:', lastTranscript);
-            recognition.abort();
-          }, SILENCE_DURATION);
-        }
-      };
-
-      async function processTranscript() {
-        console.log('[Mic] Processing transcript:', lastTranscript);
-        if (!lastTranscript.trim()) return;
-        await processVoiceCommand(lastTranscript);
-      }
-
-      recognition.onend = () => {
-        console.log('[Mic] onend event fired');
-        isListening = false;
-        // Limpiar todos los timeouts
-        if (silenceTimeout) clearTimeout(silenceTimeout);
-        if (maxTimeout) clearTimeout(maxTimeout);
-
-        const btn = document.getElementById('btnMicrophone');
-        btn.classList.remove('listening');
-        document.getElementById('listeningStatus').style.display = 'none';
-
-        processTranscript();
-      };
-
-      recognition.onerror = (event) => {
-        console.error('Error en reconocimiento de voz:', event.error);
-        const statusEl = document.getElementById('listeningStatus');
-        if (statusEl) {
-          statusEl.textContent = `Error: ${event.error}`;
-          statusEl.style.display = 'block';
-        }
-      };
-    } else {
-      // Si el navegador no soporta, desactivar el botón
-      const btn = document.getElementById('btnMicrophone');
-      btn.disabled = true;
-      btn.title = 'Tu navegador no soporta reconocimiento de voz';
-    }
-
-    function startListening() {
-      if (!recognition) return;
-      if (isListening) {
-        recognition.abort();
-        return;
-      }
-
-      // En iOS, activar el contexto de audio inmediatamente
-      if ('speechSynthesis' in window) {
-        try {
-          const warmup = new SpeechSynthesisUtterance('');
-          speechSynthesis.speak(warmup);
-          speechSynthesis.cancel();
-        } catch (e) {}
-      }
-
-      recognition.start();
-    }
-
-    // Renderizar ícono del micrófono
-    if (document.getElementById('micIcon')) {
-      document.getElementById('micIcon').innerHTML = Icons.render('mic', 16);
-    }
   </script>
 </body>
 </html>
