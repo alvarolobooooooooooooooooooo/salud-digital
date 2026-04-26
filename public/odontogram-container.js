@@ -496,12 +496,11 @@ class OdontogramContainer {
           transform: scale(0.98);
         }
 
-        /* Tablet (768px and below) */
-        @media (max-width: 1024px) {
+        /* Tablet (860px and below) */
+        @media (max-width: 860px) {
           .arch-grid {
             padding: 1rem !important;
             gap: 0.5rem !important;
-            grid-template-columns: repeat(4, 1fr) !important;
           }
 
           .tooth-container {
