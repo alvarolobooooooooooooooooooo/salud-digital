@@ -1228,8 +1228,18 @@
     window.location.href = `/patient.html?id=${patientId}`;
   }
 
-  function openExpedClinico(patientId) {
-    window.location.href = `/clinical-record.html?id=${patientId}`;
+  async function openExpedClinico(patientId) {
+    try {
+      const me = await api('/api/auth/me');
+      const isPodiatry = (me.specialty || '').toLowerCase().includes('podol');
+      const url = isPodiatry
+        ? `/clinical-record-podiatry.html?id=${patientId}`
+        : `/clinical-record.html?id=${patientId}`;
+      window.location.href = url;
+    } catch (e) {
+      // Fallback to dental version if API fails
+      window.location.href = `/clinical-record.html?id=${patientId}`;
+    }
   }
 
   function closeDetailPanel() {
