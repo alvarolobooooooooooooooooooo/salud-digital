@@ -199,32 +199,56 @@
 
   <script src="/icons.js"></script>
   <script src="/common.js"></script>
-<script src="/layout.js"></script>
   <script>
-    // Check specialty BEFORE loading odontogram scripts
-    const specialty = localStorage.getItem('sd_user_specialty') || 'Odontología';
-    const isPodiatry = specialty.toLowerCase().includes('podol');
+    // Get user specialty IMMEDIATELY before anything else
+    let userSpecialty = 'Odontología';
+    const token = localStorage.getItem('sd_token');
 
-    if (!isPodiatry) {
-      // Only load odontogram scripts for dental doctors
-      const scripts = [
-        '/odontogram.types.js',
-        '/odontogram.data.js',
-        '/odontogram.utils.js',
-        '/odontogram-tooth.js',
-        '/odontogram-arch.js',
-        '/odontogram-toolbar.js',
-        '/odontogram-legend.js',
-        '/odontogram-container.js'
-      ];
-
-      scripts.forEach(src => {
-        const script = document.createElement('script');
-        script.src = src;
-        document.head.appendChild(script);
+    // Fetch user data synchronously to get specialty before loading scripts
+    if (token) {
+      fetch('/api/auth/me', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(r => r.json())
+      .then(user => {
+        userSpecialty = user.specialty || 'Odontología';
+        localStorage.setItem('sd_user_specialty', userSpecialty);
+        console.log('[clinical-record] Fetched specialty:', userSpecialty);
+        loadOdontogramScripts();
+      })
+      .catch(e => {
+        console.error('Failed to fetch specialty:', e);
+        loadOdontogramScripts();
       });
+    } else {
+      loadOdontogramScripts();
+    }
+
+    function loadOdontogramScripts() {
+      const specialty = localStorage.getItem('sd_user_specialty') || userSpecialty || 'Odontología';
+      const isPodiatry = specialty.toLowerCase().includes('podol');
+      console.log('[clinical-record] Loading scripts for specialty:', specialty, 'isPodiatry:', isPodiatry);
+
+      if (!isPodiatry) {
+        const scripts = [
+          '/odontogram.types.js',
+          '/odontogram.data.js',
+          '/odontogram.utils.js',
+          '/odontogram-tooth.js',
+          '/odontogram-arch.js',
+          '/odontogram-toolbar.js',
+          '/odontogram-legend.js',
+          '/odontogram-container.js'
+        ];
+        scripts.forEach(src => {
+          const script = document.createElement('script');
+          script.src = src;
+          document.head.appendChild(script);
+        });
+      }
     }
   </script>
+<script src="/layout.js"></script>
   <script>
     // Renderizar icono de completado
     setTimeout(() => {
@@ -443,16 +467,14 @@
       try {
         const me = await api('/api/auth/me');
 
-        // Get specialty from multiple sources
-        let specialty = me.specialty || localStorage.getItem('sd_user_specialty') || 'Odontología';
-
-        // Ensure it's a string
+        // Get specialty - prefer what was already fetched above
+        let specialty = localStorage.getItem('sd_user_specialty') || me.specialty || 'Odontología';
         specialty = String(specialty).trim();
 
-        console.log('[clinical-record] User specialty:', specialty);
+        console.log('[clinical-record-main] Final specialty:', specialty);
         currentUserSpecialty = specialty;
 
-        // Render content based on specialty BEFORE loading data
+        // Render content based on specialty
         setSpecialtyView(specialty);
 
         // Then load patient data
