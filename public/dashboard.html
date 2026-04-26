@@ -278,6 +278,8 @@
       transform: translate(-50%, -50%);
       text-align: center;
       pointer-events: none;
+      width: 100%;
+      padding: 0 1rem;
     }
     .donut-value {
       font-size: 3rem;
@@ -287,13 +289,16 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       line-height: 1;
+      letter-spacing: -0.02em;
     }
     .donut-text {
-      font-size: 0.95rem;
+      font-size: 1rem;
       color: #64748b;
-      font-weight: 700;
-      margin-top: 0.5rem;
-      letter-spacing: 0.3px;
+      font-weight: 800;
+      margin-top: 0.6rem;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+      text-transform: lowercase;
     }
     .donut-legend {
       display: flex;
