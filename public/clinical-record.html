@@ -425,7 +425,15 @@
     (async () => {
       try {
         const me = await api('/api/auth/me');
-        setSpecialtyView(me.specialty || 'Odontología');
+        const specialty = me.specialty || 'Odontología';
+        const isPodiatry = specialty.toLowerCase().includes('podol');
+
+        currentUserSpecialty = specialty;
+
+        // Render content based on specialty BEFORE loading data
+        setSpecialtyView(specialty);
+
+        // Then load patient data
         await refreshPatient();
       } catch (e) {
         console.error('Error loading patient data:', e);
@@ -462,16 +470,25 @@
       const isPodiatry = (currentUserSpecialty || '').toLowerCase().includes('podol');
 
       if (isPodiatry) {
-        renderPodiatryHistory(patientData.consultations);
+        // Only render podiatry content
+        const historyEl = document.getElementById('podiatryHistory');
+        if (historyEl) renderPodiatryHistory(patientData.consultations);
       } else {
-        let initialState = {};
-        try {
-          initialState = JSON.parse(patientData.odontogram_state || '{}');
-        } catch {}
+        // Only render dental content
+        const treatmentEl = document.getElementById('treatmentHistory');
+        const odontEl = document.getElementById('odontogramContainer');
+        const recentEl = document.getElementById('recentConsultations');
 
-        odontogram = new OdontogramContainer('odontogramContainer', initialState, true);
-        renderConsultations(patientData.consultations);
-        renderTreatmentHistory(patientData.consultations);
+        if (treatmentEl) renderTreatmentHistory(patientData.consultations);
+        if (recentEl) renderConsultations(patientData.consultations);
+
+        if (odontEl) {
+          let initialState = {};
+          try {
+            initialState = JSON.parse(patientData.odontogram_state || '{}');
+          } catch {}
+          odontogram = new OdontogramContainer('odontogramContainer', initialState, true);
+        }
       }
     }
 
