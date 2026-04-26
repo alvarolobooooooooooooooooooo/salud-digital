@@ -120,6 +120,7 @@
         <div class="sb-profile">
           <div class="sb-avatar" id="sbAvatar">?</div>
           <div class="sb-user-name" id="sbName">—</div>
+          <div class="sb-specialty-badge" id="sbSpecialty" style="display:none;"></div>
           <div class="sb-clinic" id="sbClinic">—</div>
         </div>
 
@@ -283,10 +284,18 @@
     const avatarEl = document.getElementById('sbAvatar');
     const nameEl = document.getElementById('sbName');
     const clinicEl = document.getElementById('sbClinic');
+    const specialtyEl = document.getElementById('sbSpecialty');
 
     if (avatarEl) avatarEl.textContent = initials;
     if (nameEl) nameEl.textContent = displayName;
     if (clinicEl) clinicEl.textContent = user.clinic_name || '';
+
+    if (specialtyEl && user.specialty) {
+      specialtyEl.textContent = user.specialty;
+      specialtyEl.style.display = 'block';
+    } else if (specialtyEl) {
+      specialtyEl.style.display = 'none';
+    }
   }
 
   function initSidebarToggle() {

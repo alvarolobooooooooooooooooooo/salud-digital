@@ -105,6 +105,21 @@ html, body {
   margin: 0;
 }
 
+.sb-specialty-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  text-align: center;
+  margin-top: 0.25rem;
+  display: inline-block;
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.2);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
 .sb-nav {
   flex: 1;
   display: flex;
