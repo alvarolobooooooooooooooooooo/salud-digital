@@ -8,6 +8,7 @@ class PodogramContainer {
       footShapeRight: initialState.foot_shape_right || null,
       footShapeLeft: initialState.foot_shape_left || null
     };
+    this.skinColor = '#E8B89E';
     this.render();
   }
 
@@ -18,6 +19,77 @@ class PodogramContainer {
       foot_shape_right: this.state.footShapeRight,
       foot_shape_left: this.state.footShapeLeft
     };
+  }
+
+  getFootTypeSVG(type, selected) {
+    const color = selected ? this.skinColor : '#E8D4C8';
+    const toes = {
+      'Espiguio': [30, 50, 65, 80, 95],
+      'Romano': [40, 55, 70, 80, 90],
+      'Griego': [35, 65, 75, 80, 85],
+      'Germánico': [50, 62, 72, 82, 92],
+      'Celta': [48, 60, 70, 80, 90]
+    };
+
+    const toePositions = toes[type] || [50, 60, 70, 80, 90];
+    const toeSvgs = toePositions.map((x, i) => {
+      const height = 35 - (i * 3);
+      return `<rect x="${x - 4}" y="60" width="8" height="${height}" fill="${color}" rx="4"/>`;
+    }).join('');
+
+    return `
+      <svg viewBox="0 0 120 110" width="80" height="80" style="margin: 0 auto; display: block;">
+        <!-- Heel -->
+        <ellipse cx="60" cy="95" rx="20" ry="12" fill="${color}"/>
+        <!-- Foot -->
+        <path d="M 40 80 Q 35 50 50 20 L 100 25 Q 110 50 95 90 Z" fill="${color}"/>
+        <!-- Toes -->
+        ${toeSvgs}
+      </svg>
+    `;
+  }
+
+  getFootShapeSVG(shape, selected) {
+    const color = selected ? this.skinColor : '#E8D4C8';
+    const svgs = {
+      'Normal': `
+        <svg viewBox="0 0 120 100" width="80" height="80" style="margin: 0 auto; display: block;">
+          <!-- Foot side view -->
+          <path d="M 20 60 Q 20 40 30 25 Q 40 15 60 10 L 100 20 Q 110 40 100 75 Q 80 85 40 80 Z" fill="${color}"/>
+          <!-- Toes -->
+          <circle cx="65" cy="12" r="4" fill="${color}"/>
+          <circle cx="75" cy="13" r="4" fill="${color}"/>
+          <circle cx="85" cy="15" r="4" fill="${color}"/>
+          <circle cx="95" cy="18" r="4" fill="${color}"/>
+        </svg>
+      `,
+      'Plano': `
+        <svg viewBox="0 0 120 100" width="80" height="80" style="margin: 0 auto; display: block;">
+          <!-- Flat foot -->
+          <path d="M 20 70 L 25 35 Q 35 20 50 12 Q 70 8 100 15 L 105 70 Z" fill="${color}"/>
+          <!-- Toes -->
+          <circle cx="55" cy="14" r="4" fill="${color}"/>
+          <circle cx="70" cy="11" r="4" fill="${color}"/>
+          <circle cx="85" cy="12" r="4" fill="${color}"/>
+          <circle cx="98" cy="16" r="4" fill="${color}"/>
+        </svg>
+      `,
+      'Cavo': `
+        <svg viewBox="0 0 120 100" width="80" height="80" style="margin: 0 auto; display: block;">
+          <!-- Arched foot -->
+          <path d="M 20 75 Q 25 50 35 30 Q 50 10 70 8 Q 85 10 100 20 L 102 75 Z" fill="${color}"/>
+          <!-- Arch indication -->
+          <path d="M 25 70 Q 40 55 75 50" stroke="#D4A574" stroke-width="1" fill="none" opacity="0.5"/>
+          <!-- Toes -->
+          <circle cx="75" cy="10" r="4" fill="${color}"/>
+          <circle cx="85" cy="9" r="4" fill="${color}"/>
+          <circle cx="95" cy="12" r="4" fill="${color}"/>
+          <circle cx="103" cy="18" r="4" fill="${color}"/>
+        </svg>
+      `
+    };
+
+    return svgs[shape] || svgs['Normal'];
   }
 
   render() {
@@ -90,13 +162,15 @@ class PodogramContainer {
         }
         .podogram-options {
           display: flex;
-          flex-direction: column;
+          flex-wrap: wrap;
           gap: 0.75rem;
+          justify-content: center;
         }
         .podogram-button {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 1rem;
+          gap: 0.5rem;
           padding: 1rem;
           border: 2px solid #e2e8f0;
           background: white;
@@ -104,6 +178,8 @@ class PodogramContainer {
           cursor: ${this.readOnly ? 'not-allowed' : 'pointer'};
           transition: all 0.2s;
           opacity: ${this.readOnly ? '0.6' : '1'};
+          width: 100px;
+          text-align: center;
         }
         .podogram-button:hover {
           border-color: #0891b2;
@@ -112,22 +188,24 @@ class PodogramContainer {
         }
         .podogram-button.selected {
           border-color: #0891b2;
-          background: #0891b2;
-          color: white;
+          background: #f0f9ff;
         }
-        .podogram-button.selected .button-label {
-          color: white;
-          font-weight: 600;
+        .podogram-button.selected .foot-svg {
+          filter: brightness(1.1);
         }
-        .button-icon {
-          font-size: 1.5rem;
-          flex-shrink: 0;
+        .foot-svg {
+          width: 80px;
+          height: 80px;
         }
         .button-label {
-          font-size: 0.95rem;
+          font-size: 0.8rem;
           font-weight: 500;
           color: #475569;
           transition: color 0.2s;
+        }
+        .podogram-button.selected .button-label {
+          color: #0891b2;
+          font-weight: 600;
         }
         @media (max-width: 768px) {
           .podogram-grid {
@@ -135,6 +213,9 @@ class PodogramContainer {
           }
           .podogram-wrapper {
             padding: 1rem;
+          }
+          .podogram-options {
+            justify-content: center;
           }
         }
       </style>
@@ -144,22 +225,26 @@ class PodogramContainer {
 
     if (!this.readOnly) {
       footTypes.forEach(type => {
-        document.getElementById(`footType-Right-${type}`).addEventListener('click', () => {
+        const rightBtn = document.getElementById(`footType-Right-${type}`);
+        const leftBtn = document.getElementById(`footType-Left-${type}`);
+        if (rightBtn) rightBtn.addEventListener('click', () => {
           this.state.footTypeRight = this.state.footTypeRight === type ? null : type;
           this.render();
         });
-        document.getElementById(`footType-Left-${type}`).addEventListener('click', () => {
+        if (leftBtn) leftBtn.addEventListener('click', () => {
           this.state.footTypeLeft = this.state.footTypeLeft === type ? null : type;
           this.render();
         });
       });
 
       footShapes.forEach(shape => {
-        document.getElementById(`footShape-Right-${shape}`).addEventListener('click', () => {
+        const rightBtn = document.getElementById(`footShape-Right-${shape}`);
+        const leftBtn = document.getElementById(`footShape-Left-${shape}`);
+        if (rightBtn) rightBtn.addEventListener('click', () => {
           this.state.footShapeRight = this.state.footShapeRight === shape ? null : shape;
           this.render();
         });
-        document.getElementById(`footShape-Left-${shape}`).addEventListener('click', () => {
+        if (leftBtn) leftBtn.addEventListener('click', () => {
           this.state.footShapeLeft = this.state.footShapeLeft === shape ? null : shape;
           this.render();
         });
@@ -172,16 +257,11 @@ class PodogramContainer {
       ? this.state.footTypeRight === type
       : this.state.footTypeLeft === type;
     const id = `footType-${side}-${type}`;
-    const icons = {
-      'Espiguio': '👣',
-      'Romano': '🦶',
-      'Griego': '🦵',
-      'Germánico': '👞',
-      'Celta': '🩴'
-    };
     return `
       <button id="${id}" class="podogram-button ${selected ? 'selected' : ''}" ${this.readOnly ? 'disabled' : ''}>
-        <span class="button-icon">${icons[type] || '👣'}</span>
+        <div class="foot-svg">
+          ${this.getFootTypeSVG(type, selected)}
+        </div>
         <span class="button-label">${type}</span>
       </button>
     `;
@@ -192,15 +272,12 @@ class PodogramContainer {
       ? this.state.footShapeRight === shape
       : this.state.footShapeLeft === shape;
     const id = `footShape-${side}-${shape}`;
-    const icons = {
-      'Normal': '🦶',
-      'Plano': '📍',
-      'Cavo': '⛸️'
-    };
     return `
       <button id="${id}" class="podogram-button ${selected ? 'selected' : ''}" ${this.readOnly ? 'disabled' : ''}>
-        <span class="button-icon">${icons[shape] || '🦶'}</span>
-        <span class="button-label">Pie ${shape}</span>
+        <div class="foot-svg">
+          ${this.getFootShapeSVG(shape, selected)}
+        </div>
+        <span class="button-label">${shape}</span>
       </button>
     `;
   }
