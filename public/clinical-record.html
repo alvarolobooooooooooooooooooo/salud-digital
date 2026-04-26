@@ -200,14 +200,31 @@
   <script src="/icons.js"></script>
   <script src="/common.js"></script>
 <script src="/layout.js"></script>
-  <script src="/odontogram.types.js"></script>
-  <script src="/odontogram.data.js"></script>
-  <script src="/odontogram.utils.js"></script>
-  <script src="/odontogram-tooth.js"></script>
-  <script src="/odontogram-arch.js"></script>
-  <script src="/odontogram-toolbar.js"></script>
-  <script src="/odontogram-legend.js"></script>
-  <script src="/odontogram-container.js"></script>
+  <script>
+    // Check specialty BEFORE loading odontogram scripts
+    const specialty = localStorage.getItem('sd_user_specialty') || 'Odontología';
+    const isPodiatry = specialty.toLowerCase().includes('podol');
+
+    if (!isPodiatry) {
+      // Only load odontogram scripts for dental doctors
+      const scripts = [
+        '/odontogram.types.js',
+        '/odontogram.data.js',
+        '/odontogram.utils.js',
+        '/odontogram-tooth.js',
+        '/odontogram-arch.js',
+        '/odontogram-toolbar.js',
+        '/odontogram-legend.js',
+        '/odontogram-container.js'
+      ];
+
+      scripts.forEach(src => {
+        const script = document.createElement('script');
+        script.src = src;
+        document.head.appendChild(script);
+      });
+    }
+  </script>
   <script>
     // Renderizar icono de completado
     setTimeout(() => {
