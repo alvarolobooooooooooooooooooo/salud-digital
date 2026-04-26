@@ -425,9 +425,14 @@
     (async () => {
       try {
         const me = await api('/api/auth/me');
-        const specialty = me.specialty || 'Odontología';
-        const isPodiatry = specialty.toLowerCase().includes('podol');
 
+        // Get specialty from multiple sources
+        let specialty = me.specialty || localStorage.getItem('sd_user_specialty') || 'Odontología';
+
+        // Ensure it's a string
+        specialty = String(specialty).trim();
+
+        console.log('[clinical-record] User specialty:', specialty);
         currentUserSpecialty = specialty;
 
         // Render content based on specialty BEFORE loading data

@@ -293,6 +293,8 @@
     if (specialtyEl && user.specialty) {
       specialtyEl.textContent = user.specialty;
       specialtyEl.style.display = 'block';
+      // Save specialty for use in other pages
+      localStorage.setItem('sd_user_specialty', user.specialty);
     } else if (specialtyEl) {
       specialtyEl.style.display = 'none';
     }
