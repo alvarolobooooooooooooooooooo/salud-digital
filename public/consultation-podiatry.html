@@ -298,6 +298,56 @@
           <input type="number" id="consIMC" step="0.1" placeholder="Calculado">
         </div>
       </div>
+
+      <!-- Tipo de Pie -->
+      <h4 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1rem; font-weight: 600; color: #0f172a;">Tipo de Pie</h4>
+      <div class="form-grid two">
+        <div class="form-group">
+          <label>Pie Derecho</label>
+          <select id="consFootTypeRight">
+            <option value="">Seleccionar tipo...</option>
+            <option value="Espiguio">Espiguio</option>
+            <option value="Romano">Romano</option>
+            <option value="Griego">Griego</option>
+            <option value="Germánico">Germánico</option>
+            <option value="Celta">Celta</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Pie Izquierdo</label>
+          <select id="consFootTypeLeft">
+            <option value="">Seleccionar tipo...</option>
+            <option value="Espiguio">Espiguio</option>
+            <option value="Romano">Romano</option>
+            <option value="Griego">Griego</option>
+            <option value="Germánico">Germánico</option>
+            <option value="Celta">Celta</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Forma de Pie -->
+      <h4 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1rem; font-weight: 600; color: #0f172a;">Forma de Pie</h4>
+      <div class="form-grid two">
+        <div class="form-group">
+          <label>Pie Derecho</label>
+          <select id="consFootShapeRight">
+            <option value="">Seleccionar forma...</option>
+            <option value="Normal">Pie Normal</option>
+            <option value="Plano">Pie Plano</option>
+            <option value="Cavo">Pie Cavo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Pie Izquierdo</label>
+          <select id="consFootShapeLeft">
+            <option value="">Seleccionar forma...</option>
+            <option value="Normal">Pie Normal</option>
+            <option value="Plano">Pie Plano</option>
+            <option value="Cavo">Pie Cavo</option>
+          </select>
+        </div>
+      </div>
     </div>
 
     <!-- Exploración Dermatológica -->
@@ -528,7 +578,11 @@ async function submitConsult(e) {
         physical_activity: document.getElementById('consPhysicalActivity').value,
         weight: document.getElementById('consWeight').value,
         height: document.getElementById('consHeight').value,
-        imc: document.getElementById('consIMC').value
+        imc: document.getElementById('consIMC').value,
+        foot_type_right: document.getElementById('consFootTypeRight').value,
+        foot_type_left: document.getElementById('consFootTypeLeft').value,
+        foot_shape_right: document.getElementById('consFootShapeRight').value,
+        foot_shape_left: document.getElementById('consFootShapeLeft').value
       }),
       observations: JSON.stringify({
         dermatological: document.getElementById('consMainComplaint').value,
