@@ -970,13 +970,16 @@
                 const cDate = new Date(c.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' });
                 const diagnosis = c.diagnosis || c.visit_reason || 'Consulta';
                 const doctor = c.doctor_name || '—';
+                const consultationUrl = (c.specialty || '').toLowerCase().includes('podol')
+                  ? `/view-consultation-podiatry.html?id=${c.id}`
+                  : `/view-consultation.html?id=${c.id}`;
                 return `
                   <tr>
                     <td>${cDate}</td>
                     <td>${esc(diagnosis)}</td>
                     <td>${esc(doctor)}</td>
                     <td style="text-align: center;">
-                      <button onclick="window.location.href='/view-consultation.html?id=${c.id}'" style="background: none; border: none; color: #0891b2; cursor: pointer; font-weight: 500; padding: 0.25rem 0.5rem; border-radius: 4px;">Ver</button>
+                      <button onclick="window.location.href='${consultationUrl}'" style="background: none; border: none; color: #0891b2; cursor: pointer; font-weight: 500; padding: 0.25rem 0.5rem; border-radius: 4px;">Ver</button>
                     </td>
                   </tr>`;
               }).join('')}
@@ -1044,10 +1047,11 @@
                 <th>Fecha</th>
                 <th>Diagnóstico</th>
                 <th>Doctor</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
-              ${consultations.length === 0 ? '<tr><td colspan="3" style="text-align: center; padding: 2rem; color: #94a3b8;">No hay consultas registradas</td></tr>' : consultations.slice(0, 8).map((c) => {
+              ${consultations.length === 0 ? '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: #94a3b8;">No hay consultas registradas</td></tr>' : consultations.filter(c => (c.specialty || '').toLowerCase().includes('podol')).slice(0, 8).map((c) => {
                 const cDate = new Date(c.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' });
                 const diagnosis = c.diagnosis || 'Consulta';
                 const doctor = c.doctor_name || '—';
@@ -1056,6 +1060,9 @@
                     <td>${cDate}</td>
                     <td>${esc(diagnosis)}</td>
                     <td>${esc(doctor)}</td>
+                    <td style="text-align: center;">
+                      <button onclick="window.location.href='/view-consultation-podiatry.html?id=${c.id}'" style="background: none; border: none; color: #0891b2; cursor: pointer; font-weight: 500; padding: 0.25rem 0.5rem; border-radius: 4px;">Ver</button>
+                    </td>
                   </tr>`;
               }).join('')}
             </tbody>
