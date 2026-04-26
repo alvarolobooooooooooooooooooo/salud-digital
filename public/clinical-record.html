@@ -115,10 +115,10 @@
     }
     .btn-view:hover { background: #0e7490; }
 
-    .section-dental { display: block; }
-    .section-dental.hidden { display: none; }
-    .section-podiatry { display: none; }
-    .section-podiatry.visible { display: block; }
+    #dentalSections { display: block; }
+    #dentalSections.hidden { display: none !important; }
+    #podiatrySections { display: none !important; }
+    #podiatrySections.visible { display: block !important; }
 
     @media (max-width: 768px) {
       main { padding-top: 90px !important; max-width: 100% !important; width: 100% !important; margin: 0 !important; }
@@ -293,12 +293,18 @@
       const dentalSections = document.getElementById('dentalSections');
       const podiatrySections = document.getElementById('podiatrySections');
 
-      if (specialty === 'Odontología') {
-        dentalSections.style.display = 'block';
-        podiatrySections.classList.remove('visible');
-      } else if (specialty === 'Podología') {
-        dentalSections.style.display = 'none';
+      const normalized = (specialty || '').toLowerCase().trim();
+      const isDental = normalized.includes('odont');
+      const isPodiatry = normalized.includes('podol');
+
+      console.log('Setting specialty view:', specialty, '-> isDental:', isDental, 'isPodiatry:', isPodiatry);
+
+      if (isPodiatry) {
+        dentalSections.classList.add('hidden');
         podiatrySections.classList.add('visible');
+      } else if (isDental) {
+        dentalSections.classList.remove('hidden');
+        podiatrySections.classList.remove('visible');
       }
     }
 
