@@ -247,27 +247,129 @@
       </div>
     </div>
 
-    <!-- Antecedentes Personales No Patológicos -->
+    <!-- Antecedentes Familiares Patológicos -->
     <div class="form-section">
-      <h3>Antecedentes Personales No Patológicos</h3>
-      <div class="form-grid full">
-        <div class="form-group">
-          <label>Hábitos (Fumar, Alcohol, Toxicomanías, Otros)</label>
-          <textarea id="consHabits" placeholder="Describa los hábitos del paciente"></textarea>
-        </div>
-      </div>
-      <div class="form-grid full">
-        <div class="form-group">
-          <label>Tipo de Calzado Habitual</label>
-          <textarea id="consFootwear" placeholder="Describa el tipo de calzado que usa regularmente"></textarea>
-        </div>
-      </div>
-      <div class="form-grid full">
-        <div class="form-group">
-          <label>Actividad Física (días/semana)</label>
-          <input type="text" id="consPhysicalActivity" placeholder="Ej: 3 días/semana">
-        </div>
-      </div>
+      <h3>Antecedentes Familiares Patológicos</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th colspan="2">Antecedente</th>
+            <th style="width: 80px;">Sí</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="2">Diabetes Mellitus</td>
+            <td style="text-align: center;"><input type="checkbox" id="consFamDiabetes"></td>
+            <td><input type="text" id="consFamDiabetesObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Hipertensión</td>
+            <td style="text-align: center;"><input type="checkbox" id="consFamHypertension"></td>
+            <td><input type="text" id="consFamHypertensionObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Cardiopatías</td>
+            <td style="text-align: center;"><input type="checkbox" id="consFamCardiopathy"></td>
+            <td><input type="text" id="consFamCardioppathyObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Enfermedad Vascular</td>
+            <td style="text-align: center;"><input type="checkbox" id="consFamVascular"></td>
+            <td><input type="text" id="consFamVascularObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Psoriasis</td>
+            <td style="text-align: center;"><input type="checkbox" id="consFamPsoriasis"></td>
+            <td><input type="text" id="consFamPsoriasisObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Artritis</td>
+            <td style="text-align: center;"><input type="checkbox" id="consFamArthritis"></td>
+            <td><input type="text" id="consFamArthritisObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Cáncer</td>
+            <td style="text-align: center;"><input type="checkbox" id="consFamCancer"></td>
+            <td><input type="text" id="consFamCancerObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Enfermedades Dermatológicas</td>
+            <td style="text-align: center;"><input type="checkbox" id="consFamDermatological"></td>
+            <td><input type="text" id="consFamDermatologicalObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">VIH</td>
+            <td style="text-align: center;"><input type="checkbox" id="consFamHIV"></td>
+            <td><input type="text" id="consFamHIVObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Tuberculosis (TB)</td>
+            <td style="text-align: center;"><input type="checkbox" id="consFamTB"></td>
+            <td><input type="text" id="consFamTBObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Enfermedad Renal</td>
+            <td style="text-align: center;"><input type="checkbox" id="consFamRenal"></td>
+            <td><input type="text" id="consFamRenalObs"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Antecedentes Personales y Podológicos -->
+    <div class="form-section">
+      <h3>Antecedentes Personales y Podológicos</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th colspan="2">Antecedente</th>
+            <th style="width: 80px;">Sí</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="2">Antecedentes Traumáticos</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerTraumatic"></td>
+            <td><input type="text" id="consPerTraumaticObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Antecedentes Quirúrgicos</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerSurgical"></td>
+            <td><input type="text" id="consPerSurgicalObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Alergias</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerAllergies"></td>
+            <td><input type="text" id="consPerAllergiesObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Toma Aspirina o Anticoagulante</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerAspirin"></td>
+            <td><input type="text" id="consPerAspirinObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Embarazo</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerPregnancy"></td>
+            <td><input type="text" id="consPerPregnancyObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Hábitos (Fumar, Alcohol, Toxicomanías)</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerHabits"></td>
+            <td><input type="text" id="consPerHabitsObs"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Tipo de Calzado Habitual</td>
+            <td colspan="2"><input type="text" id="consFootwear" style="width: 100%;"></td>
+          </tr>
+          <tr>
+            <td colspan="2">Actividad Física (días/semana)</td>
+            <td colspan="2"><input type="text" id="consPhysicalActivity" style="width: 100%;"></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Historia de Enfermedad Actual -->
@@ -531,7 +633,6 @@ async function submitConsult(e) {
       radiography_notes: JSON.stringify({
         age: document.getElementById('consAge').value,
         occupation: document.getElementById('consOccupation').value,
-        habits: document.getElementById('consHabits').value,
         footwear: document.getElementById('consFootwear').value,
         physical_activity: document.getElementById('consPhysicalActivity').value,
         weight: document.getElementById('consWeight').value,
@@ -540,7 +641,28 @@ async function submitConsult(e) {
         foot_type_right: podogramState.foot_type_right,
         foot_type_left: podogramState.foot_type_left,
         foot_shape_right: podogramState.foot_shape_right,
-        foot_shape_left: podogramState.foot_shape_left
+        foot_shape_left: podogramState.foot_shape_left,
+        family_history: {
+          diabetes: { checked: document.getElementById('consFamDiabetes').checked, obs: document.getElementById('consFamDiabetesObs').value },
+          hypertension: { checked: document.getElementById('consFamHypertension').checked, obs: document.getElementById('consFamHypertensionObs').value },
+          cardiopathy: { checked: document.getElementById('consFamCardiopathy').checked, obs: document.getElementById('consFamCardioppathyObs').value },
+          vascular: { checked: document.getElementById('consFamVascular').checked, obs: document.getElementById('consFamVascularObs').value },
+          psoriasis: { checked: document.getElementById('consFamPsoriasis').checked, obs: document.getElementById('consFamPsoriasisObs').value },
+          arthritis: { checked: document.getElementById('consFamArthritis').checked, obs: document.getElementById('consFamArthritisObs').value },
+          cancer: { checked: document.getElementById('consFamCancer').checked, obs: document.getElementById('consFamCancerObs').value },
+          dermatological: { checked: document.getElementById('consFamDermatological').checked, obs: document.getElementById('consFamDermatologicalObs').value },
+          hiv: { checked: document.getElementById('consFamHIV').checked, obs: document.getElementById('consFamHIVObs').value },
+          tb: { checked: document.getElementById('consFamTB').checked, obs: document.getElementById('consFamTBObs').value },
+          renal: { checked: document.getElementById('consFamRenal').checked, obs: document.getElementById('consFamRenalObs').value }
+        },
+        personal_history: {
+          traumatic: { checked: document.getElementById('consPerTraumatic').checked, obs: document.getElementById('consPerTraumaticObs').value },
+          surgical: { checked: document.getElementById('consPerSurgical').checked, obs: document.getElementById('consPerSurgicalObs').value },
+          allergies: { checked: document.getElementById('consPerAllergies').checked, obs: document.getElementById('consPerAllergiesObs').value },
+          aspirin: { checked: document.getElementById('consPerAspirin').checked, obs: document.getElementById('consPerAspirinObs').value },
+          pregnancy: { checked: document.getElementById('consPerPregnancy').checked, obs: document.getElementById('consPerPregnancyObs').value },
+          habits: { checked: document.getElementById('consPerHabits').checked, obs: document.getElementById('consPerHabitsObs').value }
+        }
       }),
       observations: JSON.stringify({
         dermatological: document.getElementById('consMainComplaint').value,
