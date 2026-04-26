@@ -21,7 +21,9 @@ class OdontogramArch {
 
   updateGridColumns(grid) {
     let cols = 4;
-    const w = window.innerWidth;
+    // Use container width if available, otherwise use window width
+    const container = grid.closest('.arch-container')?.parentElement || grid.parentElement;
+    const w = container ? container.offsetWidth : window.innerWidth;
     if (w >= 1350) cols = 8;
     else if (w >= 950) cols = 4;
     else if (w >= 700) cols = 3;
