@@ -852,7 +852,8 @@
     try {
       const patient = await api(`/api/patients/${patientId}`);
       const appointments = await api('/api/appointments');
-      renderPatientDetail(patient, appointments);
+      const me = await api('/api/auth/me');
+      renderPatientDetail(patient, appointments, me);
     } catch (e) {
       console.error(e);
     }
@@ -875,11 +876,12 @@
   }
 
   // ── Render Patient Detail ──
-  function renderPatientDetail(patient, allAppointments) {
+  function renderPatientDetail(patient, allAppointments, currentUser) {
     const initials = patient.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     const age = getAge(patient.birth_date);
     const userAppointments = (allAppointments || []).filter(a => a.patient_id === patient.id).slice(0, 3);
     const consultations = patient.consultations || [];
+    const isPodiatry = (currentUser?.specialty || '').toLowerCase().includes('podol');
 
     let html = `
       <!-- Mobile Back Button -->
@@ -982,53 +984,84 @@
           </table>
         </div>`;
 
-      const totalCost = consultations.reduce((sum, c) => sum + (c.payment_status === 'paid' ? (Number(c.cost) || 0) : 0), 0);
+      if (!isPodiatry) {
+        // Only show dental content for dental doctors
+        const totalCost = consultations.reduce((sum, c) => sum + (c.payment_status === 'paid' ? (Number(c.cost) || 0) : 0), 0);
+        html += `
+          <div class="info-card">
+            <h4>Historial Dental</h4>
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Tratamiento</th>
+                  <th>Fecha</th>
+                  <th>Estado de Pago</th>
+                  <th>Costo</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${consultations.length === 0 ? '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #94a3b8;">No hay consultas registradas</td></tr>' : consultations.slice(0, 8).map((c, idx) => {
+                  const cDate = new Date(c.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                  const treatment = c.diagnosis || c.treatment || 'Consulta';
+                  const payment = c.payment_status || 'completed';
+                  const statusBadge = payment === 'paid' ? 'status-completed' : 'status-pending';
+                  const statusText = payment === 'paid' ? 'Pagado' : 'Pendiente';
+                  const costFormatted = c.cost ? Number(c.cost).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0.00';
+                  const cost = 'L. ' + costFormatted;
+                  return `
+                    <tr style="cursor: ${payment === 'paid' ? 'default' : 'pointer'};" onclick="${payment === 'paid' ? '' : `openPaymentModal(${c.id}, '${esc(treatment)}', '${cDate}', '${cost}')`}">
+                      <td>#${c.id || idx + 1}</td>
+                      <td>${esc(treatment)}</td>
+                      <td>${cDate}</td>
+                      <td><span class="status-badge ${statusBadge}">${statusText}</span></td>
+                      <td>${cost}</td>
+                    </tr>`;
+                }).join('')}
+                ${consultations.length > 0 ? `<tr style="font-weight: 600; background: #f9fafb; border-top: 2px solid #e2e8f0;">
+                  <td colspan="4" style="text-align: right;">Total pagado:</td>
+                  <td>L. ${totalCost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                </tr>` : ''}
+              </tbody>
+            </table>
+          </div>`;
+
+        // Add Odontograma section only for dental doctors
+        html += `
+          <div class="info-card">
+            <h4>Odontograma</h4>
+            <div id="odontogramViewer" style="background:#f9fafb;padding:1rem;border-radius:8px;"></div>
+          </div>`;
+      }
+    } else if (isPodiatry) {
+      // For podiatry doctors, show consultation history without dental info
       html += `
         <div class="info-card">
-          <h4>Historial Dental</h4>
+          <h4>Historial de Consultas Podológicas</h4>
           <table class="history-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Tratamiento</th>
                 <th>Fecha</th>
-                <th>Estado de Pago</th>
-                <th>Costo</th>
+                <th>Diagnóstico</th>
+                <th>Doctor</th>
               </tr>
             </thead>
             <tbody>
-              ${consultations.length === 0 ? '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: #94a3b8;">No hay consultas registradas</td></tr>' : consultations.slice(0, 8).map((c, idx) => {
+              ${consultations.length === 0 ? '<tr><td colspan="3" style="text-align: center; padding: 2rem; color: #94a3b8;">No hay consultas registradas</td></tr>' : consultations.slice(0, 8).map((c) => {
                 const cDate = new Date(c.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' });
-                const treatment = c.diagnosis || c.treatment || 'Consulta';
-                const payment = c.payment_status || 'completed';
-                const statusBadge = payment === 'paid' ? 'status-completed' : 'status-pending';
-                const statusText = payment === 'paid' ? 'Pagado' : 'Pendiente';
-                const costFormatted = c.cost ? Number(c.cost).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0.00';
-                const cost = 'L. ' + costFormatted;
+                const diagnosis = c.diagnosis || 'Consulta';
+                const doctor = c.doctor_name || '—';
                 return `
-                  <tr style="cursor: ${payment === 'paid' ? 'default' : 'pointer'};" onclick="${payment === 'paid' ? '' : `openPaymentModal(${c.id}, '${esc(treatment)}', '${cDate}', '${cost}')`}">
-                    <td>#${c.id || idx + 1}</td>
-                    <td>${esc(treatment)}</td>
+                  <tr>
                     <td>${cDate}</td>
-                    <td><span class="status-badge ${statusBadge}">${statusText}</span></td>
-                    <td>${cost}</td>
+                    <td>${esc(diagnosis)}</td>
+                    <td>${esc(doctor)}</td>
                   </tr>`;
               }).join('')}
-              ${consultations.length > 0 ? `<tr style="font-weight: 600; background: #f9fafb; border-top: 2px solid #e2e8f0;">
-                <td colspan="4" style="text-align: right;">Total pagado:</td>
-                <td>L. ${totalCost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
-              </tr>` : ''}
             </tbody>
           </table>
         </div>`;
     }
-
-    // Agregar sección del Odontograma
-    html += `
-      <div class="info-card">
-        <h4>Odontograma</h4>
-        <div id="odontogramViewer" style="background:#f9fafb;padding:1rem;border-radius:8px;"></div>
-      </div>`;
 
     const detailPanel = document.getElementById('detailPanel');
     detailPanel.innerHTML = html;
