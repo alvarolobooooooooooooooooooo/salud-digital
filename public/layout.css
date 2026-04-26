@@ -328,6 +328,7 @@ nav.old-nav {
   #sidebar .sb-logo,
   #sidebar .sb-user-name,
   #sidebar .sb-clinic,
+  #sidebar .sb-specialty-badge,
   #sidebar .sb-item span:last-child,
   #sidebar .sb-logout span:last-child {
     display: none;
@@ -366,6 +367,7 @@ nav.old-nav {
   #sidebar.expanded .sb-logo,
   #sidebar.expanded .sb-user-name,
   #sidebar.expanded .sb-clinic,
+  #sidebar.expanded .sb-specialty-badge,
   #sidebar.expanded .sb-item span:last-child,
   #sidebar.expanded .sb-logout span:last-child {
     display: block;
