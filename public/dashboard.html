@@ -303,6 +303,16 @@
       line-height: 1;
       letter-spacing: -0.02em;
     }
+
+    .donut-value-small {
+      font-size: 1.5rem !important;
+    }
+
+    @media (max-width: 390px) {
+      .donut-value-small {
+        font-size: 0.8rem !important;
+      }
+    }
     .donut-text {
       font-size: 0.8rem;
       color: #64748b;
@@ -667,7 +677,7 @@
       .donut-wrap { gap: 1rem; }
       .donut-container { width: 120px; height: 120px; }
       .donut-value { font-size: 1rem; }
-      .donut-text { font-size: 0.5rem; }
+      .donut-text { font-size: 0.8rem; }
       .legend-label { font-size: 0.65rem; }
       .legend-val { font-size: 0.65rem; }
       .appt-scroll { max-height: 250px; padding-right: 0.3rem; }
@@ -844,7 +854,14 @@
         withoutEl.setAttribute('stroke-dashoffset', `-${withLen}`);
       }
 
-      document.getElementById('donutCenter').textContent = total;
+      const donutCenterEl = document.getElementById('donutCenter');
+      donutCenterEl.textContent = total;
+      // If total has 3+ digits, make the font smaller
+      if (total.toString().length >= 3) {
+        donutCenterEl.classList.add('donut-value-small');
+      } else {
+        donutCenterEl.classList.remove('donut-value-small');
+      }
       document.getElementById('legendWith').textContent = withAppt;
       document.getElementById('legendWithout').textContent = withoutAppt;
       document.getElementById('totalPatientsLabel').textContent = `${total} total`;
