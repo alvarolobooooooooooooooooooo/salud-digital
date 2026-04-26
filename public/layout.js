@@ -120,7 +120,7 @@
         <div class="sb-profile">
           <div class="sb-avatar" id="sbAvatar">?</div>
           <div class="sb-user-name" id="sbName">—</div>
-          <div class="sb-specialty-badge" id="sbSpecialty" style="display:none;"></div>
+          <div class="sb-specialty-badge" id="sbSpecialty"></div>
           <div class="sb-clinic" id="sbClinic">—</div>
         </div>
 
@@ -292,11 +292,8 @@
 
     if (specialtyEl && user.specialty) {
       specialtyEl.textContent = user.specialty;
-      specialtyEl.style.display = 'block';
       // Save specialty for use in other pages
       localStorage.setItem('sd_user_specialty', user.specialty);
-    } else if (specialtyEl) {
-      specialtyEl.style.display = 'none';
     }
   }
 
