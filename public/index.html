@@ -1005,6 +1005,642 @@
   }
 
   /* ═══════════════════════════════════════════════════════
+     PIPELINE CLÍNICO — Sophisticated workflow visualization
+     ═══════════════════════════════════════════════════════ */
+  .pipeline-section {
+    padding: 7rem 0 8rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .pipeline-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 1200px 600px at 50% 0%, rgba(8, 145, 178, 0.08), transparent 70%),
+      radial-gradient(ellipse 800px 400px at 20% 80%, rgba(6, 182, 212, 0.06), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .pipeline-wrap {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Pipeline header ── */
+  .pipeline-head {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+  .pipeline-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--primary);
+    padding: 0.45rem 0.95rem;
+    background: rgba(8, 145, 178, 0.08);
+    border: 1px solid rgba(8, 145, 178, 0.18);
+    border-radius: 999px;
+    margin-bottom: 1.25rem;
+  }
+  .pipeline-eyebrow .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.7);
+    animation: pulse-dot 2s infinite;
+  }
+  @keyframes pulse-dot {
+    0% { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(8, 145, 178, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0); }
+  }
+  .pipeline-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+  .pipeline-title .grad {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 50%, #22d3ee 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .pipeline-sub {
+    color: var(--muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* ── Pipeline track ── */
+  .pipeline-track {
+    position: relative;
+    margin: 0 auto 3rem;
+    max-width: 1100px;
+    padding-top: 24px;
+  }
+  .pipe-track-line {
+    position: absolute;
+    top: 56px;
+    left: 32px;
+    right: 32px;
+    height: 2px;
+    background-image: repeating-linear-gradient(90deg, rgba(8, 145, 178, 0.18) 0 6px, transparent 6px 14px);
+    z-index: 1;
+  }
+  .pipe-track-fill {
+    position: absolute;
+    top: 55px;
+    left: 32px;
+    height: 4px;
+    width: 0;
+    background: linear-gradient(90deg, #0891b2 0%, #06b6d4 50%, #22d3ee 100%);
+    border-radius: 4px;
+    box-shadow: 0 0 14px rgba(8, 145, 178, 0.5);
+    transition: width 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+    z-index: 1;
+  }
+  .pipe-orb {
+    position: absolute;
+    top: 47px;
+    left: 32px;
+    width: 20px;
+    height: 20px;
+    margin-left: -10px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffffff 0%, #22d3ee 40%, #0891b2 100%);
+    box-shadow:
+      0 0 0 4px rgba(255, 255, 255, 0.6),
+      0 0 18px rgba(8, 145, 178, 0.8),
+      0 0 36px rgba(34, 211, 238, 0.5);
+    transition: left 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .pipe-orb::before, .pipe-orb::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(8, 145, 178, 0.45);
+    animation: orbRing 1.8s ease-out infinite;
+  }
+  .pipe-orb::after { animation-delay: 0.6s; inset: -10px; border-color: rgba(8, 145, 178, 0.25); }
+  @keyframes orbRing {
+    0% { opacity: 0.9; transform: scale(0.6); }
+    100% { opacity: 0; transform: scale(1.5); }
+  }
+
+  /* ── Pipeline nodes ── */
+  .pipeline-nodes {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    height: 100%;
+    padding: 0 1rem;
+  }
+  .pipe-node {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    cursor: pointer;
+    flex: 1;
+    max-width: 200px;
+  }
+  .pipe-node-circle {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+    border: 2px solid rgba(8, 145, 178, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow:
+      0 4px 12px rgba(8, 145, 178, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    z-index: 2;
+  }
+  .pipe-node-circle svg {
+    width: 26px;
+    height: 26px;
+    stroke-width: 2;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .pipe-node-circle::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2px solid var(--primary);
+    opacity: 0;
+    transform: scale(0.85);
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .pipe-node-circle::after {
+    content: '';
+    position: absolute;
+    inset: -16px;
+    border-radius: 50%;
+    border: 1px solid rgba(8, 145, 178, 0.3);
+    opacity: 0;
+  }
+  .pipe-node.active .pipe-node-circle {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    border-color: transparent;
+    color: #fff;
+    transform: scale(1.12);
+    box-shadow:
+      0 0 0 6px rgba(8, 145, 178, 0.12),
+      0 12px 28px rgba(8, 145, 178, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  .pipe-node.active .pipe-node-circle svg {
+    transform: scale(1.05);
+  }
+  .pipe-node.active .pipe-node-circle::before {
+    opacity: 1;
+    transform: scale(1);
+    animation: ringPulse 2.4s ease-out infinite;
+  }
+  .pipe-node.active .pipe-node-circle::after {
+    opacity: 1;
+    animation: ringPulse 2.4s ease-out infinite 0.3s;
+  }
+  .pipe-node.completed .pipe-node-circle {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  @keyframes ringPulse {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+
+  .pipe-node-label {
+    text-align: center;
+    transition: all 0.4s ease;
+  }
+  .pipe-node-num {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+  .pipe-node-name {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .pipe-node.active .pipe-node-num {
+    color: var(--primary);
+  }
+  .pipe-node.active .pipe-node-name {
+    color: var(--primary);
+  }
+
+  @media (max-width: 720px) {
+    .pipeline-track { height: 110px; }
+    .pipe-node-circle { width: 52px; height: 52px; }
+    .pipe-node-circle svg { width: 22px; height: 22px; }
+    .pipe-node-num { font-size: 0.55rem; }
+    .pipe-node-name { font-size: 0.75rem; }
+  }
+
+  /* ── Stage display ── */
+  .pipeline-stage {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 249, 255, 0.92) 100%);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 28px;
+    padding: 3rem;
+    min-height: 420px;
+    box-shadow:
+      0 0 80px rgba(8, 145, 178, 0.06),
+      0 30px 80px rgba(8, 32, 60, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    overflow: hidden;
+  }
+  .pipeline-stage::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(8, 145, 178, 0.4), transparent);
+  }
+
+  .pipe-panel {
+    position: absolute;
+    inset: 3rem;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 3rem;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .pipe-panel.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    transition: opacity 0.6s ease 0.15s, transform 0.6s ease 0.15s;
+  }
+  @media (max-width: 900px) {
+    .pipeline-stage { padding: 2rem 1.5rem; min-height: 600px; }
+    .pipe-panel { inset: 2rem 1.5rem; grid-template-columns: 1fr; gap: 2rem; }
+  }
+
+  .pipe-info-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--primary);
+    background: rgba(8, 145, 178, 0.1);
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    margin-bottom: 1.25rem;
+  }
+  .pipe-info h3 {
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+  .pipe-info h3 .grad {
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .pipe-info p {
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+  }
+  .pipe-metrics {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .pipe-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .pipe-metric-val {
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+  }
+  .pipe-metric-lbl {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+
+  /* ── Visual mockups for each stage ── */
+  .pipe-visual {
+    position: relative;
+    height: 320px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 18px;
+    border: 1px solid rgba(8, 145, 178, 0.12);
+    padding: 1.25rem;
+    box-shadow:
+      0 12px 36px rgba(8, 145, 178, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    overflow: hidden;
+  }
+  .pipe-visual-hdr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0.25rem 0.85rem;
+    border-bottom: 1px solid rgba(8, 145, 178, 0.08);
+    margin-bottom: 1rem;
+  }
+  .pipe-visual-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .pipe-visual-pill {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(8, 145, 178, 0.1);
+    color: var(--primary);
+    letter-spacing: 0.06em;
+  }
+
+  /* Stage 1: Patient intake form */
+  .form-fields { display: flex; flex-direction: column; gap: 0.85rem; }
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    opacity: 0;
+    transform: translateX(-12px);
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .pipe-panel.active .form-field { opacity: 1; transform: translateX(0); }
+  .pipe-panel.active .form-field:nth-child(1) { transition-delay: 0.3s; }
+  .pipe-panel.active .form-field:nth-child(2) { transition-delay: 0.45s; }
+  .pipe-panel.active .form-field:nth-child(3) { transition-delay: 0.6s; }
+  .pipe-panel.active .form-field:nth-child(4) { transition-delay: 0.75s; }
+  .form-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+  .form-input {
+    height: 32px;
+    background: #f8fafc;
+    border: 1px solid rgba(8, 145, 178, 0.12);
+    border-radius: 8px;
+    padding: 0 0.6rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.78rem;
+    color: var(--text);
+    position: relative;
+  }
+  .form-input.typing::after {
+    content: '|';
+    color: var(--primary);
+    margin-left: 2px;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+  .form-saved {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    color: #15803d;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.4s ease 1.4s;
+  }
+  .pipe-panel.active .form-saved { opacity: 1; transform: translateY(0); }
+  .form-saved svg { width: 14px; height: 14px; }
+
+  /* Stage 2: Calendar / scheduling */
+  .cal-mock {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    padding-top: 0.5rem;
+  }
+  .cal-mock-cell {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--muted);
+    transition: all 0.4s ease;
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  .pipe-panel.active .cal-mock-cell {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .cal-mock-cell.has-appt { background: rgba(8, 145, 178, 0.08); color: var(--primary); }
+  .cal-mock-cell.selected {
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(8, 145, 178, 0.35);
+    transform: scale(1.08);
+  }
+  .pipe-panel.active .cal-mock-cell.selected {
+    animation: cellPop 0.6s ease 1s both;
+  }
+  @keyframes cellPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.18); }
+    100% { transform: scale(1.08); }
+  }
+  .slot-list {
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(8, 145, 178, 0.08);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .slot {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.3rem 0.55rem;
+    border-radius: 6px;
+    background: #f0f9ff;
+    color: var(--primary);
+    border: 1px solid rgba(8, 145, 178, 0.15);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: all 0.35s ease;
+  }
+  .pipe-panel.active .slot { opacity: 1; transform: translateY(0); }
+  .pipe-panel.active .slot:nth-child(1) { transition-delay: 1.3s; }
+  .pipe-panel.active .slot:nth-child(2) { transition-delay: 1.4s; }
+  .pipe-panel.active .slot:nth-child(3) { transition-delay: 1.5s; }
+  .pipe-panel.active .slot:nth-child(4) { transition-delay: 1.6s; }
+  .slot.taken {
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    color: #fff;
+    border-color: transparent;
+  }
+
+  /* Stage 3: Consultation */
+  .vital-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+  }
+  .vital-card {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 0.55rem 0.6rem;
+    border: 1px solid rgba(8, 145, 178, 0.08);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.4s ease;
+  }
+  .pipe-panel.active .vital-card { opacity: 1; transform: translateY(0); }
+  .pipe-panel.active .vital-card:nth-child(1) { transition-delay: 0.3s; }
+  .pipe-panel.active .vital-card:nth-child(2) { transition-delay: 0.4s; }
+  .pipe-panel.active .vital-card:nth-child(3) { transition-delay: 0.5s; }
+  .vital-lbl { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  .vital-val {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 0.15rem;
+  }
+  .vital-val .unit { font-size: 0.65rem; color: var(--muted); font-weight: 500; margin-left: 2px; }
+  .notes-block {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 0.7rem;
+    border-left: 3px solid var(--primary);
+  }
+  .notes-line {
+    height: 7px;
+    background: linear-gradient(90deg, rgba(8, 145, 178, 0.18), rgba(8, 145, 178, 0.05));
+    border-radius: 3px;
+    margin-bottom: 5px;
+    width: 0;
+    transition: width 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .pipe-panel.active .notes-line:nth-child(1) { width: 90%; transition-delay: 0.7s; }
+  .pipe-panel.active .notes-line:nth-child(2) { width: 75%; transition-delay: 0.85s; }
+  .pipe-panel.active .notes-line:nth-child(3) { width: 85%; transition-delay: 1s; }
+  .pipe-panel.active .notes-line:nth-child(4) { width: 60%; transition-delay: 1.15s; }
+
+  /* Stage 4: Close & record */
+  .summary-checks { display: flex; flex-direction: column; gap: 0.65rem; }
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.6rem 0.75rem;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid rgba(8, 145, 178, 0.08);
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .pipe-panel.active .check-row { opacity: 1; transform: translateX(0); }
+  .pipe-panel.active .check-row:nth-child(1) { transition-delay: 0.3s; }
+  .pipe-panel.active .check-row:nth-child(2) { transition-delay: 0.5s; }
+  .pipe-panel.active .check-row:nth-child(3) { transition-delay: 0.7s; }
+  .pipe-panel.active .check-row:nth-child(4) { transition-delay: 0.9s; }
+  .check-icon {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(8, 145, 178, 0.3);
+  }
+  .check-icon svg { width: 13px; height: 13px; stroke-width: 3; }
+  .check-text { font-size: 0.78rem; color: var(--text); font-weight: 600; flex: 1; }
+  .check-meta { font-size: 0.65rem; color: var(--muted); }
+  .summary-total {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(8, 145, 178, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.5s ease 1.2s;
+  }
+  .pipe-panel.active .summary-total { opacity: 1; }
+  .summary-total-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+  .summary-total-val {
+    font-size: 1.15rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ═══════════════════════════════════════════════════════
      PRICING (kept clean)
      ═══════════════════════════════════════════════════════ */
   .pricing {
@@ -1710,6 +2346,259 @@
   </div>
 </section>
 
+<!-- ── PIPELINE CLÍNICO ── -->
+<section class="pipeline-section" id="pipeline">
+  <div class="container pipeline-wrap">
+    <div class="pipeline-head reveal">
+      <span class="pipeline-eyebrow"><span class="dot"></span>Sistema en vivo · 99.9% uptime</span>
+      <h2 class="pipeline-title">Una jornada clínica,<br/><span class="grad">perfectamente orquestada</span></h2>
+      <p class="pipeline-sub">Cada paciente recorre un pipeline diseñado por ingenieros sanitarios. Observa el flujo en tiempo real.</p>
+    </div>
+
+    <!-- Pipeline track con línea animada y orbe que recorre el flujo -->
+    <div class="pipeline-track reveal">
+      <div class="pipe-track-line"></div>
+      <div class="pipe-track-fill" id="pipeTrackFill"></div>
+      <div class="pipe-orb" id="pipeOrb"></div>
+      <div class="pipeline-nodes">
+        <div class="pipe-node active" data-stage="0">
+          <div class="pipe-node-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <line x1="19" y1="8" x2="19" y2="14"/>
+              <line x1="22" y1="11" x2="16" y2="11"/>
+            </svg>
+          </div>
+          <div class="pipe-node-label">
+            <span class="pipe-node-num">Etapa 01</span>
+            <span class="pipe-node-name">Ingreso</span>
+          </div>
+        </div>
+        <div class="pipe-node" data-stage="1">
+          <div class="pipe-node-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+              <path d="M9 16l2 2 4-4"/>
+            </svg>
+          </div>
+          <div class="pipe-node-label">
+            <span class="pipe-node-num">Etapa 02</span>
+            <span class="pipe-node-name">Agendamiento</span>
+          </div>
+        </div>
+        <div class="pipe-node" data-stage="2">
+          <div class="pipe-node-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          </div>
+          <div class="pipe-node-label">
+            <span class="pipe-node-num">Etapa 03</span>
+            <span class="pipe-node-name">Consulta</span>
+          </div>
+        </div>
+        <div class="pipe-node" data-stage="3">
+          <div class="pipe-node-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <path d="M9 15l2 2 4-4"/>
+            </svg>
+          </div>
+          <div class="pipe-node-label">
+            <span class="pipe-node-num">Etapa 04</span>
+            <span class="pipe-node-name">Cierre</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stage display -->
+    <div class="pipeline-stage reveal">
+
+      <!-- Stage 0: Ingreso del paciente -->
+      <div class="pipe-panel active" data-panel="0">
+        <div class="pipe-info">
+          <span class="pipe-info-tag">Etapa 01 · Intake</span>
+          <h3>El médico <span class="grad">ingresa al paciente</span> en segundos</h3>
+          <p>Captura inteligente de datos clínicos con autocompletado, validación HL7 y verificación de identidad. Historia clínica creada al instante.</p>
+          <div class="pipe-metrics">
+            <div class="pipe-metric"><span class="pipe-metric-val">42s</span><span class="pipe-metric-lbl">Tiempo medio</span></div>
+            <div class="pipe-metric"><span class="pipe-metric-val">100%</span><span class="pipe-metric-lbl">Datos validados</span></div>
+            <div class="pipe-metric"><span class="pipe-metric-val">0</span><span class="pipe-metric-lbl">Errores</span></div>
+          </div>
+        </div>
+        <div class="pipe-visual">
+          <div class="pipe-visual-hdr">
+            <span class="pipe-visual-title">Nuevo paciente</span>
+            <span class="pipe-visual-pill">EN VIVO</span>
+          </div>
+          <div class="form-fields">
+            <div class="form-field">
+              <span class="form-label">Nombre completo</span>
+              <div class="form-input">María González Rivas</div>
+            </div>
+            <div class="form-field">
+              <span class="form-label">Documento</span>
+              <div class="form-input">12.345.678-9</div>
+            </div>
+            <div class="form-field">
+              <span class="form-label">Fecha de nacimiento</span>
+              <div class="form-input">14 / 03 / 1987</div>
+            </div>
+            <div class="form-field">
+              <span class="form-label">Tipo sanguíneo</span>
+              <div class="form-input typing">O+</div>
+            </div>
+          </div>
+          <div class="form-saved">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Historia clínica creada — ID #PT-4827
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage 1: Agendamiento -->
+      <div class="pipe-panel" data-panel="1">
+        <div class="pipe-info">
+          <span class="pipe-info-tag">Etapa 02 · Scheduling</span>
+          <h3>Agenda inteligente con <span class="grad">disponibilidad real</span></h3>
+          <p>Algoritmo de optimización que sugiere los mejores slots según especialidad, urgencia y patrones históricos. Confirmación automática por WhatsApp.</p>
+          <div class="pipe-metrics">
+            <div class="pipe-metric"><span class="pipe-metric-val">‹2s</span><span class="pipe-metric-lbl">Para reservar</span></div>
+            <div class="pipe-metric"><span class="pipe-metric-val">94%</span><span class="pipe-metric-lbl">Asistencia</span></div>
+            <div class="pipe-metric"><span class="pipe-metric-val">24/7</span><span class="pipe-metric-lbl">Disponible</span></div>
+          </div>
+        </div>
+        <div class="pipe-visual">
+          <div class="pipe-visual-hdr">
+            <span class="pipe-visual-title">Marzo 2026</span>
+            <span class="pipe-visual-pill">SLOT ELEGIDO</span>
+          </div>
+          <div class="cal-mock">
+            <div class="cal-mock-cell">L</div>
+            <div class="cal-mock-cell">M</div>
+            <div class="cal-mock-cell">M</div>
+            <div class="cal-mock-cell">J</div>
+            <div class="cal-mock-cell">V</div>
+            <div class="cal-mock-cell">S</div>
+            <div class="cal-mock-cell">D</div>
+            <div class="cal-mock-cell">3</div>
+            <div class="cal-mock-cell has-appt">4</div>
+            <div class="cal-mock-cell">5</div>
+            <div class="cal-mock-cell">6</div>
+            <div class="cal-mock-cell has-appt">7</div>
+            <div class="cal-mock-cell">8</div>
+            <div class="cal-mock-cell">9</div>
+            <div class="cal-mock-cell">10</div>
+            <div class="cal-mock-cell">11</div>
+            <div class="cal-mock-cell selected">12</div>
+            <div class="cal-mock-cell has-appt">13</div>
+            <div class="cal-mock-cell">14</div>
+            <div class="cal-mock-cell">15</div>
+            <div class="cal-mock-cell">16</div>
+          </div>
+          <div class="slot-list">
+            <div class="slot">09:00</div>
+            <div class="slot">09:30</div>
+            <div class="slot taken">10:00</div>
+            <div class="slot">10:30</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage 2: Consulta -->
+      <div class="pipe-panel" data-panel="2">
+        <div class="pipe-info">
+          <span class="pipe-info-tag">Etapa 03 · Encounter</span>
+          <h3>Consulta con <span class="grad">asistente clínico IA</span></h3>
+          <p>Vitales en vivo, transcripción automática, sugerencias diagnósticas basadas en evidencia y plantillas SOAP que se completan mientras hablas.</p>
+          <div class="pipe-metrics">
+            <div class="pipe-metric"><span class="pipe-metric-val">68%</span><span class="pipe-metric-lbl">Menos burocracia</span></div>
+            <div class="pipe-metric"><span class="pipe-metric-val">3.2x</span><span class="pipe-metric-lbl">Más detalle</span></div>
+            <div class="pipe-metric"><span class="pipe-metric-val">∞</span><span class="pipe-metric-lbl">Plantillas</span></div>
+          </div>
+        </div>
+        <div class="pipe-visual">
+          <div class="pipe-visual-hdr">
+            <span class="pipe-visual-title">Encuentro #4827</span>
+            <span class="pipe-visual-pill">EN CURSO</span>
+          </div>
+          <div class="vital-row">
+            <div class="vital-card">
+              <span class="vital-lbl">Pulso</span>
+              <div class="vital-val">72<span class="unit">bpm</span></div>
+            </div>
+            <div class="vital-card">
+              <span class="vital-lbl">SpO₂</span>
+              <div class="vital-val">98<span class="unit">%</span></div>
+            </div>
+            <div class="vital-card">
+              <span class="vital-lbl">P. Art.</span>
+              <div class="vital-val">120<span class="unit">/80</span></div>
+            </div>
+          </div>
+          <div class="notes-block">
+            <div class="notes-line"></div>
+            <div class="notes-line"></div>
+            <div class="notes-line"></div>
+            <div class="notes-line"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage 3: Cierre -->
+      <div class="pipe-panel" data-panel="3">
+        <div class="pipe-info">
+          <span class="pipe-info-tag">Etapa 04 · Closeout</span>
+          <h3>Cierre y registro <span class="grad">automatizado</span></h3>
+          <p>Diagnóstico CIE-10 vinculado, recetas digitales firmadas, factura emitida y historia archivada con cifrado de extremo a extremo. Todo en un solo gesto.</p>
+          <div class="pipe-metrics">
+            <div class="pipe-metric"><span class="pipe-metric-val">5s</span><span class="pipe-metric-lbl">Para cerrar</span></div>
+            <div class="pipe-metric"><span class="pipe-metric-val">AES-256</span><span class="pipe-metric-lbl">Cifrado</span></div>
+            <div class="pipe-metric"><span class="pipe-metric-val">100%</span><span class="pipe-metric-lbl">Trazable</span></div>
+          </div>
+        </div>
+        <div class="pipe-visual">
+          <div class="pipe-visual-hdr">
+            <span class="pipe-visual-title">Resumen del encuentro</span>
+            <span class="pipe-visual-pill">FINALIZADO</span>
+          </div>
+          <div class="summary-checks">
+            <div class="check-row">
+              <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="check-text">Diagnóstico CIE-10 registrado<br/><span class="check-meta">J06.9 · Infección aguda vía superior</span></div>
+            </div>
+            <div class="check-row">
+              <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="check-text">Receta digital firmada<br/><span class="check-meta">2 medicamentos · Enviada al paciente</span></div>
+            </div>
+            <div class="check-row">
+              <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="check-text">Factura emitida<br/><span class="check-meta">FA-2026-0427 · Pago confirmado</span></div>
+            </div>
+            <div class="check-row">
+              <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="check-text">Historia archivada<br/><span class="check-meta">Cifrado AES-256 · Auditable</span></div>
+            </div>
+          </div>
+          <div class="summary-total">
+            <span class="summary-total-lbl">Tiempo total del flujo</span>
+            <span class="summary-total-val">12 min 34 s</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 <!-- ── PRECIOS ── -->
 <section id="precios">
   <div class="container">
@@ -2003,6 +2892,93 @@
     personaTabs[personaIdx].click();
     personaInteracted = false;
   }, 6000);
+
+  // ─── Pipeline clínico: orchestration controller ───
+  (function initPipeline() {
+    const section = document.getElementById('pipeline');
+    if (!section) return;
+    const track = section.querySelector('.pipeline-track');
+    const nodes = section.querySelectorAll('.pipe-node');
+    const panels = section.querySelectorAll('.pipe-panel');
+    const orb = document.getElementById('pipeOrb');
+    const fill = document.getElementById('pipeTrackFill');
+    if (!track || !orb || !fill) return;
+
+    const STAGE_COUNT = nodes.length;
+    let currentStage = 0;
+    let userInteracted = false;
+    let cycleTimer = null;
+    let isVisible = false;
+
+    function moveOrbTo(stageIdx) {
+      // Use real DOM positions of the node circles for pixel-perfect alignment
+      const trackRect = track.getBoundingClientRect();
+      const circle = nodes[stageIdx].querySelector('.pipe-node-circle');
+      const circleRect = circle.getBoundingClientRect();
+      const centerX = (circleRect.left + circleRect.width / 2) - trackRect.left;
+      orb.style.left = centerX + 'px';
+      // Fill from track start (32px padding) to orb center
+      fill.style.width = Math.max(0, centerX - 32) + 'px';
+    }
+
+    function setStage(idx) {
+      currentStage = idx;
+      nodes.forEach((n, i) => {
+        n.classList.toggle('active', i === idx);
+        n.classList.toggle('completed', i < idx);
+      });
+      panels.forEach((p, i) => p.classList.toggle('active', i === idx));
+      // Wait a frame so layout is up-to-date before measuring
+      requestAnimationFrame(() => moveOrbTo(idx));
+    }
+
+    function nextStage() {
+      setStage((currentStage + 1) % STAGE_COUNT);
+    }
+
+    function startCycle() {
+      stopCycle();
+      cycleTimer = setInterval(() => {
+        if (userInteracted || !isVisible) return;
+        nextStage();
+      }, 4500);
+    }
+
+    function stopCycle() {
+      if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null; }
+    }
+
+    nodes.forEach((node, idx) => {
+      node.addEventListener('click', () => {
+        userInteracted = true;
+        setStage(idx);
+        // Resume auto-cycle 8s after interaction
+        clearTimeout(node._resumeTimer);
+        node._resumeTimer = setTimeout(() => { userInteracted = false; }, 8000);
+      });
+    });
+
+    // Only run animation when in viewport (perf)
+    const visObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        isVisible = e.isIntersecting;
+        if (isVisible) {
+          // Recalc on first reveal in case layout was off-screen at init
+          requestAnimationFrame(() => moveOrbTo(currentStage));
+          startCycle();
+        }
+      });
+    }, { threshold: 0.2 });
+    visObs.observe(section);
+
+    // Recompute orb position on resize
+    window.addEventListener('resize', () => moveOrbTo(currentStage));
+
+    // Init
+    setStage(0);
+    // Re-measure once layout settles (fonts, images)
+    window.addEventListener('load', () => moveOrbTo(currentStage));
+  })();
 </script>
 
 </body>
