@@ -19,8 +19,12 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 100%; overflow-x: hidden; }
-  html { scroll-behavior: smooth; }
+  html, body { width: 100%; }
+  html { scroll-behavior: smooth; overflow-x: clip; }
+  body { overflow-x: clip; }
+  @supports not (overflow: clip) {
+    html, body { overflow-x: hidden; }
+  }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
@@ -69,6 +73,46 @@
   button { font-family: inherit; cursor: pointer; }
   svg { stroke: currentColor; }
 
+  /* ── Custom cursor ── */
+  .cursor-dot, .cursor-ring {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    will-change: transform;
+  }
+  .cursor-dot {
+    width: 6px; height: 6px;
+    background: var(--primary);
+    transition: width 0.2s, height 0.2s, opacity 0.2s;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1.5px solid rgba(8, 145, 178, 0.4);
+    transition: width 0.3s, height 0.3s, border-color 0.3s, transform 0.15s ease-out;
+  }
+  .cursor-ring.hover {
+    width: 60px; height: 60px;
+    border-color: rgba(8, 145, 178, 0.7);
+    background: rgba(8, 145, 178, 0.06);
+  }
+  @media (max-width: 900px), (pointer: coarse) {
+    .cursor-dot, .cursor-ring { display: none; }
+  }
+
+  /* ── Scroll progress bar ── */
+  .scroll-progress {
+    position: fixed;
+    top: 0; left: 0;
+    width: 0%;
+    height: 3px;
+    background: linear-gradient(90deg, #0891b2 0%, #06b6d4 100%);
+    z-index: 200;
+    box-shadow: 0 0 10px rgba(8, 145, 178, 0.5);
+    transition: width 0.05s linear;
+  }
+
   /* ── Layout ── */
   .container {
     max-width: 1200px;
@@ -82,9 +126,7 @@
   /* ── Navigation ── */
   .nav {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 0; left: 0; right: 0;
     z-index: 100;
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px);
@@ -99,33 +141,12 @@
     gap: 2rem;
   }
   .logo {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
     font-size: 1.15rem;
     font-weight: 900;
     color: var(--text);
     letter-spacing: -0.5px;
   }
-  .logo-mark {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    box-shadow: 0 8px 20px rgba(8, 145, 178, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-  }
-  .logo-mark svg { width: 20px; height: 20px; stroke-width: 2.5; }
-
-  .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-  }
+  .nav-links { display: flex; align-items: center; gap: 2rem; }
   .nav-link {
     color: var(--muted);
     font-size: 0.9rem;
@@ -134,14 +155,8 @@
     letter-spacing: -0.2px;
   }
   .nav-link:hover { color: var(--primary); }
+  .nav-cta { display: flex; align-items: center; gap: 0.75rem; }
 
-  .nav-cta {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  /* ── Buttons (matching dashboard btn-consult-full) ── */
   .btn {
     display: inline-flex;
     align-items: center;
@@ -177,10 +192,8 @@
   .btn-primary::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
     transition: left 0.6s;
   }
@@ -190,18 +203,14 @@
     transform: translateY(-4px);
     color: white;
   }
-  .btn-large {
-    padding: 1rem 1.75rem;
-    font-size: 0.95rem;
-  }
+  .btn-large { padding: 1rem 1.75rem; font-size: 0.95rem; }
 
   .nav-toggle {
     display: none;
     background: linear-gradient(135deg, rgba(8, 145, 178, 0.12) 0%, rgba(6, 182, 212, 0.12) 100%);
     border: 1px solid rgba(8, 145, 178, 0.25);
     border-radius: 10px;
-    width: 40px;
-    height: 40px;
+    width: 40px; height: 40px;
     cursor: pointer;
     flex-direction: column;
     align-items: center;
@@ -211,8 +220,7 @@
   }
   .nav-toggle span {
     display: block;
-    width: 18px;
-    height: 2px;
+    width: 18px; height: 2px;
     background: currentColor;
     border-radius: 2px;
   }
@@ -222,7 +230,6 @@
     .nav-cta .btn-ghost { display: none; }
   }
 
-  /* Mobile menu */
   .mobile-menu {
     position: fixed;
     inset: 0;
@@ -245,12 +252,15 @@
     letter-spacing: -0.5px;
   }
 
-  /* ── Hero ── */
+  /* ═══════════════════════════════════════════════════════
+     HERO with 3D parallax tilt + magnetic effect
+     ═══════════════════════════════════════════════════════ */
   .hero {
-    padding: 5rem 0 4rem;
+    padding: 6rem 0 4rem;
     text-align: center;
     position: relative;
     margin-top: 70px;
+    perspective: 1500px;
   }
   .hero-badge {
     display: inline-flex;
@@ -270,18 +280,18 @@
     margin-bottom: 1.75rem;
   }
   .hero-badge .dot {
-    width: 8px;
-    height: 8px;
+    width: 8px; height: 8px;
     border-radius: 50%;
     background: var(--success);
     box-shadow: 0 0 10px rgba(21, 128, 61, 0.5);
     animation: pulse 2s ease-in-out infinite;
   }
   @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
   }
 
+  /* Animated text reveal — split letters */
   .hero h1 {
     font-size: clamp(2.4rem, 6vw, 4.5rem);
     font-weight: 900;
@@ -293,6 +303,17 @@
     margin-left: auto;
     margin-right: auto;
   }
+  .hero h1 .word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+  }
+  .hero h1 .word span {
+    display: inline-block;
+    transform: translateY(110%);
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hero h1.in .word span { transform: translateY(0); }
   .hero h1 .grad {
     background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
     -webkit-background-clip: text;
@@ -307,7 +328,11 @@
     margin: 0 auto 2.5rem;
     font-weight: 600;
     line-height: 1.6;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s 0.5s ease, transform 0.8s 0.5s ease;
   }
+  .hero-sub.in { opacity: 1; transform: translateY(0); }
 
   .hero-cta {
     display: flex;
@@ -316,9 +341,13 @@
     gap: 1rem;
     flex-wrap: wrap;
     margin-bottom: 4rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s 0.7s ease, transform 0.8s 0.7s ease;
   }
+  .hero-cta.in { opacity: 1; transform: translateY(0); }
 
-  /* ── Hero preview card (matching dashboard cards) ── */
+  /* Hero preview with 3D tilt */
   .hero-preview {
     max-width: 1100px;
     margin: 0 auto;
@@ -332,15 +361,9 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.5);
     position: relative;
-  }
-  .hero-preview::before {
-    content: '';
-    position: absolute;
-    top: -1px;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    transform-style: preserve-3d;
+    transition: transform 0.4s ease-out;
+    will-change: transform;
   }
   .preview-bar {
     display: flex;
@@ -350,11 +373,7 @@
     border-bottom: 1px solid rgba(8, 145, 178, 0.08);
     margin-bottom: 1.25rem;
   }
-  .preview-bar .dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-  }
+  .preview-bar .dot { width: 12px; height: 12px; border-radius: 50%; }
   .preview-bar .dot.r { background: #f87171; }
   .preview-bar .dot.y { background: #fbbf24; }
   .preview-bar .dot.g { background: #4ade80; }
@@ -364,6 +383,7 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
     padding: 0.5rem;
+    transform: translateZ(40px);
   }
   @media (max-width: 720px) { .preview-grid { grid-template-columns: 1fr; } }
 
@@ -378,8 +398,7 @@
     box-shadow: 0 8px 20px rgba(8, 145, 178, 0.08);
   }
   .preview-stat .icon {
-    width: 48px;
-    height: 48px;
+    width: 48px; height: 48px;
     border-radius: 12px;
     background: linear-gradient(135deg, rgba(8, 145, 178, 0.25) 0%, rgba(6, 182, 212, 0.25) 100%);
     display: flex;
@@ -408,7 +427,306 @@
     line-height: 1;
   }
 
-  /* ── Section ── */
+  /* ═══════════════════════════════════════════════════════
+     WORKFLOW (vertical pinned with crossfade steps)
+     ═══════════════════════════════════════════════════════ */
+  .workflow-pin {
+    position: relative;
+    height: 320vh;
+  }
+  .workflow-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding-top: 80px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .workflow-header {
+    text-align: center;
+    padding: 2rem 2rem 1rem;
+    position: relative;
+    z-index: 5;
+    flex-shrink: 0;
+  }
+  .workflow-eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    color: var(--primary);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.5rem;
+  }
+  .workflow-title {
+    font-size: clamp(1.4rem, 2.6vw, 2.2rem);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    color: var(--text);
+  }
+  .workflow-title .grad {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Progress dots */
+  .workflow-progress {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem 0 0.5rem;
+    position: relative;
+    z-index: 5;
+    flex-shrink: 0;
+  }
+  .wp-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(8, 145, 178, 0.2);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+  }
+  .wp-dot.active {
+    width: 32px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #0891b2, #06b6d4);
+    box-shadow: 0 4px 12px rgba(8, 145, 178, 0.4);
+  }
+
+  .workflow-stage {
+    flex: 1;
+    position: relative;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 1rem 2rem 2rem;
+    min-height: 0;
+  }
+  @media (max-width: 720px) { .workflow-stage { padding: 1rem 1.25rem 2rem; } }
+
+  .workflow-step {
+    position: absolute;
+    inset: 1rem 2rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(40px) scale(0.97);
+    transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+  }
+  .workflow-step.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  @media (max-width: 900px) {
+    .workflow-step {
+      grid-template-columns: 1fr;
+      inset: 0.5rem 1.25rem 1rem;
+      gap: 1rem;
+      grid-template-rows: auto 1fr;
+    }
+  }
+  .workflow-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+  }
+  .workflow-num {
+    font-size: clamp(4rem, 10vw, 9rem);
+    font-weight: 900;
+    line-height: 0.85;
+    letter-spacing: -6px;
+    background: linear-gradient(135deg, rgba(8, 145, 178, 0.15) 0%, rgba(6, 182, 212, 0.05) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    user-select: none;
+    pointer-events: none;
+    margin-bottom: 0.5rem;
+  }
+  @media (max-width: 900px) {
+    .workflow-num { font-size: 4rem; margin-bottom: 0.25rem; }
+  }
+  .workflow-content h3 {
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+  .workflow-content h3 .grad {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .workflow-content p {
+    font-size: 0.95rem;
+    color: var(--muted);
+    line-height: 1.55;
+    font-weight: 600;
+    max-width: 460px;
+  }
+  .workflow-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, rgba(8, 145, 178, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
+    border: 1px solid rgba(8, 145, 178, 0.3);
+    border-radius: 20px;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 1rem;
+    align-self: flex-start;
+  }
+
+  /* Workflow visual: animated mock UI */
+  .workflow-visual {
+    position: relative;
+    height: 100%;
+    max-height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.95) 100%);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow:
+      0 0 100px rgba(8, 145, 178, 0.12),
+      0 20px 50px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  @media (max-width: 900px) {
+    .workflow-visual { min-height: 280px; padding: 1rem; }
+  }
+  .wf-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem;
+    background: rgba(8, 145, 178, 0.04);
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(8, 145, 178, 0.08);
+    opacity: 0;
+    transform: translateX(-30px);
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .workflow-step.active .wf-row {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .workflow-step.active .wf-row:nth-child(1) { transition-delay: 0.1s; }
+  .workflow-step.active .wf-row:nth-child(2) { transition-delay: 0.2s; }
+  .workflow-step.active .wf-row:nth-child(3) { transition-delay: 0.3s; }
+  .workflow-step.active .wf-row:nth-child(4) { transition-delay: 0.4s; }
+  .workflow-step.active .wf-row:nth-child(5) { transition-delay: 0.5s; }
+  .wf-row.confirmed { background: linear-gradient(135deg, rgba(21, 128, 61, 0.08) 0%, rgba(34, 197, 94, 0.05) 100%); border-color: rgba(21, 128, 61, 0.2); }
+  .wf-row.confirmed .wf-status { color: #15803d; }
+  .wf-avatar {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  .wf-info { flex: 1; min-width: 0; }
+  .wf-name { font-size: 0.8rem; font-weight: 800; color: var(--text); }
+  .wf-sub { font-size: 0.7rem; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .wf-status {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.25rem 0.5rem;
+    background: rgba(8, 145, 178, 0.1);
+    border-radius: 6px;
+  }
+
+  /* Workflow visual variants */
+  .wf-pulse-ring {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .wf-pulse-ring::before, .wf-pulse-ring::after {
+    content: '';
+    position: absolute;
+    border: 2px solid rgba(8, 145, 178, 0.3);
+    border-radius: 50%;
+    animation: pulse-ring 3s ease-out infinite;
+  }
+  .wf-pulse-ring::after { animation-delay: 1.5s; }
+  @keyframes pulse-ring {
+    0% { width: 80px; height: 80px; opacity: 1; }
+    100% { width: 280px; height: 280px; opacity: 0; }
+  }
+  .wf-center-icon {
+    position: relative;
+    width: 80px; height: 80px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 20px 50px rgba(8, 145, 178, 0.4);
+    z-index: 2;
+  }
+  .wf-center-icon svg { width: 36px; height: 36px; stroke-width: 2.5; }
+
+  .wf-chart {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.6rem;
+    padding: 1rem;
+  }
+  .wf-bar {
+    flex: 1;
+    background: linear-gradient(180deg, #06b6d4 0%, #0891b2 100%);
+    border-radius: 8px 8px 0 0;
+    height: 0%;
+    transition: height 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 -4px 16px rgba(8, 145, 178, 0.3);
+    min-height: 0;
+  }
+  .workflow-step.active .wf-bar:nth-child(1) { height: 35%; transition-delay: 0.1s; }
+  .workflow-step.active .wf-bar:nth-child(2) { height: 55%; transition-delay: 0.2s; }
+  .workflow-step.active .wf-bar:nth-child(3) { height: 75%; transition-delay: 0.3s; }
+  .workflow-step.active .wf-bar:nth-child(4) { height: 90%; transition-delay: 0.4s; }
+  .workflow-step.active .wf-bar:nth-child(5) { height: 65%; transition-delay: 0.5s; }
+  .workflow-step.active .wf-bar:nth-child(6) { height: 100%; transition-delay: 0.6s; }
+
+  /* ═══════════════════════════════════════════════════════
+     SECTION (general)
+     ═══════════════════════════════════════════════════════ */
   section {
     padding: 5rem 0;
     position: relative;
@@ -449,7 +767,9 @@
     line-height: 1.6;
   }
 
-  /* ── Features grid (using card style) ── */
+  /* ═══════════════════════════════════════════════════════
+     FEATURES with magnetic hover & 3D depth
+     ═══════════════════════════════════════════════════════ */
   .features {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -468,19 +788,24 @@
       0 20px 50px rgba(0, 0, 0, 0.06),
       inset 0 1px 0 rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.5);
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
     position: relative;
     overflow: hidden;
+    transform-style: preserve-3d;
+    cursor: pointer;
   }
-  .feature-card::before {
+  .feature-card::after {
     content: '';
     position: absolute;
-    top: -1px;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    top: var(--my, 50%); left: var(--mx, 50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(8, 145, 178, 0.18) 0%, transparent 60%);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
   }
+  .feature-card:hover::after { opacity: 1; }
   .feature-card:hover {
     transform: translateY(-8px);
     box-shadow:
@@ -489,8 +814,7 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.8);
   }
   .feature-icon {
-    width: 56px;
-    height: 56px;
+    width: 56px; height: 56px;
     border-radius: 14px;
     background: linear-gradient(135deg, rgba(8, 145, 178, 0.25) 0%, rgba(6, 182, 212, 0.25) 100%);
     display: flex;
@@ -500,6 +824,12 @@
     margin-bottom: 1.5rem;
     box-shadow: 0 12px 32px rgba(8, 145, 178, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5);
     border: 1px solid rgba(8, 145, 178, 0.2);
+    position: relative;
+    z-index: 1;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .feature-card:hover .feature-icon {
+    transform: translateZ(30px) rotate(-5deg) scale(1.05);
   }
   .feature-icon svg { width: 26px; height: 26px; stroke-width: 2; }
   .feature-title {
@@ -508,15 +838,21 @@
     color: var(--text);
     margin-bottom: 0.6rem;
     letter-spacing: -0.4px;
+    position: relative;
+    z-index: 1;
   }
   .feature-desc {
     font-size: 0.9rem;
     color: var(--muted);
     line-height: 1.6;
     font-weight: 600;
+    position: relative;
+    z-index: 1;
   }
 
-  /* ── Stats row ── */
+  /* ═══════════════════════════════════════════════════════
+     STATS counter
+     ═══════════════════════════════════════════════════════ */
   .stats-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -556,56 +892,92 @@
     letter-spacing: 0.06em;
   }
 
-  /* ── Personas (for who) ── */
-  .personas {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+  /* ═══════════════════════════════════════════════════════
+     PERSONAS — interactive role switcher (tabs)
+     ═══════════════════════════════════════════════════════ */
+  .persona-switcher {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
   }
-  @media (max-width: 900px) { .personas { grid-template-columns: 1fr; } }
-  .persona-card {
+  .persona-tab {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(240, 249, 255, 0.6) 100%);
+    border: 1px solid rgba(8, 145, 178, 0.15);
+    color: var(--muted);
+    font-weight: 800;
+    padding: 0.85rem 1.75rem;
+    border-radius: 14px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    backdrop-filter: blur(10px);
+  }
+  .persona-tab:hover { color: var(--primary); border-color: rgba(8, 145, 178, 0.3); }
+  .persona-tab.active {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 12px 32px rgba(8, 145, 178, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .persona-stage {
+    position: relative;
+    min-height: 480px;
+  }
+  .persona-panel {
+    position: absolute;
+    inset: 0;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.95) 100%);
     backdrop-filter: blur(20px);
-    border-radius: 20px;
-    padding: 2.25rem;
+    border-radius: 24px;
+    padding: 3rem;
     box-shadow:
-      0 0 100px rgba(8, 145, 178, 0.06),
-      0 20px 50px rgba(0, 0, 0, 0.06),
+      0 0 100px rgba(8, 145, 178, 0.08),
+      0 30px 70px rgba(0, 0, 0, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.5);
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .persona-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 0 150px rgba(8, 145, 178, 0.15), 0 30px 70px rgba(8, 145, 178, 0.12);
-  }
-  .persona-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
     align-items: center;
-    justify-content: center;
-    color: white;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 12px 32px rgba(8, 145, 178, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+    pointer-events: none;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  .persona-icon svg { width: 30px; height: 30px; stroke-width: 2; }
-  .persona-title {
-    font-size: 1.3rem;
+  @media (max-width: 900px) {
+    .persona-panel { grid-template-columns: 1fr; padding: 2rem; gap: 1.5rem; }
+    .persona-stage { min-height: 700px; }
+  }
+  .persona-panel.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  .persona-content h3 {
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
     font-weight: 900;
     color: var(--text);
-    margin-bottom: 0.75rem;
-    letter-spacing: -0.5px;
+    margin-bottom: 1rem;
+    letter-spacing: -0.6px;
   }
-  .persona-desc {
-    font-size: 0.95rem;
+  .persona-content h3 .grad {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .persona-content p {
+    font-size: 1rem;
     color: var(--muted);
     line-height: 1.6;
-    margin-bottom: 1.5rem;
     font-weight: 600;
+    margin-bottom: 1.5rem;
   }
   .persona-list {
     list-style: none;
@@ -623,8 +995,7 @@
   }
   .persona-list li::before {
     content: '✓';
-    width: 22px;
-    height: 22px;
+    width: 22px; height: 22px;
     border-radius: 50%;
     background: linear-gradient(135deg, rgba(8, 145, 178, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
     color: var(--primary);
@@ -637,7 +1008,45 @@
     border: 1px solid rgba(8, 145, 178, 0.3);
   }
 
-  /* ── Pricing ── */
+  .persona-illustration {
+    position: relative;
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, rgba(8, 145, 178, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .persona-illustration svg {
+    width: 60%;
+    height: 60%;
+    color: var(--primary);
+    stroke-width: 1.5;
+    filter: drop-shadow(0 20px 40px rgba(8, 145, 178, 0.3));
+    animation: float-icon 4s ease-in-out infinite;
+  }
+  @keyframes float-icon {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(2deg); }
+  }
+  .persona-illustration::before {
+    content: '';
+    position: absolute;
+    width: 60%; height: 60%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(8, 145, 178, 0.15) 0%, transparent 70%);
+    filter: blur(40px);
+    animation: float-blob 8s ease-in-out infinite;
+  }
+  @keyframes float-blob {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(20px, -20px); }
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     PRICING (kept clean)
+     ═══════════════════════════════════════════════════════ */
   .pricing {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -671,8 +1080,7 @@
   @media (max-width: 900px) { .price-card.featured { transform: none; } }
   .price-badge {
     position: absolute;
-    top: 1.25rem;
-    right: 1.25rem;
+    top: 1.25rem; right: 1.25rem;
     background: rgba(255, 255, 255, 0.25);
     color: white;
     font-size: 0.65rem;
@@ -709,19 +1117,8 @@
     -webkit-text-fill-color: white;
     color: white;
   }
-  .price-tag .currency {
-    font-size: 0.5em;
-    vertical-align: top;
-    margin-right: 6px;
-    opacity: 1;
-    font-weight: 700;
-  }
-  .price-tag .period {
-    font-size: 0.3em;
-    margin-left: 4px;
-    opacity: 0.6;
-    font-weight: 700;
-  }
+  .price-tag .currency { font-size: 0.5em; vertical-align: top; margin-right: 6px; opacity: 1; font-weight: 700; }
+  .price-tag .period { font-size: 0.3em; margin-left: 4px; opacity: 0.6; font-weight: 700; }
   .price-desc {
     font-size: 0.85rem;
     color: var(--muted);
@@ -730,10 +1127,7 @@
     border-bottom: 1px solid rgba(8, 145, 178, 0.1);
     font-weight: 600;
   }
-  .price-card.featured .price-desc {
-    color: rgba(255, 255, 255, 0.85);
-    border-color: rgba(255, 255, 255, 0.2);
-  }
+  .price-card.featured .price-desc { color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.2); }
   .price-features {
     list-style: none;
     display: flex;
@@ -751,12 +1145,7 @@
     font-weight: 600;
   }
   .price-card.featured .price-features li { color: rgba(255, 255, 255, 0.95); }
-  .price-features li::before {
-    content: '✓';
-    color: var(--primary);
-    font-weight: 900;
-    flex-shrink: 0;
-  }
+  .price-features li::before { content: '✓'; color: var(--primary); font-weight: 900; flex-shrink: 0; }
   .price-card.featured .price-features li::before { color: white; }
   .price-card .btn { width: 100%; justify-content: center; }
   .price-card.featured .btn {
@@ -764,12 +1153,11 @@
     color: var(--primary);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   }
-  .price-card.featured .btn:hover { color: var(--primary-hover); }
 
-  /* ── CTA ── */
-  .cta-section {
-    padding: 6rem 0;
-  }
+  /* ═══════════════════════════════════════════════════════
+     CTA with morphing gradient
+     ═══════════════════════════════════════════════════════ */
+  .cta-section { padding: 6rem 0; }
   .cta-card {
     background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
     border-radius: 24px;
@@ -780,15 +1168,29 @@
     position: relative;
     overflow: hidden;
   }
-  .cta-card::before {
+  .cta-card::before, .cta-card::after {
     content: '';
     position: absolute;
-    top: -50%;
-    left: -20%;
-    width: 140%;
-    height: 200%;
-    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+    border-radius: 50%;
+    filter: blur(60px);
     pointer-events: none;
+  }
+  .cta-card::before {
+    width: 400px; height: 400px;
+    background: rgba(255, 255, 255, 0.2);
+    top: -100px; left: -100px;
+    animation: morph 10s ease-in-out infinite;
+  }
+  .cta-card::after {
+    width: 300px; height: 300px;
+    background: rgba(20, 184, 166, 0.3);
+    bottom: -80px; right: -80px;
+    animation: morph 12s ease-in-out infinite reverse;
+  }
+  @keyframes morph {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(60px, 40px) scale(1.2); }
+    66% { transform: translate(-40px, 60px) scale(0.9); }
   }
   .cta-card h2 {
     font-size: clamp(1.8rem, 4vw, 2.75rem);
@@ -814,9 +1216,10 @@
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
     position: relative;
   }
-  .cta-card .btn:hover { color: var(--primary-hover); }
 
-  /* ── Footer ── */
+  /* ═══════════════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════════════ */
   footer {
     padding: 3rem 0 2rem;
     border-top: 1px solid rgba(8, 145, 178, 0.1);
@@ -872,7 +1275,7 @@
     font-weight: 600;
   }
 
-  /* ── Reveal animation ── */
+  /* Reveal */
   .reveal {
     opacity: 0;
     transform: translateY(30px);
@@ -886,6 +1289,17 @@
   @media (prefers-reduced-motion: reduce) {
     .reveal { opacity: 1; transform: none; transition: none; }
     body::before, body::after { animation: none; }
+    .workflow-pin { height: auto; }
+    .workflow-sticky { position: relative; height: auto; }
+    .workflow-stage { min-height: auto; }
+    .workflow-step {
+      position: relative;
+      inset: auto;
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+      padding: 3rem 0;
+    }
   }
 
   @media (max-width: 720px) {
@@ -897,15 +1311,19 @@
 </head>
 <body>
 
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="scroll-progress" id="scrollProgress"></div>
+
 <!-- ── NAV ── -->
 <nav class="nav">
   <div class="container nav-inner">
     <a href="/" class="logo">Salud Digital</a>
     <div class="nav-links">
       <a href="#producto" class="nav-link">Producto</a>
+      <a href="#flujo" class="nav-link">Flujo</a>
       <a href="#para-quien" class="nav-link">Para quién</a>
       <a href="#precios" class="nav-link">Precios</a>
-      <a href="#contacto" class="nav-link">Contacto</a>
     </div>
     <div class="nav-cta">
       <a href="/login.html" class="btn btn-ghost">Acceder</a>
@@ -919,9 +1337,9 @@
 
 <div class="mobile-menu" id="mobileMenu">
   <a href="#producto">Producto</a>
+  <a href="#flujo">Flujo</a>
   <a href="#para-quien">Para quién</a>
   <a href="#precios">Precios</a>
-  <a href="#contacto">Contacto</a>
   <a href="/login.html">Acceder</a>
 </div>
 
@@ -932,21 +1350,25 @@
       <span class="dot"></span>
       Cumplimiento GDPR · Cifrado de extremo a extremo
     </div>
-    <h1 class="reveal" data-d="1">
-      Gestión sanitaria <span class="grad">simple</span><br/>
-      para clínicas modernas.
+    <h1 id="heroTitle">
+      <span class="word"><span>Gestión</span></span>
+      <span class="word"><span>sanitaria</span></span>
+      <span class="word"><span class="grad">simple</span></span>
+      <br/>
+      <span class="word"><span>para</span></span>
+      <span class="word"><span>clínicas</span></span>
+      <span class="word"><span>modernas.</span></span>
     </h1>
-    <p class="hero-sub reveal" data-d="2">
+    <p class="hero-sub" id="heroSub">
       Una plataforma profesional para administrar pacientes, citas e historia clínica.
       Diseñada para que médicos, recepcionistas y administradores trabajen mejor.
     </p>
-    <div class="hero-cta reveal" data-d="3">
+    <div class="hero-cta" id="heroCta">
       <a href="/login.html" class="btn btn-primary btn-large">Acceder al portal</a>
-      <a href="#producto" class="btn btn-ghost btn-large">Ver producto</a>
+      <a href="#flujo" class="btn btn-ghost btn-large">Ver el flujo</a>
     </div>
 
-    <!-- Hero preview (mock dashboard) -->
-    <div class="hero-preview reveal" data-d="3">
+    <div class="hero-preview" id="heroPreview">
       <div class="preview-bar">
         <span class="dot r"></span>
         <span class="dot y"></span>
@@ -995,6 +1417,162 @@
   </div>
 </header>
 
+<!-- ═══════════════════════════════════════════════════════
+     PINNED HORIZONTAL WORKFLOW
+     ═══════════════════════════════════════════════════════ -->
+<div class="workflow-pin" id="workflowPin">
+  <div class="workflow-sticky">
+    <div class="workflow-header" id="flujo">
+      <span class="workflow-eyebrow">El flujo de tu clínica</span>
+      <h2 class="workflow-title">De la cita al pago, <span class="grad">en 4 pasos</span></h2>
+    </div>
+    <div class="workflow-progress">
+      <div class="wp-dot active" data-step="0"></div>
+      <div class="wp-dot" data-step="1"></div>
+      <div class="wp-dot" data-step="2"></div>
+      <div class="wp-dot" data-step="3"></div>
+    </div>
+    <div class="workflow-stage">
+
+      <!-- STEP 1 -->
+      <div class="workflow-step active" data-step="0">
+        <div class="workflow-side">
+          <span class="workflow-num">01</span>
+          <div class="workflow-content">
+            <span class="workflow-tag">Paso 1 · Reserva</span>
+            <h3>El paciente reserva <span class="grad">en línea</span></h3>
+            <p>Disponibilidad en tiempo real, confirmación instantánea y recordatorios automáticos por WhatsApp y email.</p>
+          </div>
+        </div>
+        <div class="workflow-visual">
+          <div class="wf-row">
+            <div class="wf-avatar">AC</div>
+            <div class="wf-info">
+              <div class="wf-name">Ana Castro</div>
+              <div class="wf-sub">Cardiología · 09:00</div>
+            </div>
+            <span class="wf-status">Nueva</span>
+          </div>
+          <div class="wf-row">
+            <div class="wf-avatar">LO</div>
+            <div class="wf-info">
+              <div class="wf-name">Luis Ortega</div>
+              <div class="wf-sub">Pediatría · 09:30</div>
+            </div>
+            <span class="wf-status">Nueva</span>
+          </div>
+          <div class="wf-row">
+            <div class="wf-avatar">MR</div>
+            <div class="wf-info">
+              <div class="wf-name">María Ruiz</div>
+              <div class="wf-sub">General · 10:15</div>
+            </div>
+            <span class="wf-status">Nueva</span>
+          </div>
+          <div class="wf-row">
+            <div class="wf-avatar">JS</div>
+            <div class="wf-info">
+              <div class="wf-name">Juan Soto</div>
+              <div class="wf-sub">Dermatología · 11:00</div>
+            </div>
+            <span class="wf-status">Nueva</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="workflow-step" data-step="1">
+        <div class="workflow-side">
+          <span class="workflow-num">02</span>
+          <div class="workflow-content">
+            <span class="workflow-tag">Paso 2 · Confirmación</span>
+            <h3>Recordatorio <span class="grad">automático</span></h3>
+            <p>El paciente recibe un mensaje el día previo y confirma con un clic. Reduce hasta 40% las inasistencias.</p>
+          </div>
+        </div>
+        <div class="workflow-visual">
+          <div class="wf-pulse-ring">
+            <div class="wf-center-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="workflow-step" data-step="2">
+        <div class="workflow-side">
+          <span class="workflow-num">03</span>
+          <div class="workflow-content">
+            <span class="workflow-tag">Paso 3 · Consulta</span>
+            <h3>Atención <span class="grad">sin distracciones</span></h3>
+            <p>Historia clínica, recetas digitales y exámenes — todo en una sola pantalla mientras hablas con tu paciente.</p>
+          </div>
+        </div>
+        <div class="workflow-visual">
+          <div class="wf-row confirmed">
+            <div class="wf-avatar">AC</div>
+            <div class="wf-info">
+              <div class="wf-name">Historia clínica</div>
+              <div class="wf-sub">12 consultas anteriores</div>
+            </div>
+            <span class="wf-status">Listo</span>
+          </div>
+          <div class="wf-row confirmed">
+            <div class="wf-avatar">RX</div>
+            <div class="wf-info">
+              <div class="wf-name">Receta digital</div>
+              <div class="wf-sub">Firmada y enviada</div>
+            </div>
+            <span class="wf-status">Listo</span>
+          </div>
+          <div class="wf-row confirmed">
+            <div class="wf-avatar">EX</div>
+            <div class="wf-info">
+              <div class="wf-name">Exámenes solicitados</div>
+              <div class="wf-sub">Lab + Imagen</div>
+            </div>
+            <span class="wf-status">Listo</span>
+          </div>
+          <div class="wf-row confirmed">
+            <div class="wf-avatar">PD</div>
+            <div class="wf-info">
+              <div class="wf-name">Próxima cita</div>
+              <div class="wf-sub">En 2 semanas</div>
+            </div>
+            <span class="wf-status">Listo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="workflow-step" data-step="3">
+        <div class="workflow-side">
+          <span class="workflow-num">04</span>
+          <div class="workflow-content">
+            <span class="workflow-tag">Paso 4 · Insights</span>
+            <h3>Reportes <span class="grad">en vivo</span></h3>
+            <p>Cada consulta alimenta tu tablero: ingresos, ocupación, tendencias. Decisiones con datos reales.</p>
+          </div>
+        </div>
+        <div class="workflow-visual">
+          <div class="wf-chart">
+            <div class="wf-bar"></div>
+            <div class="wf-bar"></div>
+            <div class="wf-bar"></div>
+            <div class="wf-bar"></div>
+            <div class="wf-bar"></div>
+            <div class="wf-bar"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- ── PRODUCTO ── -->
 <section id="producto">
   <div class="container">
@@ -1005,7 +1583,7 @@
     </div>
 
     <div class="features">
-      <div class="feature-card reveal">
+      <div class="feature-card reveal" data-magnetic>
         <div class="feature-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2"/>
@@ -1016,7 +1594,7 @@
         <p class="feature-desc">Reservas en línea 24/7, recordatorios automáticos y disponibilidad en tiempo real.</p>
       </div>
 
-      <div class="feature-card reveal" data-d="1">
+      <div class="feature-card reveal" data-d="1" data-magnetic>
         <div class="feature-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -1027,7 +1605,7 @@
         <p class="feature-desc">HCE estructurada, recetas digitales, adjuntos y trazabilidad completa por consulta.</p>
       </div>
 
-      <div class="feature-card reveal" data-d="2">
+      <div class="feature-card reveal" data-d="2" data-magnetic>
         <div class="feature-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -1039,7 +1617,7 @@
         <p class="feature-desc">Ficha completa, historial, contactos y comunicaciones — todo en un solo lugar.</p>
       </div>
 
-      <div class="feature-card reveal">
+      <div class="feature-card reveal" data-magnetic>
         <div class="feature-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 3v18h18"/>
@@ -1050,7 +1628,7 @@
         <p class="feature-desc">Tableros con métricas clínicas, financieras y operativas para tomar mejores decisiones.</p>
       </div>
 
-      <div class="feature-card reveal" data-d="1">
+      <div class="feature-card reveal" data-d="1" data-magnetic>
         <div class="feature-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
@@ -1061,7 +1639,7 @@
         <p class="feature-desc">Confirmaciones automáticas por email y WhatsApp para reducir las inasistencias hasta un 40%.</p>
       </div>
 
-      <div class="feature-card reveal" data-d="2">
+      <div class="feature-card reveal" data-d="2" data-magnetic>
         <div class="feature-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -1098,62 +1676,79 @@
   </div>
 </section>
 
-<!-- ── PARA QUIÉN ── -->
+<!-- ═══════════════════════════════════════════════════════
+     PERSONAS — interactive role tabs
+     ═══════════════════════════════════════════════════════ -->
 <section id="para-quien">
   <div class="container">
     <div class="section-head reveal">
       <span class="section-eyebrow">Para quién</span>
-      <h2 class="section-title">Una plataforma, <span class="grad">tres roles</span></h2>
-      <p class="section-sub">Cada usuario con su propio espacio y herramientas adecuadas a su trabajo.</p>
+      <h2 class="section-title">Una plataforma, <span class="grad">tres miradas</span></h2>
+      <p class="section-sub">Cada rol con su propio espacio. Toca para descubrir.</p>
     </div>
 
-    <div class="personas">
-      <div class="persona-card reveal">
-        <div class="persona-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="persona-switcher reveal" id="personaSwitcher">
+      <button class="persona-tab active" data-persona="0">Clínicas</button>
+      <button class="persona-tab" data-persona="1">Médicos</button>
+      <button class="persona-tab" data-persona="2">Pacientes</button>
+    </div>
+
+    <div class="persona-stage reveal">
+      <div class="persona-panel active" data-persona="0">
+        <div class="persona-content">
+          <h3>Para <span class="grad">clínicas</span></h3>
+          <p>Centraliza la operación de tu clínica con visibilidad total del negocio en un solo panel.</p>
+          <ul class="persona-list">
+            <li>Gestión de personal y horarios</li>
+            <li>Reportes financieros y operativos</li>
+            <li>Multi-sede y multi-especialidad</li>
+            <li>Facturación y cobros integrados</li>
+          </ul>
+        </div>
+        <div class="persona-illustration">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/>
             <path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/>
           </svg>
         </div>
-        <h3 class="persona-title">Para clínicas</h3>
-        <p class="persona-desc">Centraliza la operación de tu clínica con visibilidad total del negocio.</p>
-        <ul class="persona-list">
-          <li>Gestión de personal y horarios</li>
-          <li>Reportes financieros y operativos</li>
-          <li>Multi-sede y multi-especialidad</li>
-        </ul>
       </div>
 
-      <div class="persona-card reveal" data-d="1">
-        <div class="persona-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="persona-panel" data-persona="1">
+        <div class="persona-content">
+          <h3>Para <span class="grad">médicos</span></h3>
+          <p>Atención sin distracciones, con la información del paciente siempre a mano y en el momento justo.</p>
+          <ul class="persona-list">
+            <li>Historia clínica completa</li>
+            <li>Recetas y exámenes digitales</li>
+            <li>Agenda personalizada</li>
+            <li>Acceso desde cualquier dispositivo</li>
+          </ul>
+        </div>
+        <div class="persona-illustration">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2L2 7l10 5 10-5-10-5z"/>
             <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
           </svg>
         </div>
-        <h3 class="persona-title">Para médicos</h3>
-        <p class="persona-desc">Atención sin distracciones, con la información del paciente siempre a mano.</p>
-        <ul class="persona-list">
-          <li>Historia clínica completa</li>
-          <li>Recetas y exámenes digitales</li>
-          <li>Agenda personalizada</li>
-        </ul>
       </div>
 
-      <div class="persona-card reveal" data-d="2">
-        <div class="persona-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="persona-panel" data-persona="2">
+        <div class="persona-content">
+          <h3>Para <span class="grad">pacientes</span></h3>
+          <p>Reserva, recordatorios y resultados — todo en una experiencia clara, segura y cuidada.</p>
+          <ul class="persona-list">
+            <li>Reserva en línea 24/7</li>
+            <li>Recordatorios por WhatsApp</li>
+            <li>Historial accesible</li>
+            <li>Resultados de exámenes online</li>
+          </ul>
+        </div>
+        <div class="persona-illustration">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
           </svg>
         </div>
-        <h3 class="persona-title">Para pacientes</h3>
-        <p class="persona-desc">Reserva, recordatorios y resultados — todo en una experiencia clara y segura.</p>
-        <ul class="persona-list">
-          <li>Reserva en línea 24/7</li>
-          <li>Recordatorios automáticos</li>
-          <li>Historial accesible</li>
-        </ul>
       </div>
     </div>
   </div>
@@ -1258,13 +1853,73 @@
 </footer>
 
 <script>
-  // Mobile menu
+  // ─── Mobile menu ───
   const toggle = document.getElementById('navToggle');
   const menu = document.getElementById('mobileMenu');
   toggle?.addEventListener('click', () => menu.classList.toggle('open'));
   menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => menu.classList.remove('open')));
 
-  // Reveal on scroll
+  // ─── Custom cursor ───
+  const cursorDot = document.getElementById('cursorDot');
+  const cursorRing = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  window.addEventListener('mousemove', (e) => {
+    mx = e.clientX; my = e.clientY;
+    cursorDot.style.transform = `translate(${mx}px, ${my}px) translate(-50%, -50%)`;
+  });
+  function animateCursor() {
+    rx += (mx - rx) * 0.18;
+    ry += (my - ry) * 0.18;
+    cursorRing.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -50%)`;
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+  document.querySelectorAll('a, button, .feature-card, .persona-tab, .price-card').forEach(el => {
+    el.addEventListener('mouseenter', () => cursorRing.classList.add('hover'));
+    el.addEventListener('mouseleave', () => cursorRing.classList.remove('hover'));
+  });
+
+  // ─── Scroll progress ───
+  const progress = document.getElementById('scrollProgress');
+  window.addEventListener('scroll', () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const p = (window.scrollY / max) * 100;
+    progress.style.width = p + '%';
+  }, { passive: true });
+
+  // ─── Hero text reveal on load ───
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('heroTitle').classList.add('in');
+      document.getElementById('heroSub').classList.add('in');
+      document.getElementById('heroCta').classList.add('in');
+    }, 100);
+  });
+
+  // ─── 3D tilt on hero preview ───
+  const preview = document.getElementById('heroPreview');
+  if (preview) {
+    preview.addEventListener('mousemove', (e) => {
+      const r = preview.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      preview.style.transform = `perspective(1500px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg) translateY(-4px)`;
+    });
+    preview.addEventListener('mouseleave', () => {
+      preview.style.transform = 'perspective(1500px) rotateY(0) rotateX(0)';
+    });
+  }
+
+  // ─── Magnetic feature cards (cursor-aware spotlight) ───
+  document.querySelectorAll('[data-magnetic]').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+      card.style.setProperty('--my', `${e.clientY - r.top}px`);
+    });
+  });
+
+  // ─── Reveal on scroll ───
   const io = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
@@ -1275,57 +1930,141 @@
   }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-  // Number counter animation
+  // ─── Number counter animation ───
   function animateCounter(elementId, finalValue, duration = 2000, format = 'number') {
     const el = document.getElementById(elementId);
     if (!el) return;
-
     let numValue = parseInt(finalValue);
     let startTime = null;
-
     function animate(currentTime) {
       if (startTime === null) startTime = currentTime;
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const currentNum = Math.floor(progress * numValue);
-
-      if (format === 'pacientes') {
-        el.textContent = currentNum.toLocaleString('es-HN');
-      } else if (format === 'citas') {
-        el.textContent = currentNum;
-      } else if (format === 'productividad') {
-        el.textContent = '+' + currentNum + '%';
-      } else if (format === 'clinicas') {
-        el.textContent = currentNum + '+';
-      } else if (format === 'disponibilidad') {
-        const decimal = (progress * 9.9).toFixed(1);
-        el.textContent = decimal + '%';
-      } else if (format === 'noshows') {
-        el.textContent = currentNum + '%';
-      } else if (format === 'implementacion') {
-        el.textContent = currentNum + 'min';
-      }
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const currentNum = Math.floor(eased * numValue);
+      if (format === 'pacientes') el.textContent = currentNum.toLocaleString('es-HN');
+      else if (format === 'citas') el.textContent = currentNum;
+      else if (format === 'productividad') el.textContent = '+' + currentNum + '%';
+      else if (format === 'clinicas') el.textContent = currentNum + '+';
+      else if (format === 'disponibilidad') el.textContent = (eased * 99.9).toFixed(1) + '%';
+      else if (format === 'noshows') el.textContent = currentNum + '%';
+      else if (format === 'implementacion') el.textContent = currentNum + 'min';
+      if (progress < 1) requestAnimationFrame(animate);
     }
-
     requestAnimationFrame(animate);
   }
 
-  // Start counters when page loads
   window.addEventListener('load', () => {
     setTimeout(() => {
       animateCounter('counterPacientes', 1284, 2000, 'pacientes');
       animateCounter('counterCitas', 42, 2000, 'citas');
       animateCounter('counterProductividad', 38, 2000, 'productividad');
-      animateCounter('statClinicas', 120, 2000, 'clinicas');
-      animateCounter('statDisponibilidad', 99, 2000, 'disponibilidad');
-      animateCounter('statNoShows', 40, 2000, 'noshows');
-      animateCounter('statImplementacion', 15, 2000, 'implementacion');
     }, 300);
+
+    // Animate stats on scroll
+    let statsAnimated = false;
+    const statsIo = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting && !statsAnimated) {
+          statsAnimated = true;
+          animateCounter('statClinicas', 120, 2000, 'clinicas');
+          animateCounter('statDisponibilidad', 99, 2000, 'disponibilidad');
+          animateCounter('statNoShows', 40, 2000, 'noshows');
+          animateCounter('statImplementacion', 15, 2000, 'implementacion');
+        }
+      });
+    }, { threshold: 0.3 });
+    const statsEl = document.querySelector('.stats-row');
+    if (statsEl) statsIo.observe(statsEl);
   });
+
+  // ═══════════════════════════════════════════════════════
+  // VERTICAL WORKFLOW (crossfade steps based on scroll)
+  // ═══════════════════════════════════════════════════════
+  const workflowPin = document.getElementById('workflowPin');
+  const workflowSteps = document.querySelectorAll('.workflow-step');
+  const wpDots = document.querySelectorAll('.wp-dot');
+  const STEP_COUNT = 4;
+  let currentStep = -1;
+
+  function setWorkflowStep(activeStep) {
+    if (activeStep === currentStep) return;
+    currentStep = activeStep;
+    workflowSteps.forEach((step, i) => step.classList.toggle('active', i === activeStep));
+    wpDots.forEach((dot, i) => dot.classList.toggle('active', i === activeStep));
+  }
+
+  if (workflowPin && workflowSteps.length) {
+    function updateWorkflow() {
+      const pinTop = workflowPin.offsetTop;
+      const pinHeight = workflowPin.offsetHeight;
+      const winHeight = window.innerHeight;
+      const scrollY = window.scrollY || window.pageYOffset;
+
+      const relativeScroll = scrollY - pinTop;
+      const maxScroll = pinHeight - winHeight;
+
+      if (relativeScroll <= 0) {
+        setWorkflowStep(0);
+        return;
+      }
+      if (relativeScroll >= maxScroll) {
+        setWorkflowStep(STEP_COUNT - 1);
+        return;
+      }
+
+      const progress = relativeScroll / maxScroll;
+      const activeStep = Math.min(STEP_COUNT - 1, Math.floor(progress * STEP_COUNT));
+      setWorkflowStep(activeStep);
+    }
+
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          updateWorkflow();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+    window.addEventListener('resize', updateWorkflow);
+    updateWorkflow();
+
+    // Click dots to jump to that step
+    wpDots.forEach((dot, i) => {
+      dot.addEventListener('click', () => {
+        const pinTopAbs = workflowPin.offsetTop;
+        const pinHeight = workflowPin.offsetHeight;
+        const winHeight = window.innerHeight;
+        const maxScroll = pinHeight - winHeight;
+        const targetScroll = pinTopAbs + (i / STEP_COUNT) * maxScroll + 20;
+        window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+      });
+    });
+  }
+
+  // ─── Persona tabs ───
+  const personaTabs = document.querySelectorAll('.persona-tab');
+  const personaPanels = document.querySelectorAll('.persona-panel');
+  personaTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.persona;
+      personaTabs.forEach(t => t.classList.toggle('active', t === tab));
+      personaPanels.forEach(p => p.classList.toggle('active', p.dataset.persona === target));
+    });
+  });
+
+  // ─── Auto-cycle personas every 6s if user hasn't interacted ───
+  let personaInteracted = false;
+  let personaIdx = 0;
+  personaTabs.forEach(t => t.addEventListener('click', () => personaInteracted = true));
+  setInterval(() => {
+    if (personaInteracted) return;
+    personaIdx = (personaIdx + 1) % personaTabs.length;
+    personaTabs[personaIdx].click();
+    personaInteracted = false;
+  }, 6000);
 </script>
 
 </body>
