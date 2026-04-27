@@ -13,8 +13,22 @@ class OdontogramContainer {
 
     // Build floating popup for conditions
     this._popup = this._buildPopup();
+    // Build mini info popup for already-diagnosed surfaces
+    this._surfaceInfoPopup = this._buildSurfaceInfoPopup();
 
     this.render();
+  }
+
+  _getSurfaceLabel(surface) {
+    const map = {
+      mesial: 'Mesial',
+      distal: 'Distal',
+      buccal: 'Vestibular',
+      lingual: 'Lingual/Palatina',
+      occlusal: 'Oclusal',
+      incisal: 'Incisal'
+    };
+    return map[surface] || (surface.charAt(0).toUpperCase() + surface.slice(1));
   }
 
   initializeState(initial) {
@@ -129,7 +143,13 @@ class OdontogramContainer {
     this.updateTeethVisuals();
 
     if(e) {
-      this._showPopup(fdi, surface, e);
+      // If surface already has a diagnosis (not healthy), show the mini info popup
+      const currentCondId = (this.state[fdi].surfaces && this.state[fdi].surfaces[surface]) || CONDITIONS.HEALTHY.id;
+      if(currentCondId && currentCondId !== CONDITIONS.HEALTHY.id) {
+        this._showSurfaceInfoPopup(fdi, surface, currentCondId, e);
+      } else {
+        this._showPopup(fdi, surface, e);
+      }
     }
   }
 
@@ -402,6 +422,8 @@ class OdontogramContainer {
 
   _showPopup(fdi, surface, e) {
     if(!this._popup) return;
+    // Close the mini info popup if it was open
+    if(this._surfaceInfoPopup) this._surfaceInfoPopup.style.display = 'none';
 
     const tooth = getToothByFDI(fdi);
     let header = tooth.name;
@@ -425,6 +447,285 @@ class OdontogramContainer {
     this._popup.style.top = top + 'px';
     this._popup.style.left = left + 'px';
     this._popup.style.display = 'block';
+  }
+
+  _buildSurfaceInfoPopup() {
+    // Inject keyframes once (shared with main popup, but add specific ones)
+    if(!document.getElementById('odonto-mini-popup-styles')) {
+      const style = document.createElement('style');
+      style.id = 'odonto-mini-popup-styles';
+      style.textContent = `
+        @keyframes miniPopupIn {
+          from { opacity: 0; transform: scale(0.85) translateY(-6px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes miniPopupArrow {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes miniPopupGlow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(8,145,178,0.0); }
+          50%      { box-shadow: 0 0 0 6px rgba(8,145,178,0.10); }
+        }
+        @keyframes miniPopupRing {
+          0%   { transform: scale(0.6); opacity: 0.85; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+        .odonto-mini-popup .mp-action {
+          flex: 1;
+          padding: 0.6rem 0.5rem;
+          background: white;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 10px;
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+          color: #0f172a;
+          cursor: pointer;
+          transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+          display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+        }
+        .odonto-mini-popup .mp-action:hover {
+          border-color: #0891b2;
+          background: linear-gradient(135deg, #f0f9ff 0%, #ecfeff 100%);
+          color: #0e7490;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 14px rgba(8,145,178,0.18);
+        }
+        .odonto-mini-popup .mp-action.mp-danger:hover {
+          border-color: #ef4444;
+          background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+          color: #b91c1c;
+          box-shadow: 0 6px 14px rgba(239,68,68,0.18);
+        }
+        .odonto-mini-popup .mp-action svg { width: 13px; height: 13px; stroke-width: 2.4; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const popup = document.createElement('div');
+    popup.id = 'odonto-surface-info-popup';
+    popup.className = 'odonto-mini-popup';
+    popup.style.cssText = `
+      position: fixed;
+      z-index: 1001;
+      min-width: 260px;
+      max-width: 300px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.96) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(8,145,178,0.18);
+      border-radius: 16px;
+      box-shadow:
+        0 20px 50px rgba(8, 32, 60, 0.18),
+        0 8px 20px rgba(8, 145, 178, 0.10),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+      padding: 0;
+      display: none;
+      overflow: hidden;
+      animation: miniPopupIn 0.22s cubic-bezier(0.34,1.56,0.64,1);
+    `;
+
+    // Top bar
+    const top = document.createElement('div');
+    top.style.cssText = `
+      position: relative;
+      padding: 0.85rem 1rem 0.75rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 60%, #22d3ee 100%);
+      color: #fff;
+      display: flex; align-items: center; gap: 0.6rem;
+    `;
+    // Live indicator dot
+    const dot = document.createElement('span');
+    dot.style.cssText = `
+      width: 8px; height: 8px; border-radius: 50%; background: #fff;
+      box-shadow: 0 0 0 0 rgba(255,255,255,0.7);
+      animation: miniPopupRing 1.6s ease-out infinite;
+      flex-shrink: 0;
+    `;
+    top.appendChild(dot);
+
+    const headerWrap = document.createElement('div');
+    headerWrap.style.cssText = 'flex:1; display:flex; flex-direction:column; gap:1px; min-width:0;';
+    const eyebrow = document.createElement('div');
+    eyebrow.id = 'mp-eyebrow';
+    eyebrow.style.cssText = `
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; opacity: 0.85;
+    `;
+    eyebrow.textContent = 'Diagnóstico registrado';
+    headerWrap.appendChild(eyebrow);
+
+    const title = document.createElement('div');
+    title.id = 'mp-title';
+    title.style.cssText = `font-size: 0.95rem; font-weight: 800; letter-spacing: 0.01em; line-height: 1.2;`;
+    headerWrap.appendChild(title);
+    top.appendChild(headerWrap);
+
+    const close = document.createElement('button');
+    close.textContent = '✕';
+    close.style.cssText = `
+      background: rgba(255,255,255,0.22);
+      border: none; color: #fff; cursor: pointer;
+      width: 26px; height: 26px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; font-weight: 700;
+      transition: all 0.2s ease; flex-shrink: 0;
+    `;
+    close.onmouseover = () => { close.style.background = 'rgba(255,255,255,0.34)'; close.style.transform = 'scale(1.06)'; };
+    close.onmouseout  = () => { close.style.background = 'rgba(255,255,255,0.22)'; close.style.transform = 'scale(1)'; };
+    close.onclick = () => { popup.style.display = 'none'; };
+    top.appendChild(close);
+    popup.appendChild(top);
+
+    // Body — diagnosis card
+    const body = document.createElement('div');
+    body.style.cssText = `padding: 1rem;`;
+
+    const card = document.createElement('div');
+    card.id = 'mp-diag-card';
+    card.style.cssText = `
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 0.85rem 0.95rem;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+      position: relative;
+      overflow: hidden;
+    `;
+    // left color stripe
+    const stripe = document.createElement('span');
+    stripe.id = 'mp-stripe';
+    stripe.style.cssText = `position: absolute; top:0; left:0; bottom:0; width:4px; background: #0891b2;`;
+    card.appendChild(stripe);
+
+    const iconWrap = document.createElement('div');
+    iconWrap.id = 'mp-icon';
+    iconWrap.style.cssText = `
+      width: 42px; height: 42px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; color: #fff; font-weight: 700;
+      flex-shrink: 0;
+      background: #0891b2;
+      box-shadow: 0 6px 14px rgba(8,145,178,0.30), inset 0 1px 0 rgba(255,255,255,0.4);
+    `;
+    card.appendChild(iconWrap);
+
+    const txtWrap = document.createElement('div');
+    txtWrap.style.cssText = 'flex:1; display:flex; flex-direction:column; gap:2px; min-width:0;';
+    const surfTag = document.createElement('span');
+    surfTag.id = 'mp-surface-tag';
+    surfTag.style.cssText = `
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em;
+      color: #64748b; text-transform: uppercase;
+    `;
+    txtWrap.appendChild(surfTag);
+    const condName = document.createElement('span');
+    condName.id = 'mp-cond-name';
+    condName.style.cssText = `font-size: 1rem; font-weight: 800; color: #0f172a; line-height: 1.15;`;
+    txtWrap.appendChild(condName);
+    card.appendChild(txtWrap);
+
+    body.appendChild(card);
+
+    // Action buttons
+    const actions = document.createElement('div');
+    actions.style.cssText = `display: flex; gap: 0.5rem; margin-top: 0.85rem;`;
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'mp-action';
+    editBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar`;
+    actions.appendChild(editBtn);
+
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'mp-action mp-danger';
+    clearBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>Limpiar`;
+    actions.appendChild(clearBtn);
+
+    const self = this;
+    editBtn.onclick = () => {
+      popup.style.display = 'none';
+      // Open the full edit popup at the same anchor
+      if(self._lastSurfaceEvent) self._showPopup(self.selectedTooth, self.selectedSurface, self._lastSurfaceEvent);
+    };
+    clearBtn.onclick = () => {
+      if(self.selectedTooth && self.selectedSurface) {
+        self.applyCondition(CONDITIONS.HEALTHY.id, self.selectedTooth, self.selectedSurface);
+      }
+      popup.style.display = 'none';
+    };
+
+    body.appendChild(actions);
+    popup.appendChild(body);
+
+    // Outside click to close
+    document.addEventListener('click', (e) => {
+      if(popup.style.display === 'block' && !popup.contains(e.target)) {
+        popup.style.display = 'none';
+      }
+    }, true);
+
+    document.body.appendChild(popup);
+    return popup;
+  }
+
+  _showSurfaceInfoPopup(fdi, surface, conditionId, e) {
+    if(!this._surfaceInfoPopup) return;
+    // Close the main popup if it was open
+    if(this._popup) this._popup.style.display = 'none';
+    this._lastSurfaceEvent = e;
+
+    const tooth = getToothByFDI(fdi);
+    const cond = getConditionById(conditionId) || CONDITIONS.HEALTHY;
+    const surfLabel = this._getSurfaceLabel(surface);
+
+    document.getElementById('mp-title').textContent = `${tooth.name} · ${surfLabel}`;
+    document.getElementById('mp-surface-tag').textContent = `Superficie ${surfLabel}`;
+    document.getElementById('mp-cond-name').textContent = cond.label;
+    const icon = document.getElementById('mp-icon');
+    icon.textContent = cond.icon;
+    icon.style.background = `linear-gradient(135deg, ${cond.color} 0%, ${this._shadeColor(cond.color, -18)} 100%)`;
+    icon.style.boxShadow = `0 6px 14px ${this._hexToRgba(cond.color, 0.34)}, inset 0 1px 0 rgba(255,255,255,0.4)`;
+    document.getElementById('mp-stripe').style.background = `linear-gradient(180deg, ${cond.color}, ${this._shadeColor(cond.color, -20)})`;
+
+    const popup = this._surfaceInfoPopup;
+    // Position
+    const rect = e.target.getBoundingClientRect();
+    const popupW = 280, popupH = 200;
+    let top = rect.bottom + 10;
+    let left = rect.left + rect.width / 2 - popupW / 2;
+    if(top + popupH > window.innerHeight) top = rect.top - popupH - 10;
+    left = Math.max(12, Math.min(left, window.innerWidth - popupW - 12));
+    popup.style.top = top + 'px';
+    popup.style.left = left + 'px';
+    popup.style.display = 'block';
+    // restart enter animation each time
+    popup.style.animation = 'none';
+    void popup.offsetWidth;
+    popup.style.animation = 'miniPopupIn 0.22s cubic-bezier(0.34,1.56,0.64,1)';
+  }
+
+  _shadeColor(hex, percent) {
+    // percent: -100..100 (negative=darker)
+    const h = hex.replace('#','');
+    const num = parseInt(h.length === 3 ? h.split('').map(c=>c+c).join('') : h, 16);
+    let r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+    const f = percent / 100;
+    r = Math.round(r + (f >= 0 ? (255 - r) : r) * f);
+    g = Math.round(g + (f >= 0 ? (255 - g) : g) * f);
+    b = Math.round(b + (f >= 0 ? (255 - b) : b) * f);
+    r = Math.max(0, Math.min(255, r));
+    g = Math.max(0, Math.min(255, g));
+    b = Math.max(0, Math.min(255, b));
+    return '#' + [r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+  }
+
+  _hexToRgba(hex, alpha) {
+    const h = hex.replace('#','');
+    const full = h.length === 3 ? h.split('').map(c=>c+c).join('') : h;
+    const num = parseInt(full, 16);
+    return `rgba(${(num>>16)&255}, ${(num>>8)&255}, ${num&255}, ${alpha})`;
   }
 
   updateTeethVisuals() {
