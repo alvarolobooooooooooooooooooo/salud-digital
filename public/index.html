@@ -1932,21 +1932,16 @@
 
     function applyProgress(p) {
       // Each step occupies a range of 1/STEP_COUNT in the progress (0 to 1)
-      // We compute a continuous opacity curve for each step so transitions overlap smoothly.
       const segment = 1 / STEP_COUNT;
       const stepFloat = p * STEP_COUNT;
       const newActive = Math.min(STEP_COUNT - 1, Math.floor(stepFloat));
 
       workflowSteps.forEach((step, i) => {
-        // distance from this step's center (in segments)
-        const center = (i + 0.5) / STEP_COUNT;
-        const dist = Math.abs(p - center) / segment; // 0 = at center, 1 = at neighbor center
-        // smooth opacity curve: 1 at center, fades to 0 at distance 0.7 (overlap zone)
-        const opacity = Math.max(0, Math.min(1, 1 - (dist - 0.3) / 0.5));
-        const translate = (p - center) / segment * 30; // gentle parallax
-        step.style.opacity = opacity;
-        step.style.transform = `translateY(${translate}px)`;
-        step.style.pointerEvents = i === newActive ? 'auto' : 'none';
+        // Only show the active step, no overlapping
+        const isActive = i === newActive;
+        step.style.opacity = isActive ? '1' : '0';
+        step.style.transform = isActive ? 'translateY(0)' : 'translateY(30px)';
+        step.style.pointerEvents = isActive ? 'auto' : 'none';
       });
 
       if (newActive !== activeStepIdx) {
