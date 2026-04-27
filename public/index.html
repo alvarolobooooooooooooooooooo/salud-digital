@@ -73,46 +73,6 @@
   button { font-family: inherit; cursor: pointer; }
   svg { stroke: currentColor; }
 
-  /* ── Custom cursor ── */
-  .cursor-dot, .cursor-ring {
-    position: fixed;
-    pointer-events: none;
-    z-index: 9999;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    will-change: transform;
-  }
-  .cursor-dot {
-    width: 6px; height: 6px;
-    background: var(--primary);
-    transition: width 0.2s, height 0.2s, opacity 0.2s;
-  }
-  .cursor-ring {
-    width: 36px; height: 36px;
-    border: 1.5px solid rgba(8, 145, 178, 0.4);
-    transition: width 0.3s, height 0.3s, border-color 0.3s, transform 0.15s ease-out;
-  }
-  .cursor-ring.hover {
-    width: 60px; height: 60px;
-    border-color: rgba(8, 145, 178, 0.7);
-    background: rgba(8, 145, 178, 0.06);
-  }
-  @media (max-width: 900px), (pointer: coarse) {
-    .cursor-dot, .cursor-ring { display: none; }
-  }
-
-  /* ── Scroll progress bar ── */
-  .scroll-progress {
-    position: fixed;
-    top: 0; left: 0;
-    width: 0%;
-    height: 3px;
-    background: linear-gradient(90deg, #0891b2 0%, #06b6d4 100%);
-    z-index: 200;
-    box-shadow: 0 0 10px rgba(8, 145, 178, 0.5);
-    transition: width 0.05s linear;
-  }
-
   /* ── Layout ── */
   .container {
     max-width: 1200px;
@@ -428,11 +388,11 @@
   }
 
   /* ═══════════════════════════════════════════════════════
-     WORKFLOW (vertical pinned with crossfade steps)
+     WORKFLOW (vertical pinned with smooth crossfade steps)
      ═══════════════════════════════════════════════════════ */
   .workflow-pin {
     position: relative;
-    height: 320vh;
+    height: 500vh;
   }
   .workflow-sticky {
     position: sticky;
@@ -516,13 +476,13 @@
     gap: 3rem;
     align-items: center;
     opacity: 0;
-    transform: translateY(40px) scale(0.97);
-    transition: opacity 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: translateY(30px);
     pointer-events: none;
+    will-change: opacity, transform;
   }
   .workflow-step.active {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
     pointer-events: auto;
   }
   @media (max-width: 900px) {
@@ -1311,10 +1271,6 @@
 </head>
 <body>
 
-<div class="cursor-ring" id="cursorRing"></div>
-<div class="cursor-dot" id="cursorDot"></div>
-<div class="scroll-progress" id="scrollProgress"></div>
-
 <!-- ── NAV ── -->
 <nav class="nav">
   <div class="container nav-inner">
@@ -1859,34 +1815,6 @@
   toggle?.addEventListener('click', () => menu.classList.toggle('open'));
   menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => menu.classList.remove('open')));
 
-  // ─── Custom cursor ───
-  const cursorDot = document.getElementById('cursorDot');
-  const cursorRing = document.getElementById('cursorRing');
-  let mx = 0, my = 0, rx = 0, ry = 0;
-  window.addEventListener('mousemove', (e) => {
-    mx = e.clientX; my = e.clientY;
-    cursorDot.style.transform = `translate(${mx}px, ${my}px) translate(-50%, -50%)`;
-  });
-  function animateCursor() {
-    rx += (mx - rx) * 0.18;
-    ry += (my - ry) * 0.18;
-    cursorRing.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -50%)`;
-    requestAnimationFrame(animateCursor);
-  }
-  animateCursor();
-  document.querySelectorAll('a, button, .feature-card, .persona-tab, .price-card').forEach(el => {
-    el.addEventListener('mouseenter', () => cursorRing.classList.add('hover'));
-    el.addEventListener('mouseleave', () => cursorRing.classList.remove('hover'));
-  });
-
-  // ─── Scroll progress ───
-  const progress = document.getElementById('scrollProgress');
-  window.addEventListener('scroll', () => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    const p = (window.scrollY / max) * 100;
-    progress.style.width = p + '%';
-  }, { passive: true });
-
   // ─── Hero text reveal on load ───
   window.addEventListener('load', () => {
     setTimeout(() => {
@@ -1979,66 +1907,81 @@
   });
 
   // ═══════════════════════════════════════════════════════
-  // VERTICAL WORKFLOW (crossfade steps based on scroll)
+  // VERTICAL WORKFLOW (smooth lerp-based crossfade)
   // ═══════════════════════════════════════════════════════
   const workflowPin = document.getElementById('workflowPin');
   const workflowSteps = document.querySelectorAll('.workflow-step');
   const wpDots = document.querySelectorAll('.wp-dot');
   const STEP_COUNT = 4;
-  let currentStep = -1;
-
-  function setWorkflowStep(activeStep) {
-    if (activeStep === currentStep) return;
-    currentStep = activeStep;
-    workflowSteps.forEach((step, i) => step.classList.toggle('active', i === activeStep));
-    wpDots.forEach((dot, i) => dot.classList.toggle('active', i === activeStep));
-  }
 
   if (workflowPin && workflowSteps.length) {
-    function updateWorkflow() {
+    let targetProgress = 0;
+    let smoothProgress = 0;
+    let activeStepIdx = -1;
+
+    function getRawProgress() {
       const pinTop = workflowPin.offsetTop;
       const pinHeight = workflowPin.offsetHeight;
       const winHeight = window.innerHeight;
       const scrollY = window.scrollY || window.pageYOffset;
-
       const relativeScroll = scrollY - pinTop;
       const maxScroll = pinHeight - winHeight;
-
-      if (relativeScroll <= 0) {
-        setWorkflowStep(0);
-        return;
-      }
-      if (relativeScroll >= maxScroll) {
-        setWorkflowStep(STEP_COUNT - 1);
-        return;
-      }
-
-      const progress = relativeScroll / maxScroll;
-      const activeStep = Math.min(STEP_COUNT - 1, Math.floor(progress * STEP_COUNT));
-      setWorkflowStep(activeStep);
+      if (maxScroll <= 0) return 0;
+      return Math.max(0, Math.min(0.9999, relativeScroll / maxScroll));
     }
 
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          updateWorkflow();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    }, { passive: true });
-    window.addEventListener('resize', updateWorkflow);
-    updateWorkflow();
+    function applyProgress(p) {
+      // Each step occupies a range of 1/STEP_COUNT in the progress (0 to 1)
+      // We compute a continuous opacity curve for each step so transitions overlap smoothly.
+      const segment = 1 / STEP_COUNT;
+      const stepFloat = p * STEP_COUNT;
+      const newActive = Math.min(STEP_COUNT - 1, Math.floor(stepFloat));
 
-    // Click dots to jump to that step
+      workflowSteps.forEach((step, i) => {
+        // distance from this step's center (in segments)
+        const center = (i + 0.5) / STEP_COUNT;
+        const dist = Math.abs(p - center) / segment; // 0 = at center, 1 = at neighbor center
+        // smooth opacity curve: 1 at center, fades to 0 at distance 0.7 (overlap zone)
+        const opacity = Math.max(0, Math.min(1, 1 - (dist - 0.3) / 0.5));
+        const translate = (p - center) / segment * 30; // gentle parallax
+        step.style.opacity = opacity;
+        step.style.transform = `translateY(${translate}px)`;
+        step.style.pointerEvents = i === newActive ? 'auto' : 'none';
+      });
+
+      if (newActive !== activeStepIdx) {
+        activeStepIdx = newActive;
+        workflowSteps.forEach((step, i) => step.classList.toggle('active', i === newActive));
+        wpDots.forEach((dot, i) => dot.classList.toggle('active', i === newActive));
+      }
+    }
+
+    function loop() {
+      // Smooth interpolation toward target — softens fast scrolls
+      smoothProgress += (targetProgress - smoothProgress) * 0.12;
+      applyProgress(smoothProgress);
+      requestAnimationFrame(loop);
+    }
+
+    function onScroll() {
+      targetProgress = getRawProgress();
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+    smoothProgress = targetProgress;
+    applyProgress(smoothProgress);
+    requestAnimationFrame(loop);
+
+    // Click dots to jump
     wpDots.forEach((dot, i) => {
       dot.addEventListener('click', () => {
         const pinTopAbs = workflowPin.offsetTop;
         const pinHeight = workflowPin.offsetHeight;
         const winHeight = window.innerHeight;
         const maxScroll = pinHeight - winHeight;
-        const targetScroll = pinTopAbs + (i / STEP_COUNT) * maxScroll + 20;
+        const targetScroll = pinTopAbs + ((i + 0.5) / STEP_COUNT) * maxScroll;
         window.scrollTo({ top: targetScroll, behavior: 'smooth' });
       });
     });
