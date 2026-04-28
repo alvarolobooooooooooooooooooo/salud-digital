@@ -156,7 +156,8 @@ class OdontogramTooth {
       this.getSurfaceCondition(SURFACES.MESIAL),
       this.isEditable
     );
-    if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+    if(this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+      mesialEl.style.cursor = 'pointer';
       mesialEl.onclick = (e) => {
         e.stopPropagation();
         this.handlers.onSurfaceSelect(this.fdi, SURFACES.MESIAL, e);
@@ -170,7 +171,8 @@ class OdontogramTooth {
       this.getSurfaceCondition(apicalSurface),
       this.isEditable
     );
-    if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+    if(this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+      centralEl.style.cursor = 'pointer';
       centralEl.onclick = (e) => {
         e.stopPropagation();
         this.handlers.onSurfaceSelect(this.fdi, apicalSurface, e);
@@ -184,7 +186,8 @@ class OdontogramTooth {
       this.getSurfaceCondition(SURFACES.DISTAL),
       this.isEditable
     );
-    if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+    if(this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+      distalEl.style.cursor = 'pointer';
       distalEl.onclick = (e) => {
         e.stopPropagation();
         this.handlers.onSurfaceSelect(this.fdi, SURFACES.DISTAL, e);
@@ -201,7 +204,8 @@ class OdontogramTooth {
       this.getSurfaceCondition(SURFACES.LINGUAL),
       this.isEditable
     );
-    if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+    if(this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+      lingualEl.style.cursor = 'pointer';
       lingualEl.onclick = (e) => {
         e.stopPropagation();
         this.handlers.onSurfaceSelect(this.fdi, SURFACES.LINGUAL, e);
