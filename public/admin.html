@@ -482,8 +482,8 @@
         <h1 class="admin-title">Panel Administrativo</h1>
         <p class="admin-subtitle">Gestiona las clínicas y administra los accesos a la plataforma</p>
       </div>
-      <button class="new-clinic-btn" onclick="openNewClinicModal()">
-        <span style="font-size:1.1rem;">+</span> Nueva clínica
+      <button class="new-clinic-btn" onclick="openInviteClinicOwnerModal()">
+        <span style="font-size:1.1rem;">+</span> Invitar dueño de clínica
       </button>
     </div>
 
@@ -517,83 +517,27 @@
   </main>
 
   <!-- Modal: Nueva Clínica + Invitar Admin -->
-  <div class="modal-overlay" id="newClinicModal">
+  <!-- Modal: Invitar dueño de clínica -->
+  <div class="modal-overlay" id="inviteClinicOwnerModal">
     <div class="modal-card">
-      <button class="modal-close" onclick="closeNewClinicModal()">×</button>
-
+      <button class="modal-close" onclick="closeInviteClinicOwnerModal()">×</button>
       <div class="modal-header">
-        <h2 class="modal-title">Crear nueva clínica</h2>
-        <p class="modal-subtitle">Registra los datos de la clínica e invita al administrador</p>
+        <h2 class="modal-title">Invitar dueño de clínica</h2>
+        <p class="modal-subtitle">Envía una invitación para crear y administrar una nueva clínica</p>
       </div>
-
-      <div class="step-indicator">
-        <div class="step active" id="stepEl1">
-          <div class="step-num">1</div>
-          <div class="step-label">Información de la clínica</div>
+      <div class="form-grid">
+        <div class="form-field full">
+          <label>Nombre completo *</label>
+          <input type="text" id="ownerName" placeholder="Dr. Juan Pérez">
         </div>
-        <div class="step" id="stepEl2">
-          <div class="step-num">2</div>
-          <div class="step-label">Invitar administrador</div>
-        </div>
-      </div>
-
-      <!-- Step 1: Clinic data -->
-      <div id="step1">
-        <div class="form-grid">
-          <div class="form-field full">
-            <label>Nombre de la clínica *</label>
-            <input type="text" id="clinicName" placeholder="Clínica Dental Centro">
-          </div>
-          <div class="form-field full">
-            <label>Dirección</label>
-            <input type="text" id="clinicAddress" placeholder="Av. Principal 123, Ciudad">
-          </div>
-          <div class="form-field">
-            <label>Sillas disponibles</label>
-            <input type="number" id="clinicChairs" min="1" value="1">
-          </div>
-          <div class="form-field">
-            <label>Teléfono</label>
-            <input type="tel" id="clinicPhone" placeholder="+506 0000-0000">
-          </div>
-          <div class="form-field full">
-            <label>Email de contacto</label>
-            <input type="email" id="clinicContactEmail" placeholder="contacto@clinica.com">
-          </div>
-          <div class="form-field full">
-            <label>Especialidades atendidas</label>
-            <textarea id="clinicSpecialties" placeholder="Odontología general, Ortodoncia, Endodoncia..."></textarea>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn-cancel" onclick="closeNewClinicModal()">Cancelar</button>
-          <button class="btn-primary" onclick="goToStep2()">Continuar</button>
+        <div class="form-field full">
+          <label>Correo electrónico *</label>
+          <input type="email" id="ownerEmail" placeholder="owner@clinica.com">
         </div>
       </div>
-
-      <!-- Step 2: Invite Admin -->
-      <div id="step2" style="display:none;">
-        <p style="color:#475569;font-size:0.9rem;margin-bottom:1.25rem;line-height:1.5;">
-          Se enviará una invitación por correo electrónico al administrador. Una vez la acepte, podrá crear su contraseña y acceder al panel de la clínica.
-        </p>
-        <div class="form-grid">
-          <div class="form-field full">
-            <label>Nombre del administrador *</label>
-            <input type="text" id="adminName" placeholder="Dr. Juan Pérez">
-          </div>
-          <div class="form-field full">
-            <label>Correo electrónico *</label>
-            <input type="email" id="adminEmail" placeholder="admin@clinica.com">
-          </div>
-          <div class="form-field full">
-            <label>Teléfono (opcional)</label>
-            <input type="tel" id="adminPhone" placeholder="+506 0000-0000">
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn-cancel" onclick="goBackToStep1()">Atrás</button>
-          <button class="btn-primary" id="finishBtn" onclick="finishCreateClinic()">Crear y enviar invitación</button>
-        </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeInviteClinicOwnerModal()">Cancelar</button>
+        <button class="btn-primary" id="sendOwnerInviteBtn" onclick="sendClinicOwnerInvitation()">Enviar invitación</button>
       </div>
     </div>
   </div>
@@ -631,7 +575,6 @@
   <script>
     requireAuth(['super_admin']);
 
-    let pendingClinic = null;
     let inviteClinicId = null;
 
     function showToast(message, type = 'success') {
@@ -685,81 +628,39 @@
       }
     }
 
-    function openNewClinicModal() {
-      document.getElementById('newClinicModal').classList.add('active');
-      document.getElementById('step1').style.display = 'block';
-      document.getElementById('step2').style.display = 'none';
-      document.getElementById('stepEl1').classList.add('active');
-      document.getElementById('stepEl2').classList.remove('active', 'complete');
-      document.getElementById('stepEl1').classList.remove('complete');
-      ['clinicName','clinicAddress','clinicChairs','clinicPhone','clinicContactEmail','clinicSpecialties','adminName','adminEmail','adminPhone'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = id === 'clinicChairs' ? '1' : '';
-      });
+    function openInviteClinicOwnerModal() {
+      document.getElementById('inviteClinicOwnerModal').classList.add('active');
+      document.getElementById('ownerName').value = '';
+      document.getElementById('ownerEmail').value = '';
     }
-    function closeNewClinicModal() {
-      document.getElementById('newClinicModal').classList.remove('active');
-      pendingClinic = null;
+    function closeInviteClinicOwnerModal() {
+      document.getElementById('inviteClinicOwnerModal').classList.remove('active');
     }
 
-    function goToStep2() {
-      const name = document.getElementById('clinicName').value.trim();
-      if (!name) { showToast('El nombre de la clínica es requerido', 'error'); return; }
-      pendingClinic = {
-        name,
-        address: document.getElementById('clinicAddress').value.trim(),
-        chairs: parseInt(document.getElementById('clinicChairs').value) || 1,
-        phone: document.getElementById('clinicPhone').value.trim(),
-        email: document.getElementById('clinicContactEmail').value.trim(),
-        specialties: document.getElementById('clinicSpecialties').value.trim()
-      };
-      document.getElementById('step1').style.display = 'none';
-      document.getElementById('step2').style.display = 'block';
-      document.getElementById('stepEl1').classList.remove('active');
-      document.getElementById('stepEl1').classList.add('complete');
-      document.getElementById('stepEl2').classList.add('active');
-    }
-
-    function goBackToStep1() {
-      document.getElementById('step1').style.display = 'block';
-      document.getElementById('step2').style.display = 'none';
-      document.getElementById('stepEl2').classList.remove('active');
-      document.getElementById('stepEl1').classList.add('active');
-      document.getElementById('stepEl1').classList.remove('complete');
-    }
-
-    async function finishCreateClinic() {
-      const adminName = document.getElementById('adminName').value.trim();
-      const adminEmail = document.getElementById('adminEmail').value.trim();
-      const adminPhone = document.getElementById('adminPhone').value.trim();
-      if (!adminName || !adminEmail) {
-        showToast('Nombre y correo del administrador son requeridos', 'error');
+    async function sendClinicOwnerInvitation() {
+      const name = document.getElementById('ownerName').value.trim();
+      const email = document.getElementById('ownerEmail').value.trim();
+      if (!name || !email) {
+        showToast('Nombre y correo son requeridos', 'error');
         return;
       }
-      const btn = document.getElementById('finishBtn');
+      const btn = document.getElementById('sendOwnerInviteBtn');
       btn.disabled = true;
-      btn.textContent = 'Creando...';
+      btn.textContent = 'Enviando...';
       try {
-        const created = await api('/api/clinics', { method: 'POST', body: pendingClinic });
         await api('/api/invitations', {
           method: 'POST',
-          body: {
-            email: adminEmail,
-            name: adminName,
-            phone: adminPhone,
-            clinic_id: created.id,
-            role: 'clinic_admin'
-          }
+          body: { email, name, role: 'clinic_admin' }
         });
-        showToast('Clínica creada e invitación enviada exitosamente');
-        closeNewClinicModal();
+        showToast('Invitación enviada. El dueño registrará los datos de su clínica al aceptar.');
+        closeInviteClinicOwnerModal();
         loadStats();
         loadClinics();
       } catch (e) {
-        showToast(e.message || 'Error al crear', 'error');
+        showToast(e.message || 'Error al enviar invitación', 'error');
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Crear y enviar invitación';
+        btn.textContent = 'Enviar invitación';
       }
     }
 
@@ -803,7 +704,7 @@
       }
     }
 
-    [document.getElementById('newClinicModal'), document.getElementById('inviteAdminModal')].forEach(m => {
+    [document.getElementById('inviteClinicOwnerModal'), document.getElementById('inviteAdminModal')].forEach(m => {
       m.addEventListener('click', e => {
         if (e.target === m) m.classList.remove('active');
       });
