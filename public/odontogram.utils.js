@@ -11,8 +11,10 @@ function getToothLabel(fdi) {
 
 function createToothSVG(toothType, condition, selected = false, isEditable = false) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  // Use different viewBox for molars
-  const viewBox = toothType === TOOTH_TYPES.MOLAR ? '0 0 512.048 512.048' : '0 0 100 160';
+  // Use different viewBox for custom tooth types
+  let viewBox = '0 0 100 160';
+  if(toothType === TOOTH_TYPES.MOLAR) viewBox = '0 0 512.048 512.048';
+  else if(toothType === TOOTH_TYPES.INCISOR) viewBox = '0 0 368.477 368.477';
   svg.setAttribute('viewBox', viewBox);
   svg.setAttribute('class', 'tooth-svg');
 
@@ -21,10 +23,10 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
 
   const condData = getConditionById(condition);
   const outlineColor = selected ? '#0891b2' : '#0f172a';
-  // Scale stroke width for molars due to larger viewBox
-  const outlineWidth = toothType === TOOTH_TYPES.MOLAR
-    ? (selected ? 8 : 4)
-    : (selected ? 2.5 : 1.5);
+  // Scale stroke width for custom tooth types due to larger viewBox
+  let outlineWidth = selected ? 2.5 : 1.5;
+  if(toothType === TOOTH_TYPES.MOLAR) outlineWidth = selected ? 8 : 4;
+  else if(toothType === TOOTH_TYPES.INCISOR) outlineWidth = selected ? 6 : 3;
 
   // Create gradient
   const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
@@ -54,8 +56,8 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
 
   // INCISIVO - pequeño, plano, puntiagudo
   if(toothType === TOOTH_TYPES.INCISOR) {
-    crownPath = 'M 35 8 Q 40 5 50 5 Q 60 5 65 8 Q 70 12 72 22 L 70 45 Q 68 65 65 85';
-    rootPath = 'M 65 85 Q 62 105 58 125 Q 55 140 50 145 Q 45 140 42 125 Q 38 105 35 85 L 35 85 Q 32 65 30 45 L 28 22 Q 30 12 35 8';
+    crownPath = 'M273.106,8.768C271.885,8.41,242.528,0,184.239,0S96.591,8.41,95.37,8.768c-2.769,0.812-4.671,3.352-4.671,6.237v72.537c0,28.018,12.386,53.195,31.966,70.353c0.48,27.934,8.605,77.12,20.522,123.856c6.025,23.629,12.326,43.834,18.22,58.43c8.01,19.833,14.742,28.295,22.511,28.295c7.808,0,14.598-8.466,22.704-28.308c5.976-14.627,12.362-34.87,18.47-58.54c12.019-46.582,20.234-95.616,20.807-123.75c20.297-17.793,31.881-43.253,31.881-70.337V15.005C277.778,12.12,275.876,9.579,273.106,8.768z M264.778,87.542c0,24.096-10.649,46.701-29.223,62.073c-1.589,1.185-2.622,3.073-2.622,5.208c0,25.334-7.726,73.085-19.224,118.823c-5.636,22.42-11.591,42.059-17.222,56.793c-6.544,17.123-10.798,22.717-12.545,24.458c-1.733-1.76-5.941-7.386-12.394-24.488c-5.552-14.716-11.423-34.318-16.978-56.688c-9.672-38.955-16.629-79.336-18.453-105.996c14.068,8.475,30.534,13.356,48.12,13.356c10.694,0,21.185-1.792,31.181-5.325c3.385-1.196,5.159-4.91,3.962-8.295c-1.195-3.385-4.912-5.158-8.294-3.962c-6.568,2.321-13.389,3.762-20.35,4.317v-36.756c0-3.59-2.909-6.5-6.499-6.5c-3.59,0-6.5,2.91-6.5,6.5v36.736c-41.379-3.324-74.04-38.035-74.04-80.254V20.101C113.899,17.837,140.785,13,184.239,13c43.289,0,70.301,4.848,80.54,7.108V87.542z';
+    rootPath = '';
   }
 
   // CANINO - puntiagudo, más largo
@@ -98,16 +100,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   svg.appendChild(crown);
 
   // Add shine/highlight
-  if(toothType === TOOTH_TYPES.INCISOR) {
-    const shine = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
-    shine.setAttribute('cx', '42');
-    shine.setAttribute('cy', '25');
-    shine.setAttribute('rx', '5');
-    shine.setAttribute('ry', '10');
-    shine.setAttribute('fill', 'white');
-    shine.setAttribute('opacity', '0.25');
-    svg.appendChild(shine);
-  } else if(toothType === TOOTH_TYPES.CANINE) {
+  if(toothType === TOOTH_TYPES.CANINE) {
     const shine = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
     shine.setAttribute('cx', '42');
     shine.setAttribute('cy', '28');
