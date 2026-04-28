@@ -130,6 +130,9 @@ class OdontogramContainer {
   }
 
   selectSurface(fdi, surface, e) {
+    // Capture rect BEFORE re-render destroys e.target
+    const anchorRect = e && e.target ? e.target.getBoundingClientRect() : null;
+
     // Desselect previous
     if(this.selectedTooth && this.selectedTooth !== fdi) {
       this.state[this.selectedTooth].isSelected = false;
@@ -146,9 +149,9 @@ class OdontogramContainer {
       // If surface already has a diagnosis (not healthy), show the mini info popup
       const currentCondId = (this.state[fdi].surfaces && this.state[fdi].surfaces[surface]) || CONDITIONS.HEALTHY.id;
       if(currentCondId && currentCondId !== CONDITIONS.HEALTHY.id) {
-        this._showSurfaceInfoPopup(fdi, surface, currentCondId, e);
+        this._showSurfaceInfoPopup(fdi, surface, currentCondId, e, anchorRect);
       } else {
-        this._showPopup(fdi, surface, e);
+        this._showPopup(fdi, surface, e, anchorRect);
       }
     }
   }
@@ -420,7 +423,7 @@ class OdontogramContainer {
     return popup;
   }
 
-  _showPopup(fdi, surface, e) {
+  _showPopup(fdi, surface, e, anchorRect) {
     if(!this._popup) return;
     // Close the mini info popup if it was open
     if(this._surfaceInfoPopup) this._surfaceInfoPopup.style.display = 'none';
@@ -432,7 +435,7 @@ class OdontogramContainer {
     }
     document.getElementById('odonto-popup-header').textContent = header;
 
-    const rect = e.target.getBoundingClientRect();
+    const rect = anchorRect || (e && e.target ? e.target.getBoundingClientRect() : { top: 100, bottom: 100, left: 100, right: 100, width: 0, height: 0 });
     let top = rect.bottom + 8;
     let left = rect.left;
 
@@ -647,7 +650,7 @@ class OdontogramContainer {
     editBtn.onclick = () => {
       popup.style.display = 'none';
       // Open the full edit popup at the same anchor
-      if(self._lastSurfaceEvent) self._showPopup(self.selectedTooth, self.selectedSurface, self._lastSurfaceEvent);
+      if(self._lastSurfaceEvent) self._showPopup(self.selectedTooth, self.selectedSurface, self._lastSurfaceEvent, self._lastSurfaceRect);
     };
     clearBtn.onclick = () => {
       if(self.selectedTooth && self.selectedSurface) {
@@ -670,11 +673,12 @@ class OdontogramContainer {
     return popup;
   }
 
-  _showSurfaceInfoPopup(fdi, surface, conditionId, e) {
+  _showSurfaceInfoPopup(fdi, surface, conditionId, e, anchorRect) {
     if(!this._surfaceInfoPopup) return;
     // Close the main popup if it was open
     if(this._popup) this._popup.style.display = 'none';
     this._lastSurfaceEvent = e;
+    this._lastSurfaceRect = anchorRect;
 
     const tooth = getToothByFDI(fdi);
     const cond = getConditionById(conditionId) || CONDITIONS.HEALTHY;
@@ -690,8 +694,8 @@ class OdontogramContainer {
     document.getElementById('mp-stripe').style.background = `linear-gradient(180deg, ${cond.color}, ${this._shadeColor(cond.color, -20)})`;
 
     const popup = this._surfaceInfoPopup;
-    // Position
-    const rect = e.target.getBoundingClientRect();
+    // Position — use captured rect to avoid stale (re-rendered) target
+    const rect = anchorRect || (e && e.target ? e.target.getBoundingClientRect() : { top: 100, bottom: 100, left: 100, width: 0, height: 0 });
     const popupW = 280, popupH = 200;
     let top = rect.bottom + 10;
     let left = rect.left + rect.width / 2 - popupW / 2;
