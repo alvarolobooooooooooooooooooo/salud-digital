@@ -137,7 +137,8 @@ class OdontogramTooth {
       this.getSurfaceCondition(SURFACES.BUCCAL),
       this.isEditable
     );
-    if(this.isEditable && this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+    if(this.handlers && typeof this.handlers.onSurfaceSelect === 'function') {
+      buccalEl.style.cursor = 'pointer';
       buccalEl.onclick = (e) => {
         e.stopPropagation();
         this.handlers.onSurfaceSelect(this.fdi, SURFACES.BUCCAL, e);
