@@ -25,7 +25,7 @@ class OdontogramArch {
 
     if (w < 940) {
       cols = 1;
-    } else if (w >= 1350) {
+    } else if (w >= 1900) {
       cols = 8;
     } else if (w >= 950) {
       cols = 4;
