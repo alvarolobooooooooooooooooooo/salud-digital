@@ -150,7 +150,8 @@ class OdontogramContainer {
       const currentCondId = (this.state[fdi].surfaces && this.state[fdi].surfaces[surface]) || CONDITIONS.HEALTHY.id;
       if(currentCondId && currentCondId !== CONDITIONS.HEALTHY.id) {
         this._showSurfaceInfoPopup(fdi, surface, currentCondId, e, anchorRect);
-      } else {
+      } else if(!this.readOnly) {
+        // Only show edit popup in editable mode for empty surfaces
         this._showPopup(fdi, surface, e, anchorRect);
       }
     }
