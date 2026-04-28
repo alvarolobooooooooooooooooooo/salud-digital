@@ -11,7 +11,9 @@ function getToothLabel(fdi) {
 
 function createToothSVG(toothType, condition, selected = false, isEditable = false) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 100 160');
+  // Use different viewBox for molars
+  const viewBox = toothType === TOOTH_TYPES.MOLAR ? '0 0 512.048 512.048' : '0 0 100 160';
+  svg.setAttribute('viewBox', viewBox);
   svg.setAttribute('class', 'tooth-svg');
 
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -19,7 +21,10 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
 
   const condData = getConditionById(condition);
   const outlineColor = selected ? '#0891b2' : '#0f172a';
-  const outlineWidth = selected ? 2.5 : 1.5;
+  // Scale stroke width for molars due to larger viewBox
+  const outlineWidth = toothType === TOOTH_TYPES.MOLAR
+    ? (selected ? 8 : 4)
+    : (selected ? 2.5 : 1.5);
 
   // Create gradient
   const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
@@ -65,21 +70,23 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     rootPath = 'M 65 100 Q 60 120 55 138 Q 52 148 50 150 Q 48 148 45 138 Q 40 120 35 100 L 35 100 Q 30 80 27 62 L 23 38 Q 22 26 25 18 Q 28 12 28 12';
   }
 
-  // MOLAR - ancho, múltiples cúspides
+  // MOLAR - ancho, múltiples cúspides - custom SVG design
   if(toothType === TOOTH_TYPES.MOLAR) {
-    crownPath = 'M 22 15 Q 26 10 38 10 Q 50 8 62 10 Q 78 15 82 22 Q 85 32 84 45 L 78 70 Q 74 88 68 106';
-    rootPath = 'M 68 106 Q 62 125 56 140 Q 53 148 50 150 Q 47 148 44 140 Q 38 125 32 106 L 32 106 Q 26 88 22 70 L 16 45 Q 15 32 18 22 Q 22 15 22 15';
+    crownPath = 'M403.331,245.808c26.667-59.947,51.307-146.453,33.173-193.067c-25.707-65.92-80.747-55.04-129.28-45.547c-17.28,3.413-35.2,6.933-51.2,6.933s-33.92-3.52-51.2-6.933c-48.533-9.6-103.467-20.373-129.28,45.547c-18.133,46.507,6.507,133.12,33.173,193.067c0.747,1.707,1.067,3.52,0.853,5.333c-2.56,25.067-3.84,50.347-3.733,75.52c0,68.8,10.453,185.387,49.387,185.387c33.387,0,37.973-44.267,42.88-91.2c6.933-67.52,15.253-115.307,57.92-115.307c42.027,0,50.133,47.36,57.067,114.133c4.907,47.467,9.493,92.267,43.733,92.267c39.04,0,49.493-116.587,49.493-185.387c0-25.173-1.173-50.347-3.733-75.52C402.264,249.328,402.584,247.408,403.331,245.808z';
+    rootPath = '';
   }
 
-  // Draw root (lighter color)
-  const root = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  root.setAttribute('d', rootPath);
-  root.setAttribute('fill', condData.color);
-  root.setAttribute('fill-opacity', '0.5');
-  root.setAttribute('stroke', outlineColor);
-  root.setAttribute('stroke-width', outlineWidth);
-  root.setAttribute('stroke-linejoin', 'round');
-  svg.appendChild(root);
+  // Draw root (lighter color) - skip for molars
+  if(rootPath) {
+    const root = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    root.setAttribute('d', rootPath);
+    root.setAttribute('fill', condData.color);
+    root.setAttribute('fill-opacity', '0.5');
+    root.setAttribute('stroke', outlineColor);
+    root.setAttribute('stroke-width', outlineWidth);
+    root.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(root);
+  }
 
   // Draw crown (main color)
   const crown = document.createElementNS('http://www.w3.org/2000/svg', 'path');
