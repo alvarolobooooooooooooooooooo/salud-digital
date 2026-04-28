@@ -326,12 +326,12 @@
         </div>
       </div>
       <div style="margin-top: 1.5rem;">
-        <a href="" id="medicalRecordLink" class="btn-primary">
+        <button onclick="openMedicalEditModal()" class="btn-primary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
           </svg>
-          Expediente Médico Completo
-        </a>
+          Editar Información Médica
+        </button>
       </div>
     </div>
   </div>
@@ -356,6 +356,55 @@
       </a>
     </div>
   </div>
+
+  <!-- Medical Edit Modal -->
+  <div id="medicalEditModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 1000; animation: fadeIn 0.2s ease;">
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.15), 0 0 1px rgba(0,0,0,0.1); animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);">
+
+      <!-- Header -->
+      <div style="position: sticky; top: 0; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; padding: 1.5rem 2rem; border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; align-items: center; gap: 1rem; z-index: 10; box-shadow: 0 2px 8px rgba(8,145,178,0.2);">
+        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.015em;">Editar Información Médica</h3>
+        <button onclick="closeMedicalEditModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">✕</button>
+      </div>
+
+      <!-- Content -->
+      <div style="padding: 2rem;">
+
+        <!-- Alergias -->
+        <div style="margin-bottom: 2rem;">
+          <label style="display: block; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #0891b2; margin-bottom: 0.6rem;">Alergias</label>
+          <textarea id="editAllergies" placeholder="Ej: Penicilina, Mariscos..." style="width: 100%; min-height: 90px; padding: 0.85rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 0.95rem; resize: vertical; background: #f8fafc; transition: all 0.2s; box-sizing: border-box;" onkeyup="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';" onfocus="this.style.borderColor = '#0891b2'; this.style.boxShadow = '0 0 0 3px rgba(8,145,178,0.1)'" onblur="this.style.borderColor = '#e2e8f0'; this.style.boxShadow = 'none'"></textarea>
+        </div>
+
+        <!-- Medicamentos -->
+        <div style="margin-bottom: 2rem;">
+          <label style="display: block; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #0891b2; margin-bottom: 0.6rem;">Medicamentos Actuales</label>
+          <textarea id="editMedications" placeholder="Ej: Ibuprofen 400mg cada 8h, Vitamina D..." style="width: 100%; min-height: 90px; padding: 0.85rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 0.95rem; resize: vertical; background: #f8fafc; transition: all 0.2s; box-sizing: border-box;" onkeyup="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';" onfocus="this.style.borderColor = '#0891b2'; this.style.boxShadow = '0 0 0 3px rgba(8,145,178,0.1)'" onblur="this.style.borderColor = '#e2e8f0'; this.style.boxShadow = 'none'"></textarea>
+        </div>
+
+        <!-- Condiciones Médicas -->
+        <div style="margin-bottom: 2.5rem;">
+          <label style="display: block; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #0891b2; margin-bottom: 0.6rem;">Condiciones Médicas</label>
+          <textarea id="editConditions" placeholder="Ej: Diabetes tipo 2, Hipertensión, Asma..." style="width: 100%; min-height: 90px; padding: 0.85rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 0.95rem; resize: vertical; background: #f8fafc; transition: all 0.2s; box-sizing: border-box;" onkeyup="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';" onfocus="this.style.borderColor = '#0891b2'; this.style.boxShadow = '0 0 0 3px rgba(8,145,178,0.1)'" onblur="this.style.borderColor = '#e2e8f0'; this.style.boxShadow = 'none'"></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 0.75rem;">
+          <button onclick="saveMedicalInfo()" style="flex: 1; padding: 0.9rem 1.5rem; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1); box-shadow: 0 6px 18px rgba(8,145,178,0.25);" onmouseover="this.style.transform = 'translateY(-2px)'; this.style.boxShadow = '0 8px 24px rgba(8,145,178,0.35)'" onmouseout="this.style.transform = 'translateY(0)'; this.style.boxShadow = '0 6px 18px rgba(8,145,178,0.25)'">
+            Guardar Cambios
+          </button>
+          <button onclick="closeMedicalEditModal()" style="flex: 1; padding: 0.9rem 1.5rem; background: #f1f5f9; color: #64748b; border: 1.5px solid #e2e8f0; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background = '#ecf9fc'; this.style.borderColor = '#0891b2'; this.style.color = '#0891b2'" onmouseout="this.style.background = '#f1f5f9'; this.style.borderColor = '#e2e8f0'; this.style.color = '#64748b'">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+  </style>
 
 </main>
 
@@ -513,6 +562,47 @@
     event.target.classList.add('active');
     document.getElementById(`tab-${tabName}`).classList.add('active');
   }
+
+  function openMedicalEditModal() {
+    const modal = document.getElementById('medicalEditModal');
+    document.getElementById('editAllergies').value = document.getElementById('mAllergies').textContent === '—' ? '' : document.getElementById('mAllergies').textContent;
+    document.getElementById('editMedications').value = document.getElementById('mMedications').textContent === '—' ? '' : document.getElementById('mMedications').textContent;
+    document.getElementById('editConditions').value = document.getElementById('mConditions').textContent === '—' ? '' : document.getElementById('mConditions').textContent;
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMedicalEditModal() {
+    const modal = document.getElementById('medicalEditModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+
+  async function saveMedicalInfo() {
+    const allergies = document.getElementById('editAllergies').value.trim() || null;
+    const medications = document.getElementById('editMedications').value.trim() || null;
+    const conditions = document.getElementById('editConditions').value.trim() || null;
+
+    try {
+      await api(`/api/patients/${patientId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ allergies, medications, conditions })
+      });
+
+      document.getElementById('mAllergies').textContent = allergies || '—';
+      document.getElementById('mMedications').textContent = medications || '—';
+      document.getElementById('mConditions').textContent = conditions || '—';
+
+      closeMedicalEditModal();
+    } catch (e) {
+      alert('Error al guardar: ' + e.message);
+    }
+  }
+
+  // Close modal on outside click
+  document.getElementById('medicalEditModal').addEventListener('click', (e) => {
+    if (e.target.id === 'medicalEditModal') closeMedicalEditModal();
+  });
 
   (async () => {
     try {
