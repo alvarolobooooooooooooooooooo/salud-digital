@@ -3,117 +3,811 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SaludDigital — Admin</title>
+  <title>SaludDigital — Panel Administrativo</title>
   <link rel="stylesheet" href="/layout.css">
   <link rel="stylesheet" href="/style.css">
+  <style>
+    .admin-shell {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 2.5rem;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(8, 145, 178, 0.1);
+    }
+    .admin-title {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #0f172a 0%, #0891b2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+    .admin-subtitle {
+      color: #64748b;
+      font-size: 0.95rem;
+      margin-top: 0.4rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+    .stat-card-premium {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid rgba(8, 145, 178, 0.12);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 20px rgba(8, 145, 178, 0.06);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .stat-card-premium::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #0891b2 0%, #06b6d4 100%);
+    }
+    .stat-card-premium:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(8, 145, 178, 0.15);
+      border-color: rgba(8, 145, 178, 0.3);
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1;
+    }
+    .stat-icon {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.12), rgba(6, 182, 212, 0.08));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    .panel-card {
+      background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+      border: 1px solid rgba(8, 145, 178, 0.1);
+      border-radius: 24px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 16px rgba(8, 145, 178, 0.04), 0 24px 48px rgba(8, 145, 178, 0.04);
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(8, 145, 178, 0.08);
+    }
+    .panel-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .panel-title-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1rem;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25);
+    }
+    .clinics-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+    .clinic-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+      border: 1px solid rgba(8, 145, 178, 0.15);
+      border-radius: 16px;
+      padding: 1.25rem;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .clinic-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(8, 145, 178, 0.12);
+      border-color: rgba(8, 145, 178, 0.3);
+    }
+    .clinic-card-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.4rem;
+    }
+    .clinic-card-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      font-size: 0.85rem;
+      color: #475569;
+      margin-top: 0.75rem;
+    }
+    .clinic-card-info-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .clinic-card-info-icon {
+      color: #0891b2;
+      width: 14px;
+      flex-shrink: 0;
+    }
+    .clinic-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 0.75rem;
+    }
+    .clinic-status.active {
+      background: rgba(16, 185, 129, 0.1);
+      color: #059669;
+    }
+    .clinic-status.pending {
+      background: rgba(234, 179, 8, 0.1);
+      color: #ca8a04;
+    }
+    .invite-btn {
+      width: 100%;
+      margin-top: 0.75rem;
+      padding: 0.55rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.2);
+    }
+    .invite-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(8, 145, 178, 0.3);
+    }
+    .invite-btn:disabled {
+      background: #e5e7eb;
+      color: #9ca3af;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+    .empty-state-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    /* Modal premium */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      animation: fadeIn 0.25s ease;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-card {
+      background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+      border-radius: 28px;
+      padding: 2.5rem;
+      max-width: 640px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 32px 64px rgba(8, 145, 178, 0.2);
+      animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      width: 36px;
+      height: 36px;
+      background: rgba(8, 145, 178, 0.08);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.25rem;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .modal-close:hover {
+      background: rgba(8, 145, 178, 0.15);
+      transform: rotate(90deg);
+    }
+    .modal-header {
+      margin-bottom: 1.75rem;
+    }
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 0.4rem;
+      letter-spacing: -0.01em;
+    }
+    .modal-subtitle {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    .form-grid.full-row {
+      grid-template-columns: 1fr;
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .form-field.full {
+      grid-column: 1 / -1;
+    }
+    .form-field label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #475569;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .form-field input,
+    .form-field textarea,
+    .form-field select {
+      width: 100%;
+      padding: 0.75rem 0.95rem;
+      border: 1.5px solid rgba(8, 145, 178, 0.15);
+      border-radius: 10px;
+      background: white;
+      font-size: 0.95rem;
+      color: #0f172a;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+    }
+    .form-field input:focus,
+    .form-field textarea:focus,
+    .form-field select:focus {
+      outline: none;
+      border-color: #0891b2;
+      box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.12);
+    }
+    .form-field textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.75rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(8, 145, 178, 0.08);
+    }
+    .btn-cancel,
+    .btn-primary {
+      flex: 1;
+      padding: 0.85rem 1.25rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-cancel {
+      background: rgba(100, 116, 139, 0.08);
+      color: #475569;
+    }
+    .btn-cancel:hover {
+      background: rgba(100, 116, 139, 0.15);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      box-shadow: 0 6px 16px rgba(8, 145, 178, 0.25);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.35);
+    }
+    .btn-primary:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+      z-index: 2000;
+      animation: slideUp 0.3s ease;
+    }
+    .toast.success {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    }
+    .toast.error {
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    }
+    .new-clinic-btn {
+      padding: 0.65rem 1.2rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(8, 145, 178, 0.25);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .new-clinic-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.35);
+    }
+    .step-indicator {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.75rem;
+      padding: 1rem;
+      background: rgba(8, 145, 178, 0.04);
+      border-radius: 12px;
+    }
+    .step {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    .step.active {
+      background: white;
+      box-shadow: 0 2px 8px rgba(8, 145, 178, 0.1);
+    }
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(8, 145, 178, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+    .step.active .step-num {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+    }
+    .step.complete .step-num {
+      background: #10b981;
+      color: white;
+    }
+    .step-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #475569;
+    }
+    .step.active .step-label {
+      color: #0891b2;
+    }
+  </style>
 </head>
 <body>
-  <main class="layout-main">
-    <h2>Panel de Administración</h2>
-
-    <div class="stats" id="stats">
-      <div class="stat-card">Clínicas<strong id="sTotal">—</strong></div>
-      <div class="stat-card">Pacientes<strong id="sPat">—</strong></div>
-      <div class="stat-card">Doctores<strong id="sDoc">—</strong></div>
+  <main class="admin-shell">
+    <div class="admin-header">
+      <div>
+        <h1 class="admin-title">Panel Administrativo</h1>
+        <p class="admin-subtitle">Gestiona las clínicas y administra los accesos a la plataforma</p>
+      </div>
+      <button class="new-clinic-btn" onclick="openNewClinicModal()">
+        <span style="font-size:1.1rem;">+</span> Nueva clínica
+      </button>
     </div>
 
-    <section>
-      <h3>Clínicas registradas</h3>
-      <div id="clinicsList"><span class="empty">Cargando...</span></div>
-
-      <hr class="divider" style="margin-top:1rem;">
-      <h4>Nueva clínica</h4>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Nombre</label>
-          <input type="text" id="clinicName" placeholder="Nombre de la clínica">
-        </div>
-        <button onclick="createClinic()">Crear clínica</button>
+    <div class="stats-grid">
+      <div class="stat-card-premium">
+        <div class="stat-icon">🏥</div>
+        <div class="stat-label">Clínicas registradas</div>
+        <div class="stat-value" id="sTotal">—</div>
       </div>
-      <div class="msg" id="clinicMsg"></div>
-    </section>
-
-    <section>
-      <h3>Crear administrador de clínica</h3>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="adminEmail" placeholder="admin@clinica.com">
-        </div>
-        <div class="form-group">
-          <label>Contraseña</label>
-          <input type="password" id="adminPassword" placeholder="••••••••">
-        </div>
-        <div class="form-group">
-          <label>Clínica</label>
-          <select id="adminClinic" style="height:36px;">
-            <option value="">Seleccionar clínica...</option>
-          </select>
-        </div>
-        <button onclick="createAdmin()">Crear admin</button>
+      <div class="stat-card-premium">
+        <div class="stat-icon">👥</div>
+        <div class="stat-label">Pacientes</div>
+        <div class="stat-value" id="sPat">—</div>
       </div>
-      <div class="msg" id="adminMsg"></div>
-    </section>
+      <div class="stat-card-premium">
+        <div class="stat-icon">⚕️</div>
+        <div class="stat-label">Doctores</div>
+        <div class="stat-value" id="sDoc">—</div>
+      </div>
+    </div>
+
+    <div class="panel-card">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <span class="panel-title-icon">🏢</span>
+          Clínicas
+        </h2>
+      </div>
+      <div id="clinicsList"><div class="empty-state">Cargando...</div></div>
+    </div>
   </main>
+
+  <!-- Modal: Nueva Clínica + Invitar Admin -->
+  <div class="modal-overlay" id="newClinicModal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeNewClinicModal()">×</button>
+
+      <div class="modal-header">
+        <h2 class="modal-title">Crear nueva clínica</h2>
+        <p class="modal-subtitle">Registra los datos de la clínica e invita al administrador</p>
+      </div>
+
+      <div class="step-indicator">
+        <div class="step active" id="stepEl1">
+          <div class="step-num">1</div>
+          <div class="step-label">Información de la clínica</div>
+        </div>
+        <div class="step" id="stepEl2">
+          <div class="step-num">2</div>
+          <div class="step-label">Invitar administrador</div>
+        </div>
+      </div>
+
+      <!-- Step 1: Clinic data -->
+      <div id="step1">
+        <div class="form-grid">
+          <div class="form-field full">
+            <label>Nombre de la clínica *</label>
+            <input type="text" id="clinicName" placeholder="Clínica Dental Centro">
+          </div>
+          <div class="form-field full">
+            <label>Dirección</label>
+            <input type="text" id="clinicAddress" placeholder="Av. Principal 123, Ciudad">
+          </div>
+          <div class="form-field">
+            <label>Sillas disponibles</label>
+            <input type="number" id="clinicChairs" min="1" value="1">
+          </div>
+          <div class="form-field">
+            <label>Teléfono</label>
+            <input type="tel" id="clinicPhone" placeholder="+506 0000-0000">
+          </div>
+          <div class="form-field full">
+            <label>Email de contacto</label>
+            <input type="email" id="clinicContactEmail" placeholder="contacto@clinica.com">
+          </div>
+          <div class="form-field full">
+            <label>Especialidades atendidas</label>
+            <textarea id="clinicSpecialties" placeholder="Odontología general, Ortodoncia, Endodoncia..."></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeNewClinicModal()">Cancelar</button>
+          <button class="btn-primary" onclick="goToStep2()">Continuar</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Invite Admin -->
+      <div id="step2" style="display:none;">
+        <p style="color:#475569;font-size:0.9rem;margin-bottom:1.25rem;line-height:1.5;">
+          Se enviará una invitación por correo electrónico al administrador. Una vez la acepte, podrá crear su contraseña y acceder al panel de la clínica.
+        </p>
+        <div class="form-grid">
+          <div class="form-field full">
+            <label>Nombre del administrador *</label>
+            <input type="text" id="adminName" placeholder="Dr. Juan Pérez">
+          </div>
+          <div class="form-field full">
+            <label>Correo electrónico *</label>
+            <input type="email" id="adminEmail" placeholder="admin@clinica.com">
+          </div>
+          <div class="form-field full">
+            <label>Teléfono (opcional)</label>
+            <input type="tel" id="adminPhone" placeholder="+506 0000-0000">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="goBackToStep1()">Atrás</button>
+          <button class="btn-primary" id="finishBtn" onclick="finishCreateClinic()">Crear y enviar invitación</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Invitar Admin existente -->
+  <div class="modal-overlay" id="inviteAdminModal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeInviteModal()">×</button>
+      <div class="modal-header">
+        <h2 class="modal-title">Invitar administrador</h2>
+        <p class="modal-subtitle" id="inviteSubtitle">Envía una invitación al administrador de la clínica</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-field full">
+          <label>Nombre completo *</label>
+          <input type="text" id="invName" placeholder="Dr. Juan Pérez">
+        </div>
+        <div class="form-field full">
+          <label>Correo electrónico *</label>
+          <input type="email" id="invEmail" placeholder="admin@clinica.com">
+        </div>
+        <div class="form-field full">
+          <label>Teléfono (opcional)</label>
+          <input type="tel" id="invPhone" placeholder="+506 0000-0000">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeInviteModal()">Cancelar</button>
+        <button class="btn-primary" id="sendInviteBtn" onclick="sendInvitation()">Enviar invitación</button>
+      </div>
+    </div>
+  </div>
 
   <script src="/common.js"></script>
   <script>
     requireAuth(['super_admin']);
 
+    let pendingClinic = null;
+    let inviteClinicId = null;
+
+    function showToast(message, type = 'success') {
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.textContent = message;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }
+
     async function loadStats() {
       try {
         const s = await api('/api/clinics/stats');
         document.getElementById('sTotal').textContent = s.clinics;
-        document.getElementById('sPat').textContent   = s.patients;
-        document.getElementById('sDoc').textContent   = s.doctors;
+        document.getElementById('sPat').textContent = s.patients;
+        document.getElementById('sDoc').textContent = s.doctors;
       } catch {}
     }
 
     async function loadClinics() {
       try {
         const clinics = await api('/api/clinics');
-        document.getElementById('clinicsList').innerHTML = clinics.length === 0
-          ? '<span class="empty">No hay clínicas aún.</span>'
-          : `<table>
-               <thead><tr><th>ID</th><th>Nombre</th></tr></thead>
-               <tbody>${clinics.map(c => `<tr><td>${esc(String(c.id))}</td><td>${esc(c.name)}</td></tr>`).join('')}</tbody>
-             </table>`;
-
-        const sel = document.getElementById('adminClinic');
-        const prev = sel.value;
-        sel.innerHTML = '<option value="">Seleccionar clínica...</option>';
-        clinics.forEach(c => {
-          const o = document.createElement('option');
-          o.value = c.id; o.textContent = c.name; sel.appendChild(o);
-        });
-        if (prev) sel.value = prev;
-      } catch {}
+        const list = document.getElementById('clinicsList');
+        if (clinics.length === 0) {
+          list.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">🏥</div>
+              <p>No hay clínicas registradas aún.</p>
+              <p style="font-size:0.85rem;margin-top:0.5rem;">Crea la primera clínica con el botón superior.</p>
+            </div>`;
+          return;
+        }
+        list.innerHTML = `<div class="clinics-list">${clinics.map(c => `
+          <div class="clinic-card">
+            <div class="clinic-card-name">${esc(c.name)}</div>
+            <div class="clinic-card-info">
+              ${c.address ? `<div class="clinic-card-info-row"><span class="clinic-card-info-icon">📍</span>${esc(c.address)}</div>` : ''}
+              ${c.chairs ? `<div class="clinic-card-info-row"><span class="clinic-card-info-icon">🪑</span>${c.chairs} silla${c.chairs > 1 ? 's' : ''} disponible${c.chairs > 1 ? 's' : ''}</div>` : ''}
+              ${c.specialties ? `<div class="clinic-card-info-row"><span class="clinic-card-info-icon">⚕️</span>${esc(c.specialties)}</div>` : ''}
+              ${c.phone ? `<div class="clinic-card-info-row"><span class="clinic-card-info-icon">📞</span>${esc(c.phone)}</div>` : ''}
+            </div>
+            ${c.has_admin > 0
+              ? `<div class="clinic-status active">● Admin activo · ${esc(c.admin_email || '')}</div>`
+              : `<div class="clinic-status pending">● Sin administrador</div>
+                 <button class="invite-btn" onclick="openInviteModal(${c.id}, '${esc(c.name)}')">Invitar administrador</button>`
+            }
+          </div>
+        `).join('')}</div>`;
+      } catch (e) {
+        document.getElementById('clinicsList').innerHTML = `<div class="empty-state">Error al cargar clínicas</div>`;
+      }
     }
 
-    async function createClinic() {
+    function openNewClinicModal() {
+      document.getElementById('newClinicModal').classList.add('active');
+      document.getElementById('step1').style.display = 'block';
+      document.getElementById('step2').style.display = 'none';
+      document.getElementById('stepEl1').classList.add('active');
+      document.getElementById('stepEl2').classList.remove('active', 'complete');
+      document.getElementById('stepEl1').classList.remove('complete');
+      ['clinicName','clinicAddress','clinicChairs','clinicPhone','clinicContactEmail','clinicSpecialties','adminName','adminEmail','adminPhone'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = id === 'clinicChairs' ? '1' : '';
+      });
+    }
+    function closeNewClinicModal() {
+      document.getElementById('newClinicModal').classList.remove('active');
+      pendingClinic = null;
+    }
+
+    function goToStep2() {
       const name = document.getElementById('clinicName').value.trim();
-      if (!name) { msg('clinicMsg', 'El nombre es requerido', true); return; }
-      try {
-        await api('/api/clinics', { method: 'POST', body: { name } });
-        document.getElementById('clinicName').value = '';
-        msg('clinicMsg', 'Clínica creada exitosamente');
-        loadStats(); loadClinics();
-      } catch (e) { msg('clinicMsg', e.message, true); }
+      if (!name) { showToast('El nombre de la clínica es requerido', 'error'); return; }
+      pendingClinic = {
+        name,
+        address: document.getElementById('clinicAddress').value.trim(),
+        chairs: parseInt(document.getElementById('clinicChairs').value) || 1,
+        phone: document.getElementById('clinicPhone').value.trim(),
+        email: document.getElementById('clinicContactEmail').value.trim(),
+        specialties: document.getElementById('clinicSpecialties').value.trim()
+      };
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('step2').style.display = 'block';
+      document.getElementById('stepEl1').classList.remove('active');
+      document.getElementById('stepEl1').classList.add('complete');
+      document.getElementById('stepEl2').classList.add('active');
     }
 
-    async function createAdmin() {
-      const email    = document.getElementById('adminEmail').value.trim();
-      const password = document.getElementById('adminPassword').value;
-      const clinic_id = parseInt(document.getElementById('adminClinic').value);
-      if (!email || !password) { msg('adminMsg', 'Email y contraseña son requeridos', true); return; }
-      if (!clinic_id) { msg('adminMsg', 'Seleccione una clínica', true); return; }
-      try {
-        await api('/api/users', { method: 'POST', body: { email, password, role: 'clinic_admin', clinic_id } });
-        document.getElementById('adminEmail').value = '';
-        document.getElementById('adminPassword').value = '';
-        msg('adminMsg', 'Administrador creado exitosamente');
-      } catch (e) { msg('adminMsg', e.message, true); }
+    function goBackToStep1() {
+      document.getElementById('step1').style.display = 'block';
+      document.getElementById('step2').style.display = 'none';
+      document.getElementById('stepEl2').classList.remove('active');
+      document.getElementById('stepEl1').classList.add('active');
+      document.getElementById('stepEl1').classList.remove('complete');
     }
+
+    async function finishCreateClinic() {
+      const adminName = document.getElementById('adminName').value.trim();
+      const adminEmail = document.getElementById('adminEmail').value.trim();
+      const adminPhone = document.getElementById('adminPhone').value.trim();
+      if (!adminName || !adminEmail) {
+        showToast('Nombre y correo del administrador son requeridos', 'error');
+        return;
+      }
+      const btn = document.getElementById('finishBtn');
+      btn.disabled = true;
+      btn.textContent = 'Creando...';
+      try {
+        const created = await api('/api/clinics', { method: 'POST', body: pendingClinic });
+        await api('/api/invitations', {
+          method: 'POST',
+          body: {
+            email: adminEmail,
+            name: adminName,
+            phone: adminPhone,
+            clinic_id: created.id,
+            role: 'clinic_admin'
+          }
+        });
+        showToast('Clínica creada e invitación enviada exitosamente');
+        closeNewClinicModal();
+        loadStats();
+        loadClinics();
+      } catch (e) {
+        showToast(e.message || 'Error al crear', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Crear y enviar invitación';
+      }
+    }
+
+    function openInviteModal(clinicId, clinicName) {
+      inviteClinicId = clinicId;
+      document.getElementById('inviteSubtitle').textContent = `Envía una invitación al administrador de ${clinicName}`;
+      document.getElementById('invName').value = '';
+      document.getElementById('invEmail').value = '';
+      document.getElementById('invPhone').value = '';
+      document.getElementById('inviteAdminModal').classList.add('active');
+    }
+    function closeInviteModal() {
+      document.getElementById('inviteAdminModal').classList.remove('active');
+      inviteClinicId = null;
+    }
+
+    async function sendInvitation() {
+      const name = document.getElementById('invName').value.trim();
+      const email = document.getElementById('invEmail').value.trim();
+      const phone = document.getElementById('invPhone').value.trim();
+      if (!name || !email) {
+        showToast('Nombre y correo son requeridos', 'error');
+        return;
+      }
+      const btn = document.getElementById('sendInviteBtn');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      try {
+        await api('/api/invitations', {
+          method: 'POST',
+          body: { email, name, phone, clinic_id: inviteClinicId, role: 'clinic_admin' }
+        });
+        showToast('Invitación enviada exitosamente');
+        closeInviteModal();
+        loadClinics();
+      } catch (e) {
+        showToast(e.message || 'Error al enviar invitación', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar invitación';
+      }
+    }
+
+    [document.getElementById('newClinicModal'), document.getElementById('inviteAdminModal')].forEach(m => {
+      m.addEventListener('click', e => {
+        if (e.target === m) m.classList.remove('active');
+      });
+    });
 
     loadStats();
     loadClinics();

@@ -53,6 +53,12 @@
       transition: border-color 0.2s;
     }
     .form-group input:focus { outline: none; border-color: #0891b2; box-shadow: 0 0 0 3px rgba(8,145,178,0.1); }
+    .form-group input:disabled { background: #f8fafc; color: #94a3b8; }
+
+    .form-section-title { font-size: 0.9rem; font-weight: 700; color: #0f172a; margin-top: 1.5rem; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 440px) { .form-row { grid-template-columns: 1fr; } }
 
     .btn {
       width: 100%;
@@ -113,23 +119,63 @@
     }
 
     function showForm(data) {
+      const isClinicAdmin = data.role === 'clinic_admin';
+      const headerSubtitle = isClinicAdmin
+        ? 'Registra tu clínica e información de acceso'
+        : 'Crea tu contraseña para acceder a la plataforma';
+
+      let clinicFields = '';
+      if (isClinicAdmin) {
+        clinicFields = `
+          <div class="form-section-title">Información de la Clínica</div>
+          <div class="form-group">
+            <label>Nombre de la Clínica</label>
+            <input type="text" id="fClinicName" placeholder="Nombre completo" autofocus>
+          </div>
+          <div class="form-group">
+            <label>Dirección</label>
+            <input type="text" id="fAddress" placeholder="Calle y número">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Número de Sillas</label>
+              <input type="number" id="fChairs" placeholder="Ej: 2" min="1" value="1">
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="tel" id="fPhone" placeholder="Teléfono">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Especialidades</label>
+            <input type="text" id="fSpecialties" placeholder="Ej: Odontología, Medicina General">
+          </div>
+          <div class="form-group">
+            <label>Email de la Clínica</label>
+            <input type="email" id="fClinicEmail" placeholder="Email de contacto">
+          </div>
+          <div class="form-section-title">Datos de Acceso</div>
+        `;
+      }
+
       document.getElementById('cardContent').innerHTML = `
         <div class="card-header">
           <h1>Aceptar Invitación</h1>
-          <p>Crea tu contraseña para acceder a la plataforma</p>
+          <p>${headerSubtitle}</p>
         </div>
         <div class="card-body">
           <div class="invite-info">
             <strong>${data.name}</strong>
-            Invitado a <b>${data.clinicName}</b> como médico
+            ${isClinicAdmin ? 'Invitado a crear y administrar una clínica en <b>Salud Digital</b>' : `Invitado a <b>${data.clinicName}</b> como médico`}
           </div>
+          ${clinicFields}
           <div class="form-group">
             <label>Email</label>
-            <input type="email" value="${data.email}" disabled>
+            <input type="email" id="fEmail" value="${data.email}" disabled>
           </div>
           <div class="form-group">
             <label>Contraseña</label>
-            <input type="password" id="fPassword" placeholder="Mínimo 6 caracteres" autofocus>
+            <input type="password" id="fPassword" placeholder="Mínimo 6 caracteres" ${!isClinicAdmin ? 'autofocus' : ''}>
           </div>
           <div class="form-group">
             <label>Confirmar contraseña</label>
@@ -160,6 +206,26 @@
         return;
       }
 
+      const isClinicAdmin = document.getElementById('fClinicName');
+      const payload = { password };
+
+      if (isClinicAdmin) {
+        const clinicName = document.getElementById('fClinicName').value.trim();
+        if (!clinicName) {
+          msgEl.className = 'msg err';
+          msgEl.textContent = 'El nombre de la clínica es requerido';
+          return;
+        }
+        payload.clinic = {
+          name: clinicName,
+          address: document.getElementById('fAddress').value.trim(),
+          chairs: parseInt(document.getElementById('fChairs').value) || 1,
+          specialties: document.getElementById('fSpecialties').value.trim(),
+          phone: document.getElementById('fPhone').value.trim(),
+          email: document.getElementById('fClinicEmail').value.trim(),
+        };
+      }
+
       btn.disabled = true;
       btn.textContent = 'Creando cuenta...';
 
@@ -167,7 +233,7 @@
         const res = await fetch(`/api/invitations/${token}/accept`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password }),
+          body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (!res.ok) {

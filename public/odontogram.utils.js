@@ -15,11 +15,13 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   let viewBox = '0 0 100 160';
   if(toothType === TOOTH_TYPES.MOLAR) viewBox = '0 0 512.048 512.048';
   else if(toothType === TOOTH_TYPES.INCISOR) viewBox = '0 0 368.477 368.477';
+  else if(toothType === TOOTH_TYPES.PREMOLAR) viewBox = '0 0 56.598 56.598';
   svg.setAttribute('viewBox', viewBox);
   svg.setAttribute('class', 'tooth-svg');
 
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
   const gradId = `grad-${Math.random().toString(36).substr(2, 9)}`;
+  const shadowId = `shadow-${Math.random().toString(36).substr(2, 9)}`;
 
   const condData = getConditionById(condition);
   const outlineColor = selected ? '#0891b2' : '#0f172a';
@@ -27,28 +29,77 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   let outlineWidth = selected ? 2.5 : 1.5;
   if(toothType === TOOTH_TYPES.MOLAR) outlineWidth = selected ? 8 : 4;
   else if(toothType === TOOTH_TYPES.INCISOR) outlineWidth = selected ? 6 : 3;
+  else if(toothType === TOOTH_TYPES.PREMOLAR) outlineWidth = selected ? 0.9 : 0.45;
 
-  // Create gradient
-  const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+  // Create radial gradient for premium look
+  const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
   gradient.setAttribute('id', gradId);
-  gradient.setAttribute('x1', '0%');
-  gradient.setAttribute('y1', '0%');
-  gradient.setAttribute('x2', '100%');
-  gradient.setAttribute('y2', '100%');
+  gradient.setAttribute('cx', '35%');
+  gradient.setAttribute('cy', '35%');
+  gradient.setAttribute('r', '65%');
 
   const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
   stop1.setAttribute('offset', '0%');
   stop1.setAttribute('stop-color', condData.color);
-  stop1.setAttribute('stop-opacity', '0.9');
+  stop1.setAttribute('stop-opacity', '1');
 
   const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-  stop2.setAttribute('offset', '100%');
+  stop2.setAttribute('offset', '40%');
   stop2.setAttribute('stop-color', condData.color);
-  stop2.setAttribute('stop-opacity', '1');
+  stop2.setAttribute('stop-opacity', '0.97');
+
+  const stop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+  stop3.setAttribute('offset', '70%');
+  stop3.setAttribute('stop-color', condData.color);
+  stop3.setAttribute('stop-opacity', '0.90');
+
+  const stop4 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+  stop4.setAttribute('offset', '100%');
+  stop4.setAttribute('stop-color', condData.color);
+  stop4.setAttribute('stop-opacity', '0.75');
 
   gradient.appendChild(stop1);
   gradient.appendChild(stop2);
+  gradient.appendChild(stop3);
+  gradient.appendChild(stop4);
+
+  // Add subtle shadow filter
+  const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+  filter.setAttribute('id', shadowId);
+  filter.setAttribute('x', '-50%');
+  filter.setAttribute('y', '-50%');
+  filter.setAttribute('width', '200%');
+  filter.setAttribute('height', '200%');
+
+  const feGaussianBlur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+  feGaussianBlur.setAttribute('in', 'SourceGraphic');
+  feGaussianBlur.setAttribute('stdDeviation', '2');
+  filter.appendChild(feGaussianBlur);
+
+  const feOffset = document.createElementNS('http://www.w3.org/2000/svg', 'feOffset');
+  feOffset.setAttribute('dx', '1');
+  feOffset.setAttribute('dy', '1');
+  feOffset.setAttribute('result', 'offsetblur');
+  filter.appendChild(feOffset);
+
+  const feComponentTransfer = document.createElementNS('http://www.w3.org/2000/svg', 'feComponentTransfer');
+  const feFuncA = document.createElementNS('http://www.w3.org/2000/svg', 'feFuncA');
+  feFuncA.setAttribute('type', 'linear');
+  feFuncA.setAttribute('slope', '0.3');
+  feComponentTransfer.appendChild(feFuncA);
+  filter.appendChild(feComponentTransfer);
+
+  const feMerge = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge');
+  const feMergeNode1 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+  feMergeNode1.setAttribute('in', 'offsetblur');
+  feMerge.appendChild(feMergeNode1);
+  const feMergeNode2 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+  feMergeNode2.setAttribute('in', 'SourceGraphic');
+  feMerge.appendChild(feMergeNode2);
+  filter.appendChild(feMerge);
+
   defs.appendChild(gradient);
+  defs.appendChild(filter);
   svg.appendChild(defs);
 
   let crownPath = '';
@@ -56,7 +107,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
 
   // INCISIVO - pequeño, plano, puntiagudo
   if(toothType === TOOTH_TYPES.INCISOR) {
-    crownPath = 'M273.106,8.768C271.885,8.41,242.528,0,184.239,0S96.591,8.41,95.37,8.768c-2.769,0.812-4.671,3.352-4.671,6.237v72.537c0,28.018,12.386,53.195,31.966,70.353c0.48,27.934,8.605,77.12,20.522,123.856c6.025,23.629,12.326,43.834,18.22,58.43c8.01,19.833,14.742,28.295,22.511,28.295c7.808,0,14.598-8.466,22.704-28.308c5.976-14.627,12.362-34.87,18.47-58.54c12.019-46.582,20.234-95.616,20.807-123.75c20.297-17.793,31.881-43.253,31.881-70.337V15.005C277.778,12.12,275.876,9.579,273.106,8.768z M264.778,87.542c0,24.096-10.649,46.701-29.223,62.073c-1.589,1.185-2.622,3.073-2.622,5.208c0,25.334-7.726,73.085-19.224,118.823c-5.636,22.42-11.591,42.059-17.222,56.793c-6.544,17.123-10.798,22.717-12.545,24.458c-1.733-1.76-5.941-7.386-12.394-24.488c-5.552-14.716-11.423-34.318-16.978-56.688c-9.672-38.955-16.629-79.336-18.453-105.996c14.068,8.475,30.534,13.356,48.12,13.356c10.694,0,21.185-1.792,31.181-5.325c3.385-1.196,5.159-4.91,3.962-8.295c-1.195-3.385-4.912-5.158-8.294-3.962c-6.568,2.321-13.389,3.762-20.35,4.317v-36.756c0-3.59-2.909-6.5-6.499-6.5c-3.59,0-6.5,2.91-6.5,6.5v36.736c-41.379-3.324-74.04-38.035-74.04-80.254V20.101C113.899,17.837,140.785,13,184.239,13c43.289,0,70.301,4.848,80.54,7.108V87.542z';
+    crownPath = 'M273.106,8.768C271.885,8.41,242.528,0,184.239,0S96.591,8.41,95.37,8.768c-2.769,0.812-4.671,3.352-4.671,6.237v72.537c0,28.018,12.386,53.195,31.966,70.353c0.48,27.934,8.605,77.12,20.522,123.856c6.025,23.629,12.326,43.834,18.22,58.43c8.01,19.833,14.742,28.295,22.511,28.295c7.808,0,14.598-8.466,22.704-28.308c5.976-14.627,12.362-34.87,18.47-58.54c12.019-46.582,20.234-95.616,20.807-123.75c20.297-17.793,31.881-43.253,31.881-70.337V15.005C277.778,12.12,275.876,9.579,273.106,8.768z';
     rootPath = '';
   }
 
@@ -68,8 +119,8 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
 
   // PREMOLAR - dos cúspides pequeñas
   if(toothType === TOOTH_TYPES.PREMOLAR) {
-    crownPath = 'M 28 12 Q 32 8 42 8 Q 50 6 58 8 Q 72 12 75 18 Q 78 26 77 38 L 73 62 Q 70 80 65 100';
-    rootPath = 'M 65 100 Q 60 120 55 138 Q 52 148 50 150 Q 48 148 45 138 Q 40 120 35 100 L 35 100 Q 30 80 27 62 L 23 38 Q 22 26 25 18 Q 28 12 28 12';
+    crownPath = 'M53.065,10.656c-0.818-3.096-3.213-6.05-6.742-8.317c-4.348-2.796-10.496-3.107-16.05-0.813L30.098,1.6C30,1.643,29.905,1.686,29.802,1.722c-0.465,0.161-0.822,0.3-1.113,0.413c-0.923,0.356-0.922,0.357-2.44-0.09c-4.335-1.277-9.851-2.553-14.087-1.053c-5.729,2.03-10.809,8.752-9.239,19.19c0.187,1.238,0.368,2.485,0.551,3.739c1.312,9.014,2.669,18.334,6.154,26.75l0.117,0.284c0.866,2.11,2.315,5.642,4.839,5.642h0.203l0.187-0.079c2.312-0.979,3.18-3.201,3.812-4.824c0.427-1.096,0.807-2.211,1.175-3.29c0.927-2.723,1.803-5.293,3.381-7.603c1.198-1.75,4.43-5.559,8.556-3.101c2.756,1.642,3.62,4.953,4.456,8.156c0.238,0.913,0.485,1.857,0.771,2.739c1.21,3.729,2.782,7.574,5.268,7.829c1.298,0.134,2.517-0.75,3.588-2.631c1.958-3.431,2.799-7.255,3.611-10.953l0.287-1.3c0.32-1.43,0.676-2.905,1.039-4.413C52.96,28.639,55.277,19.016,53.065,10.656z';
+    rootPath = '';
   }
 
   // MOLAR - ancho, múltiples cúspides - custom SVG design
@@ -98,7 +149,34 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   crown.setAttribute('stroke-width', outlineWidth);
   crown.setAttribute('stroke-linejoin', 'round');
   crown.setAttribute('fill-rule', 'evenodd');
+  crown.setAttribute('filter', `url(#${shadowId})`);
   svg.appendChild(crown);
+
+
+  // Add glossy highlight for premium effect
+  const gloss = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+  let glossCx, glossCy, glossRx, glossRy;
+
+  if(toothType === TOOTH_TYPES.MOLAR) {
+    glossCx = '150'; glossCy = '80'; glossRx = '60'; glossRy = '80';
+  } else if(toothType === TOOTH_TYPES.INCISOR) {
+    glossCx = '120'; glossCy = '60'; glossRx = '50'; glossRy = '70';
+  } else if(toothType === TOOTH_TYPES.PREMOLAR) {
+    glossCx = '22'; glossCy = '15'; glossRx = '10'; glossRy = '14';
+  } else if(toothType === TOOTH_TYPES.CANINE) {
+    glossCx = '45'; glossCy = '35'; glossRx = '8'; glossRy = '15';
+  } else {
+    glossCx = '42'; glossCy = '28'; glossRx = '10'; glossRy = '16';
+  }
+
+  gloss.setAttribute('cx', glossCx);
+  gloss.setAttribute('cy', glossCy);
+  gloss.setAttribute('rx', glossRx);
+  gloss.setAttribute('ry', glossRy);
+  gloss.setAttribute('fill', 'white');
+  gloss.setAttribute('opacity', '0.35');
+  gloss.setAttribute('mix-blend-mode', 'screen');
+  svg.appendChild(gloss);
 
   // Add shine/highlight
   if(toothType === TOOTH_TYPES.CANINE) {
@@ -121,18 +199,6 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     svg.appendChild(shine);
   }
 
-  if(selected) {
-    const border = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    border.setAttribute('x', '5');
-    border.setAttribute('y', '5');
-    border.setAttribute('width', '90');
-    border.setAttribute('height', '150');
-    border.setAttribute('fill', 'none');
-    border.setAttribute('stroke', '#0891b2');
-    border.setAttribute('stroke-width', '2');
-    border.setAttribute('rx', '3');
-    svg.appendChild(border);
-  }
 
   svg.style.cssText = `
     width: 100%;

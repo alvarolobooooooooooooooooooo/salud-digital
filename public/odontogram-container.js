@@ -146,12 +146,15 @@ class OdontogramContainer {
     this.updateTeethVisuals();
 
     if(e) {
-      // If surface already has a diagnosis (not healthy), show the mini info popup
       const currentCondId = (this.state[fdi].surfaces && this.state[fdi].surfaces[surface]) || CONDITIONS.HEALTHY.id;
-      if(currentCondId && currentCondId !== CONDITIONS.HEALTHY.id) {
-        this._showSurfaceInfoPopup(fdi, surface, currentCondId, e, anchorRect);
-      } else if(!this.readOnly) {
-        // Only show edit popup in editable mode for empty surfaces
+
+      if(this.readOnly) {
+        // In read-only mode: show info popup only if surface has a diagnosis
+        if(currentCondId && currentCondId !== CONDITIONS.HEALTHY.id) {
+          this._showSurfaceInfoPopup(fdi, surface, currentCondId, e, anchorRect);
+        }
+      } else {
+        // In editable mode: always show edit popup
         this._showPopup(fdi, surface, e, anchorRect);
       }
     }
