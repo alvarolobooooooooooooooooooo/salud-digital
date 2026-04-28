@@ -599,15 +599,17 @@
     }
   }
 
-  // Close modal on outside click
-  document.getElementById('medicalEditModal').addEventListener('click', (e) => {
-    if (e.target.id === 'medicalEditModal') closeMedicalEditModal();
-  });
-
   (async () => {
     try {
       patientData = await api(`/api/patients/${patientId}`);
       renderProfile();
+      // Setup modal event listener after DOM is ready
+      const medicalModal = document.getElementById('medicalEditModal');
+      if (medicalModal) {
+        medicalModal.addEventListener('click', (e) => {
+          if (e.target.id === 'medicalEditModal') closeMedicalEditModal();
+        });
+      }
     } catch (e) {
       document.getElementById('profileInfo').innerHTML = `
         <h1 style="color:#dc2626">Error al cargar el paciente</h1>`;
