@@ -97,6 +97,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   crown.setAttribute('stroke', outlineColor);
   crown.setAttribute('stroke-width', outlineWidth);
   crown.setAttribute('stroke-linejoin', 'round');
+  crown.setAttribute('fill-rule', 'evenodd');
   svg.appendChild(crown);
 
   // Add shine/highlight
