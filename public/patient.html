@@ -461,8 +461,9 @@
     document.getElementById('mMedications').textContent = esc(ci.medications) || '—';
     document.getElementById('mConditions').textContent = esc(ci.conditions) || '—';
 
-    document.getElementById('medicalRecordLink').href = `/medical-record.html?id=${patientId}`;
-    document.getElementById('appointmentLink').href = `/citas.html?patient=${patientId}`;
+    // medicalRecordLink replaced with modal button
+    const appointmentLink = document.getElementById('appointmentLink');
+    if (appointmentLink) appointmentLink.href = `/citas.html?patient=${patientId}`;
 
     renderAlerts(ci);
     renderTreatments();
