@@ -632,35 +632,6 @@ class OdontogramContainer {
     card.appendChild(txtWrap);
 
     body.appendChild(card);
-
-    // Action buttons
-    const actions = document.createElement('div');
-    actions.style.cssText = `display: flex; gap: 0.5rem; margin-top: 0.85rem;`;
-
-    const editBtn = document.createElement('button');
-    editBtn.className = 'mp-action';
-    editBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar`;
-    actions.appendChild(editBtn);
-
-    const clearBtn = document.createElement('button');
-    clearBtn.className = 'mp-action mp-danger';
-    clearBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>Limpiar`;
-    actions.appendChild(clearBtn);
-
-    const self = this;
-    editBtn.onclick = () => {
-      popup.style.display = 'none';
-      // Open the full edit popup at the same anchor
-      if(self._lastSurfaceEvent) self._showPopup(self.selectedTooth, self.selectedSurface, self._lastSurfaceEvent, self._lastSurfaceRect);
-    };
-    clearBtn.onclick = () => {
-      if(self.selectedTooth && self.selectedSurface) {
-        self.applyCondition(CONDITIONS.HEALTHY.id, self.selectedTooth, self.selectedSurface);
-      }
-      popup.style.display = 'none';
-    };
-
-    body.appendChild(actions);
     popup.appendChild(body);
 
     // Outside click to close
