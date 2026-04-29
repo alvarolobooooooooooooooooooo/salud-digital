@@ -54,7 +54,8 @@ router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async
   }
 
   try {
-    await sendDoctorInvitation({ to: email, doctorName: name, clinicName: clinic.name, token, role: inviteRole });
+    const clinicName = clinic ? clinic.name : 'Salud Digital';
+    await sendDoctorInvitation({ to: email, doctorName: name, clinicName, token, role: inviteRole });
     res.json({ success: true, message: 'Invitación enviada' });
   } catch (err) {
     res.status(500).json({ error: 'Error al enviar el correo. Verifica la configuración de SendGrid.' });
