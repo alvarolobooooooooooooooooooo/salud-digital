@@ -24,7 +24,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   let viewBox = '0 0 100 160';
   if(toothType === TOOTH_TYPES.MOLAR) viewBox = '0 0 512.048 512.048';
   else if(toothType === TOOTH_TYPES.INCISOR) viewBox = '0 0 368.477 368.477';
-  else if(toothType === TOOTH_TYPES.PREMOLAR) viewBox = '0 0 56.598 56.598';
+  else if(toothType === TOOTH_TYPES.PREMOLAR) viewBox = '0 0 100 160';
   svg.setAttribute('viewBox', viewBox);
   svg.setAttribute('class', 'tooth-svg');
 
@@ -150,7 +150,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
 
   // PREMOLAR - dos cúspides, forma similar a canino pero más ancho
   if(toothType === TOOTH_TYPES.PREMOLAR) {
-    crownPath = 'M 45 8 Q 48 5 56 5 Q 63 5 66 8 Q 70 12 72 26 L 68 48 Q 65 65 58 80 Q 56 75 54 70 Q 52 65 50 65 Q 48 65 46 70 Q 44 75 42 80 Q 35 65 32 48 L 28 26 Q 30 12 34 8 Q 37 5 45 8';
+    crownPath = 'M 35 15 Q 40 8 50 8 Q 60 8 65 15 Q 72 24 75 45 L 70 80 Q 65 110 55 135 Q 52 125 50 115 Q 48 110 50 110 Q 52 110 50 115 Q 48 125 45 135 Q 35 110 30 80 L 25 45 Q 28 24 35 15';
     rootPath = '';
   }
 
@@ -201,9 +201,9 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     });
   } else if(toothType === TOOTH_TYPES.PREMOLAR) {
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    line.setAttribute('d', 'M28 10 L28 50');
+    line.setAttribute('d', 'M50 15 L50 130');
     line.setAttribute('stroke', detailColor);
-    line.setAttribute('stroke-width', '0.3');
+    line.setAttribute('stroke-width', '1');
     line.setAttribute('opacity', detailOpacity);
     detailLines.appendChild(line);
   } else if(toothType === TOOTH_TYPES.INCISOR) {
@@ -236,7 +236,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     glossCx = '120'; glossCy = '60'; glossRx = '50'; glossRy = '70';
     glossOpacity = '0.38';
   } else if(toothType === TOOTH_TYPES.PREMOLAR) {
-    glossCx = '22'; glossCy = '15'; glossRx = '10'; glossRy = '14';
+    glossCx = '45'; glossCy = '40'; glossRx = '15'; glossRy = '25';
     glossOpacity = '0.38';
   } else if(toothType === TOOTH_TYPES.CANINE) {
     glossCx = '45'; glossCy = '35'; glossRx = '8'; glossRy = '15';
