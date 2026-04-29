@@ -15,14 +15,9 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   let viewBox = '0 0 100 160';
   if(toothType === TOOTH_TYPES.MOLAR) viewBox = '0 0 512.048 512.048';
   else if(toothType === TOOTH_TYPES.INCISOR) viewBox = '0 0 368.477 368.477';
-  else if(toothType === TOOTH_TYPES.PREMOLAR) viewBox = '0 0 282.99 282.99';
+  else if(toothType === TOOTH_TYPES.PREMOLAR) viewBox = '0 0 56.598 56.598';
   svg.setAttribute('viewBox', viewBox);
-  let toothClass = 'tooth-svg';
-  if(toothType === TOOTH_TYPES.INCISOR) toothClass += ' tooth-incisor';
-  else if(toothType === TOOTH_TYPES.CANINE) toothClass += ' tooth-canine';
-  else if(toothType === TOOTH_TYPES.PREMOLAR) toothClass += ' tooth-premolar';
-  else if(toothType === TOOTH_TYPES.MOLAR) toothClass += ' tooth-molar';
-  svg.setAttribute('class', toothClass);
+  svg.setAttribute('class', 'tooth-svg');
 
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
   const gradId = `grad-${Math.random().toString(36).substr(2, 9)}`;
@@ -124,7 +119,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
 
   // PREMOLAR - dos cúspides pequeñas
   if(toothType === TOOTH_TYPES.PREMOLAR) {
-    crownPath = 'M53.065,10.656c-0.818-3.096-3.213-6.05-6.742-8.317c-4.348-2.796-10.496-3.107-16.05-0.813L30.098,1.6C30,1.643,29.905,1.686,29.802,1.722c-0.465,0.161-0.822,0.3-1.113,0.413c-0.923,0.356-0.922,0.357-2.44-0.09c-4.335-1.277-9.851-2.553-14.087-1.053c-5.729,2.03-10.809,8.752-9.239,19.19c0.187,1.238,0.368,2.485,0.551,3.739c1.312,9.014,2.669,18.334,6.154,26.75l0.117,0.284c0.866,2.11,2.315,5.642,4.839,5.642h0.203l0.187-0.079c2.312-0.979,3.18-3.201,3.812-4.824c0.427-1.096,0.807-2.211,1.175-3.29c0.927-2.723,1.803-5.293,3.381-7.603c1.198-1.75,4.43-5.559,8.556-3.101c2.756,1.642,3.62,4.953,4.456,8.156c0.238,0.913,0.485,1.857,0.771,2.739c1.21,3.729,2.782,7.574,5.268,7.829c1.298,0.134,2.517-0.75,3.588-2.631c1.958-3.431,2.799-7.255,3.611-10.953l0.287-1.3c0.32-1.43,0.676-2.905,1.039-4.413C52.96,28.639,55.277,19.016,53.065,10.656z';
+    crownPath = 'M53.065,10.656c-0.818-3.096-3.213-6.05-6.742-8.317c-4.348-2.796-10.496-3.107-16.05-0.813L30.098,1.6C30,1.643,29.905,1.686,29.802,1.722c-0.465,0.161-0.822,0.3-1.113,0.413c-0.923,0.356-0.922,0.357-2.44-0.09c-4.335-1.277-9.851-2.553-14.087-1.053c-5.729,2.03-10.809,8.752-9.239,19.19c0.187,1.238,0.368,2.485,0.551,3.739c1.312,9.014,2.669,18.334,6.154,26.75l0.117,0.284c0.866,2.11,2.315,5.642,4.839,5.642h0.203l0.187-0.079c2.312-0.979,3.18-3.201,3.812-4.824c0.427-1.096,0.807-2.211,1.175-3.29c0.927-2.723,1.803-5.293,3.381-7.603c1.198-1.75,4.43-5.559,8.556-3.101c2.756,1.642,3.62,4.953,4.456,8.156c0.238,0.913,0.485,1.857,0.771,2.739c1.21,3.729,2.782,7.574,5.268,7.829c1.298,0.134,2.517-0.75,3.588-2.631c1.958-3.431,2.799-7.255,3.611-10.953l0.287-1.3c0.32-1.43,0.676-2.905,1.039-4.413C52.96,28.639,55.277,19.016,53.065,10.656z M48.973,36.66c-0.366,1.519-0.724,3.005-1.046,4.444l-0.29,1.309c-0.78,3.552-1.587,7.224-3.394,10.391c-0.608,1.066-1.249,1.655-1.647,1.633c-0.458-0.048-1.724-0.771-3.569-6.457c-0.269-0.826-0.497-1.701-0.738-2.628c-0.895-3.426-1.908-7.308-5.368-9.369c-3.82-2.272-8.121-0.856-11.229,3.69c-1.733,2.535-2.694,5.357-3.624,8.086c-0.36,1.06-0.733,2.154-1.145,3.209c-0.641,1.642-1.24,2.961-2.512,3.608c-1.135-0.283-2.346-3.233-2.815-4.379l-0.12-0.291c-3.391-8.186-4.729-17.38-6.022-26.271c-0.184-1.258-0.365-2.509-0.552-3.749c-1.009-6.71,1.051-14.571,7.929-17.009c1.12-0.396,2.389-0.557,3.717-0.557c3.058,0,6.428,0.849,9.024,1.611c6.423,3.649,6.423,5.229,6.397,11.756l-0.003,1.317c0,0.553,0.447,1,1,1s1-0.447,1-1l0.003-1.31c0.022-5.722,0.014-8.417-4.555-11.695l0.001,0c0.273-0.106,0.607-0.236,1.041-0.387c0.148-0.051,0.294-0.113,0.442-0.178l0.144-0.063c4.953-2.048,10.395-1.798,14.2,0.648c3.108,1.998,5.2,4.536,5.891,7.147C53.214,19.04,50.96,28.401,48.973,36.66z';
     rootPath = '';
   }
 
@@ -132,14 +127,6 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   if(toothType === TOOTH_TYPES.MOLAR) {
     crownPath = 'M403.331,245.808c26.667-59.947,51.307-146.453,33.173-193.067c-25.707-65.92-80.747-55.04-129.28-45.547c-17.28,3.413-35.2,6.933-51.2,6.933s-33.92-3.52-51.2-6.933c-48.533-9.6-103.467-20.373-129.28,45.547c-18.133,46.507,6.507,133.12,33.173,193.067c0.747,1.707,1.067,3.52,0.853,5.333c-2.56,25.067-3.84,50.347-3.733,75.52c0,68.8,10.453,185.387,49.387,185.387c33.387,0,37.973-44.267,42.88-91.2c6.933-67.52,15.253-115.307,57.92-115.307c42.027,0,50.133,47.36,57.067,114.133c4.907,47.467,9.493,92.267,43.733,92.267c39.04,0,49.493-116.587,49.493-185.387c0-25.173-1.173-50.347-3.733-75.52C402.264,249.328,402.584,247.408,403.331,245.808z';
     rootPath = '';
-  }
-
-  // Create group for premolar scaling
-  let mainGroup = svg;
-  if(toothType === TOOTH_TYPES.PREMOLAR) {
-    mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    mainGroup.setAttribute('transform', 'scale(5)');
-    svg.appendChild(mainGroup);
   }
 
   // Draw root (lighter color) - skip for molars
@@ -151,7 +138,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     root.setAttribute('stroke', outlineColor);
     root.setAttribute('stroke-width', outlineWidth);
     root.setAttribute('stroke-linejoin', 'round');
-    mainGroup.appendChild(root);
+    svg.appendChild(root);
   }
 
   // Draw crown (main color)
@@ -163,7 +150,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   crown.setAttribute('stroke-linejoin', 'round');
   crown.setAttribute('fill-rule', 'evenodd');
   crown.setAttribute('filter', `url(#${shadowId})`);
-  mainGroup.appendChild(crown);
+  svg.appendChild(crown);
 
 
   // Add glossy highlight for premium effect
@@ -189,7 +176,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   gloss.setAttribute('fill', 'white');
   gloss.setAttribute('opacity', '0.35');
   gloss.setAttribute('mix-blend-mode', 'screen');
-  mainGroup.appendChild(gloss);
+  svg.appendChild(gloss);
 
   // Add shine/highlight
   if(toothType === TOOTH_TYPES.CANINE) {
@@ -200,7 +187,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     shine.setAttribute('ry', '12');
     shine.setAttribute('fill', 'white');
     shine.setAttribute('opacity', '0.25');
-    mainGroup.appendChild(shine);
+    svg.appendChild(shine);
   } else {
     const shine = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
     shine.setAttribute('cx', '45');
@@ -209,7 +196,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     shine.setAttribute('ry', '10');
     shine.setAttribute('fill', 'white');
     shine.setAttribute('opacity', '0.2');
-    mainGroup.appendChild(shine);
+    svg.appendChild(shine);
   }
 
 

@@ -179,6 +179,23 @@ button:hover { background: #1d4ed8; }
   box-shadow: 0 4px 8px rgba(8, 145, 178, 0.3);
 }
 
+/* Tooth size scaling by type */
+.tooth-svg.tooth-incisor {
+  transform: scale(0.95);
+}
+
+.tooth-svg.tooth-canine {
+  transform: scale(1);
+}
+
+.tooth-svg.tooth-premolar {
+  transform: scale(0.93);
+}
+
+.tooth-svg.tooth-molar {
+  transform: scale(1.13);
+}
+
 /* Mobile Responsive */
 @media (min-width: 768px) and (max-width: 1349px) {
   /* 4-column layout: increase tooth card size */
