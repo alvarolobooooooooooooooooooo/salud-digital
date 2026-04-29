@@ -220,7 +220,9 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   crown.setAttribute('stroke-width', outlineWidth);
   crown.setAttribute('stroke-linejoin', 'round');
   crown.setAttribute('fill-rule', 'evenodd');
-  crown.setAttribute('filter', `url(#${shadowId})`);
+  if(toothType !== TOOTH_TYPES.PREMOLAR) {
+    crown.setAttribute('filter', `url(#${shadowId})`);
+  }
   svg.appendChild(crown);
 
   // Add detail lines/grooves
