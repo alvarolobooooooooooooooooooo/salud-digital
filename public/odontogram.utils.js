@@ -36,11 +36,10 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   const outlineColor = selected ? '#0891b2' : '#0f172a';
   const isHealthy = condition === CONDITIONS.HEALTHY.id;
 
-  // Scale stroke width for custom tooth types due to larger viewBox
+  // Scale stroke width based on viewBox size for consistent visual appearance
   let outlineWidth = selected ? 2.5 : 1.5;
-  if(toothType === TOOTH_TYPES.MOLAR) outlineWidth = selected ? 8 : 4;
-  else if(toothType === TOOTH_TYPES.INCISOR) outlineWidth = selected ? 6 : 3;
-  else if(toothType === TOOTH_TYPES.PREMOLAR) outlineWidth = selected ? 2.2 : 1.5;
+  if(toothType === TOOTH_TYPES.MOLAR) outlineWidth = selected ? 12 : 6;
+  else if(toothType === TOOTH_TYPES.INCISOR) outlineWidth = selected ? 9 : 4.5;
 
   // Create radial gradient for premium look
   const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
@@ -184,8 +183,8 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
 
   // CANINO - puntiagudo, más largo
   if(toothType === TOOTH_TYPES.CANINE) {
-    crownPath = 'M 32 10 Q 36 6 50 6 Q 64 6 68 10 Q 72 16 74 28 L 71 55 Q 68 75 62 95';
-    rootPath = 'M 62 95 Q 58 115 52 135 Q 50 148 50 150 Q 48 148 46 135 Q 40 115 38 95 L 38 95 Q 32 75 29 55 L 26 28 Q 28 16 32 10';
+    crownPath = 'M 32 10 Q 36 6 50 6 Q 64 6 68 10 Q 72 16 74 28 L 71 55 Q 68 75 62 95 Q 58 115 52 135 Q 50 148 50 150 Q 48 148 46 135 Q 40 115 38 95 L 38 95 Q 32 75 29 55 L 26 28 Q 28 16 32 10 Z';
+    rootPath = '';
   }
 
   // PREMOLAR - dos cúspides con diseño profesional
@@ -253,13 +252,6 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     line.setAttribute('d', 'M184 80 L184 300');
     line.setAttribute('stroke', detailColor);
     line.setAttribute('stroke-width', '1.5');
-    line.setAttribute('opacity', detailOpacity);
-    detailLines.appendChild(line);
-  } else if(toothType === TOOTH_TYPES.CANINE) {
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    line.setAttribute('d', 'M50 20 L50 120');
-    line.setAttribute('stroke', detailColor);
-    line.setAttribute('stroke-width', '0.8');
     line.setAttribute('opacity', detailOpacity);
     detailLines.appendChild(line);
   }
