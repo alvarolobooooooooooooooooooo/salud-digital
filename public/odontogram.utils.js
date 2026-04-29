@@ -293,7 +293,7 @@ function createSurfaceElement(surface, fdi, condition = CONDITIONS.HEALTHY, isEd
   container.className = 'tooth-surface';
 
   const condData = getConditionById(condition);
-  const surfaceLabel = getSurfaceLabel(surface);
+  const surfaceLabel = getSurfaceLabel(surface, fdi);
 
   container.style.cssText = `
     width: 2.2rem;
@@ -362,11 +362,12 @@ function createSurfaceElement(surface, fdi, condition = CONDITIONS.HEALTHY, isEd
   return container;
 }
 
-function getSurfaceLabel(surface) {
+function getSurfaceLabel(surface, fdi) {
+  const isUpperTooth = fdi && (Math.floor(fdi / 10) === 1 || Math.floor(fdi / 10) === 2);
   const labels = {
     [SURFACES.MESIAL]: 'M',
     [SURFACES.DISTAL]: 'D',
-    [SURFACES.BUCCAL]: 'B',
+    [SURFACES.BUCCAL]: isUpperTooth ? 'V' : 'B',
     [SURFACES.LINGUAL]: 'L',
     [SURFACES.OCCLUSAL]: 'O',
     [SURFACES.INCISAL]: 'I'
