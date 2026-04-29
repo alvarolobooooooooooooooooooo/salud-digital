@@ -818,6 +818,43 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Paid Consultations -->
+  <div class="section">
+    <h3>Consultas Pagadas</h3>
+
+    <!-- Date Filter with Calendar -->
+    <div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: flex-end;">
+      <div style="flex: 1; min-width: 200px; position: relative;">
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.12em;">Desde</label>
+        <input type="text" id="paidStartDateDisplay" placeholder="Seleccionar fecha" readonly style="width: 100%; padding: 0.75rem; border: 1px solid rgba(8, 145, 178, 0.2); border-radius: 8px; font-size: 0.9rem; background: white; color: #0f172a; font-family: inherit; cursor: pointer; transition: all 0.3s ease;">
+        <input type="hidden" id="paidStartDate">
+        <div id="paidStartCalendar" style="display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid rgba(8, 145, 178, 0.15); border-radius: 12px; padding: 1rem; box-shadow: 0 8px 32px rgba(8, 145, 178, 0.15); z-index: 100; margin-top: 0.5rem; min-width: 300px;"></div>
+      </div>
+      <div style="flex: 1; min-width: 200px; position: relative;">
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.12em;">Hasta</label>
+        <input type="text" id="paidEndDateDisplay" placeholder="Seleccionar fecha" readonly style="width: 100%; padding: 0.75rem; border: 1px solid rgba(8, 145, 178, 0.2); border-radius: 8px; font-size: 0.9rem; background: white; color: #0f172a; font-family: inherit; cursor: pointer; transition: all 0.3s ease;">
+        <input type="hidden" id="paidEndDate">
+        <div id="paidEndCalendar" style="display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid rgba(8, 145, 178, 0.15); border-radius: 12px; padding: 1rem; box-shadow: 0 8px 32px rgba(8, 145, 178, 0.15); z-index: 100; margin-top: 0.5rem; min-width: 300px;"></div>
+      </div>
+      <button id="paidClearBtn" style="padding: 0.75rem 2rem; background: rgba(8, 145, 178, 0.08); color: #0891b2; border: 1px solid rgba(8, 145, 178, 0.2); border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease;">Limpiar</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Paciente</th>
+          <th>Doctor</th>
+          <th>Monto Pagado</th>
+          <th>Teléfono</th>
+        </tr>
+      </thead>
+      <tbody id="paidTable">
+        <tr><td colspan="5" class="empty-table">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
 </main>
 
 <script src="/icons.js"></script>
@@ -900,6 +937,177 @@
         `;
         }).join('');
       }
+
+      // Load paid consultations
+      async function loadPaidConsultations(startDate, endDate) {
+        const paidTable = document.getElementById('paidTable');
+        paidTable.innerHTML = '<tr><td colspan="5" class="empty-table">Cargando...</td></tr>';
+
+        try {
+          let url = '/api/consultations/finances/paid';
+          const params = new URLSearchParams();
+          if (startDate) params.append('startDate', startDate);
+          if (endDate) params.append('endDate', endDate);
+          if (params.toString()) url += '?' + params.toString();
+
+          const paid = await api(url);
+
+          if (paid.length === 0) {
+            paidTable.innerHTML = '<tr><td colspan="5" class="empty-table">No hay consultas pagadas en este período</td></tr>';
+          } else {
+            paidTable.innerHTML = paid.map(c => {
+              const formatted = Number(c.cost).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+              return `
+              <tr>
+                <td>${new Date(c.created_at).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                <td>${esc(c.patient_name)}</td>
+                <td>${esc(c.doctor_name || '—')}</td>
+                <td><strong>L. ${formatted}</strong></td>
+                <td>${esc(c.phone || '—')}</td>
+              </tr>
+            `;
+            }).join('');
+          }
+        } catch(e) {
+          console.error('Error loading paid consultations:', e);
+          paidTable.innerHTML = '<tr><td colspan="5" class="empty-table">Error al cargar consultas pagadas</td></tr>';
+        }
+      }
+
+      // Calendar picker function
+      function createCalendarPicker(inputId, displayId, calendarId) {
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+
+        const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const DAY_SHORT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+
+        function renderCalendar() {
+          const calContainer = document.getElementById(calendarId);
+          calContainer.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <button type="button" class="cal-prev" style="background: none; border: none; color: #0891b2; cursor: pointer; font-size: 1.5rem; padding: 0.25rem 0.5rem;">‹</button>
+              <span style="font-weight: 700; color: #0f172a;">${MONTH_NAMES[currentMonth]} ${currentYear}</span>
+              <button type="button" class="cal-next" style="background: none; border: none; color: #0891b2; cursor: pointer; font-size: 1.5rem; padding: 0.25rem 0.5rem;">›</button>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; margin-bottom: 0.5rem;">
+              ${DAY_SHORT.map(day => `<div style="text-align: center; font-weight: 600; font-size: 0.8rem; color: #94a3b8; padding: 0.5rem 0;">${day}</div>`).join('')}
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem;" id="${calendarId}-days"></div>
+          `;
+
+          const daysContainer = document.getElementById(`${calendarId}-days`);
+          const firstDay = new Date(currentYear, currentMonth, 1);
+          const lastDay = new Date(currentYear, currentMonth + 1, 0);
+          const startDate = new Date(firstDay);
+          startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+          let day = new Date(startDate);
+          const selectedValue = document.getElementById(inputId).value;
+
+          for (let i = 0; i < 42; i++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = day.getDate();
+
+            const isCurrentMonth = day.getMonth() === currentMonth;
+            const isSelected = selectedValue && day.toISOString().split('T')[0] === selectedValue;
+
+            btn.style.cssText = `
+              padding: 0.6rem 0.5rem;
+              border: 1px solid ${isSelected ? '#0891b2' : 'rgba(8, 145, 178, 0.1)'};
+              background: ${isSelected ? '#0891b2' : isCurrentMonth ? 'white' : 'rgba(8, 145, 178, 0.04)'};
+              color: ${isSelected ? 'white' : isCurrentMonth ? '#0f172a' : '#cbd5e1'};
+              border-radius: 8px;
+              cursor: ${isCurrentMonth ? 'pointer' : 'default'};
+              font-weight: ${isSelected ? '700' : '500'};
+              transition: all 0.2s ease;
+            `;
+
+            if (isCurrentMonth) {
+              btn.addEventListener('mouseover', (e) => {
+                e.target.style.background = '#f0f9ff';
+                e.target.style.borderColor = '#06b6d4';
+              });
+              btn.addEventListener('mouseout', (e) => {
+                if (!isSelected) {
+                  e.target.style.background = 'white';
+                  e.target.style.borderColor = 'rgba(8, 145, 178, 0.1)';
+                }
+              });
+
+              btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const dateStr = day.toISOString().split('T')[0];
+                document.getElementById(inputId).value = dateStr;
+                document.getElementById(displayId).value = new Date(day).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+                calContainer.style.display = 'none';
+                loadPaidConsultations(document.getElementById('paidStartDate').value, document.getElementById('paidEndDate').value);
+              });
+            }
+
+            daysContainer.appendChild(btn);
+            day.setDate(day.getDate() + 1);
+          }
+
+          calContainer.querySelector('.cal-prev').addEventListener('click', (e) => {
+            e.preventDefault();
+            currentMonth--;
+            if (currentMonth < 0) {
+              currentMonth = 11;
+              currentYear--;
+            }
+            renderCalendar();
+          });
+
+          calContainer.querySelector('.cal-next').addEventListener('click', (e) => {
+            e.preventDefault();
+            currentMonth++;
+            if (currentMonth > 11) {
+              currentMonth = 0;
+              currentYear++;
+            }
+            renderCalendar();
+          });
+        }
+
+        document.getElementById(displayId).addEventListener('click', (e) => {
+          e.preventDefault();
+          const isVisible = document.getElementById(calendarId).style.display !== 'none';
+          document.getElementById('paidStartCalendar').style.display = 'none';
+          document.getElementById('paidEndCalendar').style.display = 'none';
+          document.getElementById(calendarId).style.display = isVisible ? 'none' : 'block';
+          if (!isVisible) renderCalendar();
+        });
+
+        renderCalendar();
+      }
+
+      // Initialize calendars
+      createCalendarPicker('paidStartDate', 'paidStartDateDisplay', 'paidStartCalendar');
+      createCalendarPicker('paidEndDate', 'paidEndDateDisplay', 'paidEndCalendar');
+
+      // Close calendars when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('[id*="paidStartDate"], [id*="paidStartCalendar"]')) {
+          document.getElementById('paidStartCalendar').style.display = 'none';
+        }
+        if (!e.target.closest('[id*="paidEndDate"], [id*="paidEndCalendar"]')) {
+          document.getElementById('paidEndCalendar').style.display = 'none';
+        }
+      });
+
+      // Initial load of paid consultations
+      loadPaidConsultations();
+
+      // Clear button
+      document.getElementById('paidClearBtn').addEventListener('click', () => {
+        document.getElementById('paidStartDate').value = '';
+        document.getElementById('paidEndDate').value = '';
+        document.getElementById('paidStartDateDisplay').value = '';
+        document.getElementById('paidEndDateDisplay').value = '';
+        loadPaidConsultations();
+      });
     } catch(e) { console.error(e); }
   })();
 </script>

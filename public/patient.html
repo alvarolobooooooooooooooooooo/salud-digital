@@ -580,12 +580,12 @@
   }
 
   async function saveMedicalInfo() {
-    const allergies = document.getElementById('editAllergies').value.trim() || null;
-    const medications = document.getElementById('editMedications').value.trim() || null;
-    const conditions = document.getElementById('editConditions').value.trim() || null;
+    const allergies = document.getElementById('editAllergies').value.trim() || '';
+    const medications = document.getElementById('editMedications').value.trim() || '';
+    const conditions = document.getElementById('editConditions').value.trim() || '';
 
     try {
-      await api(`/api/patients/${patientId}`, {
+      await api(`/api/patients/${patientId}/critical-info`, {
         method: 'PUT',
         body: JSON.stringify({ allergies, medications, conditions })
       });

@@ -94,6 +94,36 @@ router.get('/finances/pending', authenticate, async (req, res) => {
   res.json(result.rows);
 });
 
+router.get('/finances/paid', authenticate, async (req, res) => {
+  const { startDate, endDate } = req.query;
+
+  let queryStr = 'SELECT c.id, c.created_at, p.name as patient_name, p.phone, c.cost, u.name as doctor_name FROM consultations c JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.clinic_id = $1 AND c.payment_status = \'paid\'';
+  const params = [req.user.clinic_id];
+  let paramIndex = 2;
+
+  if (startDate) {
+    queryStr += ` AND c.created_at::date >= $${paramIndex}`;
+    params.push(startDate);
+    paramIndex++;
+  }
+
+  if (endDate) {
+    queryStr += ` AND c.created_at::date <= $${paramIndex}`;
+    params.push(endDate);
+    paramIndex++;
+  }
+
+  if (req.user.role === 'doctor') {
+    queryStr += ` AND c.doctor_id = $${paramIndex}`;
+    params.push(req.user.id);
+    paramIndex++;
+  }
+
+  queryStr += ' ORDER BY c.created_at DESC LIMIT 100';
+  const result = await query(queryStr, params);
+  res.json(result.rows);
+});
+
 router.get('/finances/by-doctor', authenticate, async (req, res) => {
   if (req.user.role === 'doctor') {
     return res.status(403).json({ error: 'Only clinic admin can view this' });
