@@ -148,9 +148,9 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     rootPath = 'M 62 95 Q 58 115 52 135 Q 50 148 50 150 Q 48 148 46 135 Q 40 115 38 95 L 38 95 Q 32 75 29 55 L 26 28 Q 28 16 32 10';
   }
 
-  // PREMOLAR - dos cúspides, forma similar a canino pero más ancho
+  // PREMOLAR - dos cúspides, forma rectangular con dos puntas
   if(toothType === TOOTH_TYPES.PREMOLAR) {
-    crownPath = 'M 35 15 Q 40 8 50 8 Q 60 8 65 15 Q 72 24 75 45 L 70 80 Q 65 110 55 135 Q 52 125 50 115 Q 48 110 50 110 Q 52 110 50 115 Q 48 125 45 135 Q 35 110 30 80 L 25 45 Q 28 24 35 15';
+    crownPath = 'M 32 18 Q 40 10 50 10 Q 60 10 68 18 Q 75 28 77 50 L 60 75 L 58 88 Q 50 105 48 140 Q 50 105 52 88 L 40 75 L 23 50 Q 25 28 32 18';
     rootPath = '';
   }
 
