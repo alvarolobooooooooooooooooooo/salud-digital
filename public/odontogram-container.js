@@ -436,7 +436,8 @@ class OdontogramContainer {
     const tooth = getToothByFDI(fdi);
     let header = tooth.name;
     if(surface) {
-      header += ` - ${surface.charAt(0).toUpperCase() + surface.slice(1)}`;
+      const surfLabel = this._getSurfaceLabel(surface, fdi);
+      header += ` - ${surfLabel}`;
     }
     document.getElementById('odonto-popup-header').textContent = header;
 
