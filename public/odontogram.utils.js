@@ -40,7 +40,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   let outlineWidth = selected ? 2.5 : 1.5;
   if(toothType === TOOTH_TYPES.MOLAR) outlineWidth = selected ? 8 : 4;
   else if(toothType === TOOTH_TYPES.INCISOR) outlineWidth = selected ? 6 : 3;
-  else if(toothType === TOOTH_TYPES.PREMOLAR) outlineWidth = selected ? 0.9 : 0.45;
+  else if(toothType === TOOTH_TYPES.PREMOLAR) outlineWidth = selected ? 2.2 : 1.5;
 
   // Create radial gradient for premium look
   const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
