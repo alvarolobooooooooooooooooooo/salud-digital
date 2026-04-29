@@ -17,12 +17,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   else if(toothType === TOOTH_TYPES.INCISOR) viewBox = '0 0 368.477 368.477';
   else if(toothType === TOOTH_TYPES.PREMOLAR) viewBox = '0 0 282.99 282.99';
   svg.setAttribute('viewBox', viewBox);
-  let toothClass = 'tooth-svg';
-  if(toothType === TOOTH_TYPES.INCISOR) toothClass += ' tooth-incisor';
-  else if(toothType === TOOTH_TYPES.CANINE) toothClass += ' tooth-canine';
-  else if(toothType === TOOTH_TYPES.PREMOLAR) toothClass += ' tooth-premolar';
-  else if(toothType === TOOTH_TYPES.MOLAR) toothClass += ' tooth-molar';
-  svg.setAttribute('class', toothClass);
+  svg.setAttribute('class', 'tooth-svg');
 
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
   const gradId = `grad-${Math.random().toString(36).substr(2, 9)}`;
