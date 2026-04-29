@@ -94,39 +94,79 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   gradient.appendChild(stop3);
   gradient.appendChild(stop4);
 
-  // Add shadow filter - contained within tooth with visible shading
+  // Premium shadow filter with multiple depth layers
   const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
   filter.setAttribute('id', shadowId);
-  filter.setAttribute('x', '-5%');
-  filter.setAttribute('y', '-5%');
-  filter.setAttribute('width', '110%');
-  filter.setAttribute('height', '110%');
+  filter.setAttribute('x', '-8%');
+  filter.setAttribute('y', '-8%');
+  filter.setAttribute('width', '116%');
+  filter.setAttribute('height', '116%');
 
-  const feGaussianBlur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
-  feGaussianBlur.setAttribute('in', 'SourceGraphic');
-  feGaussianBlur.setAttribute('stdDeviation', '1.2');
-  filter.appendChild(feGaussianBlur);
+  // Layer 1: Soft shadow for depth
+  const feGaussianBlur1 = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+  feGaussianBlur1.setAttribute('in', 'SourceGraphic');
+  feGaussianBlur1.setAttribute('stdDeviation', '2');
+  feGaussianBlur1.setAttribute('result', 'softblur');
+  filter.appendChild(feGaussianBlur1);
 
-  const feOffset = document.createElementNS('http://www.w3.org/2000/svg', 'feOffset');
-  feOffset.setAttribute('dx', '0.6');
-  feOffset.setAttribute('dy', '0.6');
-  feOffset.setAttribute('result', 'offsetblur');
-  filter.appendChild(feOffset);
+  const feOffset1 = document.createElementNS('http://www.w3.org/2000/svg', 'feOffset');
+  feOffset1.setAttribute('in', 'softblur');
+  feOffset1.setAttribute('dx', '1');
+  feOffset1.setAttribute('dy', '1.2');
+  feOffset1.setAttribute('result', 'offsetsoftblur');
+  filter.appendChild(feOffset1);
 
-  const feComponentTransfer = document.createElementNS('http://www.w3.org/2000/svg', 'feComponentTransfer');
-  const feFuncA = document.createElementNS('http://www.w3.org/2000/svg', 'feFuncA');
-  feFuncA.setAttribute('type', 'linear');
-  feFuncA.setAttribute('slope', '0.28');
-  feComponentTransfer.appendChild(feFuncA);
-  filter.appendChild(feComponentTransfer);
+  const feFlood1 = document.createElementNS('http://www.w3.org/2000/svg', 'feFlood');
+  feFlood1.setAttribute('flood-color', '#000000');
+  feFlood1.setAttribute('flood-opacity', '0.2');
+  feFlood1.setAttribute('result', 'color1');
+  filter.appendChild(feFlood1);
 
+  const feComposite1 = document.createElementNS('http://www.w3.org/2000/svg', 'feComposite');
+  feComposite1.setAttribute('in', 'color1');
+  feComposite1.setAttribute('in2', 'offsetsoftblur');
+  feComposite1.setAttribute('operator', 'in');
+  feComposite1.setAttribute('result', 'shadow1');
+  filter.appendChild(feComposite1);
+
+  // Layer 2: Darker shadow for contrast
+  const feGaussianBlur2 = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+  feGaussianBlur2.setAttribute('in', 'SourceGraphic');
+  feGaussianBlur2.setAttribute('stdDeviation', '0.8');
+  feGaussianBlur2.setAttribute('result', 'hardblur');
+  filter.appendChild(feGaussianBlur2);
+
+  const feOffset2 = document.createElementNS('http://www.w3.org/2000/svg', 'feOffset');
+  feOffset2.setAttribute('in', 'hardblur');
+  feOffset2.setAttribute('dx', '0.4');
+  feOffset2.setAttribute('dy', '0.6');
+  feOffset2.setAttribute('result', 'offsethardblur');
+  filter.appendChild(feOffset2);
+
+  const feFlood2 = document.createElementNS('http://www.w3.org/2000/svg', 'feFlood');
+  feFlood2.setAttribute('flood-color', '#000000');
+  feFlood2.setAttribute('flood-opacity', '0.15');
+  feFlood2.setAttribute('result', 'color2');
+  filter.appendChild(feFlood2);
+
+  const feComposite2 = document.createElementNS('http://www.w3.org/2000/svg', 'feComposite');
+  feComposite2.setAttribute('in', 'color2');
+  feComposite2.setAttribute('in2', 'offsethardblur');
+  feComposite2.setAttribute('operator', 'in');
+  feComposite2.setAttribute('result', 'shadow2');
+  filter.appendChild(feComposite2);
+
+  // Merge all layers
   const feMerge = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge');
   const feMergeNode1 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
-  feMergeNode1.setAttribute('in', 'offsetblur');
+  feMergeNode1.setAttribute('in', 'shadow1');
   feMerge.appendChild(feMergeNode1);
   const feMergeNode2 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
-  feMergeNode2.setAttribute('in', 'SourceGraphic');
+  feMergeNode2.setAttribute('in', 'shadow2');
   feMerge.appendChild(feMergeNode2);
+  const feMergeNode3 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+  feMergeNode3.setAttribute('in', 'SourceGraphic');
+  feMerge.appendChild(feMergeNode3);
   filter.appendChild(feMerge);
 
   defs.appendChild(gradient);
