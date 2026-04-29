@@ -243,10 +243,9 @@ function createSurfaceElement(surface, fdi, condition = CONDITIONS.HEALTHY, isEd
     font-size: 0.75rem;
     font-weight: bold;
     color: #0f172a;
-    transition: transform 0.12s, box-shadow 0.12s;
+    transition: transform 0.2s, box-shadow 0.2s;
     cursor: ${isEditable ? 'pointer' : 'default'};
     position: relative;
-    will-change: transform, box-shadow;
   `;
 
   if(isEditable) {

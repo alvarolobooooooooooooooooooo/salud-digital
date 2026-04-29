@@ -40,7 +40,7 @@ class OdontogramTooth {
       will-change: transform, box-shadow;
     `;
 
-    // Click handler
+    // Setup handlers
     if(this.isEditable) {
       container.style.cursor = 'pointer';
       container.className = 'tooth-container tooth-editable';
