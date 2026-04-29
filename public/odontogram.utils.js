@@ -25,6 +25,8 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
 
   const condData = getConditionById(condition);
   const outlineColor = selected ? '#0891b2' : '#0f172a';
+  const isHealthy = condition === CONDITIONS.HEALTHY.id;
+
   // Scale stroke width for custom tooth types due to larger viewBox
   let outlineWidth = selected ? 2.5 : 1.5;
   if(toothType === TOOTH_TYPES.MOLAR) outlineWidth = selected ? 8 : 4;
@@ -40,30 +42,50 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
 
   const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
   stop1.setAttribute('offset', '0%');
-  stop1.setAttribute('stop-color', condData.color);
-  stop1.setAttribute('stop-opacity', '1');
+  if(isHealthy) {
+    stop1.setAttribute('stop-color', '#fafafa');
+    stop1.setAttribute('stop-opacity', '1');
+  } else {
+    stop1.setAttribute('stop-color', condData.color);
+    stop1.setAttribute('stop-opacity', '1');
+  }
 
   const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
   stop2.setAttribute('offset', '40%');
-  stop2.setAttribute('stop-color', condData.color);
-  stop2.setAttribute('stop-opacity', '0.97');
+  if(isHealthy) {
+    stop2.setAttribute('stop-color', '#f5f5f5');
+    stop2.setAttribute('stop-opacity', '1');
+  } else {
+    stop2.setAttribute('stop-color', condData.color);
+    stop2.setAttribute('stop-opacity', '0.97');
+  }
 
   const stop3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
   stop3.setAttribute('offset', '70%');
-  stop3.setAttribute('stop-color', condData.color);
-  stop3.setAttribute('stop-opacity', '0.90');
+  if(isHealthy) {
+    stop3.setAttribute('stop-color', '#e8e8e8');
+    stop3.setAttribute('stop-opacity', '1');
+  } else {
+    stop3.setAttribute('stop-color', condData.color);
+    stop3.setAttribute('stop-opacity', '0.90');
+  }
 
   const stop4 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
   stop4.setAttribute('offset', '100%');
-  stop4.setAttribute('stop-color', condData.color);
-  stop4.setAttribute('stop-opacity', '0.75');
+  if(isHealthy) {
+    stop4.setAttribute('stop-color', '#d4d4d4');
+    stop4.setAttribute('stop-opacity', '1');
+  } else {
+    stop4.setAttribute('stop-color', condData.color);
+    stop4.setAttribute('stop-opacity', '0.75');
+  }
 
   gradient.appendChild(stop1);
   gradient.appendChild(stop2);
   gradient.appendChild(stop3);
   gradient.appendChild(stop4);
 
-  // Add subtle shadow filter
+  // Add shadow filter - stronger for healthy teeth to add depth
   const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
   filter.setAttribute('id', shadowId);
   filter.setAttribute('x', '-50%');
@@ -73,19 +95,19 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
 
   const feGaussianBlur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
   feGaussianBlur.setAttribute('in', 'SourceGraphic');
-  feGaussianBlur.setAttribute('stdDeviation', '2');
+  feGaussianBlur.setAttribute('stdDeviation', isHealthy ? '3' : '2');
   filter.appendChild(feGaussianBlur);
 
   const feOffset = document.createElementNS('http://www.w3.org/2000/svg', 'feOffset');
-  feOffset.setAttribute('dx', '1');
-  feOffset.setAttribute('dy', '1');
+  feOffset.setAttribute('dx', isHealthy ? '2' : '1');
+  feOffset.setAttribute('dy', isHealthy ? '2' : '1');
   feOffset.setAttribute('result', 'offsetblur');
   filter.appendChild(feOffset);
 
   const feComponentTransfer = document.createElementNS('http://www.w3.org/2000/svg', 'feComponentTransfer');
   const feFuncA = document.createElementNS('http://www.w3.org/2000/svg', 'feFuncA');
   feFuncA.setAttribute('type', 'linear');
-  feFuncA.setAttribute('slope', '0.3');
+  feFuncA.setAttribute('slope', isHealthy ? '0.5' : '0.3');
   feComponentTransfer.appendChild(feFuncA);
   filter.appendChild(feComponentTransfer);
 
@@ -152,21 +174,68 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   crown.setAttribute('filter', `url(#${shadowId})`);
   svg.appendChild(crown);
 
+  // Add detail lines/grooves for healthy teeth
+  if(isHealthy) {
+    const detailLines = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    detailLines.setAttribute('opacity', '0.3');
 
-  // Add glossy highlight for premium effect
+    if(toothType === TOOTH_TYPES.MOLAR) {
+      const grooves = ['M256 100 L256 350', 'M150 250 L350 250'];
+      grooves.forEach(d => {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        line.setAttribute('d', d);
+        line.setAttribute('stroke', '#888888');
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('stroke-linecap', 'round');
+        line.setAttribute('opacity', '0.15');
+        detailLines.appendChild(line);
+      });
+    } else if(toothType === TOOTH_TYPES.PREMOLAR) {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      line.setAttribute('d', 'M28 10 L28 50');
+      line.setAttribute('stroke', '#888888');
+      line.setAttribute('stroke-width', '0.3');
+      line.setAttribute('opacity', '0.2');
+      detailLines.appendChild(line);
+    } else if(toothType === TOOTH_TYPES.INCISOR) {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      line.setAttribute('d', 'M184 80 L184 300');
+      line.setAttribute('stroke', '#888888');
+      line.setAttribute('stroke-width', '1.5');
+      line.setAttribute('opacity', '0.15');
+      detailLines.appendChild(line);
+    } else if(toothType === TOOTH_TYPES.CANINE) {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      line.setAttribute('d', 'M50 20 L50 120');
+      line.setAttribute('stroke', '#888888');
+      line.setAttribute('stroke-width', '0.8');
+      line.setAttribute('opacity', '0.2');
+      detailLines.appendChild(line);
+    }
+
+    svg.appendChild(detailLines);
+  }
+
+
+  // Add glossy highlight for premium effect - more pronounced for healthy teeth
   const gloss = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
-  let glossCx, glossCy, glossRx, glossRy;
+  let glossCx, glossCy, glossRx, glossRy, glossOpacity;
 
   if(toothType === TOOTH_TYPES.MOLAR) {
     glossCx = '150'; glossCy = '80'; glossRx = '60'; glossRy = '80';
+    glossOpacity = isHealthy ? '0.45' : '0.35';
   } else if(toothType === TOOTH_TYPES.INCISOR) {
     glossCx = '120'; glossCy = '60'; glossRx = '50'; glossRy = '70';
+    glossOpacity = isHealthy ? '0.40' : '0.35';
   } else if(toothType === TOOTH_TYPES.PREMOLAR) {
     glossCx = '22'; glossCy = '15'; glossRx = '10'; glossRy = '14';
+    glossOpacity = isHealthy ? '0.40' : '0.35';
   } else if(toothType === TOOTH_TYPES.CANINE) {
     glossCx = '45'; glossCy = '35'; glossRx = '8'; glossRy = '15';
+    glossOpacity = isHealthy ? '0.38' : '0.35';
   } else {
     glossCx = '42'; glossCy = '28'; glossRx = '10'; glossRy = '16';
+    glossOpacity = isHealthy ? '0.40' : '0.35';
   }
 
   gloss.setAttribute('cx', glossCx);
@@ -174,11 +243,11 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   gloss.setAttribute('rx', glossRx);
   gloss.setAttribute('ry', glossRy);
   gloss.setAttribute('fill', 'white');
-  gloss.setAttribute('opacity', '0.35');
+  gloss.setAttribute('opacity', glossOpacity);
   gloss.setAttribute('mix-blend-mode', 'screen');
   svg.appendChild(gloss);
 
-  // Add shine/highlight
+  // Add shine/highlight - more visible for healthy teeth
   if(toothType === TOOTH_TYPES.CANINE) {
     const shine = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
     shine.setAttribute('cx', '42');
@@ -186,7 +255,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     shine.setAttribute('rx', '5');
     shine.setAttribute('ry', '12');
     shine.setAttribute('fill', 'white');
-    shine.setAttribute('opacity', '0.25');
+    shine.setAttribute('opacity', isHealthy ? '0.35' : '0.25');
     svg.appendChild(shine);
   } else {
     const shine = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
@@ -195,8 +264,36 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     shine.setAttribute('rx', '6');
     shine.setAttribute('ry', '10');
     shine.setAttribute('fill', 'white');
-    shine.setAttribute('opacity', '0.2');
+    shine.setAttribute('opacity', isHealthy ? '0.30' : '0.2');
     svg.appendChild(shine);
+  }
+
+  // Add subtle inner shadow for healthy teeth depth
+  if(isHealthy) {
+    const innerShadow = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+    innerShadow.setAttribute('cx', '65%');
+    innerShadow.setAttribute('cy', '70%');
+
+    if(toothType === TOOTH_TYPES.MOLAR) {
+      innerShadow.setAttribute('rx', '80');
+      innerShadow.setAttribute('ry', '120');
+    } else if(toothType === TOOTH_TYPES.INCISOR) {
+      innerShadow.setAttribute('rx', '60');
+      innerShadow.setAttribute('ry', '100');
+    } else if(toothType === TOOTH_TYPES.PREMOLAR) {
+      innerShadow.setAttribute('rx', '12');
+      innerShadow.setAttribute('ry', '18');
+    } else if(toothType === TOOTH_TYPES.CANINE) {
+      innerShadow.setAttribute('rx', '12');
+      innerShadow.setAttribute('ry', '20');
+    } else {
+      innerShadow.setAttribute('rx', '14');
+      innerShadow.setAttribute('ry', '18');
+    }
+
+    innerShadow.setAttribute('fill', '#999999');
+    innerShadow.setAttribute('opacity', '0.08');
+    svg.appendChild(innerShadow);
   }
 
 
