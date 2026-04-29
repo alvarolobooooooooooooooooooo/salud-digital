@@ -393,7 +393,7 @@ function createSurfaceElement(surface, fdi, condition = CONDITIONS.HEALTHY, isEd
     mesial: 'Mesial',
     distal: 'Distal',
     buccal: isUpperTooth ? 'Vestibular' : 'Bucal',
-    lingual: isUpperTooth ? 'Lingual/Palatino' : 'Lingual',
+    lingual: isUpperTooth ? 'Palatino' : 'Lingual',
     occlusal: 'Occlusal/Incisal',
     incisal: 'Occlusal/Incisal'
   };
@@ -408,7 +408,7 @@ function getSurfaceLabel(surface, fdi) {
     [SURFACES.MESIAL]: 'M',
     [SURFACES.DISTAL]: 'D',
     [SURFACES.BUCCAL]: isUpperTooth ? 'V' : 'B',
-    [SURFACES.LINGUAL]: 'L',
+    [SURFACES.LINGUAL]: isUpperTooth ? 'P' : 'L',
     [SURFACES.OCCLUSAL]: 'O',
     [SURFACES.INCISAL]: 'I'
   };

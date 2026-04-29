@@ -25,7 +25,7 @@ class OdontogramContainer {
       mesial: 'Mesial',
       distal: 'Distal',
       buccal: isUpperTooth ? 'Vestibular' : 'Bucal',
-      lingual: isUpperTooth ? 'Lingual/Palatino' : 'Lingual',
+      lingual: isUpperTooth ? 'Palatino' : 'Lingual',
       occlusal: 'Oclusal',
       incisal: 'Incisal'
     };
