@@ -15,7 +15,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   let viewBox = '0 0 100 160';
   if(toothType === TOOTH_TYPES.MOLAR) viewBox = '0 0 512.048 512.048';
   else if(toothType === TOOTH_TYPES.INCISOR) viewBox = '0 0 368.477 368.477';
-  else if(toothType === TOOTH_TYPES.PREMOLAR) viewBox = '0 0 56.598 56.598';
+  else if(toothType === TOOTH_TYPES.PREMOLAR) viewBox = '0 0 282.99 282.99';
   svg.setAttribute('viewBox', viewBox);
   svg.setAttribute('class', 'tooth-svg');
 
@@ -129,6 +129,14 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     rootPath = '';
   }
 
+  // Create group for premolar scaling
+  let mainGroup = svg;
+  if(toothType === TOOTH_TYPES.PREMOLAR) {
+    mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    mainGroup.setAttribute('transform', 'scale(5)');
+    svg.appendChild(mainGroup);
+  }
+
   // Draw root (lighter color) - skip for molars
   if(rootPath) {
     const root = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -138,7 +146,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     root.setAttribute('stroke', outlineColor);
     root.setAttribute('stroke-width', outlineWidth);
     root.setAttribute('stroke-linejoin', 'round');
-    svg.appendChild(root);
+    mainGroup.appendChild(root);
   }
 
   // Draw crown (main color)
@@ -150,7 +158,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   crown.setAttribute('stroke-linejoin', 'round');
   crown.setAttribute('fill-rule', 'evenodd');
   crown.setAttribute('filter', `url(#${shadowId})`);
-  svg.appendChild(crown);
+  mainGroup.appendChild(crown);
 
 
   // Add glossy highlight for premium effect
@@ -176,7 +184,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   gloss.setAttribute('fill', 'white');
   gloss.setAttribute('opacity', '0.35');
   gloss.setAttribute('mix-blend-mode', 'screen');
-  svg.appendChild(gloss);
+  mainGroup.appendChild(gloss);
 
   // Add shine/highlight
   if(toothType === TOOTH_TYPES.CANINE) {
@@ -187,7 +195,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     shine.setAttribute('ry', '12');
     shine.setAttribute('fill', 'white');
     shine.setAttribute('opacity', '0.25');
-    svg.appendChild(shine);
+    mainGroup.appendChild(shine);
   } else {
     const shine = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
     shine.setAttribute('cx', '45');
@@ -196,7 +204,7 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     shine.setAttribute('ry', '10');
     shine.setAttribute('fill', 'white');
     shine.setAttribute('opacity', '0.2');
-    svg.appendChild(shine);
+    mainGroup.appendChild(shine);
   }
 
 
