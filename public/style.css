@@ -196,6 +196,30 @@ button:hover { background: #1d4ed8; }
   transform: scale(1.13);
 }
 
+/* Optimized tooth container hover - CSS only (no JS lag) */
+.tooth-container {
+  will-change: transform, box-shadow;
+}
+
+.tooth-editable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 1px rgba(8, 145, 178, 0.2), 0 6px 16px rgba(8, 145, 178, 0.2);
+}
+
+.tooth-editable:hover .tooth-svg-wrapper {
+  filter: brightness(1.05);
+}
+
+/* Reduce shadow complexity on tooth surfaces */
+.tooth-surface {
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.surface-editable:hover {
+  transform: scale(1.08);
+  box-shadow: 0 2px 6px rgba(8, 145, 178, 0.25);
+}
+
 /* Mobile Responsive */
 @media (min-width: 768px) and (max-width: 1349px) {
   /* 4-column layout: increase tooth card size */
