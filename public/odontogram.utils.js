@@ -276,33 +276,6 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
     svg.appendChild(shine);
   }
 
-  // Add subtle inner shadow for depth
-  const innerShadow = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
-  innerShadow.setAttribute('cx', '65%');
-  innerShadow.setAttribute('cy', '70%');
-
-  if(toothType === TOOTH_TYPES.MOLAR) {
-    innerShadow.setAttribute('rx', '80');
-    innerShadow.setAttribute('ry', '120');
-  } else if(toothType === TOOTH_TYPES.INCISOR) {
-    innerShadow.setAttribute('rx', '60');
-    innerShadow.setAttribute('ry', '100');
-  } else if(toothType === TOOTH_TYPES.PREMOLAR) {
-    innerShadow.setAttribute('rx', '12');
-    innerShadow.setAttribute('ry', '18');
-  } else if(toothType === TOOTH_TYPES.CANINE) {
-    innerShadow.setAttribute('rx', '12');
-    innerShadow.setAttribute('ry', '20');
-  } else {
-    innerShadow.setAttribute('rx', '14');
-    innerShadow.setAttribute('ry', '18');
-  }
-
-  const shadowColor = isHealthy ? '#999999' : darkenColor(condData.color, 0.40);
-  innerShadow.setAttribute('fill', shadowColor);
-  innerShadow.setAttribute('opacity', isHealthy ? '0.08' : '0.12');
-  svg.appendChild(innerShadow);
-
 
   svg.style.cssText = `
     width: 100%;
