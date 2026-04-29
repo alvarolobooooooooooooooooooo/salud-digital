@@ -33,18 +33,38 @@ class OdontogramTooth {
       border: 1px solid rgba(8, 145, 178, 0.15);
       border-radius: 16px;
       cursor: ${this.isEditable ? 'pointer' : 'default'};
-      transition: transform 0.15s, box-shadow 0.15s;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       position: relative;
       min-width: 0;
-      box-shadow: 0 2px 8px rgba(8, 145, 178, 0.08);
-      will-change: transform, box-shadow;
+      box-shadow:
+        0 0 0 1px rgba(8, 145, 178, 0.08),
+        0 4px 12px rgba(8, 145, 178, 0.1),
+        0 20px 40px rgba(8, 145, 178, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
     `;
 
-    // Click handler
+    // Hover effects
     if(this.isEditable) {
       container.style.cursor = 'pointer';
-      container.className = 'tooth-container tooth-editable';
+      container.onmouseenter = () => {
+        container.style.borderColor = 'rgba(8, 145, 178, 0.4)';
+        container.style.boxShadow = '0 0 0 1px rgba(8, 145, 178, 0.2), 0 8px 20px rgba(8, 145, 178, 0.25), 0 20px 50px rgba(8, 145, 178, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.95)';
+        container.style.transform = 'translateY(-6px) scale(1.03)';
+        container.style.background = 'linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%)';
+        svgContainer.style.transform = 'scale(1.1)';
+        number.style.transform = 'scale(1.1)';
+      };
+      container.onmouseleave = () => {
+        container.style.borderColor = this.isSelected ? 'rgba(8, 145, 178, 0.3)' : 'rgba(8, 145, 178, 0.15)';
+        container.style.boxShadow = this.isSelected ? '0 0 0 1px rgba(8, 145, 178, 0.15), 0 6px 16px rgba(8, 145, 178, 0.18), 0 20px 40px rgba(8, 145, 178, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)' : '0 0 0 1px rgba(8, 145, 178, 0.08), 0 4px 12px rgba(8, 145, 178, 0.1), 0 20px 40px rgba(8, 145, 178, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9)';
+        container.style.transform = 'translateY(0) scale(1)';
+        container.style.background = this.isSelected ? 'linear-gradient(180deg, #f0f9ff 0%, #e8f5f9 100%)' : 'linear-gradient(180deg, #ffffff 0%, #f5f9fb 100%)';
+        svgContainer.style.transform = 'scale(1)';
+        number.style.transform = 'scale(1)';
+      };
 
+      // Main click handler
       container.onclick = (e) => {
         if(this.handlers && typeof this.handlers.onSelect === 'function') {
           this.handlers.onSelect(this.fdi, e);
@@ -60,7 +80,6 @@ class OdontogramTooth {
 
     // Tooth SVG with background
     const svgContainer = document.createElement('div');
-    svgContainer.className = 'tooth-svg-wrapper';
     svgContainer.style.cssText = `
       width: 100%;
       height: auto;
@@ -69,8 +88,10 @@ class OdontogramTooth {
       align-items: center;
       justify-content: center;
       max-width: 110px;
+      background: radial-gradient(circle at 30% 30%, rgba(8, 145, 178, 0.06), transparent);
       border-radius: 12px;
       padding: 0.5rem;
+      transition: all 0.3s ease;
     `;
 
     const svg = createToothSVG(this.tooth.type, this.condition, this.isSelected, this.isEditable);
@@ -90,7 +111,8 @@ class OdontogramTooth {
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       padding: 0.4rem 0.7rem;
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(8, 145, 178, 0.2);
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+      transition: all 0.3s ease;
     `;
     container.appendChild(number);
 
