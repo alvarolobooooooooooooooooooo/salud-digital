@@ -19,12 +19,13 @@ class OdontogramContainer {
     this.render();
   }
 
-  _getSurfaceLabel(surface) {
+  _getSurfaceLabel(surface, fdi) {
+    const isUpperTooth = fdi && (Math.floor(fdi / 10) === 1 || Math.floor(fdi / 10) === 2);
     const map = {
       mesial: 'Mesial',
       distal: 'Distal',
-      buccal: 'Vestibular',
-      lingual: 'Lingual/Palatina',
+      buccal: isUpperTooth ? 'Vestibular' : 'Bucal',
+      lingual: isUpperTooth ? 'Lingual/Palatino' : 'Lingual',
       occlusal: 'Oclusal',
       incisal: 'Incisal'
     };
@@ -657,7 +658,7 @@ class OdontogramContainer {
 
     const tooth = getToothByFDI(fdi);
     const cond = getConditionById(conditionId) || CONDITIONS.HEALTHY;
-    const surfLabel = this._getSurfaceLabel(surface);
+    const surfLabel = this._getSurfaceLabel(surface, fdi);
 
     document.getElementById('mp-title').textContent = `${tooth.name} · ${surfLabel}`;
     document.getElementById('mp-surface-tag').textContent = `Superficie ${surfLabel}`;

@@ -348,11 +348,12 @@ function createSurfaceElement(surface, fdi, condition = CONDITIONS.HEALTHY, isEd
   container.appendChild(labelContainer);
 
   // Add tooltip with full surface name
+  const isUpperTooth = fdi && (Math.floor(fdi / 10) === 1 || Math.floor(fdi / 10) === 2);
   const surfaceNames = {
     mesial: 'Mesial',
     distal: 'Distal',
-    buccal: 'Vestibular/Bucal',
-    lingual: 'Lingual/Palatino',
+    buccal: isUpperTooth ? 'Vestibular' : 'Bucal',
+    lingual: isUpperTooth ? 'Lingual/Palatino' : 'Lingual',
     occlusal: 'Occlusal/Incisal',
     incisal: 'Occlusal/Incisal'
   };
