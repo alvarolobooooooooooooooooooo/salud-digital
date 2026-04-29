@@ -243,21 +243,14 @@ function createSurfaceElement(surface, fdi, condition = CONDITIONS.HEALTHY, isEd
     font-size: 0.75rem;
     font-weight: bold;
     color: #0f172a;
-    transition: all 0.2s;
+    transition: transform 0.12s, box-shadow 0.12s;
     cursor: ${isEditable ? 'pointer' : 'default'};
     position: relative;
+    will-change: transform, box-shadow;
   `;
 
   if(isEditable) {
-    container.style.cursor = 'pointer';
-    container.onmouseenter = () => {
-      container.style.transform = 'scale(1.1)';
-      container.style.boxShadow = '0 4px 8px rgba(8, 145, 178, 0.3)';
-    };
-    container.onmouseleave = () => {
-      container.style.transform = 'scale(1)';
-      container.style.boxShadow = 'none';
-    };
+    container.classList.add('surface-editable');
   }
 
   // Add condition icon and surface label
