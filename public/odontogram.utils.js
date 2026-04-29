@@ -94,29 +94,29 @@ function createToothSVG(toothType, condition, selected = false, isEditable = fal
   gradient.appendChild(stop3);
   gradient.appendChild(stop4);
 
-  // Add shadow filter - contained within tooth boundaries
+  // Add subtle shadow filter - minimal and contained
   const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
   filter.setAttribute('id', shadowId);
-  filter.setAttribute('x', '-25%');
-  filter.setAttribute('y', '-25%');
-  filter.setAttribute('width', '150%');
-  filter.setAttribute('height', '150%');
+  filter.setAttribute('x', '-10%');
+  filter.setAttribute('y', '-10%');
+  filter.setAttribute('width', '120%');
+  filter.setAttribute('height', '120%');
 
   const feGaussianBlur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
   feGaussianBlur.setAttribute('in', 'SourceGraphic');
-  feGaussianBlur.setAttribute('stdDeviation', '1.5');
+  feGaussianBlur.setAttribute('stdDeviation', '0.8');
   filter.appendChild(feGaussianBlur);
 
   const feOffset = document.createElementNS('http://www.w3.org/2000/svg', 'feOffset');
-  feOffset.setAttribute('dx', '0.8');
-  feOffset.setAttribute('dy', '0.8');
+  feOffset.setAttribute('dx', '0.4');
+  feOffset.setAttribute('dy', '0.4');
   feOffset.setAttribute('result', 'offsetblur');
   filter.appendChild(feOffset);
 
   const feComponentTransfer = document.createElementNS('http://www.w3.org/2000/svg', 'feComponentTransfer');
   const feFuncA = document.createElementNS('http://www.w3.org/2000/svg', 'feFuncA');
   feFuncA.setAttribute('type', 'linear');
-  feFuncA.setAttribute('slope', '0.25');
+  feFuncA.setAttribute('slope', '0.15');
   feComponentTransfer.appendChild(feFuncA);
   filter.appendChild(feComponentTransfer);
 
