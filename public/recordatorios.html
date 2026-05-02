@@ -367,13 +367,20 @@
       white-space: pre-wrap;
     }
 
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
     @media (max-width: 768px) {
       main { padding: 1.5rem 1rem; }
       .header-content h1 { font-size: 1.6rem; }
       .page-header { flex-direction: column; align-items: flex-start; }
-      table { font-size: 0.75rem; }
-      th, td { padding: 0.6rem 0.3rem; }
-      .actions-cell { display: flex; flex-direction: column; gap: 0.3rem; }
+      .table-wrapper { margin: 0 -1.5rem; padding: 0 1.5rem; }
+      table { font-size: 0.8rem; min-width: 600px; }
+      th, td { padding: 0.7rem 0.4rem; }
+      .actions-cell { display: flex; flex-direction: column; gap: 0.2rem; }
+      .btn-whatsapp { font-size: 0.7rem; padding: 0.5rem 0.8rem; white-space: nowrap; }
     }
   </style>
 </head>
@@ -415,20 +422,22 @@
   </div>
 
   <div class="section">
-    <table>
-      <thead>
-        <tr>
-          <th>Paciente</th>
-          <th>Fecha y Hora</th>
-          <th>Doctor</th>
-          <th>Estado</th>
-          <th style="text-align:right;">Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="remindersTable">
-        <tr><td colspan="5" class="empty-table">Cargando recordatorios...</td></tr>
-      </tbody>
-    </table>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Paciente</th>
+            <th>Fecha y Hora</th>
+            <th>Doctor</th>
+            <th>Estado</th>
+            <th style="text-align:right;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="remindersTable">
+          <tr><td colspan="5" class="empty-table">Cargando recordatorios...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </main>
 
