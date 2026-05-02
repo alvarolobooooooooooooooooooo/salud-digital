@@ -455,9 +455,76 @@
     /* ── Bottom Row ── */
     .bot-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 1.8rem;
     }
+
+    /* ── Recordatorios Widget ── */
+    .reminder-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid rgba(8, 145, 178, 0.06);
+    }
+    .reminder-row:last-child { border-bottom: none; }
+    .reminder-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .reminder-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .reminder-date {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #64748b;
+    }
+    .reminder-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f59e0b, #fbbf24);
+      flex-shrink: 0;
+    }
+    .reminder-send-btn {
+      background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+      font-size: 0;
+    }
+    .reminder-send-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+    }
+    .reminder-send-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .reminder-send-btn.sent {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    }
+    .reminders-link {
+      display: block;
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #0891b2;
+      text-decoration: none;
+    }
+    .reminders-link:hover { text-decoration: underline; }
 
     /* ── Next Patient ── */
     .next-patient {
@@ -817,6 +884,18 @@
           </div>
           <div class="cal-grid" id="calDays"></div>
         </div>
+
+        <!-- Recordatorios -->
+        <div class="card">
+          <div class="card-hdr">
+            <span class="card-title">Recordatorios</span>
+            <span id="remindersBadge" class="card-badge">—</span>
+          </div>
+          <div id="remindersContent">
+            <p class="empty">Cargando...</p>
+          </div>
+          <a href="/recordatorios.html" class="reminders-link">Ver todos →</a>
+        </div>
       </div>
   </main>
 
@@ -978,15 +1057,80 @@
       renderCalendar(y, m, apptDatesSet);
     });
 
+    // Render reminders
+    function renderReminders(reminders) {
+      const pending = reminders
+        .filter(r => !r.reminder_id && r.appointment_status !== 'cancelled')
+        .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))
+        .slice(0, 5);
+
+      document.getElementById('remindersBadge').textContent = pending.length + ' pendientes';
+
+      const el = document.getElementById('remindersContent');
+      if (pending.length === 0) {
+        el.innerHTML = '<p class="empty">Sin recordatorios pendientes.</p>';
+        return;
+      }
+      el.innerHTML = pending.map(r => {
+        const dt = new Date(r.scheduled_at);
+        const dateStr = dt.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+        const timeStr = dt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        return `
+          <div class="reminder-row">
+            <div class="reminder-info">
+              <span class="reminder-name">${esc(r.patient_name)}</span>
+              <span class="reminder-date">${dateStr} · ${timeStr}</span>
+            </div>
+            <button
+              class="reminder-send-btn"
+              onclick="sendReminderFromDashboard(${r.appointment_id})"
+              title="Enviar recordatorio por WhatsApp">
+              ${Icons.render('send', 14)}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Send reminder from dashboard
+    async function sendReminderFromDashboard(appointmentId) {
+      const btn = event.target.closest('.reminder-send-btn');
+      if (!btn) return;
+
+      btn.disabled = true;
+      const origHTML = btn.innerHTML;
+      btn.innerHTML = Icons.render('loader', 14);
+
+      try {
+        await api('/api/reminders', {
+          method: 'POST',
+          body: { appointment_id: appointmentId }
+        });
+
+        btn.classList.add('sent');
+        btn.innerHTML = Icons.render('check', 14);
+        btn.title = 'Recordatorio enviado';
+        setTimeout(() => {
+          btn.closest('.reminder-row').remove();
+        }, 500);
+      } catch (e) {
+        console.error('Error enviando recordatorio:', e);
+        btn.innerHTML = origHTML;
+        btn.disabled = false;
+        alert('Error al enviar: ' + e.message);
+      }
+    }
+
     // Load data
     (async () => {
       const pageLoader = document.getElementById('pageLoader');
       try {
-        const [me, patients, appointments, finances] = await Promise.all([
+        const [me, patients, appointments, finances, reminders] = await Promise.all([
           api('/api/auth/me'),
           api('/api/patients'),
           api('/api/appointments/today'),
-          api('/api/consultations/finances/summary').catch(() => ({ month_revenue: 0 }))
+          api('/api/consultations/finances/summary').catch(() => ({ month_revenue: 0 })),
+          api('/api/reminders').catch(() => [])
         ]);
 
         // Stat cards
@@ -1013,6 +1157,9 @@
           apptDatesSet.add(todayStr);
         }
         renderCalendar(today.getFullYear(), today.getMonth(), apptDatesSet);
+
+        // Reminders
+        renderReminders(reminders);
 
         // Hide loader
         pageLoader.classList.add('hidden');
