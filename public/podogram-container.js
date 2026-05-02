@@ -142,9 +142,11 @@ class PodogramContainer {
         .podogram-button.selected {
           border-color: #0891b2;
           background: #f0f9ff;
+          box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.2), inset 0 0 8px rgba(8, 145, 178, 0.1);
+          transform: scale(1.05);
         }
         .podogram-button.selected .foot-svg {
-          filter: brightness(1.1);
+          filter: brightness(1.15);
         }
         .foot-svg {
           width: 90px;
