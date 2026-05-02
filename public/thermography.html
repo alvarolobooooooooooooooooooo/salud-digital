@@ -345,22 +345,26 @@
       vertical-align: middle;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 860px) {
       main { padding: 1.5rem 1rem; }
       .header-content h1 { font-size: 1.6rem; }
       .container { padding: 1.5rem; }
-      .thermography-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .thermography-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+      }
 
       .feet-section {
-        margin-bottom: 1rem;
         order: -1;
+        width: 100%;
       }
 
       .feet-svg {
+        width: 100%;
         max-width: 100%;
         height: auto;
         min-height: 500px;
-        width: 100%;
       }
 
       .controls-section {
