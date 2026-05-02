@@ -54,7 +54,7 @@
         { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
         { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
         { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
-        { href: '/plan.html', key: 'plan', iconName: 'star', label: 'Mi Plan' }
+        { href: '/plan.html', key: 'plan', iconName: 'creditCard', label: 'Mi Plan' }
       ];
     } else {
       // Doctor sidebar
