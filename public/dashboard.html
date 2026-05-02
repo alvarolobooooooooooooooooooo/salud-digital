@@ -494,23 +494,21 @@
       background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
       color: white;
       border: none;
-      border-radius: 6px;
-      padding: 0.3rem 0.5rem;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
       cursor: pointer;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       transition: all 0.3s ease;
-      box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
-    }
-    .reminder-send-btn svg {
-      width: 14px;
-      height: 14px;
-      display: block;
+      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
     }
     .reminder-send-btn:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+      box-shadow: 0 4px 16px rgba(22, 163, 74, 0.4);
     }
     .reminder-send-btn:disabled {
       opacity: 0.6;
@@ -1089,7 +1087,7 @@
               class="reminder-send-btn"
               onclick="sendReminderFromDashboard(${r.appointment_id})"
               title="Enviar recordatorio por WhatsApp">
-              ${Icons.render('arrowRight', 16)}
+              Enviar
             </button>
           </div>
         `;
@@ -1103,7 +1101,7 @@
 
       btn.disabled = true;
       const origHTML = btn.innerHTML;
-      btn.innerHTML = '⏳';
+      btn.innerHTML = 'Enviando...';
 
       try {
         await api('/api/reminders', {
@@ -1112,7 +1110,7 @@
         });
 
         btn.classList.add('sent');
-        btn.innerHTML = '✓';
+        btn.innerHTML = 'Enviado ✓';
         btn.title = 'Recordatorio enviado';
         setTimeout(() => {
           btn.closest('.reminder-row').remove();
