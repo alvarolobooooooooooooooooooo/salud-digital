@@ -39,4 +39,36 @@ router.post('/', authenticate, requireRole('super_admin'), async (req, res) => {
   }
 });
 
+router.get('/plan/info', authenticate, async (req, res) => {
+  if (!req.user.clinic_id) return res.status(403).json({ error: 'No clinic access' });
+
+  const clinicResult = await query('SELECT * FROM clinics WHERE id = $1', [req.user.clinic_id]);
+  if (clinicResult.rows.length === 0) return res.status(404).json({ error: 'Clinic not found' });
+
+  const clinic = clinicResult.rows[0];
+
+  const currentMonth = new Date();
+  currentMonth.setDate(1);
+
+  const patientsCount = await query('SELECT COUNT(*) as count FROM patients WHERE clinic_id = $1', [req.user.clinic_id]);
+  const doctorsCount = await query("SELECT COUNT(*) as count FROM users WHERE clinic_id = $1 AND role = 'doctor'", [req.user.clinic_id]);
+  const currentMonthConsultations = await query(
+    'SELECT COUNT(*) as count FROM consultations WHERE clinic_id = $1 AND created_at >= $2',
+    [req.user.clinic_id, currentMonth]
+  );
+
+  res.json({
+    clinic_name: clinic.name,
+    plan_type: clinic.plan_type || 'professional',
+    plan_status: clinic.plan_status || 'active',
+    plan_expires_at: clinic.plan_expires_at,
+    billing_cycle: clinic.billing_cycle || 'monthly',
+    stats: {
+      total_patients: parseInt(patientsCount.rows[0].count),
+      total_doctors: parseInt(doctorsCount.rows[0].count),
+      consultations_this_month: parseInt(currentMonthConsultations.rows[0].count)
+    }
+  });
+});
+
 module.exports = router;

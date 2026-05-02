@@ -156,7 +156,11 @@ const initDb = async () => {
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_template TEXT DEFAULT \'Hola {{patientName}}, le recordamos su cita en {{clinicName}} el día {{appointmentDate}} a las {{appointmentTime}} con {{doctorName}}.\\n\\nPor favor confirme si podrá asistir. Gracias.\'',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS payment_notes TEXT DEFAULT \'\'',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS consent_id INTEGER',
-      'ALTER TABLE patient_consents ADD COLUMN IF NOT EXISTS signature_data TEXT'
+      'ALTER TABLE patient_consents ADD COLUMN IF NOT EXISTS signature_data TEXT',
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS plan_type TEXT DEFAULT \'professional\'',
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS plan_status TEXT DEFAULT \'active\'',
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMP',
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS billing_cycle TEXT DEFAULT \'monthly\''
     ];
 
     for (const cmd of alterCommands) {

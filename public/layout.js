@@ -22,6 +22,7 @@
     '/doctors.html': 'doctors',
     '/consentimientos.html': 'consentimientos',
     '/recordatorios.html': 'recordatorios',
+    '/plan.html': 'plan',
     '/consultation.html': '',
     '/view-consultation.html': '',
     '/clinical-record.html': '',
@@ -52,7 +53,8 @@
         { href: '/doctors.html', key: 'doctors', iconName: 'staff', label: 'Personal' },
         { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
         { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
-        { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' }
+        { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
+        { href: '/plan.html', key: 'plan', iconName: 'star', label: 'Mi Plan' }
       ];
     } else {
       // Doctor sidebar
