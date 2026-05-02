@@ -88,11 +88,13 @@ const initDb = async () => {
       CREATE TABLE IF NOT EXISTS consent_templates (
         id SERIAL PRIMARY KEY,
         clinic_id INTEGER NOT NULL,
+        doctor_id INTEGER,
         type TEXT NOT NULL,
         title TEXT NOT NULL,
         description TEXT DEFAULT '',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (clinic_id) REFERENCES clinics(id)
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id),
+        FOREIGN KEY (doctor_id) REFERENCES users(id)
       );
 
       CREATE TABLE IF NOT EXISTS patient_consents (
@@ -171,7 +173,8 @@ const initDb = async () => {
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS plan_type TEXT DEFAULT \'professional\'',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS plan_status TEXT DEFAULT \'active\'',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMP',
-      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS billing_cycle TEXT DEFAULT \'monthly\''
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS billing_cycle TEXT DEFAULT \'monthly\'',
+      'ALTER TABLE consent_templates ADD COLUMN IF NOT EXISTS doctor_id INTEGER'
     ];
 
     for (const cmd of alterCommands) {

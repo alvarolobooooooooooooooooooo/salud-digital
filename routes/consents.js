@@ -55,8 +55,8 @@ function stripHtml(html) {
 
 // Templates endpoints
 router.get('/templates', authenticate, async (req, res) => {
-  const queryStr = `SELECT * FROM consent_templates WHERE clinic_id = $1 ORDER BY created_at DESC`;
-  const result = await query(queryStr, [req.user.clinic_id]);
+  const queryStr = `SELECT * FROM consent_templates WHERE clinic_id = $1 AND doctor_id = $2 ORDER BY created_at DESC`;
+  const result = await query(queryStr, [req.user.clinic_id, req.user.id]);
   res.json(result.rows);
 });
 
@@ -68,8 +68,8 @@ router.post('/templates', authenticate, async (req, res) => {
 
   try {
     const result = await query(
-      'INSERT INTO consent_templates (clinic_id, type, title, description) VALUES ($1, $2, $3, $4) RETURNING id',
-      [req.user.clinic_id, type, title, description]
+      'INSERT INTO consent_templates (clinic_id, doctor_id, type, title, description) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+      [req.user.clinic_id, req.user.id, type, title, description]
     );
 
     res.json({ id: result.rows[0].id });
@@ -80,16 +80,16 @@ router.post('/templates', authenticate, async (req, res) => {
 });
 
 router.get('/templates/:id', authenticate, async (req, res) => {
-  const result = await query('SELECT * FROM consent_templates WHERE id = $1 AND clinic_id = $2',
-    [req.params.id, req.user.clinic_id]);
+  const result = await query('SELECT * FROM consent_templates WHERE id = $1 AND clinic_id = $2 AND doctor_id = $3',
+    [req.params.id, req.user.clinic_id, req.user.id]);
   if (result.rows.length === 0) return res.status(404).json({ error: 'Template not found' });
   res.json(result.rows[0]);
 });
 
 router.put('/templates/:id', authenticate, async (req, res) => {
   const { title, description, type } = req.body;
-  const result = await query('SELECT * FROM consent_templates WHERE id = $1 AND clinic_id = $2',
-    [req.params.id, req.user.clinic_id]);
+  const result = await query('SELECT * FROM consent_templates WHERE id = $1 AND clinic_id = $2 AND doctor_id = $3',
+    [req.params.id, req.user.clinic_id, req.user.id]);
   if (result.rows.length === 0) return res.status(404).json({ error: 'Template not found' });
 
   await query('UPDATE consent_templates SET title = $1, description = $2, type = $3 WHERE id = $4',
@@ -98,8 +98,8 @@ router.put('/templates/:id', authenticate, async (req, res) => {
 });
 
 router.delete('/templates/:id', authenticate, async (req, res) => {
-  const result = await query('SELECT * FROM consent_templates WHERE id = $1 AND clinic_id = $2',
-    [req.params.id, req.user.clinic_id]);
+  const result = await query('SELECT * FROM consent_templates WHERE id = $1 AND clinic_id = $2 AND doctor_id = $3',
+    [req.params.id, req.user.clinic_id, req.user.id]);
   if (result.rows.length === 0) return res.status(404).json({ error: 'Template not found' });
 
   await query('DELETE FROM consent_templates WHERE id = $1', [req.params.id]);
@@ -107,8 +107,8 @@ router.delete('/templates/:id', authenticate, async (req, res) => {
 });
 
 router.get('/templates/:id/download', authenticate, async (req, res) => {
-  const result = await query('SELECT * FROM consent_templates WHERE id = $1 AND clinic_id = $2',
-    [req.params.id, req.user.clinic_id]);
+  const result = await query('SELECT * FROM consent_templates WHERE id = $1 AND clinic_id = $2 AND doctor_id = $3',
+    [req.params.id, req.user.clinic_id, req.user.id]);
   if (result.rows.length === 0) return res.status(404).json({ error: 'Template not found' });
 
   const template = result.rows[0];
