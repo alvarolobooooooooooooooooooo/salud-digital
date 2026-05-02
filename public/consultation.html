@@ -407,6 +407,36 @@
       </div>
     </div>
 
+    <!-- Imágenes de la Consulta -->
+    <div class="form-section">
+      <h3>Imágenes de la Consulta</h3>
+      <div id="imgDropZone" style="border: 2px dashed #0891b2; border-radius: 12px; padding: 2rem; text-align: center; background: #f0fdf4; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#ecfdf5'" onmouseout="this.style.background='#f0fdf4'">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📸</div>
+        <p style="margin: 0; color: #0891b2; font-weight: 700;">Arrastra imágenes aquí o haz clic para seleccionar</p>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: #64748b;">Máx 10 imágenes, 10MB cada una (JPEG, PNG, WebP)</p>
+      </div>
+      <input id="imgFileInput" type="file" accept="image/*" multiple hidden onchange="handleImageSelect()">
+      <div id="imgGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; margin-top: 1.5rem;"></div>
+    </div>
+
+    <!-- Consentimiento Informado -->
+    <div class="form-section">
+      <h3>Consentimiento Informado</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Seleccionar Plantilla de Consentimiento</label>
+          <select id="consTemplateSelect" onchange="updateConsentInfo()">
+            <option value="">-- Seleccione un consentimiento --</option>
+          </select>
+        </div>
+      </div>
+      <div id="consConsentInfo" style="display: none !important; margin-top: 1.5rem; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #16a34a; border-radius: 12px; padding: 1.25rem; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <button type="button" onclick="openSignatureModal()" style="display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.85rem 1.6rem; background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25); transition: all 0.2s;">✍️ Ver y Firmar</button>
+        <button type="button" onclick="downloadConsentPDF()" style="display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.85rem 1.6rem; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25); transition: all 0.2s;">📄 Descargar PDF</button>
+        <span id="consSignedIndicator" style="display: none; margin-left: auto; padding: 0.6rem 1rem; background: #dcfce7; color: #15803d; border-radius: 8px; font-weight: 700; font-size: 0.85rem;">✓ Consentimiento Firmado</span>
+      </div>
+    </div>
+
     <!-- Costos y Pago -->
     <div class="form-section">
       <h3>Información de Pago</h3>
@@ -429,37 +459,7 @@
       </div>
     </div>
 
-    <!-- Consentimiento Informado -->
-    <div class="form-section">
-      <h3>Consentimiento Informado</h3>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Seleccionar Plantilla de Consentimiento</label>
-          <select id="consTemplateSelect" onchange="updateConsentInfo()">
-            <option value="">-- Seleccione un consentimiento --</option>
-          </select>
-        </div>
-      </div>
-      <div id="consConsentInfo" style="display: none !important; margin-top: 1.5rem; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #16a34a; border-radius: 12px; padding: 1.25rem; align-items: center; gap: 1rem; flex-wrap: wrap;">
-        <button type="button" onclick="openSignatureModal()" style="display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.85rem 1.6rem; background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25); transition: all 0.2s;">✍️ Ver y Firmar</button>
-        <button type="button" onclick="downloadConsentPDF()" style="display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.85rem 1.6rem; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25); transition: all 0.2s;">📄 Descargar PDF</button>
-        <span id="consSignedIndicator" style="display: none; margin-left: auto; padding: 0.6rem 1rem; background: #dcfce7; color: #15803d; border-radius: 8px; font-weight: 700; font-size: 0.85rem;">✓ Consentimiento Firmado</span>
-      </div>
-    </div>
-
     <div id="consultMsg" class="form-msg" style="display:none;"></div>
-
-    <!-- Imágenes de la Consulta -->
-    <div class="form-section">
-      <h3>Imágenes de la Consulta</h3>
-      <div id="imgDropZone" style="border: 2px dashed #0891b2; border-radius: 12px; padding: 2rem; text-align: center; background: #f0fdf4; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#ecfdf5'" onmouseout="this.style.background='#f0fdf4'">
-        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📸</div>
-        <p style="margin: 0; color: #0891b2; font-weight: 700;">Arrastra imágenes aquí o haz clic para seleccionar</p>
-        <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: #64748b;">Máx 10 imágenes, 10MB cada una (JPEG, PNG, WebP)</p>
-      </div>
-      <input id="imgFileInput" type="file" accept="image/*" multiple hidden onchange="handleImageSelect()">
-      <div id="imgGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; margin-top: 1.5rem;"></div>
-    </div>
 
     <div class="footer">
       <button type="button" class="btn-cancel" onclick="history.back()">Cancelar</button>
