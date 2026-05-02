@@ -515,6 +515,71 @@
       border-radius: 3px;
     }
 
+    /* ── Alerta Información Médica ── */
+    .medical-alert {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.05) 100%);
+      border: 1.5px solid rgba(239, 68, 68, 0.3);
+      border-left: 4px solid #ef4444;
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin: 0 0 1.5rem 0;
+      backdrop-filter: blur(10px);
+      animation: slideDown 0.3s ease-out;
+    }
+    .medical-alert-content {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .medical-alert-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .medical-alert-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .medical-alert-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #991b1b;
+      letter-spacing: -0.3px;
+    }
+    .medical-alert-text {
+      font-size: 0.85rem;
+      color: #7f1d1d;
+      line-height: 1.5;
+    }
+    .medical-alert-item {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+    .medical-alert-item:last-child { margin-bottom: 0; }
+    .medical-alert-item-label {
+      font-weight: 600;
+      color: #991b1b;
+      min-width: 90px;
+    }
+    .medical-alert-item-value {
+      color: #7f1d1d;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     @media (max-width: 860px) {
       main, .layout-main { width: 100% !important; padding: 1rem 1rem !important; margin: 0 !important; padding-top: 80px !important; overflow-x: visible !important; }
 
@@ -597,6 +662,17 @@
       <p class="header-content p">Paciente: <strong id="patientName">Cargando...</strong></p>
     </div>
     <button class="btn-back" onclick="history.back()">← Volver</button>
+  </div>
+
+  <!-- Advertencia Información Médica -->
+  <div id="medicalAlert" class="medical-alert" style="display: none;">
+    <div class="medical-alert-content">
+      <div class="medical-alert-icon">⚠️</div>
+      <div class="medical-alert-info">
+        <div class="medical-alert-title">Información Médica Importante</div>
+        <div id="medicalAlertText" class="medical-alert-text"></div>
+      </div>
+    </div>
   </div>
 
   <form id="consultForm" onsubmit="submitConsult(event)">
@@ -1080,9 +1156,39 @@ async function loadAppointment() {
     patientId = appt.patient_id;
     document.getElementById('patientName').textContent = appt.patient_name;
     podogram1 = new PodogramContainer('podogram1', {}, false);
+
+    // Load medical info
+    await loadMedicalAlert();
   } catch (e) {
     console.error(e);
     alert('Error al cargar la cita');
+  }
+}
+
+async function loadMedicalAlert() {
+  try {
+    const response = await api(`/api/patients/${patientId}/critical-info`);
+    const { allergies, medications, conditions } = response;
+
+    const alert = document.getElementById('medicalAlert');
+    const alertText = document.getElementById('medicalAlertText');
+
+    if (allergies || medications || conditions) {
+      let html = '';
+      if (allergies) {
+        html += `<div class="medical-alert-item"><span class="medical-alert-item-label">Alergias:</span><span class="medical-alert-item-value">${esc(allergies)}</span></div>`;
+      }
+      if (medications) {
+        html += `<div class="medical-alert-item"><span class="medical-alert-item-label">Medicamentos:</span><span class="medical-alert-item-value">${esc(medications)}</span></div>`;
+      }
+      if (conditions) {
+        html += `<div class="medical-alert-item"><span class="medical-alert-item-label">Condiciones:</span><span class="medical-alert-item-value">${esc(conditions)}</span></div>`;
+      }
+      alertText.innerHTML = html;
+      alert.style.display = 'block';
+    }
+  } catch (e) {
+    console.error('Error cargando información médica:', e);
   }
 }
 

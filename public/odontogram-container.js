@@ -240,10 +240,12 @@ class OdontogramContainer {
       border-radius: 12px;
       box-shadow: 0 20px 50px rgba(0,0,0,0.25), 0 0 1px rgba(0,0,0,0.1);
       padding: 0;
-      min-width: 280px;
+      min-width: 380px;
+      max-height: 80vh;
       display: none;
       animation: popupSlideIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
     `;
 
     // Add animation
@@ -445,11 +447,16 @@ class OdontogramContainer {
     let top = rect.bottom + 8;
     let left = rect.left;
 
-    if(top + 320 > window.innerHeight) {
-      top = rect.top - 320 - 8;
+    const popupHeight = 350;
+    const availableBelow = window.innerHeight - rect.bottom;
+    const availableAbove = rect.top;
+
+    if(availableBelow < popupHeight && availableAbove > availableBelow) {
+      top = Math.max(8, rect.top - popupHeight - 8);
     }
-    if(left + 260 > window.innerWidth) {
-      left = window.innerWidth - 260 - 16;
+
+    if(left + 380 > window.innerWidth) {
+      left = window.innerWidth - 380 - 16;
     }
     left = Math.max(16, left);
 
