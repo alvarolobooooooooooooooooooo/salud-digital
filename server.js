@@ -17,6 +17,8 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/patients', require('./routes/patients'));
 app.use('/api/consultations', require('./routes/consultations'));
 app.use('/api/appointments', require('./routes/appointments'));
+app.use('/api/consents', require('./routes/consents'));
+app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/assistant', require('./routes/assistant'));
 app.use('/api/assistant', require('./routes/assistant-intent'));
 app.use('/api/conversation', require('./routes/conversation'));

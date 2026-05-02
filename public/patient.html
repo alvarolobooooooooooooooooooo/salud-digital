@@ -303,6 +303,27 @@
           <span class="info-value" id="pPhone">—</span>
         </div>
       </div>
+      <button id="editContactBtn" onclick="openContactEdit()" style="margin-top: 1rem; padding: 0.7rem 1.2rem; background: #f1f5f9; border: 1.5px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 700; color: #0891b2; font-size: 0.85rem;">
+        Editar Contacto
+      </button>
+    </div>
+  </div>
+
+  <!-- Contact Edit Modal -->
+  <div id="contactEditModal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); backdrop-filter:blur(4px); align-items:center; justify-content:center; z-index:1000; padding:1rem;">
+    <div style="background:white; border-radius:20px; width:100%; max-width:500px; padding:1.5rem;">
+      <h3 style="font-size:1.25rem; font-weight:900; color:#0891b2; margin-bottom:1.25rem;">Editar Información de Contacto</h3>
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        <div>
+          <label style="display:block; font-size:0.8rem; font-weight:700; text-transform:uppercase; color:#0891b2; margin-bottom:0.5rem;">Teléfono (también se usa para WhatsApp)</label>
+          <input type="text" id="editPhone" style="width:100%; padding:0.8rem 1rem; border:1.5px solid #e2e8f0; border-radius:10px; font-size:0.9rem; background:#f8fafc;">
+          <small style="display:block; font-size:0.75rem; color:#94a3b8; margin-top:0.4rem;">Solo dígitos. Ejemplo Honduras: 50488888888</small>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
+        <button onclick="closeContactEdit()" style="padding:0.8rem 1.4rem; background:#f1f5f9; border:1.5px solid #e2e8f0; border-radius:10px; cursor:pointer; font-weight:700; color:#64748b;">Cancelar</button>
+        <button onclick="saveContact()" style="padding:0.8rem 1.4rem; background:linear-gradient(135deg,#0891b2,#06b6d4); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:700;">Guardar</button>
+      </div>
     </div>
   </div>
 
@@ -600,6 +621,41 @@
     }
   }
 
+  function openContactEdit() {
+    document.getElementById('editPhone').value = patientData.phone || '';
+    document.getElementById('contactEditModal').style.display = 'flex';
+  }
+
+  function closeContactEdit() {
+    document.getElementById('contactEditModal').style.display = 'none';
+  }
+
+  async function saveContact() {
+    const phone = document.getElementById('editPhone').value.trim().replace(/\D/g, '');
+
+    if (!phone) {
+      alert('Ingrese un número de teléfono.');
+      return;
+    }
+
+    if (!/^\d{8,15}$/.test(phone)) {
+      alert('Número de teléfono inválido. Use solo dígitos.');
+      return;
+    }
+
+    try {
+      await api(`/api/patients/${patientId}`, {
+        method: 'PUT',
+        body: { phone }
+      });
+      patientData.phone = phone;
+      document.getElementById('pPhone').textContent = phone || '—';
+      closeContactEdit();
+    } catch (e) {
+      alert('Error al guardar: ' + e.message);
+    }
+  }
+
   (async () => {
     try {
       patientData = await api(`/api/patients/${patientId}`);
@@ -609,6 +665,12 @@
       if (medicalModal) {
         medicalModal.addEventListener('click', (e) => {
           if (e.target.id === 'medicalEditModal') closeMedicalEditModal();
+        });
+      }
+      const contactModal = document.getElementById('contactEditModal');
+      if (contactModal) {
+        contactModal.addEventListener('click', (e) => {
+          if (e.target.id === 'contactEditModal') closeContactEdit();
         });
       }
     } catch (e) {

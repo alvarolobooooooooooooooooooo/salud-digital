@@ -423,7 +423,28 @@
           </select>
         </div>
       </div>
-      <button type="button" class="pdf-btn">📄 Descargar PDF de Consentimiento</button>
+      <div class="form-group">
+        <label>Descripción del Pago (descuentos, paquetes, etc.)</label>
+        <textarea id="consPaymentNotes" placeholder="Ej: Descuento 10%, Paquete 2 procedimientos..." style="min-height: 80px;"></textarea>
+      </div>
+    </div>
+
+    <!-- Consentimiento Informado -->
+    <div class="form-section">
+      <h3>Consentimiento Informado</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Seleccionar Plantilla de Consentimiento</label>
+          <select id="consTemplateSelect" onchange="updateConsentInfo()">
+            <option value="">-- Seleccione un consentimiento --</option>
+          </select>
+        </div>
+      </div>
+      <div id="consConsentInfo" style="display: none !important; margin-top: 1.5rem; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #16a34a; border-radius: 12px; padding: 1.25rem; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <button type="button" onclick="openSignatureModal()" style="display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.85rem 1.6rem; background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25); transition: all 0.2s;">✍️ Ver y Firmar</button>
+        <button type="button" onclick="downloadConsentPDF()" style="display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.85rem 1.6rem; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25); transition: all 0.2s;">📄 Descargar PDF</button>
+        <span id="consSignedIndicator" style="display: none; margin-left: auto; padding: 0.6rem 1rem; background: #dcfce7; color: #15803d; border-radius: 8px; font-weight: 700; font-size: 0.85rem;">✓ Consentimiento Firmado</span>
+      </div>
     </div>
 
     <div id="consultMsg" class="form-msg" style="display:none;"></div>
@@ -538,6 +559,8 @@ async function submitConsult(e) {
       odontogram_state: odontogram1 ? JSON.stringify(odontogram1.getState()) : '{}',
       cost,
       payment_status: document.getElementById('consPayment').value,
+      payment_notes: document.getElementById('consPaymentNotes').value || '',
+      consent_id: currentConsentId || null,
       lifestyle: {
         drugs: drugs || null,
         alcohol: alcohol || null,
@@ -599,7 +622,219 @@ document.getElementById('consultForm').addEventListener('keydown', (e) => {
   }
 });
 
+// ── Consentimiento y Firma ──
+let consentTemplates = [];
+let currentConsentId = null;
+let currentConsentTemplate = null;
+let currentSignatureData = null;
+
+async function loadConsentTemplates() {
+  try {
+    consentTemplates = await api('/api/consents/templates');
+    const select = document.getElementById('consTemplateSelect');
+    select.innerHTML = '<option value="">-- Seleccione un consentimiento --</option>';
+    consentTemplates.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = t.title;
+      opt.dataset.description = t.description;
+      select.appendChild(opt);
+    });
+  } catch (e) {
+    console.error('Error loading consent templates:', e);
+  }
+}
+
+function updateConsentInfo() {
+  const select = document.getElementById('consTemplateSelect');
+  const value = select.value;
+  const infoDiv = document.getElementById('consConsentInfo');
+  const indicator = document.getElementById('consSignedIndicator');
+
+  if (!value) {
+    infoDiv.style.setProperty('display', 'none', 'important');
+    currentConsentTemplate = null;
+    return;
+  }
+
+  currentConsentTemplate = consentTemplates.find(t => t.id === parseInt(value));
+  infoDiv.style.setProperty('display', 'flex', 'important');
+
+  if (currentConsentId) {
+    indicator.style.display = 'inline';
+  } else {
+    indicator.style.display = 'none';
+  }
+}
+
+function openSignatureModal() {
+  if (!currentConsentTemplate) {
+    alert('Seleccione un consentimiento primero');
+    return;
+  }
+
+  const modal = document.createElement('div');
+  modal.id = 'signatureModal';
+  modal.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 1rem;
+  `;
+
+  modal.innerHTML = `
+    <div style="background: white; border-radius: 20px; width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column;">
+      <div style="padding: 1.5rem; border-bottom: 1px solid #e2e8f0;">
+        <h2 style="font-size: 1.25rem; font-weight: 900; color: #0891b2;">${esc(currentConsentTemplate.title)}</h2>
+      </div>
+
+      <div style="padding: 1.5rem; overflow-y: auto; flex: 1; border-bottom: 1px solid #e2e8f0;">
+        <div style="font-size: 0.9rem; line-height: 1.6; color: #475569;">${currentConsentTemplate.description}</div>
+      </div>
+
+      <div style="padding: 1.5rem; border-bottom: 1px solid #e2e8f0;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem; color: #0891b2;">Firme aquí:</label>
+        <canvas id="signatureCanvas" width="600" height="200" style="border: 2px solid #e2e8f0; border-radius: 10px; background: white; cursor: crosshair; display: block; width: 100%;"></canvas>
+        <button type="button" onclick="clearSignatureCanvas()" style="margin-top: 0.75rem; padding: 0.5rem 1rem; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-weight: 600;">Limpiar firma</button>
+      </div>
+
+      <div style="padding: 1rem 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button type="button" onclick="closeSignatureModal()" style="padding: 0.8rem 1.4rem; background: #f1f5f9; border: 1.5px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-weight: 700; color: #64748b;">Cancelar</button>
+        <button type="button" onclick="confirmSignature()" style="padding: 0.8rem 1.4rem; background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 700;">Confirmar Firma</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const canvas = document.getElementById('signatureCanvas');
+  const ctx = canvas.getContext('2d');
+  let isDrawing = false;
+
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+
+  canvas.addEventListener('mousedown', (e) => {
+    isDrawing = true;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (!isDrawing) return;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  });
+
+  canvas.addEventListener('mouseup', () => { isDrawing = false; });
+  canvas.addEventListener('mouseout', () => { isDrawing = false; });
+}
+
+function clearSignatureCanvas() {
+  const canvas = document.getElementById('signatureCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+async function confirmSignature() {
+  const canvas = document.getElementById('signatureCanvas');
+  const imageData = canvas.toDataURL('image/png');
+
+  // Verificar que hay firma
+  if (imageData === 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==') {
+    alert('Debe firmar antes de confirmar');
+    return;
+  }
+
+  try {
+    // Crear consent
+    const me = await api('/api/auth/me');
+    const consentRes = await api('/api/consents', {
+      method: 'POST',
+      body: {
+        patient_id: patientId,
+        template_id: currentConsentTemplate.id,
+        signed_by: me.name
+      }
+    });
+
+    // Guardar firma
+    await api(`/api/consents/${consentRes.id}`, {
+      method: 'PUT',
+      body: {
+        signature_data: imageData,
+        status: 'signed',
+        signed_by: me.name
+      }
+    });
+
+    currentConsentId = consentRes.id;
+    currentSignatureData = imageData;
+
+    const indicator = document.getElementById('consSignedIndicator');
+    indicator.style.display = 'inline';
+
+    closeSignatureModal();
+  } catch (e) {
+    alert('Error al guardar la firma: ' + e.message);
+  }
+}
+
+function closeSignatureModal() {
+  const modal = document.getElementById('signatureModal');
+  if (modal) modal.remove();
+}
+
+function esc(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function downloadConsentPDF() {
+  if (!currentConsentTemplate) {
+    alert('Seleccione un consentimiento primero');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/consents/templates/${currentConsentTemplate.id}/download`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('sd_token')}` }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentConsentTemplate.title}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert('Error al descargar PDF: ' + e.message);
+  }
+}
+
+loadConsentTemplates();
 loadAppointment();
+
+// Trigger consent info on load in case a value is already selected
+setTimeout(() => {
+  updateConsentInfo();
+}, 500);
 </script>
 </body>
 </html>

@@ -11,7 +11,7 @@ function getLocalDateString(date = new Date()) {
 }
 
 router.get('/', authenticate, async (req, res) => {
-  let queryStr = `SELECT a.*, p.name AS patient_name, u.name AS doctor_name, u.email AS doctor_email FROM appointments a JOIN patients p ON a.patient_id = p.id JOIN users u ON a.doctor_id = u.id WHERE a.clinic_id = $1`;
+  let queryStr = `SELECT a.*, p.name AS patient_name, p.phone AS patient_phone, u.name AS doctor_name, u.email AS doctor_email FROM appointments a JOIN patients p ON a.patient_id = p.id JOIN users u ON a.doctor_id = u.id WHERE a.clinic_id = $1`;
   const params = [req.user.clinic_id];
   let paramIndex = 2;
 
@@ -65,7 +65,7 @@ router.put('/:id', authenticate, async (req, res) => {
 
 router.get('/today', authenticate, async (req, res) => {
   const today = getLocalDateString();
-  let queryStr = `SELECT a.*, p.name AS patient_name, u.name AS doctor_name, u.email AS doctor_email FROM appointments a JOIN patients p ON a.patient_id = p.id JOIN users u ON a.doctor_id = u.id WHERE a.clinic_id = $1 AND a.scheduled_at::date = $2`;
+  let queryStr = `SELECT a.*, p.name AS patient_name, p.phone AS patient_phone, u.name AS doctor_name, u.email AS doctor_email FROM appointments a JOIN patients p ON a.patient_id = p.id JOIN users u ON a.doctor_id = u.id WHERE a.clinic_id = $1 AND a.scheduled_at::date = $2`;
   const params = [req.user.clinic_id, today];
   let paramIndex = 3;
 

@@ -136,7 +136,7 @@ router.get('/finances/by-doctor', authenticate, async (req, res) => {
 });
 
 router.post('/', authenticate, async (req, res) => {
-  const { patient_id, notes, diagnosis, treatment, specialty, odontogram_state, cost, payment_status, lifestyle, procedures, radiography_notes, observations, doctor_id, visit_reason, appointment_id } = req.body;
+  const { patient_id, notes, diagnosis, treatment, specialty, odontogram_state, cost, payment_status, lifestyle, procedures, radiography_notes, observations, doctor_id, visit_reason, appointment_id, payment_notes, consent_id } = req.body;
   if (!patient_id) return res.status(400).json({ error: 'patient_id required' });
 
   const patientResult = await query('SELECT * FROM patients WHERE id = $1 AND clinic_id = $2', [patient_id, req.user.clinic_id]);
@@ -147,8 +147,8 @@ router.post('/', authenticate, async (req, res) => {
   const costNum = Number(cost) || 0;
 
   const result = await query(
-    'INSERT INTO consultations (patient_id, notes, diagnosis, treatment, specialty, odontogram_state, cost, payment_status, lifestyle, procedures, radiography_notes, observations, doctor_id, visit_reason, clinic_id, appointment_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING id',
-    [patient_id, notes || '', diagnosis || '', treatment || '', specialty || '', odontoStr, costNum, payment_status || 'pending', lifestyleStr, procedures || '', radiography_notes || '', observations || '', doctor_id || null, visit_reason || '', req.user.clinic_id, appointment_id || null]
+    'INSERT INTO consultations (patient_id, notes, diagnosis, treatment, specialty, odontogram_state, cost, payment_status, lifestyle, procedures, radiography_notes, observations, doctor_id, visit_reason, clinic_id, appointment_id, payment_notes, consent_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) RETURNING id',
+    [patient_id, notes || '', diagnosis || '', treatment || '', specialty || '', odontoStr, costNum, payment_status || 'pending', lifestyleStr, procedures || '', radiography_notes || '', observations || '', doctor_id || null, visit_reason || '', req.user.clinic_id, appointment_id || null, payment_notes || '', consent_id || null]
   );
 
   res.json({ id: result.rows[0].id, patient_id, notes, diagnosis, treatment });
@@ -240,6 +240,8 @@ router.put('/:id', authenticate, async (req, res) => {
   let observations = consultation.observations;
   let doctor_id = consultation.doctor_id;
   let visit_reason = consultation.visit_reason;
+  let payment_notes = consultation.payment_notes;
+  let consent_id = consultation.consent_id;
 
   if ('notes' in req.body) notes = req.body.notes || '';
   if ('diagnosis' in req.body) diagnosis = req.body.diagnosis || '';
@@ -253,9 +255,11 @@ router.put('/:id', authenticate, async (req, res) => {
   if ('observations' in req.body) observations = req.body.observations || '';
   if ('doctor_id' in req.body) doctor_id = req.body.doctor_id || null;
   if ('visit_reason' in req.body) visit_reason = req.body.visit_reason || '';
+  if ('payment_notes' in req.body) payment_notes = req.body.payment_notes || '';
+  if ('consent_id' in req.body) consent_id = req.body.consent_id || null;
 
-  await query('UPDATE consultations SET notes = $1, diagnosis = $2, treatment = $3, odontogram_state = $4, cost = $5, payment_status = $6, lifestyle = $7, procedures = $8, radiography_notes = $9, observations = $10, doctor_id = $11, visit_reason = $12 WHERE id = $13 AND clinic_id = $14',
-    [notes, diagnosis, treatment, odontogram_state, cost, payment_status, lifestyle, procedures, radiography_notes, observations, doctor_id, visit_reason, id, req.user.clinic_id]);
+  await query('UPDATE consultations SET notes = $1, diagnosis = $2, treatment = $3, odontogram_state = $4, cost = $5, payment_status = $6, lifestyle = $7, procedures = $8, radiography_notes = $9, observations = $10, doctor_id = $11, visit_reason = $12, payment_notes = $13, consent_id = $14 WHERE id = $15 AND clinic_id = $16',
+    [notes, diagnosis, treatment, odontogram_state, cost, payment_status, lifestyle, procedures, radiography_notes, observations, doctor_id, visit_reason, payment_notes, consent_id, id, req.user.clinic_id]);
 
   res.json({ success: true });
 });

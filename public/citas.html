@@ -1371,6 +1371,7 @@
 <script src="/icons.js"></script>
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
+<script src="/whatsapp.js"></script>
 <script src="/common-date-picker.js"></script>
 <script src="/odontogram.types.js"></script>
 <script src="/odontogram.data.js"></script>
@@ -1435,17 +1436,31 @@ let calView = 'month';
 let calDate = new Date();
 
 /* ─────────── BOOT ─────────── */
+let waConfig = { whatsapp_enabled: false, whatsapp_number: '', whatsapp_template: '', name: '' };
+let reminderMap = {}; // appointment_id -> reminder row
+
+async function refreshReminders() {
+  try {
+    const reminders = await api('/api/reminders');
+    reminderMap = {};
+    reminders.forEach(r => { reminderMap[r.appointment_id] = r; });
+  } catch (e) { console.error('Error loading reminders:', e); }
+}
+
     (async () => {
   try {
-    const [appts, patients, doctors, user] = await Promise.all([
+    const [appts, patients, doctors, user, waCfg] = await Promise.all([
       api('/api/appointments'),
       api('/api/patients'),
       api('/api/users/doctors'),
-      api('/api/auth/me')
+      api('/api/auth/me'),
+      api('/api/reminders/whatsapp-config').catch(() => null)
     ]);
     currentUser = user;
     allAppts   = appts;
     allDoctors = doctors;
+    if (waCfg) waConfig = waCfg;
+    await refreshReminders();
 
     // filter dropdowns
     const uniq = [...new Map(appts.map(a => [a.patient_id, a.patient_name])).entries()];
@@ -1773,12 +1788,36 @@ function showPopup(id, e) {
   const a = allAppts.find(x => x.id === id);
   if (!a) return;
 
+  // Build WhatsApp button block based on state
+  const reminder = reminderMap[a.id];
+  const waState = WhatsApp.getReminderState({
+    whatsappEnabled: waConfig.whatsapp_enabled,
+    patientWhatsapp: a.patient_phone || a.phone,
+    reminderStatus: reminder ? reminder.reminder_status : null
+  });
+
+  let waBlock = '';
+  if (waState === 'manual_sent') {
+    const sentAt = reminder && reminder.sent_at ? new Date(reminder.sent_at).toLocaleString('es-ES', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+    waBlock = `<div style="margin-top:.5rem; padding:.5rem .65rem; background:#dcfce7; border-radius:8px; font-size:.72rem; color:#15803d; font-weight:600;">
+      ✓ WhatsApp enviado${sentAt ? ' · ' + esc(sentAt) : ''}${reminder.sent_by_name ? ' por ' + esc(reminder.sent_by_name) : ''}
+      <button onclick="sendWhatsAppFromPopup(${a.id})" style="display:block;margin-top:.4rem;width:100%;padding:.4rem;background:#16a34a;color:white;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:.72rem;">Reenviar</button>
+    </div>`;
+  } else if (waState === 'pending') {
+    waBlock = `<div style="margin-top:.5rem"><button class="popup-status-btn" style="width:100%;background:#16a34a;color:white;padding:.5rem;font-weight:600;border:none;cursor:pointer;" onclick="sendWhatsAppFromPopup(${a.id})">Enviar WhatsApp</button></div>`;
+  } else if (waState === 'no_whatsapp_number') {
+    waBlock = `<div style="margin-top:.5rem; padding:.5rem .65rem; background:#e0e7ff; border-radius:8px; font-size:.72rem; color:#4338ca; font-weight:600;">Sin número WhatsApp · <a href="/patient.html?id=${a.patient_id}" style="color:#4338ca; text-decoration:underline;">Agregar</a></div>`;
+  } else if (waState === 'whatsapp_disabled') {
+    waBlock = `<div style="margin-top:.5rem; padding:.5rem .65rem; background:#fef3c7; border-radius:8px; font-size:.72rem; color:#78350f; font-weight:600;">WhatsApp desactivado · <a href="/recordatorios.html" style="color:#78350f; text-decoration:underline;">Configurar</a></div>`;
+  }
+
   document.getElementById('popPatient').textContent = a.patient_name;
   document.getElementById('popBody').innerHTML = `
     <div>${drLabel(a)}</div>
     <div>${fmtDt(a.scheduled_at)}</div>
     <div style="margin:.15rem 0">${statusBadge(a.status)}</div>
     <a href="/patient.html?id=${a.patient_id}" class="popup-link">Ver expediente <span style="display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; margin-left: 0.3rem;">${Icons.render('arrowRight', 14)}</span></a>
+    ${waBlock}
     ${a.status === 'completed'
       ? `<div style="margin-top:.5rem"><button class="popup-status-btn" style="width:100%;background:#f0f9ff;border-color:#0891b2;color:#0891b2;padding:.5rem;font-weight:600;" onclick="viewConsultation(${a.id})">Ver Consulta</button></div>`
       : (currentUser && currentUser.role === 'doctor' && !['Odontología', 'Podología'].includes(currentUser.specialty))
@@ -1831,6 +1870,94 @@ async function changeStatus(id, status) {
 }
 
 function closePopup() { document.getElementById('calPopup').style.display = 'none'; }
+
+let pendingWaConfirm = null;
+
+async function sendWhatsAppFromPopup(appointmentId) {
+  const a = allAppts.find(x => x.id === appointmentId);
+  if (!a) return;
+
+  if (!waConfig.whatsapp_enabled) {
+    alert('WhatsApp está desactivado. Ve a Recordatorios para activarlo.');
+    return;
+  }
+
+  let patientWa = a.patient_phone || a.phone;
+  if (!patientWa) {
+    alert('Este paciente no tiene número de teléfono registrado.');
+    return;
+  }
+
+  patientWa = WhatsApp.normalizePhone(patientWa);
+  if (!WhatsApp.isValidPhone(patientWa)) {
+    alert('Número de teléfono inválido.');
+    return;
+  }
+
+  const message = WhatsApp.buildReminderMessage({
+    template: waConfig.whatsapp_template || '',
+    patientName: a.patient_name,
+    clinicName: waConfig.name,
+    doctorName: a.doctor_name,
+    scheduledAt: a.scheduled_at
+  });
+
+  WhatsApp.openWhatsApp(patientWa, message);
+
+  pendingWaConfirm = { appointmentId, message };
+  showWaConfirmModal(message);
+}
+
+function showWaConfirmModal(message) {
+  let modal = document.getElementById('waConfirmModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'waConfirmModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:2000;padding:1rem;';
+    modal.innerHTML = `
+      <div style="background:white;border-radius:20px;width:100%;max-width:480px;padding:1.5rem;">
+        <h3 style="font-size:1.15rem;font-weight:900;color:#0891b2;margin-bottom:1rem;">¿Marcar como enviado?</h3>
+        <p style="color:#475569;font-size:0.9rem;margin-bottom:1rem;line-height:1.5;">Se abrió WhatsApp con el mensaje preparado. ¿Deseas marcar este recordatorio como enviado manualmente?</p>
+        <div id="waMsgPreview" style="background:#f0fdf4;border-left:4px solid #16a34a;padding:0.85rem 1rem;border-radius:8px;font-size:0.85rem;color:#14532d;line-height:1.5;white-space:pre-wrap;max-height:200px;overflow-y:auto;margin-bottom:1rem;"></div>
+        <button onclick="copyWaMessage()" style="padding:0.5rem 0.9rem;background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;font-weight:700;color:#64748b;font-size:0.8rem;margin-bottom:1rem;">Copiar mensaje</button>
+        <div style="display:flex;justify-content:flex-end;gap:0.6rem;">
+          <button onclick="closeWaConfirm()" style="padding:0.7rem 1.2rem;background:#f1f5f9;border:1.5px solid #e2e8f0;border-radius:10px;cursor:pointer;font-weight:700;color:#64748b;">Cancelar</button>
+          <button onclick="confirmWaSent()" style="padding:0.7rem 1.2rem;background:linear-gradient(135deg,#16a34a,#22c55e);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:700;">Sí, marcar enviado</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('waMsgPreview').textContent = message;
+  modal.style.display = 'flex';
+}
+
+function closeWaConfirm() {
+  pendingWaConfirm = null;
+  const modal = document.getElementById('waConfirmModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function copyWaMessage() {
+  if (!pendingWaConfirm) return;
+  const ok = await WhatsApp.copyMessage(pendingWaConfirm.message);
+  if (ok) alert('Mensaje copiado al portapapeles');
+}
+
+async function confirmWaSent() {
+  if (!pendingWaConfirm) return;
+  try {
+    await api('/api/reminders', {
+      method: 'POST',
+      body: { appointment_id: pendingWaConfirm.appointmentId, message_content: pendingWaConfirm.message }
+    });
+    closeWaConfirm();
+    closePopup();
+    await refreshReminders();
+  } catch (e) {
+    alert('Error al guardar: ' + e.message);
+  }
+}
 
 async function viewConsultation(appointmentId) {
   try {

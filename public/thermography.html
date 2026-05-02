@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SaludDigital — Termografía y Termometría</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @keyframes floatBg {
+      0%, 100% { transform: translateY(0px) translateX(0px); }
+      50% { transform: translateY(50px) translateX(30px); }
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      width: 1000px;
+      height: 1000px;
+      background: radial-gradient(circle, rgba(8, 145, 178, 0.12) 0%, transparent 70%);
+      top: -200px;
+      right: -300px;
+      border-radius: 50%;
+      z-index: 0;
+      animation: floatBg 20s ease-in-out infinite;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
+      bottom: -200px;
+      left: -200px;
+      border-radius: 50%;
+      z-index: 0;
+      animation: floatBg 25s ease-in-out infinite reverse;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+
+    main {
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+      gap: 2rem;
+    }
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1rem;
+      background: #f1f5f9;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      color: #0891b2;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .back-button:hover {
+      background: #ecf9fc;
+      border-color: #0891b2;
+    }
+
+    .header-content h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.04em;
+    }
+
+    .header-content p {
+      color: #64748b;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      font-weight: 600;
+    }
+
+    .container {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 2.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 100px rgba(8, 145, 178, 0.08), 0 20px 50px rgba(0, 0, 0, 0.08);
+      animation: fadeSlideUp 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      opacity: 0;
+    }
+
+    .thermography-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 2rem;
+    }
+
+    .feet-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .feet-svg {
+      width: 100%;
+      max-width: 400px;
+      height: 450px;
+      cursor: crosshair;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .feet-svg svg {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .feet-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #0891b2;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .controls-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .control-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #0891b2;
+    }
+
+    .thermography-types {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .type-option {
+      padding: 0.8rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .type-option:hover {
+      border-color: #0891b2;
+      background: #ecf9fc;
+    }
+
+    .type-option.active {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      border-color: #0891b2;
+    }
+
+    .temperature-input {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .temperature-input input {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      background: #f8fafc;
+      transition: all 0.2s;
+    }
+
+    .temperature-input input:focus {
+      outline: none;
+      border-color: #0891b2;
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+      background: white;
+    }
+
+    .temperature-input button {
+      padding: 0.8rem 1rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .temperature-input button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(8, 145, 178, 0.25);
+    }
+
+    .measurements-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .measurement-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem;
+      background: #f0f9ff;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      border-left: 3px solid #0891b2;
+    }
+
+    .measurement-item-text {
+      flex: 1;
+    }
+
+    .measurement-item-temp {
+      font-weight: 700;
+      color: #0891b2;
+      margin-right: 1rem;
+    }
+
+    .measurement-item-delete {
+      background: #fee2e2;
+      color: #dc2626;
+      border: none;
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .measurement-item-delete:hover {
+      background: #fecaca;
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 0.9rem 1.5rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      box-shadow: 0 6px 18px rgba(8, 145, 178, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(8, 145, 178, 0.35);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1.5px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+      background: #ecf9fc;
+      border-color: #0891b2;
+      color: #0891b2;
+    }
+
+    .zone-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+
+    @media (max-width: 768px) {
+      main { padding: 1.5rem 1rem; }
+      .header-content h1 { font-size: 1.6rem; }
+      .container { padding: 1.5rem; }
+      .thermography-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .actions { flex-direction: column-reverse; }
+      .btn { width: 100%; }
+    }
+
+    main::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    main::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    main::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.4) 0%, rgba(6, 182, 212, 0.4) 100%);
+      border-radius: 3px;
+    }
+
+    .color-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.75rem;
+      padding: 1rem;
+      background: #f0f9ff;
+      border-radius: 12px;
+      margin-top: 1.5rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+    }
+
+    .thermography-types {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .type-option {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #64748b;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .type-option:hover {
+      border-color: #0891b2;
+      background: #ecf9fc;
+    }
+
+    .type-option.active {
+      border-color: #0891b2;
+      background: #0891b2;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<main class="layout-main">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Termografía y Termometría</h1>
+      <p>Registro de patrones térmicos en los pies</p>
+    </div>
+    <button class="back-button" onclick="history.back()" title="Volver">
+      <span id="backIcon"></span>
+      <span>Volver</span>
+    </button>
+  </div>
+
+  <!-- Thermography Form -->
+  <div class="container">
+    <div class="thermography-grid">
+      <!-- Feet SVG Section -->
+      <div class="feet-section">
+        <h3 style="color: #0891b2; font-weight: 700; margin-bottom: 0.5rem;">Visualización de Pies</h3>
+        <div class="feet-svg" id="feetContainer">
+          <!-- SVG will be injected here -->
+        </div>
+      </div>
+
+      <!-- Controls Section -->
+      <div class="controls-section">
+        <div class="control-group">
+          <label class="control-label">Tipo de Termografía</label>
+          <div class="thermography-types" id="typeSelector">
+            <button class="type-option" data-type="type1">Tipo 1<br>Mariposa</button>
+            <button class="type-option" data-type="type2">Tipo 2<br>Alto Completo</button>
+            <button class="type-option" data-type="type3">Tipo 3<br>Alto Interno</button>
+            <button class="type-option" data-type="type4">Tipo 4<br>Bajo Completo</button>
+            <button class="type-option" data-type="type5">Tipo 5<br>Bajo Completo</button>
+            <button class="type-option" data-type="type6">Tipo 6<br>Antepié Bajo</button>
+            <button class="type-option" data-type="type7">Tipo 7<br>Dedos Bajos</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Zona a Medir</label>
+          <div class="temperature-input">
+            <input type="text" id="zoneInput" placeholder="Ej: Talón, Metatarsiano..." required>
+            <button type="button" onclick="addTemperature()">Agregar</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Temperatura (°C)</label>
+          <div class="temperature-input">
+            <input type="number" id="temperatureInput" placeholder="Ej: 32.5" step="0.1" min="20" max="45" required>
+            <button type="button" onclick="addTemperature()">Registrar</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Mediciones Registradas</label>
+          <div class="measurements-list" id="measurementsList">
+            <p style="color: #94a3b8; font-size: 0.85rem; padding: 1rem; text-align: center;">Sin mediciones aún</p>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Observaciones Generales</label>
+          <textarea id="observations" placeholder="Notas sobre los patrones térmicos observados..." style="padding: 0.8rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 12px; font-family: inherit; font-size: 0.95rem; background: #f8fafc; min-height: 100px; resize: vertical;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color Legend -->
+    <div class="color-legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background: #3b82f6;"></div>
+        <span>Muy Fría (&lt;30°C)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #06b6d4;"></div>
+        <span>Fría (30-32°C)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #10b981;"></div>
+        <span>Normal (32-35°C)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #f59e0b;"></div>
+        <span>Cálida (35-37°C)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #ef4444;"></div>
+        <span>Muy Cálida (&gt;37°C)</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-secondary" onclick="history.back()">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="saveThermography()">Guardar Termografía</button>
+    </div>
+  </div>
+</main>
+
+<script src="/icons.js"></script>
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script>
+  requireAuth(['clinic_admin', 'doctor']);
+
+  // Render back icon
+  const backIcon = document.querySelector('#backIcon');
+  if (backIcon && typeof Icons !== 'undefined') {
+    backIcon.innerHTML = Icons.render('arrowLeft', 16);
+  }
+
+
+  // SVG feet definition - potrace vector
+  const feetSVG = `<svg version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12800 11900" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <style>
+        .foot-path { fill: rgba(8, 145, 178, 0.2); cursor: pointer; transition: fill 0.2s; }
+        .foot-path:hover { fill: rgba(8, 145, 178, 0.35); }
+        .foot-path.selected { fill: #0891b2; }
+      </style>
+    </defs>
+    <g transform="translate(0,11900) scale(1,-1)">
+      <!-- PIE IZQUIERDO -->
+      <path class="foot-path" d="M4406 11884 c-207 -50 -395 -235 -497 -490 -172 -430 -103 -959 166 -1272 70 -82 127 -127 220 -173 334 -165 707 47 868 496 54 152 70 255 70 450 0 194 -16 297 -70 450 -141 393 -450 613 -757 539z" data-foot="left" data-zone="sole"/>
+      <path class="foot-path" d="M3078 11410 c-173 -29 -323 -193 -385 -420 -26 -95 -26 -377 1 -475 62 -228 192 -407 353 -487 63 -31 74 -33 168 -33 93 0 105 2 167 33 176 86 292 305 305 572 22 463 -280 865 -609 810z" data-foot="left" data-zone="toe1"/>
+      <path class="foot-path" d="M1888 10941 c-71 -29 -113 -57 -162 -112 -185 -206 -194 -608 -19 -919 60 -106 182 -232 269 -278 34 -17 90 -39 125 -48 217 -56 422 96 495 366 23 86 24 296 1 398 -58 253 -217 479 -401 567 -70 34 -90 38 -170 42 -72 3 -101 0 -138 -16z" data-foot="left" data-zone="toe2"/>
+      <path class="foot-path" d="M964 10303 c-146 -63 -236 -207 -251 -404 -21 -269 133 -590 352 -731 164 -107 345 -102 470 13 56 52 86 101 117 194 19 59 23 90 22 195 -1 105 -5 139 -28 213 -71 237 -211 414 -393 499 -58 28 -81 33 -158 35 -68 2 -100 -1 -131 -14z" data-foot="left" data-zone="toe3"/>
+      <path class="foot-path" d="M196 9480 c-271 -109 -255 -555 31 -832 117 -113 233 -164 362 -156 91 6 140 28 198 90 59 65 86 142 87 253 1 106 -14 173 -60 273 -72 158 -181 274 -322 344 -73 37 -92 42 -165 45 -64 3 -93 -1 -131 -17z" data-foot="left" data-zone="toe4"/>
+      <path class="foot-path" d="M3714 9830 c-654 -59 -1441 -341 -2014 -723 -475 -317 -758 -638 -903 -1027 -107 -288 -123 -556 -51 -848 62 -250 168 -452 438 -826 126 -175 133 -189 226 -422 169 -422 308 -840 489 -1474 125 -439 163 -620 297 -1425 184 -1106 264 -1484 374 -1761 242 -608 891 -1175 1490 -1300 116 -24 291 -22 441 5 385 68 663 240 865 537 204 297 287 629 287 1139 0 492 -50 695 -376 1530 -257 658 -278 734 -321 1155 -30 287 -39 470 -39 780 -1 320 8 472 44 750 26 205 46 298 129 590 128 449 161 638 210 1190 18 200 31 590 25 735 -15 352 -57 578 -140 752 -104 221 -245 349 -542 493 -147 72 -263 112 -393 134 -111 20 -403 28 -536 16z" data-foot="left" data-zone="arch"/>
+
+      <!-- PIE DERECHO -->
+      <path class="foot-path" d="M8200 11890 c-131 -20 -246 -85 -355 -201 -123 -130 -211 -309 -256 -519 -29 -134 -32 -399 -7 -525 66 -325 227 -578 438 -689 404 -213 834 105 946 699 23 121 23 349 0 475 -67 374 -285 672 -546 743 -74 21 -154 27 -220 17z" data-foot="right" data-zone="sole"/>
+      <path class="foot-path" d="M9545 11392 c-194 -68 -341 -256 -407 -518 -18 -72 -22 -117 -22 -234 0 -173 14 -241 81 -378 98 -200 268 -304 445 -272 104 19 164 54 258 149 71 71 94 103 132 181 67 135 89 227 95 391 6 150 -4 227 -42 340 -50 148 -148 268 -264 323 -83 39 -197 47 -276 18z" data-foot="right" data-zone="toe1"/>
+      <path class="foot-path" d="M10696 10950 c-21 -6 -69 -26 -106 -46 -179 -94 -316 -289 -381 -541 -32 -125 -32 -315 0 -428 62 -220 199 -351 376 -363 313 -20 610 342 632 768 14 273 -96 507 -274 587 -65 28 -181 39 -247 23z" data-foot="right" data-zone="toe2"/>
+      <path class="foot-path" d="M11600 10302 c-200 -66 -370 -264 -446 -519 -37 -122 -40 -304 -7 -409 42 -131 129 -232 234 -269 62 -22 177 -19 246 6 205 76 369 280 439 545 25 95 25 286 0 369 -25 84 -51 131 -103 186 -91 97 -235 133 -363 91z" data-foot="right" data-zone="toe3"/>
+      <path class="foot-path" d="M12413 9490 c-335 -71 -589 -544 -450 -839 67 -144 238 -203 402 -141 190 73 332 232 407 456 32 96 32 254 0 335 -58 147 -201 223 -359 189z" data-foot="right" data-zone="toe4"/>
+      <path class="foot-path" d="M8707 9829 c-212 -15 -346 -53 -562 -159 -169 -83 -247 -134 -338 -219 -170 -160 -260 -357 -303 -658 -45 -324 -36 -837 26 -1408 32 -291 76 -508 169 -838 87 -305 117 -439 141 -630 68 -544 62 -1108 -20 -1732 -33 -252 -77 -392 -316 -1002 -155 -397 -262 -710 -298 -874 -89 -401 -81 -927 19 -1298 100 -370 340 -684 645 -845 204 -108 513 -176 730 -162 281 18 624 169 927 408 106 84 299 274 387 383 136 166 258 372 322 540 104 276 190 676 349 1635 171 1031 196 1144 421 1895 144 480 297 917 439 1254 36 85 70 144 136 235 307 421 431 658 491 939 31 147 31 400 0 544 -48 222 -146 448 -270 623 -96 137 -353 391 -522 517 -638 475 -1512 804 -2268 853 -81 5 -158 9 -172 8 -14 0 -74 -4 -133 -9z" data-foot="right" data-zone="arch"/>
+    </g>
+  </svg>`;
+
+  // Inject SVG
+  document.getElementById('feetContainer').innerHTML = feetSVG;
+
+  // Data storage
+  let selectedType = null;
+  let measurements = [];
+
+  // Type selector
+  document.querySelectorAll('.type-option').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.type-option').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      selectedType = this.dataset.type;
+    });
+  });
+
+  // Foot path click handler
+  document.querySelectorAll('.foot-path').forEach(path => {
+    path.addEventListener('click', function() {
+      const foot = this.dataset.foot;
+      const zone = this.dataset.zone;
+      const footLabel = foot === 'left' ? 'Izquierdo' : 'Derecho';
+      const zoneMap = {
+        'sole': 'Planta',
+        'toe1': 'Dedo 1',
+        'toe2': 'Dedo 2',
+        'toe3': 'Dedo 3',
+        'toe4': 'Dedo 4',
+        'toe5': 'Dedo 5',
+        'arch': 'Arco'
+      };
+      document.getElementById('zoneInput').value = `${footLabel} - ${zoneMap[zone]}`;
+
+      // Remove selected class from all paths and add to clicked path
+      document.querySelectorAll('.foot-path.selected').forEach(p => p.classList.remove('selected'));
+      this.classList.add('selected');
+    });
+  });
+
+  function getTemperatureColor(temp) {
+    if (temp < 30) return '#3b82f6';
+    if (temp < 32) return '#06b6d4';
+    if (temp < 35) return '#10b981';
+    if (temp < 37) return '#f59e0b';
+    return '#ef4444';
+  }
+
+  function addTemperature() {
+    const zone = document.getElementById('zoneInput').value.trim();
+    const temp = parseFloat(document.getElementById('temperatureInput').value);
+
+    if (!zone) {
+      alert('Por favor ingresa la zona a medir');
+      return;
+    }
+
+    if (isNaN(temp) || temp < 20 || temp > 45) {
+      alert('Por favor ingresa una temperatura válida (20-45°C)');
+      return;
+    }
+
+    measurements.push({ zone, temp, type: selectedType });
+    renderMeasurements();
+
+    document.getElementById('temperatureInput').value = '';
+    document.getElementById('zoneInput').value = '';
+  }
+
+  function deleteMeasurement(index) {
+    measurements.splice(index, 1);
+    renderMeasurements();
+  }
+
+  function renderMeasurements() {
+    const list = document.getElementById('measurementsList');
+    if (measurements.length === 0) {
+      list.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; padding: 1rem; text-align: center;">Sin mediciones aún</p>';
+      return;
+    }
+
+    list.innerHTML = measurements.map((m, idx) => `
+      <div class="measurement-item">
+        <span class="legend-color" style="background: ${getTemperatureColor(m.temp)}; margin-right: 0.8rem;"></span>
+        <span class="measurement-item-text">${m.zone}</span>
+        <span class="measurement-item-temp">${m.temp}°C</span>
+        <button class="measurement-item-delete" onclick="deleteMeasurement(${idx})">Eliminar</button>
+      </div>
+    `).join('');
+  }
+
+  function saveThermography() {
+    if (!selectedType) {
+      alert('Por favor selecciona un tipo de termografía');
+      return;
+    }
+
+    if (measurements.length === 0) {
+      alert('Por favor registra al menos una medición de temperatura');
+      return;
+    }
+
+    const data = {
+      type: selectedType,
+      measurements: measurements,
+      observations: document.getElementById('observations').value.trim()
+    };
+
+    console.log('Thermography data:', data);
+    alert('Termografía guardada exitosamente');
+    history.back();
+  }
+
+  // Allow Enter key to add temperature
+  document.getElementById('temperatureInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') addTemperature();
+  });
+
+  document.getElementById('zoneInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') document.getElementById('temperatureInput').focus();
+  });
+</script>
+</body>
+</html>

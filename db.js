@@ -84,6 +84,47 @@ const initDb = async () => {
         expires_at TIMESTAMP NOT NULL,
         FOREIGN KEY (clinic_id) REFERENCES clinics(id)
       );
+
+      CREATE TABLE IF NOT EXISTS consent_templates (
+        id SERIAL PRIMARY KEY,
+        clinic_id INTEGER NOT NULL,
+        type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS patient_consents (
+        id SERIAL PRIMARY KEY,
+        patient_id INTEGER NOT NULL,
+        template_id INTEGER NOT NULL,
+        clinic_id INTEGER NOT NULL,
+        signed_by TEXT DEFAULT '',
+        signature_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'signed' CHECK(status IN ('pending', 'signed', 'expired')),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (patient_id) REFERENCES patients(id),
+        FOREIGN KEY (template_id) REFERENCES consent_templates(id),
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS appointment_reminders (
+        id SERIAL PRIMARY KEY,
+        appointment_id INTEGER NOT NULL,
+        patient_id INTEGER NOT NULL,
+        clinic_id INTEGER NOT NULL,
+        channel TEXT NOT NULL DEFAULT 'whatsapp',
+        status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'manual_sent')),
+        sent_at TIMESTAMP,
+        sent_by INTEGER,
+        message_content TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
+        FOREIGN KEY (patient_id) REFERENCES patients(id),
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id),
+        FOREIGN KEY (sent_by) REFERENCES users(id)
+      );
     `);
 
     const alterCommands = [
@@ -108,7 +149,14 @@ const initDb = async () => {
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS doctor_id INTEGER',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS visit_reason TEXT DEFAULT \'\'',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS appointment_id INTEGER',
-      'ALTER TABLE patients ADD COLUMN IF NOT EXISTS odontogram_state TEXT DEFAULT \'{}\''
+      'ALTER TABLE patients ADD COLUMN IF NOT EXISTS odontogram_state TEXT DEFAULT \'{}\'',
+      'ALTER TABLE patients ADD COLUMN IF NOT EXISTS whatsapp_number TEXT DEFAULT \'\'',
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_enabled BOOLEAN DEFAULT FALSE',
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_number TEXT DEFAULT \'\'',
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_template TEXT DEFAULT \'Hola {{patientName}}, le recordamos su cita en {{clinicName}} el día {{appointmentDate}} a las {{appointmentTime}} con {{doctorName}}.\\n\\nPor favor confirme si podrá asistir. Gracias.\'',
+      'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS payment_notes TEXT DEFAULT \'\'',
+      'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS consent_id INTEGER',
+      'ALTER TABLE patient_consents ADD COLUMN IF NOT EXISTS signature_data TEXT'
     ];
 
     for (const cmd of alterCommands) {

@@ -20,6 +20,8 @@
     '/citas.html': 'citas',
     '/finanzas.html': 'finanzas',
     '/doctors.html': 'doctors',
+    '/consentimientos.html': 'consentimientos',
+    '/recordatorios.html': 'recordatorios',
     '/consultation.html': '',
     '/view-consultation.html': '',
     '/clinical-record.html': '',
@@ -48,7 +50,9 @@
         { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
         { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
         { href: '/doctors.html', key: 'doctors', iconName: 'staff', label: 'Personal' },
-        { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
+        { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
+        { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
+        { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' }
       ];
     } else {
       // Doctor sidebar
@@ -56,7 +60,9 @@
         { href: '/dashboard.html', key: 'dashboard', iconName: 'home', label: 'Inicio' },
         { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
         { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
-        { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
+        { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
+        { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
+        { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' }
       ];
     }
 
@@ -68,8 +74,8 @@
       </a>`;
     }).join('');
 
-    // Mobile menu items (same items as sidebar)
-    const mobileMenuItems = items.map(item => {
+    // Mobile menu items (exclude Consentimientos and Recordatorios from mobile sticky menu)
+    const mobileMenuItems = items.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
@@ -98,6 +104,17 @@
                 <p style="font-size: 0.85rem;">Sin notificaciones</p>
               </div>
             </div>
+          </div>
+
+          <div class="sidebar-section">
+            <a href="/consentimientos.html" class="sidebar-menu-link">
+              <span id="consentsIcon"></span>
+              <span>Consentimientos</span>
+            </a>
+            <a href="/recordatorios.html" class="sidebar-menu-link">
+              <span id="remindersIcon"></span>
+              <span>Recordatorios</span>
+            </a>
           </div>
 
           <div class="sidebar-section">
@@ -189,6 +206,14 @@
     // Notification icon
     const notificationIcon = document.querySelector('#notificationIcon');
     if (notificationIcon && !notificationIcon.innerHTML.trim()) notificationIcon.innerHTML = Icons.render('bell', 24);
+
+    // Consents menu icon
+    const consentsIcon = document.querySelector('#consentsIcon');
+    if (consentsIcon && !consentsIcon.innerHTML.trim()) consentsIcon.innerHTML = Icons.render('fileText', 16);
+
+    // Reminders menu icon
+    const remindersIcon = document.querySelector('#remindersIcon');
+    if (remindersIcon && !remindersIcon.innerHTML.trim()) remindersIcon.innerHTML = Icons.render('bell', 16);
   }
 
   function injectSidebar() {

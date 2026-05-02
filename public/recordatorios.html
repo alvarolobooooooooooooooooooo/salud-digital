@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SaludDigital — Recordatorios</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @keyframes floatBg {
+      0%, 100% { transform: translateY(0px) translateX(0px); }
+      50% { transform: translateY(50px) translateX(30px); }
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      width: 1000px; height: 1000px;
+      background: radial-gradient(circle, rgba(8, 145, 178, 0.12) 0%, transparent 70%);
+      top: -200px; right: -300px;
+      border-radius: 50%;
+      z-index: 0;
+      animation: floatBg 20s ease-in-out infinite;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+
+    main {
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .header-content h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.04em;
+    }
+
+    .header-content p {
+      color: #64748b;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.9rem 1.4rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      box-shadow: 0 6px 18px rgba(8, 145, 178, 0.25);
+    }
+
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(8, 145, 178, 0.35); }
+
+    .btn-whatsapp {
+      background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+      color: white;
+      box-shadow: 0 6px 18px rgba(22, 163, 74, 0.25);
+    }
+
+    .btn-whatsapp:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(22, 163, 74, 0.35); }
+    .btn-whatsapp:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1.5px solid #e2e8f0;
+    }
+    .btn-secondary:hover { background: #ecf9fc; border-color: #0891b2; color: #0891b2; }
+
+    .btn-ghost {
+      background: transparent;
+      color: #64748b;
+      padding: 0.5rem 0.8rem;
+      font-size: 0.8rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+    .btn-ghost:hover { background: #f1f5f9; color: #0891b2; }
+
+    .alert-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      color: #78350f;
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .alert-banner.info {
+      background: #dbeafe;
+      border-left-color: #3b82f6;
+      color: #1e40af;
+    }
+
+    .filters {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      background: white;
+      border: 1.5px solid #e2e8f0;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+
+    .filter-chip:hover { border-color: #0891b2; color: #0891b2; }
+    .filter-chip.active { background: #0891b2; color: white; border-color: #0891b2; }
+
+    .section {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
+      animation: fadeSlideUp 0.5s ease forwards;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.9rem 0.5rem;
+      font-weight: 900;
+      font-size: 0.7rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid rgba(8, 145, 178, 0.08);
+    }
+
+    td {
+      padding: 0.9rem 0.5rem;
+      border-bottom: 1px solid rgba(8, 145, 178, 0.05);
+      font-weight: 600;
+      color: #475569;
+      vertical-align: middle;
+    }
+
+    tbody tr:hover td { background: rgba(8, 145, 178, 0.03); }
+
+    .empty-table { padding: 2.5rem; text-align: center; color: #94a3b8; font-size: 0.9rem; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.3rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .badge-pending { background: #fef3c7; color: #b45309; }
+    .badge-sent { background: #dcfce7; color: #15803d; }
+    .badge-no-number { background: #e0e7ff; color: #4338ca; }
+    .badge-disabled { background: #fee2e2; color: #b91c1c; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: fadeSlideUp 0.3s ease forwards;
+    }
+
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      font-size: 1.25rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .modal-close {
+      background: #f1f5f9;
+      border: none;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #64748b;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #0891b2;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      padding: 0.8rem 1rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      background: #f8fafc;
+      color: #1e293b;
+      transition: all 0.2s;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #0891b2;
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+      background: white;
+    }
+    .form-group textarea { min-height: 120px; resize: vertical; font-family: inherit; }
+    .form-group small { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: #f8fafc;
+      border-radius: 10px;
+      border: 1.5px solid #e2e8f0;
+    }
+    .toggle-row > div { display: flex; flex-direction: column; gap: 0.2rem; }
+    .toggle-row strong { font-size: 0.9rem; color: #1e293b; }
+    .toggle-row span { font-size: 0.75rem; color: #64748b; }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: #cbd5e1;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 20px; height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle-switch.active { background: #0891b2; }
+    .toggle-switch.active::after { transform: translateX(20px); }
+
+    .preview-box {
+      background: #f0fdf4;
+      border-left: 4px solid #16a34a;
+      padding: 0.9rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #14532d;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 768px) {
+      main { padding: 1.5rem 1rem; }
+      .header-content h1 { font-size: 1.6rem; }
+      .page-header { flex-direction: column; align-items: flex-start; }
+      table { font-size: 0.75rem; }
+      th, td { padding: 0.6rem 0.3rem; }
+      .actions-cell { display: flex; flex-direction: column; gap: 0.3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="layout-main">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Recordatorios</h1>
+      <p>Envío manual de recordatorios por WhatsApp</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="openConfigModal()">
+        <span>Configuración WhatsApp</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="configBanner" class="alert-banner" style="display:none;">
+    <div>
+      <strong>WhatsApp desactivado.</strong>
+      Activa los recordatorios manuales por WhatsApp en la configuración para poder enviar recordatorios.
+    </div>
+  </div>
+
+  <div class="alert-banner info">
+    <div>
+      <strong>Importante:</strong>
+      Asegúrate de tener abierto WhatsApp Web con el número oficial de la clínica antes de enviar recordatorios.
+      Esta función no envía mensajes automáticamente — solo abre WhatsApp con el mensaje preparado.
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-chip active" data-filter="all">Todas</button>
+    <button class="filter-chip" data-filter="pending">Pendientes</button>
+    <button class="filter-chip" data-filter="manual_sent">Enviados</button>
+    <button class="filter-chip" data-filter="no_whatsapp_number">Sin WhatsApp</button>
+  </div>
+
+  <div class="section">
+    <table>
+      <thead>
+        <tr>
+          <th>Paciente</th>
+          <th>Fecha y Hora</th>
+          <th>Doctor</th>
+          <th>Estado</th>
+          <th style="text-align:right;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="remindersTable">
+        <tr><td colspan="5" class="empty-table">Cargando recordatorios...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Config Modal -->
+<div class="modal-overlay" id="configModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Configuración WhatsApp</h2>
+      <button class="modal-close" onclick="closeConfigModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert-banner info" style="margin: 0;">
+        <div>
+          Esta configuración solo es referencial. Los mensajes se envían desde la sesión de WhatsApp Web abierta en tu navegador.
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <strong>Recordatorios manuales por WhatsApp</strong>
+          <span>Habilitar el botón "Enviar WhatsApp" en las citas</span>
+        </div>
+        <div class="toggle-switch" id="waEnabledToggle" onclick="toggleEnabled()"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="waNumber">Número oficial de la clínica</label>
+        <input type="text" id="waNumber" placeholder="Ej: 50488888888" inputmode="numeric">
+        <small>Formato internacional sin +, espacios, guiones ni paréntesis. Ejemplo Honduras: 50488888888</small>
+      </div>
+
+      <div class="form-group">
+        <label for="waTemplate">Plantilla del mensaje</label>
+        <textarea id="waTemplate" placeholder="Mensaje a enviar..."></textarea>
+        <small>Variables disponibles: {{patientName}}, {{clinicName}}, {{doctorName}}, {{appointmentDate}}, {{appointmentTime}}</small>
+      </div>
+
+      <div class="form-group">
+        <label>Vista previa</label>
+        <div class="preview-box" id="templatePreview"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConfigModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveConfig()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Sent Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>¿Marcar como enviado?</h2>
+      <button class="modal-close" onclick="closeConfirmModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="color: #475569; font-size: 0.95rem; line-height: 1.6;">
+        Se abrió WhatsApp con el mensaje preparado. ¿Deseas marcar este recordatorio como enviado manualmente?
+      </p>
+      <div class="form-group">
+        <label>Mensaje enviado</label>
+        <div class="preview-box" id="confirmPreview" style="max-height: 200px; overflow-y: auto;"></div>
+      </div>
+      <button class="btn btn-secondary" onclick="copyCurrentMessage()" style="align-self: flex-start;">
+        Copiar mensaje
+      </button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmSent()">Sí, marcar como enviado</button>
+    </div>
+  </div>
+</div>
+
+<script src="/icons.js"></script>
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script src="/whatsapp.js"></script>
+<script>
+  requireAuth(['clinic_admin', 'doctor']);
+
+  let allReminders = [];
+  let waConfig = { whatsapp_enabled: false, whatsapp_number: '', whatsapp_template: '', name: '' };
+  let currentFilter = 'all';
+  let pendingConfirm = null;
+
+  async function loadConfig() {
+    try {
+      waConfig = await api('/api/reminders/whatsapp-config');
+      document.getElementById('configBanner').style.display = waConfig.whatsapp_enabled ? 'none' : 'flex';
+    } catch (e) {
+      console.error('Error loading WhatsApp config:', e);
+    }
+  }
+
+  async function loadReminders() {
+    try {
+      allReminders = await api('/api/reminders');
+      renderReminders();
+    } catch (e) {
+      console.error(e);
+      document.getElementById('remindersTable').innerHTML =
+        '<tr><td colspan="5" class="empty-table">Error al cargar recordatorios</td></tr>';
+    }
+  }
+
+  function getStateForReminder(r) {
+    return WhatsApp.getReminderState({
+      whatsappEnabled: waConfig.whatsapp_enabled,
+      patientWhatsapp: r.phone,
+      reminderStatus: r.reminder_status
+    });
+  }
+
+  function renderReminders() {
+    const tbody = document.getElementById('remindersTable');
+    let list = allReminders;
+
+    if (currentFilter !== 'all') {
+      list = list.filter(r => getStateForReminder(r) === currentFilter);
+    }
+
+    if (list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-table">No hay recordatorios para mostrar</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = list.map(r => {
+      const state = getStateForReminder(r);
+      const dt = new Date(r.scheduled_at);
+      const dateStr = dt.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+      const timeStr = dt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+      let badge = '';
+      let actions = '';
+
+      if (state === 'whatsapp_disabled') {
+        badge = '<span class="badge badge-disabled">WhatsApp desactivado</span>';
+        actions = `<button class="btn-ghost" onclick="openConfigModal()">Configurar</button>`;
+      } else if (state === 'no_whatsapp_number') {
+        badge = '<span class="badge badge-no-number">Sin número WhatsApp</span>';
+        actions = `<a href="/patient.html?id=${r.patient_id}" class="btn-ghost" style="text-decoration:none;display:inline-block;">Agregar número</a>`;
+      } else if (state === 'manual_sent') {
+        const sentDate = r.sent_at ? new Date(r.sent_at).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+        badge = `<span class="badge badge-sent">Enviado</span><div style="font-size:0.7rem;color:#94a3b8;margin-top:0.25rem;">${esc(sentDate)}${r.sent_by_name ? ' por ' + esc(r.sent_by_name) : ''}</div>`;
+        actions = `<button class="btn btn-whatsapp" onclick="sendReminder(${r.appointment_id})" style="padding:0.5rem 0.9rem;font-size:0.8rem;">Reenviar</button>`;
+      } else {
+        badge = '<span class="badge badge-pending">Pendiente</span>';
+        actions = `<button class="btn btn-whatsapp" onclick="sendReminder(${r.appointment_id})" style="padding:0.5rem 0.9rem;font-size:0.8rem;">Enviar WhatsApp</button>`;
+      }
+
+      return `
+        <tr>
+          <td><strong style="color:#1e293b;">${esc(r.patient_name)}</strong></td>
+          <td>${esc(dateStr)}<div style="font-size:0.75rem;color:#94a3b8;">${esc(timeStr)}</div></td>
+          <td>${esc(r.doctor_name || '')}</td>
+          <td>${badge}</td>
+          <td style="text-align:right;">${actions}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function buildMessageForReminder(r) {
+    return WhatsApp.buildReminderMessage({
+      template: waConfig.whatsapp_template || '',
+      patientName: r.patient_name,
+      clinicName: waConfig.name,
+      doctorName: r.doctor_name,
+      scheduledAt: r.scheduled_at
+    });
+  }
+
+  function sendReminder(appointmentId) {
+    const r = allReminders.find(x => x.appointment_id === appointmentId);
+    if (!r) return;
+
+    const state = getStateForReminder(r);
+    if (state === 'whatsapp_disabled') {
+      alert('WhatsApp está desactivado. Actívalo en la configuración para enviar recordatorios.');
+      return;
+    }
+    if (state === 'no_whatsapp_number') {
+      alert('Este paciente no tiene número de WhatsApp registrado.');
+      return;
+    }
+
+    const message = buildMessageForReminder(r);
+    let phone = WhatsApp.normalizePhone(r.phone);
+    if (!WhatsApp.isValidPhone(phone)) {
+      alert('Número de teléfono inválido.');
+      return;
+    }
+    WhatsApp.openWhatsApp(phone, message);
+
+    pendingConfirm = { appointmentId, message };
+    document.getElementById('confirmPreview').textContent = message;
+    document.getElementById('confirmModal').classList.add('active');
+  }
+
+  async function confirmSent() {
+    if (!pendingConfirm) return;
+    try {
+      await api('/api/reminders', {
+        method: 'POST',
+        body: { appointment_id: pendingConfirm.appointmentId, message_content: pendingConfirm.message }
+      });
+      closeConfirmModal();
+      await loadReminders();
+    } catch (e) {
+      alert('Error al guardar: ' + e.message);
+    }
+  }
+
+  function closeConfirmModal() {
+    pendingConfirm = null;
+    document.getElementById('confirmModal').classList.remove('active');
+  }
+
+  async function copyCurrentMessage() {
+    if (!pendingConfirm) return;
+    const ok = await WhatsApp.copyMessage(pendingConfirm.message);
+    if (ok) {
+      const btn = event.target;
+      const orig = btn.textContent;
+      btn.textContent = 'Copiado ✓';
+      setTimeout(() => { btn.textContent = orig; }, 1500);
+    }
+  }
+
+  // ── Filters ──
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentFilter = chip.dataset.filter;
+      renderReminders();
+    });
+  });
+
+  // ── Config Modal ──
+  function openConfigModal() {
+    document.getElementById('waEnabledToggle').classList.toggle('active', !!waConfig.whatsapp_enabled);
+    document.getElementById('waNumber').value = waConfig.whatsapp_number || '';
+    document.getElementById('waTemplate').value = waConfig.whatsapp_template || '';
+    updatePreview();
+    document.getElementById('configModal').classList.add('active');
+  }
+
+  function closeConfigModal() {
+    document.getElementById('configModal').classList.remove('active');
+  }
+
+  function toggleEnabled() {
+    document.getElementById('waEnabledToggle').classList.toggle('active');
+  }
+
+  function updatePreview() {
+    const tpl = document.getElementById('waTemplate').value;
+    const sample = WhatsApp.buildReminderMessage({
+      template: tpl,
+      patientName: 'María González',
+      clinicName: waConfig.name || 'Clínica',
+      doctorName: 'Dr. Álvaro Lobo',
+      scheduledAt: new Date(Date.now() + 86400000).toISOString()
+    });
+    document.getElementById('templatePreview').textContent = sample || '(sin contenido)';
+  }
+
+  document.getElementById('waTemplate').addEventListener('input', updatePreview);
+
+  async function saveConfig() {
+    const enabled = document.getElementById('waEnabledToggle').classList.contains('active');
+    const number = WhatsApp.normalizePhone(document.getElementById('waNumber').value);
+    const template = document.getElementById('waTemplate').value;
+
+    if (enabled && number && !WhatsApp.isValidPhone(number)) {
+      alert('Número de WhatsApp inválido. Use solo dígitos en formato internacional (ej: 50488888888).');
+      return;
+    }
+
+    try {
+      await api('/api/reminders/whatsapp-config', {
+        method: 'PUT',
+        body: { whatsapp_enabled: enabled, whatsapp_number: number, whatsapp_template: template }
+      });
+      closeConfigModal();
+      await loadConfig();
+      renderReminders();
+    } catch (e) {
+      alert('Error al guardar: ' + e.message);
+    }
+  }
+
+  // Init
+  (async () => {
+    await loadConfig();
+    await loadReminders();
+  })();
+</script>
+</body>
+</html>
