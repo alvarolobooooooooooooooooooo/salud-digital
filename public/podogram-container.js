@@ -31,7 +31,7 @@ class PodogramContainer {
       'Celta': '/assets/foot-types/tipo-celta.png'
     };
     const src = imageMap[type] || imageMap['Romano'];
-    return `<img src="${src}" alt="${type}" style="width: 100px; height: 110px; object-fit: contain; margin: 0 auto; display: block; opacity: ${opacity};"/>`;
+    return `<img src="${src}" alt="${type}" style="width: 85px; height: 95px; object-fit: contain; margin: 0 auto; display: block; opacity: ${opacity};"/>`;
   }
 
   getFootShapeSVG(shape, selected) {
@@ -42,7 +42,7 @@ class PodogramContainer {
       'Cavo': '/assets/foot-types/pie-cavo.png'
     };
     const src = imageMap[shape] || imageMap['Normal'];
-    return `<img src="${src}" alt="${shape}" style="width: 100px; height: 110px; object-fit: contain; margin: 0 auto; display: block; opacity: ${opacity};"/>`;
+    return `<img src="${src}" alt="${shape}" style="width: 85px; height: 95px; object-fit: contain; margin: 0 auto; display: block; opacity: ${opacity};"/>`;
   }
 
   render() {
@@ -141,12 +141,12 @@ class PodogramContainer {
         }
         .podogram-button.selected {
           border-color: #0891b2;
-          background: #f0f9ff;
-          box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.2), inset 0 0 8px rgba(8, 145, 178, 0.1);
+          background: white;
+          box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.2), 0 4px 12px rgba(8, 145, 178, 0.15);
           transform: scale(1.05);
         }
         .podogram-button.selected .foot-svg {
-          filter: brightness(1.15);
+          filter: brightness(1.05);
         }
         .foot-svg {
           width: 90px;
