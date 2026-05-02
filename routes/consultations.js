@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { query } = require('../db');
 const { authenticate } = require('../middleware/auth');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { v4: uuid } = require('uuid');
 
 function getLocalDateString(date = new Date()) {
   const year = date.getFullYear();
@@ -262,6 +266,87 @@ router.put('/:id', authenticate, async (req, res) => {
     [notes, diagnosis, treatment, odontogram_state, cost, payment_status, lifestyle, procedures, radiography_notes, observations, doctor_id, visit_reason, payment_notes, consent_id, id, req.user.clinic_id]);
 
   res.json({ success: true });
+});
+
+// ── Image Upload Endpoints ──
+const uploadDir = path.join(__dirname, '..', 'uploads', 'consultations');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const imageStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const filename = `${Date.now()}-${uuid()}${ext}`;
+    cb(null, filename);
+  }
+});
+
+const imageUpload = multer({
+  storage: imageStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten imágenes (JPEG, PNG, WebP)'));
+    }
+  }
+});
+
+router.post('/:id/images', authenticate, imageUpload.array('images', 10), async (req, res) => {
+  const { id } = req.params;
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: 'No images provided' });
+  }
+
+  const consultationResult = await query('SELECT * FROM consultations WHERE id = $1 AND clinic_id = $2', [id, req.user.clinic_id]);
+  if (consultationResult.rows.length === 0) {
+    req.files.forEach(f => fs.unlink(path.join(uploadDir, f.filename), () => {}));
+    return res.status(404).json({ error: 'Consultation not found' });
+  }
+
+  try {
+    const savedImages = [];
+    for (const file of req.files) {
+      const result = await query(
+        'INSERT INTO consultation_images (consultation_id, clinic_id, filename, original_name) VALUES ($1, $2, $3, $4) RETURNING id, filename, original_name',
+        [id, req.user.clinic_id, file.filename, file.originalname]
+      );
+      savedImages.push(result.rows[0]);
+    }
+    res.json(savedImages);
+  } catch (err) {
+    req.files.forEach(f => fs.unlink(path.join(uploadDir, f.filename), () => {}));
+    res.status(500).json({ error: 'Error saving images' });
+  }
+});
+
+router.get('/:id/images', authenticate, async (req, res) => {
+  const { id } = req.params;
+  const result = await query('SELECT id, filename, original_name, created_at FROM consultation_images WHERE consultation_id = $1 AND clinic_id = $2 ORDER BY created_at DESC', [id, req.user.clinic_id]);
+  res.json(result.rows);
+});
+
+router.delete('/images/:imageId', authenticate, async (req, res) => {
+  const { imageId } = req.params;
+  const imageResult = await query('SELECT * FROM consultation_images WHERE id = $1 AND clinic_id = $2', [imageId, req.user.clinic_id]);
+  if (imageResult.rows.length === 0) {
+    return res.status(404).json({ error: 'Image not found' });
+  }
+
+  const image = imageResult.rows[0];
+  const filePath = path.join(uploadDir, image.filename);
+
+  try {
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    await query('DELETE FROM consultation_images WHERE id = $1', [imageId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error deleting image' });
+  }
 });
 
 module.exports = router;

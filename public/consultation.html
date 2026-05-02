@@ -449,6 +449,18 @@
 
     <div id="consultMsg" class="form-msg" style="display:none;"></div>
 
+    <!-- Imágenes de la Consulta -->
+    <div class="form-section">
+      <h3>Imágenes de la Consulta</h3>
+      <div id="imgDropZone" style="border: 2px dashed #0891b2; border-radius: 12px; padding: 2rem; text-align: center; background: #f0fdf4; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#ecfdf5'" onmouseout="this.style.background='#f0fdf4'">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📸</div>
+        <p style="margin: 0; color: #0891b2; font-weight: 700;">Arrastra imágenes aquí o haz clic para seleccionar</p>
+        <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: #64748b;">Máx 10 imágenes, 10MB cada una (JPEG, PNG, WebP)</p>
+      </div>
+      <input id="imgFileInput" type="file" accept="image/*" multiple hidden onchange="handleImageSelect()">
+      <div id="imgGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; margin-top: 1.5rem;"></div>
+    </div>
+
     <div class="footer">
       <button type="button" class="btn-cancel" onclick="history.back()">Cancelar</button>
       <button type="submit" class="btn-save">Guardar Consulta</button>
@@ -525,6 +537,120 @@ async function loadAppointment() {
   }
 }
 
+// ── Image Upload Management ──
+let pendingImages = [];
+let uploadedImages = [];
+let currentConsultationId = null;
+
+function handleImageDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const files = e.dataTransfer.files;
+  addImages(files);
+}
+
+function handleImageSelect() {
+  const input = document.getElementById('imgFileInput');
+  addImages(input.files);
+}
+
+function addImages(files) {
+  for (const file of files) {
+    if (file.type.startsWith('image/')) {
+      pendingImages.push(file);
+    }
+  }
+  renderImageGrid();
+}
+
+function removeLocalImage(idx) {
+  pendingImages.splice(idx, 1);
+  renderImageGrid();
+}
+
+async function removeUploadedImage(imgId) {
+  try {
+    await api(`/api/consultations/images/${imgId}`, { method: 'DELETE' });
+    uploadedImages = uploadedImages.filter(img => img.id !== imgId);
+    renderImageGrid();
+  } catch (e) {
+    alert('Error al eliminar imagen: ' + e.message);
+  }
+}
+
+function renderImageGrid() {
+  const grid = document.getElementById('imgGrid');
+  grid.innerHTML = '';
+
+  // Pending (local) images
+  pendingImages.forEach((file, idx) => {
+    const url = URL.createObjectURL(file);
+    const div = document.createElement('div');
+    div.style.cssText = 'position: relative; border-radius: 8px; overflow: hidden; background: #f1f5f9;';
+    div.innerHTML = `
+      <img src="${url}" style="width: 100%; height: 120px; object-fit: cover;">
+      <div style="position: absolute; top: 0; right: 0; background: #dc2626; color: white; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold;" onclick="removeLocalImage(${idx})">×</div>
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; font-size: 0.7rem; padding: 0.25rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">No guardada</div>
+    `;
+    grid.appendChild(div);
+  });
+
+  // Already uploaded images
+  uploadedImages.forEach(img => {
+    const div = document.createElement('div');
+    div.style.cssText = 'position: relative; border-radius: 8px; overflow: hidden; background: #f1f5f9;';
+    div.innerHTML = `
+      <img src="/uploads/consultations/${img.filename}" style="width: 100%; height: 120px; object-fit: cover;">
+      <div style="position: absolute; top: 0; right: 0; background: #dc2626; color: white; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold;" onclick="removeUploadedImage(${img.id})">×</div>
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; font-size: 0.7rem; padding: 0.25rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">✓ Guardada</div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+async function uploadPendingImages(consultationId) {
+  if (pendingImages.length === 0) return;
+
+  const formData = new FormData();
+  pendingImages.forEach(file => formData.append('images', file));
+
+  try {
+    const token = localStorage.getItem('sd_token');
+    const response = await fetch(`/api/consultations/${consultationId}/images`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    if (!response.ok) throw new Error('Error uploading images');
+    const results = await response.json();
+    uploadedImages.push(...results);
+    pendingImages = [];
+    renderImageGrid();
+  } catch (e) {
+    console.error('Error uploading images:', e);
+  }
+}
+
+async function loadConsultationImages(consultationId) {
+  try {
+    uploadedImages = await api(`/api/consultations/${consultationId}/images`);
+    renderImageGrid();
+  } catch (e) {
+    console.error('Error loading images:', e);
+  }
+}
+
+// Drag & drop handlers
+document.getElementById('imgDropZone').addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+});
+
+document.getElementById('imgDropZone').addEventListener('drop', handleImageDrop);
+document.getElementById('imgDropZone').addEventListener('click', () => {
+  document.getElementById('imgFileInput').click();
+});
+
 async function submitConsult(e) {
   e.preventDefault();
   if (consultSubmitting) return;
@@ -575,10 +701,11 @@ async function submitConsult(e) {
     msgEl.textContent = 'Guardando...';
     msgEl.className = 'form-msg ok';
 
-    await api('/api/consultations', {
+    const consultResult = await api('/api/consultations', {
       method: 'POST',
       body
     });
+    const savedConsultId = consultResult.id;
 
     await api(`/api/patients/${patientId}/odontogram`, {
       method: 'PUT',
@@ -589,6 +716,11 @@ async function submitConsult(e) {
       method: 'PUT',
       body: { status: 'completed' }
     });
+
+    if (pendingImages.length > 0) {
+      msgEl.textContent = 'Subiendo imágenes...';
+      await uploadPendingImages(savedConsultId);
+    }
 
     msgEl.textContent = 'Consulta guardada correctamente';
     msgEl.className = 'form-msg ok';

@@ -125,6 +125,17 @@ const initDb = async () => {
         FOREIGN KEY (clinic_id) REFERENCES clinics(id),
         FOREIGN KEY (sent_by) REFERENCES users(id)
       );
+
+      CREATE TABLE IF NOT EXISTS consultation_images (
+        id SERIAL PRIMARY KEY,
+        consultation_id INTEGER NOT NULL,
+        clinic_id INTEGER NOT NULL,
+        filename TEXT NOT NULL,
+        original_name TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (consultation_id) REFERENCES consultations(id) ON DELETE CASCADE,
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id)
+      );
     `);
 
     const alterCommands = [
