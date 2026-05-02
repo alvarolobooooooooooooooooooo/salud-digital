@@ -608,7 +608,7 @@
     try {
       await api(`/api/patients/${patientId}/critical-info`, {
         method: 'PUT',
-        body: JSON.stringify({ allergies, medications, conditions })
+        body: { allergies, medications, conditions }
       });
 
       document.getElementById('mAllergies').textContent = allergies || '—';
