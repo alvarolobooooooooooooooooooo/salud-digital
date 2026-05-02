@@ -699,6 +699,12 @@
   </style>
 </head>
 <body>
+  <div class="page-loader" id="pageLoader">
+    <div class="page-loader-content">
+      <div class="page-loader-spinner"></div>
+      <div class="page-loader-text">Cargando...</div>
+    </div>
+  </div>
   <main class="layout-main content">
       <!-- Stat Cards -->
       <div class="stats">
@@ -974,6 +980,7 @@
 
     // Load data
     (async () => {
+      const pageLoader = document.getElementById('pageLoader');
       try {
         const [me, patients, appointments, finances] = await Promise.all([
           api('/api/auth/me'),
@@ -1007,8 +1014,12 @@
         }
         renderCalendar(today.getFullYear(), today.getMonth(), apptDatesSet);
 
+        // Hide loader
+        pageLoader.classList.add('hidden');
+
       } catch (e) {
         console.error('Error loading dashboard:', e);
+        pageLoader.classList.add('hidden');
       }
     })();
   </script>

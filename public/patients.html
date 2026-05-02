@@ -741,6 +741,12 @@
   </style>
 </head>
 <body>
+  <div class="page-loader" id="pageLoader">
+    <div class="page-loader-content">
+      <div class="page-loader-spinner"></div>
+      <div class="page-loader-text">Cargando...</div>
+    </div>
+  </div>
 
 <main class="layout-main">
   <!-- Left Panel: Patient Queue -->
@@ -908,11 +914,14 @@
 
   // ── Load Patients ──
   (async () => {
+    const pageLoader = document.getElementById('pageLoader');
     try {
       allPatients = await api('/api/patients');
       renderQueue();
+      pageLoader.classList.add('hidden');
     } catch (e) {
       console.error(e);
+      pageLoader.classList.add('hidden');
     }
   })();
 

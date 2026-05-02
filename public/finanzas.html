@@ -720,6 +720,12 @@
   </style>
 </head>
 <body>
+  <div class="page-loader" id="pageLoader">
+    <div class="page-loader-content">
+      <div class="page-loader-spinner"></div>
+      <div class="page-loader-text">Cargando...</div>
+    </div>
+  </div>
 
 <!-- Nav -->
 
@@ -864,6 +870,7 @@
   requireAuth(['clinic_admin', 'doctor']);
 
   (async () => {
+    const pageLoader = document.getElementById('pageLoader');
     try {
       const role = getRole();
       const stats = await api('/api/consultations/finances/summary');
@@ -874,6 +881,8 @@
       document.getElementById('monthRevenue').textContent = 'L. ' + fmtNum(stats.month_revenue);
       document.getElementById('totalRevenue').textContent = 'L. ' + fmtNum(stats.total_revenue);
       document.getElementById('pendingCount').textContent = stats.pending_count;
+
+      pageLoader.classList.add('hidden');
 
       // Render weekly chart
       const numValues = weekly.values.map(v => Number(v));
@@ -1108,7 +1117,10 @@
         document.getElementById('paidEndDateDisplay').value = '';
         loadPaidConsultations();
       });
-    } catch(e) { console.error(e); }
+    } catch(e) {
+      console.error(e);
+      pageLoader.classList.add('hidden');
+    }
   })();
 </script>
 </body>
