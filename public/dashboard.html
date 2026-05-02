@@ -1089,7 +1089,7 @@
               class="reminder-send-btn"
               onclick="sendReminderFromDashboard(${r.appointment_id})"
               title="Enviar recordatorio por WhatsApp">
-              ${Icons.render('send', 14)}
+              ${Icons.render('arrowRight', 16)}
             </button>
           </div>
         `;
@@ -1103,7 +1103,7 @@
 
       btn.disabled = true;
       const origHTML = btn.innerHTML;
-      btn.innerHTML = Icons.render('loader', 14);
+      btn.innerHTML = '⏳';
 
       try {
         await api('/api/reminders', {
@@ -1112,7 +1112,7 @@
         });
 
         btn.classList.add('sent');
-        btn.innerHTML = Icons.render('check', 14);
+        btn.innerHTML = '✓';
         btn.title = 'Recordatorio enviado';
         setTimeout(() => {
           btn.closest('.reminder-row').remove();
