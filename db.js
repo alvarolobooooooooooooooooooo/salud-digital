@@ -234,10 +234,15 @@ const initDb = async () => {
         'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
         ['dr.juan@clinicanorte.com', dh, 'doctor', 'Juan Martinez', clinic1Id, 'Medicina General', '31234567']
       );
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-        ['dra.piedra@clinicanorte.com', dh, 'doctor', 'Sandra Piedra', clinic1Id, 'Podología', '31567890']
-      );
+      try {
+        const result = await query(
+          'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+          ['dra.piedra@clinicanorte.com', dh, 'doctor', 'Sandra Piedra', clinic1Id, 'Podología', '31567890']
+        );
+        console.log('[DB] Created podiatry doctor:', result.rows[0]?.id);
+      } catch(e) {
+        console.error('[DB] Error creating podiatry doctor:', e.message);
+      }
 
       const rh = bcrypt.hashSync('receptionist123', 10);
       await query(
