@@ -36,11 +36,12 @@ const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`\nSaludDigital running → http://localhost:${PORT}\n`);
       console.log('Demo accounts:');
-      console.log('  Super Admin  : admin@saluddigital.com     / admin123');
-      console.log('  Clinic Norte : admin@clinicanorte.com     / clinic123');
-      console.log('  Clinic Sur   : admin@clinicasur.com       / clinic123');
-      console.log('  Doctor Norte : dr.garcia@clinicanorte.com / doctor123');
-      console.log('  Doctor Sur   : dr.lopez@clinicasur.com    / doctor123\n');
+      console.log('  Super Admin       : admin@saluddigital.com          / admin123');
+      console.log('  Clinic Norte      : admin@clinicanorte.com          / clinic123');
+      console.log('  Clinic Sur        : admin@clinicasur.com            / clinic123');
+      console.log('  Doctor (General)  : dr.garcia@clinicanorte.com      / doctor123');
+      console.log('  Doctor (Podología): dra.piedra@clinicanorte.com     / doctor123');
+      console.log('  Doctor Sur        : dr.lopez@clinicasur.com         / doctor123\n');
     });
   } catch (err) {
     console.error('Failed to start server:', err);
