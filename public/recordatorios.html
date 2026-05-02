@@ -116,6 +116,20 @@
     }
     .btn-secondary:hover { background: #ecf9fc; border-color: #0891b2; color: #0891b2; }
 
+    .btn-config-whatsapp {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      box-shadow: 0 4px 16px rgba(8, 145, 178, 0.3);
+    }
+    .btn-config-whatsapp:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(8, 145, 178, 0.4);
+    }
+
     .btn-ghost {
       background: transparent;
       color: #64748b;
@@ -423,7 +437,8 @@
       <p>Envío manual de recordatorios por WhatsApp</p>
     </div>
     <div class="header-actions">
-      <button class="btn btn-secondary" onclick="openConfigModal()">
+      <button class="btn btn-config-whatsapp" onclick="openConfigModal()">
+        <span id="configBtnIcon"></span>
         <span>Configuración WhatsApp</span>
       </button>
     </div>
@@ -549,6 +564,14 @@
 <script src="/whatsapp.js"></script>
 <script>
   requireAuth(['clinic_admin', 'doctor']);
+
+  // Initialize config button icon
+  setTimeout(() => {
+    const configBtnIcon = document.getElementById('configBtnIcon');
+    if (configBtnIcon && !configBtnIcon.innerHTML.trim()) {
+      configBtnIcon.innerHTML = Icons.render('settings', 18);
+    }
+  }, 100);
 
   let allReminders = [];
   let waConfig = { whatsapp_enabled: false, whatsapp_number: '', whatsapp_template: '', name: '' };
