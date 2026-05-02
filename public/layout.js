@@ -445,6 +445,17 @@
       }
     });
 
+    // Show page loader on mobile nav click
+    document.querySelectorAll('.mobile-nav-item[data-icon]').forEach(item => {
+      item.addEventListener('click', () => {
+        const pageLoader = document.getElementById('pageLoader');
+        if (pageLoader) {
+          pageLoader.classList.remove('hidden');
+          pageLoader.style.opacity = '1';
+        }
+      });
+    });
+
     console.log('[layout.js] Mobile sidebar initialized');
   }
 
