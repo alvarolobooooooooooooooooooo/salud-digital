@@ -744,19 +744,9 @@
             <td><textarea id="consFamDermatologicalObs"></textarea></td>
           </tr>
           <tr>
-            <td colspan="2">VIH</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamHIV"></td>
-            <td><textarea id="consFamHIVObs"></textarea></td>
-          </tr>
-          <tr>
-            <td colspan="2">Tuberculosis (TB)</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamTB"></td>
-            <td><textarea id="consFamTBObs"></textarea></td>
-          </tr>
-          <tr>
-            <td colspan="2">Enfermedad Renal</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamRenal"></td>
-            <td><textarea id="consFamRenalObs"></textarea></td>
+            <td colspan="2">Otros</td>
+            <td style="text-align: center;"><input type="checkbox" id="consFamOtros"></td>
+            <td><textarea id="consFamOtrosObs"></textarea></td>
           </tr>
         </tbody>
       </table>
@@ -775,14 +765,74 @@
         </thead>
         <tbody>
           <tr>
-            <td colspan="2">Antecedentes Traumáticos</td>
+            <td colspan="2">Diabetes Mellitus</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerDiabetes"></td>
+            <td><textarea id="consPerDiabetesObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Hipertensión</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerHypertension"></td>
+            <td><textarea id="consPerHypertensionObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Cardiopatías</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerCardiopathy"></td>
+            <td><textarea id="consPerCardioppathyObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Enfermedad Vascular</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerVascular"></td>
+            <td><textarea id="consPerVascularObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Psoriasis</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerPsoriasis"></td>
+            <td><textarea id="consPerPsoriasisObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Artritis</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerArthritis"></td>
+            <td><textarea id="consPerArthritisObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Cáncer</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerCancer"></td>
+            <td><textarea id="consPerCancerObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Enfermedades Dermatológicas</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerDermatological"></td>
+            <td><textarea id="consPerDermatologicalObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">VIH</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerHIV"></td>
+            <td><textarea id="consPerHIVObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Tuberculosis (TB)</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerTB"></td>
+            <td><textarea id="consPerTBObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Enfermedad Renal</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerRenal"></td>
+            <td><textarea id="consPerRenalObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Traumáticos</td>
             <td style="text-align: center;"><input type="checkbox" id="consPerTraumatic"></td>
             <td><textarea id="consPerTraumaticObs"></textarea></td>
           </tr>
           <tr>
-            <td colspan="2">Antecedentes Quirúrgicos</td>
+            <td colspan="2">Quirúrgicos</td>
             <td style="text-align: center;"><input type="checkbox" id="consPerSurgical"></td>
             <td><textarea id="consPerSurgicalObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Otros</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerOtros"></td>
+            <td><textarea id="consPerOtrosObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Alergias</td>
@@ -790,9 +840,13 @@
             <td><textarea id="consPerAllergiesObs"></textarea></td>
           </tr>
           <tr>
+            <td colspan="2">TX</td>
+            <td colspan="2"><textarea id="consPerTx" style="width: 100%;"></textarea></td>
+          </tr>
+          <tr>
             <td colspan="2">Toma Aspirina o Anticoagulante</td>
             <td style="text-align: center;"><input type="checkbox" id="consPerAspirin"></td>
-            <td><textarea id="consPerAspirinObs"></textarea></td>
+            <td><textarea id="consPerAspirinObs" placeholder="Frecuencia:"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Embarazo</td>
@@ -800,17 +854,104 @@
             <td><textarea id="consPerPregnancyObs"></textarea></td>
           </tr>
           <tr>
-            <td colspan="2">Hábitos (Fumar, Alcohol, Toxicomanías)</td>
-            <td style="text-align: center;"><input type="checkbox" id="consPerHabits"></td>
-            <td><textarea id="consPerHabitsObs"></textarea></td>
+            <td colspan="2">SG</td>
+            <td colspan="2"><textarea id="consPerSG" style="width: 100%;"></textarea></td>
           </tr>
           <tr>
-            <td colspan="2">Tipo de Calzado Habitual</td>
-            <td colspan="2"><textarea id="consFootwear" style="width: 100%;"></textarea></td>
+            <td colspan="2">TX</td>
+            <td colspan="2"><textarea id="consPerPregnancyTx" style="width: 100%;"></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Antecedentes Personales No Patológicos -->
+    <div class="form-section">
+      <h3>Antecedentes Personales No Patológicos</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th colspan="2">Antecedente</th>
+            <th style="width: 80px;">Sí</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="2">Fuma</td>
+            <td style="text-align: center;"><input type="checkbox" id="consNonPathFuma"></td>
+            <td><textarea id="consNonPathFumaObs"></textarea></td>
           </tr>
           <tr>
-            <td colspan="2">Actividad Física (días/semana)</td>
-            <td colspan="2"><textarea id="consPhysicalActivity" style="width: 100%;"></textarea></td>
+            <td colspan="2">Alcohol</td>
+            <td style="text-align: center;"><input type="checkbox" id="consNonPathAlcohol"></td>
+            <td><textarea id="consNonPathAlcoholObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Toxicomanías</td>
+            <td style="text-align: center;"><input type="checkbox" id="consNonPathToxins"></td>
+            <td><textarea id="consNonPathToxinsObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Otros</td>
+            <td style="text-align: center;"><input type="checkbox" id="consNonPathOtros"></td>
+            <td><textarea id="consNonPathOtrosObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Realiza algún tipo de ejercicio</td>
+            <td style="text-align: center;"><input type="checkbox" id="consNonPathExercise"></td>
+            <td><textarea id="consNonPathExerciseObs"></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tipo de Calzado -->
+    <div class="form-section">
+      <h3>Tipo de Calzado</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th colspan="2">Tipo</th>
+            <th style="width: 80px;">Sí</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="2">Deportivo</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzDeportivo"></td>
+            <td><textarea id="consCalzDeportivoObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Tacones</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzTacones"></td>
+            <td><textarea id="consCalzTaconesObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Zapatillas tipo flat</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzFlat"></td>
+            <td><textarea id="consCalzFlatObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Cerrados</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzCerrados"></td>
+            <td><textarea id="consCalzCerradosObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Sandalias</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzSandalias"></td>
+            <td><textarea id="consCalzSandaliasObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Botas</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzBotas"></td>
+            <td><textarea id="consCalzBotasObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Otros</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzOtros"></td>
+            <td><textarea id="consCalzOtrosObs"></textarea></td>
           </tr>
         </tbody>
       </table>
@@ -856,8 +997,8 @@
         <thead>
           <tr>
             <th>Hallazgo</th>
-            <th>Pie Derecho</th>
-            <th>Pie Izquierdo</th>
+            <th>Derecho</th>
+            <th>Izquierdo</th>
             <th>Observación</th>
           </tr>
         </thead>
@@ -881,26 +1022,70 @@
             <td><textarea></textarea></td>
           </tr>
           <tr>
-            <td>Hiperhidrosis / Sudoración</td>
+            <td>Hiperq. Subungueal</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
             <td><textarea></textarea></td>
           </tr>
           <tr>
-            <td>Pie Plano / Pie Cavo</td>
+            <td>Onicolisis</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
             <td><textarea></textarea></td>
           </tr>
           <tr>
-            <td>Talipes (Pie Varo / Valgo)</td>
+            <td>Onicogrífosis</td>
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
             <td><textarea></textarea></td>
           </tr>
           <tr>
-            <td>Otros Hallazgos</td>
-            <td colspan="3"><textarea style="width: 100%;"></textarea></td>
+            <td>Onicorrexis</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Paronquia</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Retroniquia</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Tiñas</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Verrugas</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Onicofagia</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Coiloniquia</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Otros</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
           </tr>
         </tbody>
       </table>
@@ -942,6 +1127,136 @@
             <td><input type="checkbox"></td>
             <td><input type="checkbox"></td>
             <td><textarea></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Examen Vascular -->
+    <div class="form-section">
+      <h3>Examen Vascular</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th>Exploración</th>
+            <th>Pie Derecho</th>
+            <th>Pie Izquierdo</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pulso Pedio</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Pulso Tibial</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Llenado Capilar</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Temperatura</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Coloración de la Piel</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Pérdida de Vello</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Edemas</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Claudicación</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Telangiectasias</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Venas Varicosas</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Úlceras Cicatrizada</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Úlcera no Cicatrizada</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Presión Arterial y Fotopletimosmografía -->
+    <div class="form-section">
+      <h3>Presión Arterial y Fotopletimosmografía</h3>
+      <div style="text-align: center; margin: 1.5rem 0; overflow: hidden;">
+        <img src="/assets/pressure-measurement.png" alt="Medición de presión arterial" style="max-width: 100%; width: 100%; height: auto;">
+      </div>
+      <table class="clinical-table">
+        <tbody>
+          <tr>
+            <td>Presión del brazo derecho:</td>
+            <td colspan="3"><input type="text" id="consPressureArmRight" style="width: 100%; font-size: 0.95rem; padding: 0.3rem 0.75rem; border: none; border-bottom: 1px solid #333; height: 1.5rem;"></td>
+          </tr>
+          <tr>
+            <td>Presión del brazo izquierdo:</td>
+            <td colspan="3"><input type="text" id="consPressureArmLeft" style="width: 100%; font-size: 0.95rem; padding: 0.3rem 0.75rem; border: none; border-bottom: 1px solid #333; height: 1.5rem;"></td>
+          </tr>
+          <tr>
+            <td style="width: 20%;">Presión:</td>
+            <td style="width: 40%;">TP <input type="text" id="consPressureRightTP" style="width: 100%; font-size: 0.95rem; padding: 0.75rem; border: none; border-bottom: 1px solid #333;"></td>
+            <td style="width: 40%;">DP <input type="text" id="consPressureRightDP" style="width: 100%; font-size: 0.95rem; padding: 0.75rem; border: none; border-bottom: 1px solid #333;"></td>
+          </tr>
+          <tr>
+            <td>Presión:</td>
+            <td>TP <input type="text" id="consPressureLeftTP" style="width: 100%; font-size: 0.95rem; padding: 0.75rem; border: none; border-bottom: 1px solid #333;"></td>
+            <td>DP <input type="text" id="consPressureLeftDP" style="width: 100%; font-size: 0.95rem; padding: 0.75rem; border: none; border-bottom: 1px solid #333;"></td>
+          </tr>
+          <tr>
+            <td colspan="4" style="font-weight: 600; padding: 1rem 0.75rem;">Fotopletimosmografía</td>
+          </tr>
+          <tr>
+            <td>Pie derecho</td>
+            <td colspan="3"><input type="text" id="consFotopletimoRightUnit" style="width: 100%; font-size: 0.95rem; padding: 0.3rem 0.75rem; border: none; border-bottom: 1px solid #333; height: 1.5rem;" placeholder="mm/Hg"></td>
+          </tr>
+          <tr>
+            <td>Pie izquierdo</td>
+            <td colspan="3"><input type="text" id="consFotopletimoLeftUnit" style="width: 100%; font-size: 0.95rem; padding: 0.3rem 0.75rem; border: none; border-bottom: 1px solid #333; height: 1.5rem;" placeholder="mm/Hg"></td>
           </tr>
         </tbody>
       </table>
