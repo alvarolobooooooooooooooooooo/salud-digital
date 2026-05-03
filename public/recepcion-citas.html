@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SaludDigital — Citas Hoy</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      color: #0f172a;
+    }
+    main { padding: 2rem; width: 100%; }
+
+    .header {
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.03em;
+    }
+    .header p { color: #64748b; font-weight: 600; font-size: 0.9rem; margin-top: 0.25rem; }
+    .date-pill {
+      background: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 999px;
+      font-weight: 700;
+      color: #0891b2;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.1);
+      font-size: 0.9rem;
+      text-transform: capitalize;
+    }
+
+    .filters {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      background: white;
+      border: 1.5px solid #e2e8f0;
+      padding: 0.55rem 1rem;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: #475569;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover { border-color: #0891b2; color: #0891b2; }
+    .filter-btn.active {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white;
+      border-color: transparent;
+    }
+
+    .appt-list { display: flex; flex-direction: column; gap: 0.85rem; }
+
+    .appt-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.25rem;
+      box-shadow: 0 4px 16px rgba(8, 145, 178, 0.06);
+      border: 1px solid rgba(8, 145, 178, 0.08);
+      display: grid;
+      grid-template-columns: 100px 1fr auto;
+      gap: 1.5rem;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    .appt-card:hover { box-shadow: 0 8px 24px rgba(8, 145, 178, 0.1); transform: translateY(-1px); }
+
+    .appt-time {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #0891b2;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+    }
+    .appt-info .patient { font-weight: 800; color: #0f172a; font-size: 1.05rem; }
+    .appt-info .meta { font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .appt-info .reason { font-size: 0.8rem; color: #94a3b8; margin-top: 0.3rem; font-style: italic; }
+
+    .appt-status {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .badge {
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .badge.pending { background: #f1f5f9; color: #475569; }
+    .badge.waiting { background: #fef3c7; color: #b45309; }
+    .badge.in_progress { background: #dbeafe; color: #1d4ed8; }
+    .badge.completed { background: #d1fae5; color: #047857; }
+    .badge.cancelled { background: #fee2e2; color: #b91c1c; }
+
+    .btn {
+      padding: 0.55rem 1rem;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .btn-checkin {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.2);
+    }
+    .btn-checkin:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(8, 145, 178, 0.3); }
+    .btn-checkin:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .empty {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #94a3b8;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 4px 16px rgba(8, 145, 178, 0.04);
+    }
+
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: #0f172a; color: white;
+      padding: 0.85rem 1.5rem; border-radius: 12px;
+      font-weight: 600; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      z-index: 9999; opacity: 0; transform: translateY(20px); transition: all 0.3s;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* Loading animation */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      gap: 1.5rem;
+    }
+    .loading-overlay.hidden { display: none; }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(8, 145, 178, 0.15);
+      border-top-color: #0891b2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text {
+      color: #64748b;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 720px) {
+      main { padding: 1rem; padding-top: 80px; }
+      .appt-card { grid-template-columns: 70px 1fr; gap: 0.75rem; }
+      .appt-status { grid-column: 1 / -1; justify-content: flex-start; }
+      .appt-time { font-size: 1.2rem; }
+      .header h1 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Cargando citas...</div>
+</div>
+
+<main class="layout-main">
+  <div class="header">
+    <div>
+      <h1>Citas de Hoy</h1>
+      <p>Gestiona check-in de pacientes y revisa el día</p>
+    </div>
+    <div class="date-pill" id="datePill">—</div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">Todas</button>
+    <button class="filter-btn" data-filter="pending" onclick="setFilter('pending')">Pendientes</button>
+    <button class="filter-btn" data-filter="waiting" onclick="setFilter('waiting')">En espera</button>
+    <button class="filter-btn" data-filter="in_progress" onclick="setFilter('in_progress')">En consulta</button>
+    <button class="filter-btn" data-filter="completed" onclick="setFilter('completed')">Atendidas</button>
+  </div>
+
+  <div id="apptList" class="appt-list">
+    <div class="empty">Cargando citas...</div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="/icons.js"></script>
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script>
+  requireAuth(['receptionist', 'clinic_admin']);
+
+  let appointments = [];
+  let activeFilter = 'all';
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function setFilter(f) {
+    activeFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+    render();
+  }
+
+  async function load() {
+    try {
+      appointments = await api('/api/reception/today-appointments');
+      render();
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    } catch (e) {
+      document.getElementById('apptList').innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    }
+  }
+
+  const labels = {
+    pending: 'Pendiente', waiting: 'En espera', in_progress: 'En consulta',
+    completed: 'Atendida', cancelled: 'Cancelada'
+  };
+
+  function render() {
+    const list = document.getElementById('apptList');
+    const filtered = activeFilter === 'all' ? appointments : appointments.filter(a => a.status === activeFilter);
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="empty"><p style="font-size:1.1rem;font-weight:700;">No hay citas</p><p style="margin-top:0.5rem;font-size:0.85rem;">No se encontraron citas con este filtro</p></div>';
+      return;
+    }
+    list.innerHTML = filtered.map(a => {
+      const time = new Date(a.scheduled_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+      const canCheckIn = a.status === 'pending';
+      return `
+        <div class="appt-card">
+          <div class="appt-time">${time}</div>
+          <div class="appt-info">
+            <div class="patient">${esc(a.patient_name)}</div>
+            <div class="meta">${esc(a.doctor_name)} · ${esc(a.specialty || 'Consulta')}${a.room_name ? ` · 🚪 ${esc(a.room_name)}` : ''}</div>
+            ${a.reason ? `<div class="reason">"${esc(a.reason)}"</div>` : ''}
+          </div>
+          <div class="appt-status">
+            <span class="badge ${a.status}">${labels[a.status] || a.status}</span>
+            ${canCheckIn ? `<button class="btn btn-checkin" onclick="checkIn(${a.id})">Check-in</button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function checkIn(id) {
+    try {
+      await api(`/api/reception/check-in/${id}`, { method: 'POST' });
+      showToast('Paciente registrado');
+      load();
+    } catch (e) {
+      showToast('Error: ' + e.message);
+    }
+  }
+
+  document.getElementById('datePill').textContent =
+    new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  load();
+  setInterval(load, 8000);
+</script>
+</body>
+</html>

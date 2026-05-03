@@ -530,7 +530,10 @@
 
     // Redirigir si ya está logueado
     if (localStorage.getItem('sd_token')) {
-      window.location.href = localStorage.getItem('sd_role') === 'super_admin' ? '/admin.html' : '/dashboard.html';
+      const r = localStorage.getItem('sd_role');
+      if (r === 'super_admin') window.location.href = '/admin.html';
+      else if (r === 'receptionist') window.location.href = '/recepcion-inicio.html';
+      else window.location.href = '/dashboard.html';
     }
 
     // Manejar login
@@ -566,7 +569,7 @@
         localStorage.setItem('sd_clinic_id', data.clinic_id);
 
         if (data.role === 'super_admin') window.location.href = '/admin.html';
-        else if (data.role === 'receptionist') window.location.href = '/reception.html';
+        else if (data.role === 'receptionist') window.location.href = '/recepcion-inicio.html';
         else window.location.href = '/dashboard.html';
       } catch {
         err.textContent = 'Error de conexión. Intente nuevamente.';

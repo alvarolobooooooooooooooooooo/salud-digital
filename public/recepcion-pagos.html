@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SaludDigital — Pagos</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #f0fdfa 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      color: #0f172a;
+    }
+    main { padding: 2rem; width: 100%; }
+
+    .header { margin-bottom: 1.5rem; }
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.03em;
+    }
+    .header p { color: #64748b; font-weight: 600; font-size: 0.9rem; margin-top: 0.25rem; }
+
+    .totals {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .total-card {
+      background: white;
+      padding: 1.25rem 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(8, 145, 178, 0.08);
+      border: 1px solid rgba(8, 145, 178, 0.08);
+    }
+    .total-card.featured {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white;
+    }
+    .total-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.8;
+      margin-bottom: 0.4rem;
+    }
+    .total-value {
+      font-size: 1.7rem;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+    .total-meta { font-size: 0.75rem; opacity: 0.85; margin-top: 0.2rem; }
+
+    .section { margin-bottom: 2rem; }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 1rem;
+    }
+
+    .pending-list, .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .pay-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.25rem;
+      box-shadow: 0 4px 16px rgba(8, 145, 178, 0.06);
+      border: 1px solid rgba(8, 145, 178, 0.08);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: center;
+    }
+    .pay-info .name { font-weight: 800; font-size: 1.05rem; color: #0f172a; }
+    .pay-info .meta { font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+
+    .pay-action { display: flex; align-items: center; gap: 0.5rem; }
+    .btn {
+      padding: 0.6rem 1rem;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-charge {
+      background: linear-gradient(135deg, #10b981, #34d399);
+      color: white;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+    .btn-charge:hover { transform: translateY(-1px); }
+
+    .empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #94a3b8;
+      background: white;
+      border-radius: 16px;
+      font-style: italic;
+    }
+
+    /* Modal */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 1rem;
+    }
+    .overlay.active { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 20px;
+      padding: 1.75rem;
+      max-width: 460px;
+      width: 100%;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+    }
+    .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.25rem; }
+    .modal-sub { font-size: 0.85rem; color: #64748b; margin-bottom: 1.25rem; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #0891b2;
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.15);
+    }
+
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+    .method-btn {
+      padding: 0.75rem 0.5rem;
+      border: 1.5px solid #e2e8f0;
+      background: white;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.85rem;
+      color: #475569;
+    }
+    .method-btn:hover { border-color: #0891b2; color: #0891b2; }
+    .method-btn.active {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white;
+      border-color: transparent;
+    }
+
+    .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
+    .btn-cancel { background: #f1f5f9; color: #475569; }
+    .btn-primary { background: linear-gradient(135deg, #10b981, #34d399); color: white; }
+
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: #0f172a; color: white;
+      padding: 0.85rem 1.5rem; border-radius: 12px;
+      font-weight: 600; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      z-index: 9999; opacity: 0; transform: translateY(20px); transition: all 0.3s;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* Loading animation */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #f8fafc 0%, #f0fdfa 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      gap: 1.5rem;
+    }
+    .loading-overlay.hidden { display: none; }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(8, 145, 178, 0.15);
+      border-top-color: #0891b2;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text {
+      color: #64748b;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 720px) {
+      main { padding: 1rem; padding-top: 80px; }
+      .header h1 { font-size: 1.5rem; }
+      .pay-card { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Cargando datos...</div>
+</div>
+
+<main class="layout-main">
+  <div class="header">
+    <h1>Gestión de Pagos</h1>
+    <p>Cobra consultas finalizadas y revisa el resumen del día</p>
+  </div>
+
+  <div class="totals" id="totalsRow">
+    <div class="total-card featured">
+      <div class="total-label">Total cobrado hoy</div>
+      <div class="total-value" id="totalToday">L. 0</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Consultas pendientes de cobro</div>
+    <div class="pending-list" id="pendingList">
+      <div class="empty">Cargando...</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Historial de pagos hoy</div>
+    <div class="history-list" id="historyList">
+      <div class="empty">Sin pagos registrados aún</div>
+    </div>
+  </div>
+</main>
+
+<div class="overlay" id="chargeOverlay" onclick="closeCharge()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Cobrar consulta</div>
+    <div class="modal-sub" id="chargeSubtitle">—</div>
+
+    <div class="form-group">
+      <label class="form-label">Monto (Lempiras)</label>
+      <input type="number" class="form-input" id="chargeCost" placeholder="0.00" step="0.01" min="0">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Método de pago</label>
+      <div class="method-grid">
+        <button class="method-btn" data-method="efectivo" onclick="selectMethod('efectivo')">Efectivo</button>
+        <button class="method-btn" data-method="tarjeta" onclick="selectMethod('tarjeta')">Tarjeta</button>
+        <button class="method-btn" data-method="transferencia" onclick="selectMethod('transferencia')">Transfer.</button>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeCharge()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmCharge()">Confirmar cobro</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/icons.js"></script>
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script>
+  requireAuth(['receptionist', 'clinic_admin']);
+
+  let pending = [];
+  let history = [];
+  let activeAppt = null;
+  let selectedMethod = null;
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function fmtL(n) {
+    const num = Number(n) || 0;
+    return 'L. ' + num.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  async function load() {
+    try {
+      const [p, t] = await Promise.all([
+        api('/api/reception/payments-pending'),
+        api('/api/reception/payments-today')
+      ]);
+      pending = p;
+      history = t.payments;
+      renderPending();
+      renderHistory();
+      renderTotals(t.totals);
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    } catch (e) {
+      console.error(e);
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    }
+  }
+
+  function renderTotals(totals) {
+    const totalSum = totals.reduce((acc, t) => acc + Number(t.total), 0);
+    document.getElementById('totalToday').textContent = fmtL(totalSum);
+
+    const row = document.getElementById('totalsRow');
+    const methodLabels = { efectivo: 'Efectivo', tarjeta: 'Tarjeta', transferencia: 'Transferencia' };
+    const featuredCard = `<div class="total-card featured">
+      <div class="total-label">Total cobrado hoy</div>
+      <div class="total-value">${fmtL(totalSum)}</div>
+      <div class="total-meta">${totals.reduce((a, t) => a + Number(t.count), 0)} cobros</div>
+    </div>`;
+    const methodCards = totals.map(t => `
+      <div class="total-card">
+        <div class="total-label">${methodLabels[t.payment_method] || t.payment_method || '—'}</div>
+        <div class="total-value">${fmtL(t.total)}</div>
+        <div class="total-meta">${t.count} cobros</div>
+      </div>
+    `).join('');
+    row.innerHTML = featuredCard + methodCards;
+  }
+
+  function renderPending() {
+    const list = document.getElementById('pendingList');
+    if (pending.length === 0) {
+      list.innerHTML = '<div class="empty">No hay consultas pendientes de cobro 🎉</div>';
+      return;
+    }
+    list.innerHTML = pending.map(p => {
+      const dt = new Date(p.scheduled_at);
+      const time = dt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+      return `
+        <div class="pay-card">
+          <div class="pay-info">
+            <div class="name">${esc(p.patient_name)}</div>
+            <div class="meta">${esc(p.doctor_name)} · ${esc(p.specialty || 'Consulta')} · ${time}</div>
+          </div>
+          <div class="pay-action">
+            <button class="btn btn-charge" onclick="openCharge(${p.id})">Cobrar</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('historyList');
+    if (history.length === 0) {
+      list.innerHTML = '<div class="empty">Sin pagos registrados aún</div>';
+      return;
+    }
+    const labels = { efectivo: 'Efectivo', tarjeta: 'Tarjeta', transferencia: 'Transferencia' };
+    list.innerHTML = history.map(h => {
+      const time = h.paid_at ? new Date(h.paid_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '';
+      return `
+        <div class="pay-card">
+          <div class="pay-info">
+            <div class="name">${esc(h.patient_name)}</div>
+            <div class="meta">${esc(h.doctor_name)} · ${labels[h.payment_method] || h.payment_method} · ${time}</div>
+          </div>
+          <div class="pay-action">
+            <div style="font-weight:900;color:#047857;font-size:1.2rem;">${fmtL(h.cost)}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function openCharge(id) {
+    activeAppt = pending.find(p => p.id === id);
+    if (!activeAppt) return;
+    document.getElementById('chargeSubtitle').textContent = `${activeAppt.patient_name} · ${activeAppt.doctor_name}`;
+    document.getElementById('chargeCost').value = activeAppt.cost > 0 ? activeAppt.cost : '';
+    selectedMethod = null;
+    document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('chargeOverlay').classList.add('active');
+    setTimeout(() => document.getElementById('chargeCost').focus(), 100);
+  }
+
+  function closeCharge() {
+    document.getElementById('chargeOverlay').classList.remove('active');
+    activeAppt = null;
+  }
+
+  function selectMethod(m) {
+    selectedMethod = m;
+    document.querySelectorAll('.method-btn').forEach(b => b.classList.toggle('active', b.dataset.method === m));
+  }
+
+  async function confirmCharge() {
+    if (!activeAppt) return;
+    const cost = parseFloat(document.getElementById('chargeCost').value);
+    if (!cost || cost <= 0) { showToast('Ingresa un monto válido'); return; }
+    if (!selectedMethod) { showToast('Selecciona un método de pago'); return; }
+    try {
+      await api(`/api/reception/charge/${activeAppt.id}`, {
+        method: 'POST',
+        body: { cost, payment_method: selectedMethod }
+      });
+      showToast('Pago registrado');
+      closeCharge();
+      load();
+    } catch (e) {
+      showToast('Error: ' + e.message);
+    }
+  }
+
+  load();
+  setInterval(load, 8000);
+</script>
+</body>
+</html>

@@ -35,6 +35,24 @@ router.get('/doctors', authenticate, async (req, res) => {
   res.json(result.rows);
 });
 
+router.get('/receptionists', authenticate, async (req, res) => {
+  if (!['super_admin', 'clinic_admin'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'No autorizado' });
+  }
+  let result;
+  if (req.user.role === 'super_admin') {
+    result = await query(
+      "SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.phone, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.role = 'receptionist' ORDER BY c.name, u.email"
+    );
+  } else {
+    result = await query(
+      "SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.phone, c.name as clinic_name FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.role = 'receptionist' AND u.clinic_id = $1 ORDER BY u.email",
+      [req.user.clinic_id]
+    );
+  }
+  res.json(result.rows);
+});
+
 router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async (req, res) => {
   const { email, password, role, clinic_id, name, specialty, phone } = req.body;
   if (!email || !password || !role) {
@@ -43,11 +61,13 @@ router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async
 
   let assignedClinicId;
   if (req.user.role === 'clinic_admin') {
-    if (role !== 'doctor') return res.status(403).json({ error: 'Clinic admin can only create doctors' });
+    if (!['doctor', 'receptionist'].includes(role)) {
+      return res.status(403).json({ error: 'Clinic admin can only create doctors or receptionists' });
+    }
     assignedClinicId = req.user.clinic_id;
   } else {
-    if (!['clinic_admin', 'doctor'].includes(role)) {
-      return res.status(400).json({ error: 'Role must be clinic_admin or doctor' });
+    if (!['clinic_admin', 'doctor', 'receptionist'].includes(role)) {
+      return res.status(400).json({ error: 'Role must be clinic_admin, doctor or receptionist' });
     }
     if (!clinic_id) return res.status(400).json({ error: 'clinic_id required' });
     assignedClinicId = clinic_id;
@@ -93,12 +113,12 @@ router.delete('/:id', authenticate, requireRole('super_admin', 'clinic_admin'), 
   const user = userResult.rows[0];
   if (!user) return res.status(404).json({ error: 'User not found' });
 
-  if (user.role !== 'doctor') {
-    return res.status(403).json({ error: 'Can only delete doctors' });
+  if (!['doctor', 'receptionist'].includes(user.role)) {
+    return res.status(403).json({ error: 'Can only delete doctors or receptionists' });
   }
 
   if (req.user.role === 'clinic_admin' && user.clinic_id !== req.user.clinic_id) {
-    return res.status(403).json({ error: 'Can only delete doctors from your own clinic' });
+    return res.status(403).json({ error: 'Can only delete users from your own clinic' });
   }
 
   await query('UPDATE users SET clinic_id = NULL WHERE id = $1', [userId]);

@@ -25,6 +25,8 @@ app.use('/api/assistant', require('./routes/assistant-intent'));
 app.use('/api/conversation', require('./routes/conversation'));
 app.use('/api/public', require('./routes/public-booking'));
 app.use('/api/doctor-availability', require('./routes/doctor-availability'));
+app.use('/api/rooms', require('./routes/rooms'));
+app.use('/api/reception', require('./routes/reception'));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

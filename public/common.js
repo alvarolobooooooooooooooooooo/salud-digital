@@ -12,7 +12,7 @@ function requireAuth(allowedRoles) {
     const role = getRole();
     const redirects = {
       'super_admin': '/admin.html',
-      'receptionist': '/reception.html'
+      'receptionist': '/recepcion-inicio.html'
     };
     window.location.href = redirects[role] || '/dashboard.html';
   }

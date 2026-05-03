@@ -149,6 +149,18 @@ const initDb = async () => {
         enabled BOOLEAN DEFAULT TRUE,
         FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE CASCADE
       );
+
+      CREATE TABLE IF NOT EXISTS clinic_rooms (
+        id SERIAL PRIMARY KEY,
+        clinic_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        status TEXT DEFAULT 'free' CHECK(status IN ('free', 'occupied', 'cleaning')),
+        current_appointment_id INTEGER,
+        occupied_since TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
+        FOREIGN KEY (current_appointment_id) REFERENCES appointments(id) ON DELETE SET NULL
+      );
     `);
 
     const alterCommands = [
@@ -187,7 +199,16 @@ const initDb = async () => {
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS billing_cycle TEXT DEFAULT \'monthly\'',
       'ALTER TABLE consent_templates ADD COLUMN IF NOT EXISTS doctor_id INTEGER',
       'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS source TEXT DEFAULT \'manual\'',
-      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS reason TEXT DEFAULT \'\''
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS reason TEXT DEFAULT \'\'',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS room_id INTEGER',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS checked_in_at TIMESTAMP',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS started_at TIMESTAMP',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS ended_at TIMESTAMP',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS cost NUMERIC DEFAULT 0',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT \'pending\'',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT \'\'',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS paid_by INTEGER'
     ];
 
     for (const cmd of alterCommands) {
@@ -325,6 +346,15 @@ const initDb = async () => {
         'INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status) VALUES ($1, $2, $3, $4, $5, $6)',
         [p3, d2Id, clinic2Id, 'Odontología', `${today}T09:30:00`, 'waiting']
       );
+
+      for (const cId of [clinic1Id, clinic2Id]) {
+        for (let i = 1; i <= 4; i++) {
+          await query(
+            'INSERT INTO clinic_rooms (clinic_id, name, status) VALUES ($1, $2, $3)',
+            [cId, `Sala ${i}`, 'free']
+          );
+        }
+      }
     }
 
     // Initialize conversation tables for NLU assistant

@@ -28,7 +28,10 @@
     '/view-consultation.html': '',
     '/clinical-record.html': '',
     '/medical-record.html': '',
-    '/admin.html': 'admin'
+    '/admin.html': 'admin',
+    '/recepcion-inicio.html': 'rec-inicio',
+    '/recepcion-citas.html': 'rec-citas',
+    '/recepcion-pagos.html': 'rec-pagos'
   };
   const activePage = activeMap[path] || '';
 
@@ -36,6 +39,7 @@
   const role = localStorage.getItem('sd_role');
   const isSuperAdmin = role === 'super_admin';
   const isClinicAdmin = role === 'clinic_admin';
+  const isReceptionist = role === 'receptionist';
 
   function buildSidebarHTML() {
     let items = [];
@@ -44,6 +48,13 @@
       // Super admin sidebar
       items = [
         { href: '/admin.html', key: 'admin', iconName: 'settings', label: 'Administración' }
+      ];
+    } else if (isReceptionist) {
+      // Receptionist sidebar
+      items = [
+        { href: '/recepcion-inicio.html', key: 'rec-inicio', iconName: 'home', label: 'Inicio' },
+        { href: '/recepcion-citas.html', key: 'rec-citas', iconName: 'calendar', label: 'Citas Hoy' },
+        { href: '/recepcion-pagos.html', key: 'rec-pagos', iconName: 'wallet', label: 'Pagos' }
       ];
     } else if (isClinicAdmin) {
       // Clinic admin sidebar
@@ -111,7 +122,7 @@
             </div>
           </div>
 
-          <div class="sidebar-section">
+          ${isReceptionist ? '' : `<div class="sidebar-section">
             <a href="/agendar-online.html" class="sidebar-menu-link">
               <span id="citasOnlineIcon"></span>
               <span>Citas Online</span>
@@ -128,7 +139,7 @@
               <span id="remindersIcon"></span>
               <span>Recordatorios</span>
             </a>
-          </div>
+          </div>`}
 
           <div class="sidebar-section">
             <div class="sidebar-label">Sesión</div>
@@ -336,10 +347,13 @@
     if (nameEl) nameEl.textContent = displayName;
     if (clinicEl) clinicEl.textContent = user.clinic_name || '';
 
-    if (specialtyEl && user.specialty) {
-      specialtyEl.textContent = user.specialty;
-      // Save specialty for use in other pages
-      localStorage.setItem('sd_user_specialty', user.specialty);
+    if (specialtyEl) {
+      if (user.role === 'receptionist') {
+        specialtyEl.textContent = 'Recepcionista';
+      } else if (user.specialty) {
+        specialtyEl.textContent = user.specialty;
+        localStorage.setItem('sd_user_specialty', user.specialty);
+      }
     }
   }
 
