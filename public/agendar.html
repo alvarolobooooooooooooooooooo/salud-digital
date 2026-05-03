@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendar Cita</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse at 0% 0%, #c7e9f1 0%, transparent 50%),
+        radial-gradient(ellipse at 100% 0%, #d4ecf5 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 100%, #b8e0ec 0%, transparent 60%),
+        linear-gradient(135deg, #e8f4f8 0%, #d9ebf2 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: #0f172a;
+      padding: 0.75rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        linear-gradient(rgba(8, 145, 178, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(8, 145, 178, 0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(circle 600px at 10% 20%, rgba(8, 145, 178, 0.18) 0%, transparent 50%),
+        radial-gradient(circle 700px at 90% 30%, rgba(6, 182, 212, 0.2) 0%, transparent 50%),
+        radial-gradient(circle 500px at 15% 80%, rgba(14, 165, 233, 0.15) 0%, transparent 50%),
+        radial-gradient(circle 600px at 85% 75%, rgba(8, 145, 178, 0.16) 0%, transparent 50%);
+      filter: blur(20px);
+      pointer-events: none;
+      z-index: 0;
+      animation: meshMove 20s ease-in-out infinite;
+    }
+
+    @keyframes meshMove {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -20px) scale(1.05); }
+      66% { transform: translate(-20px, 30px) scale(0.98); }
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(60px);
+    }
+
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(8, 145, 178, 0.35) 0%, transparent 70%);
+      top: 15%;
+      left: -100px;
+      animation: orbFloat1 15s ease-in-out infinite;
+    }
+
+    .orb-2 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.32) 0%, transparent 70%);
+      top: 50%;
+      right: -150px;
+      animation: orbFloat2 18s ease-in-out infinite;
+    }
+
+    .orb-3 {
+      width: 350px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.28) 0%, transparent 70%);
+      bottom: 10%;
+      left: 5%;
+      animation: orbFloat3 22s ease-in-out infinite;
+    }
+
+    @keyframes orbFloat1 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(50px, 80px); }
+    }
+
+    @keyframes orbFloat2 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-60px, -50px); }
+    }
+
+    @keyframes orbFloat3 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(40px, -60px); }
+    }
+
+    .noise-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 1.5rem auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, #0891b2 0%, #0369a1 25%, #06b6d4 60%, #0ea5e9 100%);
+      padding: 2.75rem 2rem;
+      border-radius: 24px;
+      text-align: center;
+      color: white;
+      box-shadow:
+        0 40px 80px rgba(8, 145, 178, 0.4),
+        0 20px 40px rgba(8, 145, 178, 0.3),
+        0 10px 20px rgba(8, 145, 178, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(8, 145, 178, 0.3);
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+      z-index: 2;
+    }
+
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .page-header::after {
+      content: '';
+      position: absolute;
+      bottom: -30%;
+      left: -5%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .page-header p {
+      font-size: 0.95rem;
+      opacity: 0.93;
+      position: relative;
+      z-index: 1;
+    }
+
+    .clinic-name {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      opacity: 0.88;
+    }
+
+    .step-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(245, 250, 252, 0.88) 100%);
+      border-radius: 22px;
+      padding: 1.75rem;
+      margin-bottom: 1.2rem;
+      box-shadow:
+        0 35px 80px rgba(8, 145, 178, 0.2),
+        0 15px 30px rgba(8, 145, 178, 0.15),
+        0 5px 10px rgba(8, 145, 178, 0.1),
+        inset 0 1px 2px rgba(255, 255, 255, 0.95),
+        inset 0 -1px 2px rgba(8, 145, 178, 0.08);
+      border: 1.5px solid rgba(8, 145, 178, 0.18);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      z-index: 2;
+    }
+
+    .step-card:hover {
+      box-shadow:
+        0 45px 100px rgba(8, 145, 178, 0.28),
+        0 20px 40px rgba(8, 145, 178, 0.22),
+        0 8px 15px rgba(8, 145, 178, 0.15),
+        inset 0 1px 2px rgba(255, 255, 255, 0.98),
+        inset 0 -1px 2px rgba(8, 145, 178, 0.1);
+      transform: translateY(-3px);
+      border-color: rgba(8, 145, 178, 0.28);
+    }
+
+    .step-title {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      font-size: 1.08rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 1.25rem;
+    }
+
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      font-weight: 900;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+      box-shadow: 0 6px 20px rgba(8, 145, 178, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    }
+
+    .doctor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .doctor-card {
+      padding: 1.2rem;
+      border: 1.5px solid rgba(8, 145, 178, 0.2);
+      border-radius: 16px;
+      cursor: pointer;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 251, 252, 0.9) 100%);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      box-shadow:
+        0 20px 50px rgba(8, 145, 178, 0.15),
+        0 8px 20px rgba(8, 145, 178, 0.1),
+        inset 0 1px 1px rgba(255, 255, 255, 0.8);
+    }
+
+    .doctor-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.08), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .doctor-card:hover {
+      border-color: rgba(8, 145, 178, 0.35);
+      transform: translateY(-4px);
+      box-shadow:
+        0 30px 65px rgba(8, 145, 178, 0.22),
+        0 12px 28px rgba(8, 145, 178, 0.15),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    }
+
+    .doctor-card.selected {
+      border-color: rgba(8, 145, 178, 0.35);
+      background: linear-gradient(135deg, rgba(240, 249, 255, 0.96) 0%, rgba(224, 242, 254, 0.9) 100%);
+      box-shadow:
+        0 25px 60px rgba(8, 145, 178, 0.28),
+        0 10px 25px rgba(8, 145, 178, 0.18),
+        inset 0 1px 2px rgba(255, 255, 255, 0.9),
+        inset 0 0 20px rgba(8, 145, 178, 0.1);
+    }
+
+    .doctor-card .icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+
+    .doctor-name {
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.25rem;
+      font-size: 0.95rem;
+      line-height: 1.3;
+    }
+
+    .doctor-specialty {
+      font-size: 0.8rem;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .date-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.4rem;
+    }
+
+    .date-card {
+      padding: 0.6rem 0.35rem;
+      border: 1.5px solid rgba(8, 145, 178, 0.18);
+      border-radius: 12px;
+      cursor: pointer;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 251, 252, 0.88) 100%);
+      text-align: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 0.82rem;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow:
+        0 8px 20px rgba(8, 145, 178, 0.12),
+        0 2px 5px rgba(8, 145, 178, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    .date-card:hover:not(.disabled) {
+      border-color: rgba(8, 145, 178, 0.4);
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.25) 0%, rgba(6, 182, 212, 0.2) 100%);
+      color: rgba(8, 145, 178, 0.95);
+      transform: translateY(-2px);
+      box-shadow:
+        0 12px 28px rgba(8, 145, 178, 0.2),
+        0 4px 8px rgba(8, 145, 178, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .date-card.selected {
+      border-color: rgba(8, 145, 178, 0.4);
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow:
+        0 12px 32px rgba(8, 145, 178, 0.4),
+        0 5px 12px rgba(8, 145, 178, 0.25),
+        inset 0 1px 2px rgba(255, 255, 255, 0.4);
+    }
+
+    .date-card.disabled {
+      opacity: 0.22;
+      cursor: not-allowed;
+      background: rgba(248, 250, 252, 0.45);
+    }
+
+    .date-day {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      opacity: 0.7;
+      letter-spacing: 0.05em;
+    }
+
+    .date-card.selected .date-day {
+      opacity: 1;
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .date-num {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-top: 0.1rem;
+    }
+
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .slot-btn {
+      padding: 0.7rem 0.45rem;
+      border: 1.5px solid rgba(8, 145, 178, 0.18);
+      border-radius: 11px;
+      cursor: pointer;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 251, 252, 0.88) 100%);
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow:
+        0 8px 20px rgba(8, 145, 178, 0.12),
+        0 2px 5px rgba(8, 145, 178, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    .slot-btn:hover:not(:disabled) {
+      border-color: rgba(8, 145, 178, 0.4);
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.25) 0%, rgba(6, 182, 212, 0.2) 100%);
+      color: rgba(8, 145, 178, 0.95);
+      transform: translateY(-2px);
+      box-shadow:
+        0 12px 28px rgba(8, 145, 178, 0.2),
+        0 4px 8px rgba(8, 145, 178, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .slot-btn.selected {
+      border-color: rgba(8, 145, 178, 0.4);
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow:
+        0 12px 32px rgba(8, 145, 178, 0.4),
+        0 5px 12px rgba(8, 145, 178, 0.25),
+        inset 0 1px 2px rgba(255, 255, 255, 0.4);
+    }
+
+    .slot-btn:disabled {
+      opacity: 0.22;
+      cursor: not-allowed;
+      background: rgba(248, 250, 252, 0.45);
+      text-decoration: line-through;
+    }
+
+    .form-group {
+      margin-bottom: 1.1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.4rem;
+    }
+
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 1.5px solid rgba(8, 145, 178, 0.18);
+      border-radius: 11px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 251, 252, 0.9) 100%);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      box-shadow:
+        inset 0 1px 2px rgba(8, 145, 178, 0.05),
+        0 6px 16px rgba(8, 145, 178, 0.08),
+        0 2px 4px rgba(8, 145, 178, 0.04);
+    }
+
+    .form-input:focus, .form-textarea:focus {
+      outline: none;
+      border-color: rgba(8, 145, 178, 0.38);
+      box-shadow:
+        inset 0 1px 2px rgba(8, 145, 178, 0.05),
+        0 0 0 4px rgba(8, 145, 178, 0.15),
+        0 8px 20px rgba(8, 145, 178, 0.15),
+        0 2px 4px rgba(8, 145, 178, 0.08);
+      background: rgba(255, 255, 255, 0.99);
+    }
+
+    .form-textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 1rem 1.5rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 1.02rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow:
+        0 15px 45px rgba(8, 145, 178, 0.4),
+        0 8px 20px rgba(8, 145, 178, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.35);
+      letter-spacing: 0.02em;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow:
+        0 20px 55px rgba(8, 145, 178, 0.48),
+        0 12px 28px rgba(8, 145, 178, 0.38),
+        inset 0 1px 2px rgba(255, 255, 255, 0.35);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow:
+        0 12px 32px rgba(8, 145, 178, 0.35),
+        0 6px 15px rgba(8, 145, 178, 0.25);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .empty-msg {
+      text-align: center;
+      color: #64748b;
+      padding: 2rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      grid-column: 1 / -1;
+      word-break: break-word;
+    }
+
+    .success-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(245, 250, 252, 0.92) 100%);
+      border-radius: 24px;
+      padding: 3rem 2.25rem;
+      text-align: center;
+      box-shadow:
+        0 35px 85px rgba(16, 185, 129, 0.22),
+        0 15px 35px rgba(16, 185, 129, 0.15),
+        0 5px 12px rgba(16, 185, 129, 0.08),
+        inset 0 1px 2px rgba(255, 255, 255, 0.9);
+      border: 1.5px solid rgba(16, 185, 129, 0.2);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      position: relative;
+      z-index: 2;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-radius: 50%;
+      margin: 0 auto 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 2.6rem;
+      font-weight: 900;
+      box-shadow: 0 12px 35px rgba(16, 185, 129, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    }
+
+    .success-card h2 {
+      font-size: 1.85rem;
+      font-weight: 900;
+      color: #0f172a;
+      margin-bottom: 0.75rem;
+    }
+
+    .success-card p {
+      color: #64748b;
+      margin-bottom: 1.75rem;
+      line-height: 1.65;
+      font-size: 1rem;
+    }
+
+    .summary-box {
+      background: linear-gradient(135deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.88) 100%);
+      border-radius: 14px;
+      border: 1.5px solid rgba(8, 145, 178, 0.2);
+      padding: 1.5rem;
+      margin: 1.75rem 0;
+      text-align: left;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow:
+        inset 0 1px 2px rgba(255, 255, 255, 0.8),
+        0 8px 24px rgba(8, 145, 178, 0.12),
+        0 2px 6px rgba(8, 145, 178, 0.06);
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.55rem 0;
+      font-size: 0.93rem;
+      border-bottom: 1px solid rgba(8, 145, 178, 0.1);
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .summary-row strong {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .summary-row span {
+      color: #64748b;
+    }
+
+    .error-msg {
+      background: linear-gradient(135deg, rgba(254, 242, 242, 0.92), rgba(253, 226, 226, 0.85));
+      border: 1.5px solid rgba(252, 165, 165, 0.4);
+      color: #991b1b;
+      padding: 0.95rem 1.2rem;
+      border-radius: 11px;
+      font-size: 0.93rem;
+      margin-bottom: 1rem;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(153, 27, 27, 0.08);
+    }
+
+    @media (max-width: 540px) {
+      body { padding: 0.4rem; }
+      .container { margin: 0.75rem auto; }
+      .page-header { padding: 2.2rem 1.3rem; margin-bottom: 1.5rem; }
+      .page-header h1 { font-size: 1.7rem; }
+      .step-card { padding: 1.4rem; margin-bottom: 1rem; }
+      .doctor-grid { grid-template-columns: 1fr; gap: 0.7rem; }
+      .date-grid { grid-template-columns: repeat(7, 1fr); gap: 0.3rem; }
+      .date-card { padding: 0.5rem 0.2rem; }
+      .date-num { font-size: 1rem; }
+      .slots-grid { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 0.55rem; }
+      .btn-primary { padding: 0.95rem 1.4rem; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="noise-overlay"></div>
+
+  <div class="container" id="bookingContainer">
+    <div class="page-header">
+      <div class="clinic-name" id="clinicLabel">Cargando...</div>
+      <h1 id="clinicName">Agendar Cita</h1>
+      <p>Reserva tu cita en línea de forma rápida y segura</p>
+    </div>
+
+    <div id="errorBox"></div>
+
+    <!-- Step 1: Doctor -->
+    <div class="step-card">
+      <div class="step-title">
+        <span class="step-num">1</span>
+        Selecciona un doctor
+      </div>
+      <div id="doctorGrid" class="doctor-grid">
+        <p class="empty-msg">Cargando doctores...</p>
+      </div>
+    </div>
+
+    <!-- Step 2: Date -->
+    <div class="step-card" id="dateStep" style="display:none;">
+      <div class="step-title">
+        <span class="step-num">2</span>
+        Selecciona una fecha
+      </div>
+      <div id="dateGrid" class="date-grid"></div>
+    </div>
+
+    <!-- Step 3: Slot -->
+    <div class="step-card" id="slotStep" style="display:none;">
+      <div class="step-title">
+        <span class="step-num">3</span>
+        Selecciona un horario
+      </div>
+      <div id="slotsGrid" class="slots-grid">
+        <p class="empty-msg">Selecciona una fecha primero</p>
+      </div>
+    </div>
+
+    <!-- Step 4: Form -->
+    <div class="step-card" id="formStep" style="display:none;">
+      <div class="step-title">
+        <span class="step-num">4</span>
+        Tus datos
+      </div>
+      <form id="bookingForm">
+        <div class="form-group">
+          <label class="form-label">Nombre completo</label>
+          <input type="text" class="form-input" id="patientName" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Identidad</label>
+          <input type="text" class="form-input" id="patientIdentity" placeholder="0000-0000-00000" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input type="tel" class="form-input" id="patientPhone" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Razón de la cita</label>
+          <textarea class="form-textarea" id="reason" placeholder="Describa brevemente el motivo de la consulta" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary" id="submitBtn">Confirmar cita</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="container" id="successContainer" style="display:none;">
+    <div class="success-card">
+      <div class="success-icon">✓</div>
+      <h2>¡Cita agendada!</h2>
+      <p>Tu cita ha sido registrada exitosamente. La clínica se pondrá en contacto contigo para confirmar los detalles.</p>
+      <div class="summary-box" id="summaryBox"></div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const clinicId = params.get('clinic');
+
+    let state = {
+      doctors: [],
+      selectedDoctor: null,
+      selectedDate: null,
+      selectedSlot: null,
+      slots: []
+    };
+
+    function showError(msg) {
+      document.getElementById('errorBox').innerHTML = `<div class="error-msg">${msg}</div>`;
+      setTimeout(() => { document.getElementById('errorBox').innerHTML = ''; }, 5000);
+    }
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
+    }
+
+    async function api(url, options = {}) {
+      const res = await fetch(url, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Error de red' }));
+        throw new Error(err.error || 'Error');
+      }
+      return res.json();
+    }
+
+    async function init() {
+      if (!clinicId) {
+        document.getElementById('bookingContainer').innerHTML = '<div class="step-card"><p class="empty-msg">Link inválido. Contacta a la clínica.</p></div>';
+        return;
+      }
+
+      try {
+        const clinic = await api(`/api/public/clinic/${clinicId}`);
+        document.getElementById('clinicName').textContent = clinic.name;
+        document.getElementById('clinicLabel').textContent = clinic.name;
+
+        const doctors = await api(`/api/public/clinic/${clinicId}/doctors`);
+        state.doctors = doctors;
+        renderDoctors();
+      } catch (err) {
+        document.getElementById('bookingContainer').innerHTML = `<div class="step-card"><p class="empty-msg">${esc(err.message)}</p></div>`;
+      }
+    }
+
+    function getSpecialtyIcon(specialty) {
+      const icons = {
+        'General': '👨‍⚕️',
+        'Medicina General': '👨‍⚕️',
+        'Cardiología': '❤️',
+        'Pediatría': '👶',
+        'Dermatología': '🩺',
+        'Oftalmología': '👁️',
+        'Podología': null
+      };
+      return icons[specialty] !== undefined ? icons[specialty] : '👨‍⚕️';
+    }
+
+    function renderDoctors() {
+      const grid = document.getElementById('doctorGrid');
+      if (state.doctors.length === 0) {
+        grid.innerHTML = '<p class="empty-msg">No hay doctores disponibles en este momento.</p>';
+        return;
+      }
+      grid.innerHTML = state.doctors.map(d => {
+        const specialty = d.specialty || 'Medicina General';
+        const icon = getSpecialtyIcon(specialty);
+        const iconHtml = icon ? `<div class="icon">${icon}</div>` : '';
+        return `
+        <div class="doctor-card ${state.selectedDoctor?.id === d.id ? 'selected' : ''}" data-id="${d.id}">
+          ${iconHtml}
+          <div class="doctor-name">${esc(d.name || d.email)}</div>
+          <div class="doctor-specialty">${esc(specialty)}</div>
+        </div>
+      `}).join('');
+      grid.querySelectorAll('.doctor-card').forEach(c => {
+        c.addEventListener('click', () => selectDoctor(parseInt(c.dataset.id)));
+      });
+    }
+
+    function selectDoctor(id) {
+      state.selectedDoctor = state.doctors.find(d => d.id === id);
+      state.selectedDate = null;
+      state.selectedSlot = null;
+      renderDoctors();
+      document.getElementById('dateStep').style.display = 'block';
+      document.getElementById('slotStep').style.display = 'none';
+      document.getElementById('formStep').style.display = 'none';
+      renderDates();
+    }
+
+    function renderDates() {
+      const grid = document.getElementById('dateGrid');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      let html = '';
+      for (let i = 0; i < 28; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() + i);
+        const iso = d.toISOString().split('T')[0];
+        const isSelected = state.selectedDate === iso;
+        html += `
+          <div class="date-card ${isSelected ? 'selected' : ''}" data-date="${iso}">
+            <div class="date-day">${days[d.getDay()]}</div>
+            <div class="date-num">${d.getDate()}</div>
+          </div>
+        `;
+      }
+      grid.innerHTML = html;
+      grid.querySelectorAll('.date-card').forEach(c => {
+        c.addEventListener('click', () => selectDate(c.dataset.date));
+      });
+    }
+
+    async function selectDate(date) {
+      state.selectedDate = date;
+      state.selectedSlot = null;
+      renderDates();
+      document.getElementById('slotStep').style.display = 'block';
+      document.getElementById('formStep').style.display = 'none';
+      document.getElementById('slotsGrid').innerHTML = '<p class="empty-msg">Cargando horarios...</p>';
+
+      try {
+        state.slots = await api(`/api/public/clinic/${clinicId}/doctors/${state.selectedDoctor.id}/slots?date=${date}`);
+        renderSlots();
+      } catch (err) {
+        document.getElementById('slotsGrid').innerHTML = `<p class="empty-msg">${esc(err.message)}</p>`;
+      }
+    }
+
+    function renderSlots() {
+      const grid = document.getElementById('slotsGrid');
+      if (state.slots.length === 0) {
+        grid.innerHTML = '<p class="empty-msg">El doctor no atiende este día. Selecciona otra fecha.</p>';
+        return;
+      }
+      grid.innerHTML = state.slots.map(s => `
+        <button class="slot-btn ${state.selectedSlot === s.time ? 'selected' : ''}"
+          data-time="${s.time}" ${s.available ? '' : 'disabled'}>${s.time}</button>
+      `).join('');
+      grid.querySelectorAll('.slot-btn').forEach(b => {
+        b.addEventListener('click', () => selectSlot(b.dataset.time));
+      });
+    }
+
+    function selectSlot(time) {
+      state.selectedSlot = time;
+      renderSlots();
+      document.getElementById('formStep').style.display = 'block';
+      document.getElementById('formStep').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    const identityInput = document.getElementById('patientIdentity');
+    identityInput.addEventListener('input', (e) => {
+      let value = e.target.value.replace(/\D/g, '');
+      let formatted = '';
+      for (let i = 0; i < value.length && i < 13; i++) {
+        if (i === 4 || i === 8) formatted += '-';
+        formatted += value[i];
+      }
+      e.target.value = formatted;
+    });
+
+    document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Procesando...';
+
+      try {
+        const payload = {
+          doctor_id: state.selectedDoctor.id,
+          scheduled_at: `${state.selectedDate}T${state.selectedSlot}:00`,
+          patient_name: document.getElementById('patientName').value.trim(),
+          patient_identity: document.getElementById('patientIdentity').value.trim(),
+          patient_phone: document.getElementById('patientPhone').value.trim(),
+          reason: document.getElementById('reason').value.trim()
+        };
+
+        await api(`/api/public/clinic/${clinicId}/booking`, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+
+        const dt = new Date(`${state.selectedDate}T${state.selectedSlot}:00`);
+        document.getElementById('summaryBox').innerHTML = `
+          <div class="summary-row"><span>Doctor:</span><strong>${esc(state.selectedDoctor.name || state.selectedDoctor.email)}</strong></div>
+          <div class="summary-row"><span>Fecha:</span><strong>${dt.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></div>
+          <div class="summary-row"><span>Hora:</span><strong>${state.selectedSlot}</strong></div>
+          <div class="summary-row"><span>Paciente:</span><strong>${esc(payload.patient_name)}</strong></div>
+        `;
+        document.getElementById('bookingContainer').style.display = 'none';
+        document.getElementById('successContainer').style.display = 'block';
+        window.scrollTo(0, 0);
+      } catch (err) {
+        showError(err.message);
+        btn.disabled = false;
+        btn.textContent = 'Confirmar cita';
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>

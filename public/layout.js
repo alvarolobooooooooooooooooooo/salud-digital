@@ -22,6 +22,7 @@
     '/doctors.html': 'doctors',
     '/consentimientos.html': 'consentimientos',
     '/recordatorios.html': 'recordatorios',
+    '/agendar-online.html': 'agendar-online',
     '/plan.html': 'plan',
     '/consultation.html': '',
     '/view-consultation.html': '',
@@ -54,6 +55,7 @@
         { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
         { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
         { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
+        { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' },
         { href: '/plan.html', key: 'plan', iconName: 'creditCard', label: 'Mi Plan' }
       ];
     } else {
@@ -64,7 +66,8 @@
         { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
         { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
         { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
-        { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' }
+        { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
+        { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' }
       ];
     }
 
@@ -76,8 +79,8 @@
       </a>`;
     }).join('');
 
-    // Mobile menu items (exclude Consentimientos and Recordatorios from mobile sticky menu)
-    const mobileMenuItems = items.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios').map(item => {
+    // Mobile menu items (exclude Consentimientos, Recordatorios, Citas Online, Mi Plan from mobile sticky menu)
+    const mobileMenuItems = items.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'agendar-online' && item.key !== 'plan').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
@@ -109,6 +112,14 @@
           </div>
 
           <div class="sidebar-section">
+            <a href="/agendar-online.html" class="sidebar-menu-link">
+              <span id="citasOnlineIcon"></span>
+              <span>Citas Online</span>
+            </a>
+            <a href="/plan.html" class="sidebar-menu-link">
+              <span id="planIcon"></span>
+              <span>Mi Plan</span>
+            </a>
             <a href="/consentimientos.html" class="sidebar-menu-link">
               <span id="consentsIcon"></span>
               <span>Consentimientos</span>
@@ -208,6 +219,14 @@
     // Notification icon
     const notificationIcon = document.querySelector('#notificationIcon');
     if (notificationIcon && !notificationIcon.innerHTML.trim()) notificationIcon.innerHTML = Icons.render('bell', 24);
+
+    // Citas Online menu icon
+    const citasOnlineIcon = document.querySelector('#citasOnlineIcon');
+    if (citasOnlineIcon && !citasOnlineIcon.innerHTML.trim()) citasOnlineIcon.innerHTML = Icons.render('calendar', 16);
+
+    // Mi Plan menu icon
+    const planIcon = document.querySelector('#planIcon');
+    if (planIcon && !planIcon.innerHTML.trim()) planIcon.innerHTML = Icons.render('creditCard', 16);
 
     // Consents menu icon
     const consentsIcon = document.querySelector('#consentsIcon');

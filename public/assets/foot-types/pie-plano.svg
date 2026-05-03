@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" width="140" height="105">
+  <defs>
+    <linearGradient id="footGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fce7f3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fbcfe8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="archGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#db2777;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Pie Plano (arco bajo) -->
+  <g transform="translate(20, 30)">
+    <!-- Talón -->
+    <circle cx="25" cy="95" r="18" fill="url(#footGradient2)" stroke="#f472b6" stroke-width="1.5"/>
+    <!-- Planta del pie (más plana) -->
+    <path d="M 25 77 Q 40 72 60 70 Q 75 69 85 75 Q 88 88 85 110 Q 70 120 50 122 Q 35 120 25 113 Z"
+          fill="url(#footGradient2)" stroke="#f472b6" stroke-width="1.5"/>
+    <!-- Arco plantar plano (muy bajo) -->
+    <ellipse cx="45" cy="95" rx="14" ry="12" fill="url(#archGradient2)" opacity="0.7"/>
+    <!-- Línea de pronación -->
+    <path d="M 30 90 Q 50 100 80 105" stroke="#ec4899" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+    <!-- Dedos -->
+    <g stroke="#f472b6" stroke-width="1.5" fill="url(#footGradient2)">
+      <ellipse cx="62" cy="58" rx="6" ry="10"/>
+      <ellipse cx="72" cy="56" rx="5.5" ry="9"/>
+      <ellipse cx="81" cy="57" rx="5" ry="8"/>
+      <ellipse cx="89" cy="60" rx="4.5" ry="7"/>
+    </g>
+  </g>
+
+  <text x="120" y="170" font-size="13" font-weight="700" fill="#1e293b" text-anchor="middle">Pie Plano</text>
+</svg>

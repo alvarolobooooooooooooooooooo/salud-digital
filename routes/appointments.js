@@ -63,6 +63,59 @@ router.put('/:id', authenticate, async (req, res) => {
   res.json({ success: true });
 });
 
+router.get('/public-bookings/stats', authenticate, async (req, res) => {
+  if (req.user.role !== 'doctor' && req.user.role !== 'clinic_admin') {
+    return res.status(403).json({ error: 'No autorizado' });
+  }
+
+  const params = [req.user.clinic_id];
+  let doctorFilter = '';
+  if (req.user.role === 'doctor') {
+    doctorFilter = ' AND a.doctor_id = $2';
+    params.push(req.user.id);
+  }
+
+  const totalResult = await query(
+    `SELECT COUNT(*) AS total FROM appointments a WHERE a.clinic_id = $1 AND a.source = 'public_link'${doctorFilter}`,
+    params
+  );
+  const total = parseInt(totalResult.rows[0].total);
+
+  const monthResult = await query(
+    `SELECT COUNT(*) AS total FROM appointments a
+     WHERE a.clinic_id = $1 AND a.source = 'public_link'${doctorFilter}
+     AND DATE_TRUNC('month', a.scheduled_at::timestamp) = DATE_TRUNC('month', CURRENT_DATE)`,
+    params
+  );
+  const this_month = parseInt(monthResult.rows[0].total);
+
+  const cancelledResult = await query(
+    `SELECT COUNT(*) AS total FROM appointments a
+     WHERE a.clinic_id = $1 AND a.source = 'public_link' AND a.status = 'cancelled'${doctorFilter}`,
+    params
+  );
+  const cancelled = parseInt(cancelledResult.rows[0].total);
+
+  const conversion_rate = total > 0 ? Math.round(((total - cancelled) / total) * 100) : 0;
+
+  const recentResult = await query(
+    `SELECT a.id, a.scheduled_at, a.status, a.reason, p.name AS patient_name, u.name AS doctor_name
+     FROM appointments a
+     JOIN patients p ON a.patient_id = p.id
+     JOIN users u ON a.doctor_id = u.id
+     WHERE a.clinic_id = $1 AND a.source = 'public_link'${doctorFilter}
+     ORDER BY a.scheduled_at DESC LIMIT 20`,
+    params
+  );
+
+  res.json({
+    total,
+    this_month,
+    conversion_rate,
+    recent: recentResult.rows
+  });
+});
+
 router.get('/today', authenticate, async (req, res) => {
   const today = getLocalDateString();
   let queryStr = `SELECT a.*, p.name AS patient_name, p.phone AS patient_phone, u.name AS doctor_name, u.email AS doctor_email FROM appointments a JOIN patients p ON a.patient_id = p.id JOIN users u ON a.doctor_id = u.id WHERE a.clinic_id = $1 AND a.scheduled_at::date = $2`;

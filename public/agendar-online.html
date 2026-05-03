@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SaludDigital — Citas Online</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      position: relative;
+      overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    main {
+      width: 100%;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .header-content h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.04em;
+    }
+
+    .header-content p {
+      color: #64748b;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .section {
+      background: white;
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 10px 30px rgba(8, 145, 178, 0.08);
+      border: 1px solid rgba(8, 145, 178, 0.1);
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .link-box {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      background: #f0f9ff;
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px dashed #0891b2;
+    }
+
+    .link-text {
+      flex: 1;
+      min-width: 250px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      color: #0369a1;
+      word-break: break-all;
+    }
+
+    .btn {
+      padding: 0.6rem 1.1rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(8, 145, 178, 0.35);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #0891b2;
+      border: 1.5px solid #0891b2;
+    }
+
+    .btn-secondary:hover {
+      background: #f0f9ff;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(8, 145, 178, 0.08);
+      border: 1px solid rgba(8, 145, 178, 0.08);
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #0f172a 0%, #0891b2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .availability-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .day-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 1fr 80px;
+      gap: 1rem;
+      align-items: center;
+      padding: 1.2rem;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 251, 252, 0.9) 100%);
+      border-radius: 16px;
+      border: 1.5px solid rgba(8, 145, 178, 0.15);
+      box-shadow: 0 8px 24px rgba(8, 145, 178, 0.08);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .day-row:hover:not(.disabled) {
+      border-color: rgba(8, 145, 178, 0.3);
+      box-shadow: 0 12px 32px rgba(8, 145, 178, 0.15);
+    }
+
+    .day-row.enabled {
+      background: linear-gradient(135deg, rgba(240, 249, 255, 0.97) 0%, rgba(224, 242, 254, 0.92) 100%);
+    }
+
+    .day-row label.day-name {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      color: #0f172a;
+      cursor: pointer;
+      user-select: none;
+      font-size: 1rem;
+    }
+
+    .day-row input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: #0891b2;
+    }
+
+    .day-row.disabled .time-input,
+    .day-row.disabled .dur-input {
+      opacity: 0.35;
+      pointer-events: none;
+      background: #f1f5f9 !important;
+    }
+
+    .day-row.disabled {
+      opacity: 0.6;
+    }
+
+    .time-input, .dur-input {
+      padding: 0.8rem 1rem;
+      border: 1.5px solid rgba(8, 145, 178, 0.2);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: inherit;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.85);
+      color: #0f172a;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      min-height: 44px;
+    }
+
+    .time-input::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .time-input:hover, .dur-input:hover {
+      border-color: rgba(8, 145, 178, 0.35);
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.1);
+    }
+
+    .time-input:focus, .dur-input:focus {
+      outline: none;
+      border-color: #0891b2;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.15), 0 6px 16px rgba(8, 145, 178, 0.12);
+    }
+
+    .doctor-select-row {
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .doctor-select-row label {
+      font-weight: 700;
+      color: #475569;
+      font-size: 0.9rem;
+    }
+
+    .doctor-select {
+      padding: 0.5rem 0.75rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      min-width: 200px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.75rem;
+      background: #f8fafc;
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.9rem;
+    }
+
+    .empty-table {
+      text-align: center;
+      color: #94a3b8;
+      padding: 2rem !important;
+      font-style: italic;
+    }
+
+    .badge-status {
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-pending { background: #fef3c7; color: #b45309; }
+    .badge-completed { background: #d1fae5; color: #065f46; }
+    .badge-cancelled { background: #fee2e2; color: #991b1b; }
+    .badge-waiting { background: #dbeafe; color: #1e40af; }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #0f172a;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .time-picker-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+      z-index: 10000;
+      display: none;
+      min-width: 320px;
+      border: 1px solid rgba(8, 145, 178, 0.1);
+    }
+
+    .time-picker-modal.active {
+      display: block;
+    }
+
+    .time-picker-modal-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #0891b2;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .time-picker-display {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      padding: 1.5rem;
+      border-radius: 16px;
+    }
+
+    .time-picker-input {
+      font-size: 3rem;
+      font-weight: 900;
+      color: #0891b2;
+      text-align: center;
+      min-width: 200px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .time-picker-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .time-picker-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .time-picker-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+
+    .time-picker-btn-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .time-picker-btn-group button {
+      flex: 1;
+      padding: 0.6rem;
+      border: none;
+      border-radius: 12px;
+      background: rgba(8, 145, 178, 0.1);
+      color: #0891b2;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1rem;
+    }
+
+    .time-picker-btn-group button:hover {
+      background: rgba(8, 145, 178, 0.2);
+    }
+
+    .time-picker-btn-group button:active {
+      transform: scale(0.95);
+    }
+
+    .time-picker-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .time-picker-action-btn {
+      padding: 0.75rem 1.75rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+    }
+
+    .time-picker-action-btn.confirm {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25);
+    }
+
+    .time-picker-action-btn.confirm:hover {
+      box-shadow: 0 6px 16px rgba(8, 145, 178, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .time-picker-action-btn.cancel {
+      background: transparent;
+      color: #64748b;
+      border: 1.5px solid #e2e8f0;
+    }
+
+    .time-picker-action-btn.cancel:hover {
+      border-color: #0891b2;
+      color: #0891b2;
+    }
+
+@media (max-width: 860px) {
+      main { padding: 1.5rem 1rem; padding-top: 80px; width: 100%; }
+      .header-content h1 { font-size: 1.8rem; }
+      .stats { grid-template-columns: 1fr; }
+      .day-row { grid-template-columns: 100px 1fr 1fr; gap: 0.75rem; padding: 1rem; }
+      .day-row .dur-input { grid-column: 1 / -1; }
+      .stat-value { font-size: 1.6rem; }
+      .section { padding: 1.25rem; }
+    }
+
+    @media (max-width: 480px) {
+      main { padding: 1rem 0.75rem; padding-top: 70px; width: 100%; }
+      .header-content h1 { font-size: 1.5rem; }
+      .page-header { margin-bottom: 1.5rem; }
+      .section { padding: 1rem; margin-bottom: 1rem; }
+      .section-title { font-size: 1rem; }
+      .stats { gap: 0.75rem; }
+      .stat-card { padding: 1rem; }
+      .stat-value { font-size: 1.4rem; }
+      .day-row { grid-template-columns: 1fr; gap: 0.6rem; padding: 0.9rem; }
+      .day-row label.day-name { font-size: 0.95rem; }
+      .time-input, .dur-input { padding: 0.7rem 0.9rem; font-size: 0.9rem; }
+      .btn { padding: 0.5rem 0.9rem; font-size: 0.8rem; }
+      table { font-size: 0.85rem; }
+      table th, table td { padding: 0.6rem; }
+      table th:nth-child(4),
+      table td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="layout-main">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Citas Online</h1>
+      <p>Tu link público para que pacientes agenden citas en línea</p>
+    </div>
+  </div>
+
+  <!-- Link compartible -->
+  <div class="section">
+    <div class="section-title">Link compartible</div>
+    <div class="link-box">
+      <div class="link-text" id="publicLink">Cargando...</div>
+      <button class="btn btn-secondary" onclick="copyLink()">Copiar</button>
+      <a id="whatsappShare" class="btn btn-primary" target="_blank" href="#">Compartir WhatsApp</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">Total Citas Online</div>
+      <div class="stat-value" id="statTotal">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Citas Este Mes</div>
+      <div class="stat-value" id="statMonth">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Tasa de Conversión</div>
+      <div class="stat-value" id="statConversion">—</div>
+    </div>
+  </div>
+
+  <!-- Availability config -->
+  <div class="section" id="availabilitySection">
+    <div class="section-title">Configurar disponibilidad horaria</div>
+    <div class="doctor-select-row" id="doctorSelectRow" style="display:none;">
+      <label>Doctor:</label>
+      <select class="doctor-select" id="doctorSelect"></select>
+    </div>
+    <div class="availability-grid" id="availabilityGrid">
+      <p class="empty-table">Cargando...</p>
+    </div>
+    <div style="margin-top: 1rem; text-align: right;">
+      <button class="btn btn-primary" onclick="saveAvailability()">Guardar disponibilidad</button>
+    </div>
+  </div>
+
+  <!-- Recent bookings -->
+  <div class="section">
+    <div class="section-title">Últimas citas agendadas vía link</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Paciente</th>
+          <th id="thDoctor" style="display:none;">Doctor</th>
+          <th>Estado</th>
+          <th>Razón</th>
+        </tr>
+      </thead>
+      <tbody id="recentTable">
+        <tr><td colspan="5" class="empty-table">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<div class="time-picker-modal" id="timepickerModal">
+  <div class="time-picker-modal-title" id="timepickerTitle">Hora de inicio</div>
+  <div class="time-picker-display">
+    <div class="time-picker-input" id="timepickerDisplay">08:00</div>
+  </div>
+  <div class="time-picker-controls">
+    <div class="time-picker-group">
+      <div class="time-picker-label">Hora</div>
+      <div class="time-picker-btn-group">
+        <button id="hourDown">−</button>
+        <button id="hourUp">+</button>
+      </div>
+    </div>
+    <div class="time-picker-group">
+      <div class="time-picker-label">Minuto</div>
+      <div class="time-picker-btn-group">
+        <button id="minuteDown">−</button>
+        <button id="minuteUp">+</button>
+      </div>
+    </div>
+  </div>
+  <div class="time-picker-actions">
+    <button class="time-picker-action-btn cancel" id="timepickerCancel">Cancelar</button>
+    <button class="time-picker-action-btn confirm" id="timepickerConfirm">OK</button>
+  </div>
+</div>
+
+<script src="/icons.js"></script>
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script>
+  requireAuth(['clinic_admin', 'doctor']);
+
+  let userRole = null;
+  let clinicId = null;
+  let doctorsList = [];
+  let currentDoctorId = null;
+  let currentAvailability = [];
+
+  const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function getStatusBadge(s) {
+    const map = {
+      pending: { cls: 'badge-pending', label: 'Pendiente' },
+      waiting: { cls: 'badge-waiting', label: 'En espera' },
+      completed: { cls: 'badge-completed', label: 'Completada' },
+      cancelled: { cls: 'badge-cancelled', label: 'Cancelada' }
+    };
+    const m = map[s] || map.pending;
+    return `<span class="badge-status ${m.cls}">${m.label}</span>`;
+  }
+
+  async function init() {
+    try {
+      const me = await api('/api/auth/me');
+      userRole = me.role;
+      clinicId = me.clinic_id;
+
+      const link = `${location.origin}/agendar.html?clinic=${clinicId}`;
+      document.getElementById('publicLink').textContent = link;
+      document.getElementById('whatsappShare').href = `https://wa.me/?text=${encodeURIComponent('Agenda tu cita aquí: ' + link)}`;
+
+      if (userRole === 'clinic_admin') {
+        document.getElementById('doctorSelectRow').style.display = 'flex';
+        document.getElementById('thDoctor').style.display = 'table-cell';
+        const doctors = await api('/api/users/doctors');
+        doctorsList = doctors;
+        const sel = document.getElementById('doctorSelect');
+        sel.innerHTML = doctors.map(d => `<option value="${d.id}">${esc(d.name || d.email)}</option>`).join('');
+        if (doctors.length > 0) {
+          currentDoctorId = doctors[0].id;
+          sel.value = currentDoctorId;
+        }
+        sel.addEventListener('change', () => {
+          currentDoctorId = parseInt(sel.value);
+          loadAvailability();
+        });
+      }
+
+      await Promise.all([loadStats(), loadAvailability()]);
+
+      setInterval(loadStats, 5000);
+    } catch (e) {
+      console.error(e);
+      showToast('Error al cargar la página');
+    }
+  }
+
+  async function loadStats() {
+    try {
+      const stats = await api('/api/appointments/public-bookings/stats');
+      document.getElementById('statTotal').textContent = stats.total;
+      document.getElementById('statMonth').textContent = stats.this_month;
+      document.getElementById('statConversion').textContent = stats.conversion_rate + '%';
+
+      const tbody = document.getElementById('recentTable');
+      if (stats.recent.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-table">Aún no hay citas agendadas vía link</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = stats.recent.map(r => {
+        const dt = new Date(r.scheduled_at);
+        const dateStr = dt.toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        const doctorCell = userRole === 'clinic_admin' ? `<td>${esc(r.doctor_name)}</td>` : '';
+        return `<tr>
+          <td>${esc(dateStr)}</td>
+          <td><strong>${esc(r.patient_name)}</strong></td>
+          ${doctorCell}
+          <td>${getStatusBadge(r.status)}</td>
+          <td style="max-width: 250px; color:#64748b;">${esc(r.reason || '—')}</td>
+        </tr>`;
+      }).join('');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function loadAvailability() {
+    try {
+      const url = userRole === 'clinic_admin' && currentDoctorId
+        ? `/api/doctor-availability?doctor_id=${currentDoctorId}`
+        : '/api/doctor-availability';
+      currentAvailability = await api(url);
+      renderAvailability();
+    } catch (e) {
+      console.error(e);
+      document.getElementById('availabilityGrid').innerHTML = '<p class="empty-table">Error al cargar disponibilidad</p>';
+    }
+  }
+
+  function renderAvailability() {
+    const grid = document.getElementById('availabilityGrid');
+    const byDay = {};
+    currentAvailability.forEach(a => { byDay[a.day_of_week] = a; });
+
+    const order = [1, 2, 3, 4, 5, 6, 0]; // Lun-Dom
+    grid.innerHTML = order.map(dow => {
+      const a = byDay[dow];
+      const enabled = !!a;
+      const start = a?.start_time || '08:00';
+      const end = a?.end_time || '17:00';
+      const dur = a?.slot_duration || 30;
+      return `
+        <div class="day-row ${enabled ? 'enabled' : 'disabled'}" data-dow="${dow}">
+          <label class="day-name">
+            <input type="checkbox" class="enable-cb" ${enabled ? 'checked' : ''}>
+            ${DAYS[dow]}
+          </label>
+          <input type="time" class="time-input start-time" value="${start}">
+          <input type="time" class="time-input end-time" value="${end}">
+          <input type="number" class="dur-input" value="${dur}" min="10" max="120" step="5" title="Duración (min)">
+        </div>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('.enable-cb').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const row = cb.closest('.day-row');
+        row.classList.toggle('disabled', !cb.checked);
+        row.classList.toggle('enabled', cb.checked);
+      });
+    });
+
+    let currentPickerInput = null;
+    let currentHour = 8, currentMinute = 0;
+
+    grid.querySelectorAll('.time-input').forEach(input => {
+      input.addEventListener('click', (e) => {
+        e.preventDefault();
+        const [h, m] = input.value.split(':').map(Number);
+        currentHour = h;
+        currentMinute = m;
+        currentPickerInput = input;
+        const isStart = input.classList.contains('start-time');
+        document.getElementById('timepickerTitle').textContent = isStart ? 'Hora de inicio' : 'Hora de fin';
+        updateTimepickerDisplay();
+        document.getElementById('timepickerModal').classList.add('active');
+      });
+    });
+
+    function updateTimepickerDisplay() {
+      const h = String(currentHour).padStart(2, '0');
+      const m = String(currentMinute).padStart(2, '0');
+      document.getElementById('timepickerDisplay').textContent = `${h}:${m}`;
+    }
+
+    document.getElementById('hourUp').addEventListener('click', () => {
+      currentHour = (currentHour + 1) % 24;
+      updateTimepickerDisplay();
+    });
+
+    document.getElementById('hourDown').addEventListener('click', () => {
+      currentHour = (currentHour - 1 + 24) % 24;
+      updateTimepickerDisplay();
+    });
+
+    document.getElementById('minuteUp').addEventListener('click', () => {
+      currentMinute = (currentMinute + 15) % 60;
+      updateTimepickerDisplay();
+    });
+
+    document.getElementById('minuteDown').addEventListener('click', () => {
+      currentMinute = (currentMinute - 15 + 60) % 60;
+      updateTimepickerDisplay();
+    });
+
+    document.getElementById('timepickerConfirm').addEventListener('click', () => {
+      const h = String(currentHour).padStart(2, '0');
+      const m = String(currentMinute).padStart(2, '0');
+      if (currentPickerInput) {
+        currentPickerInput.value = `${h}:${m}`;
+      }
+      document.getElementById('timepickerModal').classList.remove('active');
+      currentPickerInput = null;
+    });
+
+    document.getElementById('timepickerCancel').addEventListener('click', () => {
+      document.getElementById('timepickerModal').classList.remove('active');
+      currentPickerInput = null;
+    });
+
+  }
+
+  async function saveAvailability() {
+    const rows = document.querySelectorAll('.day-row');
+    const availability = [];
+    for (const row of rows) {
+      const dow = parseInt(row.dataset.dow);
+      const enabled = row.querySelector('.enable-cb').checked;
+      if (!enabled) continue;
+      const start = row.querySelector('.start-time').value;
+      const end = row.querySelector('.end-time').value;
+      const dur = parseInt(row.querySelector('.dur-input').value) || 30;
+      if (!start || !end || start >= end) {
+        showToast('Verifica los horarios');
+        return;
+      }
+      availability.push({
+        day_of_week: dow,
+        start_time: start,
+        end_time: end,
+        slot_duration: dur,
+        enabled: true
+      });
+    }
+
+    try {
+      const body = { availability };
+      if (userRole === 'clinic_admin' && currentDoctorId) body.doctor_id = currentDoctorId;
+      await api('/api/doctor-availability', { method: 'PUT', body });
+      showToast('Disponibilidad guardada');
+      loadAvailability();
+    } catch (e) {
+      showToast('Error al guardar: ' + e.message);
+    }
+  }
+
+  function copyLink() {
+    const link = document.getElementById('publicLink').textContent;
+    navigator.clipboard.writeText(link).then(() => showToast('Link copiado al portapapeles'));
+  }
+
+  init();
+</script>
+</body>
+</html>

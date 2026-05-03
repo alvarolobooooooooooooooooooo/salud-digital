@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" width="140" height="105">
+  <defs>
+    <linearGradient id="footGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#dbeafe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#bfdbfe;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="archGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0284c7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Pie Cavo (arco alto) -->
+  <g transform="translate(20, 30)">
+    <!-- Talón -->
+    <circle cx="25" cy="100" r="18" fill="url(#footGradient3)" stroke="#7dd3fc" stroke-width="1.5"/>
+    <!-- Planta del pie (con arco prominente) -->
+    <path d="M 25 77 Q 35 68 50 62 Q 65 60 85 70 Q 88 85 85 110 Q 70 120 50 122 Q 35 120 25 118 Z"
+          fill="url(#footGradient3)" stroke="#7dd3fc" stroke-width="1.5"/>
+    <!-- Arco plantar muy pronunciado -->
+    <ellipse cx="45" cy="78" rx="10" ry="22" fill="url(#archGradient3)" opacity="0.7"/>
+    <!-- Línea de supinación -->
+    <path d="M 30 85 Q 50 72 80 75" stroke="#0ea5e9" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+    <!-- Zona de presión (dedos y talón) -->
+    <circle cx="25" cy="100" r="3" fill="#0ea5e9" opacity="0.6"/>
+    <circle cx="82" cy="68" r="3" fill="#0ea5e9" opacity="0.6"/>
+    <!-- Dedos -->
+    <g stroke="#7dd3fc" stroke-width="1.5" fill="url(#footGradient3)">
+      <ellipse cx="62" cy="58" rx="6" ry="10"/>
+      <ellipse cx="72" cy="56" rx="5.5" ry="9"/>
+      <ellipse cx="81" cy="57" rx="5" ry="8"/>
+      <ellipse cx="89" cy="60" rx="4.5" ry="7"/>
+    </g>
+  </g>
+
+  <text x="120" y="170" font-size="13" font-weight="700" fill="#1e293b" text-anchor="middle">Pie Cavo</text>
+</svg>

@@ -138,6 +138,17 @@ const initDb = async () => {
         FOREIGN KEY (consultation_id) REFERENCES consultations(id) ON DELETE CASCADE,
         FOREIGN KEY (clinic_id) REFERENCES clinics(id)
       );
+
+      CREATE TABLE IF NOT EXISTS doctor_availability (
+        id SERIAL PRIMARY KEY,
+        doctor_id INTEGER NOT NULL,
+        day_of_week INTEGER NOT NULL,
+        start_time TEXT NOT NULL,
+        end_time TEXT NOT NULL,
+        slot_duration INTEGER DEFAULT 30,
+        enabled BOOLEAN DEFAULT TRUE,
+        FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE CASCADE
+      );
     `);
 
     const alterCommands = [
@@ -174,7 +185,9 @@ const initDb = async () => {
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS plan_status TEXT DEFAULT \'active\'',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMP',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS billing_cycle TEXT DEFAULT \'monthly\'',
-      'ALTER TABLE consent_templates ADD COLUMN IF NOT EXISTS doctor_id INTEGER'
+      'ALTER TABLE consent_templates ADD COLUMN IF NOT EXISTS doctor_id INTEGER',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS source TEXT DEFAULT \'manual\'',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS reason TEXT DEFAULT \'\''
     ];
 
     for (const cmd of alterCommands) {
