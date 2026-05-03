@@ -51,11 +51,11 @@ tbody tr:hover td { background: #f9fafb; }
 .form-row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end; margin-top: 1rem; }
 .form-group { display: flex; flex-direction: column; gap: 0.25rem; min-width: 180px; }
 .form-group label { font-size: 0.78rem; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.03em; }
-input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea {
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, input[type="date"], input[type="time"], input[type="tel"], input[type="url"], input[type="search"] {
   padding: 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-family: inherit;
   background: white;
 }
@@ -63,7 +63,7 @@ select {
   padding: 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-family: inherit;
   background: white;
   appearance: none;
