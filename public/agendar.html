@@ -933,7 +933,11 @@
           <div class="summary-row"><span>Fecha:</span><strong>${dt.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</strong></div>
           <div class="summary-row"><span>Hora:</span><strong>${state.selectedSlot}</strong></div>
           <div class="summary-row"><span>Paciente:</span><strong>${esc(payload.patient_name)}</strong></div>
+          <div style="margin-top: 2rem; text-align: center;">
+            <button onclick="location.reload()" class="btn-primary" style="padding: 0.8rem 2rem;">Agendar otra cita</button>
+          </div>
         `;
+        document.getElementById('bookingForm').reset();
         document.getElementById('bookingContainer').style.display = 'none';
         document.getElementById('successContainer').style.display = 'block';
         window.scrollTo(0, 0);
