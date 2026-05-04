@@ -97,10 +97,10 @@ router.put('/:id', authenticate, async (req, res) => {
   const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
-  const { name, birth_date, gender, phone } = req.body;
+  const { name, identity_number, birth_date, gender, phone } = req.body;
 
-  await query('UPDATE patients SET name = $1, birth_date = $2, gender = $3, phone = $4 WHERE id = $5 AND clinic_id = $6',
-    [name || patient.name, birth_date || patient.birth_date, gender || patient.gender, phone || patient.phone, patient.id, req.user.clinic_id]);
+  await query('UPDATE patients SET name = $1, identity_number = $2, birth_date = $3, gender = $4, phone = $5 WHERE id = $6 AND clinic_id = $7',
+    [name || patient.name, identity_number || patient.identity_number, birth_date || patient.birth_date, gender || patient.gender, phone || patient.phone, patient.id, req.user.clinic_id]);
 
   res.json({ success: true });
 });

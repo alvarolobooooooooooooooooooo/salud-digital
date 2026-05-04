@@ -533,6 +533,9 @@
       table th, table td { padding: 0.6rem; }
       table th:nth-child(4),
       table td:nth-child(4) { display: none; }
+      table th:nth-child(5),
+      table td:nth-child(5) { font-size: 0.75rem; max-width: 120px; }
+      .btn-delete { padding: 0.3rem 0.6rem !important; font-size: 0.7rem !important; }
     }
   </style>
 </head>
@@ -603,10 +606,11 @@
           <th id="thDoctor" style="display:none;">Doctor</th>
           <th>Estado</th>
           <th>Razón</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody id="recentTable">
-        <tr><td colspan="5" class="empty-table">Cargando...</td></tr>
+        <tr><td colspan="6" class="empty-table">Cargando...</td></tr>
       </tbody>
     </table>
   </div>
@@ -720,7 +724,7 @@
 
       const tbody = document.getElementById('recentTable');
       if (stats.recent.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="empty-table">Aún no hay citas agendadas vía link</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-table">Aún no hay citas agendadas vía link</td></tr>`;
         return;
       }
       tbody.innerHTML = stats.recent.map(r => {
@@ -733,6 +737,7 @@
           ${doctorCell}
           <td>${getStatusBadge(r.status)}</td>
           <td style="max-width: 250px; color:#64748b;">${esc(r.reason || '—')}</td>
+          <td><button class="btn-delete" onclick="deleteAppointment(${r.id})" style="padding:0.4rem 0.8rem; background:#fee2e2; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem; color:#dc2626; font-weight:700;">Eliminar</button></td>
         </tr>`;
       }).join('');
     } catch (e) {
@@ -883,6 +888,18 @@
   function copyLink() {
     const link = document.getElementById('publicLink').textContent;
     navigator.clipboard.writeText(link).then(() => showToast('Link copiado al portapapeles'));
+  }
+
+  async function deleteAppointment(apptId) {
+    if (!confirm('¿Está seguro de que desea eliminar esta cita?')) return;
+
+    try {
+      await api(`/api/appointments/${apptId}`, { method: 'DELETE' });
+      showToast('Cita eliminada');
+      loadStats();
+    } catch (e) {
+      showToast('Error al eliminar: ' + e.message);
+    }
   }
 
   init();

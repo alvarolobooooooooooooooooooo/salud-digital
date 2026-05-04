@@ -1057,7 +1057,13 @@
 
       <!-- Basic Info -->
       <div class="info-card">
-        <h4>Información Básica</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h4 style="margin: 0;">Información Básica</h4>
+          <button class="action-btn" title="Editar información" onclick="editPatientInfo(${patient.id})" style="background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; gap: 0.5rem; display: flex; align-items: center;">
+            ${Icons.render('edit', 16)}
+            Editar
+          </button>
+        </div>
         <div class="info-grid">
           <div class="info-field">
             <div class="info-label">Sexo</div>
@@ -1438,6 +1444,10 @@
     detailPanel.classList.remove('active');
     detailPanel.innerHTML = '';
     renderQueue();
+  }
+
+  function editPatientInfo(patientId) {
+    window.location.href = `/patient.html?id=${patientId}&edit=true`;
   }
 </script>
 </body>
