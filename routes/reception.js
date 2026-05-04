@@ -52,7 +52,7 @@ router.post('/check-in/:appointmentId', authenticate, ensureReception, async (re
 
   const result = await query(
     `UPDATE appointments
-     SET status = 'waiting', checked_in_at = CURRENT_TIMESTAMP
+     SET status = 'waiting', checked_in_at = NOW() AT TIME ZONE 'UTC'
      WHERE id = $1 AND clinic_id = $2
      RETURNING id, status, checked_in_at`,
     [appointmentId, req.user.clinic_id]
