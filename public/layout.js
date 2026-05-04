@@ -350,6 +350,8 @@
     if (specialtyEl) {
       if (user.role === 'receptionist') {
         specialtyEl.textContent = 'Recepcionista';
+      } else if (user.role === 'clinic_admin') {
+        specialtyEl.textContent = 'Administrador de clínica';
       } else if (user.specialty) {
         specialtyEl.textContent = user.specialty;
         localStorage.setItem('sd_user_specialty', user.specialty);
