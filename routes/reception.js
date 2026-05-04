@@ -86,6 +86,7 @@ router.get('/payments-pending', authenticate, ensureReception, async (req, res) 
             p.id AS patient_id, p.name AS patient_name, p.phone AS patient_phone,
             u.name AS doctor_name
      FROM appointments a
+     INNER JOIN consultations c ON c.appointment_id = a.id
      JOIN patients p ON p.id = a.patient_id
      JOIN users u ON u.id = a.doctor_id
      WHERE a.clinic_id = $1 AND a.status = 'completed' AND a.payment_status != 'paid'
