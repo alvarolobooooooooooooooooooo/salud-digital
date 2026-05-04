@@ -2,15 +2,4 @@
 > salud-digital@1.0.0 start
 > node server.js
 
-◇ injected env (6) from .env // tip: ⌘ enable debugging { debug: true }
-Database initialized successfully
-
-SaludDigital running → http://localhost:3000
-
-Demo accounts:
-  Super Admin  : admin@saluddigital.com     / admin123
-  Clinic Norte : admin@clinicanorte.com     / clinic123
-  Clinic Sur   : admin@clinicasur.com       / clinic123
-  Doctor Norte : dr.garcia@clinicanorte.com / doctor123
-  Doctor Sur   : dr.lopez@clinicasur.com    / doctor123
-
+◇ injected env (6) from .env // tip: ⌘ override existing { override: true }

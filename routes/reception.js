@@ -82,7 +82,7 @@ router.get('/stats-today', authenticate, ensureReception, async (req, res) => {
 router.get('/payments-pending', authenticate, ensureReception, async (req, res) => {
   const result = await query(
     `SELECT a.id, a.scheduled_at, a.specialty, a.cost, a.payment_status,
-            a.ended_at, a.status,
+            a.ended_at, a.status, a.reason, a.payment_notes,
             p.id AS patient_id, p.name AS patient_name, p.phone AS patient_phone,
             u.name AS doctor_name
      FROM appointments a

@@ -418,7 +418,7 @@
     activeAppt = pending.find(p => p.id === id);
     if (!activeAppt) return;
     document.getElementById('chargeSubtitle').textContent = `${activeAppt.patient_name} · ${activeAppt.doctor_name}`;
-    document.getElementById('chargeDescription').textContent = activeAppt.reason || activeAppt.specialty || 'Consulta';
+    document.getElementById('chargeDescription').textContent = activeAppt.payment_notes || activeAppt.reason || activeAppt.specialty || '—';
     const pendingAmount = activeAppt.cost > 0 ? activeAppt.cost : 0;
     document.getElementById('chargePendingAmount').textContent = fmtL(pendingAmount);
     document.getElementById('chargeCost').value = pendingAmount > 0 ? pendingAmount : '';

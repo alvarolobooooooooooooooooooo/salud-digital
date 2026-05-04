@@ -208,7 +208,8 @@ const initDb = async () => {
       'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT \'pending\'',
       'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT \'\'',
       'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP',
-      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS paid_by INTEGER'
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS paid_by INTEGER',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_notes TEXT DEFAULT \'\''
     ];
 
     for (const cmd of alterCommands) {
