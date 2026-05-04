@@ -478,8 +478,11 @@
 
   function timeSince(ts) {
     if (!ts) return '';
-    const diff = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
-    if (diff < 0) return '0 min';
+    const date = new Date(ts);
+    if (isNaN(date.getTime())) return '';
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - date.getTime()) / 60000);
+    if (diff <= 0) return '0 min';
     if (diff < 60) return `${diff} min`;
     const h = Math.floor(diff / 60); const m = diff % 60;
     return `${h}h ${m}m`;
