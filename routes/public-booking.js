@@ -117,7 +117,7 @@ router.post('/clinic/:clinicId/booking', async (req, res) => {
 
   if (existingPatient.rows.length > 0) {
     patientId = existingPatient.rows[0].id;
-    await query(`UPDATE patients SET phone = $1 WHERE id = $2`, [patient_phone, patientId]);
+    await query(`UPDATE patients SET name = $1, phone = $2 WHERE id = $3`, [patient_name, patient_phone, patientId]);
   } else {
     const newPatient = await query(
       `INSERT INTO patients (name, identity_number, phone, clinic_id, age) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
