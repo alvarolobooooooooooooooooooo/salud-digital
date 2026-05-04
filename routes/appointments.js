@@ -21,7 +21,7 @@ router.get('/', authenticate, async (req, res) => {
     paramIndex++;
   }
 
-  queryStr += ' ORDER BY a.scheduled_at DESC';
+  queryStr += ' ORDER BY a.scheduled_at ASC';
   const result = await query(queryStr, params);
   res.json(result.rows);
 });
