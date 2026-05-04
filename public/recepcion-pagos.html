@@ -270,7 +270,19 @@
     <div class="modal-sub" id="chargeSubtitle">—</div>
 
     <div class="form-group">
-      <label class="form-label">Monto (Lempiras)</label>
+      <label class="form-label">Descripción</label>
+      <div class="form-input" id="chargeDescription" style="background: #f8fafc; color: #94a3b8; padding: 0.8rem 1rem; min-height: 44px; display: flex; align-items: center;">—</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Monto pendiente (Lempiras)</label>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div class="form-input" id="chargePendingAmount" style="background: #f0f9ff; color: #0891b2; padding: 0.8rem 1rem; min-height: 44px; display: flex; align-items: center; font-weight: 700; font-size: 1.1rem; flex: 1;">L. 0.00</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Monto a cobrar (Lempiras)</label>
       <input type="number" class="form-input" id="chargeCost" placeholder="0.00" step="0.01" min="0">
     </div>
 
@@ -404,7 +416,10 @@
     activeAppt = pending.find(p => p.id === id);
     if (!activeAppt) return;
     document.getElementById('chargeSubtitle').textContent = `${activeAppt.patient_name} · ${activeAppt.doctor_name}`;
-    document.getElementById('chargeCost').value = activeAppt.cost > 0 ? activeAppt.cost : '';
+    document.getElementById('chargeDescription').textContent = activeAppt.reason || activeAppt.specialty || 'Consulta';
+    const pendingAmount = activeAppt.cost > 0 ? activeAppt.cost : 0;
+    document.getElementById('chargePendingAmount').textContent = fmtL(pendingAmount);
+    document.getElementById('chargeCost').value = pendingAmount > 0 ? pendingAmount : '';
     selectedMethod = null;
     document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('chargeOverlay').classList.add('active');
