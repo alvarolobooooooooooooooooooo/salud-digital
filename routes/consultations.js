@@ -157,8 +157,8 @@ router.post('/', authenticate, async (req, res) => {
 
   if (appointment_id) {
     await query(
-      'UPDATE appointments SET payment_notes = $1 WHERE id = $2 AND clinic_id = $3',
-      [payment_notes || '', appointment_id, req.user.clinic_id]
+      'UPDATE appointments SET payment_notes = $1, cost = $2, payment_status = $3 WHERE id = $4 AND clinic_id = $5',
+      [payment_notes || '', costNum, payment_status || 'pending', appointment_id, req.user.clinic_id]
     );
   }
 
