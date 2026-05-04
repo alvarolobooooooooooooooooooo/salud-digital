@@ -154,6 +154,12 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   list-style: none;
   overflow-y: auto;
   min-height: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sb-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .sb-item {
