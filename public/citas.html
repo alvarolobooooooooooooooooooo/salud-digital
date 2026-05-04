@@ -2082,6 +2082,7 @@ async function submitCita(e) {
   try {
     if (editingId) {
       await api(`/api/appointments/${editingId}`, { method:'PUT', body:{
+        patient_id: +document.getElementById('fPatient').value,
         doctor_id: +document.getElementById('fDoctor').value,
         specialty: document.getElementById('fSpecialty').value,
         scheduled_at: document.getElementById('fDatetime').value,

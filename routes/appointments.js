@@ -27,7 +27,7 @@ router.get('/', authenticate, async (req, res) => {
 });
 
 router.put('/:id', authenticate, async (req, res) => {
-  const { doctor_id, scheduled_at, status } = req.body;
+  const { patient_id, doctor_id, scheduled_at, status } = req.body;
   const apptResult = await query('SELECT id, doctor_id as current_doctor_id FROM appointments WHERE id = $1 AND clinic_id = $2',
     [req.params.id, req.user.clinic_id]);
   const appt = apptResult.rows[0];
@@ -36,6 +36,14 @@ router.put('/:id', authenticate, async (req, res) => {
   const fields = [];
   const vals   = [];
   let paramIndex = 1;
+
+  if (patient_id !== undefined) {
+    const patientResult = await query('SELECT id FROM patients WHERE id = $1 AND clinic_id = $2',
+      [patient_id, req.user.clinic_id]);
+    if (patientResult.rows.length === 0) return res.status(404).json({ error: 'Paciente no encontrado' });
+    fields.push(`patient_id = $${paramIndex++}`);
+    vals.push(patient_id);
+  }
 
   let specialty = null;
   if (doctor_id !== undefined) {
