@@ -218,6 +218,15 @@ const initDb = async () => {
       } catch (e) {}
     }
 
+    try {
+      await query(
+        `UPDATE appointments a
+         SET cost = c.cost, payment_status = c.payment_status, payment_notes = c.payment_notes
+         FROM consultations c
+         WHERE a.id = c.appointment_id AND a.cost = 0 AND c.cost > 0`
+      );
+    } catch (e) {}
+
     const existingPatients = await query('SELECT COUNT(*) as count FROM patients');
     const shouldInsertTestData = parseInt(existingPatients.rows[0].count) === 0;
 
