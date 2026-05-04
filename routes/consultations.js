@@ -155,6 +155,13 @@ router.post('/', authenticate, async (req, res) => {
     [patient_id, notes || '', diagnosis || '', treatment || '', specialty || '', odontoStr, costNum, payment_status || 'pending', lifestyleStr, procedures || '', radiography_notes || '', observations || '', doctor_id || null, visit_reason || '', req.user.clinic_id, appointment_id || null, payment_notes || '', consent_id || null]
   );
 
+  if (appointment_id) {
+    await query(
+      'UPDATE appointments SET payment_notes = $1 WHERE id = $2 AND clinic_id = $3',
+      [payment_notes || '', appointment_id, req.user.clinic_id]
+    );
+  }
+
   res.json({ id: result.rows[0].id, patient_id, notes, diagnosis, treatment });
 });
 
