@@ -2412,7 +2412,11 @@ async function init() {
       window.location.href = '/citas.html';
       return;
     }
-    document.getElementById('professionalName').textContent = me.role === 'doctor' ? `Dr. ${me.name || me.email}` : (me.name || me.email);
+    {
+      const nm = me.name || me.email || '';
+      const hasPrefix = /^(dr\.?|dra\.?)\s/i.test(nm);
+      document.getElementById('professionalName').textContent = (me.role === 'doctor' && !hasPrefix) ? `Dr. ${nm}` : nm;
+    }
     document.getElementById('professionalWrap').style.display = '';
 
     if (!STATE.appointmentId) {
