@@ -98,6 +98,17 @@
     .hero {
       flex: 1;
       display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      top: 50%;
+      left: 35%;
+      transform: translate(-50%, -50%);
+      width: 50%;
+      height: auto;
+      overflow: visible;
+      z-index: 1;
     }
 
     .hero h1 {
@@ -399,27 +410,41 @@
       letter-spacing: 0.05em;
     }
 
-    @media (min-width: 768px) {
+    @media (min-width: 1231px) {
       .hero {
-        display: block;
+        display: block !important;
       }
 
       .container {
-        gap: 7rem;
+        gap: 0;
+        margin-left: 50%;
       }
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 1230px) {
       .container {
-        gap: 3rem;
+        gap: 0;
+        min-height: 100vh;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        padding: 2rem;
       }
 
       .hero {
-        display: none;
+        display: none !important;
+        visibility: hidden !important;
+        flex: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
 
       .card {
         padding: 3rem 2.5rem;
+        width: 100%;
+        max-width: 500px;
       }
     }
 
@@ -449,9 +474,55 @@
   <div class="container">
     <div class="hero">
       <div class="hero-accent"></div>
-      <h1>Gestión Clínica Premium</h1>
-      <p>Plataforma moderna de gestión clínica diseñada para optimizar el flujo de trabajo de tu clínica. Acceso seguro, eficiente y profesional a todos los expedientes de tus pacientes con tecnología de última generación.</p>
+
+      <!-- Partículas de fondo premium -->
+      <div style="position: absolute; width: 2px; height: 2px; background: rgba(6, 182, 212, 0.8); border-radius: 50%; animation: float 8s ease-in-out infinite; top: 20%; left: 5%;"></div>
+      <div style="position: absolute; width: 3px; height: 3px; background: rgba(6, 182, 212, 0.6); border-radius: 50%; animation: float 6s ease-in-out infinite 1s; top: 60%; right: 8%;"></div>
+      <div style="position: absolute; width: 2px; height: 2px; background: rgba(255,255,255, 0.4); border-radius: 50%; animation: float 7s ease-in-out infinite 0.5s; top: 30%; right: 12%;"></div>
+      <div style="position: absolute; width: 2px; height: 2px; background: rgba(6, 182, 212, 0.5); border-radius: 50%; animation: float 9s ease-in-out infinite 1.5s; bottom: 25%; left: 10%;"></div>
+
+      <!-- Líneas decorativas premium -->
+      <div style="position: absolute; width: 2px; height: 250px; background: linear-gradient(to bottom, rgba(6, 182, 212, 0), rgba(6, 182, 212, 0.3), rgba(6, 182, 212, 0)); left: 8%; animation: float 8s ease-in-out infinite;"></div>
+      <div style="position: absolute; width: 2px; height: 250px; background: linear-gradient(to bottom, rgba(6, 182, 212, 0), rgba(6, 182, 212, 0.3), rgba(6, 182, 212, 0)); right: 8%; animation: float 8s ease-in-out infinite 0.4s;"></div>
+      <div style="position: absolute; height: 2px; width: 250px; background: linear-gradient(to right, rgba(6, 182, 212, 0), rgba(6, 182, 212, 0.3), rgba(6, 182, 212, 0)); top: 15%; animation: float 8s ease-in-out infinite 0.2s;"></div>
+      <div style="position: absolute; height: 2px; width: 250px; background: linear-gradient(to right, rgba(6, 182, 212, 0), rgba(6, 182, 212, 0.3), rgba(6, 182, 212, 0)); bottom: 15%; animation: float 8s ease-in-out infinite 0.6s;"></div>
+
+      <!-- Contenido principal - MONUMENTAL -->
+      <div style="text-align: center; position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 90%; max-width: 1400px; padding: 2rem;">
+        <div style="opacity: 0; animation: slideUp 1s ease-out 0.3s forwards; padding-bottom: 2rem;">
+          <h1 style="font-size: clamp(3rem, 15vw, 10rem); font-weight: 900; color: white; margin: 0; letter-spacing: -0.04em; line-height: 1.1; word-break: break-word; text-shadow: 0 0 40px rgba(6, 182, 212, 0.3);">
+            <span style="display: block;">Salud</span><span style="background: linear-gradient(135deg, #06b6d4, #0891b2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: block; filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.3));">Digital</span>
+          </h1>
+        </div>
+        <div style="margin-top: 2rem; opacity: 0; animation: fadeIn 0.8s ease-out 0.8s forwards;">
+          <div style="width: 80px; height: 3px; background: linear-gradient(90deg, transparent, #06b6d4, transparent); margin: 0 auto 1.5rem; box-shadow: 0 0 20px rgba(6, 182, 212, 0.5);"></div>
+          <p style="color: rgba(255,255,255,0.8); font-size: clamp(0.9rem, 2vw, 1.2rem); font-weight: 700; margin: 0; letter-spacing: 0.08em; text-transform: uppercase;">Gestión Clínica Inteligente • Multiespecialidades</p>
+        </div>
+      </div>
+
+
     </div>
+    <style>
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes float {
+        0%, 100% { opacity: 0.2; transform: translateY(0px); }
+        50% { opacity: 0.6; transform: translateY(20px); }
+      }
+    </style>
+
+    <style>
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); opacity: 0.6; }
+        50% { transform: translateY(10px); opacity: 1; }
+      }
+    </style>
 
     <div class="card-container">
       <div class="card-glow"></div>

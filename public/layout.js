@@ -25,6 +25,7 @@
     '/agendar-online.html': 'agendar-online',
     '/plan.html': 'plan',
     '/consultation.html': '',
+    '/consultation-nutrition.html': '',
     '/view-consultation.html': '',
     '/clinical-record.html': '',
     '/medical-record.html': '',

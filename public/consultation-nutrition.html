@@ -1,0 +1,3667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta de Nutrición</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; margin: 0; padding: 0; overflow-x: visible; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      color: #1e293b;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    @keyframes floatBg {
+      0%, 100% { transform: translateY(0px) translateX(0px); }
+      50% { transform: translateY(50px) translateX(30px); }
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      width: 1000px; height: 1000px;
+      background: radial-gradient(circle, rgba(8, 145, 178, 0.10) 0%, transparent 70%);
+      top: -200px; right: -300px;
+      border-radius: 50%;
+      z-index: 0;
+      animation: floatBg 20s ease-in-out infinite;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
+      bottom: -200px; left: -200px;
+      border-radius: 50%;
+      z-index: 0;
+      animation: floatBg 25s ease-in-out infinite reverse;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+
+    main { width: 100%; margin: 0; padding: 1.5rem 1rem; overflow-x: visible; }
+
+    @keyframes floatSlow { from { transform: translateY(0px); } to { transform: translateY(20px); } }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      gap: 2rem;
+      background: linear-gradient(135deg, #0891b2 0%, #0369a1 50%, #06b6d4 100%);
+      padding: 2.25rem 2.5rem;
+      border-radius: 24px;
+      box-shadow: 0 30px 80px rgba(8, 145, 178, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      position: relative;
+      overflow: hidden;
+      min-height: 150px;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -60%; right: -25%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(255,255,255,0.12), transparent);
+      border-radius: 50%;
+      animation: floatSlow 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -40%; left: -15%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.15), transparent);
+      border-radius: 50%;
+      animation: floatSlow 10s ease-in-out infinite reverse;
+      pointer-events: none;
+    }
+    .header-content { position: relative; z-index: 1; flex: 1; }
+    .header-content h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: white;
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .header-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.25rem;
+      color: rgba(255,255,255,0.95);
+      font-size: 0.92rem;
+      font-weight: 500;
+      margin-top: 0.5rem;
+    }
+    .header-meta span strong { color: white; font-weight: 700; }
+    .header-actions { position: relative; z-index: 2; display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .status-badge {
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      background: rgba(255,255,255,0.18);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.35);
+      backdrop-filter: blur(10px);
+    }
+    .status-badge.ready { background: rgba(250, 204, 21, 0.25); border-color: rgba(250, 204, 21, 0.55); }
+    .status-badge.saved { background: rgba(34, 197, 94, 0.3); border-color: rgba(34, 197, 94, 0.6); }
+    .btn-back, .btn-draft, .btn-save-final, .btn-cancel-top {
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      backdrop-filter: blur(10px);
+    }
+    .btn-back, .btn-cancel-top {
+      border: 1.5px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+    .btn-back:hover, .btn-cancel-top:hover { background: rgba(255,255,255,0.2); }
+    .btn-draft {
+      background: rgba(255,255,255,0.18);
+      color: white;
+      border: 1.5px solid rgba(255,255,255,0.4);
+    }
+    .btn-draft:hover { background: rgba(255,255,255,0.28); }
+    .btn-save-final {
+      background: white;
+      color: #0369a1;
+      border: 1.5px solid white;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    }
+    .btn-save-final:hover { background: #ecf9fc; }
+    .btn-save-final:disabled, .btn-draft:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── Layout ── */
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 1.5rem;
+      align-items: flex-start;
+      position: relative;
+    }
+    .form-col { min-width: 0; }
+    .summary-col { position: sticky; top: 1rem; }
+
+    /* ── Sections / Cards ── */
+    .form-section {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid #f1f5f9;
+    }
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #f1f5f9;
+    }
+    .section-num {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #cffafe, #a5f3fc);
+      color: #0369a1;
+      font-weight: 800;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-head h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+      flex: 1;
+    }
+    .section-help {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: 0.25rem;
+      font-weight: 500;
+    }
+
+    /* ── Form ── */
+    .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem 1.25rem; margin-bottom: 1rem; }
+    .form-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+    .form-grid.full { grid-template-columns: 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+    .form-group.span-2 { grid-column: span 2; }
+    .form-group.span-3 { grid-column: span 3; }
+    .form-group label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .form-group input, .form-group textarea, .form-group select {
+      padding: 0.7rem 0.85rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      transition: all 0.15s;
+      background: white;
+      color: #0f172a;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      outline: 2px solid #0891b2;
+      outline-offset: -1px;
+      border-color: transparent;
+    }
+    .form-group textarea { resize: vertical; min-height: 90px; }
+    .form-group select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      padding-right: 2.25rem;
+      cursor: pointer;
+    }
+    .field-hint {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 0.15rem;
+    }
+    .computed-input {
+      background: #f0fdf4 !important;
+      border-color: #bbf7d0 !important;
+      color: #0369a1 !important;
+      font-weight: 600;
+    }
+
+    /* ── Chips / radios ── */
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.85rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #475569;
+      background: white;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .chip:hover { border-color: #0891b2; color: #0891b2; }
+    .chip input { display: none; }
+    .chip.active, .chip input:checked + span {
+      background: #cffafe;
+      border-color: #0891b2;
+      color: #0369a1;
+    }
+    .chip.active { border-color: #0891b2; color: #0369a1; background: #cffafe; }
+
+    .pill-segments {
+      display: inline-flex;
+      gap: 0;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 10px;
+      flex-wrap: wrap;
+    }
+    .pill-segments label {
+      padding: 0.45rem 0.9rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      border-radius: 7px;
+      transition: all 0.15s;
+    }
+    .pill-segments label:hover { color: #0891b2; }
+    .pill-segments input[type="radio"] { display: none; }
+    .pill-segments input[type="radio"]:checked + label,
+    .pill-segments label.active {
+      background: white;
+      color: #0891b2;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    /* ── IMC display ── */
+    .computed-card {
+      background: linear-gradient(135deg, #ecf9fc, #cffafe);
+      border: 1px solid #a5f3fc;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .computed-card .label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #0e7490;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .computed-card .value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #0369a1;
+      line-height: 1;
+    }
+    .computed-card .ref-note {
+      flex: 1 1 100%;
+      font-size: 0.78rem;
+      color: #0e7490;
+      margin-top: 0.25rem;
+      opacity: 0.85;
+    }
+
+    /* ── 24h Recall Meals ── */
+    .meal-block {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+      background: #fafbfc;
+    }
+    .meal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1.1rem;
+      background: white;
+      border-bottom: 1px solid #f1f5f9;
+      flex-wrap: wrap;
+    }
+    .meal-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .meal-icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      background: #cffafe;
+    }
+    .meal-totals-mini {
+      font-size: 0.78rem;
+      color: #64748b;
+      display: flex;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+    }
+    .meal-totals-mini b { color: #0369a1; }
+    .btn-add-food {
+      padding: 0.45rem 0.85rem;
+      background: #0891b2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .btn-add-food:hover { background: #0369a1; }
+    .meal-items { padding: 0.6rem 1.1rem 1rem 1.1rem; }
+    .meal-item {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.5rem 1rem;
+      padding: 0.7rem 0;
+      border-bottom: 1px dashed #e2e8f0;
+      align-items: center;
+    }
+    .meal-item:last-child { border-bottom: none; }
+    .meal-item-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #0f172a;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .meal-item-name small { font-size: 0.72rem; font-weight: 500; color: #64748b; }
+    .meal-item-macros {
+      display: flex;
+      gap: 0.7rem;
+      font-size: 0.74rem;
+      color: #64748b;
+      flex-wrap: wrap;
+    }
+    .meal-item-macros b { color: #0f172a; font-weight: 700; }
+    .meal-item-actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .icon-btn {
+      width: 30px; height: 30px;
+      border: 1px solid #e2e8f0;
+      background: white;
+      border-radius: 7px;
+      cursor: pointer;
+      color: #64748b;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .icon-btn:hover { color: #0891b2; border-color: #0891b2; }
+    .icon-btn.danger:hover { color: #dc2626; border-color: #dc2626; }
+    .meal-empty {
+      padding: 1rem;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
+    /* ── Summary sidebar ── */
+    .summary {
+      background: white;
+      border-radius: 14px;
+      border: 1px solid #f1f5f9;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .summary-head {
+      background: linear-gradient(135deg, #0369a1, #0891b2);
+      color: white;
+      padding: 1rem 1.25rem;
+    }
+    .summary-head h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .summary-head p {
+      font-size: 0.74rem;
+      opacity: 0.85;
+      margin-top: 0.15rem;
+    }
+    .summary-body { padding: 1.1rem 1.25rem 1.25rem 1.25rem; }
+    .kcal-big {
+      text-align: center;
+      padding: 0.75rem 0 1rem 0;
+      border-bottom: 1px dashed #e2e8f0;
+      margin-bottom: 1rem;
+    }
+    .kcal-big .num {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #0369a1;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .kcal-big .lbl {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.25rem;
+    }
+    .kcal-big .target {
+      font-size: 0.78rem;
+      color: #475569;
+      margin-top: 0.4rem;
+    }
+    .macro-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      margin-bottom: 0.7rem;
+    }
+    .macro-row .macro-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+    }
+    .macro-row .macro-name { color: #475569; font-weight: 600; }
+    .macro-row .macro-val { color: #0f172a; font-weight: 700; }
+    .macro-row .macro-val small { color: #94a3b8; font-weight: 500; }
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #f1f5f9;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s;
+    }
+    .pf-protein { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .pf-carbs { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .pf-fat { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+    .pf-fiber { background: linear-gradient(90deg, #06b6d4, #34d399); }
+    .pf-sodium { background: linear-gradient(90deg, #0891b2, #06b6d4); }
+
+    .summary-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed #e2e8f0;
+    }
+    .stat-box {
+      background: #f8fafc;
+      border: 1px solid #f1f5f9;
+      border-radius: 10px;
+      padding: 0.65rem 0.8rem;
+    }
+    .stat-box .lbl { font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .stat-box .val { font-size: 1rem; color: #0f172a; font-weight: 800; margin-top: 0.15rem; }
+    .stat-box .val small { font-size: 0.7rem; color: #64748b; font-weight: 500; }
+
+    .summary-alert {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+      border-radius: 10px;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.78rem;
+      margin-top: 0.85rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .summary-alert .icon { flex-shrink: 0; }
+
+    .summary-save-btn {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.85rem;
+      background: linear-gradient(135deg, #0891b2, #0369a1);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25);
+    }
+    .summary-save-btn:hover {
+      box-shadow: 0 6px 18px rgba(8, 145, 178, 0.35);
+      transform: translateY(-1px);
+    }
+
+    /* ── Reference note ── */
+    .ref-note-box {
+      background: #f0f9ff;
+      border-left: 4px solid #0891b2;
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      font-size: 0.8rem;
+      color: #075985;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    /* ── Footer ── */
+    .form-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 1.25rem 1.5rem;
+      background: white;
+      border: 1px solid #f1f5f9;
+      border-radius: 14px;
+      margin-top: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      flex-wrap: wrap;
+    }
+    .form-footer-left, .form-footer-right { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .footer-status { font-size: 0.85rem; color: #475569; align-self: center; }
+    .btn-cancel {
+      padding: 0.65rem 1.4rem;
+      border: 1.5px solid #e2e8f0;
+      background: white;
+      color: #64748b;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .btn-save-draft {
+      padding: 0.65rem 1.4rem;
+      border: 1.5px solid #0891b2;
+      background: white;
+      color: #0369a1;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .btn-save-draft:hover { background: #ecf9fc; }
+    .btn-save-main {
+      padding: 0.65rem 1.75rem;
+      background: linear-gradient(135deg, #0891b2, #0369a1);
+      color: white;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 700;
+      transition: all 0.15s;
+      box-shadow: 0 2px 8px rgba(8, 145, 178, 0.25);
+    }
+    .btn-save-main:hover {
+      box-shadow: 0 4px 14px rgba(8, 145, 178, 0.35);
+      transform: translateY(-1px);
+    }
+    .btn-save-main:disabled, .btn-save-draft:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      padding: 0.85rem 1.2rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 9999;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.ok { background: #cffafe; color: #0e7490; border: 1px solid #6ee7b7; }
+    .toast.err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .toast.info { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
+
+    /* ── Modal (food search) ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9000;
+      padding: 1rem;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-card {
+      background: white;
+      border-radius: 18px;
+      width: 100%;
+      max-width: 760px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.25);
+    }
+    .modal-head {
+      padding: 1.1rem 1.5rem;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-head h3 { font-size: 1.05rem; font-weight: 800; color: #0f172a; }
+    .modal-head p { font-size: 0.78rem; color: #64748b; margin-top: 0.15rem; }
+    .modal-close {
+      background: #f1f5f9;
+      border: none;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #64748b;
+    }
+    .modal-search {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #f1f5f9;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+    .modal-search input {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 9px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      background: white;
+    }
+    .modal-search input:focus { outline: 2px solid #0891b2; border-color: transparent; }
+    .modal-cats {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+    .cat-pill {
+      padding: 0.3rem 0.75rem;
+      border: 1.5px solid #e2e8f0;
+      background: white;
+      color: #64748b;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .cat-pill.active { background: #0891b2; border-color: #0891b2; color: white; }
+    .modal-results {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.5rem 0;
+    }
+    .food-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.6rem 1rem;
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid #f1f5f9;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .food-row:hover { background: #f0fdf4; }
+    .food-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .food-meta {
+      font-size: 0.74rem;
+      color: #64748b;
+      margin-top: 0.15rem;
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .food-confidence {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .conf-validated { background: #cffafe; color: #0e7490; }
+    .conf-professional_estimate { background: #fef3c7; color: #92400e; }
+    .conf-reference { background: #e0e7ff; color: #3730a3; }
+    .conf-user_entered { background: #f3e8ff; color: #6b21a8; }
+    .food-macros-mini {
+      display: flex;
+      gap: 0.4rem;
+      font-size: 0.72rem;
+      color: #475569;
+      align-items: center;
+    }
+    .food-macros-mini span {
+      padding: 0.15rem 0.4rem;
+      background: #f1f5f9;
+      border-radius: 5px;
+    }
+    .food-add-btn {
+      padding: 0.45rem 0.85rem;
+      background: #0891b2;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .empty-results {
+      padding: 2rem 1.5rem;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    /* ── Food detail panel (inside modal) ── */
+    .food-detail {
+      padding: 1.25rem 1.5rem;
+      border-top: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+    .food-detail-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      gap: 1rem;
+    }
+    .food-detail-head h4 { font-size: 1rem; font-weight: 800; color: #0f172a; }
+    .food-detail-head p { font-size: 0.8rem; color: #64748b; }
+    .portion-presets {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.85rem;
+    }
+    .portion-preset {
+      padding: 0.4rem 0.8rem;
+      border: 1.5px solid #e2e8f0;
+      background: white;
+      border-radius: 7px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #475569;
+    }
+    .portion-preset.active { background: #0891b2; border-color: #0891b2; color: white; }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.8rem;
+    }
+    .detail-grid .form-group label { font-size: 0.7rem; }
+    .detail-grid input { padding: 0.55rem 0.75rem; font-size: 0.85rem; }
+
+    .detail-macros-preview {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 0.85rem;
+      padding: 0.7rem;
+      background: white;
+      border-radius: 8px;
+      border: 1px dashed #e2e8f0;
+    }
+    .detail-macros-preview .pill {
+      padding: 0.3rem 0.65rem;
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 999px;
+    }
+    .detail-macros-preview .pill b { color: #0369a1; }
+
+    .detail-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.55rem;
+      margin-top: 1rem;
+    }
+    .detail-actions .btn-cancel-mini, .detail-actions .btn-save-mini {
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-cancel-mini {
+      background: white;
+      border: 1.5px solid #e2e8f0;
+      color: #64748b;
+    }
+    .btn-save-mini {
+      background: #0891b2;
+      border: none;
+      color: white;
+    }
+
+    /* ── Recommendation chips (insertable) ── */
+    .reco-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+    .reco-chips .chip {
+      cursor: pointer;
+      background: white;
+      border: 1.5px dashed #cbd5e1;
+      color: #475569;
+      font-size: 0.78rem;
+    }
+    .reco-chips .chip:hover { border-style: solid; border-color: #0891b2; color: #0891b2; background: #ecf9fc; }
+
+    /* ── Loading spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── InBody Section ── */
+    .inbody-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      background: linear-gradient(135deg, #ecf9fc 0%, #cffafe 100%);
+      border: 1px solid #a5f3fc;
+      border-radius: 12px;
+      margin-bottom: 1.25rem;
+    }
+    .inbody-toggle-label {
+      font-weight: 700;
+      color: #0e7490;
+      font-size: 0.95rem;
+    }
+    .inbody-toggle-help {
+      font-size: 0.78rem;
+      color: #155e75;
+      margin-top: 0.2rem;
+      font-weight: 500;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cbd5e1;
+      transition: .3s;
+      border-radius: 28px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .switch input:checked + .slider {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+    }
+    .switch input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+    .inbody-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .inbody-content.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .inbody-subsection {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .inbody-subsection:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+    .inbody-subhead {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #0e7490;
+    }
+    .inbody-subhead-icon {
+      width: 24px; height: 24px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #cffafe, #a5f3fc);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0369a1;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+    .metric-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .metric-card {
+      background: linear-gradient(135deg, #ffffff, #f8fafc);
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      transition: all 0.2s ease;
+    }
+    .metric-card:hover {
+      border-color: #06b6d4;
+      box-shadow: 0 2px 8px rgba(8,145,178,0.08);
+    }
+    .metric-card-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.35rem;
+    }
+    .metric-card-value {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #0e7490;
+      line-height: 1;
+    }
+    .metric-card-unit {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      font-weight: 600;
+      margin-left: 0.2rem;
+    }
+    .metric-card-empty .metric-card-value {
+      color: #cbd5e1;
+      font-size: 1rem;
+    }
+    .segmental-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      font-size: 0.85rem;
+    }
+    .segmental-table th {
+      background: #f8fafc;
+      padding: 0.7rem 0.85rem;
+      text-align: left;
+      font-weight: 700;
+      color: #475569;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .segmental-table td {
+      padding: 0.55rem 0.6rem;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    .segmental-table tr:last-child td { border-bottom: none; }
+    .segmental-table input, .segmental-table select {
+      width: 100%;
+      padding: 0.4rem 0.55rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      background: white;
+      color: #0f172a;
+    }
+    .segmental-table input:focus, .segmental-table select:focus {
+      outline: 2px solid #0891b2;
+      outline-offset: -1px;
+      border-color: transparent;
+    }
+    .segment-label {
+      font-weight: 700;
+      color: #0f172a;
+      white-space: nowrap;
+    }
+    .reference-status-pill {
+      display: inline-block;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .ref-not_evaluated { background: #f1f5f9; color: #64748b; }
+    .ref-below_reference { background: #fef3c7; color: #92400e; }
+    .ref-within_reference { background: #cffafe; color: #0e7490; }
+    .ref-above_reference { background: #fce7f3; color: #9f1239; }
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.85rem;
+    }
+    .comparison-item {
+      padding: 0.85rem 1rem;
+      background: #f8fafc;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+    }
+    .comparison-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+    }
+    .comparison-values {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .comparison-prev {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      text-decoration: line-through;
+    }
+    .comparison-curr {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #0e7490;
+    }
+    .comparison-trend {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+    }
+    .trend-up { background: #fef3c7; color: #92400e; }
+    .trend-down { background: #cffafe; color: #0369a1; }
+    .trend-same { background: #f1f5f9; color: #64748b; }
+    .info-banner {
+      background: linear-gradient(135deg, #fef9e7, #fef3c7);
+      border-left: 4px solid #f59e0b;
+      padding: 0.85rem 1.1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+    .info-banner-icon {
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+    .info-banner-text {
+      font-size: 0.82rem;
+      color: #78350f;
+      line-height: 1.5;
+    }
+    .info-banner.cyan {
+      background: linear-gradient(135deg, #ecf9fc, #cffafe);
+      border-left-color: #0891b2;
+    }
+    .info-banner.cyan .info-banner-text { color: #0e7490; }
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.5rem 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 0.85rem;
+      color: #334155;
+    }
+    .checkbox-item:hover {
+      border-color: #06b6d4;
+      background: #ecf9fc;
+    }
+    .checkbox-item input[type="checkbox"] {
+      accent-color: #0891b2;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    .checkbox-item.checked {
+      border-color: #06b6d4;
+      background: #ecf9fc;
+      color: #0e7490;
+      font-weight: 600;
+    }
+    .asymmetry-note {
+      padding: 0.6rem 0.85rem;
+      background: #f8fafc;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: #475569;
+      margin-top: 0.5rem;
+      border-left: 3px solid #06b6d4;
+    }
+    .sync-weight-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.9rem;
+      background: linear-gradient(135deg, #ecf9fc, #cffafe);
+      color: #0e7490;
+      border: 1px solid #a5f3fc;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .sync-weight-btn:hover {
+      background: linear-gradient(135deg, #cffafe, #a5f3fc);
+      border-color: #06b6d4;
+    }
+    .summary-inbody {
+      padding: 0.85rem 1rem;
+      background: linear-gradient(135deg, #ecf9fc, #cffafe);
+      border-radius: 10px;
+      margin-top: 0.75rem;
+      border: 1px solid #a5f3fc;
+    }
+    .summary-inbody-title {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #0e7490;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .summary-inbody-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.3rem 0;
+      font-size: 0.82rem;
+      color: #0f172a;
+      border-bottom: 1px solid rgba(8,145,178,0.1);
+    }
+    .summary-inbody-row:last-child { border-bottom: none; }
+    .summary-inbody-row strong { color: #0e7490; font-weight: 800; }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .layout-grid { grid-template-columns: 1fr; }
+      .summary-col { position: static; order: -1; }
+    }
+    @media (max-width: 860px) {
+      main, .layout-main { width: 100% !important; padding: 1rem 0.75rem !important; padding-top: 80px !important; }
+    }
+    @media (max-width: 768px) {
+      .header { padding: 1.5rem 1.25rem; flex-direction: column; gap: 1rem; min-height: auto; align-items: flex-start; }
+      .header-content h1 { font-size: 1.6rem; }
+      .header-actions { width: 100%; justify-content: flex-start; }
+      .form-section { padding: 1.25rem; }
+      .form-grid, .form-grid.cols-2 { grid-template-columns: 1fr; }
+      .form-group.span-2, .form-group.span-3 { grid-column: span 1; }
+      .meal-item { grid-template-columns: 1fr; }
+      .meal-item-actions { justify-content: flex-end; }
+      .detail-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="layout-main">
+
+  <!-- ── Header ── -->
+  <div class="header">
+    <div class="header-content">
+      <h1>Consulta de Nutrición</h1>
+      <div class="header-meta">
+        <span><strong id="patientName">Cargando…</strong></span>
+        <span id="patientAgeWrap" style="display:none;">Edad: <strong id="patientAge">—</strong></span>
+        <span id="patientSexWrap" style="display:none;">Sexo: <strong id="patientSex">—</strong></span>
+        <span>Fecha: <strong id="consultDateLabel">—</strong></span>
+        <span id="professionalWrap" style="display:none;">Profesional: <strong id="professionalName">—</strong></span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="status-badge" id="statusBadge">Borrador</span>
+      <button type="button" class="btn-back" onclick="safeBack()">← Volver</button>
+      <button type="button" class="btn-draft" id="topBtnDraft" onclick="saveDraft(true)">Guardar borrador</button>
+      <button type="button" class="btn-save-final" id="topBtnFinal" onclick="saveFinal()">Guardar consulta</button>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+
+    <!-- ── Main Form Column ── -->
+    <div class="form-col">
+      <form id="nutritionForm" autocomplete="off">
+
+        <!-- ── 1. Datos generales ── -->
+        <div class="form-section">
+          <div class="section-head">
+            <span class="section-num">1</span>
+            <div style="flex:1;">
+              <h3>Datos Generales</h3>
+              <div class="section-help">Información de la consulta y hábitos cotidianos.</div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="gen_date">Fecha de consulta *</label>
+              <input type="date" id="gen_date">
+            </div>
+            <div class="form-group span-2">
+              <label for="gen_reason">Motivo de consulta *</label>
+              <input type="text" id="gen_reason" placeholder="Ej: Plan nutricional para control metabólico">
+            </div>
+
+            <div class="form-group span-3">
+              <label for="gen_main_goal">Objetivo principal del paciente</label>
+              <input type="text" id="gen_main_goal" placeholder="Ej: Mejorar hábitos alimentarios y energía diaria">
+            </div>
+
+            <div class="form-group">
+              <label for="gen_occupation">Ocupación</label>
+              <input type="text" id="gen_occupation" placeholder="Ej: Docente">
+            </div>
+            <div class="form-group">
+              <label for="gen_city">Ciudad / Departamento</label>
+              <input type="text" id="gen_city" placeholder="Ej: Tegucigalpa, FM">
+            </div>
+            <div class="form-group">
+              <label for="gen_activity">Nivel de actividad física</label>
+              <select id="gen_activity" onchange="recomputeTargets()">
+                <option value="">Seleccione…</option>
+                <option value="sedentario">Sedentario</option>
+                <option value="ligero">Ligero</option>
+                <option value="moderado">Moderado</option>
+                <option value="alto">Alto</option>
+                <option value="muy_alto">Muy alto</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="gen_work_schedule">Horario de trabajo / estudio</label>
+              <input type="text" id="gen_work_schedule" placeholder="Ej: 7am - 4pm">
+            </div>
+            <div class="form-group">
+              <label for="gen_sleep">Horario de sueño</label>
+              <input type="text" id="gen_sleep" placeholder="Ej: 11pm - 6am">
+            </div>
+            <div class="form-group">
+              <label for="gen_water">Consumo de agua diario</label>
+              <input type="text" id="gen_water" placeholder="Ej: 1.5 L">
+            </div>
+
+            <div class="form-group">
+              <label for="gen_coffee">Consumo de café</label>
+              <input type="text" id="gen_coffee" placeholder="Ej: 2 tazas/día">
+            </div>
+            <div class="form-group">
+              <label for="gen_sugary">Bebidas azucaradas</label>
+              <input type="text" id="gen_sugary" placeholder="Ej: 1 fresco/día">
+            </div>
+            <div class="form-group">
+              <label>Apetito</label>
+              <div class="pill-segments" id="seg_appetite">
+                <input type="radio" name="appetite" id="ap_low" value="bajo">
+                <label for="ap_low">Bajo</label>
+                <input type="radio" name="appetite" id="ap_norm" value="normal">
+                <label for="ap_norm">Normal</label>
+                <input type="radio" name="appetite" id="ap_high" value="alto">
+                <label for="ap_high">Alto</label>
+                <input type="radio" name="appetite" id="ap_var" value="variable">
+                <label for="ap_var">Variable</label>
+              </div>
+            </div>
+
+            <div class="form-group span-3">
+              <label for="gen_notes">Observaciones generales</label>
+              <textarea id="gen_notes" placeholder="Notas adicionales sobre el contexto del paciente"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 2. Antecedentes y datos clínicos ── -->
+        <div class="form-section">
+          <div class="section-head">
+            <span class="section-num">2</span>
+            <div style="flex:1;">
+              <h3>Antecedentes y Datos Clínicos</h3>
+              <div class="section-help">Registro de información clínica sin diagnóstico automático.</div>
+            </div>
+          </div>
+
+          <div class="form-grid full">
+            <div class="form-group">
+              <label>Condiciones reportadas</label>
+              <div class="chip-group" id="conditionsChips">
+                <!-- populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="cli_meds">Medicamentos actuales</label>
+              <textarea id="cli_meds" placeholder="Listado de medicamentos"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="cli_supps">Suplementos</label>
+              <textarea id="cli_supps" placeholder="Vitaminas, proteínas, etc."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="cli_allergies">Alergias</label>
+              <textarea id="cli_allergies" placeholder="Alergias alimentarias o intolerancias"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="cli_digestive">Síntomas digestivos</label>
+              <textarea id="cli_digestive" placeholder="Reflujo, hinchazón, estreñimiento, etc."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="cli_family">Antecedentes familiares relevantes</label>
+              <textarea id="cli_family" placeholder="Diabetes, hipertensión, etc. en familiares"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="cli_notes">Observaciones clínicas</label>
+              <textarea id="cli_notes" placeholder="Notas adicionales"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 3. Antropometría ── -->
+        <div class="form-section">
+          <div class="section-head">
+            <span class="section-num">3</span>
+            <div style="flex:1;">
+              <h3>Antropometría</h3>
+              <div class="section-help">Medidas antropométricas. El IMC es un dato referencial.</div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="anthro_weight">Peso actual (kg)</label>
+              <input type="number" step="0.1" min="0" id="anthro_weight" placeholder="Ej: 68.5" oninput="onAnthroChange()">
+            </div>
+            <div class="form-group">
+              <label for="anthro_height">Estatura (cm)</label>
+              <input type="number" step="0.1" min="0" id="anthro_height" placeholder="Ej: 165" oninput="onAnthroChange()">
+            </div>
+            <div class="form-group">
+              <label for="anthro_bmi">IMC (kg/m²)</label>
+              <input type="text" id="anthro_bmi" readonly class="computed-input" placeholder="—">
+            </div>
+
+            <div class="form-group">
+              <label for="anthro_waist">Cintura (cm)</label>
+              <input type="number" step="0.1" min="0" id="anthro_waist" placeholder="Ej: 78" oninput="onAnthroChange()">
+            </div>
+            <div class="form-group">
+              <label for="anthro_hip">Cadera (cm)</label>
+              <input type="number" step="0.1" min="0" id="anthro_hip" placeholder="Ej: 95" oninput="onAnthroChange()">
+            </div>
+            <div class="form-group">
+              <label for="anthro_whr">Relación cintura / cadera</label>
+              <input type="text" id="anthro_whr" readonly class="computed-input" placeholder="—">
+            </div>
+
+            <div class="form-group">
+              <label for="anthro_neck">Cuello (cm)</label>
+              <input type="number" step="0.1" min="0" id="anthro_neck" placeholder="Ej: 34">
+            </div>
+            <div class="form-group">
+              <label for="anthro_arm">Brazo (cm)</label>
+              <input type="number" step="0.1" min="0" id="anthro_arm" placeholder="Ej: 28">
+            </div>
+            <div class="form-group">
+              <label for="anthro_bodyfat">% Grasa corporal (opcional)</label>
+              <input type="number" step="0.1" min="0" id="anthro_bodyfat" placeholder="Ej: 22.5">
+            </div>
+
+            <div class="form-group">
+              <label for="anthro_muscle">Masa muscular kg (opcional)</label>
+              <input type="number" step="0.1" min="0" id="anthro_muscle" placeholder="Ej: 28">
+            </div>
+            <div class="form-group">
+              <label for="anthro_usual">Peso usual kg (opcional)</label>
+              <input type="number" step="0.1" min="0" id="anthro_usual" placeholder="Ej: 70">
+            </div>
+            <div class="form-group">
+              <label for="anthro_change">Cambio reciente de peso</label>
+              <input type="text" id="anthro_change" placeholder="Ej: -2 kg en 3 meses">
+            </div>
+
+            <div class="form-group span-3">
+              <label for="anthro_notes">Notas antropométricas</label>
+              <textarea id="anthro_notes" placeholder="Observaciones técnicas o contexto"></textarea>
+            </div>
+          </div>
+
+          <div class="computed-card" id="bmiCard" style="display:none;">
+            <div>
+              <div class="label">IMC calculado</div>
+              <div class="value" id="bmiValueDisplay">—</div>
+            </div>
+            <div>
+              <div class="label">Clasificación referencial</div>
+              <div class="value" id="bmiClassDisplay" style="font-size:1.05rem;">—</div>
+            </div>
+            <div class="ref-note">Dato referencial. Debe interpretarse según el contexto clínico del paciente.</div>
+          </div>
+        </div>
+
+        <!-- ── 4. Cálculo nutricional estimado ── -->
+        <div class="form-section">
+          <div class="section-head">
+            <span class="section-num">4</span>
+            <div style="flex:1;">
+              <h3>Cálculo Nutricional Estimado</h3>
+              <div class="section-help">Estimaciones referenciales. Editables por el profesional.</div>
+            </div>
+          </div>
+
+          <div class="ref-note-box">
+            Estos cálculos son estimaciones referenciales y pueden ser ajustados por el profesional según criterio clínico.
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="tg_formula">Fórmula utilizada</label>
+              <select id="tg_formula" onchange="recomputeTargets()">
+                <option value="mifflin">Mifflin-St Jeor</option>
+                <option value="harris">Harris-Benedict</option>
+                <option value="manual">Manual</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="tg_activity_factor">Factor de actividad</label>
+              <input type="number" step="0.05" min="1" max="2.5" id="tg_activity_factor" placeholder="Ej: 1.55" oninput="recomputeTargets()">
+            </div>
+            <div class="form-group">
+              <label for="tg_goal">Objetivo</label>
+              <select id="tg_goal" onchange="recomputeTargets()">
+                <option value="">Seleccione…</option>
+                <option value="mantenimiento">Mantenimiento</option>
+                <option value="reduccion_grasa">Reducción de grasa</option>
+                <option value="aumento_masa">Aumento de masa muscular</option>
+                <option value="rendimiento">Rendimiento deportivo</option>
+                <option value="control_metabolico">Control metabólico</option>
+                <option value="educacion">Educación alimentaria</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="tg_bmr">Metabolismo basal (kcal)</label>
+              <input type="number" step="1" id="tg_bmr" placeholder="Auto" oninput="onTargetEdited()">
+            </div>
+            <div class="form-group">
+              <label for="tg_tdee">Gasto energético total (kcal)</label>
+              <input type="number" step="1" id="tg_tdee" placeholder="Auto" oninput="onTargetEdited()">
+            </div>
+            <div class="form-group">
+              <label for="tg_calories">Calorías objetivo (kcal/día)</label>
+              <input type="number" step="1" id="tg_calories" placeholder="Auto" oninput="onTargetEdited()">
+            </div>
+
+            <div class="form-group">
+              <label for="tg_protein">Proteína objetivo (g/día)</label>
+              <input type="number" step="1" id="tg_protein" placeholder="Auto" oninput="onTargetEdited()">
+            </div>
+            <div class="form-group">
+              <label for="tg_carbs">Carbohidratos objetivo (g/día)</label>
+              <input type="number" step="1" id="tg_carbs" placeholder="Auto" oninput="onTargetEdited()">
+            </div>
+            <div class="form-group">
+              <label for="tg_fat">Grasas objetivo (g/día)</label>
+              <input type="number" step="1" id="tg_fat" placeholder="Auto" oninput="onTargetEdited()">
+            </div>
+
+            <div class="form-group">
+              <label for="tg_fiber">Fibra objetivo (g/día)</label>
+              <input type="number" step="1" id="tg_fiber" placeholder="Ej: 25">
+            </div>
+            <div class="form-group">
+              <label for="tg_sodium">Sodio máximo sugerido (mg)</label>
+              <input type="number" step="1" id="tg_sodium" placeholder="Ej: 2000">
+            </div>
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <button type="button" class="btn-cancel" onclick="resetTargetsToAuto()" style="text-align:center;">Reiniciar a valores estimados</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 5. Recordatorio 24h ── -->
+        <div class="form-section">
+          <div class="section-head">
+            <span class="section-num">5</span>
+            <div style="flex:1;">
+              <h3>Recordatorio Alimentario de 24 Horas</h3>
+              <div class="section-help">Registro detallado del consumo del día evaluado.</div>
+            </div>
+          </div>
+
+          <div class="ref-note-box">
+            Los valores nutricionales son estimaciones basadas en porciones estándar y pueden variar según preparación, ingredientes y tamaño de porción. Deben ser revisados por el profesional de nutrición.
+          </div>
+
+          <div id="mealsContainer">
+            <!-- meal blocks injected by JS -->
+          </div>
+        </div>
+
+        <!-- ── 6. Frecuencia alimentaria ── -->
+        <div class="form-section">
+          <div class="section-head">
+            <span class="section-num">6</span>
+            <div style="flex:1;">
+              <h3>Frecuencia Alimentaria</h3>
+              <div class="section-help">Hábitos del paciente reportados con frecuencia.</div>
+            </div>
+          </div>
+
+          <div class="form-grid full">
+            <div class="form-group">
+              <label>Hábitos reportados</label>
+              <div class="chip-group" id="frequencyChips">
+                <!-- populated by JS -->
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="freq_notes">Observaciones de frecuencia alimentaria</label>
+              <textarea id="freq_notes" placeholder="Detalles relevantes sobre los hábitos"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 7. Evaluación nutricional ── -->
+        <div class="form-section">
+          <div class="section-head">
+            <span class="section-num">7</span>
+            <div style="flex:1;">
+              <h3>Evaluación Nutricional</h3>
+              <div class="section-help">Valoración profesional del paciente.</div>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group span-3">
+              <label for="ev_evaluation">Evaluación del nutricionista</label>
+              <textarea id="ev_evaluation" placeholder="Análisis general del estado nutricional"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="ev_findings">Hallazgos principales</label>
+              <textarea id="ev_findings" placeholder="Hallazgos relevantes"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="ev_problems">Problemas nutricionales identificados</label>
+              <textarea id="ev_problems" placeholder="Problemas detectados"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="ev_goals">Objetivos de intervención</label>
+              <textarea id="ev_goals" placeholder="Objetivos del plan"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="ev_education">Educación alimentaria brindada</label>
+              <textarea id="ev_education" placeholder="Temas tratados en la consulta"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="ev_next">Próxima cita</label>
+              <input type="date" id="ev_next">
+            </div>
+            <div class="form-group span-2">
+              <label for="ev_private">Notas privadas del profesional</label>
+              <textarea id="ev_private" placeholder="No visibles para el paciente"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 8. Evaluación InBody / Bioimpedancia ── -->
+        <div class="form-section">
+          <div class="section-head">
+            <span class="section-num">8</span>
+            <div style="flex:1;">
+              <h3>Evaluación InBody / Bioimpedancia</h3>
+              <div class="section-help">Sección opcional para evaluación complementaria de composición corporal.</div>
+            </div>
+          </div>
+
+          <div class="inbody-toggle">
+            <div>
+              <div class="inbody-toggle-label">Registrar evaluación InBody / bioimpedancia</div>
+              <div class="inbody-toggle-help">Active si el paciente cuenta con resultados de bioimpedancia.</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="ib_enabled" onchange="onInBodyToggle()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="inbody-content" id="ib_content">
+
+            <div class="info-banner">
+              <span class="info-banner-icon">⚠️</span>
+              <div class="info-banner-text">
+                Los resultados de bioimpedancia son mediciones referenciales y pueden variar según hidratación, alimentación, ejercicio reciente, ciclo menstrual, medicamentos y condiciones de medición. Deben ser interpretados por el profesional de nutrición en conjunto con la evaluación clínica.
+              </div>
+            </div>
+
+            <!-- 8.1 Datos del estudio -->
+            <div class="inbody-subsection">
+              <div class="inbody-subhead"><span class="inbody-subhead-icon">1</span> Datos del estudio</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="ib_date">Fecha de evaluación</label>
+                  <input type="date" id="ib_date" onchange="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_time">Hora de evaluación</label>
+                  <input type="time" id="ib_time" onchange="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_deviceType">Equipo utilizado</label>
+                  <select id="ib_deviceType" onchange="onInBodyChange()">
+                    <option value="">Seleccionar…</option>
+                    <option value="inbody">InBody</option>
+                    <option value="generic_bioimpedance">Bioimpedancia genérica</option>
+                    <option value="other">Otro</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="ib_deviceModel">Modelo del equipo (opcional)</label>
+                  <select id="ib_deviceModel" onchange="onInBodyChange()">
+                    <option value="">Seleccionar…</option>
+                    <option value="InBody 120">InBody 120</option>
+                    <option value="InBody 270">InBody 270</option>
+                    <option value="InBody 370">InBody 370</option>
+                    <option value="InBody 570">InBody 570</option>
+                    <option value="InBody 770">InBody 770</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-top: 0.5rem;">
+                <label style="font-size:0.72rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:0.5rem;">Condiciones de medición</label>
+                <div class="checkbox-grid" id="ib_conditionsGrid">
+                  <label class="checkbox-item"><input type="checkbox" value="fasting" onchange="onInBodyChange()"> En ayunas</label>
+                  <label class="checkbox-item"><input type="checkbox" value="post_meal" onchange="onInBodyChange()"> Después de comer</label>
+                  <label class="checkbox-item"><input type="checkbox" value="post_exercise" onchange="onInBodyChange()"> Post-ejercicio</label>
+                  <label class="checkbox-item"><input type="checkbox" value="normal_hydration" onchange="onInBodyChange()"> Hidratación normal</label>
+                  <label class="checkbox-item"><input type="checkbox" value="fluid_retention" onchange="onInBodyChange()"> Retención de líquidos sospechada</label>
+                  <label class="checkbox-item"><input type="checkbox" value="menstruation" onchange="onInBodyChange()"> Menstruación</label>
+                  <label class="checkbox-item"><input type="checkbox" value="medications" onchange="onInBodyChange()"> Medicamentos influyentes</label>
+                  <label class="checkbox-item"><input type="checkbox" value="other" onchange="onInBodyChange()"> Otro</label>
+                </div>
+              </div>
+
+              <div class="form-grid full">
+                <div class="form-group">
+                  <label for="ib_conditionsNotes">Notas sobre condiciones de medición</label>
+                  <textarea id="ib_conditionsNotes" placeholder="Ej. Paciente realizó actividad física moderada 2 horas antes..." style="min-height:60px;" oninput="onInBodyChange()"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- 8.2 Composición corporal principal -->
+            <div class="inbody-subsection">
+              <div class="inbody-subhead"><span class="inbody-subhead-icon">2</span> Composición corporal principal</div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="ib_weight">Peso medido (kg)</label>
+                  <input type="number" id="ib_weight" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_tbw">Agua corporal total (L)</label>
+                  <input type="number" id="ib_tbw" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_protein">Proteína (kg)</label>
+                  <input type="number" id="ib_protein" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_minerals">Minerales (kg)</label>
+                  <input type="number" id="ib_minerals" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_fatMass">Masa grasa corporal (kg)</label>
+                  <input type="number" id="ib_fatMass" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_muscleMass">Masa muscular esquelética (kg)</label>
+                  <input type="number" id="ib_muscleMass" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_ffm">Masa libre de grasa (kg)</label>
+                  <input type="number" id="ib_ffm" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_bodyFatPct">% Grasa corporal</label>
+                  <input type="number" id="ib_bodyFatPct" min="0" max="100" step="0.1" placeholder="0.0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_bmi">IMC reportado</label>
+                  <input type="number" id="ib_bmi" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_bmr">Metabolismo basal (kcal)</label>
+                  <input type="number" id="ib_bmr" min="0" step="1" placeholder="0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_whr">Relación cintura-cadera</label>
+                  <input type="number" id="ib_whr" min="0" step="0.01" placeholder="0.00" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_visceralFat">Nivel de grasa visceral</label>
+                  <input type="number" id="ib_visceralFat" min="0" step="1" placeholder="0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_score">Puntaje InBody (si aplica)</label>
+                  <input type="number" id="ib_score" min="0" step="1" placeholder="0" oninput="onInBodyChange()">
+                </div>
+              </div>
+
+              <div class="metric-cards" id="ib_metricCards">
+                <!-- generado dinámicamente -->
+              </div>
+
+              <div style="margin-top: 0.75rem;">
+                <button type="button" class="sync-weight-btn" onclick="syncInBodyWeight()">
+                  ⟲ Usar peso de InBody como peso de la consulta
+                </button>
+              </div>
+            </div>
+
+            <!-- 8.3 Análisis músculo-grasa -->
+            <div class="inbody-subsection">
+              <div class="inbody-subhead"><span class="inbody-subhead-icon">3</span> Análisis músculo-grasa</div>
+
+              <table class="segmental-table">
+                <thead>
+                  <tr>
+                    <th style="width:30%;">Componente</th>
+                    <th style="width:20%;">Valor</th>
+                    <th style="width:20%;">Rango referencial</th>
+                    <th>Nota clínica</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="segment-label">Peso (kg)</td>
+                    <td><input type="number" id="mfa_weight" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()"></td>
+                    <td><input type="text" id="mfa_weightRange" placeholder="Ej. 60-75 kg" oninput="onInBodyChange()"></td>
+                    <td><input type="text" id="mfa_weightNote" placeholder="Nota..." oninput="onInBodyChange()"></td>
+                  </tr>
+                  <tr>
+                    <td class="segment-label">Masa muscular esquelética (kg)</td>
+                    <td><input type="number" id="mfa_muscle" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()"></td>
+                    <td><input type="text" id="mfa_muscleRange" placeholder="Ej. 28-32 kg" oninput="onInBodyChange()"></td>
+                    <td><input type="text" id="mfa_muscleNote" placeholder="Nota..." oninput="onInBodyChange()"></td>
+                  </tr>
+                  <tr>
+                    <td class="segment-label">Masa grasa corporal (kg)</td>
+                    <td><input type="number" id="mfa_fat" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()"></td>
+                    <td><input type="text" id="mfa_fatRange" placeholder="Ej. 10-20 kg" oninput="onInBodyChange()"></td>
+                    <td><input type="text" id="mfa_fatNote" placeholder="Nota..." oninput="onInBodyChange()"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 8.4 Análisis de obesidad / composición -->
+            <div class="inbody-subsection">
+              <div class="inbody-subhead"><span class="inbody-subhead-icon">4</span> Análisis de composición (datos referenciales)</div>
+              <div class="metric-cards" id="ib_obesityCards">
+                <!-- generado dinámicamente -->
+              </div>
+            </div>
+
+            <!-- 8.5 Análisis segmental de masa magra -->
+            <div class="inbody-subsection">
+              <div class="inbody-subhead"><span class="inbody-subhead-icon">5</span> Análisis segmental de masa magra</div>
+
+              <table class="segmental-table" id="segmentalLeanTable">
+                <thead>
+                  <tr>
+                    <th>Segmento</th>
+                    <th style="width:14%;">Masa magra (kg)</th>
+                    <th style="width:14%;">% esperado</th>
+                    <th style="width:18%;">Estado referencial</th>
+                    <th>Notas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- filas generadas -->
+                </tbody>
+              </table>
+
+              <div class="asymmetry-note" id="leanAsymmetryNote">
+                Diferencias entre lado derecho e izquierdo serán calculadas al ingresar valores.
+              </div>
+            </div>
+
+            <!-- 8.6 Análisis segmental de grasa -->
+            <div class="inbody-subsection">
+              <div class="inbody-subhead"><span class="inbody-subhead-icon">6</span> Análisis segmental de grasa</div>
+
+              <table class="segmental-table" id="segmentalFatTable">
+                <thead>
+                  <tr>
+                    <th>Segmento</th>
+                    <th style="width:18%;">Masa grasa (kg)</th>
+                    <th style="width:18%;">%</th>
+                    <th>Notas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- filas generadas -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 8.7 Agua corporal / balance hídrico -->
+            <div class="inbody-subsection">
+              <div class="inbody-subhead"><span class="inbody-subhead-icon">7</span> Agua corporal / balance hídrico</div>
+
+              <div class="info-banner cyan">
+                <span class="info-banner-icon">💧</span>
+                <div class="info-banner-text">
+                  Los valores de bioimpedancia pueden variar según hidratación, alimentación, ejercicio reciente y condiciones de medición.
+                </div>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="wb_tbw">Agua corporal total (L)</label>
+                  <input type="number" id="wb_tbw" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="wb_icw">Agua intracelular (L)</label>
+                  <input type="number" id="wb_icw" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="wb_ecw">Agua extracelular (L)</label>
+                  <input type="number" id="wb_ecw" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="wb_ratio">Relación ECW/TBW</label>
+                  <input type="number" id="wb_ratio" min="0" step="0.001" placeholder="0.000" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="wb_edema">Índice de edema (si aplica)</label>
+                  <input type="number" id="wb_edema" min="0" step="0.001" placeholder="0.000" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group span-3">
+                  <label for="wb_notes">Notas de hidratación</label>
+                  <textarea id="wb_notes" placeholder="Observaciones sobre balance hídrico..." style="min-height:60px;" oninput="onInBodyChange()"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- 8.8 Historial y comparación -->
+            <div class="inbody-subsection" id="ib_comparisonSection">
+              <div class="inbody-subhead"><span class="inbody-subhead-icon">8</span> Historial y comparación</div>
+              <div id="ib_comparisonContent">
+                <div class="info-banner cyan">
+                  <span class="info-banner-icon">ℹ️</span>
+                  <div class="info-banner-text">
+                    No hay evaluaciones anteriores registradas. Al guardar esta consulta y realizar una nueva, podrá comparar resultados aquí.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 8.9 Archivo adjunto (preparado) -->
+            <div class="inbody-subsection">
+              <div class="inbody-subhead"><span class="inbody-subhead-icon">9</span> Reporte InBody (referencia)</div>
+              <div class="form-grid">
+                <div class="form-group span-2">
+                  <label for="ib_reportName">Nombre del archivo (opcional)</label>
+                  <input type="text" id="ib_reportName" placeholder="Ej. inbody_juan_2025-05-05.pdf" oninput="onInBodyChange()">
+                </div>
+                <div class="form-group">
+                  <label for="ib_reportUrl">URL / referencia</label>
+                  <input type="text" id="ib_reportUrl" placeholder="Ruta o enlace" oninput="onInBodyChange()">
+                </div>
+              </div>
+              <div class="field-hint">El sistema de carga de archivos se habilitará en una próxima actualización.</div>
+            </div>
+
+            <!-- 8.10 Observaciones clínicas -->
+            <div class="inbody-subsection">
+              <div class="inbody-subhead"><span class="inbody-subhead-icon">10</span> Observaciones clínicas</div>
+              <div class="form-grid full">
+                <div class="form-group">
+                  <label for="ib_interpretation">Interpretación del nutricionista</label>
+                  <textarea id="ib_interpretation" placeholder="Análisis clínico de los resultados..." style="min-height:80px;" oninput="onInBodyChange()"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="ib_findings">Hallazgos relevantes</label>
+                  <textarea id="ib_findings" placeholder="Hallazgos a destacar..." style="min-height:60px;" oninput="onInBodyChange()"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="ib_changes">Cambios desde evaluación anterior</label>
+                  <textarea id="ib_changes" placeholder="Cambios observados..." style="min-height:60px;" oninput="onInBodyChange()"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="ib_recommendations">Recomendaciones relacionadas</label>
+                  <textarea id="ib_recommendations" placeholder="Recomendaciones específicas..." style="min-height:60px;" oninput="onInBodyChange()"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="ib_privateNotes">Notas privadas</label>
+                  <textarea id="ib_privateNotes" placeholder="Notas internas, no visibles al paciente..." style="min-height:60px;" oninput="onInBodyChange()"></textarea>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── 9. Recomendaciones rápidas ── -->
+        <div class="form-section">
+          <div class="section-head">
+            <span class="section-num">9</span>
+            <div style="flex:1;">
+              <h3>Recomendaciones</h3>
+              <div class="section-help">Recomendaciones rápidas insertables al texto.</div>
+            </div>
+          </div>
+
+          <div class="reco-chips" id="recoChips">
+            <!-- populated by JS -->
+          </div>
+
+          <div class="form-grid full">
+            <div class="form-group">
+              <label for="ev_recommendations">Recomendaciones iniciales</label>
+              <textarea id="ev_recommendations" placeholder="Haga clic en los chips para insertar recomendaciones rápidas o escriba libremente." style="min-height:160px;"></textarea>
+            </div>
+          </div>
+        </div>
+
+      </form>
+
+      <div class="form-footer">
+        <div class="form-footer-left">
+          <button type="button" class="btn-cancel" onclick="safeBack()">Cancelar</button>
+        </div>
+        <div class="footer-status" id="footerStatus">Sin cambios.</div>
+        <div class="form-footer-right">
+          <button type="button" class="btn-save-draft" id="btnSaveDraft" onclick="saveDraft(true)">Guardar borrador</button>
+          <button type="button" class="btn-save-main" id="btnSaveFinal" onclick="saveFinal()">Guardar consulta</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Sidebar Summary ── -->
+    <aside class="summary-col">
+      <div class="summary">
+        <div class="summary-head">
+          <h4>Resumen Nutricional</h4>
+          <p>Actualizado en tiempo real</p>
+        </div>
+        <div class="summary-body">
+          <div class="kcal-big">
+            <div class="num" id="sumCalories">0</div>
+            <div class="lbl">Calorías totales (kcal)</div>
+            <div class="target" id="sumCaloriesTarget"></div>
+          </div>
+
+          <div class="macro-row">
+            <div class="macro-head">
+              <span class="macro-name">Proteína</span>
+              <span class="macro-val" id="sumProtein">0 g <small id="sumProteinPct"></small></span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill pf-protein" id="pfProtein" style="width:0%;"></div></div>
+          </div>
+
+          <div class="macro-row">
+            <div class="macro-head">
+              <span class="macro-name">Carbohidratos</span>
+              <span class="macro-val" id="sumCarbs">0 g <small id="sumCarbsPct"></small></span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill pf-carbs" id="pfCarbs" style="width:0%;"></div></div>
+          </div>
+
+          <div class="macro-row">
+            <div class="macro-head">
+              <span class="macro-name">Grasas</span>
+              <span class="macro-val" id="sumFat">0 g <small id="sumFatPct"></small></span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill pf-fat" id="pfFat" style="width:0%;"></div></div>
+          </div>
+
+          <div class="macro-row">
+            <div class="macro-head">
+              <span class="macro-name">Fibra</span>
+              <span class="macro-val" id="sumFiber">0 g</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill pf-fiber" id="pfFiber" style="width:0%;"></div></div>
+          </div>
+
+          <div class="macro-row">
+            <div class="macro-head">
+              <span class="macro-name">Sodio</span>
+              <span class="macro-val" id="sumSodium">0 mg</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill pf-sodium" id="pfSodium" style="width:0%;"></div></div>
+          </div>
+
+          <div class="summary-stats-grid">
+            <div class="stat-box">
+              <div class="lbl">Agua</div>
+              <div class="val" id="sumWater">— <small></small></div>
+            </div>
+            <div class="stat-box">
+              <div class="lbl">IMC</div>
+              <div class="val" id="sumBmi">— <small></small></div>
+            </div>
+            <div class="stat-box">
+              <div class="lbl">MB est.</div>
+              <div class="val" id="sumBmr">— <small>kcal</small></div>
+            </div>
+            <div class="stat-box">
+              <div class="lbl">GET est.</div>
+              <div class="val" id="sumTdee">— <small>kcal</small></div>
+            </div>
+          </div>
+
+          <div id="summaryAlerts"></div>
+
+          <div class="summary-inbody" id="summaryInBody" style="display:none;">
+            <div class="summary-inbody-title">📊 InBody / Bioimpedancia</div>
+            <div class="summary-inbody-row"><span>% Grasa</span><strong id="sumIbBodyFatPct">—</strong></div>
+            <div class="summary-inbody-row"><span>Masa muscular esq.</span><strong id="sumIbMuscle">—</strong></div>
+            <div class="summary-inbody-row"><span>Masa grasa</span><strong id="sumIbFat">—</strong></div>
+            <div class="summary-inbody-row"><span>Grasa visceral</span><strong id="sumIbVisceral">—</strong></div>
+            <div class="summary-inbody-row"><span>MB reportado</span><strong id="sumIbBmr">—</strong></div>
+            <div class="summary-inbody-row"><span>Última eval.</span><strong id="sumIbDate">—</strong></div>
+          </div>
+
+          <button class="summary-save-btn" id="sideBtnSave" onclick="saveFinal()">Guardar consulta</button>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+</main>
+
+<!-- ── Food Search Modal ── -->
+<div class="modal-overlay hidden" id="foodModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div>
+        <h3>Buscar alimentos hondureños</h3>
+        <p>Selecciona o ajusta una porción para añadirla a la comida.</p>
+      </div>
+      <button class="modal-close" onclick="closeFoodModal()" type="button">×</button>
+    </div>
+    <div class="modal-search">
+      <input type="text" id="foodSearchInput" placeholder="Buscar por nombre, ingrediente o categoría…" oninput="renderFoodResults()">
+      <div class="modal-cats" id="modalCats"></div>
+    </div>
+    <div class="modal-results" id="foodResults"></div>
+    <div class="food-detail" id="foodDetail" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ── Toast container ── -->
+<div id="toastContainer"></div>
+
+<script src="/common.js"></script>
+<script src="/icons.js"></script>
+<script src="/layout.js"></script>
+<script src="/honduranFoods.js"></script>
+<script>
+requireAuth(['clinic_admin', 'doctor']);
+
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
+const STATE = {
+  appointmentId: null,
+  patientId: null,
+  patient: null,
+  professional: null,
+  status: 'draft', // 'draft' | 'ready' | 'saved'
+  isDirty: false,
+  saving: false,
+  targetsManuallyAdjusted: false,
+  meals: [
+    { key: 'desayuno', name: 'Desayuno', icon: '🌅', items: [] },
+    { key: 'merienda_am', name: 'Merienda mañana', icon: '☕', items: [] },
+    { key: 'almuerzo', name: 'Almuerzo', icon: '🍽️', items: [] },
+    { key: 'merienda_pm', name: 'Merienda tarde', icon: '🍎', items: [] },
+    { key: 'cena', name: 'Cena', icon: '🌙', items: [] },
+    { key: 'snack_noche', name: 'Snack nocturno', icon: '🌃', items: [] },
+    { key: 'bebidas', name: 'Bebidas', icon: '🥤', items: [] }
+  ],
+  conditions: new Set(),
+  frequencyHabits: new Set(),
+  foodModalTargetMealKey: null,
+  selectedFood: null,
+  selectedFoodGrams: 0,
+  selectedFoodPortion: '1',
+  selectedFoodUnit: 'porción',
+  selectedCategory: 'Todas',
+  inBodyEnabled: false,
+  inBodyHistory: [],
+  inBodyComparison: null
+};
+
+const CONDITIONS = [
+  'Diabetes','Hipertensión','Dislipidemia','Gastritis/reflujo','Colon irritable',
+  'Estreñimiento','Enfermedad renal','Enfermedad hepática','Alergias alimentarias',
+  'Intolerancia a lactosa','Celiaquía','Embarazo','Lactancia','Deportista',
+  'Pediátrico/adolescente','Adulto mayor','Ninguno reportado'
+];
+
+const FREQUENCY_HABITS = [
+  'Consume baleadas frecuentemente','Consume frituras','Consume refrescos/jugos azucarados',
+  'Consume café con azúcar','Consume comida rápida','Consume frutas','Consume vegetales',
+  'Consume frijoles','Consume tortillas','Consume lácteos','Come fuera de casa',
+  'Come tarde en la noche','Omite desayuno','Come por ansiedad/estrés','Poca hidratación',
+  'Alto consumo de sal','Alto consumo de pan/repostería'
+];
+
+const RECOMMENDATIONS = [
+  'Aumentar consumo de agua.',
+  'Incluir vegetales en almuerzo y cena.',
+  'Priorizar proteína en cada comida.',
+  'Reducir bebidas azucaradas.',
+  'Ajustar porciones de frituras.',
+  'Preferir preparaciones asadas, cocidas o al horno.',
+  'Planificar meriendas.',
+  'Mejorar horarios de comida.',
+  'Revisar consumo de sodio.',
+  'Aumentar consumo de fibra.',
+  'Evitar pasar muchas horas sin comer, según contexto clínico.'
+];
+
+const ACTIVITY_FACTORS = {
+  sedentario: 1.2,
+  ligero: 1.375,
+  moderado: 1.55,
+  alto: 1.725,
+  muy_alto: 1.9
+};
+
+// ─────────────────────────────────────────────
+// Calc helpers
+// ─────────────────────────────────────────────
+function calcBMI(weightKg, heightCm) {
+  if (!weightKg || !heightCm) return null;
+  const m = heightCm / 100;
+  return weightKg / (m * m);
+}
+
+function classifyBMI(bmi) {
+  if (bmi == null) return '—';
+  if (bmi < 18.5) return 'Bajo (referencial — revisar contexto)';
+  if (bmi < 25) return 'Rango habitual referencial';
+  if (bmi < 30) return 'Por encima del rango habitual (referencial)';
+  return 'Por encima del rango habitual (referencial)';
+}
+
+function calcWaistHip(waist, hip) {
+  if (!waist || !hip) return null;
+  return waist / hip;
+}
+
+function calcBMR(formula, weightKg, heightCm, age, sex) {
+  if (!weightKg || !heightCm || !age) return null;
+  const isFemale = (sex || '').toLowerCase().startsWith('f');
+  if (formula === 'harris') {
+    return isFemale
+      ? 447.593 + (9.247 * weightKg) + (3.098 * heightCm) - (4.330 * age)
+      : 88.362 + (13.397 * weightKg) + (4.799 * heightCm) - (5.677 * age);
+  }
+  // Mifflin-St Jeor (default)
+  const base = (10 * weightKg) + (6.25 * heightCm) - (5 * age);
+  return isFemale ? base - 161 : base + 5;
+}
+
+function adjustCaloriesForGoal(tdee, goal) {
+  if (!tdee) return null;
+  switch (goal) {
+    case 'reduccion_grasa': return tdee - 400;
+    case 'aumento_masa': return tdee + 300;
+    case 'rendimiento': return tdee + 200;
+    case 'control_metabolico': return tdee - 200;
+    default: return tdee;
+  }
+}
+
+// Default macro split: P=20%, C=50%, F=30%
+function macroDefaultsFromCalories(cal) {
+  if (!cal) return { protein: 0, carbs: 0, fat: 0 };
+  return {
+    protein: Math.round((cal * 0.20) / 4),
+    carbs: Math.round((cal * 0.50) / 4),
+    fat: Math.round((cal * 0.30) / 9)
+  };
+}
+
+function sumMealTotals(items) {
+  return items.reduce((acc, it) => {
+    acc.calories += it.calories || 0;
+    acc.protein += it.protein || 0;
+    acc.carbs += it.carbs || 0;
+    acc.fat += it.fat || 0;
+    acc.fiber += it.fiber || 0;
+    acc.sodium += it.sodium || 0;
+    return acc;
+  }, { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sodium: 0 });
+}
+
+function sumDayTotals(meals) {
+  return meals.reduce((acc, m) => {
+    const t = sumMealTotals(m.items);
+    acc.calories += t.calories;
+    acc.protein += t.protein;
+    acc.carbs += t.carbs;
+    acc.fat += t.fat;
+    acc.fiber += t.fiber;
+    acc.sodium += t.sodium;
+    return acc;
+  }, { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sodium: 0 });
+}
+
+function rOne(n) { return Math.round((n || 0) * 10) / 10; }
+function rWhole(n) { return Math.round(n || 0); }
+function safeSetText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function safeSetHtml(id, val) { const el = document.getElementById(id); if (el) el.innerHTML = val; }
+function safeSetWidth(id, val) { const el = document.getElementById(id); if (el) el.style.width = val; }
+
+// ─────────────────────────────────────────────
+// Init / load patient
+// ─────────────────────────────────────────────
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  STATE.appointmentId = parseInt(params.get('id'));
+
+  // Default date today
+  const today = new Date();
+  const isoToday = today.toISOString().slice(0, 10);
+  const genDateEl = document.getElementById('gen_date');
+  if (genDateEl) genDateEl.value = isoToday;
+  safeSetText('consultDateLabel', today.toLocaleDateString('es-HN', { day:'2-digit', month:'long', year:'numeric' }));
+
+  buildConditionsChips();
+  buildFrequencyChips();
+  buildRecoChips();
+  renderMeals();
+  renderModalCategories();
+
+  try {
+    const me = await api('/api/auth/me');
+    STATE.professional = me;
+    if (me.role === 'doctor' && me.specialty && me.specialty !== 'Nutrición') {
+      // Doctor with a different specialty shouldn't be here
+      window.location.href = '/citas.html';
+      return;
+    }
+    document.getElementById('professionalName').textContent = me.role === 'doctor' ? `Dr. ${me.name || me.email}` : (me.name || me.email);
+    document.getElementById('professionalWrap').style.display = '';
+
+    if (!STATE.appointmentId) {
+      // Allow standalone use, but warn
+      document.getElementById('patientName').textContent = 'Sin cita asignada';
+      showToast('Esta consulta no está vinculada a una cita. Use el flujo de citas para registrar.', 'info');
+      return;
+    }
+
+    const appts = await api('/api/appointments');
+    const appt = appts.find(a => a.id === STATE.appointmentId);
+    if (!appt) {
+      showToast('Cita no encontrada', 'err');
+      setTimeout(() => history.back(), 1500);
+      return;
+    }
+    STATE.patientId = appt.patient_id;
+    document.getElementById('patientName').textContent = appt.patient_name || 'Paciente';
+
+    // Load patient details for age/sex
+    try {
+      const patient = await api(`/api/patients/${STATE.patientId}`);
+      STATE.patient = patient;
+      if (patient.age) {
+        document.getElementById('patientAge').textContent = patient.age + ' años';
+        document.getElementById('patientAgeWrap').style.display = '';
+      }
+      if (patient.gender) {
+        document.getElementById('patientSex').textContent = patient.gender;
+        document.getElementById('patientSexWrap').style.display = '';
+      }
+    } catch (e) { console.warn('No se pudo cargar paciente:', e); }
+
+    // Restore draft
+    restoreDraft();
+    recomputeAll();
+  } catch (e) {
+    console.error(e);
+    showToast('Error al cargar la consulta: ' + e.message, 'err');
+  }
+
+  // Mark dirty on any input change
+  document.getElementById('nutritionForm').addEventListener('input', () => markDirty());
+  document.getElementById('nutritionForm').addEventListener('change', () => markDirty());
+
+  // Beforeunload guard
+  window.addEventListener('beforeunload', (e) => {
+    if (STATE.isDirty && STATE.status !== 'saved') {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+// UI builders
+// ─────────────────────────────────────────────
+function buildConditionsChips() {
+  const wrap = document.getElementById('conditionsChips');
+  wrap.innerHTML = CONDITIONS.map(c => `
+    <label class="chip" data-cond="${esc(c)}" onclick="toggleCondition(this, '${esc(c)}')">
+      <span>${esc(c)}</span>
+    </label>
+  `).join('');
+}
+
+function toggleCondition(el, cond) {
+  if (STATE.conditions.has(cond)) { STATE.conditions.delete(cond); el.classList.remove('active'); }
+  else { STATE.conditions.add(cond); el.classList.add('active'); }
+  markDirty();
+}
+
+function buildFrequencyChips() {
+  const wrap = document.getElementById('frequencyChips');
+  wrap.innerHTML = FREQUENCY_HABITS.map(c => `
+    <label class="chip" data-freq="${esc(c)}" onclick="toggleFrequency(this, '${esc(c)}')">
+      <span>${esc(c)}</span>
+    </label>
+  `).join('');
+}
+
+function toggleFrequency(el, hab) {
+  if (STATE.frequencyHabits.has(hab)) { STATE.frequencyHabits.delete(hab); el.classList.remove('active'); }
+  else { STATE.frequencyHabits.add(hab); el.classList.add('active'); }
+  markDirty();
+}
+
+function buildRecoChips() {
+  const wrap = document.getElementById('recoChips');
+  wrap.innerHTML = RECOMMENDATIONS.map(r => `
+    <span class="chip" onclick="insertRecommendation('${esc(r).replace(/'/g, "\\'")}')">+ ${esc(r)}</span>
+  `).join('');
+}
+
+function insertRecommendation(text) {
+  const ta = document.getElementById('ev_recommendations');
+  const sep = ta.value.trim() ? '\n' : '';
+  ta.value = ta.value + sep + '• ' + text;
+  ta.focus();
+  markDirty();
+}
+
+function renderMeals() {
+  const wrap = document.getElementById('mealsContainer');
+  wrap.innerHTML = STATE.meals.map((m, idx) => {
+    const totals = sumMealTotals(m.items);
+    return `
+      <div class="meal-block" data-meal="${m.key}">
+        <div class="meal-head">
+          <div class="meal-title">
+            <span class="meal-icon">${m.icon}</span>
+            <span>${esc(m.name)}</span>
+          </div>
+          <div class="meal-totals-mini">
+            <span>Calorías: <b>${rWhole(totals.calories)}</b> kcal</span>
+            <span>P: <b>${rOne(totals.protein)}</b>g</span>
+            <span>C: <b>${rOne(totals.carbs)}</b>g</span>
+            <span>G: <b>${rOne(totals.fat)}</b>g</span>
+          </div>
+          <button type="button" class="btn-add-food" onclick="openFoodModal('${m.key}')">+ Añadir alimento</button>
+        </div>
+        <div class="meal-items">
+          ${m.items.length === 0
+            ? `<div class="meal-empty">Sin alimentos registrados.</div>`
+            : m.items.map((it, i) => renderMealItem(m.key, i, it)).join('')
+          }
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMealItem(mealKey, idx, item) {
+  return `
+    <div class="meal-item">
+      <div class="meal-item-name">
+        <span>${esc(item.name)}</span>
+        <small>${esc(item.quantity || 1)} ${esc(item.unit || 'porción')} · ${rWhole(item.grams)} g${item.notes ? ' · ' + esc(item.notes) : ''}</small>
+      </div>
+      <div class="meal-item-macros">
+        <span><b>${rWhole(item.calories)}</b> kcal</span>
+        <span>P <b>${rOne(item.protein)}</b>g</span>
+        <span>C <b>${rOne(item.carbs)}</b>g</span>
+        <span>G <b>${rOne(item.fat)}</b>g</span>
+        ${item.fiber ? `<span>Fib <b>${rOne(item.fiber)}</b>g</span>` : ''}
+        ${item.sodium ? `<span>Na <b>${rWhole(item.sodium)}</b>mg</span>` : ''}
+      </div>
+      <div class="meal-item-actions">
+        <button class="icon-btn" type="button" title="Editar porción" onclick="editMealItem('${mealKey}', ${idx})">✎</button>
+        <button class="icon-btn danger" type="button" title="Eliminar" onclick="removeMealItem('${mealKey}', ${idx})">✕</button>
+      </div>
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────────
+// Food modal
+// ─────────────────────────────────────────────
+function renderModalCategories() {
+  const cats = ['Todas', ...HONDURAN_FOODS.categories];
+  const wrap = document.getElementById('modalCats');
+  wrap.innerHTML = cats.map(c => `
+    <span class="cat-pill ${STATE.selectedCategory === c ? 'active' : ''}" onclick="selectCategory('${esc(c).replace(/'/g, "\\'")}')">${esc(c)}</span>
+  `).join('');
+}
+
+function selectCategory(c) {
+  STATE.selectedCategory = c;
+  renderModalCategories();
+  renderFoodResults();
+}
+
+function openFoodModal(mealKey) {
+  STATE.foodModalTargetMealKey = mealKey;
+  STATE.selectedFood = null;
+  document.getElementById('foodDetail').style.display = 'none';
+  document.getElementById('foodSearchInput').value = '';
+  document.getElementById('foodModal').classList.remove('hidden');
+  renderFoodResults();
+  setTimeout(() => document.getElementById('foodSearchInput').focus(), 50);
+}
+
+function closeFoodModal() {
+  document.getElementById('foodModal').classList.add('hidden');
+  STATE.foodModalTargetMealKey = null;
+  STATE.selectedFood = null;
+}
+
+function renderFoodResults() {
+  const q = document.getElementById('foodSearchInput').value;
+  const cat = STATE.selectedCategory === 'Todas' ? null : STATE.selectedCategory;
+  const results = HONDURAN_FOODS.search(q, cat);
+  const wrap = document.getElementById('foodResults');
+  if (results.length === 0) {
+    wrap.innerHTML = `<div class="empty-results">Sin resultados. Intente con otro término.</div>`;
+    return;
+  }
+  wrap.innerHTML = results.map(f => {
+    const conf = f.confidence || 'professional_estimate';
+    const confLabel = ({ validated:'Validado', professional_estimate:'Estimación', reference:'Referencial', user_entered:'Usuario' })[conf] || conf;
+    return `
+      <div class="food-row" onclick="selectFood('${f.id}')">
+        <div>
+          <div class="food-name">${esc(f.name)}</div>
+          <div class="food-meta">
+            <span>${esc(f.category)}${f.region ? ' · ' + esc(f.region) : ''}</span>
+            <span>${esc(f.serving.label)} (${f.serving.grams} g)</span>
+            <span class="food-confidence conf-${conf}">${confLabel}</span>
+          </div>
+        </div>
+        <div class="food-macros-mini">
+          <span><b>${f.nutrition.calories}</b> kcal</span>
+          <span>P ${f.nutrition.protein}</span>
+          <span>C ${f.nutrition.carbs}</span>
+          <span>G ${f.nutrition.fat}</span>
+        </div>
+        <button class="food-add-btn" type="button" onclick="event.stopPropagation(); selectFood('${f.id}')">Configurar</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectFood(id) {
+  const food = HONDURAN_FOODS.getById(id);
+  if (!food) return;
+  STATE.selectedFood = food;
+  STATE.selectedFoodPortion = '1';
+  STATE.selectedFoodGrams = food.serving.grams;
+  STATE.selectedFoodUnit = food.serving.label.includes('porción') ? 'porción' : (food.serving.label.split(' ')[0] || 'porción');
+  renderFoodDetail();
+}
+
+function renderFoodDetail() {
+  const f = STATE.selectedFood;
+  if (!f) return;
+  const detail = document.getElementById('foodDetail');
+  detail.style.display = 'block';
+
+  const macros = HONDURAN_FOODS.scale(f, STATE.selectedFoodGrams);
+
+  detail.innerHTML = `
+    <div class="food-detail-head">
+      <div>
+        <h4>${esc(f.name)}</h4>
+        <p>${esc(f.serving.label)} · ${f.serving.grams} g por porción · ${esc(f.category)}</p>
+      </div>
+      <button class="icon-btn" type="button" onclick="STATE.selectedFood=null;document.getElementById('foodDetail').style.display='none';">✕</button>
+    </div>
+
+    <div class="portion-presets">
+      ${['0.5', '1', '1.5', '2'].map(p => `
+        <span class="portion-preset ${STATE.selectedFoodPortion === p ? 'active' : ''}" onclick="setPortionPreset('${p}')">${p === '0.5' ? '½' : p} ${p === '1' ? 'porción' : 'porciones'}</span>
+      `).join('')}
+      <span class="portion-preset ${STATE.selectedFoodPortion === 'custom' ? 'active' : ''}" onclick="setPortionPreset('custom')">Personalizado</span>
+    </div>
+
+    <div class="detail-grid">
+      <div class="form-group">
+        <label>Cantidad</label>
+        <input type="number" step="0.1" min="0" id="detail_quantity" value="${STATE.selectedFoodPortion === 'custom' ? '' : STATE.selectedFoodPortion}" oninput="onDetailEdited()">
+      </div>
+      <div class="form-group">
+        <label>Unidad</label>
+        <select id="detail_unit" onchange="onDetailUnitChange()">
+          <option value="porción" ${STATE.selectedFoodUnit==='porción'?'selected':''}>porción</option>
+          <option value="unidad" ${STATE.selectedFoodUnit==='unidad'?'selected':''}>unidad</option>
+          <option value="taza" ${STATE.selectedFoodUnit==='taza'?'selected':''}>taza</option>
+          <option value="cucharada" ${STATE.selectedFoodUnit==='cucharada'?'selected':''}>cucharada</option>
+          <option value="gramos" ${STATE.selectedFoodUnit==='gramos'?'selected':''}>gramos</option>
+          <option value="plato" ${STATE.selectedFoodUnit==='plato'?'selected':''}>plato</option>
+          <option value="vaso" ${STATE.selectedFoodUnit==='vaso'?'selected':''}>vaso</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Gramos estimados</label>
+        <input type="number" step="1" min="0" id="detail_grams" value="${STATE.selectedFoodGrams}" oninput="onDetailGramsEdited()">
+      </div>
+      <div class="form-group span-3" style="grid-column: span 3;">
+        <label>Notas (opcional)</label>
+        <input type="text" id="detail_notes" placeholder="Ej: con poca sal, sin queso">
+      </div>
+    </div>
+
+    <div class="detail-macros-preview" id="detailMacrosPreview">
+      <span class="pill">Calorías <b>${rWhole(macros.calories)}</b> kcal</span>
+      <span class="pill">Proteína <b>${rOne(macros.protein)}</b> g</span>
+      <span class="pill">Carbohidratos <b>${rOne(macros.carbs)}</b> g</span>
+      <span class="pill">Grasas <b>${rOne(macros.fat)}</b> g</span>
+      ${macros.fiber ? `<span class="pill">Fibra <b>${rOne(macros.fiber)}</b> g</span>` : ''}
+      ${macros.sodium ? `<span class="pill">Sodio <b>${rWhole(macros.sodium)}</b> mg</span>` : ''}
+    </div>
+
+    <div class="detail-actions">
+      <button class="btn-cancel-mini" type="button" onclick="STATE.selectedFood=null;document.getElementById('foodDetail').style.display='none';">Cancelar</button>
+      <button class="btn-save-mini" type="button" onclick="confirmAddFood()">Añadir a ${esc(STATE.meals.find(m=>m.key===STATE.foodModalTargetMealKey)?.name || '')}</button>
+    </div>
+  `;
+}
+
+function setPortionPreset(p) {
+  STATE.selectedFoodPortion = p;
+  if (p !== 'custom') {
+    const factor = parseFloat(p);
+    STATE.selectedFoodGrams = Math.round(STATE.selectedFood.serving.grams * factor);
+  }
+  renderFoodDetail();
+}
+
+function onDetailEdited() {
+  // recompute grams from quantity if unit is "porción"/"unidad"
+  const qty = parseFloat(document.getElementById('detail_quantity').value) || 0;
+  const unit = document.getElementById('detail_unit').value;
+  if (['porción', 'unidad', 'plato', 'vaso', 'taza'].includes(unit)) {
+    STATE.selectedFoodGrams = Math.round(STATE.selectedFood.serving.grams * qty);
+    document.getElementById('detail_grams').value = STATE.selectedFoodGrams;
+  }
+  STATE.selectedFoodPortion = 'custom';
+  updateDetailPreview();
+}
+
+function onDetailUnitChange() {
+  STATE.selectedFoodUnit = document.getElementById('detail_unit').value;
+  if (STATE.selectedFoodUnit === 'gramos') {
+    document.getElementById('detail_quantity').value = STATE.selectedFoodGrams;
+  }
+}
+
+function onDetailGramsEdited() {
+  STATE.selectedFoodGrams = parseFloat(document.getElementById('detail_grams').value) || 0;
+  STATE.selectedFoodPortion = 'custom';
+  updateDetailPreview();
+}
+
+function updateDetailPreview() {
+  if (!STATE.selectedFood) return;
+  const macros = HONDURAN_FOODS.scale(STATE.selectedFood, STATE.selectedFoodGrams);
+  const wrap = document.getElementById('detailMacrosPreview');
+  wrap.innerHTML = `
+    <span class="pill">Calorías <b>${rWhole(macros.calories)}</b> kcal</span>
+    <span class="pill">Proteína <b>${rOne(macros.protein)}</b> g</span>
+    <span class="pill">Carbohidratos <b>${rOne(macros.carbs)}</b> g</span>
+    <span class="pill">Grasas <b>${rOne(macros.fat)}</b> g</span>
+    ${macros.fiber ? `<span class="pill">Fibra <b>${rOne(macros.fiber)}</b> g</span>` : ''}
+    ${macros.sodium ? `<span class="pill">Sodio <b>${rWhole(macros.sodium)}</b> mg</span>` : ''}
+  `;
+}
+
+function confirmAddFood() {
+  const f = STATE.selectedFood;
+  if (!f) return;
+  const meal = STATE.meals.find(m => m.key === STATE.foodModalTargetMealKey);
+  if (!meal) return;
+  const macros = HONDURAN_FOODS.scale(f, STATE.selectedFoodGrams);
+  const qty = parseFloat(document.getElementById('detail_quantity').value) || 1;
+  const unit = document.getElementById('detail_unit').value || 'porción';
+  const notes = document.getElementById('detail_notes').value || '';
+
+  if (STATE.editingMealItem) {
+    meal.items[STATE.editingMealItem.idx] = {
+      foodId: f.id,
+      name: f.name,
+      category: f.category,
+      quantity: qty,
+      unit,
+      grams: STATE.selectedFoodGrams,
+      ...macros,
+      notes
+    };
+    STATE.editingMealItem = null;
+  } else {
+    meal.items.push({
+      foodId: f.id,
+      name: f.name,
+      category: f.category,
+      quantity: qty,
+      unit,
+      grams: STATE.selectedFoodGrams,
+      ...macros,
+      notes
+    });
+  }
+  renderMeals();
+  recomputeAll();
+  closeFoodModal();
+  markDirty();
+  showToast(`${f.name} añadido a ${meal.name}`, 'ok');
+}
+
+function removeMealItem(mealKey, idx) {
+  const m = STATE.meals.find(x => x.key === mealKey);
+  if (!m) return;
+  const removed = m.items.splice(idx, 1);
+  renderMeals();
+  recomputeAll();
+  markDirty();
+  if (removed[0]) showToast(`${removed[0].name} eliminado`, 'info');
+}
+
+function editMealItem(mealKey, idx) {
+  const m = STATE.meals.find(x => x.key === mealKey);
+  if (!m) return;
+  const item = m.items[idx];
+  if (!item) return;
+  if (!item.foodId) {
+    showToast('Este ítem no tiene origen en la base de datos.', 'err');
+    return;
+  }
+  const food = HONDURAN_FOODS.getById(item.foodId);
+  if (!food) {
+    showToast('Alimento no encontrado.', 'err');
+    return;
+  }
+  STATE.foodModalTargetMealKey = mealKey;
+  STATE.selectedFood = food;
+  STATE.selectedFoodGrams = item.grams;
+  STATE.selectedFoodPortion = 'custom';
+  STATE.selectedFoodUnit = item.unit;
+  STATE.editingMealItem = { mealKey, idx };
+  document.getElementById('foodModal').classList.remove('hidden');
+  document.getElementById('foodSearchInput').value = food.name;
+  renderFoodResults();
+  renderFoodDetail();
+  // restore notes on the next tick
+  setTimeout(() => {
+    const notesEl = document.getElementById('detail_notes');
+    if (notesEl) notesEl.value = item.notes || '';
+    const qtyEl = document.getElementById('detail_quantity');
+    if (qtyEl) qtyEl.value = item.quantity || 1;
+  }, 0);
+}
+
+// ─────────────────────────────────────────────
+// Anthropometry / Targets
+// ─────────────────────────────────────────────
+function onAnthroChange() {
+  const w = parseFloat(document.getElementById('anthro_weight').value);
+  const h = parseFloat(document.getElementById('anthro_height').value);
+  const bmi = calcBMI(w, h);
+  document.getElementById('anthro_bmi').value = bmi ? bmi.toFixed(1) : '';
+
+  const card = document.getElementById('bmiCard');
+  if (bmi && card) {
+    card.style.display = 'flex';
+    safeSetText('bmiValueDisplay', bmi.toFixed(1));
+    safeSetText('bmiClassDisplay', classifyBMI(bmi));
+  } else if (card) {
+    card.style.display = 'none';
+  }
+
+  const wa = parseFloat(document.getElementById('anthro_waist').value);
+  const hi = parseFloat(document.getElementById('anthro_hip').value);
+  const whr = calcWaistHip(wa, hi);
+  document.getElementById('anthro_whr').value = whr ? whr.toFixed(2) : '';
+
+  recomputeTargets();
+  recomputeAll();
+}
+
+function recomputeTargets() {
+  if (STATE.targetsManuallyAdjusted) return;
+  const w = parseFloat(document.getElementById('anthro_weight').value);
+  const h = parseFloat(document.getElementById('anthro_height').value);
+  const age = STATE.patient && STATE.patient.age ? parseInt(STATE.patient.age) : null;
+  const sex = STATE.patient && STATE.patient.gender ? STATE.patient.gender : '';
+  const formula = document.getElementById('tg_formula').value || 'mifflin';
+  const activityLvl = document.getElementById('gen_activity').value;
+  const factorInput = parseFloat(document.getElementById('tg_activity_factor').value);
+  const factor = factorInput || ACTIVITY_FACTORS[activityLvl] || null;
+  if (!factorInput && factor) document.getElementById('tg_activity_factor').value = factor;
+
+  const goal = document.getElementById('tg_goal').value;
+
+  const bmr = calcBMR(formula, w, h, age, sex);
+  const tdee = bmr && factor ? bmr * factor : null;
+  const cals = adjustCaloriesForGoal(tdee, goal);
+  const macros = macroDefaultsFromCalories(cals);
+
+  if (bmr) document.getElementById('tg_bmr').value = Math.round(bmr);
+  if (tdee) document.getElementById('tg_tdee').value = Math.round(tdee);
+  if (cals) document.getElementById('tg_calories').value = Math.round(cals);
+  if (cals) {
+    document.getElementById('tg_protein').value = macros.protein;
+    document.getElementById('tg_carbs').value = macros.carbs;
+    document.getElementById('tg_fat').value = macros.fat;
+  }
+  recomputeAll();
+}
+
+function onTargetEdited() {
+  STATE.targetsManuallyAdjusted = true;
+  recomputeAll();
+  markDirty();
+}
+
+function resetTargetsToAuto() {
+  STATE.targetsManuallyAdjusted = false;
+  document.getElementById('tg_activity_factor').value = '';
+  recomputeTargets();
+  showToast('Valores reiniciados a estimación', 'info');
+}
+
+// ─────────────────────────────────────────────
+// Recompute summary panel
+// ─────────────────────────────────────────────
+function recomputeAll() {
+  const totals = sumDayTotals(STATE.meals);
+  safeSetText('sumCalories', rWhole(totals.calories));
+
+  const target = parseInt(document.getElementById('tg_calories').value) || 0;
+  safeSetText('sumCaloriesTarget', target ? `de ${target} kcal objetivo (${target ? Math.round((totals.calories / target) * 100) : 0}%)` : '');
+
+  let proteinTarget = parseInt(document.getElementById('tg_protein').value) || 0;
+  let carbsTarget = parseInt(document.getElementById('tg_carbs').value) || 0;
+  let fatTarget = parseInt(document.getElementById('tg_fat').value) || 0;
+  const fiberTarget = parseInt(document.getElementById('tg_fiber').value) || 25;
+  const sodiumTarget = parseInt(document.getElementById('tg_sodium').value) || 2300;
+
+  // Si no hay targets ingresados, usar consumo del día como referencia para la barra
+  if (!proteinTarget) proteinTarget = Math.max(1, totals.protein || 1);
+  if (!carbsTarget) carbsTarget = Math.max(1, totals.carbs || 1);
+  if (!fatTarget) fatTarget = Math.max(1, totals.fat || 1);
+
+  safeSetHtml('sumProtein', `${rOne(totals.protein)} g ${proteinTarget ? `<small>/ ${proteinTarget}g</small>` : ''}`);
+  safeSetHtml('sumCarbs', `${rOne(totals.carbs)} g ${carbsTarget ? `<small>/ ${carbsTarget}g</small>` : ''}`);
+  safeSetHtml('sumFat', `${rOne(totals.fat)} g ${fatTarget ? `<small>/ ${fatTarget}g</small>` : ''}`);
+  safeSetHtml('sumFiber', `${rOne(totals.fiber)} g`);
+  safeSetHtml('sumSodium', `${rWhole(totals.sodium)} mg`);
+
+  // Macro percent of total kcal
+  const totalKcalFromMacros = (totals.protein * 4) + (totals.carbs * 4) + (totals.fat * 9);
+  const pct = (kcal) => totalKcalFromMacros > 0 ? Math.round((kcal / totalKcalFromMacros) * 100) : 0;
+  safeSetText('sumProteinPct', totalKcalFromMacros ? `(${pct(totals.protein * 4)}%)` : '');
+  safeSetText('sumCarbsPct', totalKcalFromMacros ? `(${pct(totals.carbs * 4)}%)` : '');
+  safeSetText('sumFatPct', totalKcalFromMacros ? `(${pct(totals.fat * 9)}%)` : '');
+
+  const pctOf = (val, t) => t > 0 ? Math.min(100, Math.round((val / t) * 100)) : 0;
+  safeSetWidth('pfProtein', pctOf(totals.protein, proteinTarget) + '%');
+  safeSetWidth('pfCarbs', pctOf(totals.carbs, carbsTarget) + '%');
+  safeSetWidth('pfFat', pctOf(totals.fat, fatTarget) + '%');
+  safeSetWidth('pfFiber', pctOf(totals.fiber, fiberTarget) + '%');
+  safeSetWidth('pfSodium', pctOf(totals.sodium, sodiumTarget) + '%');
+
+  // Stats
+  safeSetHtml('sumWater', `${esc(document.getElementById('gen_water').value || '—')}`);
+  const bmiVal = document.getElementById('anthro_bmi').value;
+  safeSetHtml('sumBmi', bmiVal ? `${bmiVal} <small>kg/m²</small>` : '— <small></small>');
+  const bmrVal = document.getElementById('tg_bmr').value;
+  safeSetHtml('sumBmr', bmrVal ? `${bmrVal} <small>kcal</small>` : '— <small>kcal</small>');
+  const tdeeVal = document.getElementById('tg_tdee').value;
+  safeSetHtml('sumTdee', tdeeVal ? `${tdeeVal} <small>kcal</small>` : '— <small>kcal</small>');
+
+  // Re-render meal totals header (only mini totals change)
+  renderMeals();
+
+  // Alerts
+  const alerts = [];
+  if (target && totals.calories > target * 1.15) alerts.push(`Consumo muy por encima del objetivo calórico (${Math.round((totals.calories/target)*100)}%).`);
+  if (target && totals.calories < target * 0.7 && totals.calories > 0) alerts.push(`Consumo notablemente por debajo del objetivo calórico (${Math.round((totals.calories/target)*100)}%).`);
+  if (sodiumTarget && totals.sodium > sodiumTarget) alerts.push(`Sodio por encima del máximo sugerido (${rWhole(totals.sodium)}/${sodiumTarget} mg).`);
+  if (fiberTarget && totals.fiber < fiberTarget * 0.6 && totals.calories > 800) alerts.push(`Fibra por debajo del rango recomendado.`);
+  safeSetHtml('summaryAlerts', alerts.map(a => `
+    <div class="summary-alert"><span class="icon">⚠️</span><span>${esc(a)}</span></div>
+  `).join(''));
+
+  // Status: ready if has reason + at least one item, else draft
+  const hasReason = !!document.getElementById('gen_reason').value.trim();
+  const hasItems = STATE.meals.some(m => m.items.length > 0);
+  if (STATE.status !== 'saved') {
+    STATE.status = (hasReason && hasItems) ? 'ready' : 'draft';
+    updateStatusBadge();
+  }
+}
+
+function updateStatusBadge() {
+  const b = document.getElementById('statusBadge');
+  b.classList.remove('ready', 'saved');
+  if (STATE.status === 'ready') { b.textContent = 'Lista para guardar'; b.classList.add('ready'); }
+  else if (STATE.status === 'saved') { b.textContent = 'Guardada'; b.classList.add('saved'); }
+  else { b.textContent = 'Borrador'; }
+}
+
+// ─────────────────────────────────────────────
+// Draft persistence (localStorage)
+// ─────────────────────────────────────────────
+function draftKey() {
+  return `sd_nutrition_draft_${STATE.appointmentId || 'standalone'}`;
+}
+
+function snapshotForm() {
+  return {
+    general: {
+      date: document.getElementById('gen_date').value,
+      reason: document.getElementById('gen_reason').value,
+      mainGoal: document.getElementById('gen_main_goal').value,
+      occupation: document.getElementById('gen_occupation').value,
+      city: document.getElementById('gen_city').value,
+      activityLevel: document.getElementById('gen_activity').value,
+      workSchedule: document.getElementById('gen_work_schedule').value,
+      sleepSchedule: document.getElementById('gen_sleep').value,
+      waterIntake: document.getElementById('gen_water').value,
+      coffeeIntake: document.getElementById('gen_coffee').value,
+      sugaryDrinks: document.getElementById('gen_sugary').value,
+      appetite: (document.querySelector('input[name="appetite"]:checked') || {}).value || '',
+      notes: document.getElementById('gen_notes').value
+    },
+    clinical: {
+      conditions: Array.from(STATE.conditions),
+      medications: document.getElementById('cli_meds').value,
+      supplements: document.getElementById('cli_supps').value,
+      allergies: document.getElementById('cli_allergies').value,
+      digestiveSymptoms: document.getElementById('cli_digestive').value,
+      familyHistory: document.getElementById('cli_family').value,
+      notes: document.getElementById('cli_notes').value
+    },
+    anthropometry: {
+      weightKg: parseFloat(document.getElementById('anthro_weight').value) || null,
+      heightCm: parseFloat(document.getElementById('anthro_height').value) || null,
+      bmi: parseFloat(document.getElementById('anthro_bmi').value) || null,
+      waistCm: parseFloat(document.getElementById('anthro_waist').value) || null,
+      hipCm: parseFloat(document.getElementById('anthro_hip').value) || null,
+      waistHipRatio: parseFloat(document.getElementById('anthro_whr').value) || null,
+      neckCm: parseFloat(document.getElementById('anthro_neck').value) || null,
+      armCm: parseFloat(document.getElementById('anthro_arm').value) || null,
+      bodyFatPercentage: parseFloat(document.getElementById('anthro_bodyfat').value) || null,
+      muscleMassKg: parseFloat(document.getElementById('anthro_muscle').value) || null,
+      usualWeightKg: parseFloat(document.getElementById('anthro_usual').value) || null,
+      recentWeightChange: document.getElementById('anthro_change').value,
+      notes: document.getElementById('anthro_notes').value
+    },
+    nutritionTargets: {
+      formula: document.getElementById('tg_formula').value,
+      activityFactor: parseFloat(document.getElementById('tg_activity_factor').value) || null,
+      goal: document.getElementById('tg_goal').value,
+      bmr: parseInt(document.getElementById('tg_bmr').value) || null,
+      tdee: parseInt(document.getElementById('tg_tdee').value) || null,
+      targetCalories: parseInt(document.getElementById('tg_calories').value) || null,
+      proteinG: parseInt(document.getElementById('tg_protein').value) || null,
+      carbsG: parseInt(document.getElementById('tg_carbs').value) || null,
+      fatG: parseInt(document.getElementById('tg_fat').value) || null,
+      fiberG: parseInt(document.getElementById('tg_fiber').value) || null,
+      sodiumMg: parseInt(document.getElementById('tg_sodium').value) || null,
+      manuallyAdjusted: STATE.targetsManuallyAdjusted
+    },
+    recall24h: {
+      meals: STATE.meals.map(m => ({
+        mealKey: m.key,
+        mealName: m.name,
+        items: m.items,
+        totals: sumMealTotals(m.items)
+      })),
+      dayTotals: sumDayTotals(STATE.meals)
+    },
+    foodFrequency: {
+      habits: Array.from(STATE.frequencyHabits),
+      notes: document.getElementById('freq_notes').value
+    },
+    assessment: {
+      nutritionEvaluation: document.getElementById('ev_evaluation').value,
+      findings: document.getElementById('ev_findings').value,
+      problems: document.getElementById('ev_problems').value,
+      interventionGoals: document.getElementById('ev_goals').value,
+      recommendations: document.getElementById('ev_recommendations').value,
+      educationProvided: document.getElementById('ev_education').value,
+      privateNotes: document.getElementById('ev_private').value,
+      nextAppointmentDate: document.getElementById('ev_next').value
+    },
+    inBodyAssessment: snapshotInBody()
+  };
+}
+
+function snapshotInBody() {
+  const enabled = !!document.getElementById('ib_enabled').checked;
+  const numV = (id) => { const v = parseFloat(document.getElementById(id).value); return isNaN(v) ? null : v; };
+  const txtV = (id) => document.getElementById(id).value || null;
+
+  const conditions = Array.from(document.querySelectorAll('#ib_conditionsGrid input[type="checkbox"]:checked')).map(el => el.value);
+
+  const segLean = {};
+  const segFat = {};
+  ['rightArm','leftArm','trunk','rightLeg','leftLeg'].forEach(seg => {
+    segLean[seg] = {
+      kg: numV(`segLean_${seg}_kg`),
+      percentageOfExpected: numV(`segLean_${seg}_pct`),
+      referenceStatus: document.getElementById(`segLean_${seg}_status`)?.value || 'not_evaluated',
+      notes: txtV(`segLean_${seg}_notes`) || ''
+    };
+    segFat[seg] = {
+      kg: numV(`segFat_${seg}_kg`),
+      percentage: numV(`segFat_${seg}_pct`),
+      notes: txtV(`segFat_${seg}_notes`) || ''
+    };
+  });
+
+  return {
+    enabled,
+    measurementInfo: {
+      date: txtV('ib_date'),
+      time: txtV('ib_time'),
+      deviceType: txtV('ib_deviceType'),
+      deviceModel: txtV('ib_deviceModel'),
+      measurementConditions: conditions,
+      conditionsNotes: txtV('ib_conditionsNotes')
+    },
+    bodyComposition: {
+      weightKg: numV('ib_weight'),
+      totalBodyWaterL: numV('ib_tbw'),
+      proteinKg: numV('ib_protein'),
+      mineralsKg: numV('ib_minerals'),
+      bodyFatMassKg: numV('ib_fatMass'),
+      skeletalMuscleMassKg: numV('ib_muscleMass'),
+      fatFreeMassKg: numV('ib_ffm'),
+      bodyFatPercentage: numV('ib_bodyFatPct'),
+      bmi: numV('ib_bmi'),
+      basalMetabolicRateKcal: numV('ib_bmr'),
+      waistHipRatio: numV('ib_whr'),
+      visceralFatLevel: numV('ib_visceralFat'),
+      inBodyScore: numV('ib_score')
+    },
+    muscleFatAnalysis: {
+      weightKg: numV('mfa_weight'),
+      skeletalMuscleMassKg: numV('mfa_muscle'),
+      bodyFatMassKg: numV('mfa_fat'),
+      notes: [
+        document.getElementById('mfa_weightNote').value,
+        document.getElementById('mfa_muscleNote').value,
+        document.getElementById('mfa_fatNote').value
+      ].filter(Boolean).join(' | ')
+    },
+    segmentalLeanAnalysis: segLean,
+    segmentalFatAnalysis: segFat,
+    waterBalance: {
+      totalBodyWaterL: numV('wb_tbw'),
+      intracellularWaterL: numV('wb_icw'),
+      extracellularWaterL: numV('wb_ecw'),
+      ecwTbwRatio: numV('wb_ratio'),
+      edemaIndex: numV('wb_edema'),
+      notes: txtV('wb_notes')
+    },
+    comparison: STATE.inBodyComparison || {},
+    reportFile: {
+      fileUrl: txtV('ib_reportUrl'),
+      fileName: txtV('ib_reportName'),
+      uploadedAt: null
+    },
+    clinicalNotes: {
+      interpretation: txtV('ib_interpretation'),
+      relevantFindings: txtV('ib_findings'),
+      changesSinceLastAssessment: txtV('ib_changes'),
+      relatedRecommendations: txtV('ib_recommendations'),
+      privateNotes: txtV('ib_privateNotes')
+    }
+  };
+}
+
+function applySnapshot(s) {
+  if (!s) return;
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v == null ? '' : v; };
+  const g = s.general || {};
+  set('gen_date', g.date); set('gen_reason', g.reason); set('gen_main_goal', g.mainGoal);
+  set('gen_occupation', g.occupation); set('gen_city', g.city); set('gen_activity', g.activityLevel);
+  set('gen_work_schedule', g.workSchedule); set('gen_sleep', g.sleepSchedule); set('gen_water', g.waterIntake);
+  set('gen_coffee', g.coffeeIntake); set('gen_sugary', g.sugaryDrinks); set('gen_notes', g.notes);
+  if (g.appetite) {
+    const r = document.querySelector(`input[name="appetite"][value="${g.appetite}"]`);
+    if (r) r.checked = true;
+  }
+  const c = s.clinical || {};
+  STATE.conditions = new Set(c.conditions || []);
+  document.querySelectorAll('#conditionsChips .chip').forEach(el => {
+    if (STATE.conditions.has(el.dataset.cond)) el.classList.add('active');
+  });
+  set('cli_meds', c.medications); set('cli_supps', c.supplements); set('cli_allergies', c.allergies);
+  set('cli_digestive', c.digestiveSymptoms); set('cli_family', c.familyHistory); set('cli_notes', c.notes);
+
+  const a = s.anthropometry || {};
+  set('anthro_weight', a.weightKg); set('anthro_height', a.heightCm); set('anthro_bmi', a.bmi);
+  set('anthro_waist', a.waistCm); set('anthro_hip', a.hipCm); set('anthro_whr', a.waistHipRatio);
+  set('anthro_neck', a.neckCm); set('anthro_arm', a.armCm); set('anthro_bodyfat', a.bodyFatPercentage);
+  set('anthro_muscle', a.muscleMassKg); set('anthro_usual', a.usualWeightKg); set('anthro_change', a.recentWeightChange);
+  set('anthro_notes', a.notes);
+
+  const t = s.nutritionTargets || {};
+  set('tg_formula', t.formula || 'mifflin'); set('tg_activity_factor', t.activityFactor); set('tg_goal', t.goal);
+  set('tg_bmr', t.bmr); set('tg_tdee', t.tdee); set('tg_calories', t.targetCalories);
+  set('tg_protein', t.proteinG); set('tg_carbs', t.carbsG); set('tg_fat', t.fatG);
+  set('tg_fiber', t.fiberG); set('tg_sodium', t.sodiumMg);
+  STATE.targetsManuallyAdjusted = !!t.manuallyAdjusted;
+
+  if (s.recall24h && Array.isArray(s.recall24h.meals)) {
+    s.recall24h.meals.forEach(meal => {
+      const target = STATE.meals.find(m => m.key === meal.mealKey);
+      if (target) target.items = meal.items || [];
+    });
+  }
+
+  const fq = s.foodFrequency || {};
+  STATE.frequencyHabits = new Set(fq.habits || []);
+  document.querySelectorAll('#frequencyChips .chip').forEach(el => {
+    if (STATE.frequencyHabits.has(el.dataset.freq)) el.classList.add('active');
+  });
+  set('freq_notes', fq.notes);
+
+  const ev = s.assessment || {};
+  set('ev_evaluation', ev.nutritionEvaluation); set('ev_findings', ev.findings); set('ev_problems', ev.problems);
+  set('ev_goals', ev.interventionGoals); set('ev_recommendations', ev.recommendations);
+  set('ev_education', ev.educationProvided); set('ev_private', ev.privateNotes); set('ev_next', ev.nextAppointmentDate);
+
+  applyInBodySnapshot(s.inBodyAssessment, set);
+
+  onAnthroChange();
+  renderMeals();
+}
+
+function applyInBodySnapshot(ib, set) {
+  if (!ib) return;
+  document.getElementById('ib_enabled').checked = !!ib.enabled;
+  onInBodyToggle();
+
+  const m = ib.measurementInfo || {};
+  set('ib_date', m.date); set('ib_time', m.time);
+  set('ib_deviceType', m.deviceType); set('ib_deviceModel', m.deviceModel);
+  set('ib_conditionsNotes', m.conditionsNotes);
+  (m.measurementConditions || []).forEach(cond => {
+    const cb = document.querySelector(`#ib_conditionsGrid input[value="${cond}"]`);
+    if (cb) { cb.checked = true; cb.closest('.checkbox-item').classList.add('checked'); }
+  });
+
+  const bc = ib.bodyComposition || {};
+  set('ib_weight', bc.weightKg); set('ib_tbw', bc.totalBodyWaterL);
+  set('ib_protein', bc.proteinKg); set('ib_minerals', bc.mineralsKg);
+  set('ib_fatMass', bc.bodyFatMassKg); set('ib_muscleMass', bc.skeletalMuscleMassKg);
+  set('ib_ffm', bc.fatFreeMassKg); set('ib_bodyFatPct', bc.bodyFatPercentage);
+  set('ib_bmi', bc.bmi); set('ib_bmr', bc.basalMetabolicRateKcal);
+  set('ib_whr', bc.waistHipRatio); set('ib_visceralFat', bc.visceralFatLevel);
+  set('ib_score', bc.inBodyScore);
+
+  const mfa = ib.muscleFatAnalysis || {};
+  set('mfa_weight', mfa.weightKg); set('mfa_muscle', mfa.skeletalMuscleMassKg);
+  set('mfa_fat', mfa.bodyFatMassKg);
+
+  const sl = ib.segmentalLeanAnalysis || {};
+  const sf = ib.segmentalFatAnalysis || {};
+  ['rightArm','leftArm','trunk','rightLeg','leftLeg'].forEach(seg => {
+    const slS = sl[seg] || {}; const sfS = sf[seg] || {};
+    set(`segLean_${seg}_kg`, slS.kg); set(`segLean_${seg}_pct`, slS.percentageOfExpected);
+    const stEl = document.getElementById(`segLean_${seg}_status`);
+    if (stEl) stEl.value = slS.referenceStatus || 'not_evaluated';
+    set(`segLean_${seg}_notes`, slS.notes);
+    set(`segFat_${seg}_kg`, sfS.kg); set(`segFat_${seg}_pct`, sfS.percentage);
+    set(`segFat_${seg}_notes`, sfS.notes);
+  });
+
+  const wb = ib.waterBalance || {};
+  set('wb_tbw', wb.totalBodyWaterL); set('wb_icw', wb.intracellularWaterL);
+  set('wb_ecw', wb.extracellularWaterL); set('wb_ratio', wb.ecwTbwRatio);
+  set('wb_edema', wb.edemaIndex); set('wb_notes', wb.notes);
+
+  const rf = ib.reportFile || {};
+  set('ib_reportUrl', rf.fileUrl); set('ib_reportName', rf.fileName);
+
+  const cn = ib.clinicalNotes || {};
+  set('ib_interpretation', cn.interpretation); set('ib_findings', cn.relevantFindings);
+  set('ib_changes', cn.changesSinceLastAssessment); set('ib_recommendations', cn.relatedRecommendations);
+  set('ib_privateNotes', cn.privateNotes);
+
+  STATE.inBodyComparison = ib.comparison || {};
+  recomputeInBody();
+}
+
+function restoreDraft() {
+  try {
+    const raw = localStorage.getItem(draftKey());
+    if (!raw) return;
+    const snap = JSON.parse(raw);
+    applySnapshot(snap);
+    showToast('Borrador restaurado', 'info');
+    STATE.isDirty = false;
+    document.getElementById('footerStatus').textContent = 'Borrador restaurado.';
+  } catch (e) { console.warn('No se pudo restaurar borrador', e); }
+}
+
+function saveDraft(showFeedback = false) {
+  try {
+    const snap = snapshotForm();
+    localStorage.setItem(draftKey(), JSON.stringify(snap));
+    STATE.isDirty = false;
+    document.getElementById('footerStatus').textContent = `Borrador guardado · ${new Date().toLocaleTimeString('es-HN')}`;
+    if (showFeedback) showToast('Borrador guardado localmente', 'ok');
+  } catch (e) {
+    showToast('No se pudo guardar el borrador: ' + e.message, 'err');
+  }
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(draftKey()); } catch {}
+}
+
+// ─────────────────────────────────────────────
+// Validation + Save final
+// ─────────────────────────────────────────────
+function validateForFinal() {
+  const errors = [];
+  if (!STATE.patientId) errors.push('No hay paciente asignado.');
+  const date = document.getElementById('gen_date').value;
+  if (!date) errors.push('La fecha de consulta es obligatoria.');
+  const reason = document.getElementById('gen_reason').value.trim();
+  if (!reason) errors.push('El motivo de consulta es obligatorio para guardar la consulta final.');
+  const w = parseFloat(document.getElementById('anthro_weight').value);
+  if (w !== null && !isNaN(w) && w < 0) errors.push('El peso no puede ser negativo.');
+  const h = parseFloat(document.getElementById('anthro_height').value);
+  if (h !== null && !isNaN(h) && h < 0) errors.push('La estatura no puede ser negativa.');
+  const cals = parseInt(document.getElementById('tg_calories').value);
+  if (cals && cals < 0) errors.push('Las calorías objetivo no pueden ser negativas.');
+
+  // InBody validations (only if enabled)
+  const ibEnabled = !!document.getElementById('ib_enabled').checked;
+  if (ibEnabled) {
+    const ibDate = document.getElementById('ib_date').value;
+    if (!ibDate) errors.push('Si la evaluación InBody está activa, la fecha es obligatoria.');
+    if (ibDate && new Date(ibDate) > new Date()) errors.push('La fecha de evaluación InBody no puede ser futura.');
+
+    const ibFatPct = parseFloat(document.getElementById('ib_bodyFatPct').value);
+    if (!isNaN(ibFatPct) && (ibFatPct < 0 || ibFatPct > 100)) errors.push('El % de grasa corporal debe estar entre 0 y 100.');
+
+    const ibFields = ['ib_weight', 'ib_bodyFatPct', 'ib_muscleMass', 'ib_fatMass'];
+    const hasAnyKey = ibFields.some(id => {
+      const v = parseFloat(document.getElementById(id).value);
+      return !isNaN(v) && v > 0;
+    });
+    if (!hasAnyKey) errors.push('InBody activo: ingrese al menos peso, % grasa, masa muscular o masa grasa.');
+
+    // No negative values
+    const numericIds = ['ib_weight','ib_tbw','ib_protein','ib_minerals','ib_fatMass','ib_muscleMass','ib_ffm','ib_bmi','ib_bmr','ib_whr','ib_visceralFat','wb_tbw','wb_icw','wb_ecw','wb_ratio','wb_edema'];
+    for (const id of numericIds) {
+      const v = parseFloat(document.getElementById(id).value);
+      if (!isNaN(v) && v < 0) { errors.push('Los valores InBody no pueden ser negativos.'); break; }
+    }
+  }
+  return errors;
+}
+
+async function saveFinal() {
+  if (STATE.saving) return;
+  const errors = validateForFinal();
+  if (errors.length) {
+    showToast(errors[0], 'err');
+    return;
+  }
+
+  STATE.saving = true;
+  setButtonsDisabled(true);
+  document.getElementById('footerStatus').innerHTML = '<span class="spinner" style="border-color:#94a3b8;border-top-color:#0891b2;"></span> Guardando…';
+
+  try {
+    const snap = snapshotForm();
+
+    // Use the existing /api/consultations endpoint, store nutrition data
+    // as JSON string in radiography_notes (same pattern as podiatry).
+    const notesText = snap.general.reason + (snap.general.notes ? '\n\n' + snap.general.notes : '');
+    const treatmentText = snap.assessment.recommendations || '';
+    const diagnosisText = snap.assessment.nutritionEvaluation || '';
+    const proceduresText = snap.assessment.educationProvided || '';
+
+    const body = {
+      patient_id: STATE.patientId,
+      doctor_id: STATE.professional ? STATE.professional.id : null,
+      appointment_id: STATE.appointmentId,
+      specialty: 'Nutrición',
+      visit_reason: snap.general.reason,
+      notes: notesText,
+      diagnosis: diagnosisText,
+      treatment: treatmentText,
+      procedures: proceduresText,
+      observations: snap.assessment.privateNotes || '',
+      radiography_notes: JSON.stringify({ kind: 'nutrition', payload: snap }),
+      cost: 0,
+      payment_status: 'pending',
+      payment_notes: ''
+    };
+
+    const result = await api('/api/consultations', { method: 'POST', body });
+
+    // Mark appointment as completed if linked
+    if (STATE.appointmentId) {
+      try {
+        await api(`/api/appointments/${STATE.appointmentId}/status`, {
+          method: 'PUT',
+          body: { status: 'completed' }
+        });
+      } catch (e) { console.warn('No se pudo marcar la cita como completada', e); }
+    }
+
+    clearDraft();
+    STATE.status = 'saved';
+    STATE.isDirty = false;
+    updateStatusBadge();
+    document.getElementById('footerStatus').textContent = `Consulta guardada · #${result.id}`;
+    showToast('Consulta de nutrición guardada correctamente', 'ok');
+    setTimeout(() => { window.location.href = '/citas.html'; }, 1500);
+  } catch (e) {
+    console.error(e);
+    showToast('Error al guardar: ' + e.message, 'err');
+    document.getElementById('footerStatus').textContent = 'Error al guardar.';
+  } finally {
+    STATE.saving = false;
+    setButtonsDisabled(false);
+  }
+}
+
+function setButtonsDisabled(disabled) {
+  ['btnSaveDraft', 'btnSaveFinal', 'topBtnDraft', 'topBtnFinal', 'sideBtnSave'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = disabled;
+  });
+}
+
+function safeBack() {
+  if (STATE.isDirty && STATE.status !== 'saved') {
+    const ok = confirm('Tiene cambios sin guardar. ¿Desea salir y descartar los cambios sin guardar (el borrador local se conserva)?');
+    if (!ok) return;
+  }
+  history.back();
+}
+
+function markDirty() {
+  if (STATE.status === 'saved') return;
+  STATE.isDirty = true;
+  document.getElementById('footerStatus').textContent = 'Cambios sin guardar.';
+  recomputeAll();
+}
+
+// ─────────────────────────────────────────────
+// Toast
+// ─────────────────────────────────────────────
+function showToast(text, type = 'ok') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${esc(text)}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 300);
+  }, 2800);
+}
+
+// Close modal on overlay click
+document.getElementById('foodModal').addEventListener('click', (e) => {
+  if (e.target.id === 'foodModal') closeFoodModal();
+});
+
+// ESC to close modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !document.getElementById('foodModal').classList.contains('hidden')) {
+    closeFoodModal();
+  }
+});
+
+// Auto-save draft every 30s if dirty
+setInterval(() => {
+  if (STATE.isDirty && STATE.status !== 'saved') saveDraft(false);
+}, 30000);
+
+// ─────────────────────────────────────────────
+// InBody / Bioimpedancia
+// ─────────────────────────────────────────────
+const SEGMENTS = [
+  { key: 'rightArm', label: 'Brazo derecho' },
+  { key: 'leftArm', label: 'Brazo izquierdo' },
+  { key: 'trunk', label: 'Tronco' },
+  { key: 'rightLeg', label: 'Pierna derecha' },
+  { key: 'leftLeg', label: 'Pierna izquierda' }
+];
+
+const REFERENCE_STATUSES = [
+  { value: 'not_evaluated', label: 'No evaluado' },
+  { value: 'below_reference', label: 'Bajo referencia' },
+  { value: 'within_reference', label: 'Dentro de referencia' },
+  { value: 'above_reference', label: 'Sobre referencia' }
+];
+
+function buildSegmentalTables() {
+  const leanBody = document.querySelector('#segmentalLeanTable tbody');
+  const fatBody = document.querySelector('#segmentalFatTable tbody');
+  if (!leanBody || !fatBody) return;
+
+  leanBody.innerHTML = SEGMENTS.map(s => `
+    <tr>
+      <td class="segment-label">${esc(s.label)}</td>
+      <td><input type="number" id="segLean_${s.key}_kg" min="0" step="0.01" placeholder="0.00" oninput="onInBodyChange()"></td>
+      <td><input type="number" id="segLean_${s.key}_pct" min="0" step="0.1" placeholder="0.0" oninput="onInBodyChange()"></td>
+      <td>
+        <select id="segLean_${s.key}_status" onchange="onInBodyChange()">
+          ${REFERENCE_STATUSES.map(r => `<option value="${r.value}">${r.label}</option>`).join('')}
+        </select>
+      </td>
+      <td><input type="text" id="segLean_${s.key}_notes" placeholder="Notas..." oninput="onInBodyChange()"></td>
+    </tr>
+  `).join('');
+
+  fatBody.innerHTML = SEGMENTS.map(s => `
+    <tr>
+      <td class="segment-label">${esc(s.label)}</td>
+      <td><input type="number" id="segFat_${s.key}_kg" min="0" step="0.01" placeholder="0.00" oninput="onInBodyChange()"></td>
+      <td><input type="number" id="segFat_${s.key}_pct" min="0" max="100" step="0.1" placeholder="0.0" oninput="onInBodyChange()"></td>
+      <td><input type="text" id="segFat_${s.key}_notes" placeholder="Notas..." oninput="onInBodyChange()"></td>
+    </tr>
+  `).join('');
+}
+
+function onInBodyToggle() {
+  const cb = document.getElementById('ib_enabled');
+  const wrap = document.getElementById('ib_content');
+  STATE.inBodyEnabled = !!cb.checked;
+  if (STATE.inBodyEnabled) {
+    wrap.classList.add('active');
+  } else {
+    wrap.classList.remove('active');
+  }
+  recomputeInBody();
+  markDirty();
+}
+
+function onInBodyChange() {
+  // Update checkbox visual states
+  document.querySelectorAll('#ib_conditionsGrid .checkbox-item').forEach(item => {
+    const cb = item.querySelector('input[type="checkbox"]');
+    if (cb && cb.checked) item.classList.add('checked');
+    else item.classList.remove('checked');
+  });
+  recomputeInBody();
+  markDirty();
+}
+
+function recomputeInBody() {
+  const enabledEl = document.getElementById('ib_enabled');
+  if (!enabledEl) return;
+  const enabled = !!enabledEl.checked;
+  const sumWrap = document.getElementById('summaryInBody');
+  if (!enabled) {
+    if (sumWrap) sumWrap.style.display = 'none';
+    renderInBodyMetricCards();
+    renderInBodyObesityCards();
+    renderLeanAsymmetry();
+    return;
+  }
+  if (sumWrap) sumWrap.style.display = '';
+
+  // Update sidebar summary
+  const fatPct = document.getElementById('ib_bodyFatPct').value;
+  const muscle = document.getElementById('ib_muscleMass').value;
+  const fat = document.getElementById('ib_fatMass').value;
+  const visc = document.getElementById('ib_visceralFat').value;
+  const bmr = document.getElementById('ib_bmr').value;
+  const date = document.getElementById('ib_date').value;
+  safeSetText('sumIbBodyFatPct', fatPct ? `${fatPct}%` : '—');
+  safeSetText('sumIbMuscle', muscle ? `${muscle} kg` : '—');
+  safeSetText('sumIbFat', fat ? `${fat} kg` : '—');
+  safeSetText('sumIbVisceral', visc || '—');
+  safeSetText('sumIbBmr', bmr ? `${bmr} kcal` : '—');
+  safeSetText('sumIbDate', date || '—');
+
+  renderInBodyMetricCards();
+  renderInBodyObesityCards();
+  renderLeanAsymmetry();
+}
+
+function renderInBodyMetricCards() {
+  const wrap = document.getElementById('ib_metricCards');
+  if (!wrap) return;
+  const cards = [
+    { id: 'ib_muscleMass', label: 'Masa muscular esq.', unit: 'kg' },
+    { id: 'ib_fatMass', label: 'Masa grasa', unit: 'kg' },
+    { id: 'ib_bodyFatPct', label: '% Grasa', unit: '%' },
+    { id: 'ib_visceralFat', label: 'Grasa visceral', unit: '' },
+    { id: 'ib_bmr', label: 'Metabolismo basal', unit: 'kcal' },
+    { id: 'ib_tbw', label: 'Agua corporal total', unit: 'L' }
+  ];
+  wrap.innerHTML = cards.map(c => {
+    const v = document.getElementById(c.id)?.value;
+    const empty = !v;
+    return `
+      <div class="metric-card ${empty ? 'metric-card-empty' : ''}">
+        <div class="metric-card-label">${esc(c.label)}</div>
+        <div class="metric-card-value">${v || '—'}<span class="metric-card-unit">${esc(c.unit)}</span></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderInBodyObesityCards() {
+  const wrap = document.getElementById('ib_obesityCards');
+  if (!wrap) return;
+  const cards = [
+    { id: 'ib_bmi', label: 'IMC', unit: 'kg/m²' },
+    { id: 'ib_bodyFatPct', label: '% Grasa corporal', unit: '%' },
+    { id: 'ib_whr', label: 'Cintura/Cadera', unit: '' },
+    { id: 'ib_visceralFat', label: 'Grasa visceral', unit: '' }
+  ];
+  wrap.innerHTML = cards.map(c => {
+    const v = document.getElementById(c.id)?.value;
+    const empty = !v;
+    return `
+      <div class="metric-card ${empty ? 'metric-card-empty' : ''}">
+        <div class="metric-card-label">${esc(c.label)}</div>
+        <div class="metric-card-value">${v || '—'}<span class="metric-card-unit">${esc(c.unit)}</span></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderLeanAsymmetry() {
+  const note = document.getElementById('leanAsymmetryNote');
+  if (!note) return;
+  const rArm = parseFloat(document.getElementById('segLean_rightArm_kg')?.value) || 0;
+  const lArm = parseFloat(document.getElementById('segLean_leftArm_kg')?.value) || 0;
+  const rLeg = parseFloat(document.getElementById('segLean_rightLeg_kg')?.value) || 0;
+  const lLeg = parseFloat(document.getElementById('segLean_leftLeg_kg')?.value) || 0;
+  const armDiff = Math.abs(rArm - lArm);
+  const legDiff = Math.abs(rLeg - lLeg);
+  if (rArm === 0 && lArm === 0 && rLeg === 0 && lLeg === 0) {
+    note.innerHTML = 'Diferencias entre lado derecho e izquierdo serán calculadas al ingresar valores.';
+    return;
+  }
+  const parts = [];
+  if (rArm || lArm) parts.push(`Brazos: diferencia ${armDiff.toFixed(2)} kg`);
+  if (rLeg || lLeg) parts.push(`Piernas: diferencia ${legDiff.toFixed(2)} kg`);
+  note.innerHTML = parts.join(' · ') + ' · <em>revisar en contexto clínico</em>';
+}
+
+function syncInBodyWeight() {
+  const w = document.getElementById('ib_weight').value;
+  if (!w) {
+    showToast('Ingrese primero el peso del InBody.', 'err');
+    return;
+  }
+  document.getElementById('anthro_weight').value = w;
+  onAnthroChange();
+  showToast('Peso de InBody copiado a antropometría.', 'ok');
+  markDirty();
+}
+
+// Initialize InBody segmental tables before init() runs
+buildSegmentalTables();
+
+init().then(() => {
+  recomputeInBody();
+});
+</script>
+</body>
+</html>

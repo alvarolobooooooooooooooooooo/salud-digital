@@ -1563,6 +1563,18 @@ function drLabel(a) {
   return name + (a.specialty ? ` - ${esc(a.specialty)}` : '');
 }
 
+function consultationPathForSpecialty(specialty) {
+  if (specialty === 'Podología') return '/consultation-podiatry.html';
+  if (specialty === 'Nutrición') return '/consultation-nutrition.html';
+  return '/consultation.html';
+}
+
+function viewConsultationPathForSpecialty(specialty, id) {
+  if (specialty === 'Podología') return `/view-consultation-podiatry.html?id=${id}`;
+  if (specialty === 'Nutrición') return `/view-consultation.html?id=${id}&kind=nutrition`;
+  return `/view-consultation.html?id=${id}`;
+}
+
 function renderList(appts) {
   const el = document.getElementById('apptList');
   if (!appts.length) { el.innerHTML = '<div class="empty-state">No se encontraron citas.</div>'; return; }
@@ -1592,7 +1604,7 @@ function renderList(appts) {
           ${a.status === 'completed'
             ? `<button class="btn-ver" onclick="viewConsultation(${a.id})">${verIcon} Ver Consulta</button>`
             : (currentUser && currentUser.role === 'doctor')
-              ? `<button class="btn-ver" onclick="window.location.href='${(currentUser && currentUser.specialty === 'Podología') ? '/consultation-podiatry.html' : '/consultation.html'}?id=${a.id}'">${verIcon} Registrar Consulta</button>`
+              ? `<button class="btn-ver" onclick="window.location.href='${consultationPathForSpecialty(currentUser && currentUser.specialty)}?id=${a.id}'">${verIcon} Registrar Consulta</button>`
               : ''
           }
           ${a.status !== 'completed' ? `<button class="btn-edit" onclick="openEdit(${a.id})">
@@ -1840,7 +1852,7 @@ function showPopup(id, e) {
     ${a.status === 'completed'
       ? `<div style="margin-top:.5rem"><button class="popup-status-btn" style="width:100%;background:#f0f9ff;border-color:#0891b2;color:#0891b2;padding:.5rem;font-weight:600;" onclick="viewConsultation(${a.id})">Ver Consulta</button></div>`
       : (currentUser && currentUser.role === 'doctor')
-        ? `<div style="margin-top:.5rem"><button class="popup-status-btn" style="width:100%;background:#0891b2;color:white;padding:.5rem;font-weight:600;border:none;cursor:pointer;" onclick="closePopup();window.location.href='${(currentUser && currentUser.specialty === 'Podología') ? '/consultation-podiatry.html' : '/consultation.html'}?id=${a.id}'">Registrar Consulta</button></div>`
+        ? `<div style="margin-top:.5rem"><button class="popup-status-btn" style="width:100%;background:#0891b2;color:white;padding:.5rem;font-weight:600;border:none;cursor:pointer;" onclick="closePopup();window.location.href='${consultationPathForSpecialty(currentUser && currentUser.specialty)}?id=${a.id}'">Registrar Consulta</button></div>`
         : ''
     }`;
   const statuses = [
@@ -1982,9 +1994,7 @@ async function viewConsultation(appointmentId) {
   try {
     const consultation = await api(`/api/consultations/appointment/${appointmentId}`);
     closePopup();
-    const url = consultation.specialty === 'Podología'
-      ? `/view-consultation-podiatry.html?id=${consultation.id}`
-      : `/view-consultation.html?id=${consultation.id}`;
+    const url = viewConsultationPathForSpecialty(consultation.specialty, consultation.id);
     window.location.href = url;
   } catch(err) {
     alert('Consulta no encontrada: ' + err.message);
