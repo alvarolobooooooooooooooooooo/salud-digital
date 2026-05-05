@@ -334,9 +334,11 @@
   function updateProfileUI(user) {
     if (!user) return;
 
-    const displayName = user.role === 'doctor'
-      ? `Dr. ${user.name || user.email.split('@')[0]}`
-      : (user.name || user.email.split('@')[0]);
+    const rawName = user.name || user.email.split('@')[0];
+    const hasPrefix = /^(dr\.?|dra\.?)\s/i.test(rawName);
+    const displayName = (user.role === 'doctor' && !hasPrefix)
+      ? `Dr. ${rawName}`
+      : rawName;
     const initials = displayName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
     const avatarEl = document.getElementById('sbAvatar');
