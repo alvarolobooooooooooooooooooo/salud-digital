@@ -515,6 +515,11 @@
       border-radius: 3px;
     }
 
+    /* Thermography SVG styling */
+    #thermoFeetContainer .foot-path.temp-measured {
+      fill: var(--temp-color, rgba(8, 145, 178, 0.2)) !important;
+    }
+
     /* ── Alerta Información Médica ── */
     .medical-alert {
       background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.05) 100%);
@@ -1773,9 +1778,10 @@ function getFootFromLabel(label) {
 }
 
 function updateSVGColors() {
-  // Resetear todos los colores
+  // Resetear todos los colores (remove temperature classes)
   document.querySelectorAll('#thermoFeetContainer .foot-path').forEach(path => {
-    path.style.fill = 'rgba(8, 145, 178, 0.2)';
+    path.classList.remove('temp-measured');
+    path.style.setProperty('--temp-color', 'rgba(8, 145, 178, 0.2)');
   });
 
   // Aplicar colores basados en mediciones
@@ -1785,7 +1791,8 @@ function updateSVGColors() {
     if (foot && zone) {
       const path = document.querySelector(`#thermoFeetContainer .foot-path[data-foot="${foot}"][data-zone="${zone}"]`);
       if (path) {
-        path.style.fill = getTemperatureColor(m.temp);
+        path.style.setProperty('--temp-color', getTemperatureColor(m.temp));
+        path.classList.add('temp-measured');
       }
     }
   });
