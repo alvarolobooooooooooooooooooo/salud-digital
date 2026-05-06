@@ -1476,12 +1476,12 @@ function openImageModal(filename) {
     justify-content: center; z-index: 10000; cursor: pointer;
   `;
   modal.onclick = () => modal.remove();
-  
+
   const img = document.createElement('img');
-  img.src = `/api/consultations/${consultationId}/images/${filename}`;
+  img.src = `/uploads/consultations/${filename}`;
   img.style.cssText = `max-width: 90vw; max-height: 90vh; object-fit: contain; cursor: auto;`;
   img.onclick = (e) => e.stopPropagation();
-  
+
   modal.appendChild(img);
   document.body.appendChild(modal);
 }
@@ -1492,15 +1492,19 @@ function renderImageGrid() {
     grid.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; padding: 1rem; grid-column: 1/-1;">Sin imágenes</p>';
     return;
   }
-  
-  grid.innerHTML = consultImages.map(img => `
-    <div style="
-      position: relative; width: 120px; height: 120px; border-radius: 8px; overflow: hidden;
-      background: #f1f5f9; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;
-    " onclick="openImageModal('${esc(img.filename)}')" title="Click para ampliar">
-      <img src="/api/consultations/${consultationId}/images/${esc(img.filename)}" alt="Consulta" style="width: 100%; height: 100%; object-fit: cover;">
-    </div>
-  `).join('');
+
+  grid.innerHTML = consultImages.map(img => {
+    const filename = img.filename || img.id;
+    return `
+      <div style="
+        position: relative; width: 120px; height: 120px; border-radius: 8px; overflow: hidden;
+        background: #f1f5f9; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;
+        display: flex; align-items: center; justify-content: center;
+      " onclick="openImageModal('${esc(filename)}')" title="Click para ampliar">
+        <img src="/uploads/consultations/${esc(filename)}" alt="Consulta" style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+    `;
+  }).join('');
 }
 
 async function loadConsultation() {
