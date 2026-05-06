@@ -1749,6 +1749,48 @@ function getTemperatureColor(temp) {
   return '#ef4444';
 }
 
+function getZoneFromLabel(label) {
+  const zoneMap = {
+    'Planta': 'sole',
+    'Dedo 1': 'toe1',
+    'Dedo 2': 'toe2',
+    'Dedo 3': 'toe3',
+    'Dedo 4': 'toe4',
+    'Dedo 5': 'toe5',
+    'Arco': 'arch'
+  };
+
+  for (const [labelKey, zoneVal] of Object.entries(zoneMap)) {
+    if (label.includes(labelKey)) return zoneVal;
+  }
+  return null;
+}
+
+function getFootFromLabel(label) {
+  if (label.includes('Izquierdo')) return 'left';
+  if (label.includes('Derecho')) return 'right';
+  return null;
+}
+
+function updateSVGColors() {
+  // Resetear todos los colores
+  document.querySelectorAll('#thermoFeetContainer .foot-path').forEach(path => {
+    path.style.fill = 'rgba(8, 145, 178, 0.2)';
+  });
+
+  // Aplicar colores basados en mediciones
+  thermoMeasurements.forEach(m => {
+    const foot = getFootFromLabel(m.zone);
+    const zone = getZoneFromLabel(m.zone);
+    if (foot && zone) {
+      const path = document.querySelector(`#thermoFeetContainer .foot-path[data-foot="${foot}"][data-zone="${zone}"]`);
+      if (path) {
+        path.style.fill = getTemperatureColor(m.temp);
+      }
+    }
+  });
+}
+
 function thermoAddMeasurement() {
   const zone = document.getElementById('thermo-zoneInput').value.trim();
   const temp = parseFloat(document.getElementById('thermo-temperatureInput').value);
@@ -1765,6 +1807,7 @@ function thermoAddMeasurement() {
 
   thermoMeasurements.push({ zone, temp, type: thermoSelectedType });
   thermoRenderMeasurements();
+  updateSVGColors();
 
   document.getElementById('thermo-temperatureInput').value = '';
   document.getElementById('thermo-zoneInput').value = '';
@@ -1773,6 +1816,7 @@ function thermoAddMeasurement() {
 function thermoDeleteMeasurement(index) {
   thermoMeasurements.splice(index, 1);
   thermoRenderMeasurements();
+  updateSVGColors();
 }
 
 function thermoRenderMeasurements() {
