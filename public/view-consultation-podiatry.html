@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ver Consulta Podológica</title>
+  <title>Consulta Podológica</title>
   <link rel="stylesheet" href="/layout.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -178,68 +178,55 @@
       border-radius: 8px;
       font-size: 16px;
       font-family: inherit;
-      background-color: #f9fafb;
-      color: #64748b;
-      cursor: not-allowed;
+      transition: all .15s;
     }
+    .form-group input:focus, .form-group textarea:focus {
+      outline: 2px solid #0891b2;
+      outline-offset: -1px;
+      border-color: transparent;
+    }
+    .form-group select {
+      padding: .75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: .875rem;
+      font-family: inherit;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right .75rem center;
+      padding-right: 2.25rem;
+      cursor: pointer;
+      color: #475569;
+      background-color: white;
+      transition: all .15s;
+    }
+    .form-group select:focus { outline: 2px solid #0891b2; outline-offset: -1px; border-color: transparent; }
     .form-group textarea { resize: vertical; min-height: 80px; }
 
-    .read-only-badge {
-      display: inline-block;
-      background: rgba(255, 255, 255, 0.25);
-      color: white;
-      padding: .3rem .6rem;
-      border-radius: 4px;
-      font-size: .75rem;
-      font-weight: 600;
-      margin-left: .5rem;
-      border: 1px solid rgba(255, 255, 255, 0.4);
+    .radio-group {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: .5rem;
+      flex-wrap: wrap;
     }
-
-    .clinical-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-      border: 1px solid #e2e8f0;
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .875rem;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 400;
+      cursor: pointer;
+      transition: color .15s;
     }
-    .clinical-table thead {
-      background: #f1f5f9;
-    }
-    .clinical-table th {
-      padding: 0.75rem;
-      text-align: left;
-      font-weight: 600;
-      font-size: 0.85rem;
-      border: 1px solid #e2e8f0;
-      color: #475569;
-    }
-    .clinical-table td {
-      padding: 0.75rem;
-      border: 1px solid #e2e8f0;
-      font-size: 0.875rem;
-    }
-    .clinical-table input {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
-      font-size: 0.875rem;
-      background-color: #f9fafb;
-      cursor: not-allowed;
-    }
-    .clinical-table textarea {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
-      font-size: 0.65rem;
-      font-family: inherit;
-      min-height: 60px;
-      max-height: 120px;
-      resize: none;
-      overflow-y: auto;
-      background-color: #f9fafb;
-      cursor: not-allowed;
+    .radio-group label:hover { color: #0891b2; }
+    .radio-group input[type="radio"], .radio-group input[type="checkbox"] {
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      accent-color: #0891b2;
     }
 
     .footer {
@@ -265,9 +252,371 @@
       transition: all .15s;
     }
     .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .btn-save { display: none; }
+      padding: .6rem 1.75rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: .875rem;
+      font-weight: 600;
+      transition: all .15s;
+      box-shadow: 0 2px 8px rgba(8, 145, 178, 0.2);
+    }
+    .btn-save:hover {
+      background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .form-msg {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: .875rem;
+      font-weight: 500;
+      display: none;
+      border-left: 4px solid;
+    }
+    .form-msg.err { color: #dc2626; background: #fef2f2; border-left-color: #dc2626; }
+    .form-msg.ok { color: #16a34a; background: #f0fdf4; border-left-color: #16a34a; }
+
+    .clinical-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      border: 1px solid #e2e8f0;
+    }
+    .clinical-table thead {
+      background: #f1f5f9;
+    }
+    .clinical-table th {
+      padding: 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+    }
+    .clinical-table td {
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+      font-size: 0.95rem;
+    }
+    .clinical-table input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+    .clinical-table textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      min-height: 60px;
+      max-height: 120px;
+      resize: none;
+      overflow-y: auto;
+    }
+
+    /* ── Thermography Styles ── */
+    .thermography-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .feet-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .feet-svg {
+      width: 100%;
+      max-width: 300px;
+      height: 350px;
+      cursor: crosshair;
+    }
+
+    .feet-svg svg {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .feet-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #0891b2;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .controls-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .control-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #0891b2;
+    }
+
+    .thermography-types {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .type-option {
+      padding: 0.6rem 0.5rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .type-option:hover {
+      border-color: #0891b2;
+      background: #ecf9fc;
+    }
+
+    .type-option.active {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      border-color: #0891b2;
+    }
+
+    .temperature-input {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .temperature-input input {
+      flex: 1;
+      padding: 0.6rem 0.75rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      background: #f8fafc;
+      transition: all 0.2s;
+    }
+
+    .temperature-input input:focus {
+      outline: none;
+      border-color: #0891b2;
+      background: white;
+    }
+
+    .temperature-input button {
+      padding: 0.6rem 0.75rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .temperature-input button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(8, 145, 178, 0.25);
+    }
+
+    .measurements-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .measurement-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem;
+      background: #f0f9ff;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      border-left: 3px solid #0891b2;
+    }
+
+    .measurement-item-temp {
+      font-weight: 700;
+      color: #0891b2;
+      margin-right: 0.5rem;
+    }
+
+    .measurement-item-delete {
+      background: #fee2e2;
+      color: #dc2626;
+      border: none;
+      border-radius: 4px;
+      padding: 0.3rem 0.5rem;
+      cursor: pointer;
+      font-size: 0.7rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .measurement-item-delete:hover {
+      background: #fecaca;
+    }
+
+    .color-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.5rem;
+      padding: 1rem;
+      background: #f0f9ff;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+
+    /* ── Alerta Información Médica ── */
+    .medical-alert {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.05) 100%);
+      border: 1.5px solid rgba(239, 68, 68, 0.3);
+      border-left: 4px solid #ef4444;
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin: 0 0 1.5rem 0;
+      backdrop-filter: blur(10px);
+      animation: slideDown 0.3s ease-out;
+    }
+    .medical-alert-content {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .medical-alert-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+    .medical-alert-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .medical-alert-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #991b1b;
+      letter-spacing: -0.3px;
+    }
+    .medical-alert-text {
+      font-size: 0.85rem;
+      color: #7f1d1d;
+      line-height: 1.5;
+    }
+    .medical-alert-item {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+    .medical-alert-item:last-child { margin-bottom: 0; }
+    .medical-alert-item-label {
+      font-weight: 600;
+      color: #991b1b;
+      min-width: 90px;
+    }
+    .medical-alert-item-value {
+      color: #7f1d1d;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
     @media (max-width: 860px) {
       main, .layout-main { width: 100% !important; padding: 1rem 1rem !important; margin: 0 !important; padding-top: 80px !important; overflow-x: visible !important; }
+
+      .form-section { padding: 1rem !important; margin-bottom: 1.5rem; }
+      .form-section h3 { font-size: 1rem; margin-bottom: 1rem; }
+
+      .form-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .form-grid.two { grid-template-columns: 1fr; }
+
+      .clinical-table { font-size: 0.85rem; }
+      .clinical-table th { padding: 0.3rem 0.2rem; font-size: 0.8rem; }
+      .clinical-table td { padding: 0.3rem 0.2rem; font-size: 0.85rem; vertical-align: middle; }
+      .clinical-table td:last-child { padding: 0.3rem 0.15rem; }
+      .clinical-table textarea { min-height: 30px; max-height: 60px; font-size: 0.78rem; padding: 0.2rem; width: 100% !important; }
+      .clinical-table input { font-size: 0.8rem; padding: 0.25rem; vertical-align: middle; }
+
+      .thermography-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+
+      .feet-section {
+        order: -1;
+        width: 100%;
+      }
+
+      .feet-svg {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        min-height: 400px;
+      }
+
+      .controls-section {
+        width: 100%;
+      }
     }
 
     @media (max-width: 768px) {
@@ -278,6 +627,7 @@
       .btn-back { width: 100%; justify-content: center; }
       .form-section { padding: 1.5rem; }
       .form-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .radio-group { gap: 1rem; }
       .footer { padding: 1.5rem; }
     }
 
@@ -291,15 +641,15 @@
       .form-grid { gap: 0.75rem; grid-template-columns: 1fr !important; }
       .form-grid.two { grid-template-columns: 1fr; }
       .form-group label { font-size: 0.7rem; }
-      .form-group input, .form-group textarea {
+      .form-group input, .form-group textarea, .form-group select {
         padding: 0.6rem;
         font-size: 14px;
       }
-      .clinical-table th { padding: 0.35rem; font-size: 0.65rem; }
-      .clinical-table td { padding: 0.35rem; font-size: 0.7rem; }
-      .clinical-table input, .clinical-table textarea { padding: 0.3rem; font-size: 0.65rem; width: 100% !important; }
+      .clinical-table th { padding: 0.35rem; font-size: 0.8rem; }
+      .clinical-table td { padding: 0.35rem; font-size: 0.85rem; }
+      .clinical-table input { padding: 0.3rem; font-size: 0.8rem; width: 100% !important; }
       .footer { padding: 1rem; gap: 0.5rem; }
-      .btn-cancel { padding: 0.5rem 1rem; font-size: 0.8rem; }
+      .btn-cancel, .btn-save { padding: 0.5rem 1rem; font-size: 0.8rem; } display: none; }
     }
   </style>
 </head>
@@ -308,24 +658,35 @@
 <main class="layout-main">
   <div class="header">
     <div class="header-content">
-      <h1>Consulta Podológica <span class="read-only-badge">VER SOLO</span></h1>
+      <h1>Ver Consulta Podológica</h1>
       <p class="header-content p">Paciente: <strong id="patientName">Cargando...</strong></p>
     </div>
     <button class="btn-back" onclick="history.back()">← Volver</button>
   </div>
 
-  <form id="consultForm">
+  <!-- Advertencia Información Médica -->
+  <div id="medicalAlert" class="medical-alert" style="display: none;">
+    <div class="medical-alert-content">
+      <div class="medical-alert-icon">⚠️</div>
+      <div class="medical-alert-info">
+        <div class="medical-alert-title">Información Médica Importante</div>
+        <div id="medicalAlertText" class="medical-alert-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <form id="consultForm" onsubmit="return false;">
     <!-- Datos Personales -->
     <div class="form-section">
       <h3>Datos Personales</h3>
       <div class="form-grid two">
-        <div class="form-group">
+        <div style="display: none;"><div class="form-group">
           <label>Edad</label>
-          <input type="number" id="consAge" disabled>
+          <input type="number" disabled id="consAge" placeholder="Ej: 45">
         </div>
         <div class="form-group">
           <label>Profesión / Ocupación</label>
-          <input type="text" id="consOccupation" disabled>
+          <input type="text" disabled id="consOccupation" placeholder="Ej: Ingeniero">
         </div>
       </div>
     </div>
@@ -344,58 +705,48 @@
         <tbody>
           <tr>
             <td colspan="2">Diabetes Mellitus</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamDiabetes" disabled></td>
-            <td><textarea id="consFamDiabetesObs" disabled></textarea></td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consFamDiabetes"></td>
+            <td><textarea disabled id="consFamDiabetesObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Hipertensión</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamHypertension" disabled></td>
-            <td><textarea id="consFamHypertensionObs" disabled></textarea></td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consFamHypertension"></td>
+            <td><textarea disabled id="consFamHypertensionObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Cardiopatías</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamCardiopathy" disabled></td>
-            <td><textarea id="consFamCardioppathyObs" disabled></textarea></td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consFamCardiopathy"></td>
+            <td><textarea disabled id="consFamCardioppathyObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Enfermedad Vascular</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamVascular" disabled></td>
-            <td><textarea id="consFamVascularObs" disabled></textarea></td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consFamVascular"></td>
+            <td><textarea disabled id="consFamVascularObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Psoriasis</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamPsoriasis" disabled></td>
-            <td><textarea id="consFamPsoriasisObs" disabled></textarea></td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consFamPsoriasis"></td>
+            <td><textarea disabled id="consFamPsoriasisObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Artritis</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamArthritis" disabled></td>
-            <td><textarea id="consFamArthritisObs" disabled></textarea></td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consFamArthritis"></td>
+            <td><textarea disabled id="consFamArthritisObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Cáncer</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamCancer" disabled></td>
-            <td><textarea id="consFamCancerObs" disabled></textarea></td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consFamCancer"></td>
+            <td><textarea disabled id="consFamCancerObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Enfermedades Dermatológicas</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamDermatological" disabled></td>
-            <td><textarea id="consFamDermatologicalObs" disabled></textarea></td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consFamDermatological"></td>
+            <td><textarea disabled id="consFamDermatologicalObs"></textarea></td>
           </tr>
           <tr>
-            <td colspan="2">VIH</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamHIV" disabled></td>
-            <td><textarea id="consFamHIVObs" disabled></textarea></td>
-          </tr>
-          <tr>
-            <td colspan="2">Tuberculosis (TB)</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamTB" disabled></td>
-            <td><textarea id="consFamTBObs" disabled></textarea></td>
-          </tr>
-          <tr>
-            <td colspan="2">Enfermedad Renal</td>
-            <td style="text-align: center;"><input type="checkbox" id="consFamRenal" disabled></td>
-            <td><textarea id="consFamRenalObs" disabled></textarea></td>
+            <td colspan="2">Otros</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consFamOtros"></td>
+            <td><textarea disabled id="consFamOtrosObs"></textarea></td>
           </tr>
         </tbody>
       </table>
@@ -414,42 +765,193 @@
         </thead>
         <tbody>
           <tr>
-            <td colspan="2">Antecedentes Traumáticos</td>
-            <td style="text-align: center;"><input type="checkbox" id="consPerTraumatic" disabled></td>
-            <td><textarea id="consPerTraumaticObs" disabled></textarea></td>
+            <td colspan="2">Diabetes Mellitus</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerDiabetes"></td>
+            <td><textarea disabled id="consPerDiabetesObs"></textarea></td>
           </tr>
           <tr>
-            <td colspan="2">Antecedentes Quirúrgicos</td>
-            <td style="text-align: center;"><input type="checkbox" id="consPerSurgical" disabled></td>
-            <td><textarea id="consPerSurgicalObs" disabled></textarea></td>
+            <td colspan="2">Hipertensión</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerHypertension"></td>
+            <td><textarea disabled id="consPerHypertensionObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Cardiopatías</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerCardiopathy"></td>
+            <td><textarea disabled id="consPerCardioppathyObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Enfermedad Vascular</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerVascular"></td>
+            <td><textarea disabled id="consPerVascularObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Psoriasis</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerPsoriasis"></td>
+            <td><textarea disabled id="consPerPsoriasisObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Artritis</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerArthritis"></td>
+            <td><textarea disabled id="consPerArthritisObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Cáncer</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerCancer"></td>
+            <td><textarea disabled id="consPerCancerObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Enfermedades Dermatológicas</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerDermatological"></td>
+            <td><textarea disabled id="consPerDermatologicalObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">VIH</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerHIV"></td>
+            <td><textarea disabled id="consPerHIVObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Tuberculosis (TB)</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerTB"></td>
+            <td><textarea disabled id="consPerTBObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Enfermedad Renal</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerRenal"></td>
+            <td><textarea disabled id="consPerRenalObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Traumáticos</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerTraumatic"></td>
+            <td><textarea disabled id="consPerTraumaticObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Quirúrgicos</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerSurgical"></td>
+            <td><textarea disabled id="consPerSurgicalObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Otros</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerOtros"></td>
+            <td><textarea disabled id="consPerOtrosObs"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Alergias</td>
-            <td style="text-align: center;"><input type="checkbox" id="consPerAllergies" disabled></td>
-            <td><textarea id="consPerAllergiesObs" disabled></textarea></td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerAllergies"></td>
+            <td><textarea disabled id="consPerAllergiesObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">TX</td>
+            <td colspan="2"><textarea disabled id="consPerTx" style="width: 100%;"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Toma Aspirina o Anticoagulante</td>
-            <td style="text-align: center;"><input type="checkbox" id="consPerAspirin" disabled></td>
-            <td><textarea id="consPerAspirinObs" disabled></textarea></td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerAspirin"></td>
+            <td><textarea disabled id="consPerAspirinObs" placeholder="Frecuencia:"></textarea></td>
           </tr>
           <tr>
             <td colspan="2">Embarazo</td>
-            <td style="text-align: center;"><input type="checkbox" id="consPerPregnancy" disabled></td>
-            <td><textarea id="consPerPregnancyObs" disabled></textarea></td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consPerPregnancy"></td>
+            <td><textarea disabled id="consPerPregnancyObs"></textarea></td>
           </tr>
           <tr>
-            <td colspan="2">Hábitos (Fumar, Alcohol, Toxicomanías)</td>
-            <td style="text-align: center;"><input type="checkbox" id="consPerHabits" disabled></td>
-            <td><textarea id="consPerHabitsObs" disabled></textarea></td>
+            <td colspan="2">SG</td>
+            <td colspan="2"><textarea disabled id="consPerSG" style="width: 100%;"></textarea></td>
           </tr>
           <tr>
-            <td colspan="2">Tipo de Calzado Habitual</td>
-            <td colspan="2"><textarea id="consFootwear" disabled style="width: 100%;"></textarea></td>
+            <td colspan="2">TX</td>
+            <td colspan="2"><textarea disabled id="consPerPregnancyTx" style="width: 100%;"></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Antecedentes Personales No Patológicos -->
+    <div class="form-section">
+      <h3>Antecedentes Personales No Patológicos</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th colspan="2">Antecedente</th>
+            <th style="width: 80px;">Sí</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="2">Fuma</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consNonPathFuma"></td>
+            <td><textarea disabled id="consNonPathFumaObs"></textarea></td>
           </tr>
           <tr>
-            <td colspan="2">Actividad Física (días/semana)</td>
-            <td colspan="2"><textarea id="consPhysicalActivity" disabled style="width: 100%;"></textarea></td>
+            <td colspan="2">Alcohol</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consNonPathAlcohol"></td>
+            <td><textarea disabled id="consNonPathAlcoholObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Toxicomanías</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consNonPathToxins"></td>
+            <td><textarea disabled id="consNonPathToxinsObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Otros</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consNonPathOtros"></td>
+            <td><textarea disabled id="consNonPathOtrosObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Realiza algún tipo de ejercicio</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consNonPathExercise"></td>
+            <td><textarea disabled id="consNonPathExerciseObs"></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tipo de Calzado -->
+    <div class="form-section">
+      <h3>Tipo de Calzado</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th colspan="2">Tipo</th>
+            <th style="width: 80px;">Sí</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="2">Deportivo</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consCalzDeportivo"></td>
+            <td><textarea disabled id="consCalzDeportivoObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Tacones</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consCalzTacones"></td>
+            <td><textarea disabled id="consCalzTaconesObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Zapatillas tipo flat</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consCalzFlat"></td>
+            <td><textarea disabled id="consCalzFlatObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Cerrados</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consCalzCerrados"></td>
+            <td><textarea disabled id="consCalzCerradosObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Sandalias</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consCalzSandalias"></td>
+            <td><textarea disabled id="consCalzSandaliasObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Botas</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consCalzBotas"></td>
+            <td><textarea disabled id="consCalzBotasObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Otros</td>
+            <td style="text-align: center;"><input type="checkbox" disabled id="consCalzOtros"></td>
+            <td><textarea disabled id="consCalzOtrosObs"></textarea></td>
           </tr>
         </tbody>
       </table>
@@ -461,7 +963,7 @@
       <div class="form-grid full">
         <div class="form-group">
           <label>Queja Principal y Duración</label>
-          <textarea id="consMainComplaint" disabled></textarea>
+          <textarea disabled id="consMainComplaint" placeholder="Describa la razón principal de la consulta"></textarea>
         </div>
       </div>
     </div>
@@ -472,19 +974,27 @@
       <div class="form-grid">
         <div class="form-group">
           <label>Peso (kg)</label>
-          <input type="number" id="consWeight" disabled>
+          <input type="number" disabled id="consWeight" step="0.1" placeholder="Ej: 70.5">
         </div>
         <div class="form-group">
           <label>Talla (cm)</label>
-          <input type="number" id="consHeight" disabled>
+          <input type="number" disabled id="consHeight" step="0.1" placeholder="Ej: 175">
         </div>
         <div class="form-group">
           <label>IMC</label>
-          <input type="number" id="consIMC" disabled>
+          <input type="number" disabled id="consIMC" step="0.1" placeholder="Calculado">
+        </div>
+        <div class="form-group">
+          <label>Tipo de Calzado</label>
+          <input type="text" disabled id="consFootwear" placeholder="Ej: Deportivo, Formal, Casual">
+        </div>
+        <div class="form-group">
+          <label>Actividad Física</label>
+          <input type="text" disabled id="consPhysicalActivity" placeholder="Ej: Sedentario, Moderada, Intensa">
         </div>
       </div>
 
-      <!-- Podogram (solo lectura) -->
+      <!-- Podogram Interactivo -->
       <div id="podogram1"></div>
     </div>
 
@@ -495,8 +1005,8 @@
         <thead>
           <tr>
             <th>Hallazgo</th>
-            <th>Pie Derecho</th>
-            <th>Pie Izquierdo</th>
+            <th>Derecho</th>
+            <th>Izquierdo</th>
             <th>Observación</th>
           </tr>
         </thead>
@@ -520,26 +1030,70 @@
             <td><textarea disabled></textarea></td>
           </tr>
           <tr>
-            <td>Hiperhidrosis / Sudoración</td>
+            <td>Hiperq. Subungueal</td>
             <td><input type="checkbox" disabled></td>
             <td><input type="checkbox" disabled></td>
             <td><textarea disabled></textarea></td>
           </tr>
           <tr>
-            <td>Pie Plano / Pie Cavo</td>
+            <td>Onicolisis</td>
             <td><input type="checkbox" disabled></td>
             <td><input type="checkbox" disabled></td>
             <td><textarea disabled></textarea></td>
           </tr>
           <tr>
-            <td>Talipes (Pie Varo / Valgo)</td>
+            <td>Onicogrífosis</td>
             <td><input type="checkbox" disabled></td>
             <td><input type="checkbox" disabled></td>
             <td><textarea disabled></textarea></td>
           </tr>
           <tr>
-            <td>Otros Hallazgos</td>
-            <td colspan="3"><textarea disabled style="width: 100%;"></textarea></td>
+            <td>Onicorrexis</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Paronquia</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Retroniquia</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Tiñas</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Verrugas</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Onicofagia</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Coiloniquia</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Otros</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
           </tr>
         </tbody>
       </table>
@@ -586,19 +1140,149 @@
       </table>
     </div>
 
+    <!-- Examen Vascular -->
+    <div class="form-section">
+      <h3>Examen Vascular</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th>Exploración</th>
+            <th>Pie Derecho</th>
+            <th>Pie Izquierdo</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pulso Pedio</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Pulso Tibial</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Llenado Capilar</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Temperatura</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Coloración de la Piel</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Pérdida de Vello</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Edemas</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Claudicación</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Telangiectasias</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Venas Varicosas</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Úlceras Cicatrizada</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+          <tr>
+            <td>Úlcera no Cicatrizada</td>
+            <td><input type="checkbox" disabled></td>
+            <td><input type="checkbox" disabled></td>
+            <td><textarea disabled></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Presión Arterial y Fotopletimosmografía -->
+    <div class="form-section">
+      <h3>Presión Arterial y Fotopletimosmografía</h3>
+      <div style="text-align: center; margin: 1.5rem 0; overflow: hidden;">
+        <img src="/assets/pressure-measurement.PNG" alt="Medición de presión arterial" style="max-width: 450px; width: 90%; height: auto;">
+      </div>
+      <table class="clinical-table">
+        <tbody>
+          <tr>
+            <td>Presión del brazo derecho:</td>
+            <td colspan="3"><input type="text" disabled id="consPressureArmRight" style="width: 100%; font-size: 0.95rem; padding: 0.3rem 0.75rem; border: none; border-bottom: 1px solid #333; height: 1.5rem;"></td>
+          </tr>
+          <tr>
+            <td>Presión del brazo izquierdo:</td>
+            <td colspan="3"><input type="text" disabled id="consPressureArmLeft" style="width: 100%; font-size: 0.95rem; padding: 0.3rem 0.75rem; border: none; border-bottom: 1px solid #333; height: 1.5rem;"></td>
+          </tr>
+          <tr>
+            <td style="width: 20%;">Presión:</td>
+            <td style="width: 40%;">TP <input type="text" disabled id="consPressureRightTP" style="width: 100%; font-size: 0.95rem; padding: 0.75rem; border: none; border-bottom: 1px solid #333;"></td>
+            <td style="width: 40%;">DP <input type="text" disabled id="consPressureRightDP" style="width: 100%; font-size: 0.95rem; padding: 0.75rem; border: none; border-bottom: 1px solid #333;"></td>
+          </tr>
+          <tr>
+            <td>Presión:</td>
+            <td>TP <input type="text" disabled id="consPressureLeftTP" style="width: 100%; font-size: 0.95rem; padding: 0.75rem; border: none; border-bottom: 1px solid #333;"></td>
+            <td>DP <input type="text" disabled id="consPressureLeftDP" style="width: 100%; font-size: 0.95rem; padding: 0.75rem; border: none; border-bottom: 1px solid #333;"></td>
+          </tr>
+          <tr>
+            <td colspan="4" style="font-weight: 600; padding: 1rem 0.75rem;">Fotopletimosmografía</td>
+          </tr>
+          <tr>
+            <td>Pie derecho</td>
+            <td colspan="3"><input type="text" disabled id="consFotopletimoRightUnit" style="width: 100%; font-size: 0.95rem; padding: 0.3rem 0.75rem; border: none; border-bottom: 1px solid #333; height: 1.5rem;" placeholder="mm/Hg"></td>
+          </tr>
+          <tr>
+            <td>Pie izquierdo</td>
+            <td colspan="3"><input type="text" disabled id="consFotopletimoLeftUnit" style="width: 100%; font-size: 0.95rem; padding: 0.3rem 0.75rem; border: none; border-bottom: 1px solid #333; height: 1.5rem;" placeholder="mm/Hg"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- Diagnóstico y Plan -->
     <div class="form-section">
       <h3>Diagnóstico y Plan de Manejo</h3>
       <div class="form-grid full">
         <div class="form-group">
           <label>Diagnóstico</label>
-          <textarea id="consDiagnosis" disabled></textarea>
+          <textarea disabled id="consDiagnosis" placeholder="Describa el diagnóstico"></textarea>
         </div>
       </div>
       <div class="form-grid full">
         <div class="form-group">
           <label>Plan y Manejo</label>
-          <textarea id="consTreatmentPlan" disabled></textarea>
+          <textarea disabled id="consTreatmentPlan" placeholder="Describa el plan de tratamiento"></textarea>
         </div>
       </div>
     </div>
@@ -608,9 +1292,86 @@
       <h3>Procedimientos Realizados</h3>
       <div class="form-grid full">
         <div class="form-group">
-          <textarea id="consProcedures" disabled></textarea>
+          <textarea disabled id="consProcedures" placeholder="Describa los procedimientos realizados"></textarea>
         </div>
       </div>
+    </div>
+
+    <!-- Termografía y Termometría -->
+    <div class="form-section">
+      <h3>Termografía y Termometría</h3>
+      <div class="thermography-grid">
+        <!-- SVG de Pies -->
+        <div class="feet-section">
+          <h4 style="color: #0891b2; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.95rem;">Visualización de Pies</h4>
+          <div class="feet-svg" id="thermoFeetContainer"></div>
+        </div>
+
+        <!-- Controles -->
+        <div class="controls-section">
+          <div class="control-group">
+            <label class="control-label">Tipo de Termografía</label>
+            <div id="thermo-type-display" style="padding: 0.6rem 0.75rem; background: #f8fafc; border-radius: 8px; font-weight: 600; color: #0891b2;">—</div>
+          </div>
+
+          
+
+          <div class="control-group">
+            <label class="control-label">Mediciones Registradas</label>
+            <div class="measurements-list" id="thermo-measurementsList">
+              <p style="color: #94a3b8; font-size: 0.85rem; padding: 0.75rem; text-align: center;">Sin mediciones aún</p>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">Observaciones Generales</label>
+            <textarea disabled id="thermo-observations" placeholder="Notas sobre los patrones térmicos observados..." style="padding: 0.6rem 0.75rem; border: 1.5px solid #e2e8f0; border-radius: 8px; font-family: inherit; font-size: 0.85rem; background: #f8fafc; min-height: 80px; resize: vertical;"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leyenda de Colores -->
+      <div class="color-legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: #3b82f6;"></div>
+          <span>Muy Fría (&lt;30°C)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #06b6d4;"></div>
+          <span>Fría (30-32°C)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #10b981;"></div>
+          <span>Normal (32-35°C)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #f59e0b;"></div>
+          <span>Cálida (35-37°C)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #ef4444;"></div>
+          <span>Muy Cálida (&gt;37°C)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Imágenes de la Consulta -->
+    <div class="form-section">
+      <h3>Imágenes de la Consulta</h3>
+      <div id="imgGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem;"></div>
+    </div>
+
+    <!-- Consentimiento Informado -->
+    <div class="form-section">
+      <h3>Consentimiento Informado</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Seleccionar Plantilla de Consentimiento</label>
+          <select disabled id="consTemplateSelect" onchange="updateConsentInfo()">
+            <option value="">-- Seleccione un consentimiento --</option>
+          </select>
+        </div>
+      </div></div>
     </div>
 
     <!-- Costos y Pago -->
@@ -619,14 +1380,23 @@
       <div class="form-grid two">
         <div class="form-group">
           <label>Costo de la Consulta (L.)</label>
-          <input type="text" id="consCost" disabled>
+          <input type="text" disabled id="consCost" placeholder="0.00" inputmode="decimal">
         </div>
         <div class="form-group">
           <label>Estado de Pago</label>
-          <input type="text" id="consPayment" disabled>
+          <select disabled id="consPayment">
+            <option value="pending">Pendiente</option>
+            <option value="paid">Pagado</option>
+          </select>
         </div>
       </div>
+      <div class="form-group">
+        <label>Descripción del Pago (descuentos, paquetes, etc.)</label>
+        <textarea disabled id="consPaymentNotes" placeholder="Ej: Descuento 10%, Paquete 2 procedimientos..." style="min-height: 80px;"></textarea>
+      </div>
     </div>
+
+    <div id="consultMsg" class="form-msg" style="display:none;"></div>
 
     <div class="footer">
       <button type="button" class="btn-cancel" onclick="history.back()">Volver</button>
@@ -639,95 +1409,240 @@
 <script src="/layout.js"></script>
 <script src="/podogram-container.js"></script>
 <script>
+
+  <script src="/common.js"></script>
+  <script src="/icons.js"></script>
+  <script src="/layout.js"></script>
+  <script src="/podogram-container.js"></script>
+  <script>
 requireAuth(['clinic_admin', 'doctor']);
 
 let consultationId = null;
-let podogram1 = null;
+let patientId = null;
+let consultImages = [];
+
+function getTemperatureColor(temp) {
+  if (temp < 30) return '#3b82f6';
+  if (temp < 32) return '#06b6d4';
+  if (temp < 35) return '#10b981';
+  if (temp < 37) return '#f59e0b';
+  return '#ef4444';
+}
+
+function openImageModal(filename) {
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8); display: flex; align-items: center;
+    justify-content: center; z-index: 10000; cursor: pointer;
+  `;
+  modal.onclick = () => modal.remove();
+  
+  const img = document.createElement('img');
+  img.src = `/api/consultations/${consultationId}/images/${filename}`;
+  img.style.cssText = `max-width: 90vw; max-height: 90vh; object-fit: contain; cursor: auto;`;
+  img.onclick = (e) => e.stopPropagation();
+  
+  modal.appendChild(img);
+  document.body.appendChild(modal);
+}
+
+function renderImageGrid() {
+  const grid = document.getElementById('imgGrid');
+  if (!consultImages || consultImages.length === 0) {
+    grid.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; padding: 1rem; grid-column: 1/-1;">Sin imágenes</p>';
+    return;
+  }
+  
+  grid.innerHTML = consultImages.map(img => `
+    <div style="
+      position: relative; width: 120px; height: 120px; border-radius: 8px; overflow: hidden;
+      background: #f1f5f9; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;
+    " onclick="openImageModal('${esc(img.filename)}')" title="Click para ampliar">
+      <img src="/api/consultations/${consultationId}/images/${esc(img.filename)}" alt="Consulta" style="width: 100%; height: 100%; object-fit: cover;">
+    </div>
+  `).join('');
+}
 
 async function loadConsultation() {
   const params = new URLSearchParams(window.location.search);
-  consultationId = params.get('id');
+  consultationId = parseInt(params.get('id'));
 
   if (!consultationId) {
-    document.body.innerHTML = '<div style="padding:2rem;color:red;"><h2>Error: ID de consulta no proporcionado</h2></div>';
+    alert('ID de consulta no proporcionado');
+    history.back();
     return;
   }
 
   try {
     const me = await api('/api/auth/me');
-
+    
     if (me.role === 'doctor' && me.specialty !== 'Podología') {
       window.location.href = '/citas.html';
       return;
     }
 
     const consultation = await api(`/api/consultations/${consultationId}`);
+    
+    if (!consultation) {
+      alert('Consulta no encontrada');
+      history.back();
+      return;
+    }
 
+    patientId = consultation.patient_id;
     document.getElementById('patientName').textContent = consultation.patient_name || 'Paciente';
 
+    // Parse radiography_notes
     let extraData = {};
-    try {
-      extraData = JSON.parse(consultation.radiography_notes || '{}');
-    } catch {}
-
-    document.getElementById('consAge').value = extraData.age || '';
-    document.getElementById('consOccupation').value = extraData.occupation || '';
-    document.getElementById('consFootwear').value = extraData.footwear || '';
-    document.getElementById('consPhysicalActivity').value = extraData.physical_activity || '';
-    document.getElementById('consWeight').value = extraData.weight || '';
-    document.getElementById('consHeight').value = extraData.height || '';
-    document.getElementById('consIMC').value = extraData.imc || '';
-
-    if (extraData.family_history) {
-      const fh = extraData.family_history;
-      if (fh.diabetes) { document.getElementById('consFamDiabetes').checked = fh.diabetes.checked; document.getElementById('consFamDiabetesObs').value = fh.diabetes.obs || ''; }
-      if (fh.hypertension) { document.getElementById('consFamHypertension').checked = fh.hypertension.checked; document.getElementById('consFamHypertensionObs').value = fh.hypertension.obs || ''; }
-      if (fh.cardiopathy) { document.getElementById('consFamCardiopathy').checked = fh.cardiopathy.checked; document.getElementById('consFamCardioppathyObs').value = fh.cardiopathy.obs || ''; }
-      if (fh.vascular) { document.getElementById('consFamVascular').checked = fh.vascular.checked; document.getElementById('consFamVascularObs').value = fh.vascular.obs || ''; }
-      if (fh.psoriasis) { document.getElementById('consFamPsoriasis').checked = fh.psoriasis.checked; document.getElementById('consFamPsoriasisObs').value = fh.psoriasis.obs || ''; }
-      if (fh.arthritis) { document.getElementById('consFamArthritis').checked = fh.arthritis.checked; document.getElementById('consFamArthritisObs').value = fh.arthritis.obs || ''; }
-      if (fh.cancer) { document.getElementById('consFamCancer').checked = fh.cancer.checked; document.getElementById('consFamCancerObs').value = fh.cancer.obs || ''; }
-      if (fh.dermatological) { document.getElementById('consFamDermatological').checked = fh.dermatological.checked; document.getElementById('consFamDermatologicalObs').value = fh.dermatological.obs || ''; }
-      if (fh.hiv) { document.getElementById('consFamHIV').checked = fh.hiv.checked; document.getElementById('consFamHIVObs').value = fh.hiv.obs || ''; }
-      if (fh.tb) { document.getElementById('consFamTB').checked = fh.tb.checked; document.getElementById('consFamTBObs').value = fh.tb.obs || ''; }
-      if (fh.renal) { document.getElementById('consFamRenal').checked = fh.renal.checked; document.getElementById('consFamRenalObs').value = fh.renal.obs || ''; }
+    if (consultation.radiography_notes) {
+      try {
+        extraData = JSON.parse(consultation.radiography_notes);
+      } catch (e) {
+        console.warn('Error parsing radiography_notes:', e);
+      }
     }
 
-    if (extraData.personal_history) {
-      const ph = extraData.personal_history;
-      if (ph.traumatic) { document.getElementById('consPerTraumatic').checked = ph.traumatic.checked; document.getElementById('consPerTraumaticObs').value = ph.traumatic.obs || ''; }
-      if (ph.surgical) { document.getElementById('consPerSurgical').checked = ph.surgical.checked; document.getElementById('consPerSurgicalObs').value = ph.surgical.obs || ''; }
-      if (ph.allergies) { document.getElementById('consPerAllergies').checked = ph.allergies.checked; document.getElementById('consPerAllergiesObs').value = ph.allergies.obs || ''; }
-      if (ph.aspirin) { document.getElementById('consPerAspirin').checked = ph.aspirin.checked; document.getElementById('consPerAspirinObs').value = ph.aspirin.obs || ''; }
-      if (ph.pregnancy) { document.getElementById('consPerPregnancy').checked = ph.pregnancy.checked; document.getElementById('consPerPregnancyObs').value = ph.pregnancy.obs || ''; }
-      if (ph.habits) { document.getElementById('consPerHabits').checked = ph.habits.checked; document.getElementById('consPerHabitsObs').value = ph.habits.obs || ''; }
-    }
-
-    document.getElementById('consMainComplaint').value = consultation.notes || '';
-    document.getElementById('consDiagnosis').value = consultation.diagnosis || '';
-    document.getElementById('consTreatmentPlan').value = consultation.treatment || '';
-    document.getElementById('consProcedures').value = consultation.procedures || '';
-
-    podogram1 = new PodogramContainer('podogram1', extraData, true);
-
+    // Populate flat fields
+    setInputValue('consAge', extraData.age);
+    setInputValue('consOccupation', extraData.occupation);
+    setInputValue('consFootwear', extraData.footwear);
+    setInputValue('consPhysicalActivity', extraData.physical_activity);
+    setInputValue('consWeight', extraData.weight);
+    setInputValue('consHeight', extraData.height);
+    setInputValue('consIMC', extraData.imc);
+    setInputValue('consMainComplaint', consultation.notes);
+    setInputValue('consDiagnosis', consultation.diagnosis);
+    setInputValue('consTreatmentPlan', consultation.treatment);
+    setInputValue('consProcedures', consultation.procedures);
+    setInputValue('consPaymentNotes', consultation.payment_notes);
+    
+    // Cost with formatting
     if (consultation.cost) {
-      const formatted = Number(consultation.cost).toFixed(2);
-      const parts = formatted.split('.');
-      const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-      document.getElementById('consCost').value = 'L. ' + intPart + '.' + parts[1];
-    } else {
-      document.getElementById('consCost').value = 'L. 0.00';
+      const formatted = `L. ${parseFloat(consultation.cost).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      setInputValue('consCost', formatted);
+    }
+    
+    // Payment status
+    const paymentSelect = document.getElementById('consPayment');
+    if (paymentSelect && consultation.payment_status) {
+      paymentSelect.value = consultation.payment_status;
     }
 
-    const statusLabels = { pending: 'Pendiente', paid: 'Pagado' };
-    document.getElementById('consPayment').value = statusLabels[consultation.payment_status] || consultation.payment_status;
+    // Family history
+    if (extraData.family_history) {
+      populateHistorySection('consFamDiabetes', 'consFamDiabetesObs', extraData.family_history.diabetes);
+      populateHistorySection('consFamHypertension', 'consFamHypertensionObs', extraData.family_history.hypertension);
+      populateHistorySection('consFamCardiopathy', 'consFamCardioppathyObs', extraData.family_history.cardiopathy);
+      populateHistorySection('consFamVascular', 'consFamVascularObs', extraData.family_history.vascular);
+      populateHistorySection('consFamPsoriasis', 'consFamPsoriasisObs', extraData.family_history.psoriasis);
+      populateHistorySection('consFamArthritis', 'consFamArthritisObs', extraData.family_history.arthritis);
+      populateHistorySection('consFamCancer', 'consFamCancerObs', extraData.family_history.cancer);
+      populateHistorySection('consFamDermatological', 'consFamDermatologicalObs', extraData.family_history.dermatological);
+      populateHistorySection('consFamOtros', 'consFamOtrosObs', extraData.family_history.otros);
+    }
+
+    // Personal/podological history - only the ones actually saved
+    if (extraData.personal_history) {
+      populateHistorySection('consPerTraumatic', 'consPerTraumaticObs', extraData.personal_history.traumatic);
+      populateHistorySection('consPerSurgical', 'consPerSurgicalObs', extraData.personal_history.surgical);
+      populateHistorySection('consPerAllergies', 'consPerAllergiesObs', extraData.personal_history.allergies);
+      populateHistorySection('consPerAspirin', 'consPerAspirinObs', extraData.personal_history.aspirin);
+      populateHistorySection('consPerPregnancy', 'consPerPregnancyObs', extraData.personal_history.pregnancy);
+    }
+
+    // Podogram
+    const podogram1 = new PodogramContainer('podogram1', extraData, true);
+
+    // Thermography
+    if (extraData.thermography) {
+      const typeDisplay = document.getElementById('thermo-type-display');
+      if (typeDisplay && extraData.thermography.type) {
+        typeDisplay.textContent = extraData.thermography.type;
+      }
+      
+      if (extraData.thermography.measurements && extraData.thermography.measurements.length > 0) {
+        const measurementsList = document.getElementById('thermo-measurementsList');
+        measurementsList.innerHTML = extraData.thermography.measurements.map((m, idx) => `
+          <div class="measurement-item">
+            <span class="legend-color" style="background: ${getTemperatureColor(m.temp)}; margin-right: 0.8rem;"></span>
+            <span style="flex: 1;">${esc(m.zone)}</span>
+            <span class="measurement-item-temp">${m.temp}°C</span>
+          </div>
+        `).join('');
+      }
+      
+      setInputValue('thermo-observations', extraData.thermography.observations);
+    }
+
+    // Load images
+    try {
+      const images = await api(`/api/consultations/${consultationId}/images`);
+      consultImages = images || [];
+      renderImageGrid();
+    } catch (e) {
+      console.warn('Error loading images:', e);
+    }
+
+    // Medical alert
+    await loadMedicalAlert();
+
+    // Disable all form fields
+    disableAllFormFields();
+
   } catch (e) {
-    console.error(e);
-    document.body.innerHTML = '<div style="padding:2rem;color:red;"><h2>Error al cargar consulta</h2><p>' + e.message + '</p></div>';
+    console.error('Error loading consultation:', e);
+    alert('Error al cargar la consulta: ' + e.message);
   }
 }
 
+function populateHistorySection(checkboxId, textareaId, data) {
+  if (!data) return;
+  const checkbox = document.getElementById(checkboxId);
+  const textarea = document.getElementById(textareaId);
+  if (checkbox) checkbox.checked = data.checked || false;
+  if (textarea) textarea.value = data.obs || '';
+}
+
+function setInputValue(elementId, value) {
+  const el = document.getElementById(elementId);
+  if (el && value) el.value = value;
+}
+
+function disableAllFormFields() {
+  document.querySelectorAll('#consultForm input, #consultForm textarea, #consultForm select').forEach(el => {
+    el.disabled = true;
+  });
+}
+
+async function loadMedicalAlert() {
+  try {
+    if (!patientId) return;
+    const response = await api(`/api/patients/${patientId}/critical-info`);
+    const { allergies, medications, conditions } = response;
+
+    const alert = document.getElementById('medicalAlert');
+    const alertText = document.getElementById('medicalAlertText');
+
+    if (!allergies && !medications && !conditions) {
+      alert.style.display = 'none';
+      return;
+    }
+
+    const items = [];
+    if (allergies) items.push(`<div class="medical-alert-item"><span class="medical-alert-item-label">Alergias:</span><span class="medical-alert-item-value">${esc(allergies)}</span></div>`);
+    if (medications) items.push(`<div class="medical-alert-item"><span class="medical-alert-item-label">Medicamentos:</span><span class="medical-alert-item-value">${esc(medications)}</span></div>`);
+    if (conditions) items.push(`<div class="medical-alert-item"><span class="medical-alert-item-label">Condiciones:</span><span class="medical-alert-item-value">${esc(conditions)}</span></div>`);
+
+    alertText.innerHTML = items.join('');
+    alert.style.display = 'block';
+  } catch (e) {
+    console.warn('Error loading medical alert:', e);
+  }
+}
+
+// Init
 loadConsultation();
-</script>
+  </script>
 </body>
 </html>
