@@ -2097,6 +2097,10 @@ async function deleteCita() {
 async function submitCita(e) {
   e.preventDefault();
   const msgEl = document.getElementById('formMsg');
+  const btnSubmit = document.getElementById('btnSubmit');
+  const originalText = btnSubmit.textContent;
+  btnSubmit.disabled = true;
+  btnSubmit.textContent = 'Creando...';
   try {
     if (editingId) {
       await api(`/api/appointments/${editingId}`, { method:'PUT', body:{
@@ -2121,7 +2125,12 @@ async function submitCita(e) {
     applyFilters();
     renderCalendar();
     closeModal();
-  } catch(err) { msgEl.textContent = err.message; msgEl.className = 'form-msg err'; }
+  } catch(err) {
+    msgEl.textContent = err.message;
+    msgEl.className = 'form-msg err';
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = originalText;
+  }
 }
 
 /* ─────────── DENTAL CONSULTATION ─────────── */

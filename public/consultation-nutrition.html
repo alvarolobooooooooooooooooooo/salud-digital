@@ -159,7 +159,7 @@
       position: relative;
     }
     .form-col { min-width: 0; }
-    .summary-col { position: sticky; top: 1rem; }
+    .summary-col { position: sticky; top: 0; }
 
     /* ── Sections / Cards ── */
     .form-section {
@@ -461,7 +461,12 @@
       border-radius: 14px;
       border: 1px solid #f1f5f9;
       box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      overflow: hidden;
+      overflow-y: auto;
+      max-height: calc(100vh - 30px);
+      scrollbar-width: none;
+    }
+    .summary::-webkit-scrollbar {
+      display: none;
     }
     .summary-head {
       background: linear-gradient(135deg, #0369a1, #0891b2);

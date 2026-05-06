@@ -1326,6 +1326,11 @@
     const year = document.getElementById('fBirthYear').value;
     const birth_date = (day && month && year) ? `${year}-${month}-${day}` : '';
 
+    const btnSubmit = document.querySelector('#createForm button[type="submit"]');
+    const originalText = btnSubmit.textContent;
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = 'Guardando...';
+
     try {
       const p = await api('/api/patients', {
         method: 'POST',
@@ -1345,6 +1350,8 @@
     } catch (err) {
       msgEl.textContent = err.message;
       msgEl.className = 'form-msg err';
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = originalText;
     }
   }
 

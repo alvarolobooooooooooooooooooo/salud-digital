@@ -1662,25 +1662,25 @@ async function submitConsult(e) {
         foot_shape_right: podogramState.foot_shape_right,
         foot_shape_left: podogramState.foot_shape_left,
         family_history: {
-          diabetes: { checked: document.getElementById('consFamDiabetes').checked, obs: document.getElementById('consFamDiabetesObs').value },
-          hypertension: { checked: document.getElementById('consFamHypertension').checked, obs: document.getElementById('consFamHypertensionObs').value },
-          cardiopathy: { checked: document.getElementById('consFamCardiopathy').checked, obs: document.getElementById('consFamCardioppathyObs').value },
-          vascular: { checked: document.getElementById('consFamVascular').checked, obs: document.getElementById('consFamVascularObs').value },
-          psoriasis: { checked: document.getElementById('consFamPsoriasis').checked, obs: document.getElementById('consFamPsoriasisObs').value },
-          arthritis: { checked: document.getElementById('consFamArthritis').checked, obs: document.getElementById('consFamArthritisObs').value },
-          cancer: { checked: document.getElementById('consFamCancer').checked, obs: document.getElementById('consFamCancerObs').value },
-          dermatological: { checked: document.getElementById('consFamDermatological').checked, obs: document.getElementById('consFamDermatologicalObs').value },
-          hiv: { checked: document.getElementById('consFamHIV').checked, obs: document.getElementById('consFamHIVObs').value },
-          tb: { checked: document.getElementById('consFamTB').checked, obs: document.getElementById('consFamTBObs').value },
-          renal: { checked: document.getElementById('consFamRenal').checked, obs: document.getElementById('consFamRenalObs').value }
+          diabetes: { checked: document.getElementById('consFamDiabetes')?.checked || false, obs: document.getElementById('consFamDiabetesObs')?.value || '' },
+          hypertension: { checked: document.getElementById('consFamHypertension')?.checked || false, obs: document.getElementById('consFamHypertensionObs')?.value || '' },
+          cardiopathy: { checked: document.getElementById('consFamCardiopathy')?.checked || false, obs: document.getElementById('consFamCardioppathyObs')?.value || '' },
+          vascular: { checked: document.getElementById('consFamVascular')?.checked || false, obs: document.getElementById('consFamVascularObs')?.value || '' },
+          psoriasis: { checked: document.getElementById('consFamPsoriasis')?.checked || false, obs: document.getElementById('consFamPsoriasisObs')?.value || '' },
+          arthritis: { checked: document.getElementById('consFamArthritis')?.checked || false, obs: document.getElementById('consFamArthritisObs')?.value || '' },
+          cancer: { checked: document.getElementById('consFamCancer')?.checked || false, obs: document.getElementById('consFamCancerObs')?.value || '' },
+          dermatological: { checked: document.getElementById('consFamDermatological')?.checked || false, obs: document.getElementById('consFamDermatologicalObs')?.value || '' },
+          hiv: { checked: document.getElementById('consFamHIV')?.checked || false, obs: document.getElementById('consFamHIVObs')?.value || '' },
+          tb: { checked: document.getElementById('consFamTB')?.checked || false, obs: document.getElementById('consFamTBObs')?.value || '' },
+          renal: { checked: document.getElementById('consFamRenal')?.checked || false, obs: document.getElementById('consFamRenalObs')?.value || '' }
         },
         personal_history: {
-          traumatic: { checked: document.getElementById('consPerTraumatic').checked, obs: document.getElementById('consPerTraumaticObs').value },
-          surgical: { checked: document.getElementById('consPerSurgical').checked, obs: document.getElementById('consPerSurgicalObs').value },
-          allergies: { checked: document.getElementById('consPerAllergies').checked, obs: document.getElementById('consPerAllergiesObs').value },
-          aspirin: { checked: document.getElementById('consPerAspirin').checked, obs: document.getElementById('consPerAspirinObs').value },
-          pregnancy: { checked: document.getElementById('consPerPregnancy').checked, obs: document.getElementById('consPerPregnancyObs').value },
-          habits: { checked: document.getElementById('consPerHabits').checked, obs: document.getElementById('consPerHabitsObs').value }
+          traumatic: { checked: document.getElementById('consPerTraumatic')?.checked || false, obs: document.getElementById('consPerTraumaticObs')?.value || '' },
+          surgical: { checked: document.getElementById('consPerSurgical')?.checked || false, obs: document.getElementById('consPerSurgicalObs')?.value || '' },
+          allergies: { checked: document.getElementById('consPerAllergies')?.checked || false, obs: document.getElementById('consPerAllergiesObs')?.value || '' },
+          aspirin: { checked: document.getElementById('consPerAspirin')?.checked || false, obs: document.getElementById('consPerAspirinObs')?.value || '' },
+          pregnancy: { checked: document.getElementById('consPerPregnancy')?.checked || false, obs: document.getElementById('consPerPregnancyObs')?.value || '' },
+          habits: { checked: document.getElementById('consPerHabits')?.checked || false, obs: document.getElementById('consPerHabitsObs')?.value || '' }
         },
         thermography: {
           type: thermoSelectedType,
