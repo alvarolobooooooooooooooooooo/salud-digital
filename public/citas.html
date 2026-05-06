@@ -2254,6 +2254,13 @@ async function submitPatient(e) {
   form.dataset.submitting = 'true';
 
   const msg = document.getElementById('formMsg');
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalBtnText = submitBtn.textContent;
+
+  // Cambiar botón a estado de carga
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Guardando...';
+
   try {
     const name = document.getElementById('fName').value;
     const id = document.getElementById('fId').value;
@@ -2295,6 +2302,8 @@ async function submitPatient(e) {
     msg.className = 'form-msg err';
     msg.style.display = 'block';
     form.dataset.submitting = 'false';
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalBtnText;
   }
 }
 </script>
