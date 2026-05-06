@@ -30,6 +30,7 @@
     '/clinical-record.html': '',
     '/medical-record.html': '',
     '/admin.html': 'admin',
+    '/inventario.html': 'inventario',
     '/recepcion-inicio.html': 'rec-inicio',
     '/recepcion-citas.html': 'rec-citas',
     '/recepcion-pagos.html': 'rec-pagos'
@@ -65,6 +66,7 @@
         { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
         { href: '/doctors.html', key: 'doctors', iconName: 'staff', label: 'Personal' },
         { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
+        { href: '/inventario.html', key: 'inventario', iconName: 'package', label: 'Inventario' },
         { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
         { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
         { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' },
@@ -92,7 +94,7 @@
     }).join('');
 
     // Mobile menu items (exclude Consentimientos, Recordatorios, Citas Online, Mi Plan from mobile sticky menu)
-    const mobileMenuItems = items.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'agendar-online' && item.key !== 'plan').map(item => {
+    const mobileMenuItems = items.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
@@ -132,6 +134,10 @@
               <span id="planIcon"></span>
               <span>Mi Plan</span>
             </a>
+            ${isClinicAdmin ? `<a href="/inventario.html" class="sidebar-menu-link">
+              <span id="inventarioMenuIcon"></span>
+              <span>Inventario</span>
+            </a>` : ''}
             <a href="/consentimientos.html" class="sidebar-menu-link">
               <span id="consentsIcon"></span>
               <span>Consentimientos</span>
@@ -247,6 +253,10 @@
     // Reminders menu icon
     const remindersIcon = document.querySelector('#remindersIcon');
     if (remindersIcon && !remindersIcon.innerHTML.trim()) remindersIcon.innerHTML = Icons.render('bell', 16);
+
+    // Inventario menu icon
+    const inventarioMenuIcon = document.querySelector('#inventarioMenuIcon');
+    if (inventarioMenuIcon && !inventarioMenuIcon.innerHTML.trim()) inventarioMenuIcon.innerHTML = Icons.render('package', 16);
   }
 
   function injectSidebar() {

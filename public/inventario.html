@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SaludDigital — Inventario</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      color: #0f172a;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Floating background blobs (matches finanzas.html aesthetic) */
+    body::before {
+      content: ''; position: fixed; width: 900px; height: 900px;
+      background: radial-gradient(circle, rgba(8, 145, 178, 0.10) 0%, transparent 70%);
+      top: -250px; right: -300px; border-radius: 50%; z-index: 0;
+      filter: blur(60px); pointer-events: none;
+    }
+    body::after {
+      content: ''; position: fixed; width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
+      bottom: -200px; left: -150px; border-radius: 50%; z-index: 0;
+      filter: blur(60px); pointer-events: none;
+    }
+
+    .layout-main { padding: 2.5rem 2rem; max-width: 1400px; position: relative; z-index: 1; }
+
+    /* ── Page Header ── */
+    .page-header {
+      display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 2rem; gap: 2rem; flex-wrap: wrap;
+    }
+    .header-content { flex: 1; min-width: 280px; }
+    .header-content h1 {
+      font-size: 2.4rem; font-weight: 900; margin-bottom: .5rem; letter-spacing: -.04em;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .header-content p { color: #64748b; font-size: .98rem; line-height: 1.5; font-weight: 500; max-width: 640px; }
+    .header-actions { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .75rem 1.25rem; border-radius: 12px; font-weight: 700; font-size: .9rem;
+      border: none; cursor: pointer; font-family: inherit; transition: all .25s ease;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white; box-shadow: 0 6px 18px rgba(8, 145, 178, .3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(8, 145, 178, .4); }
+    .btn-secondary {
+      background: white; color: #0891b2; border: 2px solid rgba(8, 145, 178, .2);
+    }
+    .btn-secondary:hover { border-color: #0891b2; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(8, 145, 178, .15); }
+    .btn-ghost {
+      background: transparent; color: #475569; border: 1.5px solid #e2e8f0;
+    }
+    .btn-ghost:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white; box-shadow: 0 6px 18px rgba(220, 38, 38, .25);
+    }
+    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(220, 38, 38, .35); }
+    .btn-sm { padding: .45rem .8rem; font-size: .82rem; border-radius: 9px; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; transform: none !important; }
+
+    /* ── Stats Cards ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.75rem;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255,255,255,.98) 0%, rgba(240,249,255,.96) 100%);
+      border: 1px solid rgba(255,255,255,.6);
+      border-radius: 18px; padding: 1.25rem 1.4rem;
+      box-shadow: 0 8px 24px rgba(8, 145, 178, .06), inset 0 1px 0 rgba(255,255,255,.8);
+      backdrop-filter: blur(10px);
+      transition: all .35s cubic-bezier(.34, 1.56, .64, 1);
+      position: relative; overflow: hidden;
+    }
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(8, 145, 178, .12);
+    }
+    .stat-card .stat-icon {
+      width: 38px; height: 38px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: .85rem; color: white;
+    }
+    .stat-icon.bg-cyan { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+    .stat-icon.bg-amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+    .stat-icon.bg-red { background: linear-gradient(135deg, #ef4444, #f87171); }
+    .stat-icon.bg-green { background: linear-gradient(135deg, #10b981, #34d399); }
+    .stat-icon.bg-orange { background: linear-gradient(135deg, #f97316, #fb923c); }
+    .stat-card .stat-label {
+      font-size: .72rem; font-weight: 700; color: #64748b; text-transform: uppercase;
+      letter-spacing: .04em; margin-bottom: .35rem;
+    }
+    .stat-card .stat-value {
+      font-size: 1.85rem; font-weight: 900; color: #0f172a; line-height: 1.05; letter-spacing: -.02em;
+    }
+    .stat-card .stat-meta { font-size: .78rem; color: #94a3b8; margin-top: .25rem; font-weight: 500; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      background: white; border-radius: 16px; padding: 1rem 1.25rem; margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: .85rem; flex-wrap: wrap;
+      box-shadow: 0 6px 18px rgba(8, 145, 178, .06);
+      border: 1px solid rgba(8, 145, 178, .06);
+    }
+    .search-wrap {
+      position: relative; flex: 1; min-width: 240px;
+    }
+    .search-wrap .search-icon {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8;
+      display: flex; align-items: center;
+    }
+    .search-input {
+      width: 100%; padding: .7rem 1rem .7rem 2.7rem; border: 1.5px solid #e2e8f0;
+      border-radius: 10px; font-size: .92rem; font-family: inherit; background: #f8fafc;
+      transition: all .25s ease; color: #0f172a;
+    }
+    .search-input:focus {
+      outline: none; border-color: #0891b2; background: white;
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, .12);
+    }
+
+    .view-toggle { display: inline-flex; gap: 2px; padding: 3px; background: #f1f5f9; border-radius: 10px; }
+    .view-toggle button {
+      padding: .5rem .75rem; background: transparent; border: none; cursor: pointer;
+      border-radius: 8px; color: #64748b; display: flex; align-items: center; transition: all .2s;
+    }
+    .view-toggle button.active { background: white; color: #0891b2; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+
+    .filter-pill {
+      display: inline-flex; align-items: center; gap: .35rem; padding: .35rem .7rem;
+      background: rgba(8, 145, 178, .1); color: #0e7490; border-radius: 999px;
+      font-size: .78rem; font-weight: 600; cursor: pointer;
+    }
+    .filter-pill .x { color: #0e7490; opacity: .7; font-weight: 700; }
+    .filter-pill:hover .x { opacity: 1; }
+
+    /* ── Filters Panel ── */
+    .filters-panel {
+      background: white; border-radius: 16px; padding: 0; margin-bottom: 1.25rem;
+      max-height: 0; overflow: hidden; transition: max-height .35s ease, padding .25s ease;
+      box-shadow: 0 6px 18px rgba(8, 145, 178, .06);
+      border: 1px solid rgba(8, 145, 178, .06);
+    }
+    .filters-panel.open { max-height: 500px; padding: 1.25rem; }
+    .filters-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .85rem;
+    }
+    .filter-item label {
+      display: block; font-size: .72rem; font-weight: 700; color: #475569;
+      text-transform: uppercase; letter-spacing: .03em; margin-bottom: .35rem;
+    }
+    .filter-item select, .filter-item input {
+      width: 100%; padding: .55rem .7rem; border: 1.5px solid #e2e8f0;
+      border-radius: 9px; font-size: .85rem; font-family: inherit; background: white;
+      color: #0f172a;
+    }
+    .filter-item select:focus, .filter-item input:focus {
+      outline: none; border-color: #0891b2; box-shadow: 0 0 0 3px rgba(8, 145, 178, .1);
+    }
+    .filters-footer { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .85rem; padding-top: .85rem; border-top: 1px solid #f1f5f9; }
+
+    /* ── Table ── */
+    .data-card {
+      background: white; border-radius: 18px; overflow: hidden;
+      box-shadow: 0 8px 24px rgba(8, 145, 178, .06);
+      border: 1px solid rgba(8, 145, 178, .06);
+    }
+    .table-wrap { overflow-x: auto; }
+    table.inv-table { width: 100%; border-collapse: collapse; }
+    .inv-table thead th {
+      background: #f8fafc; text-align: left; padding: .9rem 1rem;
+      font-size: .72rem; font-weight: 700; color: #64748b; text-transform: uppercase;
+      letter-spacing: .04em; border-bottom: 1px solid #e2e8f0; white-space: nowrap;
+      cursor: pointer; user-select: none;
+    }
+    .inv-table thead th:hover { color: #0891b2; }
+    .inv-table thead th .sort-arrow { font-size: .65rem; opacity: .5; margin-left: .25rem; }
+    .inv-table thead th.actions, .inv-table tbody td.actions { text-align: right; }
+    .inv-table tbody td {
+      padding: .85rem 1rem; border-bottom: 1px solid #f1f5f9; font-size: .9rem; color: #1e293b; vertical-align: middle;
+    }
+    .inv-table tbody tr { transition: background .2s; }
+    .inv-table tbody tr:hover { background: #f0fdfd; cursor: pointer; }
+    .inv-table tbody tr:last-child td { border-bottom: none; }
+
+    .item-cell { display: flex; align-items: center; gap: .85rem; }
+    .item-thumb {
+      width: 44px; height: 44px; border-radius: 10px; background: #e0f2fe;
+      display: flex; align-items: center; justify-content: center; color: #0891b2;
+      flex-shrink: 0; overflow: hidden; border: 1px solid rgba(8, 145, 178, .1);
+    }
+    .item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .item-cell .item-info { min-width: 0; }
+    .item-name { font-weight: 700; color: #0f172a; line-height: 1.2; }
+    .item-sku { font-size: .75rem; color: #94a3b8; margin-top: 2px; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: .3rem; padding: .25rem .65rem;
+      border-radius: 999px; font-size: .72rem; font-weight: 700; letter-spacing: .01em;
+      white-space: nowrap;
+    }
+    .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .badge-disponible { background: #dcfce7; color: #15803d; }
+    .badge-bajo_stock { background: #fef3c7; color: #b45309; }
+    .badge-agotado { background: #fee2e2; color: #b91c1c; }
+    .badge-por_vencer { background: #fed7aa; color: #c2410c; }
+    .badge-vencido { background: #fecaca; color: #991b1b; }
+    .badge-vigente { background: #ecfeff; color: #0e7490; }
+    .badge-archivado { background: #e2e8f0; color: #475569; }
+
+    .stock-amount { font-weight: 700; color: #0f172a; }
+    .stock-amount .unit { color: #94a3b8; font-weight: 500; font-size: .8rem; margin-left: 2px; }
+
+    /* ── Action menu ── */
+    .row-actions { display: flex; gap: .35rem; justify-content: flex-end; align-items: center; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0;
+      cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+      color: #475569; transition: all .2s;
+    }
+    .icon-btn:hover { background: #ecf9fc; color: #0891b2; border-color: rgba(8, 145, 178, .3); }
+    .icon-btn.danger:hover { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+
+    /* ── Card grid (mobile) ── */
+    .card-grid { display: none; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+    .inv-card {
+      background: white; border-radius: 16px; padding: 1.1rem;
+      box-shadow: 0 6px 18px rgba(8, 145, 178, .06);
+      border: 1px solid rgba(8, 145, 178, .06);
+      cursor: pointer; transition: all .25s ease;
+    }
+    .inv-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(8, 145, 178, .12); }
+    .inv-card .card-top { display: flex; gap: .85rem; align-items: flex-start; margin-bottom: .85rem; }
+    .inv-card .card-thumb {
+      width: 56px; height: 56px; border-radius: 12px; background: #e0f2fe;
+      display: flex; align-items: center; justify-content: center; color: #0891b2;
+      flex-shrink: 0; overflow: hidden;
+    }
+    .inv-card .card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .inv-card .card-name { font-weight: 800; font-size: 1rem; color: #0f172a; line-height: 1.25; }
+    .inv-card .card-cat { font-size: .78rem; color: #64748b; margin-top: 2px; }
+    .inv-card .card-stats { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .5rem; }
+    .inv-card .card-row { display: flex; justify-content: space-between; padding: .35rem 0; font-size: .85rem; }
+    .inv-card .card-row .lbl { color: #64748b; font-weight: 500; }
+    .inv-card .card-row .val { color: #0f172a; font-weight: 700; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      padding: 4rem 2rem; text-align: center; color: #64748b;
+    }
+    .empty-state .empty-icon {
+      width: 80px; height: 80px; border-radius: 24px; margin: 0 auto 1.25rem;
+      background: linear-gradient(135deg, rgba(8, 145, 178, .12), rgba(6, 182, 212, .12));
+      display: flex; align-items: center; justify-content: center; color: #0891b2;
+    }
+    .empty-state h3 { font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-bottom: .5rem; letter-spacing: -.01em; }
+    .empty-state p { font-size: .92rem; margin-bottom: 1.25rem; max-width: 420px; margin-left: auto; margin-right: auto; }
+
+    /* ── Skeleton ── */
+    @keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+    .skeleton {
+      background: linear-gradient(90deg, #f1f5f9 0px, #e2e8f0 200px, #f1f5f9 400px);
+      background-size: 800px;
+      animation: shimmer 1.4s infinite linear;
+      border-radius: 6px;
+    }
+    .skel-row { display: flex; gap: .75rem; align-items: center; padding: .9rem 1rem; border-bottom: 1px solid #f1f5f9; }
+    .skel-row .skel-thumb { width: 44px; height: 44px; border-radius: 10px; }
+    .skel-row .skel-line { height: 12px; flex: 1; }
+    .skel-row .skel-pill { width: 80px; height: 20px; border-radius: 999px; }
+
+    /* ── Drawer ── */
+    .drawer-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, .55); backdrop-filter: blur(4px);
+      z-index: 250; opacity: 0; pointer-events: none; transition: opacity .3s;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+    .drawer {
+      position: fixed; top: 0; right: 0; height: 100vh; width: 720px; max-width: 100vw;
+      background: white; z-index: 260; transform: translateX(100%);
+      transition: transform .35s cubic-bezier(.4, 0, .2, 1);
+      box-shadow: -20px 0 60px rgba(0,0,0,.18);
+      display: flex; flex-direction: column;
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-header {
+      padding: 1.5rem 1.75rem; background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white; display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0;
+    }
+    .drawer-header h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: -.01em; }
+    .drawer-header p { font-size: .85rem; opacity: .9; margin-top: 2px; font-weight: 500; }
+    .drawer-close {
+      background: rgba(255,255,255,.2); border: none; cursor: pointer; color: white;
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; transition: all .25s;
+    }
+    .drawer-close:hover { background: rgba(255,255,255,.3); transform: rotate(90deg); }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 1.5rem 1.75rem; }
+    .drawer-footer {
+      padding: 1rem 1.75rem; border-top: 1px solid #f1f5f9; background: #f8fafc;
+      display: flex; justify-content: space-between; align-items: center; gap: .75rem;
+      flex-shrink: 0; flex-wrap: wrap;
+    }
+    .drawer-footer .right-actions { display: flex; gap: .65rem; flex-wrap: wrap; }
+
+    /* ── Form sections ── */
+    .form-section {
+      background: #fafcfd; border: 1px solid #e2e8f0; border-radius: 14px; margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .section-head {
+      width: 100%; background: transparent; border: none; cursor: pointer; padding: 1rem 1.25rem;
+      display: flex; align-items: center; gap: .75rem; font-family: inherit; text-align: left;
+      transition: background .2s;
+    }
+    .section-head:hover { background: #f1f9fc; }
+    .section-head .num {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white; font-weight: 800; font-size: .85rem;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .section-head .title { flex: 1; font-weight: 700; color: #0f172a; font-size: .98rem; }
+    .section-head .chev { color: #94a3b8; transition: transform .25s; }
+    .form-section.open .section-head .chev { transform: rotate(180deg); }
+    .section-body { padding: 0 1.25rem; max-height: 0; overflow: hidden; transition: max-height .4s ease, padding .25s ease; }
+    .form-section.open .section-body { max-height: 2000px; padding: 0 1.25rem 1.25rem 1.25rem; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .form-grid.cols-1 { grid-template-columns: 1fr; }
+    .form-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .field { display: flex; flex-direction: column; gap: .35rem; }
+    .field.span-2 { grid-column: span 2; }
+    .field label {
+      font-size: .78rem; font-weight: 700; color: #475569; letter-spacing: .01em;
+    }
+    .field label .req { color: #dc2626; }
+    .field input, .field select, .field textarea {
+      padding: .65rem .85rem; border: 1.5px solid #e2e8f0; border-radius: 10px;
+      font-size: .92rem; font-family: inherit; background: white; color: #0f172a;
+      transition: all .25s;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none; border-color: #0891b2;
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, .12);
+    }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field .hint { font-size: .75rem; color: #94a3b8; margin-top: 2px; }
+    .field .warn { font-size: .78rem; color: #b45309; margin-top: 2px; font-weight: 600; display: flex; align-items: center; gap: .3rem; }
+
+    /* Checkbox row */
+    .check-row {
+      display: flex; align-items: center; gap: .65rem; padding: .65rem .85rem;
+      background: white; border: 1.5px solid #e2e8f0; border-radius: 10px;
+      cursor: pointer; transition: all .25s;
+    }
+    .check-row:hover { border-color: #0891b2; background: #f0fdfd; }
+    .check-row input { width: 18px; height: 18px; accent-color: #0891b2; cursor: pointer; flex-shrink: 0; }
+    .check-row .check-text { flex: 1; }
+    .check-row .check-title { font-weight: 700; font-size: .87rem; color: #0f172a; }
+    .check-row .check-desc { font-size: .76rem; color: #64748b; margin-top: 2px; }
+
+    /* ── Image uploader ── */
+    .image-uploader {
+      border: 2px dashed rgba(8, 145, 178, .3); border-radius: 14px;
+      background: linear-gradient(135deg, rgba(8, 145, 178, .04), rgba(6, 182, 212, .04));
+      padding: 1.5rem; text-align: center; cursor: pointer; transition: all .25s;
+      position: relative;
+    }
+    .image-uploader:hover { border-color: #0891b2; background: linear-gradient(135deg, rgba(8, 145, 178, .08), rgba(6, 182, 212, .08)); }
+    .image-uploader.has-image { padding: 0; border-style: solid; }
+    .image-uploader .uploader-icon {
+      width: 56px; height: 56px; border-radius: 16px; margin: 0 auto .75rem;
+      background: linear-gradient(135deg, #0891b2, #06b6d4); color: white;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .image-uploader .uploader-title { font-weight: 700; color: #0f172a; font-size: .95rem; margin-bottom: .25rem; }
+    .image-uploader .uploader-sub { font-size: .8rem; color: #64748b; margin-bottom: 1rem; }
+    .image-uploader .uploader-actions { display: inline-flex; gap: .5rem; }
+    .image-uploader .preview-img { width: 100%; max-height: 240px; object-fit: contain; border-radius: 14px; background: #0f172a; }
+    .image-uploader .preview-overlay {
+      position: absolute; top: .65rem; right: .65rem; display: flex; gap: .35rem;
+    }
+    .image-uploader .preview-overlay button {
+      background: rgba(0, 0, 0, .65); color: white; border: none; cursor: pointer;
+      width: 34px; height: 34px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center; transition: all .2s;
+    }
+    .image-uploader .preview-overlay button:hover { background: rgba(0, 0, 0, .85); }
+
+    /* ── Detail view ── */
+    .detail-hero {
+      display: flex; gap: 1.5rem; padding: 1.5rem; background: #f8fafc; border-radius: 16px;
+      margin-bottom: 1.5rem; flex-wrap: wrap;
+    }
+    .detail-hero .hero-img {
+      width: 180px; height: 180px; border-radius: 14px; background: white;
+      display: flex; align-items: center; justify-content: center; color: #94a3b8;
+      overflow: hidden; flex-shrink: 0; border: 1px solid #e2e8f0;
+    }
+    .detail-hero .hero-img img { width: 100%; height: 100%; object-fit: cover; }
+    .detail-hero .hero-info { flex: 1; min-width: 220px; }
+    .detail-hero h2 { font-size: 1.6rem; font-weight: 900; color: #0f172a; margin-bottom: .35rem; letter-spacing: -.02em; }
+    .detail-hero .hero-cat { display: inline-flex; align-items: center; gap: .35rem; font-size: .85rem; color: #64748b; margin-bottom: .85rem; font-weight: 600; }
+    .detail-hero .hero-badges { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .detail-hero .hero-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: .85rem; }
+    .detail-hero .hero-stat .lbl { font-size: .72rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+    .detail-hero .hero-stat .val { font-size: 1.05rem; color: #0f172a; font-weight: 800; margin-top: 2px; }
+
+    .detail-section { background: white; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+    .detail-section h4 {
+      font-size: .82rem; font-weight: 800; color: #0891b2; text-transform: uppercase;
+      letter-spacing: .05em; margin-bottom: .85rem; display: flex; align-items: center; gap: .5rem;
+    }
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .85rem 1.5rem; }
+    .info-grid .info-item .il-lbl { font-size: .72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
+    .info-grid .info-item .il-val { font-size: .92rem; color: #0f172a; font-weight: 600; margin-top: 2px; }
+
+    /* ── Movement history ── */
+    .movement-list { display: flex; flex-direction: column; gap: .65rem; }
+    .movement-item {
+      display: flex; gap: .85rem; padding: .85rem; border: 1px solid #e2e8f0; border-radius: 12px; background: #fafcfd;
+    }
+    .movement-icon {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; color: white;
+    }
+    .mov-entrada { background: linear-gradient(135deg, #10b981, #34d399); }
+    .mov-salida { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+    .mov-ajuste { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+    .mov-perdida { background: linear-gradient(135deg, #ef4444, #f87171); }
+    .mov-vencimiento { background: linear-gradient(135deg, #b91c1c, #ef4444); }
+    .mov-transferencia { background: linear-gradient(135deg, #6366f1, #818cf8); }
+    .movement-info { flex: 1; min-width: 0; }
+    .movement-title { font-weight: 700; color: #0f172a; font-size: .92rem; }
+    .movement-meta { font-size: .78rem; color: #64748b; margin-top: 2px; display: flex; gap: .5rem; flex-wrap: wrap; }
+    .movement-meta .dot { color: #cbd5e1; }
+    .movement-qty { font-weight: 800; font-size: 1rem; color: #0f172a; }
+
+    /* ── Toast ── */
+    .toast-wrap { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1000; display: flex; flex-direction: column; gap: .5rem; pointer-events: none; }
+    .toast {
+      background: white; border-radius: 12px; padding: .85rem 1rem;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .15);
+      display: flex; align-items: center; gap: .75rem; min-width: 260px; max-width: 360px;
+      transform: translateY(20px); opacity: 0; transition: all .3s ease;
+      border-left: 4px solid #0891b2; pointer-events: auto;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-left-color: #10b981; }
+    .toast.error { border-left-color: #ef4444; }
+    .toast.info { border-left-color: #06b6d4; }
+    .toast .toast-icon { color: #0891b2; }
+    .toast.success .toast-icon { color: #10b981; }
+    .toast.error .toast-icon { color: #ef4444; }
+    .toast .toast-text { flex: 1; font-size: .87rem; color: #0f172a; font-weight: 600; }
+
+    /* ── Modal (small confirm/adjust) ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, .55); backdrop-filter: blur(4px);
+      z-index: 280; display: none; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white; border-radius: 18px; max-width: 480px; width: 100%;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, .25); overflow: hidden;
+      animation: modalIn .25s ease;
+    }
+    @keyframes modalIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal-head {
+      padding: 1.25rem 1.5rem; background: linear-gradient(135deg, #0891b2, #06b6d4); color: white;
+      display: flex; align-items: center; gap: .65rem;
+    }
+    .modal-head h3 { font-size: 1.1rem; font-weight: 800; }
+    .modal-body { padding: 1.5rem; }
+    .modal-foot { padding: 1rem 1.5rem; background: #f8fafc; display: flex; justify-content: flex-end; gap: .65rem; }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .layout-main { padding: 1.25rem 1rem; padding-top: 90px; padding-bottom: 100px; max-width: 100%; }
+      .header-content h1 { font-size: 1.7rem; }
+      .header-content p { font-size: .88rem; }
+      .header-actions { width: 100%; }
+      .header-actions .btn { flex: 1; justify-content: center; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: .75rem; }
+      .stat-card { padding: 1rem; }
+      .stat-card .stat-value { font-size: 1.4rem; }
+
+      .table-wrap { display: none; }
+      .card-grid { display: grid; }
+
+      .drawer { width: 100%; }
+      .drawer-header { padding: 1.25rem 1rem; }
+      .drawer-body { padding: 1rem; }
+      .drawer-footer { padding: .85rem 1rem; flex-direction: column; align-items: stretch; }
+      .drawer-footer .right-actions, .drawer-footer .right-actions .btn { width: 100%; }
+      .drawer-footer .right-actions { display: grid; grid-template-columns: 1fr 1fr; }
+
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid.cols-3 { grid-template-columns: 1fr; }
+      .field.span-2 { grid-column: span 1; }
+
+      .toast-wrap { left: 1rem; right: 1rem; bottom: 80px; }
+      .toast { min-width: 0; max-width: 100%; }
+
+      .detail-hero { padding: 1rem; }
+      .detail-hero .hero-img { width: 120px; height: 120px; }
+      .info-grid { grid-template-columns: 1fr; }
+    }
+    @media (min-width: 769px) {
+      .table-wrap { display: block; }
+      .card-grid { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="layout-main">
+
+    <!-- ── Page Header ── -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1>Inventario</h1>
+        <p>Gestiona medicamentos, insumos, equipos y productos de tu clínica con control total de stock, vencimientos y proveedores.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="btnScan" type="button">
+          <span data-icon="camera"></span>
+          Escanear / tomar foto
+        </button>
+        <button class="btn btn-primary" id="btnNew" type="button">
+          <span data-icon="plus"></span>
+          Agregar artículo
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Stats Cards ── -->
+    <div class="stats-grid" id="statsGrid">
+      <!-- Skeletons initially -->
+      <div class="stat-card"><div class="skeleton" style="width:38px;height:38px;border-radius:11px;margin-bottom:.85rem;"></div><div class="skeleton" style="width:70%;height:10px;margin-bottom:.6rem;"></div><div class="skeleton" style="width:50%;height:24px;"></div></div>
+      <div class="stat-card"><div class="skeleton" style="width:38px;height:38px;border-radius:11px;margin-bottom:.85rem;"></div><div class="skeleton" style="width:70%;height:10px;margin-bottom:.6rem;"></div><div class="skeleton" style="width:50%;height:24px;"></div></div>
+      <div class="stat-card"><div class="skeleton" style="width:38px;height:38px;border-radius:11px;margin-bottom:.85rem;"></div><div class="skeleton" style="width:70%;height:10px;margin-bottom:.6rem;"></div><div class="skeleton" style="width:50%;height:24px;"></div></div>
+      <div class="stat-card"><div class="skeleton" style="width:38px;height:38px;border-radius:11px;margin-bottom:.85rem;"></div><div class="skeleton" style="width:70%;height:10px;margin-bottom:.6rem;"></div><div class="skeleton" style="width:50%;height:24px;"></div></div>
+      <div class="stat-card"><div class="skeleton" style="width:38px;height:38px;border-radius:11px;margin-bottom:.85rem;"></div><div class="skeleton" style="width:70%;height:10px;margin-bottom:.6rem;"></div><div class="skeleton" style="width:50%;height:24px;"></div></div>
+    </div>
+
+    <!-- ── Toolbar ── -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon" data-icon="search" data-size="18"></span>
+        <input type="search" class="search-input" id="searchInput" placeholder="Buscar por nombre, SKU, código de barras o descripción...">
+      </div>
+      <button class="btn btn-ghost btn-sm" id="btnToggleFilters" type="button">
+        <span data-icon="filter" data-size="16"></span>
+        Filtros
+        <span id="activeFilterCount" style="display:none;background:#0891b2;color:white;font-size:.7rem;padding:1px 7px;border-radius:999px;font-weight:700;">0</span>
+      </button>
+      <select class="filter-item" id="sortSelect" style="padding:.55rem .8rem;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.85rem;background:white;color:#475569;cursor:pointer;">
+        <option value="name">Ordenar: Nombre</option>
+        <option value="stock">Ordenar: Stock</option>
+        <option value="expiration">Ordenar: Vencimiento</option>
+        <option value="category">Ordenar: Categoría</option>
+        <option value="supplier">Ordenar: Proveedor</option>
+        <option value="recent">Ordenar: Más recientes</option>
+      </select>
+      <div class="view-toggle" role="tablist">
+        <button id="viewTable" class="active" title="Vista tabla" type="button"><span data-icon="menu" data-size="16"></span></button>
+        <button id="viewGrid" title="Vista cards" type="button"><span data-icon="boxes" data-size="16"></span></button>
+      </div>
+    </div>
+
+    <!-- ── Filters Panel ── -->
+    <div class="filters-panel" id="filtersPanel">
+      <div class="filters-grid">
+        <div class="filter-item">
+          <label>Categoría</label>
+          <input type="text" id="filterCategory" placeholder="Cualquiera" list="categoryDatalist">
+          <datalist id="categoryDatalist"></datalist>
+        </div>
+        <div class="filter-item">
+          <label>Estado de stock</label>
+          <select id="filterStatus">
+            <option value="">Todos</option>
+            <option value="disponible">Disponible</option>
+            <option value="bajo_stock">Bajo stock</option>
+            <option value="agotado">Agotado</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label>Vencimiento</label>
+          <select id="filterExpiration">
+            <option value="">Cualquiera</option>
+            <option value="soon">Próximos a vencer</option>
+            <option value="expired">Vencidos</option>
+            <option value="30">Vencen en 30 días</option>
+            <option value="60">Vencen en 60 días</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label>Proveedor</label>
+          <input type="text" id="filterSupplier" placeholder="Nombre proveedor">
+        </div>
+        <div class="filter-item">
+          <label>Ubicación / Área</label>
+          <select id="filterArea">
+            <option value="">Cualquiera</option>
+            <option value="recepcion">Recepción</option>
+            <option value="consultorio">Consultorio</option>
+            <option value="laboratorio">Laboratorio</option>
+            <option value="farmacia">Farmacia</option>
+            <option value="bodega">Bodega</option>
+            <option value="quirofano">Quirófano</option>
+            <option value="odontologia">Odontología</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label>Tipo de artículo</label>
+          <select id="filterType">
+            <option value="">Todos</option>
+            <option value="medicamento">Medicamento</option>
+            <option value="insumo_medico">Insumo médico</option>
+            <option value="equipo">Equipo</option>
+            <option value="descartable">Material descartable</option>
+            <option value="administrativo">Producto administrativo</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="filters-footer">
+        <button class="btn btn-ghost btn-sm" id="btnClearFilters" type="button">Limpiar filtros</button>
+        <button class="btn btn-primary btn-sm" id="btnApplyFilters" type="button">Aplicar</button>
+      </div>
+    </div>
+
+    <!-- ── Active filter chips ── -->
+    <div id="activeChips" style="display:none;gap:.45rem;flex-wrap:wrap;margin-bottom:1rem;"></div>
+
+    <!-- ── Data ── -->
+    <div class="data-card">
+      <div class="table-wrap">
+        <table class="inv-table">
+          <thead>
+            <tr>
+              <th>Artículo</th>
+              <th>Categoría</th>
+              <th>Stock</th>
+              <th>Estado</th>
+              <th>Vencimiento</th>
+              <th>Ubicación</th>
+              <th>Valor</th>
+              <th class="actions">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="8" style="padding:0;">
+              <div class="skel-row"><div class="skeleton skel-thumb"></div><div class="skeleton skel-line"></div><div class="skeleton skel-pill"></div></div>
+              <div class="skel-row"><div class="skeleton skel-thumb"></div><div class="skeleton skel-line"></div><div class="skeleton skel-pill"></div></div>
+              <div class="skel-row"><div class="skeleton skel-thumb"></div><div class="skeleton skel-line"></div><div class="skeleton skel-pill"></div></div>
+              <div class="skel-row"><div class="skeleton skel-thumb"></div><div class="skeleton skel-line"></div><div class="skeleton skel-pill"></div></div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-grid" id="cardGrid"></div>
+    </div>
+
+    <!-- Hidden file input for camera/upload -->
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
+  </main>
+
+  <!-- ── Drawer: Form (Add/Edit) ── -->
+  <div class="drawer-overlay" id="formOverlay"></div>
+  <aside class="drawer" id="formDrawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div>
+        <h2 id="formTitle">Agregar artículo</h2>
+        <p id="formSubtitle">Complete la información del artículo de inventario</p>
+      </div>
+      <button class="drawer-close" id="formCloseBtn" type="button" aria-label="Cerrar"><span data-icon="x" data-size="18"></span></button>
+    </div>
+    <div class="drawer-body">
+      <form id="itemForm" autocomplete="off">
+
+        <!-- Section 1: Identificación -->
+        <div class="form-section open" data-section="ident">
+          <button class="section-head" type="button">
+            <span class="num">1</span>
+            <span class="title">Identificación del artículo</span>
+            <span class="chev" data-icon="chevronDown" data-size="18"></span>
+          </button>
+          <div class="section-body">
+            <!-- Image uploader -->
+            <div class="image-uploader" id="imageUploader" tabindex="0" role="button" aria-label="Subir imagen del artículo">
+              <input type="file" id="imageFileInput" accept="image/*" style="display:none;">
+              <input type="file" id="imageCameraInput" accept="image/*" capture="environment" style="display:none;">
+              <div id="uploaderEmpty">
+                <div class="uploader-icon" data-icon="image" data-size="28"></div>
+                <div class="uploader-title">Toma una foto o sube una imagen del artículo</div>
+                <div class="uploader-sub">PNG, JPG o WebP — máximo 8 MB</div>
+                <div class="uploader-actions">
+                  <button class="btn btn-secondary btn-sm" type="button" id="uploaderCamera"><span data-icon="camera" data-size="14"></span> Cámara</button>
+                  <button class="btn btn-ghost btn-sm" type="button" id="uploaderFile"><span data-icon="download" data-size="14"></span> Subir archivo</button>
+                </div>
+              </div>
+              <div id="uploaderPreview" style="display:none;">
+                <img id="previewImage" class="preview-img" alt="">
+                <div class="preview-overlay">
+                  <button type="button" id="replaceImage" title="Reemplazar"><span data-icon="refresh" data-size="14"></span></button>
+                  <button type="button" id="removeImage" title="Eliminar"><span data-icon="trash" data-size="14"></span></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-grid" style="margin-top:1rem;">
+              <div class="field span-2">
+                <label>Nombre del artículo <span class="req">*</span></label>
+                <input type="text" name="name" required placeholder="Ej: Paracetamol 500mg, Guantes nitrilo M, Termómetro digital">
+              </div>
+              <div class="field">
+                <label>Código interno / SKU</label>
+                <input type="text" name="sku" placeholder="Ej: MED-0042">
+              </div>
+              <div class="field">
+                <label>Código de barras</label>
+                <input type="text" name="barcode" placeholder="Opcional">
+              </div>
+              <div class="field">
+                <label>Categoría</label>
+                <input type="text" name="category" placeholder="Ej: Analgésicos, Material desechable" list="formCategoryList">
+                <datalist id="formCategoryList"></datalist>
+              </div>
+              <div class="field">
+                <label>Tipo de artículo</label>
+                <select name="type">
+                  <option value="medicamento">Medicamento</option>
+                  <option value="insumo_medico">Insumo médico</option>
+                  <option value="equipo">Equipo</option>
+                  <option value="descartable">Material descartable</option>
+                  <option value="administrativo">Producto administrativo</option>
+                  <option value="otro" selected>Otro</option>
+                </select>
+              </div>
+              <div class="field span-2">
+                <label>Descripción</label>
+                <textarea name="description" placeholder="Descripción breve del artículo, presentación, uso..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Stock -->
+        <div class="form-section" data-section="stock">
+          <button class="section-head" type="button">
+            <span class="num">2</span>
+            <span class="title">Stock y unidades</span>
+            <span class="chev" data-icon="chevronDown" data-size="18"></span>
+          </button>
+          <div class="section-body">
+            <div class="form-grid cols-3">
+              <div class="field">
+                <label>Cantidad actual <span class="req">*</span></label>
+                <input type="number" name="current_stock" min="0" step="any" value="0" required>
+              </div>
+              <div class="field">
+                <label>Stock mínimo</label>
+                <input type="number" name="min_stock" min="0" step="any" value="0">
+                <div class="hint">Se alertará cuando el stock baje de este nivel</div>
+              </div>
+              <div class="field">
+                <label>Stock máximo</label>
+                <input type="number" name="max_stock" min="0" step="any" placeholder="Opcional">
+              </div>
+              <div class="field span-2">
+                <label>Unidad de medida</label>
+                <select name="unit">
+                  <option value="unidades">Unidades</option>
+                  <option value="cajas">Cajas</option>
+                  <option value="frascos">Frascos</option>
+                  <option value="paquetes">Paquetes</option>
+                  <option value="ml">Mililitros (ml)</option>
+                  <option value="mg">Miligramos (mg)</option>
+                  <option value="gramos">Gramos</option>
+                  <option value="litros">Litros</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Estado calculado</label>
+                <div id="stockStatusPreview" style="padding:.65rem .85rem;border:1.5px solid #e2e8f0;border-radius:10px;background:#f8fafc;font-size:.9rem;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:.5rem;">—</div>
+              </div>
+            </div>
+            <div style="margin-top:1rem;">
+              <label class="check-row">
+                <input type="checkbox" name="low_stock_alert" checked>
+                <div class="check-text">
+                  <div class="check-title">Activar alerta de bajo stock</div>
+                  <div class="check-desc">Mostrar el artículo en el panel de alertas cuando llegue al mínimo</div>
+                </div>
+              </label>
+            </div>
+            <div id="stockWarning" class="warn" style="display:none;margin-top:.65rem;"></div>
+          </div>
+        </div>
+
+        <!-- Section 3: Fechas -->
+        <div class="form-section" data-section="dates">
+          <button class="section-head" type="button">
+            <span class="num">3</span>
+            <span class="title">Fechas y vencimiento</span>
+            <span class="chev" data-icon="chevronDown" data-size="18"></span>
+          </button>
+          <div class="section-body">
+            <div class="form-grid">
+              <div class="field">
+                <label>Fecha de compra</label>
+                <input type="date" name="purchase_date">
+              </div>
+              <div class="field">
+                <label>Fecha de vencimiento</label>
+                <input type="date" name="expiration_date">
+                <div id="expirationWarning" class="warn" style="display:none;"></div>
+              </div>
+              <div class="field span-2">
+                <label>Alerta antes de vencer</label>
+                <select name="expiration_alert_days">
+                  <option value="7">7 días antes</option>
+                  <option value="15">15 días antes</option>
+                  <option value="30" selected>30 días antes</option>
+                  <option value="60">60 días antes</option>
+                  <option value="90">90 días antes</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Costos -->
+        <div class="form-section" data-section="costs">
+          <button class="section-head" type="button">
+            <span class="num">4</span>
+            <span class="title">Costos y proveedor</span>
+            <span class="chev" data-icon="chevronDown" data-size="18"></span>
+          </button>
+          <div class="section-body">
+            <div class="form-grid cols-3">
+              <div class="field">
+                <label>Costo unitario</label>
+                <input type="number" name="unit_cost" min="0" step="0.01" value="0">
+              </div>
+              <div class="field">
+                <label>Moneda</label>
+                <select name="currency">
+                  <option value="HNL" selected>HNL — Lempiras</option>
+                  <option value="USD">USD — Dólares</option>
+                  <option value="EUR">EUR — Euros</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Valor total estimado</label>
+                <div id="totalCostPreview" style="padding:.65rem .85rem;border:1.5px solid #e2e8f0;border-radius:10px;background:#f8fafc;font-size:.95rem;font-weight:800;color:#0891b2;">—</div>
+              </div>
+              <div class="field">
+                <label>Proveedor</label>
+                <input type="text" name="supplier_name" placeholder="Ej: Farmacia Central S.A.">
+              </div>
+              <div class="field">
+                <label>Número de factura</label>
+                <input type="text" name="invoice_number" placeholder="Opcional">
+              </div>
+              <div class="field">
+                <label>—</label>
+                <div style="height:43px;"></div>
+              </div>
+              <div class="field span-2">
+                <label>Notas de compra</label>
+                <textarea name="purchase_notes" placeholder="Información adicional sobre esta compra..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 5: Ubicación -->
+        <div class="form-section" data-section="location">
+          <button class="section-head" type="button">
+            <span class="num">5</span>
+            <span class="title">Ubicación y responsable</span>
+            <span class="chev" data-icon="chevronDown" data-size="18"></span>
+          </button>
+          <div class="section-body">
+            <div class="form-grid">
+              <div class="field">
+                <label>Sucursal / clínica</label>
+                <input type="text" name="branch" placeholder="Ej: Sede principal">
+              </div>
+              <div class="field">
+                <label>Área</label>
+                <select name="area">
+                  <option value="">Seleccionar área...</option>
+                  <option value="recepcion">Recepción</option>
+                  <option value="consultorio">Consultorio</option>
+                  <option value="laboratorio">Laboratorio</option>
+                  <option value="farmacia">Farmacia</option>
+                  <option value="bodega">Bodega</option>
+                  <option value="quirofano">Quirófano</option>
+                  <option value="odontologia">Odontología</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Estante / ubicación exacta</label>
+                <input type="text" name="exact_location" placeholder="Ej: Estante A-3, Cajón 2">
+              </div>
+              <div class="field">
+                <label>Responsable del artículo</label>
+                <select name="responsible_user_id">
+                  <option value="">Sin asignar</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 6: Configuración -->
+        <div class="form-section" data-section="config">
+          <button class="section-head" type="button">
+            <span class="num">6</span>
+            <span class="title">Configuración avanzada</span>
+            <span class="chev" data-icon="chevronDown" data-size="18"></span>
+          </button>
+          <div class="section-body">
+            <div style="display:flex;flex-direction:column;gap:.65rem;">
+              <label class="check-row">
+                <input type="checkbox" name="is_active" checked>
+                <div class="check-text">
+                  <div class="check-title">Artículo activo</div>
+                  <div class="check-desc">Si está inactivo, no aparecerá en flujos clínicos pero se conserva en inventario</div>
+                </div>
+              </label>
+              <label class="check-row">
+                <input type="checkbox" name="requires_expiration_control">
+                <div class="check-text">
+                  <div class="check-title">Requiere control de vencimiento</div>
+                  <div class="check-desc">Bloquea uso si el artículo está vencido</div>
+                </div>
+              </label>
+              <label class="check-row">
+                <input type="checkbox" name="requires_authorization_for_use">
+                <div class="check-text">
+                  <div class="check-title">Requiere autorización para salida</div>
+                  <div class="check-desc">Cada salida deberá ser registrada y aprobada</div>
+                </div>
+              </label>
+              <label class="check-row">
+                <input type="checkbox" name="allow_use_in_appointments" checked>
+                <div class="check-text">
+                  <div class="check-title">Permitir uso en citas y procedimientos</div>
+                  <div class="check-desc">El artículo aparecerá disponible en consultas y procedimientos</div>
+                </div>
+              </label>
+            </div>
+            <div class="field" style="margin-top:1rem;">
+              <label>Notas internas</label>
+              <textarea name="internal_notes" placeholder="Información solo visible para el personal administrativo..."></textarea>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-ghost" id="formCancel" type="button">Cancelar</button>
+      <div class="right-actions">
+        <button class="btn btn-secondary" id="formSaveAddAnother" type="button">Guardar y agregar otro</button>
+        <button class="btn btn-primary" id="formSave" type="button">
+          <span id="formSaveLabel">Guardar artículo</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Drawer: Detail ── -->
+  <div class="drawer-overlay" id="detailOverlay"></div>
+  <aside class="drawer" id="detailDrawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div>
+        <h2>Detalle del artículo</h2>
+        <p>Información completa, movimientos y acciones</p>
+      </div>
+      <button class="drawer-close" id="detailCloseBtn" type="button" aria-label="Cerrar"><span data-icon="x" data-size="18"></span></button>
+    </div>
+    <div class="drawer-body" id="detailBody">
+      <!-- Filled dynamically -->
+    </div>
+    <div class="drawer-footer">
+      <button class="btn btn-ghost" id="detailCloseFooter" type="button">Cerrar</button>
+      <div class="right-actions">
+        <button class="btn btn-secondary" id="detailEdit" type="button"><span data-icon="edit" data-size="14"></span> Editar</button>
+        <button class="btn btn-primary" id="detailAdjust" type="button"><span data-icon="boxes" data-size="14"></span> Ajustar stock</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Modal: Stock adjustment ── -->
+  <div class="modal-overlay" id="adjustOverlay">
+    <div class="modal">
+      <div class="modal-head">
+        <span data-icon="boxes" data-size="20"></span>
+        <h3 id="adjustTitle">Ajustar stock</h3>
+      </div>
+      <div class="modal-body">
+        <div class="field" style="margin-bottom:1rem;">
+          <label>Tipo de movimiento</label>
+          <select id="adjustType">
+            <option value="entrada">Entrada de stock</option>
+            <option value="salida">Salida de stock</option>
+            <option value="ajuste">Ajuste manual (fija el stock)</option>
+            <option value="perdida">Pérdida / daño</option>
+            <option value="vencimiento">Retiro por vencimiento</option>
+            <option value="transferencia">Transferencia de ubicación</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:1rem;">
+          <label id="adjustQtyLabel">Cantidad</label>
+          <input type="number" id="adjustQty" min="0" step="any" value="1">
+          <div class="hint" id="adjustHint">Se sumará al stock actual</div>
+        </div>
+        <div class="field" style="margin-bottom:1rem;">
+          <label>Motivo</label>
+          <input type="text" id="adjustReason" placeholder="Ej: Compra mensual, uso en cita, daño en almacén">
+        </div>
+        <div class="field">
+          <label>Nota (opcional)</label>
+          <textarea id="adjustNote" placeholder="Detalles adicionales..." style="min-height:60px;"></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" id="adjustCancel" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="adjustConfirm" type="button">Registrar movimiento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: Confirm ── -->
+  <div class="modal-overlay" id="confirmOverlay">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-head" style="background:linear-gradient(135deg, #ef4444, #f87171);">
+        <span data-icon="alert" data-size="20"></span>
+        <h3 id="confirmTitle">¿Confirmar?</h3>
+      </div>
+      <div class="modal-body" id="confirmBody" style="font-size:.92rem;color:#475569;line-height:1.5;">
+        Esta acción no se puede deshacer.
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" id="confirmCancel" type="button">Cancelar</button>
+        <button class="btn btn-danger" id="confirmAction" type="button">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script src="/icons.js"></script>
+  <script src="/common.js"></script>
+  <script src="/layout.js"></script>
+  <script>
+    // ──────────────────────────────────────────────────────────
+    // Inventario module — vanilla JS, follows project conventions
+    // ──────────────────────────────────────────────────────────
+    requireAuth(['clinic_admin']);
+
+    const TYPE_LABELS = {
+      medicamento: 'Medicamento',
+      insumo_medico: 'Insumo médico',
+      equipo: 'Equipo',
+      descartable: 'Material descartable',
+      administrativo: 'Administrativo',
+      otro: 'Otro'
+    };
+    const AREA_LABELS = {
+      recepcion: 'Recepción', consultorio: 'Consultorio', laboratorio: 'Laboratorio',
+      farmacia: 'Farmacia', bodega: 'Bodega', quirofano: 'Quirófano',
+      odontologia: 'Odontología', otro: 'Otro'
+    };
+    const STATUS_LABELS = {
+      disponible: 'Disponible', bajo_stock: 'Bajo stock', agotado: 'Agotado'
+    };
+    const MOV_LABELS = {
+      entrada: 'Entrada de stock', salida: 'Salida de stock', ajuste: 'Ajuste manual',
+      perdida: 'Pérdida / daño', vencimiento: 'Retiro por vencimiento', transferencia: 'Transferencia'
+    };
+
+    // State
+    let allItems = [];
+    let currentFilters = {
+      search: '', category: '', status: '', expiration: '',
+      supplier: '', area: '', type: '', sort: 'name'
+    };
+    let currentView = 'table';
+    let currentItem = null;
+    let pendingImageUrl = null;
+    let editingId = null;
+
+    // ── Icon hydration ──
+    function hydrateIcons(root = document) {
+      if (typeof Icons === 'undefined') { setTimeout(() => hydrateIcons(root), 50); return; }
+      // Scope: only elements explicitly marked for icon hydration in this page,
+      // never sidebar links (which are managed by layout.js and contain text labels).
+      root.querySelectorAll('[data-icon]:not(.sb-item):not(.mobile-nav-item):not(.sidebar-menu-link)').forEach(el => {
+        if (el.dataset.iconReady) return;
+        if (el.children.length > 0 || el.textContent.trim().length > 0) return; // never overwrite existing content
+        const name = el.dataset.icon;
+        const size = parseInt(el.dataset.size || '18', 10);
+        el.innerHTML = Icons.render(name, size);
+        el.dataset.iconReady = '1';
+        el.style.display = 'inline-flex';
+        el.style.alignItems = 'center';
+      });
+    }
+    hydrateIcons();
+
+    // ── Helpers ──
+    function fmtMoney(n, currency = 'HNL') {
+      const num = Number(n || 0);
+      const symbols = { HNL: 'L', USD: '$', EUR: '€' };
+      const sym = symbols[currency] || '';
+      return `${sym} ${num.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    function fmtDate(d) {
+      if (!d) return '—';
+      const dt = new Date(d);
+      if (isNaN(dt.getTime())) return '—';
+      return dt.toLocaleDateString('es-HN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    function unitLabel(u) { return u || 'unidades'; }
+    function statusBadge(item) {
+      const s = item.stock_status;
+      return `<span class="badge badge-${s}">${STATUS_LABELS[s] || s}</span>`;
+    }
+    function expirationBadge(item) {
+      if (!item.expiration_info) return '<span style="color:#94a3b8;">—</span>';
+      const e = item.expiration_info;
+      if (e.state === 'vencido') return `<span class="badge badge-vencido">Vencido (${Math.abs(e.daysLeft)}d)</span>`;
+      if (e.state === 'por_vencer') return `<span class="badge badge-por_vencer">${e.daysLeft}d restantes</span>`;
+      return `<span class="badge badge-vigente">${e.daysLeft}d</span>`;
+    }
+    function thumbHTML(item, size = 44) {
+      if (item.image_url) return `<img src="${esc(item.image_url)}" alt="${esc(item.name)}">`;
+      return `<span data-icon="package" data-size="${Math.round(size * .5)}"></span>`;
+    }
+
+    // ── Toasts ──
+    function toast(message, type = 'info') {
+      const wrap = document.getElementById('toastWrap');
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      const iconName = type === 'success' ? 'check' : type === 'error' ? 'alert' : 'inbox';
+      el.innerHTML = `<span class="toast-icon" data-icon="${iconName}" data-size="18"></span><div class="toast-text">${esc(message)}</div>`;
+      wrap.appendChild(el);
+      hydrateIcons(el);
+      requestAnimationFrame(() => el.classList.add('show'));
+      setTimeout(() => {
+        el.classList.remove('show');
+        setTimeout(() => el.remove(), 350);
+      }, 3500);
+    }
+
+    // ── Stats render ──
+    function renderStats(stats) {
+      const grid = document.getElementById('statsGrid');
+      grid.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-icon bg-cyan" data-icon="package" data-size="20"></div>
+          <div class="stat-label">Total de artículos</div>
+          <div class="stat-value">${stats.total ?? 0}</div>
+          <div class="stat-meta">${stats.total === 1 ? 'artículo registrado' : 'artículos registrados'}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-amber" data-icon="alert" data-size="20"></div>
+          <div class="stat-label">Bajo stock</div>
+          <div class="stat-value">${stats.low_stock ?? 0}</div>
+          <div class="stat-meta">${(stats.low_stock || 0) === 0 ? 'todo en orden' : 'requieren reposición'}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-orange" data-icon="clock" data-size="20"></div>
+          <div class="stat-label">Próximos a vencer</div>
+          <div class="stat-value">${stats.expiring_soon ?? 0}</div>
+          <div class="stat-meta">${(stats.expired || 0) > 0 ? `+ ${stats.expired} ya vencidos` : 'dentro de la ventana de alerta'}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-green" data-icon="wallet" data-size="20"></div>
+          <div class="stat-label">Valor estimado</div>
+          <div class="stat-value">${fmtMoney(stats.estimated_value || 0)}</div>
+          <div class="stat-meta">stock total × costo unitario</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-red" data-icon="x" data-size="20"></div>
+          <div class="stat-label">Agotados</div>
+          <div class="stat-value">${stats.out_of_stock ?? 0}</div>
+          <div class="stat-meta">${stats.out_of_stock === 0 ? 'sin agotados' : 'sin existencias'}</div>
+        </div>
+      `;
+      hydrateIcons(grid);
+    }
+
+    // ── Table / Grid render ──
+    function renderEmpty(container) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon" data-icon="package" data-size="36"></div>
+          <h3>Aún no tienes artículos en inventario</h3>
+          <p>Empieza por registrar tu primer artículo. Podrás controlar stock, vencimientos, costos y movimientos en un solo lugar.</p>
+          <button class="btn btn-primary" onclick="openForm()"><span data-icon="plus" data-size="14"></span> Agregar primer artículo</button>
+        </div>`;
+      hydrateIcons(container);
+    }
+    function renderEmptyFiltered(container) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon" data-icon="search" data-size="32"></div>
+          <h3>Sin resultados</h3>
+          <p>No encontramos artículos que coincidan con tu búsqueda o filtros. Prueba a limpiar los filtros.</p>
+          <button class="btn btn-secondary" onclick="clearFilters()"><span data-icon="x" data-size="14"></span> Limpiar filtros</button>
+        </div>`;
+      hydrateIcons(container);
+    }
+    function renderTable(items) {
+      const tbody = document.getElementById('tableBody');
+      const grid = document.getElementById('cardGrid');
+
+      if (items.length === 0) {
+        const isFiltered = hasActiveFilters();
+        const wrap = document.querySelector('.data-card');
+        wrap.querySelector('.table-wrap').style.display = 'none';
+        grid.style.display = 'none';
+        // Render empty into card area for both views
+        let emptyHost = document.getElementById('emptyHost');
+        if (!emptyHost) {
+          emptyHost = document.createElement('div');
+          emptyHost.id = 'emptyHost';
+          wrap.appendChild(emptyHost);
+        }
+        if (allItems.length === 0 && !isFiltered) renderEmpty(emptyHost);
+        else renderEmptyFiltered(emptyHost);
+        return;
+      } else {
+        const emptyHost = document.getElementById('emptyHost');
+        if (emptyHost) emptyHost.remove();
+        document.querySelector('.table-wrap').style.display = '';
+      }
+
+      // Table
+      tbody.innerHTML = items.map(item => `
+        <tr data-id="${item.id}">
+          <td>
+            <div class="item-cell">
+              <div class="item-thumb">${thumbHTML(item)}</div>
+              <div class="item-info">
+                <div class="item-name">${esc(item.name)}</div>
+                <div class="item-sku">${esc(item.sku || TYPE_LABELS[item.type] || '—')}</div>
+              </div>
+            </div>
+          </td>
+          <td>${esc(item.category || '—')}</td>
+          <td><span class="stock-amount">${Number(item.current_stock).toLocaleString('es-HN')}<span class="unit"> ${esc(unitLabel(item.unit))}</span></span></td>
+          <td>${statusBadge(item)}</td>
+          <td>${expirationBadge(item)}</td>
+          <td>${esc(AREA_LABELS[item.area] || '—')}${item.exact_location ? ` <span style="color:#94a3b8;font-size:.8rem;">· ${esc(item.exact_location)}</span>` : ''}</td>
+          <td><span style="font-weight:700;color:#0f172a;">${fmtMoney(item.total_value, item.currency)}</span></td>
+          <td class="actions">
+            <div class="row-actions">
+              <button class="icon-btn" title="Ver detalles" data-action="view" data-id="${item.id}"><span data-icon="eye" data-size="16"></span></button>
+              <button class="icon-btn" title="Editar" data-action="edit" data-id="${item.id}"><span data-icon="edit" data-size="16"></span></button>
+              <button class="icon-btn" title="Ajustar stock" data-action="adjust" data-id="${item.id}"><span data-icon="boxes" data-size="16"></span></button>
+              <button class="icon-btn" title="Duplicar" data-action="duplicate" data-id="${item.id}"><span data-icon="copy" data-size="16"></span></button>
+              <button class="icon-btn danger" title="Archivar" data-action="archive" data-id="${item.id}"><span data-icon="archive" data-size="16"></span></button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+      hydrateIcons(tbody);
+
+      // Row click → detail (skip if button click)
+      tbody.querySelectorAll('tr').forEach(tr => {
+        tr.addEventListener('click', e => {
+          if (e.target.closest('button')) return;
+          openDetail(parseInt(tr.dataset.id, 10));
+        });
+      });
+      tbody.querySelectorAll('button[data-action]').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          handleAction(btn.dataset.action, parseInt(btn.dataset.id, 10));
+        });
+      });
+
+      // Card grid
+      grid.innerHTML = items.map(item => `
+        <div class="inv-card" data-id="${item.id}">
+          <div class="card-top">
+            <div class="card-thumb">${thumbHTML(item, 56)}</div>
+            <div style="flex:1;min-width:0;">
+              <div class="card-name">${esc(item.name)}</div>
+              <div class="card-cat">${esc(item.category || TYPE_LABELS[item.type] || '—')}</div>
+              <div class="card-stats">${statusBadge(item)} ${expirationBadge(item)}</div>
+            </div>
+          </div>
+          <div class="card-row"><span class="lbl">Stock</span><span class="val">${Number(item.current_stock).toLocaleString('es-HN')} ${esc(unitLabel(item.unit))}</span></div>
+          <div class="card-row"><span class="lbl">Ubicación</span><span class="val">${esc(AREA_LABELS[item.area] || '—')}</span></div>
+          <div class="card-row"><span class="lbl">Valor</span><span class="val">${fmtMoney(item.total_value, item.currency)}</span></div>
+          <div style="display:flex;gap:.4rem;margin-top:.85rem;">
+            <button class="btn btn-secondary btn-sm" style="flex:1;" data-action="view" data-id="${item.id}"><span data-icon="eye" data-size="14"></span> Detalles</button>
+            <button class="btn btn-ghost btn-sm" data-action="adjust" data-id="${item.id}"><span data-icon="boxes" data-size="14"></span></button>
+            <button class="btn btn-ghost btn-sm" data-action="edit" data-id="${item.id}"><span data-icon="edit" data-size="14"></span></button>
+          </div>
+        </div>
+      `).join('');
+      hydrateIcons(grid);
+      grid.querySelectorAll('.inv-card').forEach(card => {
+        card.addEventListener('click', e => {
+          if (e.target.closest('button')) return;
+          openDetail(parseInt(card.dataset.id, 10));
+        });
+      });
+      grid.querySelectorAll('button[data-action]').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          handleAction(btn.dataset.action, parseInt(btn.dataset.id, 10));
+        });
+      });
+    }
+
+    function handleAction(action, id) {
+      switch (action) {
+        case 'view': openDetail(id); break;
+        case 'edit': openForm(id); break;
+        case 'adjust': openAdjust(id); break;
+        case 'duplicate': duplicateItem(id); break;
+        case 'archive': archiveItem(id); break;
+      }
+    }
+
+    // ── Loading ──
+    async function loadAll() {
+      try {
+        const [items, stats] = await Promise.all([fetchItems(), api('/api/inventory/stats')]);
+        allItems = items || [];
+        renderStats(stats || {});
+        renderTable(allItems);
+        // Update category datalist
+        const cats = [...new Set(allItems.map(i => i.category).filter(Boolean))].sort();
+        document.getElementById('categoryDatalist').innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
+        document.getElementById('formCategoryList').innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
+      } catch (err) {
+        console.error('[inventario] loadAll', err);
+        toast(err?.message || 'Error cargando inventario', 'error');
+        document.getElementById('tableBody').innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon" data-icon="alert" data-size="28"></div><h3>Error al cargar inventario</h3><p>${esc(err?.message || 'Intenta nuevamente en un momento.')}</p><button class="btn btn-primary" onclick="loadAll()">Reintentar</button></div></td></tr>`;
+        hydrateIcons(document.getElementById('tableBody'));
+      }
+    }
+
+    function buildQuery() {
+      const params = new URLSearchParams();
+      if (currentFilters.search) params.set('search', currentFilters.search);
+      if (currentFilters.category) params.set('category', currentFilters.category);
+      if (currentFilters.status) params.set('status', currentFilters.status);
+      if (currentFilters.supplier) params.set('supplier', currentFilters.supplier);
+      if (currentFilters.area) params.set('area', currentFilters.area);
+      if (currentFilters.type) params.set('type', currentFilters.type);
+      if (currentFilters.sort) params.set('sort', currentFilters.sort);
+      if (currentFilters.expiration === 'soon') params.set('expiration', 'soon');
+      else if (currentFilters.expiration === 'expired') params.set('expiration', 'expired');
+      else if (currentFilters.expiration && !isNaN(parseInt(currentFilters.expiration, 10))) {
+        params.set('expiring_within', currentFilters.expiration);
+      }
+      return params.toString();
+    }
+    async function fetchItems() {
+      const qs = buildQuery();
+      return api(`/api/inventory${qs ? '?' + qs : ''}`);
+    }
+    async function refreshList() {
+      try {
+        allItems = (await fetchItems()) || [];
+        renderTable(allItems);
+        renderActiveChips();
+      } catch (err) {
+        toast(err?.message || 'Error filtrando', 'error');
+      }
+    }
+
+    function hasActiveFilters() {
+      const f = currentFilters;
+      return !!(f.search || f.category || f.status || f.expiration || f.supplier || f.area || f.type);
+    }
+    function clearFilters() {
+      currentFilters = { search: '', category: '', status: '', expiration: '', supplier: '', area: '', type: '', sort: currentFilters.sort };
+      document.getElementById('searchInput').value = '';
+      document.getElementById('filterCategory').value = '';
+      document.getElementById('filterStatus').value = '';
+      document.getElementById('filterExpiration').value = '';
+      document.getElementById('filterSupplier').value = '';
+      document.getElementById('filterArea').value = '';
+      document.getElementById('filterType').value = '';
+      refreshList();
+      updateFilterCount();
+    }
+    window.clearFilters = clearFilters;
+
+    function updateFilterCount() {
+      const count = ['category', 'status', 'expiration', 'supplier', 'area', 'type'].filter(k => currentFilters[k]).length;
+      const el = document.getElementById('activeFilterCount');
+      if (count > 0) { el.textContent = count; el.style.display = 'inline-block'; }
+      else el.style.display = 'none';
+    }
+    function renderActiveChips() {
+      const chips = [];
+      const f = currentFilters;
+      if (f.category) chips.push(['category', `Categoría: ${f.category}`]);
+      if (f.status) chips.push(['status', `Estado: ${STATUS_LABELS[f.status]}`]);
+      if (f.type) chips.push(['type', `Tipo: ${TYPE_LABELS[f.type]}`]);
+      if (f.area) chips.push(['area', `Área: ${AREA_LABELS[f.area]}`]);
+      if (f.supplier) chips.push(['supplier', `Proveedor: ${f.supplier}`]);
+      if (f.expiration === 'soon') chips.push(['expiration', 'Próximos a vencer']);
+      else if (f.expiration === 'expired') chips.push(['expiration', 'Vencidos']);
+      else if (f.expiration) chips.push(['expiration', `Vencen en ${f.expiration} días`]);
+      const wrap = document.getElementById('activeChips');
+      if (chips.length === 0) { wrap.style.display = 'none'; return; }
+      wrap.style.display = 'flex';
+      wrap.innerHTML = chips.map(([k, label]) => `<span class="filter-pill" data-clear="${k}">${esc(label)} <span class="x">×</span></span>`).join('');
+      wrap.querySelectorAll('.filter-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          currentFilters[pill.dataset.clear] = '';
+          // Reset corresponding input
+          const map = { category: 'filterCategory', status: 'filterStatus', expiration: 'filterExpiration', supplier: 'filterSupplier', area: 'filterArea', type: 'filterType' };
+          const id = map[pill.dataset.clear];
+          if (id) document.getElementById(id).value = '';
+          refreshList();
+          updateFilterCount();
+        });
+      });
+    }
+
+    // ── Toolbar wiring ──
+    const searchInput = document.getElementById('searchInput');
+    let searchTimer = null;
+    searchInput.addEventListener('input', e => {
+      currentFilters.search = e.target.value.trim();
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => refreshList(), 250);
+    });
+
+    document.getElementById('btnToggleFilters').addEventListener('click', () => {
+      document.getElementById('filtersPanel').classList.toggle('open');
+    });
+    document.getElementById('btnApplyFilters').addEventListener('click', () => {
+      currentFilters.category = document.getElementById('filterCategory').value.trim();
+      currentFilters.status = document.getElementById('filterStatus').value;
+      currentFilters.expiration = document.getElementById('filterExpiration').value;
+      currentFilters.supplier = document.getElementById('filterSupplier').value.trim();
+      currentFilters.area = document.getElementById('filterArea').value;
+      currentFilters.type = document.getElementById('filterType').value;
+      updateFilterCount();
+      refreshList();
+      document.getElementById('filtersPanel').classList.remove('open');
+    });
+    document.getElementById('btnClearFilters').addEventListener('click', clearFilters);
+    document.getElementById('sortSelect').addEventListener('change', e => {
+      currentFilters.sort = e.target.value;
+      refreshList();
+    });
+
+    document.getElementById('viewTable').addEventListener('click', () => switchView('table'));
+    document.getElementById('viewGrid').addEventListener('click', () => switchView('grid'));
+    function switchView(v) {
+      currentView = v;
+      document.getElementById('viewTable').classList.toggle('active', v === 'table');
+      document.getElementById('viewGrid').classList.toggle('active', v === 'grid');
+      // Force visibility (used on desktop)
+      if (window.innerWidth > 768) {
+        document.querySelector('.table-wrap').style.display = v === 'table' ? '' : 'none';
+        document.getElementById('cardGrid').style.display = v === 'grid' ? 'grid' : 'none';
+      }
+    }
+
+    document.getElementById('btnNew').addEventListener('click', () => openForm());
+
+    // Quick "scan / take photo" triggers camera + opens new item form with image preselected
+    document.getElementById('btnScan').addEventListener('click', () => {
+      document.getElementById('cameraInput').click();
+    });
+    document.getElementById('cameraInput').addEventListener('change', async e => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const url = await uploadImageFile(file);
+        pendingImageUrl = url;
+        openForm();
+        // Show preview right away
+        showPreview(url);
+        toast('Foto cargada — completa los datos del artículo', 'success');
+      } catch (err) {
+        toast(err.message || 'Error subiendo imagen', 'error');
+      } finally {
+        e.target.value = '';
+      }
+    });
+
+    // ── Form drawer ──
+    const formDrawer = document.getElementById('formDrawer');
+    const formOverlay = document.getElementById('formOverlay');
+    document.getElementById('formCloseBtn').addEventListener('click', closeForm);
+    document.getElementById('formCancel').addEventListener('click', closeForm);
+    formOverlay.addEventListener('click', closeForm);
+
+    // Section accordion
+    document.querySelectorAll('.form-section').forEach(sec => {
+      sec.querySelector('.section-head').addEventListener('click', () => sec.classList.toggle('open'));
+    });
+
+    function openForm(id = null) {
+      editingId = id;
+      const form = document.getElementById('itemForm');
+      form.reset();
+      pendingImageUrl = null;
+      hidePreview();
+      document.getElementById('stockWarning').style.display = 'none';
+      document.getElementById('expirationWarning').style.display = 'none';
+      // Open first section, collapse rest
+      document.querySelectorAll('.form-section').forEach((sec, i) => sec.classList.toggle('open', i === 0));
+
+      if (id) {
+        const item = allItems.find(i => i.id === id);
+        if (!item) {
+          api(`/api/inventory/${id}`).then(populateForm).catch(err => toast(err.message, 'error'));
+        } else {
+          populateForm(item);
+        }
+        document.getElementById('formTitle').textContent = 'Editar artículo';
+        document.getElementById('formSubtitle').textContent = 'Actualiza la información del artículo';
+        document.getElementById('formSaveAddAnother').style.display = 'none';
+      } else {
+        document.getElementById('formTitle').textContent = 'Agregar artículo';
+        document.getElementById('formSubtitle').textContent = 'Complete la información del artículo de inventario';
+        document.getElementById('formSaveAddAnother').style.display = '';
+        // Pre-fill with current photo if user came from scan
+        if (pendingImageUrl) showPreview(pendingImageUrl);
+        updateStockPreview();
+        updateCostPreview();
+      }
+      formOverlay.classList.add('open');
+      formDrawer.classList.add('open');
+      formDrawer.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeForm() {
+      formOverlay.classList.remove('open');
+      formDrawer.classList.remove('open');
+      formDrawer.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      editingId = null;
+      pendingImageUrl = null;
+    }
+    window.openForm = openForm;
+
+    function populateForm(item) {
+      const form = document.getElementById('itemForm');
+      // Set every named field
+      Object.entries(item).forEach(([k, v]) => {
+        const el = form.elements[k];
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = !!v;
+        else if (el.type === 'date' && v) el.value = String(v).slice(0, 10);
+        else if (v != null) el.value = v;
+      });
+      pendingImageUrl = item.image_url || null;
+      if (pendingImageUrl) showPreview(pendingImageUrl); else hidePreview();
+      updateStockPreview();
+      updateCostPreview();
+      checkExpirationWarning();
+    }
+
+    function readForm() {
+      const form = document.getElementById('itemForm');
+      const data = {};
+      Array.from(form.elements).forEach(el => {
+        if (!el.name) return;
+        if (el.type === 'checkbox') data[el.name] = el.checked;
+        else data[el.name] = el.value;
+      });
+      data.image_url = pendingImageUrl || '';
+      return data;
+    }
+
+    function updateStockPreview() {
+      const form = document.getElementById('itemForm');
+      const stock = Number(form.elements.current_stock?.value || 0);
+      const min = Number(form.elements.min_stock?.value || 0);
+      let status, label, color;
+      if (stock <= 0) { status = 'agotado'; label = 'Agotado'; color = '#b91c1c'; }
+      else if (min > 0 && stock <= min) { status = 'bajo_stock'; label = 'Bajo stock'; color = '#b45309'; }
+      else { status = 'disponible'; label = 'Disponible'; color = '#15803d'; }
+      const el = document.getElementById('stockStatusPreview');
+      el.innerHTML = `<span class="badge badge-${status}">${label}</span>`;
+
+      const warn = document.getElementById('stockWarning');
+      if (min > 0 && stock < min) {
+        warn.style.display = 'flex';
+        warn.innerHTML = `<span data-icon="alert" data-size="14"></span> El stock actual (${stock}) está por debajo del mínimo (${min}).`;
+        hydrateIcons(warn);
+      } else { warn.style.display = 'none'; }
+    }
+    function updateCostPreview() {
+      const form = document.getElementById('itemForm');
+      const stock = Number(form.elements.current_stock?.value || 0);
+      const cost = Number(form.elements.unit_cost?.value || 0);
+      const cur = form.elements.currency?.value || 'HNL';
+      document.getElementById('totalCostPreview').textContent = fmtMoney(stock * cost, cur);
+    }
+    function checkExpirationWarning() {
+      const form = document.getElementById('itemForm');
+      const v = form.elements.expiration_date?.value;
+      const warn = document.getElementById('expirationWarning');
+      if (!v) { warn.style.display = 'none'; return; }
+      const exp = new Date(v); const today = new Date(); today.setHours(0,0,0,0);
+      const days = Math.floor((exp - today) / 86400000);
+      if (days < 0) {
+        warn.style.display = 'flex';
+        warn.innerHTML = `<span data-icon="alert" data-size="14"></span> Este artículo está vencido desde hace ${Math.abs(days)} días.`;
+        hydrateIcons(warn);
+      } else if (days <= 30) {
+        warn.style.display = 'flex';
+        warn.innerHTML = `<span data-icon="alert" data-size="14"></span> Este artículo vence en ${days} días.`;
+        hydrateIcons(warn);
+      } else {
+        warn.style.display = 'none';
+      }
+    }
+    document.getElementById('itemForm').addEventListener('input', e => {
+      const n = e.target.name;
+      if (n === 'current_stock' || n === 'min_stock' || n === 'unit_cost' || n === 'currency') {
+        updateStockPreview(); updateCostPreview();
+      }
+      if (n === 'expiration_date') checkExpirationWarning();
+    });
+
+    // Image uploader handlers
+    const uploader = document.getElementById('imageUploader');
+    const fileInput = document.getElementById('imageFileInput');
+    const camInput = document.getElementById('imageCameraInput');
+    document.getElementById('uploaderCamera').addEventListener('click', e => { e.stopPropagation(); camInput.click(); });
+    document.getElementById('uploaderFile').addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
+    uploader.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+      if (uploader.classList.contains('has-image')) return;
+      fileInput.click();
+    });
+    fileInput.addEventListener('change', handleImageInput);
+    camInput.addEventListener('change', handleImageInput);
+    document.getElementById('replaceImage').addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
+    document.getElementById('removeImage').addEventListener('click', e => { e.stopPropagation(); pendingImageUrl = null; hidePreview(); });
+    // Drag & drop
+    uploader.addEventListener('dragover', e => { e.preventDefault(); uploader.style.borderColor = '#0891b2'; });
+    uploader.addEventListener('dragleave', () => { uploader.style.borderColor = ''; });
+    uploader.addEventListener('drop', async e => {
+      e.preventDefault(); uploader.style.borderColor = '';
+      const file = e.dataTransfer.files?.[0]; if (!file) return;
+      await processImageFile(file);
+    });
+
+    async function handleImageInput(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      await processImageFile(file);
+      e.target.value = '';
+    }
+    async function processImageFile(file) {
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        toast('Formato inválido. Solo JPG, PNG o WebP.', 'error'); return;
+      }
+      if (file.size > 8 * 1024 * 1024) {
+        toast('La imagen supera 8 MB.', 'error'); return;
+      }
+      // Show local preview immediately
+      const localUrl = URL.createObjectURL(file);
+      showPreview(localUrl);
+      try {
+        const url = await uploadImageFile(file);
+        pendingImageUrl = url;
+        showPreview(url);
+        toast('Imagen subida', 'success');
+      } catch (err) {
+        hidePreview();
+        toast(err.message || 'Error subiendo imagen', 'error');
+      }
+    }
+    function showPreview(url) {
+      uploader.classList.add('has-image');
+      document.getElementById('uploaderEmpty').style.display = 'none';
+      document.getElementById('uploaderPreview').style.display = 'block';
+      document.getElementById('previewImage').src = url;
+    }
+    function hidePreview() {
+      uploader.classList.remove('has-image');
+      document.getElementById('uploaderEmpty').style.display = 'block';
+      document.getElementById('uploaderPreview').style.display = 'none';
+      document.getElementById('previewImage').src = '';
+    }
+    async function uploadImageFile(file) {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await fetch('/api/inventory/upload-image', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${getToken()}` },
+        body: fd
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error subiendo imagen');
+      return data.image_url;
+    }
+
+    // Save handlers
+    document.getElementById('formSave').addEventListener('click', () => saveItem(false));
+    document.getElementById('formSaveAddAnother').addEventListener('click', () => saveItem(true));
+
+    async function saveItem(addAnother) {
+      const data = readForm();
+      if (!data.name?.trim()) {
+        toast('El nombre del artículo es obligatorio', 'error');
+        document.querySelector('[data-section="ident"]').classList.add('open');
+        document.querySelector('input[name="name"]').focus();
+        return;
+      }
+      const saveBtn = document.getElementById('formSave');
+      const saveAddBtn = document.getElementById('formSaveAddAnother');
+      const lbl = document.getElementById('formSaveLabel');
+      saveBtn.disabled = true; saveAddBtn.disabled = true;
+      lbl.textContent = 'Guardando...';
+      try {
+        const url = editingId ? `/api/inventory/${editingId}` : '/api/inventory';
+        const method = editingId ? 'PUT' : 'POST';
+        await api(url, { method, body: data });
+        lbl.textContent = '¡Guardado!';
+        toast(editingId ? 'Artículo actualizado' : 'Artículo agregado', 'success');
+        await loadAll();
+        if (addAnother && !editingId) {
+          // Reset form, keep drawer open
+          document.getElementById('itemForm').reset();
+          pendingImageUrl = null;
+          hidePreview();
+          updateStockPreview(); updateCostPreview();
+          document.querySelectorAll('.form-section').forEach((sec, i) => sec.classList.toggle('open', i === 0));
+          lbl.textContent = 'Guardar artículo';
+          saveBtn.disabled = false; saveAddBtn.disabled = false;
+        } else {
+          setTimeout(() => {
+            closeForm();
+            lbl.textContent = 'Guardar artículo';
+            saveBtn.disabled = false; saveAddBtn.disabled = false;
+          }, 600);
+        }
+      } catch (err) {
+        toast(err.message || 'Error guardando', 'error');
+        lbl.textContent = 'Guardar artículo';
+        saveBtn.disabled = false; saveAddBtn.disabled = false;
+      }
+    }
+
+    // ── Detail drawer ──
+    const detailDrawer = document.getElementById('detailDrawer');
+    const detailOverlay = document.getElementById('detailOverlay');
+    document.getElementById('detailCloseBtn').addEventListener('click', closeDetail);
+    document.getElementById('detailCloseFooter').addEventListener('click', closeDetail);
+    detailOverlay.addEventListener('click', closeDetail);
+    document.getElementById('detailEdit').addEventListener('click', () => { const id = currentItem?.id; if (id) { closeDetail(); openForm(id); } });
+    document.getElementById('detailAdjust').addEventListener('click', () => { const id = currentItem?.id; if (id) { closeDetail(); openAdjust(id); } });
+
+    async function openDetail(id) {
+      currentItem = allItems.find(i => i.id === id) || null;
+      const body = document.getElementById('detailBody');
+      body.innerHTML = `<div style="padding:2rem;text-align:center;color:#94a3b8;">Cargando...</div>`;
+      detailOverlay.classList.add('open');
+      detailDrawer.classList.add('open');
+      detailDrawer.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      try {
+        const [item, movements] = await Promise.all([
+          api(`/api/inventory/${id}`),
+          api(`/api/inventory/${id}/movements`)
+        ]);
+        currentItem = item;
+        renderDetail(item, movements || []);
+      } catch (err) {
+        body.innerHTML = `<div class="empty-state"><div class="empty-icon" data-icon="alert" data-size="28"></div><h3>No se pudo cargar</h3><p>${esc(err?.message || '')}</p></div>`;
+        hydrateIcons(body);
+      }
+    }
+    function closeDetail() {
+      detailOverlay.classList.remove('open');
+      detailDrawer.classList.remove('open');
+      detailDrawer.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      currentItem = null;
+    }
+
+    function renderDetail(item, movements) {
+      const body = document.getElementById('detailBody');
+      const heroImg = item.image_url
+        ? `<img src="${esc(item.image_url)}" alt="${esc(item.name)}">`
+        : `<span data-icon="package" data-size="48"></span>`;
+      const expBadge = expirationBadge(item);
+
+      body.innerHTML = `
+        <div class="detail-hero">
+          <div class="hero-img">${heroImg}</div>
+          <div class="hero-info">
+            <h2>${esc(item.name)}</h2>
+            <div class="hero-cat"><span data-icon="tag" data-size="14"></span> ${esc(item.category || TYPE_LABELS[item.type] || 'Sin categoría')} · ${esc(TYPE_LABELS[item.type] || '')}</div>
+            <div class="hero-badges">${statusBadge(item)} ${expBadge}</div>
+            <div class="hero-stats">
+              <div class="hero-stat"><div class="lbl">Stock actual</div><div class="val">${Number(item.current_stock).toLocaleString('es-HN')} ${esc(unitLabel(item.unit))}</div></div>
+              <div class="hero-stat"><div class="lbl">Stock mínimo</div><div class="val">${Number(item.min_stock).toLocaleString('es-HN')}</div></div>
+              <div class="hero-stat"><div class="lbl">Costo unitario</div><div class="val">${fmtMoney(item.unit_cost, item.currency)}</div></div>
+              <div class="hero-stat"><div class="lbl">Valor total</div><div class="val">${fmtMoney(item.total_value, item.currency)}</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4><span data-icon="package" data-size="14"></span> Identificación</h4>
+          <div class="info-grid">
+            <div class="info-item"><div class="il-lbl">SKU</div><div class="il-val">${esc(item.sku || '—')}</div></div>
+            <div class="info-item"><div class="il-lbl">Código de barras</div><div class="il-val">${esc(item.barcode || '—')}</div></div>
+            <div class="info-item"><div class="il-lbl">Tipo</div><div class="il-val">${esc(TYPE_LABELS[item.type] || '—')}</div></div>
+            <div class="info-item"><div class="il-lbl">Unidad</div><div class="il-val">${esc(unitLabel(item.unit))}</div></div>
+            ${item.description ? `<div class="info-item" style="grid-column:span 2;"><div class="il-lbl">Descripción</div><div class="il-val" style="font-weight:500;">${esc(item.description)}</div></div>` : ''}
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4><span data-icon="clock" data-size="14"></span> Fechas y vencimiento</h4>
+          <div class="info-grid">
+            <div class="info-item"><div class="il-lbl">Fecha de compra</div><div class="il-val">${fmtDate(item.purchase_date)}</div></div>
+            <div class="info-item"><div class="il-lbl">Fecha de vencimiento</div><div class="il-val">${fmtDate(item.expiration_date)}</div></div>
+            <div class="info-item"><div class="il-lbl">Alerta antes de</div><div class="il-val">${item.expiration_alert_days || 30} días</div></div>
+            <div class="info-item"><div class="il-lbl">Estado vencimiento</div><div class="il-val">${expBadge}</div></div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4><span data-icon="truck" data-size="14"></span> Costos y proveedor</h4>
+          <div class="info-grid">
+            <div class="info-item"><div class="il-lbl">Proveedor</div><div class="il-val">${esc(item.supplier_name || '—')}</div></div>
+            <div class="info-item"><div class="il-lbl">Factura</div><div class="il-val">${esc(item.invoice_number || '—')}</div></div>
+            <div class="info-item"><div class="il-lbl">Moneda</div><div class="il-val">${esc(item.currency || 'HNL')}</div></div>
+            <div class="info-item"><div class="il-lbl">Notas de compra</div><div class="il-val" style="font-weight:500;">${esc(item.purchase_notes || '—')}</div></div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4><span data-icon="mapPin" data-size="14"></span> Ubicación</h4>
+          <div class="info-grid">
+            <div class="info-item"><div class="il-lbl">Sucursal</div><div class="il-val">${esc(item.branch || '—')}</div></div>
+            <div class="info-item"><div class="il-lbl">Área</div><div class="il-val">${esc(AREA_LABELS[item.area] || '—')}</div></div>
+            <div class="info-item"><div class="il-lbl">Estante / ubicación exacta</div><div class="il-val">${esc(item.exact_location || '—')}</div></div>
+            <div class="info-item"><div class="il-lbl">Responsable</div><div class="il-val">${esc(item.responsible_user_name || '—')}</div></div>
+          </div>
+        </div>
+
+        ${item.internal_notes ? `<div class="detail-section">
+          <h4><span data-icon="fileText" data-size="14"></span> Notas internas</h4>
+          <div style="font-size:.92rem;color:#0f172a;line-height:1.55;white-space:pre-wrap;">${esc(item.internal_notes)}</div>
+        </div>` : ''}
+
+        <div class="detail-section">
+          <h4 style="display:flex;justify-content:space-between;align-items:center;">
+            <span><span data-icon="boxes" data-size="14"></span> Historial de movimientos</span>
+            <button class="btn btn-secondary btn-sm" id="btnQuickIn" type="button"><span data-icon="arrowDown" data-size="13"></span> Entrada</button>
+          </h4>
+          <div style="display:flex;gap:.4rem;margin-bottom:.85rem;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" data-mov-type="entrada" type="button"><span data-icon="arrowDown" data-size="13"></span> Entrada</button>
+            <button class="btn btn-ghost btn-sm" data-mov-type="salida" type="button"><span data-icon="arrowUp" data-size="13"></span> Salida</button>
+            <button class="btn btn-ghost btn-sm" data-mov-type="ajuste" type="button"><span data-icon="edit" data-size="13"></span> Ajuste</button>
+            <button class="btn btn-ghost btn-sm" data-mov-type="perdida" type="button"><span data-icon="alert" data-size="13"></span> Pérdida</button>
+          </div>
+          <div class="movement-list">
+            ${movements.length === 0 ? `<div style="padding:1rem;text-align:center;color:#94a3b8;font-size:.88rem;">Aún no hay movimientos registrados.</div>` : movements.map(m => `
+              <div class="movement-item">
+                <div class="movement-icon mov-${m.type}"><span data-icon="${m.type === 'entrada' ? 'arrowDown' : m.type === 'salida' ? 'arrowUp' : m.type === 'ajuste' ? 'edit' : m.type === 'perdida' ? 'alert' : m.type === 'vencimiento' ? 'clock' : 'truck'}" data-size="16"></span></div>
+                <div class="movement-info">
+                  <div class="movement-title">${MOV_LABELS[m.type] || m.type} · ${Number(m.quantity).toLocaleString('es-HN')} ${esc(unitLabel(item.unit))}</div>
+                  <div class="movement-meta">
+                    <span>${fmtDate(m.created_at)}</span>
+                    <span class="dot">·</span>
+                    <span>Stock: ${Number(m.previous_stock)} → ${Number(m.new_stock)}</span>
+                    ${m.user_name ? `<span class="dot">·</span><span>${esc(m.user_name)}</span>` : ''}
+                    ${m.reason ? `<span class="dot">·</span><span>${esc(m.reason)}</span>` : ''}
+                  </div>
+                  ${m.note ? `<div style="margin-top:.35rem;font-size:.82rem;color:#475569;font-style:italic;">"${esc(m.note)}"</div>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="detail-section" style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end;">
+          <button class="btn btn-ghost btn-sm" id="detailDuplicate" type="button"><span data-icon="copy" data-size="14"></span> Duplicar</button>
+          <button class="btn btn-ghost btn-sm" id="detailArchive" type="button" style="color:#dc2626;border-color:#fecaca;"><span data-icon="archive" data-size="14"></span> Archivar</button>
+        </div>
+      `;
+      hydrateIcons(body);
+
+      // Quick movement buttons
+      body.querySelectorAll('[data-mov-type]').forEach(btn => {
+        btn.addEventListener('click', () => openAdjust(item.id, btn.dataset.movType));
+      });
+      body.querySelector('#btnQuickIn').addEventListener('click', () => openAdjust(item.id, 'entrada'));
+      body.querySelector('#detailDuplicate').addEventListener('click', () => duplicateItem(item.id));
+      body.querySelector('#detailArchive').addEventListener('click', () => archiveItem(item.id));
+    }
+
+    // ── Adjust modal ──
+    const adjustOverlay = document.getElementById('adjustOverlay');
+    const adjustType = document.getElementById('adjustType');
+    let adjustingId = null;
+    document.getElementById('adjustCancel').addEventListener('click', () => closeAdjust());
+    adjustOverlay.addEventListener('click', e => { if (e.target === adjustOverlay) closeAdjust(); });
+    adjustType.addEventListener('change', updateAdjustHint);
+
+    function updateAdjustHint() {
+      const t = adjustType.value;
+      const lbl = document.getElementById('adjustQtyLabel');
+      const hint = document.getElementById('adjustHint');
+      if (t === 'entrada') { lbl.textContent = 'Cantidad a ingresar'; hint.textContent = 'Se sumará al stock actual'; }
+      else if (t === 'salida') { lbl.textContent = 'Cantidad a sacar'; hint.textContent = 'Se restará del stock actual'; }
+      else if (t === 'ajuste') { lbl.textContent = 'Stock final'; hint.textContent = 'El stock quedará exactamente en este valor'; }
+      else if (t === 'perdida') { lbl.textContent = 'Cantidad perdida / dañada'; hint.textContent = 'Se restará del stock'; }
+      else if (t === 'vencimiento') { lbl.textContent = 'Cantidad retirada'; hint.textContent = 'Retiro por producto vencido'; }
+      else if (t === 'transferencia') { lbl.textContent = 'Cantidad transferida'; hint.textContent = 'Solo se registra; no afecta el stock total'; }
+    }
+
+    function openAdjust(id, type = 'entrada') {
+      adjustingId = id;
+      const item = allItems.find(i => i.id === id);
+      adjustType.value = type;
+      document.getElementById('adjustQty').value = type === 'ajuste' ? (item?.current_stock || 0) : 1;
+      document.getElementById('adjustReason').value = '';
+      document.getElementById('adjustNote').value = '';
+      document.getElementById('adjustTitle').textContent = item ? `Movimiento — ${item.name}` : 'Ajustar stock';
+      updateAdjustHint();
+      adjustOverlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeAdjust() {
+      adjustOverlay.classList.remove('open');
+      adjustingId = null;
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('adjustConfirm').addEventListener('click', async () => {
+      const qty = Number(document.getElementById('adjustQty').value);
+      if (!adjustingId) return;
+      if (isNaN(qty) || qty < 0) { toast('Cantidad inválida', 'error'); return; }
+      const btn = document.getElementById('adjustConfirm');
+      btn.disabled = true;
+      try {
+        await api(`/api/inventory/${adjustingId}/adjust`, {
+          method: 'POST',
+          body: {
+            type: adjustType.value,
+            quantity: qty,
+            reason: document.getElementById('adjustReason').value,
+            note: document.getElementById('adjustNote').value
+          }
+        });
+        toast('Movimiento registrado', 'success');
+        closeAdjust();
+        await loadAll();
+        if (currentItem?.id === adjustingId || (detailDrawer.classList.contains('open'))) {
+          // refresh detail if open
+        }
+      } catch (err) {
+        toast(err.message || 'Error registrando movimiento', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // ── Confirm modal ──
+    const confirmOverlay = document.getElementById('confirmOverlay');
+    let confirmCallback = null;
+    document.getElementById('confirmCancel').addEventListener('click', () => closeConfirm());
+    document.getElementById('confirmAction').addEventListener('click', () => { if (confirmCallback) confirmCallback(); closeConfirm(); });
+    confirmOverlay.addEventListener('click', e => { if (e.target === confirmOverlay) closeConfirm(); });
+
+    function ask(title, body, onConfirm, actionLabel = 'Confirmar') {
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmBody').textContent = body;
+      document.getElementById('confirmAction').textContent = actionLabel;
+      confirmCallback = onConfirm;
+      confirmOverlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeConfirm() {
+      confirmOverlay.classList.remove('open');
+      confirmCallback = null;
+      document.body.style.overflow = '';
+    }
+
+    async function archiveItem(id) {
+      const item = allItems.find(i => i.id === id);
+      ask(
+        'Archivar artículo',
+        `¿Seguro que quieres archivar "${item?.name || 'este artículo'}"? Dejará de aparecer en el inventario activo, pero su historial se conservará.`,
+        async () => {
+          try {
+            await api(`/api/inventory/${id}/archive`, { method: 'POST' });
+            toast('Artículo archivado', 'success');
+            closeDetail();
+            await loadAll();
+          } catch (err) { toast(err.message || 'Error', 'error'); }
+        },
+        'Archivar'
+      );
+    }
+    async function duplicateItem(id) {
+      try {
+        const dup = await api(`/api/inventory/${id}/duplicate`, { method: 'POST' });
+        toast('Artículo duplicado', 'success');
+        await loadAll();
+        if (dup?.id) openForm(dup.id);
+      } catch (err) { toast(err.message || 'Error', 'error'); }
+    }
+
+    // ── Boot ──
+    loadAll();
+
+    // Close drawers on Esc
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      if (formDrawer.classList.contains('open')) closeForm();
+      else if (detailDrawer.classList.contains('open')) closeDetail();
+      else if (adjustOverlay.classList.contains('open')) closeAdjust();
+      else if (confirmOverlay.classList.contains('open')) closeConfirm();
+    });
+  </script>
+</body>
+</html>

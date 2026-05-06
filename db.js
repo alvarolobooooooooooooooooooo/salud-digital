@@ -161,6 +161,70 @@ const initDb = async () => {
         FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
         FOREIGN KEY (current_appointment_id) REFERENCES appointments(id) ON DELETE SET NULL
       );
+
+      CREATE TABLE IF NOT EXISTS inventory_items (
+        id SERIAL PRIMARY KEY,
+        clinic_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT DEFAULT '',
+        image_url TEXT DEFAULT '',
+        sku TEXT DEFAULT '',
+        barcode TEXT DEFAULT '',
+        category TEXT DEFAULT '',
+        type TEXT DEFAULT 'otro',
+        current_stock NUMERIC NOT NULL DEFAULT 0,
+        min_stock NUMERIC NOT NULL DEFAULT 0,
+        max_stock NUMERIC,
+        unit TEXT DEFAULT 'unidades',
+        low_stock_alert BOOLEAN DEFAULT TRUE,
+        purchase_date DATE,
+        expiration_date DATE,
+        expiration_alert_days INTEGER DEFAULT 30,
+        unit_cost NUMERIC NOT NULL DEFAULT 0,
+        currency TEXT DEFAULT 'HNL',
+        supplier_name TEXT DEFAULT '',
+        invoice_number TEXT DEFAULT '',
+        purchase_notes TEXT DEFAULT '',
+        branch TEXT DEFAULT '',
+        area TEXT DEFAULT '',
+        exact_location TEXT DEFAULT '',
+        responsible_user_id INTEGER,
+        is_active BOOLEAN DEFAULT TRUE,
+        is_archived BOOLEAN DEFAULT FALSE,
+        requires_expiration_control BOOLEAN DEFAULT FALSE,
+        requires_authorization_for_use BOOLEAN DEFAULT FALSE,
+        allow_use_in_appointments BOOLEAN DEFAULT TRUE,
+        internal_notes TEXT DEFAULT '',
+        created_by INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
+        FOREIGN KEY (responsible_user_id) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS inventory_movements (
+        id SERIAL PRIMARY KEY,
+        inventory_item_id INTEGER NOT NULL,
+        clinic_id INTEGER NOT NULL,
+        type TEXT NOT NULL CHECK(type IN ('entrada','salida','ajuste','perdida','vencimiento','transferencia')),
+        quantity NUMERIC NOT NULL,
+        previous_stock NUMERIC NOT NULL DEFAULT 0,
+        new_stock NUMERIC NOT NULL DEFAULT 0,
+        reason TEXT DEFAULT '',
+        note TEXT DEFAULT '',
+        user_id INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (inventory_item_id) REFERENCES inventory_items(id) ON DELETE CASCADE,
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_inventory_items_clinic ON inventory_items(clinic_id);
+      CREATE INDEX IF NOT EXISTS idx_inventory_items_category ON inventory_items(category);
+      CREATE INDEX IF NOT EXISTS idx_inventory_items_archived ON inventory_items(is_archived);
+      CREATE INDEX IF NOT EXISTS idx_inventory_movements_item ON inventory_movements(inventory_item_id);
+      CREATE INDEX IF NOT EXISTS idx_inventory_movements_clinic ON inventory_movements(clinic_id);
     `);
 
     const alterCommands = [
