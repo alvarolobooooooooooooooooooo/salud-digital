@@ -717,6 +717,140 @@
     main::-webkit-scrollbar-thumb:hover {
       background: linear-gradient(135deg, rgba(8, 145, 178, 0.6) 0%, rgba(6, 182, 212, 0.6) 100%);
     }
+
+    /* ── Pending row clickable ── */
+    #pendingTable tr {
+      cursor: pointer;
+    }
+    #pendingTable tr:hover td {
+      background: linear-gradient(90deg, rgba(8, 145, 178, 0.10) 0%, transparent 100%);
+    }
+
+    /* ── Payment Modal ── */
+    .pm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      z-index: 500;
+      display: none; align-items: center; justify-content: center;
+      padding: 1rem;
+      animation: pmFade .2s ease;
+    }
+    .pm-overlay.open { display: flex; }
+    @keyframes pmFade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pmIn { from { transform: translateY(20px) scale(.96); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+
+    .pm-modal {
+      width: 100%; max-width: 480px;
+      background: white;
+      border-radius: 22px;
+      box-shadow: 0 30px 80px rgba(8, 145, 178, .25), 0 0 100px rgba(8, 145, 178, .08);
+      overflow: hidden;
+      animation: pmIn .3s cubic-bezier(.34, 1.56, .64, 1);
+    }
+    .pm-head {
+      padding: 1.5rem 1.75rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .pm-head h3 {
+      font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; margin: 0;
+    }
+    .pm-close {
+      background: rgba(255,255,255,.2); border: none; color: white;
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all .25s;
+      font-size: 1.1rem;
+    }
+    .pm-close:hover { background: rgba(255,255,255,.32); transform: rotate(90deg); }
+
+    .pm-body { padding: 1.75rem; }
+    .pm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .pm-row.full { grid-template-columns: 1fr; }
+    .pm-field label {
+      display: block;
+      font-size: 0.72rem; font-weight: 800; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;
+    }
+    .pm-readonly {
+      padding: 0.7rem 0.9rem;
+      background: linear-gradient(135deg, #f8fafc, #f0f9ff);
+      border: 1.5px solid rgba(8, 145, 178, .12);
+      border-radius: 10px;
+      font-size: 0.95rem; font-weight: 700; color: #0f172a;
+      min-height: 42px; display: flex; align-items: center;
+    }
+    .pm-readonly.cost { color: #0891b2; }
+    .pm-select {
+      width: 100%;
+      padding: 0.75rem 0.9rem;
+      border: 1.5px solid rgba(8, 145, 178, .2);
+      border-radius: 10px;
+      font-size: 0.95rem; font-weight: 700; font-family: inherit;
+      background: white; color: #0f172a;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.9rem center;
+      padding-right: 2.5rem;
+      transition: all .25s;
+    }
+    .pm-select:focus {
+      outline: none;
+      border-color: #0891b2;
+      box-shadow: 0 0 0 4px rgba(8, 145, 178, .12);
+    }
+
+    .pm-foot {
+      padding: 1rem 1.75rem;
+      background: #f8fafc;
+      display: flex; justify-content: flex-end; gap: 0.65rem;
+      border-top: 1px solid #f1f5f9;
+    }
+    .pm-btn {
+      padding: 0.7rem 1.4rem;
+      border-radius: 10px;
+      font-weight: 700; font-size: 0.9rem; font-family: inherit;
+      cursor: pointer; border: none;
+      transition: all .25s;
+      display: inline-flex; align-items: center; gap: .4rem;
+    }
+    .pm-btn-cancel {
+      background: white; color: #64748b;
+      border: 1.5px solid #e2e8f0;
+    }
+    .pm-btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .pm-btn-save {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      box-shadow: 0 6px 18px rgba(8, 145, 178, .3);
+    }
+    .pm-btn-save:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(8, 145, 178, .4); }
+    .pm-btn-save:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+    .pm-toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 600;
+      background: white;
+      border-left: 4px solid #10b981;
+      padding: .9rem 1.1rem; border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .18);
+      display: none; align-items: center; gap: .65rem;
+      font-weight: 700; color: #0f172a; font-size: .9rem;
+      animation: pmIn .25s ease;
+      max-width: 360px;
+    }
+    .pm-toast.show { display: flex; }
+    .pm-toast.error { border-left-color: #ef4444; }
+
+    @media (max-width: 480px) {
+      .pm-row { grid-template-columns: 1fr; }
+      .pm-modal { border-radius: 18px; }
+      .pm-head, .pm-body, .pm-foot { padding-left: 1.25rem; padding-right: 1.25rem; }
+      .pm-toast { left: 1rem; right: 1rem; bottom: 90px; }
+    }
   </style>
 </head>
 <body>
@@ -863,6 +997,49 @@
   </div>
 </main>
 
+<!-- Payment Status Modal -->
+<div class="pm-overlay" id="paymentOverlay" onclick="if(event.target===this)closePaymentModal()">
+  <div class="pm-modal" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+    <div class="pm-head">
+      <h3 id="pmTitle">Cambiar estado de pago</h3>
+      <button type="button" class="pm-close" onclick="closePaymentModal()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="pm-body">
+      <div class="pm-row full">
+        <div class="pm-field">
+          <label>Paciente</label>
+          <div class="pm-readonly" id="pmPatient">—</div>
+        </div>
+      </div>
+      <div class="pm-row">
+        <div class="pm-field">
+          <label>Fecha</label>
+          <div class="pm-readonly" id="pmDate">—</div>
+        </div>
+        <div class="pm-field">
+          <label>Por pagar</label>
+          <div class="pm-readonly cost" id="pmCost">—</div>
+        </div>
+      </div>
+      <div class="pm-row full">
+        <div class="pm-field">
+          <label>Marcar como</label>
+          <select id="pmStatus" class="pm-select">
+            <option value="pending">Pendiente</option>
+            <option value="paid">Pagado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="pm-foot">
+      <button type="button" class="pm-btn pm-btn-cancel" onclick="closePaymentModal()">Cancelar</button>
+      <button type="button" class="pm-btn pm-btn-save" id="pmSaveBtn" onclick="updatePaymentStatus()">Actualizar</button>
+    </div>
+  </div>
+</div>
+
+<div class="pm-toast" id="pmToast"></div>
+
 <script src="/icons.js"></script>
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
@@ -936,15 +1113,28 @@
       } else {
         table.innerHTML = pending.map(c => {
           const formatted = Number(c.cost).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          const dateStr = new Date(c.created_at).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' });
+          // Use data-* attributes; click is wired below to avoid escaping issues in inline handlers.
           return `
-          <tr>
-            <td>${new Date(c.created_at).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+          <tr data-id="${c.id}" data-name="${esc(c.patient_name)}" data-date="${esc(dateStr)}" data-cost="L. ${formatted}" title="Click para cambiar estado de pago">
+            <td>${dateStr}</td>
             <td>${esc(c.patient_name)}</td>
-            <td>L. ${formatted}</td>
+            <td><strong style="color: #0891b2;">L. ${formatted}</strong></td>
             <td>${esc(c.phone || '—')}</td>
           </tr>
         `;
         }).join('');
+
+        table.querySelectorAll('tr[data-id]').forEach(tr => {
+          tr.addEventListener('click', () => {
+            openPaymentModal(
+              parseInt(tr.dataset.id, 10),
+              tr.dataset.name,
+              tr.dataset.date,
+              tr.dataset.cost
+            );
+          });
+        });
       }
 
       // Load paid consultations
@@ -1116,6 +1306,153 @@
         document.getElementById('paidStartDateDisplay').value = '';
         document.getElementById('paidEndDateDisplay').value = '';
         loadPaidConsultations();
+      });
+
+      // ── Payment Modal ──
+      let pmCurrentId = null;
+
+      function showToast(message, isError = false) {
+        const toast = document.getElementById('pmToast');
+        toast.textContent = message;
+        toast.className = 'pm-toast show' + (isError ? ' error' : '');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => toast.classList.remove('show'), 3200);
+      }
+
+      window.openPaymentModal = function(id, patientName, dateStr, costStr) {
+        pmCurrentId = id;
+        document.getElementById('pmPatient').textContent = patientName;
+        document.getElementById('pmDate').textContent = dateStr;
+        document.getElementById('pmCost').textContent = costStr;
+        document.getElementById('pmStatus').value = 'paid'; // most common action: mark as paid
+        document.getElementById('paymentOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+      };
+
+      window.closePaymentModal = function() {
+        document.getElementById('paymentOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+        pmCurrentId = null;
+      };
+
+      async function refreshFinances() {
+        try {
+          const [stats, pending, weekly] = await Promise.all([
+            api('/api/consultations/finances/summary'),
+            api('/api/consultations/finances/pending'),
+            api('/api/consultations/finances/weekly')
+          ]);
+
+          document.getElementById('monthRevenue').textContent = 'L. ' + fmtNum(stats.month_revenue);
+          document.getElementById('totalRevenue').textContent = 'L. ' + fmtNum(stats.total_revenue);
+          document.getElementById('pendingCount').textContent = stats.pending_count;
+
+          // Re-render weekly chart
+          const numValues2 = weekly.values.map(v => Number(v));
+          const hasData2 = numValues2.some(v => v > 0);
+          const maxValue2 = Math.max(...numValues2, 1);
+          const chartContainer2 = document.getElementById('chartContainer');
+          if (!hasData2) {
+            chartContainer2.innerHTML = '<div class="chart-empty"><div class="chart-empty-icon">📊</div><div class="chart-empty-text">Sin ingresos en los últimos 7 días</div></div>';
+          } else {
+            chartContainer2.innerHTML = weekly.days.map((date, i) => {
+              const value = numValues2[i];
+              const height = Math.max((value / maxValue2) * 100, 0);
+              const formatted = Number(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+              return `<div class="chart-bar" style="height: ${height}%; min-height: ${value > 0 ? '2px' : '0px'};" data-value="L. ${formatted}"></div>`;
+            }).join('');
+          }
+
+          // Re-render pending table (with fresh row click handlers)
+          const tbl = document.getElementById('pendingTable');
+          if (pending.length === 0) {
+            tbl.innerHTML = '<tr><td colspan="4" class="empty-table">No hay consultas pendientes de cobro</td></tr>';
+          } else {
+            tbl.innerHTML = pending.map(c => {
+              const formatted = Number(c.cost).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+              const dateStr = new Date(c.created_at).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' });
+              return `
+                <tr data-id="${c.id}" data-name="${esc(c.patient_name)}" data-date="${esc(dateStr)}" data-cost="L. ${formatted}" title="Click para cambiar estado de pago">
+                  <td>${dateStr}</td>
+                  <td>${esc(c.patient_name)}</td>
+                  <td><strong style="color: #0891b2;">L. ${formatted}</strong></td>
+                  <td>${esc(c.phone || '—')}</td>
+                </tr>`;
+            }).join('');
+            tbl.querySelectorAll('tr[data-id]').forEach(tr => {
+              tr.addEventListener('click', () => {
+                openPaymentModal(parseInt(tr.dataset.id, 10), tr.dataset.name, tr.dataset.date, tr.dataset.cost);
+              });
+            });
+          }
+
+          // Refresh paid table with current date filters
+          loadPaidConsultations(
+            document.getElementById('paidStartDate').value,
+            document.getElementById('paidEndDate').value
+          );
+
+          // Refresh by-doctor breakdown if visible
+          if (role === 'clinic_admin') {
+            try {
+              const byDoctor = await api('/api/consultations/finances/by-doctor');
+              const byDoctorTable = document.getElementById('byDoctorTable');
+              if (byDoctor.length === 0) {
+                byDoctorTable.innerHTML = '<tr><td colspan="6" class="empty-table">No hay datos de doctores</td></tr>';
+              } else {
+                byDoctorTable.innerHTML = byDoctor.map(d => `
+                  <tr>
+                    <td><strong>${esc(d.doctor_name || 'Sin asignar')}</strong></td>
+                    <td>${esc(d.specialty || '—')}</td>
+                    <td>${d.consultation_count}</td>
+                    <td>L. ${fmtNum(d.paid_amount)}</td>
+                    <td>L. ${fmtNum(d.pending_amount)}</td>
+                    <td><strong>L. ${fmtNum(d.total_amount)}</strong></td>
+                  </tr>
+                `).join('');
+              }
+            } catch(e) { console.error('refresh by-doctor', e); }
+          }
+        } catch (err) {
+          console.error('refreshFinances', err);
+        }
+      }
+
+      window.updatePaymentStatus = async function() {
+        if (!pmCurrentId) return;
+        const newStatus = document.getElementById('pmStatus').value;
+        const body = { payment_status: newStatus };
+        const saveBtn = document.getElementById('pmSaveBtn');
+        const originalLabel = saveBtn.textContent;
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Guardando...';
+
+        // If marking as paid, attach current doctor (mirrors patients.html behaviour)
+        if (newStatus === 'paid') {
+          try {
+            const me = await api('/api/auth/me');
+            if (me && me.id && me.role === 'doctor') body.doctor_id = me.id;
+          } catch (e) { /* non-blocking */ }
+        }
+
+        try {
+          await api(`/api/consultations/${pmCurrentId}`, { method: 'PUT', body });
+          closePaymentModal();
+          showToast(newStatus === 'paid' ? '✓ Pago registrado correctamente' : 'Estado actualizado');
+          await refreshFinances();
+        } catch (err) {
+          showToast('Error al actualizar: ' + (err.message || 'inténtalo de nuevo'), true);
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = originalLabel;
+        }
+      };
+
+      // Esc closes modal
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.getElementById('paymentOverlay').classList.contains('open')) {
+          closePaymentModal();
+        }
       });
     } catch(e) {
       console.error(e);
