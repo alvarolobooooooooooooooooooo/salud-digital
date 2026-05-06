@@ -1429,6 +1429,45 @@ function getTemperatureColor(temp) {
   return '#ef4444';
 }
 
+function getZoneFromLabel(label) {
+  const zoneMap = {
+    'Planta': 'sole',
+    'Dedo 1': 'toe1',
+    'Dedo 2': 'toe2',
+    'Dedo 3': 'toe3',
+    'Dedo 4': 'toe4',
+    'Dedo 5': 'toe5',
+    'Arco': 'arch'
+  };
+
+  for (const [labelKey, zoneVal] of Object.entries(zoneMap)) {
+    if (label.includes(labelKey)) return zoneVal;
+  }
+  return null;
+}
+
+function getFootFromLabel(label) {
+  if (label.includes('Izquierdo')) return 'left';
+  if (label.includes('Derecho')) return 'right';
+  return null;
+}
+
+function updateSVGColorsView(measurements) {
+  if (!measurements || measurements.length === 0) return;
+
+  measurements.forEach(m => {
+    const foot = getFootFromLabel(m.zone);
+    const zone = getZoneFromLabel(m.zone);
+    if (foot && zone) {
+      const path = document.querySelector(`#thermoFeetContainer .foot-path[data-foot="${foot}"][data-zone="${zone}"]`);
+      if (path) {
+        path.style.setProperty('--temp-color', getTemperatureColor(m.temp));
+        path.classList.add('temp-measured');
+      }
+    }
+  });
+}
+
 function openImageModal(filename) {
   const modal = document.createElement('div');
   modal.style.cssText = `
@@ -1555,7 +1594,7 @@ async function loadConsultation() {
     const podogram1 = new PodogramContainer('podogram1', extraData, true);
 
     // Thermography SVG
-    const thermoSVG = `<svg version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12800 11900" preserveAspectRatio="xMidYMid meet"><defs><style>.foot-path { fill: rgba(8, 145, 178, 0.2); cursor: pointer; transition: fill 0.2s; } .foot-path:hover { fill: rgba(8, 145, 178, 0.35); } .foot-path.selected { fill: #0891b2; }</style></defs><g transform="translate(0,11900) scale(1,-1)"><path class="foot-path" d="M4406 11884 c-207 -50 -395 -235 -497 -490 -172 -430 -103 -959 166 -1272 70 -82 127 -127 220 -173 334 -165 707 47 868 496 54 152 70 255 70 450 0 194 -16 297 -70 450 -141 393 -450 613 -757 539z" data-foot="left" data-zone="sole"/><path class="foot-path" d="M3078 11410 c-173 -29 -323 -193 -385 -420 -26 -95 -26 -377 1 -475 62 -228 192 -407 353 -487 63 -31 74 -33 168 -33 93 0 105 2 167 33 176 86 292 305 305 572 22 463 -280 865 -609 810z" data-foot="left" data-zone="toe1"/><path class="foot-path" d="M1888 10941 c-71 -29 -113 -57 -162 -112 -185 -206 -194 -608 -19 -919 60 -106 182 -232 269 -278 34 -17 90 -39 125 -48 217 -56 422 96 495 366 23 86 24 296 1 398 -58 253 -217 479 -401 567 -70 34 -90 38 -170 42 -72 3 -101 0 -138 -16z" data-foot="left" data-zone="toe2"/><path class="foot-path" d="M964 10303 c-146 -63 -236 -207 -251 -404 -21 -269 133 -590 352 -731 164 -107 345 -102 470 13 56 52 86 101 117 194 19 59 23 90 22 195 -1 105 -5 139 -28 213 -71 237 -211 414 -393 499 -58 28 -81 33 -158 35 -68 2 -100 -1 -131 -14z" data-foot="left" data-zone="toe3"/><path class="foot-path" d="M196 9480 c-271 -109 -255 -555 31 -832 117 -113 233 -164 362 -156 91 6 140 28 198 90 59 65 86 142 87 253 1 106 -14 173 -60 273 -72 158 -181 274 -322 344 -73 37 -92 42 -165 45 -64 3 -93 -1 -131 -17z" data-foot="left" data-zone="toe4"/><path class="foot-path" d="M3714 9830 c-654 -59 -1441 -341 -2014 -723 -475 -317 -758 -638 -903 -1027 -107 -288 -123 -556 -51 -848 62 -250 168 -452 438 -826 126 -175 133 -189 226 -422 169 -422 308 -840 489 -1474 125 -439 163 -620 297 -1425 184 -1106 264 -1484 374 -1761 242 -608 891 -1175 1490 -1300 116 -24 291 -22 441 5 385 68 663 240 865 537 204 297 287 629 287 1139 0 492 -50 695 -376 1530 -257 658 -278 734 -321 1155 -30 287 -39 470 -39 780 -1 320 8 472 44 750 26 205 46 298 129 590 128 449 161 638 210 1190 18 200 31 590 25 735 -15 352 -57 578 -140 752 -104 221 -245 349 -542 493 -147 72 -263 112 -393 134 -111 20 -403 28 -536 16z" data-foot="left" data-zone="arch"/><path class="foot-path" d="M8200 11890 c-131 -20 -246 -85 -355 -201 -123 -130 -211 -309 -256 -519 -29 -134 -32 -399 -7 -525 66 -325 227 -578 438 -689 404 -213 834 105 946 699 23 121 23 349 0 475 -67 374 -285 672 -546 743 -74 21 -154 27 -220 17z" data-foot="right" data-zone="sole"/><path class="foot-path" d="M9545 11392 c-194 -68 -341 -256 -407 -518 -18 -72 -22 -117 -22 -234 0 -173 14 -241 81 -378 98 -200 268 -304 445 -272 104 19 164 54 258 149 71 71 94 103 132 181 67 135 89 227 95 391 6 150 -4 227 -42 340 -50 148 -148 268 -264 323 -83 39 -197 47 -276 18z" data-foot="right" data-zone="toe1"/><path class="foot-path" d="M10696 10950 c-21 -6 -69 -26 -106 -46 -179 -94 -316 -289 -381 -541 -32 -125 -32 -315 0 -428 62 -220 199 -351 376 -363 313 -20 610 342 632 768 14 273 -96 507 -274 587 -65 28 -181 39 -247 23z" data-foot="right" data-zone="toe2"/><path class="foot-path" d="M11600 10302 c-200 -66 -370 -264 -446 -519 -37 -122 -40 -304 -7 -409 42 -131 129 -232 234 -269 62 -22 177 -19 246 6 205 76 369 280 439 545 25 95 25 286 0 369 -25 84 -51 131 -103 186 -91 97 -235 133 -363 91z" data-foot="right" data-zone="toe3"/><path class="foot-path" d="M12413 9490 c-335 -71 -589 -544 -450 -839 67 -144 238 -203 402 -141 190 73 332 232 407 456 32 96 32 254 0 335 -58 147 -201 223 -359 189z" data-foot="right" data-zone="toe4"/><path class="foot-path" d="M8707 9829 c-212 -15 -346 -53 -562 -159 -169 -83 -247 -134 -338 -219 -170 -160 -260 -357 -303 -658 -45 -324 -36 -837 26 -1408 32 -291 76 -508 169 -838 87 -305 117 -439 141 -630 68 -544 62 -1108 -20 -1732 -33 -252 -77 -392 -316 -1002 -155 -397 -262 -710 -298 -874 -89 -401 -81 -927 19 -1298 100 -370 340 -684 645 -845 204 -108 513 -176 730 -162 281 18 624 169 927 408 106 84 299 274 387 383 136 166 258 372 322 540 104 276 190 676 349 1635 171 1031 196 1144 421 1895 144 480 297 917 439 1254 36 85 70 144 136 235 307 421 431 658 491 939 31 147 31 400 0 544 -48 222 -146 448 -270 623 -96 137 -353 391 -522 517 -638 475 -1512 804 -2268 853 -81 5 -158 9 -172 8 -14 0 -74 -4 -133 -9z" data-foot="right" data-zone="arch"/></g></svg>`;
+    const thermoSVG = `<svg version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12800 11900" preserveAspectRatio="xMidYMid meet"><defs><style>.foot-path { fill: rgba(8, 145, 178, 0.2); cursor: pointer; transition: fill 0.2s; } .foot-path:hover { fill: rgba(8, 145, 178, 0.35); } .foot-path.selected { fill: #0891b2; } .foot-path.temp-measured { fill: var(--temp-color, rgba(8, 145, 178, 0.2)) !important; }</style></defs><g transform="translate(0,11900) scale(1,-1)"><path class="foot-path" d="M4406 11884 c-207 -50 -395 -235 -497 -490 -172 -430 -103 -959 166 -1272 70 -82 127 -127 220 -173 334 -165 707 47 868 496 54 152 70 255 70 450 0 194 -16 297 -70 450 -141 393 -450 613 -757 539z" data-foot="left" data-zone="sole"/><path class="foot-path" d="M3078 11410 c-173 -29 -323 -193 -385 -420 -26 -95 -26 -377 1 -475 62 -228 192 -407 353 -487 63 -31 74 -33 168 -33 93 0 105 2 167 33 176 86 292 305 305 572 22 463 -280 865 -609 810z" data-foot="left" data-zone="toe1"/><path class="foot-path" d="M1888 10941 c-71 -29 -113 -57 -162 -112 -185 -206 -194 -608 -19 -919 60 -106 182 -232 269 -278 34 -17 90 -39 125 -48 217 -56 422 96 495 366 23 86 24 296 1 398 -58 253 -217 479 -401 567 -70 34 -90 38 -170 42 -72 3 -101 0 -138 -16z" data-foot="left" data-zone="toe2"/><path class="foot-path" d="M964 10303 c-146 -63 -236 -207 -251 -404 -21 -269 133 -590 352 -731 164 -107 345 -102 470 13 56 52 86 101 117 194 19 59 23 90 22 195 -1 105 -5 139 -28 213 -71 237 -211 414 -393 499 -58 28 -81 33 -158 35 -68 2 -100 -1 -131 -14z" data-foot="left" data-zone="toe3"/><path class="foot-path" d="M196 9480 c-271 -109 -255 -555 31 -832 117 -113 233 -164 362 -156 91 6 140 28 198 90 59 65 86 142 87 253 1 106 -14 173 -60 273 -72 158 -181 274 -322 344 -73 37 -92 42 -165 45 -64 3 -93 -1 -131 -17z" data-foot="left" data-zone="toe4"/><path class="foot-path" d="M3714 9830 c-654 -59 -1441 -341 -2014 -723 -475 -317 -758 -638 -903 -1027 -107 -288 -123 -556 -51 -848 62 -250 168 -452 438 -826 126 -175 133 -189 226 -422 169 -422 308 -840 489 -1474 125 -439 163 -620 297 -1425 184 -1106 264 -1484 374 -1761 242 -608 891 -1175 1490 -1300 116 -24 291 -22 441 5 385 68 663 240 865 537 204 297 287 629 287 1139 0 492 -50 695 -376 1530 -257 658 -278 734 -321 1155 -30 287 -39 470 -39 780 -1 320 8 472 44 750 26 205 46 298 129 590 128 449 161 638 210 1190 18 200 31 590 25 735 -15 352 -57 578 -140 752 -104 221 -245 349 -542 493 -147 72 -263 112 -393 134 -111 20 -403 28 -536 16z" data-foot="left" data-zone="arch"/><path class="foot-path" d="M8200 11890 c-131 -20 -246 -85 -355 -201 -123 -130 -211 -309 -256 -519 -29 -134 -32 -399 -7 -525 66 -325 227 -578 438 -689 404 -213 834 105 946 699 23 121 23 349 0 475 -67 374 -285 672 -546 743 -74 21 -154 27 -220 17z" data-foot="right" data-zone="sole"/><path class="foot-path" d="M9545 11392 c-194 -68 -341 -256 -407 -518 -18 -72 -22 -117 -22 -234 0 -173 14 -241 81 -378 98 -200 268 -304 445 -272 104 19 164 54 258 149 71 71 94 103 132 181 67 135 89 227 95 391 6 150 -4 227 -42 340 -50 148 -148 268 -264 323 -83 39 -197 47 -276 18z" data-foot="right" data-zone="toe1"/><path class="foot-path" d="M10696 10950 c-21 -6 -69 -26 -106 -46 -179 -94 -316 -289 -381 -541 -32 -125 -32 -315 0 -428 62 -220 199 -351 376 -363 313 -20 610 342 632 768 14 273 -96 507 -274 587 -65 28 -181 39 -247 23z" data-foot="right" data-zone="toe2"/><path class="foot-path" d="M11600 10302 c-200 -66 -370 -264 -446 -519 -37 -122 -40 -304 -7 -409 42 -131 129 -232 234 -269 62 -22 177 -19 246 6 205 76 369 280 439 545 25 95 25 286 0 369 -25 84 -51 131 -103 186 -91 97 -235 133 -363 91z" data-foot="right" data-zone="toe3"/><path class="foot-path" d="M12413 9490 c-335 -71 -589 -544 -450 -839 67 -144 238 -203 402 -141 190 73 332 232 407 456 32 96 32 254 0 335 -58 147 -201 223 -359 189z" data-foot="right" data-zone="toe4"/><path class="foot-path" d="M8707 9829 c-212 -15 -346 -53 -562 -159 -169 -83 -247 -134 -338 -219 -170 -160 -260 -357 -303 -658 -45 -324 -36 -837 26 -1408 32 -291 76 -508 169 -838 87 -305 117 -439 141 -630 68 -544 62 -1108 -20 -1732 -33 -252 -77 -392 -316 -1002 -155 -397 -262 -710 -298 -874 -89 -401 -81 -927 19 -1298 100 -370 340 -684 645 -845 204 -108 513 -176 730 -162 281 18 624 169 927 408 106 84 299 274 387 383 136 166 258 372 322 540 104 276 190 676 349 1635 171 1031 196 1144 421 1895 144 480 297 917 439 1254 36 85 70 144 136 235 307 421 431 658 491 939 31 147 31 400 0 544 -48 222 -146 448 -270 623 -96 137 -353 391 -522 517 -638 475 -1512 804 -2268 853 -81 5 -158 9 -172 8 -14 0 -74 -4 -133 -9z" data-foot="right" data-zone="arch"/></g></svg>`;
     document.getElementById('thermoFeetContainer').innerHTML = thermoSVG;
 
     // Thermography
@@ -1574,6 +1613,9 @@ async function loadConsultation() {
             <span class="measurement-item-temp">${m.temp}°C</span>
           </div>
         `).join('');
+
+        // Color the SVG paths based on measurements
+        updateSVGColorsView(extraData.thermography.measurements);
       }
 
       setInputValue('thermo-observations', extraData.thermography.observations);
