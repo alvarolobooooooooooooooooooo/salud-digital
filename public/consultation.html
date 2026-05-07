@@ -500,6 +500,9 @@
       <div id="imgGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; margin-top: 1.5rem;"></div>
     </div>
 
+    <!-- Inventario utilizado -->
+    <div id="inventoryUsageSection"></div>
+
     <!-- Consentimiento Informado -->
     <div class="form-section">
       <h3>Consentimiento Informado</h3>
@@ -552,6 +555,7 @@
 <script src="/common.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
+<script src="/consultation-inventory.js"></script>
 <script src="/odontogram.types.js"></script>
 <script src="/odontogram.data.js"></script>
 <script src="/odontogram.utils.js"></script>
@@ -612,6 +616,16 @@ async function loadAppointment() {
     patientId = appt.patient_id;
     document.getElementById('patientName').textContent = appt.patient_name;
     odontogram1 = new OdontogramContainer('odontogram1', {}, false);
+
+    // Mount inventory section (consultation not saved yet → items stay pending until commit)
+    if (window.ConsultationInventory) {
+      ConsultationInventory.mount({
+        containerId: 'inventoryUsageSection',
+        consultationId: null,
+        consultationType: (me.specialty === 'Odontología') ? 'odontology' : 'general',
+        readonly: false
+      });
+    }
 
     // Load medical info
     await loadMedicalAlert();
@@ -833,9 +847,26 @@ async function submitConsult(e) {
       await uploadPendingImages(savedConsultId);
     }
 
-    msgEl.textContent = 'Consulta guardada correctamente';
-    msgEl.className = 'form-msg ok';
-    setTimeout(() => window.location.href = '/citas.html', 1500);
+    // Commit pending inventory usage (deducts stock + creates movements)
+    if (window.ConsultationInventory && ConsultationInventory.hasPending()) {
+      msgEl.textContent = 'Registrando inventario utilizado...';
+      try {
+        const ciResult = await ConsultationInventory.commit(savedConsultId);
+        if (ciResult.errors && ciResult.errors.length > 0) {
+          console.warn('Algunos artículos no se pudieron registrar:', ciResult.errors);
+          msgEl.textContent = `Consulta guardada. ${ciResult.errors.length} artículo(s) de inventario no se pudieron registrar — revisa el detalle.`;
+          msgEl.className = 'form-msg err';
+        }
+      } catch (ciErr) {
+        console.error('Inventory commit failed:', ciErr);
+      }
+    }
+
+    if (!msgEl.classList.contains('err')) {
+      msgEl.textContent = 'Consulta guardada correctamente';
+      msgEl.className = 'form-msg ok';
+    }
+    setTimeout(() => window.location.href = '/citas.html', 1800);
   } catch (err) {
     msgEl.style.display = 'block';
     msgEl.textContent = err.message;

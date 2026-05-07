@@ -1374,6 +1374,9 @@
       </div></div>
     </div>
 
+    <!-- Inventario usado en esta consulta (read-only) -->
+    <div id="inventoryUsageSection"></div>
+
     <!-- Costos y Pago -->
     <div class="form-section">
       <h3>Información de Pago</h3>
@@ -1407,14 +1410,9 @@
 <script src="/common.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
+<script src="/consultation-inventory.js"></script>
 <script src="/podogram-container.js"></script>
 <script>
-
-  <script src="/common.js"></script>
-  <script src="/icons.js"></script>
-  <script src="/layout.js"></script>
-  <script src="/podogram-container.js"></script>
-  <script>
 requireAuth(['clinic_admin', 'doctor']);
 
 let consultationId = null;
@@ -1570,6 +1568,16 @@ async function loadConsultation() {
     const paymentSelect = document.getElementById('consPayment');
     if (paymentSelect && consultation.payment_status) {
       paymentSelect.value = consultation.payment_status;
+    }
+
+    // Mount inventory section (read-only)
+    if (window.ConsultationInventory) {
+      ConsultationInventory.mount({
+        containerId: 'inventoryUsageSection',
+        consultationId: parseInt(consultationId, 10),
+        consultationType: 'podiatry',
+        readonly: true
+      });
     }
 
     // Family history

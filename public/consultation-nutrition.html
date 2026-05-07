@@ -2094,6 +2094,9 @@
           </div>
         </div>
 
+        <!-- Inventario utilizado -->
+        <div id="inventoryUsageSection"></div>
+
       </form>
 
       <div class="form-footer">
@@ -2227,6 +2230,7 @@
 <script src="/common.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
+<script src="/consultation-inventory.js"></script>
 <script src="/honduranFoods.js"></script>
 <script>
 requireAuth(['clinic_admin', 'doctor']);
@@ -2454,6 +2458,16 @@ async function init() {
         document.getElementById('patientSexWrap').style.display = '';
       }
     } catch (e) { console.warn('No se pudo cargar paciente:', e); }
+
+    // Mount inventory section
+    if (window.ConsultationInventory) {
+      ConsultationInventory.mount({
+        containerId: 'inventoryUsageSection',
+        consultationId: null,
+        consultationType: 'nutrition',
+        readonly: false
+      });
+    }
 
     // Restore draft
     restoreDraft();
@@ -3414,13 +3428,29 @@ async function saveFinal() {
       } catch (e) { console.warn('No se pudo marcar la cita como completada', e); }
     }
 
+    // Commit pending inventory usage
+    let invWarning = '';
+    if (window.ConsultationInventory && ConsultationInventory.hasPending()) {
+      document.getElementById('footerStatus').textContent = 'Registrando inventario utilizado...';
+      try {
+        const ciResult = await ConsultationInventory.commit(result.id);
+        if (ciResult.errors && ciResult.errors.length > 0) {
+          invWarning = ` (${ciResult.errors.length} artículo(s) de inventario no se pudieron registrar)`;
+          console.warn('Inventory errors:', ciResult.errors);
+        }
+      } catch (ciErr) {
+        console.error('Inventory commit failed:', ciErr);
+        invWarning = ' (error registrando inventario)';
+      }
+    }
+
     clearDraft();
     STATE.status = 'saved';
     STATE.isDirty = false;
     updateStatusBadge();
-    document.getElementById('footerStatus').textContent = `Consulta guardada · #${result.id}`;
-    showToast('Consulta de nutrición guardada correctamente', 'ok');
-    setTimeout(() => { window.location.href = '/citas.html'; }, 1500);
+    document.getElementById('footerStatus').textContent = `Consulta guardada · #${result.id}${invWarning}`;
+    showToast('Consulta de nutrición guardada correctamente' + invWarning, invWarning ? 'err' : 'ok');
+    setTimeout(() => { window.location.href = '/citas.html'; }, 1800);
   } catch (e) {
     console.error(e);
     showToast('Error al guardar: ' + e.message, 'err');

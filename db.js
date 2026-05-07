@@ -225,6 +225,36 @@ const initDb = async () => {
       CREATE INDEX IF NOT EXISTS idx_inventory_items_archived ON inventory_items(is_archived);
       CREATE INDEX IF NOT EXISTS idx_inventory_movements_item ON inventory_movements(inventory_item_id);
       CREATE INDEX IF NOT EXISTS idx_inventory_movements_clinic ON inventory_movements(clinic_id);
+
+      CREATE TABLE IF NOT EXISTS consultation_inventory_usage (
+        id SERIAL PRIMARY KEY,
+        clinic_id INTEGER NOT NULL,
+        consultation_id INTEGER NOT NULL,
+        consultation_type TEXT DEFAULT 'general',
+        patient_id INTEGER,
+        inventory_item_id INTEGER NOT NULL,
+        quantity_used NUMERIC NOT NULL DEFAULT 0,
+        unit TEXT DEFAULT '',
+        unit_cost NUMERIC NOT NULL DEFAULT 0,
+        total_cost NUMERIC NOT NULL DEFAULT 0,
+        stock_before NUMERIC,
+        stock_after NUMERIC,
+        notes TEXT DEFAULT '',
+        stock_applied BOOLEAN DEFAULT FALSE,
+        used_by_user_id INTEGER,
+        used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
+        FOREIGN KEY (consultation_id) REFERENCES consultations(id) ON DELETE CASCADE,
+        FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE SET NULL,
+        FOREIGN KEY (inventory_item_id) REFERENCES inventory_items(id) ON DELETE RESTRICT,
+        FOREIGN KEY (used_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_civ_consultation ON consultation_inventory_usage(consultation_id);
+      CREATE INDEX IF NOT EXISTS idx_civ_inventory ON consultation_inventory_usage(inventory_item_id);
+      CREATE INDEX IF NOT EXISTS idx_civ_clinic ON consultation_inventory_usage(clinic_id);
     `);
 
     const alterCommands = [
