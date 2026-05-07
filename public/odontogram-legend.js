@@ -5,93 +5,119 @@ class OdontogramLegend {
     // Legend is static, just shows all conditions
   }
 
+  _hexToRgba(hex, alpha) {
+    const h = (hex || '#000000').replace('#','');
+    const full = h.length === 3 ? h.split('').map(c=>c+c).join('') : h;
+    const num = parseInt(full, 16);
+    return `rgba(${(num>>16)&255}, ${(num>>8)&255}, ${num&255}, ${alpha})`;
+  }
+
+  _isLight(hex) {
+    const h = (hex || '#000000').replace('#','');
+    const full = h.length === 3 ? h.split('').map(c=>c+c).join('') : h;
+    const num = parseInt(full, 16);
+    const r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+    return (0.299*r + 0.587*g + 0.114*b) > 170;
+  }
+
   render() {
     const container = document.createElement('div');
-    container.className = 'legend-container';
+    container.className = 'legend-container odonto-legend';
     container.style.cssText = `
-      background: white;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
       border: 1px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 1.5rem;
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
     `;
 
-    // Title
+    // Header
+    const head = document.createElement('div');
+    head.style.cssText = `
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+    `;
     const title = document.createElement('div');
     title.style.cssText = `
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #475569;
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #334155;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 1rem;
+      letter-spacing: 0.12em;
     `;
-    title.textContent = 'Leyenda de Condiciones y Tratamientos';
-    container.appendChild(title);
+    title.innerHTML = `
+      <span style="display:inline-flex;width:18px;height:18px;border-radius:6px;background:linear-gradient(135deg,#0891b2,#06b6d4);align-items:center;justify-content:center;color:#fff;font-size:0.65rem;">●</span>
+      <span>Leyenda clínica</span>
+    `;
+    head.appendChild(title);
 
-    // Grid of conditions
+    const hint = document.createElement('div');
+    hint.style.cssText = `
+      font-size: 0.68rem;
+      color: #94a3b8;
+      font-weight: 600;
+    `;
+    hint.textContent = 'Color de diagnóstico · ícono';
+    head.appendChild(hint);
+    container.appendChild(head);
+
+    // Chips row — wraps responsively
     const grid = document.createElement('div');
     grid.className = 'legend-grid';
     grid.style.cssText = `
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
     `;
 
     CONDITION_LIST.forEach(condition => {
-      const item = document.createElement('div');
-      item.className = 'legend-item';
-      item.style.cssText = `
-        display: flex;
+      const chip = document.createElement('div');
+      chip.className = 'legend-item';
+      chip.title = condition.label;
+      chip.style.cssText = `
+        display: inline-flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.5rem;
+        padding: 0.4rem 0.65rem 0.4rem 0.4rem;
+        background: #ffffff;
+        border: 1px solid ${this._hexToRgba(condition.color, 0.35)};
+        border-radius: 999px;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        cursor: default;
       `;
+      chip.onmouseenter = () => {
+        chip.style.transform = 'translateY(-1px)';
+        chip.style.boxShadow = `0 6px 14px ${this._hexToRgba(condition.color, 0.18)}`;
+        chip.style.borderColor = this._hexToRgba(condition.color, 0.6);
+      };
+      chip.onmouseleave = () => {
+        chip.style.transform = 'translateY(0)';
+        chip.style.boxShadow = 'none';
+        chip.style.borderColor = this._hexToRgba(condition.color, 0.35);
+      };
 
-      // Color box
-      const colorBox = document.createElement('div');
-      colorBox.style.cssText = `
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
-        background-color: ${condition.color};
-        border: 2px solid ${condition.color === '#ffffff' ? '#1e293b' : condition.color};
+      const dot = document.createElement('span');
+      dot.style.cssText = `
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        background: ${condition.color};
+        color: ${this._isLight(condition.color) ? '#0f172a' : '#ffffff'};
+        font-size: 0.78rem; font-weight: 800;
         flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: ${condition.id === CONDITIONS.HEALTHY.id ? '#0f172a' : 'white'};
-        font-size: 1.1rem;
+        box-shadow: 0 2px 4px ${this._hexToRgba(condition.color, 0.4)}, inset 0 1px 0 rgba(255,255,255,0.35);
       `;
-      colorBox.textContent = condition.icon;
-      item.appendChild(colorBox);
+      dot.textContent = condition.icon;
+      chip.appendChild(dot);
 
-      // Label
-      const label = document.createElement('div');
-      label.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        gap: 0.2rem;
-      `;
+      const label = document.createElement('span');
+      label.style.cssText = `font-size: 0.78rem; font-weight: 700; color: #0f172a; letter-spacing: 0.01em;`;
+      label.textContent = condition.label;
+      chip.appendChild(label);
 
-      const labelName = document.createElement('div');
-      labelName.style.cssText = `
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: #0f172a;
-      `;
-      labelName.textContent = condition.label;
-      label.appendChild(labelName);
-
-      const labelId = document.createElement('div');
-      labelId.style.cssText = `
-        font-size: 0.75rem;
-        color: #94a3b8;
-      `;
-      labelId.textContent = condition.id;
-      label.appendChild(labelId);
-
-      item.appendChild(label);
-      grid.appendChild(item);
+      grid.appendChild(chip);
     });
 
     container.appendChild(grid);
