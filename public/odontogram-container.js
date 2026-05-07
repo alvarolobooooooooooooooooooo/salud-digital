@@ -156,11 +156,7 @@ class OdontogramContainer {
     this.state[fdi].isSelected = true;
 
     this.updateTeethVisuals();
-
-    // Editor popup only in editable mode; detail panel updates in both modes via render → _renderDetailPanelContent.
-    if(e && !this.readOnly) {
-      this._showPopup(fdi, null, e);
-    }
+    // Detail panel handles all editing UI now — no separate popup.
   }
 
   selectSurface(fdi, surface, e) {
@@ -179,19 +175,14 @@ class OdontogramContainer {
 
     this.updateTeethVisuals();
 
-    if(e) {
+    if(e && this.readOnly) {
       const currentCondId = (this.state[fdi].surfaces && this.state[fdi].surfaces[surface]) || CONDITIONS.HEALTHY.id;
-
-      if(this.readOnly) {
-        // In read-only mode: show info popup only if surface has a diagnosis
-        if(currentCondId && currentCondId !== CONDITIONS.HEALTHY.id) {
-          this._showSurfaceInfoPopup(fdi, surface, currentCondId, e, anchorRect);
-        }
-      } else {
-        // In editable mode: always show edit popup
-        this._showPopup(fdi, surface, e, anchorRect);
+      // Read-only: show contextual mini info popup if surface has a diagnosis.
+      if(currentCondId && currentCondId !== CONDITIONS.HEALTHY.id) {
+        this._showSurfaceInfoPopup(fdi, surface, currentCondId, e, anchorRect);
       }
     }
+    // Editable: detail panel handles editing — no popup.
   }
 
   applyCondition(condition, fdi, surface) {
@@ -504,23 +495,228 @@ class OdontogramContainer {
       body.appendChild(list);
     }
 
-    // Action hint (editable mode only)
+    inner.appendChild(body);
+
+    // ── Editor section (editable only) — picker + actions, all-in-one ──
     if(!this.readOnly) {
-      const hint = document.createElement('div');
-      hint.style.cssText = `
-        margin-top: 0.25rem;
-        padding: 0.55rem 0.7rem;
-        font-size: 0.7rem; color: #0e7490; font-weight: 600;
-        background: linear-gradient(135deg, #ecfeff 0%, #f0f9ff 100%);
-        border: 1px dashed rgba(8,145,178,0.35);
-        border-radius: 10px;
-        display: flex; align-items: center; gap: 0.4rem;
+      inner.appendChild(this._renderDxPicker(fdi));
+    }
+  }
+
+  _renderDxPicker(fdi) {
+    const wrap = document.createElement('div');
+    wrap.className = 'odonto-dx-picker';
+    wrap.style.cssText = `
+      padding: 0.85rem 1rem 1rem;
+      background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+      border-top: 1px solid #e2e8f0;
+      display: flex; flex-direction: column; gap: 0.7rem;
+    `;
+
+    // Section title row with target chip
+    const titleRow = document.createElement('div');
+    titleRow.style.cssText = `
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.5rem; flex-wrap: wrap;
+    `;
+    const ttl = document.createElement('div');
+    ttl.style.cssText = `
+      font-size: 0.66rem; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #475569;
+    `;
+    ttl.textContent = 'Aplicar diagnóstico';
+    titleRow.appendChild(ttl);
+
+    const target = document.createElement('div');
+    const isSurface = !!this.selectedSurface;
+    const surfLabel = isSurface ? this._getSurfaceLabel(this.selectedSurface, fdi) : null;
+    target.style.cssText = `
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.22rem 0.55rem 0.22rem 0.4rem;
+      background: ${isSurface ? 'rgba(8,145,178,0.10)' : 'rgba(15, 23, 42, 0.05)'};
+      border: 1px solid ${isSurface ? 'rgba(8,145,178,0.30)' : 'rgba(15,23,42,0.08)'};
+      border-radius: 999px;
+      font-size: 0.68rem; font-weight: 700;
+      color: ${isSurface ? '#0e7490' : '#334155'};
+    `;
+    const targetDot = document.createElement('span');
+    targetDot.style.cssText = `
+      width: 6px; height: 6px; border-radius: 50%;
+      background: ${isSurface ? '#0891b2' : '#64748b'};
+      flex-shrink: 0;
+    `;
+    target.appendChild(targetDot);
+    const targetTxt = document.createElement('span');
+    targetTxt.textContent = isSurface ? `${surfLabel}` : 'Diente completo';
+    target.appendChild(targetTxt);
+    titleRow.appendChild(target);
+
+    wrap.appendChild(titleRow);
+
+    // Helper hint
+    const help = document.createElement('div');
+    help.style.cssText = `
+      font-size: 0.7rem; color: #64748b; line-height: 1.35;
+      margin-top: -0.15rem;
+    `;
+    help.textContent = isSurface
+      ? `Aplicando a la superficie ${surfLabel} del diente ${getToothByFDI(fdi).name}. Haz clic en el diente para volver al diente completo.`
+      : `Aplicando al diente ${getToothByFDI(fdi).name} completo. Haz clic en una superficie para diagnosticarla individualmente.`;
+    wrap.appendChild(help);
+
+    // Picker grid
+    const grid = document.createElement('div');
+    grid.style.cssText = `
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.4rem;
+    `;
+
+    const currentCondId = isSurface
+      ? ((this.state[fdi].surfaces || {})[this.selectedSurface] || CONDITIONS.HEALTHY.id)
+      : (this.state[fdi].condition || CONDITIONS.HEALTHY.id);
+
+    CONDITION_LIST.forEach(cond => {
+      const btn = this._makeDxButton(cond, cond.id === currentCondId);
+      btn.onclick = () => {
+        this.applyCondition(cond.id, this.selectedTooth, this.selectedSurface);
+      };
+      grid.appendChild(btn);
+    });
+
+    wrap.appendChild(grid);
+
+    // Clear button
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.style.cssText = `
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.45rem;
+      padding: 0.65rem 0.85rem;
+      margin-top: 0.25rem;
+      background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+      color: #b91c1c;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 10px;
+      font-size: 0.78rem; font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    `;
+    clearBtn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+        <path d="M10 11v6M14 11v6"/>
+        <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+      </svg>
+      <span>Limpiar diente completo</span>
+    `;
+    clearBtn.onmouseenter = () => {
+      clearBtn.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
+      clearBtn.style.borderColor = '#ef4444';
+      clearBtn.style.boxShadow = '0 6px 16px rgba(239,68,68,0.18)';
+      clearBtn.style.transform = 'translateY(-1px)';
+    };
+    clearBtn.onmouseleave = () => {
+      clearBtn.style.background = 'linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)';
+      clearBtn.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+      clearBtn.style.boxShadow = 'none';
+      clearBtn.style.transform = 'translateY(0)';
+    };
+    clearBtn.onclick = () => {
+      this.clearToothSelection();
+    };
+    wrap.appendChild(clearBtn);
+
+    return wrap;
+  }
+
+  _makeDxButton(cond, isActive) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.title = cond.label;
+
+    const baseBg = isActive
+      ? `linear-gradient(135deg, ${this._hexToRgba(cond.color, 0.16)} 0%, ${this._hexToRgba(cond.color, 0.08)} 100%)`
+      : '#ffffff';
+    const baseBorder = isActive ? this._hexToRgba(cond.color, 0.55) : '#e2e8f0';
+
+    btn.style.cssText = `
+      position: relative;
+      display: flex; align-items: center; gap: 0.45rem;
+      padding: 0.5rem 0.55rem 0.5rem 0.5rem;
+      background: ${baseBg};
+      border: 1px solid ${baseBorder};
+      border-left: 3px solid ${cond.color};
+      border-radius: 9px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #0f172a;
+      cursor: pointer;
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s, background 0.18s, border-color 0.18s;
+      text-align: left;
+      min-width: 0;
+      letter-spacing: 0.005em;
+    `;
+
+    const isLight = this._isLight(cond.color);
+    const icon = document.createElement('span');
+    icon.style.cssText = `
+      display:inline-flex; align-items:center; justify-content:center;
+      width: 20px; height: 20px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, ${cond.color} 0%, ${this._shadeColor(cond.color, -18)} 100%);
+      color: ${isLight ? '#0f172a' : '#ffffff'};
+      font-size: 0.78rem; font-weight: 800;
+      box-shadow: 0 2px 4px ${this._hexToRgba(cond.color, 0.35)}, inset 0 1px 0 rgba(255,255,255,0.3);
+      flex-shrink: 0;
+    `;
+    icon.textContent = cond.icon;
+    btn.appendChild(icon);
+
+    const lbl = document.createElement('span');
+    lbl.style.cssText = `
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
+    `;
+    lbl.textContent = cond.label;
+    btn.appendChild(lbl);
+
+    if(isActive) {
+      const check = document.createElement('span');
+      check.style.cssText = `
+        position: absolute; top: 4px; right: 5px;
+        width: 14px; height: 14px;
+        border-radius: 50%;
+        background: ${cond.color};
+        color: ${isLight ? '#0f172a' : '#ffffff'};
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.55rem; font-weight: 900;
+        box-shadow: 0 0 0 2px #fff;
       `;
-      hint.innerHTML = '<span style="font-size:0.85rem;">💡</span><span>Haz clic en una superficie o en el diente para asignar diagnóstico.</span>';
-      body.appendChild(hint);
+      check.textContent = '✓';
+      btn.appendChild(check);
     }
 
-    inner.appendChild(body);
+    btn.onmouseenter = () => {
+      btn.style.transform = 'translateY(-1px)';
+      btn.style.boxShadow = `0 6px 14px ${this._hexToRgba(cond.color, 0.20)}`;
+      btn.style.borderColor = this._hexToRgba(cond.color, 0.6);
+      if(!isActive) {
+        btn.style.background = `linear-gradient(135deg, ${this._hexToRgba(cond.color, 0.06)} 0%, #ffffff 100%)`;
+      }
+    };
+    btn.onmouseleave = () => {
+      btn.style.transform = 'translateY(0)';
+      btn.style.boxShadow = 'none';
+      btn.style.borderColor = baseBorder;
+      btn.style.background = baseBg;
+    };
+
+    return btn;
   }
 
   _renderDetailEmpty() {

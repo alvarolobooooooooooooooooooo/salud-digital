@@ -302,6 +302,7 @@
       cursor: pointer; transition: all 0.2s ease;
       flex: 1; justify-content: center;
       min-width: 70px;
+      overflow: visible;
     }
     .radio-group label:hover {
       border-color: var(--pod-primary);
@@ -316,9 +317,11 @@
     }
     .radio-group input[type="radio"],
     .radio-group input[type="checkbox"] {
-      cursor: pointer; width: 16px; height: 16px;
+      cursor: pointer; width: 18px; height: 18px;
       accent-color: var(--pod-primary);
       flex-shrink: 0;
+      min-width: 18px;
+      margin: 0;
     }
 
     /* ── Odontograma Container ── */
