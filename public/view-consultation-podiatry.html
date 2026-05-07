@@ -6,668 +6,685 @@
   <title>Consulta Podológica</title>
   <link rel="stylesheet" href="/layout.css">
   <style>
+    /* ─────────────────────────────────────────────────────────────
+       Podiatry Module — Read-Only Premium Design
+       ───────────────────────────────────────────────────────────── */
+    :root {
+      --pod-primary: #0891b2;
+      --pod-primary-dark: #0369a1;
+      --pod-primary-light: #06b6d4;
+      --pod-primary-soft: rgba(8, 145, 178, 0.08);
+      --pod-text: #0f172a;
+      --pod-text-2: #334155;
+      --pod-muted: #64748b;
+      --pod-muted-2: #94a3b8;
+      --pod-border: #e2e8f0;
+      --pod-border-soft: #f1f5f9;
+      --pod-bg: #f8fafc;
+      --pod-surface: #ffffff;
+      --pod-success: #16a34a;
+      --pod-success-bg: #f0fdf4;
+      --pod-warning: #f59e0b;
+      --pod-danger: #dc2626;
+      --pod-danger-bg: #fef2f2;
+      --pod-shadow-md: 0 10px 30px rgba(8, 145, 178, 0.08);
+      --pod-shadow-lg: 0 24px 60px rgba(8, 145, 178, 0.14);
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { width: 100%; margin: 0; padding: 0; overflow-x: visible; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: #f8fafc;
-      color: #1e293b;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      color: var(--pod-text);
       position: relative;
       overflow-x: hidden;
     }
 
-    /* ── Animated Background Orbs ── */
     @keyframes floatBg {
-      0%, 100% { transform: translateY(0px) translateX(0px); }
+      0%, 100% { transform: translateY(0) translateX(0); }
       50% { transform: translateY(50px) translateX(30px); }
     }
-
     body::before {
-      content: '';
-      position: fixed;
-      width: 1000px;
-      height: 1000px;
-      background: radial-gradient(circle, rgba(8, 145, 178, 0.12) 0%, transparent 70%);
-      top: -200px;
-      right: -300px;
-      border-radius: 50%;
-      z-index: 0;
-      animation: floatBg 20s ease-in-out infinite;
-      filter: blur(60px);
-      pointer-events: none;
+      content: ''; position: fixed; width: 1000px; height: 1000px;
+      background: radial-gradient(circle, rgba(8, 145, 178, 0.10) 0%, transparent 70%);
+      top: -200px; right: -300px; border-radius: 50%; z-index: 0;
+      animation: floatBg 22s ease-in-out infinite;
+      filter: blur(60px); pointer-events: none;
     }
-
     body::after {
-      content: '';
-      position: fixed;
-      width: 800px;
-      height: 800px;
-      background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
-      bottom: -200px;
-      left: -200px;
-      border-radius: 50%;
-      z-index: 0;
-      animation: floatBg 25s ease-in-out infinite reverse;
-      filter: blur(60px);
-      pointer-events: none;
+      content: ''; position: fixed; width: 800px; height: 800px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
+      bottom: -200px; left: -200px; border-radius: 50%; z-index: 0;
+      animation: floatBg 28s ease-in-out infinite reverse;
+      filter: blur(60px); pointer-events: none;
     }
 
-    main { width: 100%; margin: 0; padding: 1.5rem 1rem; overflow-x: visible; }
+    main { width: 100%; margin: 0; padding: 1.75rem 1.25rem 4rem; overflow-x: visible; position: relative; z-index: 1; }
+    @keyframes floatSlow { from { transform: translateY(0); } to { transform: translateY(20px); } }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-    /* ── Floating Orb Animations ── */
-    @keyframes floatSlow { from { transform: translateY(0px); } to { transform: translateY(20px); } }
-
-    /* ── Page Header — Ultra Premium Radical ── */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2.5rem;
-      gap: 3rem;
-      background: linear-gradient(135deg, #0891b2 0%, #0369a1 50%, #06b6d4 100%);
-      padding: 3rem 3.5rem;
+    /* ── Premium Hero ── */
+    .pod-hero {
+      position: relative;
+      background: linear-gradient(135deg, #0891b2 0%, #0369a1 45%, #06b6d4 100%);
+      padding: 2.5rem 3rem;
       border-radius: 28px;
-      box-shadow: 0 30px 80px rgba(8, 145, 178, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-      position: relative;
+      box-shadow: 0 30px 80px rgba(8, 145, 178, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
       overflow: hidden;
-      min-height: 180px;
+      margin-bottom: 1.75rem;
+      animation: fadeUp 0.6s ease-out;
     }
-
-    .header::before {
-      content: '';
-      position: absolute;
-      top: -60%;
-      right: -25%;
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.12), transparent);
-      border-radius: 50%;
-      animation: floatSlow 8s ease-in-out infinite;
+    .pod-hero::before {
+      content: ''; position: absolute; top: -60%; right: -20%;
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.14), transparent 60%);
+      border-radius: 50%; animation: floatSlow 8s ease-in-out infinite alternate;
       pointer-events: none;
     }
-
-    .header::after {
-      content: '';
-      position: absolute;
-      bottom: -40%;
-      left: -15%;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(6, 182, 212, 0.15), transparent);
-      border-radius: 50%;
-      animation: floatSlow 10s ease-in-out infinite reverse;
+    .pod-hero::after {
+      content: ''; position: absolute; bottom: -50%; left: -15%;
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.20), transparent 60%);
+      border-radius: 50%; animation: floatSlow 11s ease-in-out infinite alternate-reverse;
       pointer-events: none;
     }
-
-    .header-content {
-      position: relative;
-      z-index: 1;
-      flex: 1;
+    .pod-hero-grid {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1fr auto;
+      gap: 2rem; align-items: start;
     }
-
-    .header-content h1 {
-      font-size: 3rem;
-      font-weight: 900;
-      color: white;
-      margin-bottom: 0.4rem;
-      letter-spacing: -0.04em;
-      line-height: 1;
+    .pod-hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.7rem; font-weight: 800; letter-spacing: 0.15em;
+      color: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.15);
+      padding: 0.4rem 0.85rem; border-radius: 999px;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      text-transform: uppercase; margin-bottom: 0.85rem;
     }
-
-    .header-content p {
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 1.1rem;
-      line-height: 1.6;
-      font-weight: 500;
+    .pod-hero-eyebrow svg { width: 14px; height: 14px; }
+    .pod-hero h1 {
+      font-size: 2.6rem; font-weight: 900; color: white;
+      letter-spacing: -0.04em; line-height: 1.05; margin-bottom: 0.5rem;
     }
-
+    .pod-hero-desc {
+      color: rgba(255, 255, 255, 0.92); font-size: 1.02rem;
+      line-height: 1.55; font-weight: 500; max-width: 640px;
+    }
+    .pod-hero-pills {
+      display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 1.4rem;
+    }
+    .pod-hero-pill {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      font-size: 0.78rem; font-weight: 700;
+      color: white; background: rgba(255, 255, 255, 0.14);
+      padding: 0.5rem 0.9rem; border-radius: 999px;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      transition: all 0.25s ease;
+    }
+    .pod-hero-pill:hover { background: rgba(255, 255, 255, 0.22); transform: translateY(-1px); }
+    .pod-hero-pill svg { width: 14px; height: 14px; }
+    .pod-hero-side {
+      display: flex; flex-direction: column; gap: 0.85rem; align-items: flex-end;
+    }
     .btn-back {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      gap: .4rem;
-      padding: .6rem 1.25rem;
+      position: relative; z-index: 2;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.65rem 1.25rem;
       border: 1.5px solid rgba(255, 255, 255, 0.3);
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      border-radius: 8px;
-      font-size: .9rem;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all .15s;
-      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.12);
+      color: white; border-radius: 12px;
+      font-size: 0.88rem; font-weight: 600; font-family: inherit;
+      cursor: pointer; transition: all 0.2s;
+      backdrop-filter: blur(12px);
     }
     .btn-back:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.22);
       border-color: rgba(255, 255, 255, 0.5);
+      transform: translateX(-2px);
+    }
+    .pod-hero-patient {
+      display: flex; flex-direction: column; gap: 0.25rem;
+      padding: 0.85rem 1.15rem;
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(14px);
+      min-width: 220px;
+    }
+    .pod-hero-patient-label {
+      font-size: 0.65rem; font-weight: 800; letter-spacing: 0.12em;
+      color: rgba(255, 255, 255, 0.82); text-transform: uppercase;
+    }
+    .pod-hero-patient-name {
+      font-size: 1.02rem; font-weight: 800; color: white; letter-spacing: -0.01em;
+    }
+    /* Read-only mode badge */
+    .pod-readonly-badge {
+      position: absolute; top: 1.25rem; right: 1.25rem; z-index: 2;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 0.85rem;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      backdrop-filter: blur(12px);
+      border-radius: 999px;
+      color: white; font-size: 0.7rem; font-weight: 800;
+      letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .pod-readonly-badge svg { width: 12px; height: 12px; }
+
+    /* ── Section Group ── */
+    .pod-group {
+      display: flex; align-items: center; gap: 0.85rem;
+      margin: 2.5rem 0 1.25rem; padding-left: 0.25rem;
+    }
+    .pod-group:first-of-type { margin-top: 0.5rem; }
+    .pod-group-num {
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--pod-primary) 0%, var(--pod-primary-light) 100%);
+      color: white; font-weight: 900; font-size: 0.9rem;
+      box-shadow: 0 6px 18px rgba(8, 145, 178, 0.3);
+    }
+    .pod-group-title {
+      font-size: 1.1rem; font-weight: 800; color: var(--pod-text);
+      letter-spacing: -0.02em;
+    }
+    .pod-group-line {
+      flex: 1; height: 2px;
+      background: linear-gradient(90deg, rgba(8,145,178,0.2), transparent);
+      border-radius: 2px;
     }
 
+    /* ── Form Section Cards (Read-only) ── */
     .form-section {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      padding: 2rem;
-      margin-bottom: 2.5rem;
-      border: 1px solid #f1f5f9;
+      position: relative;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 100%);
+      backdrop-filter: blur(20px);
+      border-radius: 22px;
+      box-shadow: var(--pod-shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      padding: 1.85rem 2rem;
+      margin-bottom: 1.4rem;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      animation: fadeUp 0.55s ease-out backwards;
+      transition: box-shadow 0.3s ease;
+    }
+    .form-section:hover { box-shadow: var(--pod-shadow-lg); }
+    .form-section::before {
+      content: ''; position: absolute; top: -1px; left: 24px; right: 24px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(8, 145, 178, 0.18), transparent);
     }
     .form-section h3 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 0.85rem;
+      font-size: 1.05rem; font-weight: 800; color: var(--pod-text);
+      letter-spacing: -0.02em;
+      margin-bottom: 1.4rem;
       padding-bottom: 1rem;
-      border-bottom: 2px solid #f1f5f9;
+      border-bottom: 2px solid var(--pod-border-soft);
     }
+    .form-section h3::before {
+      content: ''; flex-shrink: 0;
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--pod-primary-soft) 0%, rgba(6, 182, 212, 0.10) 100%);
+      border: 1px solid rgba(8, 145, 178, 0.15);
+      color: var(--pod-primary);
+      display: flex; align-items: center; justify-content: center;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 12l2 2 4-4'/%3E%3Cpath d='M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: center;
+    }
+    .form-section[data-icon="user"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="dna"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 15c6.667-6 13.333 0 20-6'/%3E%3Cpath d='M2 9c6.667 6 13.333 0 20 6'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="history"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="lifestyle"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="shoe"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 18h20'/%3E%3Cpath d='M3 14c0-2 1-4 4-4s4 1 6 1 4-1 6-1 2 1 2 3v3H3v-2z'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="alert"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z'/%3E%3Cline x1='12' y1='9' x2='12' y2='13'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="exam"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 11H5a2 2 0 0 0-2 2v7h6v-9z'/%3E%3Cpath d='M19 11h-4v9h6v-7a2 2 0 0 0-2-2z'/%3E%3Cpath d='M11 4h2a2 2 0 0 1 2 2v15h-6V6a2 2 0 0 1 2-2z'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="skin"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2c-3 4-6 7-6 11a6 6 0 0 0 12 0c0-4-3-7-6-11z'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="brain"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 2a4 4 0 0 0-4 4v2a4 4 0 0 0-2 6 4 4 0 0 0 2 6v2a4 4 0 0 0 8 0v-1'/%3E%3Cpath d='M15 2a4 4 0 0 1 4 4v2a4 4 0 0 1 2 6 4 4 0 0 1-2 6v2a4 4 0 0 1-7 1'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="heart"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 12h-4l-3 9L9 3l-3 9H2'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="pulse"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12h4l3-9 4 18 3-9h4'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="diagnosis"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='16' y1='13' x2='8' y2='13'/%3E%3Cline x1='16' y1='17' x2='8' y2='17'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="tools"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="thermo"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="image"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="signature"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 17.5c2-2 6-4 9-2s4 4 9 0'/%3E%3Cpath d='M3 21h18'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="package"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/%3E%3Cpolyline points='3.27 6.96 12 12.01 20.73 6.96'/%3E%3Cline x1='12' y1='22.08' x2='12' y2='12'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="payment"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='1' y='4' width='22' height='16' rx='2' ry='2'/%3E%3Cline x1='1' y1='10' x2='23' y2='10'/%3E%3C/svg%3E"); }
 
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+    .form-grid:last-child { margin-bottom: 0; }
     .form-grid.full { grid-template-columns: 1fr; }
     .form-grid.two { grid-template-columns: 1fr 1fr; }
 
-    .form-group { display: flex; flex-direction: column; gap: .4rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.45rem; }
     .form-group label {
-      font-size: .75rem;
-      font-weight: 600;
-      color: #475569;
-      text-transform: uppercase;
-      letter-spacing: .04em;
+      font-size: 0.72rem; font-weight: 800;
+      color: var(--pod-text-2);
+      text-transform: uppercase; letter-spacing: 0.08em;
     }
-    .form-group input, .form-group textarea {
-      padding: .75rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 16px;
-      font-family: inherit;
-      transition: all .15s;
-    }
-    .form-group input:focus, .form-group textarea:focus {
-      outline: 2px solid #0891b2;
-      outline-offset: -1px;
-      border-color: transparent;
-    }
+    .form-group input,
+    .form-group textarea,
     .form-group select {
-      padding: .75rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: .875rem;
+      padding: 0.85rem 0.95rem;
+      border: 1.5px solid var(--pod-border);
+      border-radius: 12px;
+      font-size: 0.95rem;
       font-family: inherit;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right .75rem center;
-      padding-right: 2.25rem;
-      cursor: pointer;
-      color: #475569;
-      background-color: white;
-      transition: all .15s;
+      color: var(--pod-text);
+      background: white;
+      transition: all 0.2s ease;
     }
-    .form-group select:focus { outline: 2px solid #0891b2; outline-offset: -1px; border-color: transparent; }
-    .form-group textarea { resize: vertical; min-height: 80px; }
+    /* Read-only / disabled styling */
+    .form-group input:disabled,
+    .form-group textarea:disabled,
+    .form-group select:disabled {
+      background: linear-gradient(135deg, var(--pod-bg) 0%, rgba(241, 245, 249, 0.85) 100%);
+      color: var(--pod-text);
+      cursor: default;
+      opacity: 1;
+      -webkit-text-fill-color: var(--pod-text);
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--pod-primary);
+      box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.12);
+    }
+    .form-group textarea { resize: vertical; min-height: 90px; line-height: 1.55; }
 
     .radio-group {
-      display: flex;
-      gap: 1.5rem;
-      margin-top: .5rem;
-      flex-wrap: wrap;
+      display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;
     }
     .radio-group label {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      font-size: .875rem;
-      text-transform: none;
-      letter-spacing: 0;
-      font-weight: 400;
-      cursor: pointer;
-      transition: color .15s;
-    }
-    .radio-group label:hover { color: #0891b2; }
-    .radio-group input[type="radio"], .radio-group input[type="checkbox"] {
-      cursor: pointer;
-      width: 18px;
-      height: 18px;
-      accent-color: #0891b2;
-    }
-
-    .footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: .75rem;
-      padding: 2rem;
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      font-size: 0.88rem; font-weight: 600;
+      color: var(--pod-text-2);
+      padding: 0.5rem 0.85rem;
+      border: 1.5px solid var(--pod-border);
+      border-radius: 10px;
       background: white;
-      border-top: 1px solid #f1f5f9;
-      border-radius: 0 0 12px 12px;
-      margin-top: -2rem;
+      cursor: default; transition: all 0.2s;
     }
-    .btn-cancel {
-      padding: .6rem 1.5rem;
-      border: 1.5px solid #e2e8f0;
-      background: white;
-      color: #64748b;
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: .875rem;
-      font-weight: 500;
-      transition: all .15s;
-    }
-    .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; }
-    .btn-save { display: none; }
-      padding: .6rem 1.75rem;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: .875rem;
-      font-weight: 600;
-      transition: all .15s;
-      box-shadow: 0 2px 8px rgba(8, 145, 178, 0.2);
-    }
-    .btn-save:hover {
-      background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
-      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
-      transform: translateY(-1px);
-    }
+    .radio-group input { cursor: default; width: 16px; height: 16px; accent-color: var(--pod-primary); }
 
+    /* ── Form messages ── */
     .form-msg {
-      padding: 1rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-      font-size: .875rem;
-      font-weight: 500;
+      padding: 0.95rem 1.1rem;
+      border-radius: 12px;
+      margin-bottom: 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
       display: none;
       border-left: 4px solid;
     }
-    .form-msg.err { color: #dc2626; background: #fef2f2; border-left-color: #dc2626; }
-    .form-msg.ok { color: #16a34a; background: #f0fdf4; border-left-color: #16a34a; }
+    .form-msg.err { color: #991b1b; background: rgba(239, 68, 68, 0.08); border-left-color: var(--pod-danger); }
+    .form-msg.ok { color: #14532d; background: rgba(22, 163, 74, 0.08); border-left-color: var(--pod-success); }
 
+    /* ── Clinical Tables ── */
     .clinical-table {
       width: 100%;
-      border-collapse: collapse;
-      margin: 1rem 0;
-      border: 1px solid #e2e8f0;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 0.5rem 0;
+      border: 1px solid var(--pod-border);
+      border-radius: 14px;
+      overflow: hidden;
     }
     .clinical-table thead {
-      background: #f1f5f9;
+      background: linear-gradient(135deg, #f8fafc 0%, #ecf9fc 100%);
     }
     .clinical-table th {
-      padding: 0.75rem;
+      padding: 0.85rem 0.9rem;
       text-align: left;
-      font-weight: 600;
-      font-size: 0.95rem;
-      border: 1px solid #e2e8f0;
-      color: #475569;
+      font-weight: 800;
+      font-size: 0.78rem;
+      color: var(--pod-primary-dark);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      border-bottom: 2px solid var(--pod-border);
     }
     .clinical-table td {
-      padding: 0.75rem;
-      border: 1px solid #e2e8f0;
-      font-size: 0.95rem;
+      padding: 0.7rem 0.9rem;
+      border-bottom: 1px solid var(--pod-border-soft);
+      font-size: 0.9rem;
+      color: var(--pod-text-2);
+      vertical-align: middle;
     }
-    .clinical-table input {
+    .clinical-table tbody tr:last-child td { border-bottom: none; }
+    .clinical-table tbody tr:hover { background: rgba(8, 145, 178, 0.02); }
+    .clinical-table input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: var(--pod-primary);
+    }
+    .clinical-table input[type="text"],
+    .clinical-table input[type="number"] {
       width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
-      font-size: 0.875rem;
+      padding: 0.55rem 0.7rem;
+      border: 1.5px solid var(--pod-border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: var(--pod-bg);
+      color: var(--pod-text);
     }
     .clinical-table textarea {
       width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
+      padding: 0.55rem 0.7rem;
+      border: 1.5px solid var(--pod-border);
+      border-radius: 8px;
       font-size: 0.85rem;
       font-family: inherit;
-      min-height: 60px;
+      min-height: 52px;
       max-height: 120px;
-      resize: none;
-      overflow-y: auto;
-    }
-
-    /* ── Thermography Styles ── */
-    .thermography-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .feet-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .feet-svg {
-      width: 100%;
-      max-width: 300px;
-      height: 350px;
-      cursor: crosshair;
-    }
-
-    .feet-svg svg {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .feet-label {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: #0891b2;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .controls-section {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .control-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .control-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: #0891b2;
-    }
-
-    .thermography-types {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-      gap: 0.5rem;
-    }
-
-    .type-option {
-      padding: 0.6rem 0.5rem;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 8px;
-      background: #f8fafc;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: #475569;
-    }
-
-    .type-option:hover {
-      border-color: #0891b2;
-      background: #ecf9fc;
-    }
-
-    .type-option.active {
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      color: white;
-      border-color: #0891b2;
-    }
-
-    .temperature-input {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .temperature-input input {
-      flex: 1;
-      padding: 0.6rem 0.75rem;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 0.85rem;
-      background: #f8fafc;
-      transition: all 0.2s;
-    }
-
-    .temperature-input input:focus {
-      outline: none;
-      border-color: #0891b2;
-      background: white;
-    }
-
-    .temperature-input button {
-      padding: 0.6rem 0.75rem;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-
-    .temperature-input button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(8, 145, 178, 0.25);
-    }
-
-    .measurements-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      max-height: 250px;
-      overflow-y: auto;
-    }
-
-    .measurement-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.6rem;
-      background: #f0f9ff;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      border-left: 3px solid #0891b2;
-    }
-
-    .measurement-item-temp {
-      font-weight: 700;
-      color: #0891b2;
-      margin-right: 0.5rem;
-    }
-
-    .measurement-item-delete {
-      background: #fee2e2;
-      color: #dc2626;
-      border: none;
-      border-radius: 4px;
-      padding: 0.3rem 0.5rem;
-      cursor: pointer;
-      font-size: 0.7rem;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .measurement-item-delete:hover {
-      background: #fecaca;
-    }
-
-    .color-legend {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 0.5rem;
-      padding: 1rem;
-      background: #f0f9ff;
-      border-radius: 8px;
-      margin-top: 1rem;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.75rem;
-    }
-
-    .legend-color {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-    }
-
-    /* ── Alerta Información Médica ── */
-    .medical-alert {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.05) 100%);
-      border: 1.5px solid rgba(239, 68, 68, 0.3);
-      border-left: 4px solid #ef4444;
-      border-radius: 12px;
-      padding: 1.25rem;
-      margin: 0 0 1.5rem 0;
-      backdrop-filter: blur(10px);
-      animation: slideDown 0.3s ease-out;
-    }
-    .medical-alert-content {
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
-    }
-    .medical-alert-icon {
-      font-size: 1.25rem;
-      flex-shrink: 0;
-      margin-top: 0.1rem;
-    }
-    .medical-alert-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    .medical-alert-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #991b1b;
-      letter-spacing: -0.3px;
-    }
-    .medical-alert-text {
-      font-size: 0.85rem;
-      color: #7f1d1d;
+      background: var(--pod-bg);
+      color: var(--pod-text);
+      resize: vertical;
       line-height: 1.5;
     }
-    .medical-alert-item {
-      display: flex;
-      gap: 0.5rem;
-      align-items: flex-start;
-      margin-bottom: 0.5rem;
-    }
-    .medical-alert-item:last-child { margin-bottom: 0; }
-    .medical-alert-item-label {
-      font-weight: 600;
-      color: #991b1b;
-      min-width: 90px;
-    }
-    .medical-alert-item-value {
-      color: #7f1d1d;
+    .clinical-table input:disabled,
+    .clinical-table textarea:disabled {
+      background: var(--pod-bg);
+      color: var(--pod-text);
+      -webkit-text-fill-color: var(--pod-text);
+      opacity: 1;
     }
 
+    /* ── Pressure Table ── */
+    .pressure-image-wrap {
+      display: flex; justify-content: center; margin: 0 0 1.25rem;
+      padding: 1rem; background: var(--pod-bg);
+      border-radius: 14px; border: 1px solid var(--pod-border);
+    }
+    .pressure-image-wrap img { max-width: 420px; width: 100%; height: auto; display: block; }
+    .clinical-table.pressure td { padding: 0.65rem 0.9rem; font-size: 0.85rem; }
+    .clinical-table.pressure input[type="text"] {
+      border: none; border-bottom: 1.5px solid var(--pod-border);
+      border-radius: 0; padding: 0.4rem 0.5rem;
+      background: transparent;
+    }
+
+    /* ── Thermography ── */
+    .thermography-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 1.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .feet-section {
+      display: flex; flex-direction: column; align-items: center; gap: 0.85rem;
+      padding: 1.25rem;
+      background: linear-gradient(135deg, #f8fafc 0%, rgba(236, 254, 255, 0.6) 100%);
+      border-radius: 16px;
+      border: 1px solid var(--pod-border);
+    }
+    .feet-svg { width: 100%; max-width: 320px; height: 360px; }
+    .feet-svg svg { width: 100%; height: 100%; object-fit: contain; }
+    .feet-label {
+      font-size: 0.9rem; font-weight: 800; color: var(--pod-primary);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .controls-section { display: flex; flex-direction: column; gap: 1rem; }
+    .control-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .control-label {
+      font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--pod-primary);
+    }
+    .thermography-types {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(82px, 1fr)); gap: 0.5rem;
+    }
+    .type-option {
+      padding: 0.6rem 0.5rem; border: 1.5px solid var(--pod-border);
+      border-radius: 10px; background: white;
+      text-align: center; font-size: 0.72rem; font-weight: 700;
+      color: var(--pod-text-2); line-height: 1.25; font-family: inherit;
+      cursor: default;
+    }
+    .type-option.active {
+      background: linear-gradient(135deg, var(--pod-primary) 0%, var(--pod-primary-light) 100%);
+      color: white; border-color: var(--pod-primary);
+      box-shadow: 0 6px 18px rgba(8, 145, 178, 0.3);
+    }
+    .measurements-list {
+      display: flex; flex-direction: column; gap: 0.4rem;
+      max-height: 250px; overflow-y: auto;
+      padding: 0.4rem; background: var(--pod-bg);
+      border-radius: 10px; border: 1px solid var(--pod-border-soft);
+    }
+    .measurement-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.55rem 0.7rem; background: white;
+      border-radius: 8px; font-size: 0.82rem;
+      border-left: 3px solid var(--pod-primary);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+    .measurement-item-temp {
+      font-weight: 800; color: var(--pod-primary); margin-right: 0.4rem;
+    }
+    .color-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.55rem; padding: 1rem 1.15rem;
+      background: linear-gradient(135deg, #f8fafc 0%, rgba(236, 254, 255, 0.6) 100%);
+      border-radius: 12px;
+      border: 1px solid var(--pod-border);
+      margin-top: 1rem;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.78rem; font-weight: 600; color: var(--pod-text-2);
+    }
+    .legend-color {
+      width: 14px; height: 14px; border-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    #thermoFeetContainer .foot-path.temp-measured {
+      fill: var(--temp-color, rgba(8, 145, 178, 0.2)) !important;
+    }
+
+    /* ── Image Grid ── */
+    .pod-image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.85rem; margin-top: 1.25rem;
+    }
+    .pod-image-card {
+      position: relative; border-radius: 12px;
+      overflow: hidden; aspect-ratio: 1;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .pod-image-card:hover { transform: translateY(-2px); }
+    .pod-image-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* ── Consent Display Bar ── */
+    .pod-consent-bar {
+      display: none; margin-top: 1.25rem;
+      padding: 1.1rem 1.25rem;
+      background: linear-gradient(135deg, var(--pod-success-bg) 0%, #ecfdf5 100%);
+      border: 1.5px solid rgba(22, 163, 74, 0.3);
+      border-left: 4px solid var(--pod-success);
+      border-radius: 14px;
+      align-items: center; gap: 0.85rem; flex-wrap: wrap;
+    }
+    .pod-consent-bar.show { display: flex; }
+    .pod-consent-btn {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.75rem 1.35rem;
+      border: none; border-radius: 10px;
+      color: white; font-weight: 800; font-size: 0.85rem;
+      cursor: pointer; font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .pod-consent-btn:hover { transform: translateY(-2px); }
+    .pod-consent-btn.success {
+      background: linear-gradient(135deg, var(--pod-success) 0%, #22c55e 100%);
+      box-shadow: 0 6px 16px rgba(22, 163, 74, 0.25);
+    }
+    .pod-consent-btn.primary {
+      background: linear-gradient(135deg, var(--pod-primary) 0%, var(--pod-primary-light) 100%);
+      box-shadow: 0 6px 16px rgba(8, 145, 178, 0.25);
+    }
+    .pod-consent-btn svg { width: 16px; height: 16px; }
+    .pod-consent-signed {
+      display: none; margin-left: auto;
+      padding: 0.55rem 0.95rem;
+      background: #dcfce7; color: #15803d;
+      border-radius: 999px; font-weight: 800; font-size: 0.78rem;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .pod-consent-signed.show { display: inline-flex; align-items: center; gap: 0.4rem; }
+
+    /* ── Medical Alert ── */
+    .medical-alert {
+      position: relative;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, rgba(220, 38, 38, 0.03) 100%);
+      border: 1.5px solid rgba(239, 68, 68, 0.25);
+      border-left: 4px solid #ef4444;
+      border-radius: 16px;
+      padding: 1.15rem 1.25rem;
+      margin: 0 0 1.5rem 0;
+      backdrop-filter: blur(10px);
+      animation: slideDown 0.35s ease-out;
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.06);
+    }
+    .medical-alert-content { display: flex; gap: 0.85rem; align-items: flex-start; }
+    .medical-alert-icon {
+      width: 36px; height: 36px; flex-shrink: 0;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 14px rgba(239, 68, 68, 0.25);
+    }
+    .medical-alert-info { flex: 1; display: flex; flex-direction: column; gap: 0.45rem; }
+    .medical-alert-title { font-size: 0.92rem; font-weight: 800; color: #991b1b; letter-spacing: -0.01em; }
+    .medical-alert-text { font-size: 0.85rem; color: #7f1d1d; line-height: 1.55; }
+    .medical-alert-item { display: flex; gap: 0.5rem; align-items: flex-start; margin-bottom: 0.4rem; }
+    .medical-alert-item:last-child { margin-bottom: 0; }
+    .medical-alert-item-label { font-weight: 700; color: #991b1b; min-width: 100px; }
+    .medical-alert-item-value { color: #7f1d1d; }
+
     @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Footer (hidden in view mode) ── */
+    .footer { display: none; }
+    .btn-cancel { display: none; }
+    .btn-save { display: none; }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .thermography-grid { grid-template-columns: 1fr; }
+      .feet-section { order: -1; }
+      .feet-svg { max-width: 100%; height: auto; min-height: 380px; }
+      .pod-hero { padding: 2rem 2rem; }
+      .pod-hero h1 { font-size: 2.2rem; }
     }
 
     @media (max-width: 860px) {
-      main, .layout-main { width: 100% !important; padding: 1rem 1rem !important; margin: 0 !important; padding-top: 80px !important; overflow-x: visible !important; }
+      main, .layout-main { width: 100% !important; padding: 1rem 1rem 4rem !important; margin: 0 !important; padding-top: 80px !important; overflow-x: visible !important; }
 
-      .form-section { padding: 1rem !important; margin-bottom: 1.5rem; }
-      .form-section h3 { font-size: 1rem; margin-bottom: 1rem; }
+      .pod-hero { padding: 1.85rem 1.5rem; }
+      .pod-hero-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+      .pod-hero-side { flex-direction: row; align-items: center; flex-wrap: wrap; }
+      .pod-hero-patient { width: 100%; }
+      .pod-hero h1 { font-size: 1.85rem; }
+      .pod-hero-desc { font-size: 0.95rem; }
 
-      .form-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .form-section { padding: 1.25rem 1.1rem !important; }
+      .form-section h3 { font-size: 0.95rem; gap: 0.6rem; }
+      .form-section h3::before { width: 30px; height: 30px; background-size: 16px 16px; }
+
+      .form-grid { grid-template-columns: 1fr; gap: 0.85rem; }
       .form-grid.two { grid-template-columns: 1fr; }
 
-      .clinical-table { font-size: 0.85rem; }
-      .clinical-table th { padding: 0.3rem 0.2rem; font-size: 0.8rem; }
-      .clinical-table td { padding: 0.3rem 0.2rem; font-size: 0.85rem; vertical-align: middle; }
-      .clinical-table td:last-child { padding: 0.3rem 0.15rem; }
-      .clinical-table textarea { min-height: 30px; max-height: 60px; font-size: 0.78rem; padding: 0.2rem; width: 100% !important; }
-      .clinical-table input { font-size: 0.8rem; padding: 0.25rem; vertical-align: middle; }
+      .clinical-table { font-size: 0.82rem; }
+      .clinical-table th { padding: 0.5rem 0.4rem; font-size: 0.7rem; }
+      .clinical-table td { padding: 0.45rem 0.4rem; font-size: 0.82rem; vertical-align: middle; }
+      .clinical-table textarea { min-height: 40px; max-height: 80px; font-size: 0.78rem; padding: 0.35rem; }
+      .clinical-table input { font-size: 0.78rem; padding: 0.3rem; }
 
-      .thermography-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-      }
-
-      .feet-section {
-        order: -1;
-        width: 100%;
-      }
-
-      .feet-svg {
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-        min-height: 400px;
-      }
-
-      .controls-section {
-        width: 100%;
-      }
+      .pod-group { margin: 1.75rem 0 0.85rem; }
+      .pod-group-num { width: 28px; height: 28px; font-size: 0.78rem; }
+      .pod-group-title { font-size: 0.95rem; }
     }
 
-    @media (max-width: 768px) {
-      main { padding: 1rem 0.75rem; overflow-x: visible; }
-      .header { padding: 2rem 1.5rem; flex-direction: column; gap: 1.5rem; min-height: auto; }
-      .header-content h1 { font-size: 1.8rem; }
-      .header-content p { font-size: 0.95rem; }
-      .btn-back { width: 100%; justify-content: center; }
-      .form-section { padding: 1.5rem; }
-      .form-grid { grid-template-columns: 1fr; gap: 1rem; }
-      .radio-group { gap: 1rem; }
-      .footer { padding: 1.5rem; }
-    }
+    @media (max-width: 480px) {
+      main { padding: 1rem 0.65rem 4rem; padding-top: 80px !important; }
+      .pod-hero { padding: 1.5rem 1.15rem; border-radius: 22px; }
+      .pod-hero h1 { font-size: 1.5rem; }
+      .pod-hero-desc { font-size: 0.88rem; }
+      .pod-hero-eyebrow { font-size: 0.62rem; padding: 0.3rem 0.7rem; }
+      .pod-hero-pill { font-size: 0.72rem; padding: 0.4rem 0.75rem; }
+      .pod-hero-patient { padding: 0.7rem 0.95rem; min-width: 0; }
 
-    @media (max-width: 380px) {
-      main { padding: 0.75rem 0.5rem; }
-      .header { padding: 1.5rem 1rem; }
-      .header-content h1 { font-size: 1.4rem; }
-      .header-content p { font-size: 0.85rem; }
-      .form-section { padding: 1rem; }
-      .form-section h3 { font-size: 0.95rem; margin-bottom: 1rem; }
-      .form-grid { gap: 0.75rem; grid-template-columns: 1fr !important; }
-      .form-grid.two { grid-template-columns: 1fr; }
-      .form-group label { font-size: 0.7rem; }
+      .form-section { padding: 1.1rem 0.95rem !important; border-radius: 16px; }
+      .form-section h3 { font-size: 0.88rem; padding-bottom: 0.85rem; margin-bottom: 1rem; }
+      .form-grid { gap: 0.75rem; }
+      .form-group label { font-size: 0.66rem; }
       .form-group input, .form-group textarea, .form-group select {
-        padding: 0.6rem;
-        font-size: 14px;
+        padding: 0.7rem 0.8rem; font-size: 16px;
       }
-      .clinical-table th { padding: 0.35rem; font-size: 0.8rem; }
-      .clinical-table td { padding: 0.35rem; font-size: 0.85rem; }
-      .clinical-table input { padding: 0.3rem; font-size: 0.8rem; width: 100% !important; }
-      .footer { padding: 1rem; gap: 0.5rem; }
-      .btn-cancel, .btn-save { padding: 0.5rem 1rem; font-size: 0.8rem; }
+      .clinical-table th { padding: 0.4rem 0.3rem; font-size: 0.66rem; }
+      .clinical-table td { padding: 0.4rem 0.3rem; font-size: 0.78rem; }
     }
   </style>
 </head>
 <body>
 
 <main class="layout-main">
-  <div class="header">
-    <div class="header-content">
-      <h1>Ver Consulta Podológica</h1>
-      <p class="header-content p">Paciente: <strong id="patientName">Cargando...</strong></p>
+  <!-- ── Premium Hero Header (Read-Only) ── -->
+  <header class="pod-hero">
+    <div class="pod-readonly-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Solo Lectura
     </div>
-    <button class="btn-back" onclick="history.back()">← Volver</button>
-  </div>
+    <div class="pod-hero-grid">
+      <div>
+        <div class="pod-hero-eyebrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-3 4-6 7-6 11a6 6 0 0 0 12 0c0-4-3-7-6-11z"/></svg>
+          Consulta Archivada · Podología
+        </div>
+        <h1>Ver Consulta Podológica</h1>
+        <p class="pod-hero-desc">Visualización completa del registro clínico podológico, evaluación, diagnóstico, tratamiento y seguimiento.</p>
+        <div class="pod-hero-pills">
+          <span class="pod-hero-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Consulta podológica</span>
+          <span class="pod-hero-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h20M3 14c0-2 1-4 4-4s4 1 6 1 4-1 6-1 2 1 2 3v3H3v-2z"/></svg>Evaluación del pie</span>
+          <span class="pod-hero-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Tratamiento</span>
+          <span class="pod-hero-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Historial clínico</span>
+        </div>
+      </div>
+      <div class="pod-hero-side">
+        <button type="button" class="btn-back" onclick="history.back()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Volver
+        </button>
+        <div class="pod-hero-patient">
+          <span class="pod-hero-patient-label">Paciente</span>
+          <strong class="pod-hero-patient-name" id="patientName">Cargando...</strong>
+        </div>
+      </div>
+    </div>
+  </header>
 
-  <!-- Advertencia Información Médica -->
+  <!-- ── Medical Alert ── -->
   <div id="medicalAlert" class="medical-alert" style="display: none;">
     <div class="medical-alert-content">
-      <div class="medical-alert-icon">⚠️</div>
+      <div class="medical-alert-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
       <div class="medical-alert-info">
         <div class="medical-alert-title">Información Médica Importante</div>
         <div id="medicalAlertText" class="medical-alert-text"></div>
@@ -676,8 +693,15 @@
   </div>
 
   <form id="consultForm" onsubmit="return false;">
+    <!-- ─── Sección 1: Información del Paciente ─── -->
+    <div class="pod-group">
+      <div class="pod-group-num">1</div>
+      <div class="pod-group-title">Información del Paciente</div>
+      <div class="pod-group-line"></div>
+    </div>
+
     <!-- Datos Personales -->
-    <div class="form-section">
+    <div class="form-section" data-icon="user">
       <h3>Datos Personales</h3>
       <div class="form-grid two">
         <div class="form-group">
@@ -691,8 +715,15 @@
       </div>
     </div>
 
+    <!-- ─── Sección 2: Historia Clínica ─── -->
+    <div class="pod-group">
+      <div class="pod-group-num">2</div>
+      <div class="pod-group-title">Historia Clínica</div>
+      <div class="pod-group-line"></div>
+    </div>
+
     <!-- Antecedentes Familiares Patológicos -->
-    <div class="form-section">
+    <div class="form-section" data-icon="dna">
       <h3>Antecedentes Familiares Patológicos</h3>
       <table class="clinical-table">
         <thead>
@@ -753,7 +784,7 @@
     </div>
 
     <!-- Antecedentes Personales y Podológicos -->
-    <div class="form-section">
+    <div class="form-section" data-icon="history">
       <h3>Antecedentes Personales y Podológicos</h3>
       <table class="clinical-table">
         <thead>
@@ -866,7 +897,7 @@
     </div>
 
     <!-- Antecedentes Personales No Patológicos -->
-    <div class="form-section">
+    <div class="form-section" data-icon="lifestyle">
       <h3>Antecedentes Personales No Patológicos</h3>
       <table class="clinical-table">
         <thead>
@@ -907,7 +938,7 @@
     </div>
 
     <!-- Tipo de Calzado -->
-    <div class="form-section">
+    <div class="form-section" data-icon="shoe">
       <h3>Tipo de Calzado</h3>
       <table class="clinical-table">
         <thead>
@@ -957,8 +988,15 @@
       </table>
     </div>
 
+    <!-- ─── Sección 3: Evaluación Clínica ─── -->
+    <div class="pod-group">
+      <div class="pod-group-num">3</div>
+      <div class="pod-group-title">Evaluación Clínica</div>
+      <div class="pod-group-line"></div>
+    </div>
+
     <!-- Historia de Enfermedad Actual -->
-    <div class="form-section">
+    <div class="form-section" data-icon="alert">
       <h3>Historia de Enfermedad Actual (HEA)</h3>
       <div class="form-grid full">
         <div class="form-group">
@@ -969,7 +1007,7 @@
     </div>
 
     <!-- Exploración Física -->
-    <div class="form-section">
+    <div class="form-section" data-icon="exam">
       <h3>Exploración Física</h3>
       <div class="form-grid">
         <div class="form-group">
@@ -999,7 +1037,7 @@
     </div>
 
     <!-- Exploración Dermatológica -->
-    <div class="form-section">
+    <div class="form-section" data-icon="skin">
       <h3>Exploración Dermatológica</h3>
       <table class="clinical-table">
         <thead>
@@ -1100,7 +1138,7 @@
     </div>
 
     <!-- Examen Neurológico -->
-    <div class="form-section">
+    <div class="form-section" data-icon="brain">
       <h3>Examen Neurológico</h3>
       <table class="clinical-table">
         <thead>
@@ -1141,7 +1179,7 @@
     </div>
 
     <!-- Examen Vascular -->
-    <div class="form-section">
+    <div class="form-section" data-icon="heart">
       <h3>Examen Vascular</h3>
       <table class="clinical-table">
         <thead>
@@ -1230,48 +1268,55 @@
     </div>
 
     <!-- Presión Arterial y Fotopletimosmografía -->
-    <div class="form-section">
+    <div class="form-section" data-icon="pulse">
       <h3>Presión Arterial y Fotopletimosmografía</h3>
-      <div style="text-align: center; margin: 1.5rem 0; overflow: hidden;">
-        <img src="/assets/pressure-measurement.PNG" alt="Medición de presión arterial" style="max-width: 450px; width: 90%; height: auto;">
+      <div class="pressure-image-wrap">
+        <img src="/assets/pressure-measurement.PNG" alt="Medición de presión arterial">
       </div>
-      <table class="clinical-table">
+      <table class="clinical-table pressure">
         <tbody>
           <tr>
-            <td>Presión del brazo derecho:</td>
-            <td colspan="3"><input type="text" disabled id="consPressureArmRight" style="width: 100%; font-size: 0.95rem; padding: 0.3rem 0.75rem; border: none; border-bottom: 1px solid #333; height: 1.5rem;"></td>
+            <td><strong>Presión del brazo derecho</strong></td>
+            <td colspan="3"><input type="text" disabled id="consPressureArmRight" placeholder="mm/Hg"></td>
           </tr>
           <tr>
-            <td>Presión del brazo izquierdo:</td>
-            <td colspan="3"><input type="text" disabled id="consPressureArmLeft" style="width: 100%; font-size: 0.95rem; padding: 0.3rem 0.75rem; border: none; border-bottom: 1px solid #333; height: 1.5rem;"></td>
+            <td><strong>Presión del brazo izquierdo</strong></td>
+            <td colspan="3"><input type="text" disabled id="consPressureArmLeft" placeholder="mm/Hg"></td>
           </tr>
           <tr>
-            <td style="width: 20%;">Presión:</td>
-            <td style="width: 40%;">TP <input type="text" disabled id="consPressureRightTP" style="width: 100%; font-size: 0.95rem; padding: 0.75rem; border: none; border-bottom: 1px solid #333;"></td>
-            <td style="width: 40%;">DP <input type="text" disabled id="consPressureRightDP" style="width: 100%; font-size: 0.95rem; padding: 0.75rem; border: none; border-bottom: 1px solid #333;"></td>
+            <td style="width: 20%;"><strong>Pie derecho — Presión</strong></td>
+            <td style="width: 40%;"><span style="color: var(--pod-muted); font-weight: 700; margin-right: 0.4rem;">TP</span><input type="text" disabled id="consPressureRightTP" placeholder="mm/Hg" style="display: inline-block; width: calc(100% - 30px);"></td>
+            <td style="width: 40%;"><span style="color: var(--pod-muted); font-weight: 700; margin-right: 0.4rem;">DP</span><input type="text" disabled id="consPressureRightDP" placeholder="mm/Hg" style="display: inline-block; width: calc(100% - 30px);"></td>
           </tr>
           <tr>
-            <td>Presión:</td>
-            <td>TP <input type="text" disabled id="consPressureLeftTP" style="width: 100%; font-size: 0.95rem; padding: 0.75rem; border: none; border-bottom: 1px solid #333;"></td>
-            <td>DP <input type="text" disabled id="consPressureLeftDP" style="width: 100%; font-size: 0.95rem; padding: 0.75rem; border: none; border-bottom: 1px solid #333;"></td>
+            <td><strong>Pie izquierdo — Presión</strong></td>
+            <td><span style="color: var(--pod-muted); font-weight: 700; margin-right: 0.4rem;">TP</span><input type="text" disabled id="consPressureLeftTP" placeholder="mm/Hg" style="display: inline-block; width: calc(100% - 30px);"></td>
+            <td><span style="color: var(--pod-muted); font-weight: 700; margin-right: 0.4rem;">DP</span><input type="text" disabled id="consPressureLeftDP" placeholder="mm/Hg" style="display: inline-block; width: calc(100% - 30px);"></td>
           </tr>
           <tr>
-            <td colspan="4" style="font-weight: 600; padding: 1rem 0.75rem;">Fotopletimosmografía</td>
+            <td colspan="4" style="font-weight: 800; padding: 1rem 0.9rem; color: var(--pod-primary-dark); background: linear-gradient(135deg, var(--pod-primary-soft) 0%, rgba(6, 182, 212, 0.06) 100%); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.78rem;">Fotopletimosmografía</td>
           </tr>
           <tr>
-            <td>Pie derecho</td>
-            <td colspan="3"><input type="text" disabled id="consFotopletimoRightUnit" style="width: 100%; font-size: 0.95rem; padding: 0.3rem 0.75rem; border: none; border-bottom: 1px solid #333; height: 1.5rem;" placeholder="mm/Hg"></td>
+            <td><strong>Pie derecho</strong></td>
+            <td colspan="3"><input type="text" disabled id="consFotopletimoRightUnit" placeholder="mm/Hg"></td>
           </tr>
           <tr>
-            <td>Pie izquierdo</td>
-            <td colspan="3"><input type="text" disabled id="consFotopletimoLeftUnit" style="width: 100%; font-size: 0.95rem; padding: 0.3rem 0.75rem; border: none; border-bottom: 1px solid #333; height: 1.5rem;" placeholder="mm/Hg"></td>
+            <td><strong>Pie izquierdo</strong></td>
+            <td colspan="3"><input type="text" disabled id="consFotopletimoLeftUnit" placeholder="mm/Hg"></td>
           </tr>
         </tbody>
       </table>
     </div>
 
+    <!-- ─── Sección 4: Diagnóstico y Tratamiento ─── -->
+    <div class="pod-group">
+      <div class="pod-group-num">4</div>
+      <div class="pod-group-title">Diagnóstico y Tratamiento</div>
+      <div class="pod-group-line"></div>
+    </div>
+
     <!-- Diagnóstico y Plan -->
-    <div class="form-section">
+    <div class="form-section" data-icon="diagnosis">
       <h3>Diagnóstico y Plan de Manejo</h3>
       <div class="form-grid full">
         <div class="form-group">
@@ -1288,7 +1333,7 @@
     </div>
 
     <!-- Procedimientos -->
-    <div class="form-section">
+    <div class="form-section" data-icon="tools">
       <h3>Procedimientos Realizados</h3>
       <div class="form-grid full">
         <div class="form-group">
@@ -1298,12 +1343,12 @@
     </div>
 
     <!-- Termografía y Termometría -->
-    <div class="form-section">
+    <div class="form-section" data-icon="thermo">
       <h3>Termografía y Termometría</h3>
       <div class="thermography-grid">
         <!-- SVG de Pies -->
         <div class="feet-section">
-          <h4 style="color: #0891b2; font-weight: 700; margin-bottom: 0.5rem; font-size: 0.95rem;">Visualización de Pies</h4>
+          <span class="feet-label">Visualización de Pies</span>
           <div class="feet-svg" id="thermoFeetContainer"></div>
         </div>
 
@@ -1311,7 +1356,7 @@
         <div class="controls-section">
           <div class="control-group">
             <label class="control-label">Tipo de Termografía</label>
-            <div id="thermo-type-display" style="padding: 0.6rem 0.75rem; background: #f8fafc; border-radius: 8px; font-weight: 600; color: #0891b2;">—</div>
+            <div id="thermo-type-display" style="padding: 0.85rem 1rem; background: var(--pod-bg); border: 1.5px solid var(--pod-border); border-radius: 12px; font-weight: 700; color: var(--pod-primary); font-size: 0.95rem;">—</div>
           </div>
 
           
@@ -1325,7 +1370,7 @@
 
           <div class="control-group">
             <label class="control-label">Observaciones Generales</label>
-            <textarea disabled id="thermo-observations" placeholder="Notas sobre los patrones térmicos observados..." style="padding: 0.6rem 0.75rem; border: 1.5px solid #e2e8f0; border-radius: 8px; font-family: inherit; font-size: 0.85rem; background: #f8fafc; min-height: 80px; resize: vertical;"></textarea>
+            <textarea disabled id="thermo-observations" placeholder="Sin observaciones registradas..." style="padding: 0.85rem 1rem; border: 1.5px solid var(--pod-border); border-radius: 12px; font-family: inherit; font-size: 0.9rem; background: var(--pod-bg); min-height: 90px; resize: vertical; color: var(--pod-text); -webkit-text-fill-color: var(--pod-text);"></textarea>
           </div>
         </div>
       </div>
@@ -1356,29 +1401,46 @@
     </div>
 
     <!-- Imágenes de la Consulta -->
-    <div class="form-section">
+    <div class="form-section" data-icon="image">
       <h3>Imágenes de la Consulta</h3>
-      <div id="imgGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem;"></div>
+      <div id="imgGrid" class="pod-image-grid"></div>
     </div>
 
     <!-- Consentimiento Informado -->
-    <div class="form-section">
+    <div class="form-section" data-icon="signature">
       <h3>Consentimiento Informado</h3>
-      <div class="form-grid">
+      <div class="form-grid full">
         <div class="form-group">
-          <label>Seleccionar Plantilla de Consentimiento</label>
-          <select disabled id="consTemplateSelect" onchange="updateConsentInfo()">
-            <option value="">-- Seleccione un consentimiento --</option>
+          <label>Plantilla de Consentimiento</label>
+          <select disabled id="consTemplateSelect">
+            <option value="">-- Sin consentimiento registrado --</option>
           </select>
         </div>
-      </div></div>
+      </div>
+      <div id="consConsentInfo" class="pod-consent-bar">
+        <button type="button" class="pod-consent-btn primary" onclick="downloadConsentPDF()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar PDF
+        </button>
+        <span id="consSignedIndicator" class="pod-consent-signed">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Consentimiento Firmado
+        </span>
+      </div>
     </div>
 
     <!-- Inventario usado en esta consulta (read-only) -->
     <div id="inventoryUsageSection"></div>
 
+    <!-- ─── Sección 5: Pago ─── -->
+    <div class="pod-group">
+      <div class="pod-group-num">5</div>
+      <div class="pod-group-title">Información de Pago</div>
+      <div class="pod-group-line"></div>
+    </div>
+
     <!-- Costos y Pago -->
-    <div class="form-section">
+    <div class="form-section" data-icon="payment">
       <h3>Información de Pago</h3>
       <div class="form-grid two">
         <div class="form-group">
@@ -1487,19 +1549,15 @@ function openImageModal(filename) {
 function renderImageGrid() {
   const grid = document.getElementById('imgGrid');
   if (!consultImages || consultImages.length === 0) {
-    grid.innerHTML = '<p style="color: #94a3b8; font-size: 0.85rem; padding: 1rem; grid-column: 1/-1;">Sin imágenes</p>';
+    grid.innerHTML = '<p style="color: var(--pod-muted-2); font-size: 0.85rem; padding: 1.5rem; text-align: center; grid-column: 1/-1; background: var(--pod-bg); border-radius: 12px; font-weight: 600;">Sin imágenes registradas</p>';
     return;
   }
 
   grid.innerHTML = consultImages.map(img => {
     const filename = img.filename || img.id;
     return `
-      <div style="
-        position: relative; width: 120px; height: 120px; border-radius: 8px; overflow: hidden;
-        background: #f1f5f9; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;
-        display: flex; align-items: center; justify-content: center;
-      " onclick="openImageModal('${esc(filename)}')" title="Click para ampliar">
-        <img src="/uploads/consultations/${esc(filename)}" alt="Consulta" style="width: 100%; height: 100%; object-fit: cover;">
+      <div class="pod-image-card" onclick="openImageModal('${esc(filename)}')" title="Click para ampliar">
+        <img src="/uploads/consultations/${esc(filename)}" alt="Consulta">
       </div>
     `;
   }).join('');
