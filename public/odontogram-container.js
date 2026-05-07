@@ -107,9 +107,19 @@ class OdontogramContainer {
     archesCol.appendChild(archesContainer);
     workspace.appendChild(archesCol);
 
-    // Detail panel (clinical insight)
+    // Detail panel (clinical insight) — on mobile, render at body level to escape
+    // <main>'s stacking context (it has z-index:1, which would trap a fixed-position
+    // panel below the page's fixed mobile nav at z-index:100).
+    if(this.components.detailPanel && this.components.detailPanel.parentNode) {
+      this.components.detailPanel.parentNode.removeChild(this.components.detailPanel);
+    }
     const detailPanel = this._buildDetailPanel();
-    workspace.appendChild(detailPanel);
+    const isMobile = window.innerWidth <= 860;
+    if(isMobile) {
+      document.body.appendChild(detailPanel);
+    } else {
+      workspace.appendChild(detailPanel);
+    }
     this.components.detailPanel = detailPanel;
 
     // Legend (full width below)
@@ -355,6 +365,13 @@ class OdontogramContainer {
     header.appendChild(closeBtn);
 
     inner.appendChild(header);
+
+    // ── Mobile-only: interactive tooth preview inside the fullscreen modal ──
+    // On mobile the modal covers the odontogram, so the doctor needs a way to
+    // pick surfaces from within the panel.
+    if(window.innerWidth <= 860) {
+      inner.appendChild(this._renderToothPreview(fdi));
+    }
 
     // Body
     const body = document.createElement('div');
@@ -751,6 +768,69 @@ class OdontogramContainer {
     wrap.appendChild(txt);
 
     return wrap;
+  }
+
+  // ─── Mobile tooth preview inside fullscreen modal ─────────────────────
+
+  _renderToothPreview(fdi) {
+    const section = document.createElement('div');
+    section.className = 'odonto-tooth-preview-section';
+    section.style.cssText = `
+      padding: 1.1rem 1rem 0.85rem;
+      background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.7rem;
+    `;
+
+    // Hint text on top
+    const hint = document.createElement('div');
+    hint.style.cssText = `
+      font-size: 0.66rem; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #475569;
+      align-self: flex-start;
+    `;
+    hint.textContent = this.selectedSurface
+      ? '⬢ Toca otra superficie o el diente completo'
+      : '⬢ Toca una superficie para diagnosticarla';
+    section.appendChild(hint);
+
+    // Tooth card wrapper (constrained width)
+    const wrap = document.createElement('div');
+    wrap.style.cssText = `
+      width: 100%;
+      max-width: 240px;
+      display: flex;
+      justify-content: center;
+    `;
+
+    const previewTooth = new OdontogramTooth(fdi, this.state[fdi], {
+      isEditable: true,
+      onSelect: (f, e) => this.selectTooth(f, e),
+      onSurfaceSelect: (f, s, e) => this.selectSurface(f, s, e)
+    });
+    const cardEl = previewTooth.render();
+    // Slight scale-up for tap target friendliness
+    cardEl.style.width = '100%';
+    cardEl.style.cursor = 'default';
+
+    // Highlight currently selected surface, if any
+    if(this.selectedSurface) {
+      const surfEl = cardEl.querySelector(`[data-surface="${this.selectedSurface}"]`);
+      if(surfEl) {
+        surfEl.style.boxShadow = '0 0 0 3px #0891b2, 0 0 0 6px rgba(8,145,178,0.20), 0 6px 14px rgba(8,145,178,0.30)';
+        surfEl.style.transform = 'scale(1.12)';
+        surfEl.style.zIndex = '1';
+        surfEl.style.position = 'relative';
+      }
+    }
+
+    wrap.appendChild(cardEl);
+    section.appendChild(wrap);
+
+    return section;
   }
 
   // ─── Surface hover tooltip ─────────────────────────────────────────────
