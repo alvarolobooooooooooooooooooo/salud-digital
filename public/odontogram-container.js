@@ -1443,25 +1443,51 @@ class OdontogramContainer {
           }
         }
 
-        /* Mobile (≤860px): sticky panel below fixed mobile nav (64px + safe-area) */
+        /* Mobile (≤860px): fullscreen overlay panel when active, hidden otherwise */
         @media (max-width: 860px) {
           .odonto-workspace {
-            grid-template-areas: "panel" "arches";
+            grid-template-areas: "arches";
           }
           .odonto-arches-col { grid-area: arches; }
+
+          /* Inactive: panel is hidden — arches take full focus */
           .odonto-detail-panel {
-            grid-area: panel;
-            position: sticky;
-            top: calc(64px + env(safe-area-inset-top, 0px) + 0.5rem);
-            z-index: 8;
-            max-height: calc(100vh - 64px - env(safe-area-inset-top, 0px) - 1rem);
+            display: none;
+          }
+
+          /* Active: fullscreen sheet covering everything */
+          .odonto-detail-panel.odonto-detail-active {
+            display: block;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            max-height: none;
+            margin: 0;
+            border: none;
+            border-radius: 0;
+            z-index: 1000;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            background: #ffffff;
+            box-shadow: none;
+            animation: odontoPanelSlideUp 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
           }
-          .odonto-detail-panel.odonto-detail-active {
-            margin-bottom: 0.75rem;
-            box-shadow: 0 10px 30px rgba(8, 145, 178, 0.14), 0 2px 6px rgba(15, 23, 42, 0.06);
+          .odonto-detail-panel.odonto-detail-active .odonto-detail-inner {
+            min-height: 100%;
+            padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
           }
+          .odonto-detail-panel.odonto-detail-active .odonto-detail-header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            padding-top: max(0.95rem, calc(env(safe-area-inset-top, 0px) + 0.5rem)) !important;
+          }
+        }
+        @keyframes odontoPanelSlideUp {
+          from { transform: translateY(100%); opacity: 0.6; }
+          to   { transform: translateY(0); opacity: 1; }
         }
 
         /* ── Tooth card microinteractions ── */
