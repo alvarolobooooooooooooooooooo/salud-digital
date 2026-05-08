@@ -10,6 +10,9 @@ class OdontogramContainer {
     this.selectedSurface = null;
     this.components = {};
     this.firstRender = true;
+    // Tracks whether the detail panel was active before the latest render, so
+    // we can suppress the slide-up animation when it's just a content refresh.
+    this._panelWasActive = false;
 
     // Build floating popup for conditions
     this._popup = this._buildPopup();
@@ -121,6 +124,15 @@ class OdontogramContainer {
       workspace.appendChild(detailPanel);
     }
     this.components.detailPanel = detailPanel;
+
+    // Suppress slide-up animation when the panel was already open — this is
+    // just a content refresh (e.g. user tapped another surface), not a true
+    // open. Without this the panel re-animates on every selection change.
+    const willBeActive = !!this.selectedTooth;
+    if(this._panelWasActive && willBeActive) {
+      detailPanel.classList.add('odonto-detail-noanim');
+    }
+    this._panelWasActive = willBeActive;
 
     // Legend (full width below)
     const legend = new OdontogramLegend();
@@ -806,7 +818,13 @@ class OdontogramContainer {
       justify-content: center;
     `;
 
-    const previewTooth = new OdontogramTooth(fdi, this.state[fdi], {
+    // Create preview state without selection styling
+    const previewState = {
+      condition: this.state[fdi].condition,
+      surfaces: this.state[fdi].surfaces,
+      isSelected: false
+    };
+    const previewTooth = new OdontogramTooth(fdi, previewState, {
       isEditable: true,
       onSelect: (f, e) => this.selectTooth(f, e),
       onSurfaceSelect: (f, s, e) => this.selectSurface(f, s, e)
@@ -815,6 +833,7 @@ class OdontogramContainer {
     // Slight scale-up for tap target friendliness
     cardEl.style.width = '100%';
     cardEl.style.cursor = 'default';
+    cardEl.style.outline = 'none';
 
     // Highlight currently selected surface, if any
     if(this.selectedSurface) {
@@ -1553,6 +1572,9 @@ class OdontogramContainer {
             background: #ffffff;
             box-shadow: none;
             animation: odontoPanelSlideUp 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+          }
+          .odonto-detail-panel.odonto-detail-active.odonto-detail-noanim {
+            animation: none !important;
           }
           .odonto-detail-panel.odonto-detail-active .odonto-detail-inner {
             min-height: 100%;
