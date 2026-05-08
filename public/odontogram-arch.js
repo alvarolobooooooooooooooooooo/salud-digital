@@ -23,14 +23,19 @@ class OdontogramArch {
     let cols = 4;
     const w = window.innerWidth;
 
-    if (w < 940) {
-      cols = 1;
-    } else if (w >= 1900) {
+    // Breakpoints align with the workspace layout:
+    //   ≥1280px → detail panel lateral (less horizontal room for arches)
+    //   <1280px → detail panel moves above arches (full width available)
+    if (w >= 2100) {
       cols = 8;
-    } else if (w >= 950) {
+    } else if (w >= 1620) {
+      cols = 4;
+    } else if (w >= 1280) {
+      cols = 2;
+    } else if (w >= 940) {
       cols = 4;
     } else {
-      cols = 2;
+      cols = 1;
     }
 
     grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
