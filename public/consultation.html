@@ -335,6 +335,18 @@
     }
 
     /* ── Sticky Action Bar ── */
+    #consultForm {
+      padding-bottom: 140px;
+    }
+
+    /* ── Odontogram Detail Panel Scrolling ── */
+    .odontogram-container .odonto-detail-panel {
+      max-height: calc(100vh - 130px) !important;
+      overflow-y: auto !important;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .footer {
       position: sticky; bottom: 1rem; z-index: 50;
       display: flex; justify-content: flex-end; align-items: center;
