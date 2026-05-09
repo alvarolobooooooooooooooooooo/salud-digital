@@ -3,9 +3,8 @@ const router = express.Router();
 const { query } = require('../db');
 const { authenticate } = require('../middleware/auth');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const { v4: uuid } = require('uuid');
+const cloudinary = require('cloudinary').v2;
 
 function getLocalDateString(date = new Date()) {
   const year = date.getFullYear();
@@ -275,23 +274,15 @@ router.put('/:id', authenticate, async (req, res) => {
   res.json({ success: true });
 });
 
-// ── Image Upload Endpoints ──
-const uploadDir = path.join(__dirname, '..', 'uploads', 'consultations');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const imageStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const filename = `${Date.now()}-${uuid()}${ext}`;
-    cb(null, filename);
-  }
+// ── Cloudinary Configuration ──
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 const imageUpload = multer({
-  storage: imageStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -311,22 +302,39 @@ router.post('/:id/images', authenticate, imageUpload.array('images', 10), async 
 
   const consultationResult = await query('SELECT * FROM consultations WHERE id = $1 AND clinic_id = $2', [id, req.user.clinic_id]);
   if (consultationResult.rows.length === 0) {
-    req.files.forEach(f => fs.unlink(path.join(uploadDir, f.filename), () => {}));
     return res.status(404).json({ error: 'Consultation not found' });
   }
 
   try {
     const savedImages = [];
+    let uploadCount = 0;
+
     for (const file of req.files) {
-      const result = await query(
-        'INSERT INTO consultation_images (consultation_id, clinic_id, filename, original_name) VALUES ($1, $2, $3, $4) RETURNING id, filename, original_name',
-        [id, req.user.clinic_id, file.filename, file.originalname]
-      );
-      savedImages.push(result.rows[0]);
+      const publicId = `${Date.now()}-${uuid()}`;
+      const uploadStream = cloudinary.uploader.upload_stream({
+        folder: `consultations/${id}`,
+        resource_type: 'auto',
+        public_id: publicId
+      }, async (err, result) => {
+        if (err) throw err;
+
+        const dbResult = await query(
+          'INSERT INTO consultation_images (consultation_id, clinic_id, filename, original_name) VALUES ($1, $2, $3, $4) RETURNING id, filename, original_name',
+          [id, req.user.clinic_id, result.public_id, file.originalname]
+        );
+        savedImages.push(dbResult.rows[0]);
+        uploadCount++;
+
+        if (uploadCount === req.files.length) {
+          res.json(savedImages.map(img => ({
+            ...img,
+            filename: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/consultations/${id}/${img.filename}.jpg`
+          })));
+        }
+      });
+      uploadStream.end(file.buffer);
     }
-    res.json(savedImages);
   } catch (err) {
-    req.files.forEach(f => fs.unlink(path.join(uploadDir, f.filename), () => {}));
     res.status(500).json({ error: 'Error saving images' });
   }
 });
@@ -334,7 +342,11 @@ router.post('/:id/images', authenticate, imageUpload.array('images', 10), async 
 router.get('/:id/images', authenticate, async (req, res) => {
   const { id } = req.params;
   const result = await query('SELECT id, filename, original_name, created_at FROM consultation_images WHERE consultation_id = $1 AND clinic_id = $2 ORDER BY created_at DESC', [id, req.user.clinic_id]);
-  res.json(result.rows);
+  const images = result.rows.map(img => ({
+    ...img,
+    url: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/consultations/${id}/${img.filename}.jpg`
+  }));
+  res.json(images);
 });
 
 router.delete('/images/:imageId', authenticate, async (req, res) => {
@@ -344,11 +356,10 @@ router.delete('/images/:imageId', authenticate, async (req, res) => {
     return res.status(404).json({ error: 'Image not found' });
   }
 
-  const image = imageResult.rows[0];
-  const filePath = path.join(uploadDir, image.filename);
-
   try {
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    const image = imageResult.rows[0];
+    const publicId = `consultations/${image.consultation_id}/${image.filename}`;
+    await cloudinary.uploader.destroy(publicId);
     await query('DELETE FROM consultation_images WHERE id = $1', [imageId]);
     res.json({ success: true });
   } catch (err) {

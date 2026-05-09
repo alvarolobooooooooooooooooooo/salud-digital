@@ -1,26 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
 const multer = require('multer');
 const { v4: uuid } = require('uuid');
 const { query } = require('../db');
 const { authenticate } = require('../middleware/auth');
+const cloudinary = require('cloudinary').v2;
 
-// ── File upload setup ──
-const uploadDir = path.join(__dirname, '..', 'uploads', 'inventory');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-const imageStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname || '.jpg');
-    cb(null, `${Date.now()}-${uuid()}${ext}`);
-  }
+// ── Cloudinary Configuration ──
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 const imageUpload = multer({
-  storage: imageStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 8 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp'];
@@ -366,9 +360,9 @@ router.delete('/:id', authenticate, async (req, res) => {
   await query('DELETE FROM inventory_items WHERE id = $1 AND clinic_id = $2', [id, req.user.clinic_id]);
 
   const url = existing.rows[0].image_url;
-  if (url && url.startsWith('/uploads/inventory/')) {
-    const filePath = path.join(__dirname, '..', url);
-    fs.unlink(filePath, () => {});
+  if (url && url.includes('cloudinary')) {
+    const publicId = url.split('/').slice(-2).join('/').split('.')[0];
+    await cloudinary.uploader.destroy(`inventory/${id}/${publicId}`).catch(() => {});
   }
   res.json({ success: true });
 });
@@ -462,39 +456,63 @@ router.get('/:id/movements', authenticate, async (req, res) => {
 // ── Image upload ──
 router.post('/:id/image', authenticate, imageUpload.single('image'), async (req, res) => {
   if (!canEdit(req)) {
-    if (req.file) fs.unlink(req.file.path, () => {});
     return res.status(403).json({ error: 'No autorizado' });
   }
   const id = parseInt(req.params.id, 10);
   if (!id || !req.file) {
-    if (req.file) fs.unlink(req.file.path, () => {});
     return res.status(400).json({ error: 'Datos inválidos' });
   }
   const existing = await query('SELECT image_url FROM inventory_items WHERE id = $1 AND clinic_id = $2', [id, req.user.clinic_id]);
   if (existing.rows.length === 0) {
-    fs.unlink(req.file.path, () => {});
     return res.status(404).json({ error: 'Artículo no encontrado' });
   }
-  const oldUrl = existing.rows[0].image_url;
-  const newUrl = `/uploads/inventory/${req.file.filename}`;
-  await query(
-    'UPDATE inventory_items SET image_url = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND clinic_id = $3',
-    [newUrl, id, req.user.clinic_id]
-  );
-  if (oldUrl && oldUrl.startsWith('/uploads/inventory/')) {
-    fs.unlink(path.join(__dirname, '..', oldUrl), () => {});
+
+  try {
+    const publicId = `inventory/${id}/${Date.now()}-${uuid()}`;
+    const uploadStream = cloudinary.uploader.upload_stream({
+      public_id: publicId,
+      resource_type: 'auto'
+    }, async (err, result) => {
+      if (err) return res.status(500).json({ error: 'Error al subir imagen' });
+
+      const oldUrl = existing.rows[0].image_url;
+      if (oldUrl && oldUrl.includes('cloudinary')) {
+        const oldPublicId = oldUrl.split('/').slice(-2).join('/').split('.')[0];
+        await cloudinary.uploader.destroy(`inventory/${id}/${oldPublicId}`).catch(() => {});
+      }
+
+      await query(
+        'UPDATE inventory_items SET image_url = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND clinic_id = $3',
+        [result.secure_url, id, req.user.clinic_id]
+      );
+      res.json({ image_url: result.secure_url });
+    });
+    uploadStream.end(req.file.buffer);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al subir imagen' });
   }
-  res.json({ image_url: newUrl });
 });
 
 // ── Standalone image upload (used during item creation, before id exists) ──
 router.post('/upload-image', authenticate, imageUpload.single('image'), async (req, res) => {
   if (!canEdit(req)) {
-    if (req.file) fs.unlink(req.file.path, () => {});
     return res.status(403).json({ error: 'No autorizado' });
   }
   if (!req.file) return res.status(400).json({ error: 'No se recibió imagen' });
-  res.json({ image_url: `/uploads/inventory/${req.file.filename}` });
+
+  try {
+    const publicId = `inventory/temp/${Date.now()}-${uuid()}`;
+    const uploadStream = cloudinary.uploader.upload_stream({
+      public_id: publicId,
+      resource_type: 'auto'
+    }, (err, result) => {
+      if (err) return res.status(500).json({ error: 'Error al subir imagen' });
+      res.json({ image_url: result.secure_url });
+    });
+    uploadStream.end(req.file.buffer);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al subir imagen' });
+  }
 });
 
 router.delete('/:id/image', authenticate, async (req, res) => {
@@ -508,8 +526,9 @@ router.delete('/:id/image', authenticate, async (req, res) => {
     'UPDATE inventory_items SET image_url = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND clinic_id = $3',
     ['', id, req.user.clinic_id]
   );
-  if (url && url.startsWith('/uploads/inventory/')) {
-    fs.unlink(path.join(__dirname, '..', url), () => {});
+  if (url && url.includes('cloudinary')) {
+    const publicId = url.split('/').slice(-2).join('/').split('.')[0];
+    await cloudinary.uploader.destroy(`inventory/${id}/${publicId}`).catch(() => {});
   }
   res.json({ success: true });
 });
