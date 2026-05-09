@@ -23,6 +23,20 @@ const imageUpload = multer({
   }
 });
 
+// Helper para upload a Cloudinary con Promise
+const uploadToCloudinary = (buffer, publicId) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { public_id: publicId, resource_type: 'auto' },
+      (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      }
+    );
+    uploadStream.end(buffer);
+  });
+};
+
 // ── Helpers ──
 const ALLOWED_TYPES = ['medicamento', 'insumo_medico', 'equipo', 'descartable', 'administrativo', 'otro'];
 const ALLOWED_AREAS = ['recepcion', 'consultorio', 'laboratorio', 'farmacia', 'bodega', 'quirofano', 'odontologia', 'otro'];
@@ -469,26 +483,21 @@ router.post('/:id/image', authenticate, imageUpload.single('image'), async (req,
 
   try {
     const publicId = `inventory/${id}/${Date.now()}-${uuid()}`;
-    const uploadStream = cloudinary.uploader.upload_stream({
-      public_id: publicId,
-      resource_type: 'auto'
-    }, async (err, result) => {
-      if (err) return res.status(500).json({ error: 'Error al subir imagen' });
+    const result = await uploadToCloudinary(req.file.buffer, publicId);
 
-      const oldUrl = existing.rows[0].image_url;
-      if (oldUrl && oldUrl.includes('cloudinary')) {
-        const oldPublicId = oldUrl.split('/').slice(-2).join('/').split('.')[0];
-        await cloudinary.uploader.destroy(`inventory/${id}/${oldPublicId}`).catch(() => {});
-      }
+    const oldUrl = existing.rows[0].image_url;
+    if (oldUrl && oldUrl.includes('cloudinary')) {
+      const oldPublicId = oldUrl.split('/').slice(-2).join('/').split('.')[0];
+      await cloudinary.uploader.destroy(`inventory/${id}/${oldPublicId}`).catch(() => {});
+    }
 
-      await query(
-        'UPDATE inventory_items SET image_url = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND clinic_id = $3',
-        [result.secure_url, id, req.user.clinic_id]
-      );
-      res.json({ image_url: result.secure_url });
-    });
-    uploadStream.end(req.file.buffer);
+    await query(
+      'UPDATE inventory_items SET image_url = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND clinic_id = $3',
+      [result.secure_url, id, req.user.clinic_id]
+    );
+    res.json({ image_url: result.secure_url });
   } catch (err) {
+    console.error('Image upload error:', err);
     res.status(500).json({ error: 'Error al subir imagen' });
   }
 });
@@ -502,15 +511,10 @@ router.post('/upload-image', authenticate, imageUpload.single('image'), async (r
 
   try {
     const publicId = `inventory/temp/${Date.now()}-${uuid()}`;
-    const uploadStream = cloudinary.uploader.upload_stream({
-      public_id: publicId,
-      resource_type: 'auto'
-    }, (err, result) => {
-      if (err) return res.status(500).json({ error: 'Error al subir imagen' });
-      res.json({ image_url: result.secure_url });
-    });
-    uploadStream.end(req.file.buffer);
+    const result = await uploadToCloudinary(req.file.buffer, publicId);
+    res.json({ image_url: result.secure_url });
   } catch (err) {
+    console.error('Image upload error:', err);
     res.status(500).json({ error: 'Error al subir imagen' });
   }
 });

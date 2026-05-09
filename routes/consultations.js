@@ -294,6 +294,20 @@ const imageUpload = multer({
   }
 });
 
+// Helper para upload a Cloudinary con Promise
+const uploadToCloudinary = (buffer, publicId, folder) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { public_id: publicId, folder, resource_type: 'auto' },
+      (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      }
+    );
+    uploadStream.end(buffer);
+  });
+};
+
 router.post('/:id/images', authenticate, imageUpload.array('images', 10), async (req, res) => {
   const { id } = req.params;
   if (!req.files || req.files.length === 0) {
@@ -307,34 +321,24 @@ router.post('/:id/images', authenticate, imageUpload.array('images', 10), async 
 
   try {
     const savedImages = [];
-    let uploadCount = 0;
 
     for (const file of req.files) {
       const publicId = `${Date.now()}-${uuid()}`;
-      const uploadStream = cloudinary.uploader.upload_stream({
-        folder: `consultations/${id}`,
-        resource_type: 'auto',
-        public_id: publicId
-      }, async (err, result) => {
-        if (err) throw err;
+      const result = await uploadToCloudinary(file.buffer, publicId, `consultations/${id}`);
 
-        const dbResult = await query(
-          'INSERT INTO consultation_images (consultation_id, clinic_id, filename, original_name) VALUES ($1, $2, $3, $4) RETURNING id, filename, original_name',
-          [id, req.user.clinic_id, result.public_id, file.originalname]
-        );
-        savedImages.push(dbResult.rows[0]);
-        uploadCount++;
-
-        if (uploadCount === req.files.length) {
-          res.json(savedImages.map(img => ({
-            ...img,
-            filename: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/consultations/${id}/${img.filename}.jpg`
-          })));
-        }
-      });
-      uploadStream.end(file.buffer);
+      const dbResult = await query(
+        'INSERT INTO consultation_images (consultation_id, clinic_id, filename, original_name) VALUES ($1, $2, $3, $4) RETURNING id, filename, original_name',
+        [id, req.user.clinic_id, result.secure_url, file.originalname]
+      );
+      savedImages.push(dbResult.rows[0]);
     }
+
+    res.json(savedImages.map(img => ({
+      ...img,
+      filename: img.filename
+    })));
   } catch (err) {
+    console.error('Error saving images:', err);
     res.status(500).json({ error: 'Error saving images' });
   }
 });
@@ -342,11 +346,7 @@ router.post('/:id/images', authenticate, imageUpload.array('images', 10), async 
 router.get('/:id/images', authenticate, async (req, res) => {
   const { id } = req.params;
   const result = await query('SELECT id, filename, original_name, created_at FROM consultation_images WHERE consultation_id = $1 AND clinic_id = $2 ORDER BY created_at DESC', [id, req.user.clinic_id]);
-  const images = result.rows.map(img => ({
-    ...img,
-    url: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/consultations/${id}/${img.filename}.jpg`
-  }));
-  res.json(images);
+  res.json(result.rows);
 });
 
 router.delete('/images/:imageId', authenticate, async (req, res) => {
@@ -358,11 +358,17 @@ router.delete('/images/:imageId', authenticate, async (req, res) => {
 
   try {
     const image = imageResult.rows[0];
-    const publicId = `consultations/${image.consultation_id}/${image.filename}`;
-    await cloudinary.uploader.destroy(publicId);
+    if (image.filename && image.filename.includes('cloudinary')) {
+      const url = image.filename;
+      const parts = url.split('/');
+      const filename = parts[parts.length - 1].split('.')[0];
+      const publicId = `consultations/${image.consultation_id}/${filename}`;
+      await cloudinary.uploader.destroy(publicId).catch(() => {});
+    }
     await query('DELETE FROM consultation_images WHERE id = $1', [imageId]);
     res.json({ success: true });
   } catch (err) {
+    console.error('Error deleting image:', err);
     res.status(500).json({ error: 'Error deleting image' });
   }
 });
