@@ -30,6 +30,9 @@
       color: #1e293b;
       position: relative;
       overflow-x: hidden;
+      letter-spacing: -0.005em;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body::before {
@@ -97,13 +100,13 @@
     }
 
     .queue-header h3 {
-      font-size: 1.1rem;
-      font-weight: 900;
+      font-size: 17px;
+      font-weight: 600;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      letter-spacing: -0.04em;
+      letter-spacing: -0.02em;
       color: #0f172a;
       margin: 0;
     }
@@ -119,8 +122,8 @@
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       color: white;
       cursor: pointer;
-      font-size: 1.4rem;
-      font-weight: 700;
+      font-size: 20px;
+      font-weight: 500;
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25);
       flex-shrink: 0;
@@ -166,11 +169,11 @@
       flex: 1;
       border: none;
       outline: none;
-      font-size: 0.9rem;
+      font-size: 14px;
       font-family: inherit;
       background: transparent;
       color: #0f172a;
-      font-weight: 600;
+      font-weight: 400;
     }
 
     .search-input::placeholder {
@@ -192,7 +195,7 @@
       border: none;
       background: none;
       color: #64748b;
-      font-size: 0.8rem;
+      font-size: 12px;
       font-weight: 500;
       cursor: pointer;
       border-bottom: 2px solid transparent;
@@ -209,7 +212,7 @@
       color: white;
       border-bottom: none;
       border-radius: 8px;
-      font-weight: 800;
+      font-weight: 600;
       box-shadow: 0 4px 12px rgba(8, 145, 178, 0.2);
     }
 
@@ -254,9 +257,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
-      font-size: 0.9rem;
+      font-weight: 600;
+      font-size: 13px;
       flex-shrink: 0;
+      letter-spacing: -0.005em;
     }
 
     .patient-card-info {
@@ -265,21 +269,22 @@
     }
 
     .patient-card-name {
-      font-size: 0.95rem;
-      font-weight: 800;
+      font-size: 14px;
+      font-weight: 600;
       color: #0f172a;
       margin-bottom: 0.25rem;
+      letter-spacing: -0.01em;
     }
 
     .patient-card-date {
-      font-size: 0.8rem;
+      font-size: 12px;
       color: #94a3b8;
-      font-weight: 600;
+      font-weight: 400;
     }
 
     .patient-card-arrow {
       color: #0891b2;
-      font-size: 1.1rem;
+      font-size: 16px;
       opacity: 0;
       transition: opacity 0.15s;
     }
@@ -292,7 +297,8 @@
       padding: 2rem 1.5rem;
       text-align: center;
       color: #94a3b8;
-      font-size: 0.85rem;
+      font-size: 13px;
+      font-weight: 400;
     }
 
     /* ── Right Panel (Detail) ── */
@@ -323,8 +329,8 @@
     }
 
     .empty-state p {
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 15px;
+      font-weight: 500;
       color: #64748b;
     }
 
@@ -347,10 +353,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
-      font-size: 2rem;
+      font-weight: 600;
+      font-size: 28px;
       flex-shrink: 0;
       box-shadow: 0 12px 32px rgba(8, 145, 178, 0.2);
+      letter-spacing: -0.01em;
     }
 
     .detail-header-info {
@@ -358,11 +365,12 @@
     }
 
     .detail-name {
-      font-size: 1.8rem;
-      font-weight: 900;
+      font-size: clamp(24px, 2.4vw, 32px);
+      font-weight: 700;
       color: #0f172a;
       margin-bottom: 0.25rem;
-      letter-spacing: -0.04em;
+      letter-spacing: -0.025em;
+      line-height: 1.1;
     }
 
     .detail-badge {
@@ -372,11 +380,12 @@
       -webkit-backdrop-filter: blur(12px);
       border: 1.5px solid rgba(8, 145, 178, 0.15);
       color: #0891b2;
-      font-size: 0.75rem;
-      font-weight: 800;
+      font-size: 11px;
+      font-weight: 600;
       padding: 0.5rem 1rem;
       border-radius: 20px;
       margin-bottom: 0.75rem;
+      letter-spacing: 0.06em;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -402,10 +411,11 @@
       gap: 0.5rem;
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      font-size: 0.85rem;
+      font-size: 13px;
       font-weight: 600;
       font-family: inherit;
       white-space: nowrap;
+      letter-spacing: -0.005em;
     }
 
     .action-btn:hover {
@@ -435,8 +445,8 @@
     }
 
     .info-card h4 {
-      font-size: 1.1rem;
-      font-weight: 900;
+      font-size: 17px;
+      font-weight: 600;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -444,7 +454,7 @@
       margin-bottom: 1rem;
       padding-bottom: 1rem;
       border-bottom: 1px solid rgba(8, 145, 178, 0.08);
-      letter-spacing: -0.04em;
+      letter-spacing: -0.015em;
     }
 
     .info-grid {
@@ -459,21 +469,21 @@
     }
 
     .info-label {
-      font-size: 0.75rem;
-      font-weight: 900;
+      font-size: 11px;
+      font-weight: 600;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.14em;
       margin-bottom: 0.4rem;
     }
 
     .info-value {
-      font-size: 1rem;
+      font-size: 14px;
       color: #0f172a;
-      font-weight: 800;
+      font-weight: 500;
     }
 
     .info-value.empty {
@@ -513,8 +523,8 @@
       align-items: center;
       justify-content: center;
       color: white;
-      font-weight: 600;
-      font-size: 1.3rem;
+      font-weight: 500;
+      font-size: 18px;
       flex-shrink: 0;
       box-shadow: 0 4px 12px rgba(8, 145, 178, 0.2);
     }
@@ -525,37 +535,40 @@
     }
 
     .appointment-date {
-      font-size: 0.85rem;
-      font-weight: 900;
+      font-size: 11px;
+      font-weight: 600;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin-bottom: 0.3rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
     }
 
     .appointment-title {
-      font-size: 1rem;
+      font-size: 15px;
       color: #0f172a;
-      font-weight: 800;
+      font-weight: 600;
+      letter-spacing: -0.01em;
     }
 
     .appointment-doctor {
-      font-size: 0.85rem;
+      font-size: 13px;
       color: #64748b;
       margin-top: 0.3rem;
-      font-weight: 600;
+      font-weight: 400;
     }
 
     /* ── Table ── */
     .history-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.85rem;
+      font-size: 14px;
     }
 
     .history-table th {
-      font-weight: 800;
+      font-weight: 600;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -564,14 +577,15 @@
       padding: 1rem 0.75rem;
       text-align: left;
       text-transform: uppercase;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
+      font-size: 11px;
+      letter-spacing: 0.14em;
     }
 
     .history-table td {
       padding: 1rem 0.75rem;
       border-bottom: 1px solid rgba(8, 145, 178, 0.04);
       color: #475569;
+      font-weight: 400;
     }
 
     .history-table tr:hover {
@@ -582,8 +596,9 @@
       display: inline-block;
       padding: 0.4rem 1rem;
       border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
     }
 
     .status-completed {
@@ -613,23 +628,23 @@
       display: flex; justify-content: space-between; align-items: center;
       padding: 2.25rem 2rem; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); border-radius: 28px 28px 0 0; box-shadow: 0 4px 20px rgba(8,145,178,.15); flex-shrink: 0; overflow: hidden;
     }
-    .modal-hdr h3 { font-size: 1.3rem; font-weight: 800; color: white; letter-spacing: -0.02em; margin: 0; }
+    .modal-hdr h3 { font-size: 18px; font-weight: 600; color: white; letter-spacing: -0.015em; margin: 0; }
     .modal-close { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2); font-size: 1.3rem; color: white; cursor: pointer; padding: .3rem .5rem; border-radius: 8px; transition: all .25s; line-height: 1; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; }
     .modal-close:hover { background: rgba(255,255,255,.25); transform: rotate(90deg); }
     .modal-body { padding: 1.8rem 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; flex: 1; overflow-y: auto; min-height: 0; }
     .field { display: flex; flex-direction: column; gap: .35rem; }
     .field.full { grid-column: 1 / -1; }
-    .field label { font-size: .72rem; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: .04em; margin-bottom: .15rem; }
+    .field label { font-size: 11px; font-weight: 600; color: #1e293b; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: .15rem; }
     .field input, .field select {
       padding: .65rem .85rem;
       border: 2px solid #e2e8f0;
       border-radius: 9px;
-      font-size: .88rem;
+      font-size: 14px;
       font-family: inherit;
       transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-      font-weight: 500;
+      font-weight: 400;
     }
-    .field input::placeholder { color: #cbd5e1; font-weight: 500; }
+    .field input::placeholder { color: #cbd5e1; font-weight: 400; }
     .field select {
       appearance: none;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
@@ -646,11 +661,11 @@
       display: flex; justify-content: flex-end; gap: .9rem;
       padding: 2rem; border-top: 1px solid #f1f5f9; background: linear-gradient(to bottom, #ffffff, #f8fafc); flex-shrink: 0;
     }
-    .btn-cancel { padding: .55rem 1.2rem; border: 1.5px solid #e2e8f0; background: white; color: #64748b; border-radius: 9px; cursor: pointer; font-family: inherit; font-size: .875rem; font-weight: 600; transition: all .25s; }
+    .btn-cancel { padding: .55rem 1.2rem; border: 1.5px solid #e2e8f0; background: white; color: #64748b; border-radius: 9px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; transition: all .25s; letter-spacing: -0.005em; }
     .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
-    .btn-save { padding: .55rem 1.5rem; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; border: none; border-radius: 9px; cursor: pointer; font-family: inherit; font-size: .875rem; font-weight: 600; transition: all .25s; box-shadow: 0 4px 15px rgba(8,145,178,.25); }
+    .btn-save { padding: .55rem 1.5rem; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; border: none; border-radius: 9px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; transition: all .25s; box-shadow: 0 4px 15px rgba(8,145,178,.25); letter-spacing: -0.005em; }
     .btn-save:hover { box-shadow: 0 6px 20px rgba(8,145,178,.35); transform: translateY(-1px); }
-    .form-msg { padding: 0 1.5rem 0.75rem; font-size: 0.82rem; min-height: 1.2em; }
+    .form-msg { padding: 0 1.5rem 0.75rem; font-size: 12px; min-height: 1.2em; font-weight: 500; }
     .form-msg.err { color: #dc2626; }
     .form-msg.ok  { color: #16a34a; }
 
@@ -680,7 +695,7 @@
       padding: 0.6rem 1rem;
       margin-bottom: 1.5rem;
       font-weight: 500;
-      font-size: 0.9rem;
+      font-size: 13px;
       border-radius: 6px;
       font-family: inherit;
       align-self: flex-start;
@@ -1059,7 +1074,7 @@
       <div class="info-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <h4 style="margin: 0;">Información Básica</h4>
-          <button class="action-btn" title="Editar información" onclick="editPatientInfo(${patient.id})" style="background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; gap: 0.5rem; display: flex; align-items: center;">
+          <button class="action-btn" title="Editar información" onclick="editPatientInfo(${patient.id})" style="background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; gap: 0.5rem; display: flex; align-items: center; letter-spacing: -0.005em;">
             ${Icons.render('edit', 16)}
             Editar
           </button>
@@ -1089,7 +1104,7 @@
       <div class="info-card">
         <h4>Programación de Citas</h4>
         <div class="appointments-list">
-          ${userAppointments.length === 0 ? '<p style="color: #94a3b8; font-size: 0.9rem;">No hay citas programadas</p>' : userAppointments.map(apt => {
+          ${userAppointments.length === 0 ? '<p style="color: #94a3b8; font-size: 13px; font-weight: 400;">No hay citas programadas</p>' : userAppointments.map(apt => {
             if (!apt.scheduled_at) return '';
             const aptDate = new Date(apt.scheduled_at);
             if (isNaN(aptDate)) return '';

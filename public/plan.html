@@ -5,406 +5,817 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>SaludDigital — Mi Plan</title>
   <link rel="stylesheet" href="/layout.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    @keyframes floatBg {
-      0%, 100% { transform: translateY(0px) translateX(0px); }
-      50% { transform: translateY(50px) translateX(30px); }
+    /* ============================================================
+       Mi Plan — premium cyan redesign (scoped to .miplan-page)
+       ============================================================ */
+    @property --miplan-ring-angle {
+      syntax: '<angle>';
+      inherits: false;
+      initial-value: 0deg;
+    }
+    @property --miplan-shimmer-x {
+      syntax: '<percentage>';
+      inherits: false;
+      initial-value: -120%;
     }
 
-    @keyframes fadeSlideUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .miplan-page {
+      --cyan-50:  #ECFBFE;
+      --cyan-100: #D2F4FA;
+      --cyan-200: #A6E8F4;
+      --cyan-300: #6FD6EA;
+      --cyan-400: #2EBED9;
+      --cyan-500: #0BB5C9;
+      --cyan-600: #0794AA;
+      --cyan-700: #096F82;
+      --cyan-800: #0C5566;
+      --cyan-900: #0E3E4B;
 
-    @keyframes shimmer {
-      0% { background-position: -1000px 0; }
-      100% { background-position: 1000px 0; }
-    }
+      --ink-0:   #FFFFFF;
+      --ink-50:  #F7FAFC;
+      --ink-100: #EEF3F7;
+      --ink-150: #E4ECF2;
+      --ink-200: #D5DFE7;
+      --ink-300: #B5C2CC;
+      --ink-400: #8593A0;
+      --ink-500: #5F6E7B;
+      --ink-600: #3F4D59;
+      --ink-700: #2A3742;
+      --ink-800: #18222B;
+      --ink-900: #0B1318;
 
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
+      --green-500: #16B981;
+      --green-600: #0E9B6B;
+      --amber-500: #F2A33A;
 
-    body {
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
-      position: relative;
-      overflow-x: hidden;
-      min-height: 100vh;
-    }
+      --mp-surface: var(--ink-0);
+      --mp-radius-sm: 10px;
+      --mp-radius:    16px;
+      --mp-radius-lg: 22px;
+      --mp-radius-xl: 28px;
 
-    body::before {
-      content: '';
-      position: fixed;
-      width: 1000px;
-      height: 1000px;
-      background: radial-gradient(circle, rgba(8, 145, 178, 0.12) 0%, transparent 70%);
-      top: -200px;
-      right: -300px;
-      border-radius: 50%;
-      z-index: 0;
-      animation: floatBg 20s ease-in-out infinite;
-      filter: blur(60px);
-      pointer-events: none;
-    }
+      --mp-shadow-1: 0 1px 0 rgba(13,40,52,.04), 0 1px 2px rgba(13,40,52,.04);
+      --mp-shadow-2: 0 1px 0 rgba(13,40,52,.04), 0 8px 20px -10px rgba(13,40,52,.12);
+      --mp-shadow-3: 0 1px 0 rgba(13,40,52,.04), 0 22px 50px -22px rgba(11,181,201,.28);
 
-    body::after {
-      content: '';
-      position: fixed;
-      width: 800px;
-      height: 800px;
-      background: radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%);
-      bottom: -200px;
-      left: -200px;
-      border-radius: 50%;
-      z-index: 0;
-      animation: floatBg 25s ease-in-out infinite reverse;
-      filter: blur(60px);
-      pointer-events: none;
-    }
+      --mp-font: 'Poppins', 'Inter', system-ui, sans-serif;
+      --mp-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-    main {
+      font-family: var(--mp-font);
+      color: var(--ink-800);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: 'ss01','cv11';
+      padding: 8px 0 64px;
       width: 100%;
       max-width: none;
-      margin: 0;
-      padding: 3rem 2rem;
+    }
+    .miplan-page * { box-sizing: border-box; }
+    .miplan-page button { font: inherit; cursor: pointer; }
+    .miplan-page a { color: inherit; }
+
+    /* Topbar */
+    .miplan-page .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .miplan-page .crumbs {
+      font-size: 12.5px;
+      color: var(--ink-400);
+      letter-spacing: .02em;
+      display: flex; gap: 8px; align-items: center;
+    }
+    .miplan-page .crumbs b { color: var(--ink-700); font-weight: 600; }
+    .miplan-page .crumbs span { opacity: .5; }
+    .miplan-page .tb-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .miplan-page .pill-btn {
+      border: 1px solid var(--ink-150);
+      background: var(--mp-surface);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-600);
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all .15s ease;
+    }
+    .miplan-page .pill-btn:hover { border-color: var(--cyan-300); color: var(--cyan-700); }
+    .miplan-page .pill-btn svg { width: 14px; height: 14px; }
+
+    .miplan-page .page-title {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
+      color: var(--ink-900);
+      display: flex; align-items: baseline; gap: 12px;
+    }
+    .miplan-page .page-sub {
+      color: var(--ink-500);
+      font-size: 14.5px;
+      margin: 0 0 28px;
+      font-weight: 400;
+    }
+
+    /* HERO */
+    .miplan-page .hero {
       position: relative;
-      z-index: 1;
-    }
-
-    .page-header {
-      margin-bottom: 3rem;
-      animation: fadeSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    }
-
-    .page-header h1 {
-      font-size: 2.8rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.5rem;
-      letter-spacing: -0.04em;
-    }
-
-    .page-header p {
-      color: #64748b;
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    .plan-container {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 2rem;
-      animation: fadeSlideUp 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards 0.1s;
-      opacity: 0;
-    }
-
-    .plan-card {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.95) 100%);
-      backdrop-filter: blur(20px);
-      border-radius: 32px;
-      padding: 3rem;
-      border: 1.5px solid rgba(255, 255, 255, 0.6);
-      box-shadow:
-        0 0 100px rgba(8, 145, 178, 0.12),
-        0 30px 60px rgba(0, 0, 0, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8),
-        inset 0 -1px 0 rgba(8, 145, 178, 0.05);
-      position: relative;
+      border-radius: var(--mp-radius-xl);
       overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      background: var(--mp-surface);
+      box-shadow: var(--mp-shadow-3);
+      isolation: isolate;
+      container-type: inline-size;
     }
-
-    .plan-card::before {
+    .miplan-page .hero::before {
       content: '';
-      position: absolute;
-      top: -1px;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+      position: absolute; inset: 0;
+      padding: 1.5px;
+      border-radius: inherit;
+      background: conic-gradient(from var(--miplan-ring-angle),
+        var(--cyan-300) 0deg,
+        transparent 60deg 300deg,
+        var(--cyan-300) 360deg);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+              mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      animation: mp-spin 8s linear infinite;
+      opacity: .55;
       pointer-events: none;
     }
+    @keyframes mp-spin { to { --miplan-ring-angle: 360deg; } }
 
-    .plan-card:hover {
-      transform: translateY(-6px);
-      box-shadow:
-        0 0 120px rgba(8, 145, 178, 0.15),
-        0 40px 80px rgba(8, 145, 178, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8),
-        inset 0 -1px 0 rgba(8, 145, 178, 0.08);
-    }
-
-    .plan-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 2.5rem;
-      gap: 1rem;
-    }
-
-    .plan-name {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .plan-name h2 {
-      font-size: 2rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: -0.03em;
-      text-transform: capitalize;
-    }
-
-    .plan-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      width: fit-content;
-      padding: 0.6rem 1.2rem;
-      background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-      color: white;
-      border-radius: 12px;
-      font-weight: 800;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-    }
-
-    .plan-badge::before {
+    .miplan-page .hero::after {
       content: '';
-      width: 8px;
-      height: 8px;
-      background: white;
-      border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(60% 80% at 100% 0%, rgba(11,181,201,.10), transparent 60%),
+        radial-gradient(50% 60% at 0% 100%, rgba(11,181,201,.06), transparent 60%);
+      pointer-events: none;
+      z-index: 0;
     }
 
-    .plan-price {
-      text-align: right;
-    }
-
-    .plan-price-amount {
-      font-size: 2.5rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .plan-price-period {
-      color: #94a3b8;
-      font-size: 0.9rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .plan-features {
-      margin-bottom: 2.5rem;
-    }
-
-    .plan-features-title {
-      font-size: 0.8rem;
-      font-weight: 900;
-      color: #0891b2;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 1.25rem;
-    }
-
-    .features-list {
+    .miplan-page .hero-grid {
+      position: relative;
+      z-index: 1;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
+      grid-template-columns: 1.4fr 1fr;
+    }
+    @container (max-width: 900px) {
+      .miplan-page .hero-grid { grid-template-columns: 1fr; }
     }
 
-    .feature-item {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.9rem 1rem;
-      background: rgba(8, 145, 178, 0.05);
-      border-radius: 12px;
-      border: 1px solid rgba(8, 145, 178, 0.1);
-      transition: all 0.2s;
+    .miplan-page .hero-left { padding: 36px 40px 32px; }
+    .miplan-page .hero-right {
+      padding: 36px 40px 32px;
+      background: linear-gradient(180deg, rgba(11,181,201,.04), rgba(11,181,201,.08));
+      border-left: 1px dashed var(--ink-150);
+      display: flex; flex-direction: column; gap: 22px;
     }
 
-    .feature-item:hover {
-      background: rgba(8, 145, 178, 0.08);
-      border-color: rgba(8, 145, 178, 0.2);
-      transform: translateX(4px);
+    .miplan-page .plan-tag {
+      font-size: 11.5px;
+      letter-spacing: .14em;
+      color: var(--cyan-600);
+      font-weight: 600;
+      text-transform: uppercase;
     }
-
-    .feature-check {
-      width: 20px;
-      height: 20px;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .miplan-page .plan-name {
+      font-size: 38px;
+      font-weight: 700;
+      margin: 4px 0 10px;
+      letter-spacing: -0.022em;
+      color: var(--ink-900);
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    }
+    .miplan-page .badge-active {
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-weight: 600;
+      background: linear-gradient(160deg, #1FCC95, #0E9B6B);
       color: white;
-      font-size: 0.85rem;
-      font-weight: 900;
+      border-radius: 999px;
+      padding: 6px 12px 6px 26px;
+      position: relative;
+      box-shadow: 0 6px 14px -8px rgba(14,155,107,.55);
+    }
+    .miplan-page .badge-active::before {
+      content: '';
+      position: absolute;
+      left: 11px; top: 50%;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 0 0 0 rgba(255,255,255,.6);
+      transform: translateY(-50%);
+      animation: mp-pulse 1.8s infinite;
+    }
+    .miplan-page .badge-inactive {
+      background: linear-gradient(160deg, #94a3b8, #64748b);
+      box-shadow: none;
+    }
+    @keyframes mp-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(255,255,255,.6); }
+      70%  { box-shadow: 0 0 0 8px rgba(255,255,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+    }
+
+    .miplan-page .plan-blurb {
+      color: var(--ink-500);
+      font-size: 14.5px;
+      margin: 0 0 24px;
+      max-width: 52ch;
+      line-height: 1.55;
+    }
+
+    .miplan-page .meta-row {
+      display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 24px;
+    }
+    .miplan-page .meta { display: flex; flex-direction: column; gap: 4px; }
+    .miplan-page .meta-label {
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--ink-400);
+      font-weight: 600;
+    }
+    .miplan-page .meta-value {
+      font-size: 14.5px;
+      color: var(--ink-800);
+      font-weight: 500;
+    }
+    .miplan-page .meta-value .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--cyan-500);
+      display: inline-block;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .miplan-page .price-row {
+      display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;
+    }
+    .miplan-page .price-cur {
+      font-size: 26px;
+      color: var(--cyan-600);
+      font-weight: 700;
+      align-self: start;
+      margin-top: 10px;
+      letter-spacing: -0.02em;
+    }
+    .miplan-page .price-num {
+      font-size: 64px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      background: linear-gradient(160deg, var(--cyan-500) 0%, var(--cyan-700) 100%);
+      -webkit-background-clip: text;
+              background-clip: text;
+      color: transparent;
+      line-height: 1;
+    }
+    .miplan-page .price-unit { font-size: 14px; color: var(--ink-500); font-weight: 500; }
+
+    .miplan-page .next-bill {
+      background: var(--mp-surface);
+      border: 1px solid var(--ink-150);
+      border-radius: var(--mp-radius);
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .miplan-page .next-bill-cal {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(160deg, var(--cyan-50), var(--cyan-100));
+      color: var(--cyan-700);
+      display: grid; place-items: center;
+      font-weight: 600;
+      font-size: 11px;
+      text-align: center;
+      line-height: 1;
+      flex-shrink: 0;
+      border: 1px solid var(--cyan-200);
+    }
+    .miplan-page .next-bill-cal b { display: block; font-size: 18px; letter-spacing: -0.02em; }
+    .miplan-page .next-bill-text { display: flex; flex-direction: column; gap: 2px; }
+    .miplan-page .next-bill-text .nb-label {
+      font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--ink-400); font-weight: 600;
+    }
+    .miplan-page .next-bill-text .nb-value { font-size: 13.5px; color: var(--ink-700); font-weight: 500; }
+
+    .miplan-page .pay-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px;
+      background: var(--mp-surface);
+      border: 1px solid var(--ink-150);
+      border-radius: var(--mp-radius);
+    }
+    .miplan-page .pay-brand {
+      width: 44px; height: 30px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #1A1F71 0%, #2A3199 100%);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      display: grid; place-items: center;
+    }
+    .miplan-page .pay-card .pc-num { font-size: 13.5px; color: var(--ink-700); font-weight: 500; }
+    .miplan-page .pay-card .pc-num .mono { font-family: var(--mp-mono); letter-spacing: .04em; color: var(--ink-500); }
+    .miplan-page .pay-card .pc-sub { font-size: 11px; color: var(--ink-400); }
+
+    .miplan-page .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+    .miplan-page .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 13px 22px;
+      font-size: 13.5px;
+      font-weight: 600;
+      letter-spacing: .02em;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: transform .12s ease, box-shadow .15s ease, background .2s ease;
+    }
+    .miplan-page .btn svg { width: 15px; height: 15px; }
+    .miplan-page .btn-primary {
+      position: relative;
+      color: white;
+      background: linear-gradient(160deg, var(--cyan-400) 0%, var(--cyan-600) 100%);
+      box-shadow: 0 14px 28px -14px rgba(11,181,201,.7);
+      overflow: hidden;
+    }
+    .miplan-page .btn-primary::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.45) 50%, transparent 70%);
+      transform: translateX(var(--miplan-shimmer-x));
+      transition: --miplan-shimmer-x 1.2s ease;
+    }
+    .miplan-page .btn-primary:hover::after { --miplan-shimmer-x: 120%; }
+    .miplan-page .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 18px 32px -14px rgba(11,181,201,.8); }
+    .miplan-page .btn-ghost {
+      background: var(--mp-surface);
+      color: var(--ink-700);
+      border: 1px solid var(--ink-150);
+    }
+    .miplan-page .btn-ghost:hover { border-color: var(--cyan-300); color: var(--cyan-700); background: var(--cyan-50); }
+
+    /* USAGE SECTION */
+    .miplan-page .section { margin-top: 36px; }
+    .miplan-page .sec-head {
+      display: flex; align-items: end; justify-content: space-between;
+      margin-bottom: 16px; gap: 16px; flex-wrap: wrap;
+    }
+    .miplan-page .sec-title {
+      font-size: 18px; font-weight: 600; letter-spacing: -0.01em;
+      color: var(--ink-800); margin: 0;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .miplan-page .sec-title .accent {
+      width: 5px; height: 18px; border-radius: 3px;
+      background: linear-gradient(180deg, var(--cyan-400), var(--cyan-600));
+    }
+    .miplan-page .sec-sub { font-size: 12.5px; color: var(--ink-400); font-weight: 500; }
+
+    .miplan-page .usage-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .miplan-page .ucp {
+      position: relative;
+      background: var(--mp-surface);
+      border: 1px solid var(--ink-150);
+      border-radius: var(--mp-radius-lg);
+      padding: 24px 26px 20px;
+      box-shadow: var(--mp-shadow-1);
+      overflow: hidden;
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+      isolation: isolate;
+    }
+    .miplan-page .ucp::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(120% 90% at 100% 0%, rgba(11,181,201,.06), transparent 55%);
+      z-index: -1;
+    }
+    .miplan-page .ucp:hover {
+      transform: translateY(-2px);
+      border-color: var(--cyan-200);
+      box-shadow: var(--mp-shadow-2);
+    }
+    .miplan-page .ucp-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+    }
+    .miplan-page .ucp-label {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--ink-500); font-weight: 600;
+    }
+    .miplan-page .ucp-label .dotx {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan-400), var(--cyan-600));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan-500) 14%, transparent);
+    }
+    .miplan-page .ucp-body { display: flex; align-items: center; gap: 22px; }
+
+    .miplan-page .pring {
+      position: relative;
+      width: 124px; height: 124px;
+      flex-shrink: 0;
+      filter: drop-shadow(0 8px 18px rgba(11,181,201,.18));
+    }
+    .miplan-page .pring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .miplan-page .pring .track { stroke: var(--ink-100); }
+    .miplan-page .pring .fill {
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1.4s cubic-bezier(.2,.7,.2,1);
+    }
+    .miplan-page .pring-center {
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      text-align: center;
+    }
+    .miplan-page .pring-center .big {
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--ink-900);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .miplan-page .pring-center .big .pct-unit {
+      font-size: 14px; color: var(--ink-400); font-weight: 500;
+    }
+    .miplan-page .pring-center .lbl {
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--ink-400);
+      font-weight: 600;
+      margin-top: 6px;
+    }
+    .miplan-page .pring-center .inf {
+      font-size: 32px;
+      color: var(--cyan-600);
+      font-weight: 600;
+      margin-top: 2px;
+      line-height: 1;
+    }
+
+    .miplan-page .ucp-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+    .miplan-page .ucp-stat {
+      display: flex; align-items: baseline; gap: 8px;
+      font-size: 38px; font-weight: 700;
+      letter-spacing: -0.03em; line-height: 1;
+      color: var(--ink-900);
+      font-variant-numeric: tabular-nums;
+    }
+    .miplan-page .ucp-stat .of {
+      font-size: 14px; color: var(--ink-400); font-weight: 500; letter-spacing: 0;
+    }
+    .miplan-page .ucp-delta {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600;
+      color: var(--green-600);
+      background: color-mix(in srgb, var(--green-500) 10%, transparent);
+      padding: 4px 9px;
+      border-radius: 999px;
+      align-self: flex-start;
+    }
+    .miplan-page .ucp-delta.flat { color: var(--cyan-700); background: var(--cyan-50); }
+    .miplan-page .ucp-delta svg { width: 11px; height: 11px; }
+    .miplan-page .ucp-meta { font-size: 12.5px; color: var(--ink-500); }
+    .miplan-page .ucp-meta b { color: var(--ink-700); font-weight: 600; }
+
+    .miplan-page .ucp-track {
+      margin-top: 18px;
+      position: relative;
+      height: 6px;
+      background: var(--ink-100);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .miplan-page .ucp-track .pfill {
+      position: absolute; inset: 0 auto 0 0;
+      width: 100%;
+      background: linear-gradient(90deg, var(--cyan-400), var(--cyan-600));
+      border-radius: 999px;
+      transform-origin: left;
+      transform: scaleX(var(--p, 0));
+      transition: transform 1.4s cubic-bezier(.2,.7,.2,1);
+    }
+    .miplan-page .ucp-track.indef {
+      background: linear-gradient(90deg, var(--cyan-200) 0%, var(--cyan-500) 50%, var(--cyan-200) 100%);
+      background-size: 200% 100%;
+      animation: mp-drift 5s linear infinite;
+      opacity: .55;
+    }
+    @keyframes mp-drift { to { background-position: 200% 0; } }
+    .miplan-page .ucp-foot {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 10px;
+      font-size: 11px; color: var(--ink-400); letter-spacing: .04em;
+    }
+    .miplan-page .ucp-foot .max { font-family: var(--mp-mono); }
+
+    /* SPLIT (features + billing) */
+    .miplan-page .split-2 {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 16px;
+    }
+    .miplan-page .card {
+      background: var(--mp-surface);
+      border: 1px solid var(--ink-150);
+      border-radius: var(--mp-radius-lg);
+      padding: 24px 26px;
+      box-shadow: var(--mp-shadow-1);
+    }
+    .miplan-page .card h3 {
+      margin: 0 0 18px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ink-800);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .miplan-page .card h3 .h3-link {
+      font-size: 12px; color: var(--cyan-600); text-decoration: none; font-weight: 500;
+    }
+
+    .miplan-page .feat-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; }
+    .miplan-page .feat {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--ink-150);
+    }
+    .miplan-page .feat:nth-last-child(-n+2) { border-bottom: 0; }
+    .miplan-page .feat-ic {
+      width: 26px; height: 26px;
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--cyan-50), var(--cyan-100));
+      color: var(--cyan-700);
+      display: grid; place-items: center;
       flex-shrink: 0;
     }
+    .miplan-page .feat-ic svg { width: 13px; height: 13px; }
+    .miplan-page .feat-text { font-size: 13.5px; color: var(--ink-700); font-weight: 500; flex: 1; }
+    .miplan-page .feat-val { font-size: 12px; color: var(--ink-400); font-weight: 500; }
 
-    .feature-text {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: #334155;
-    }
-
-    .plan-stats {
+    .miplan-page .bill-list { display: flex; flex-direction: column; gap: 2px; }
+    .miplan-page .bill-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 1.5rem;
-      padding-top: 2rem;
-      border-top: 1px solid rgba(8, 145, 178, 0.1);
-    }
-
-    .stat-item {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .stat-label {
-      font-size: 0.75rem;
-      font-weight: 800;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .stat-value {
-      font-size: 1.75rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .plan-cta {
-      display: flex;
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-
-    .btn {
-      display: inline-flex;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 14px;
       align-items: center;
-      justify-content: center;
-      padding: 1rem 2rem;
-      border-radius: 12px;
-      border: none;
-      font-weight: 800;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      padding: 12px 0;
+      border-bottom: 1px dashed var(--ink-150);
     }
+    .miplan-page .bill-row:last-child { border-bottom: 0; }
+    .miplan-page .bill-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--cyan-500);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan-500) 18%, transparent);
+    }
+    .miplan-page .bill-row.pending .bill-dot {
+      background: var(--amber-500);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--amber-500) 18%, transparent);
+    }
+    .miplan-page .bill-date { display: flex; flex-direction: column; }
+    .miplan-page .bill-date .d { font-size: 13px; color: var(--ink-700); font-weight: 600; }
+    .miplan-page .bill-date .y { font-size: 11px; color: var(--ink-400); }
+    .miplan-page .bill-date .pending-label {
+      color: var(--amber-500); font-size: 10px; margin-left: 6px; letter-spacing: .08em;
+    }
+    .miplan-page .bill-amt {
+      font-family: var(--mp-mono);
+      font-size: 13px; color: var(--ink-800); font-weight: 500; letter-spacing: -.01em;
+    }
+    .miplan-page .bill-act {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: grid; place-items: center;
+      background: var(--ink-50);
+      color: var(--ink-500);
+      border: 1px solid var(--ink-150);
+      transition: all .15s ease;
+    }
+    .miplan-page .bill-act:hover {
+      color: var(--cyan-700); border-color: var(--cyan-300); background: var(--cyan-50);
+    }
+    .miplan-page .bill-act svg { width: 13px; height: 13px; }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    /* COMPARE PLANS */
+    .miplan-page .compare {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .miplan-page .cp {
+      background: var(--mp-surface);
+      border: 1px solid var(--ink-150);
+      border-radius: var(--mp-radius-lg);
+      padding: 24px 24px 22px;
+      position: relative;
+      transition: all .2s ease;
+    }
+    .miplan-page .cp:hover {
+      transform: translateY(-3px);
+      border-color: var(--cyan-200);
+      box-shadow: var(--mp-shadow-2);
+    }
+    .miplan-page .cp.current {
+      border-color: var(--cyan-400);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--cyan-50) 60%, white) 0%, white 50%);
+    }
+    .miplan-page .cp.featured {
+      border-color: transparent;
+      background: linear-gradient(180deg, var(--ink-900) 0%, #061018 100%);
       color: white;
-      box-shadow: 0 8px 24px rgba(8, 145, 178, 0.3);
     }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(8, 145, 178, 0.4);
+    .miplan-page .cp.featured::before {
+      content: 'RECOMENDADO';
+      position: absolute;
+      top: 16px; right: 16px;
+      font-size: 9.5px;
+      letter-spacing: .16em;
+      font-weight: 700;
+      color: var(--cyan-300);
+      background: rgba(11,181,201,.12);
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(11,181,201,.25);
     }
-
-    .btn-secondary {
-      background: #f1f5f9;
-      color: #0891b2;
-      border: 2px solid #e2e8f0;
+    .miplan-page .cp-name { font-size: 14px; font-weight: 600; letter-spacing: -.01em; color: var(--ink-800); }
+    .miplan-page .cp.featured .cp-name { color: white; }
+    .miplan-page .cp-tag {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--ink-100);
+      color: var(--ink-500);
+      margin-top: 8px;
     }
+    .miplan-page .cp.current .cp-tag { background: var(--cyan-100); color: var(--cyan-700); }
+    .miplan-page .cp.featured .cp-tag { background: rgba(255,255,255,.08); color: var(--cyan-300); }
 
-    .btn-secondary:hover {
-      background: #ecf9fc;
-      border-color: #0891b2;
+    .miplan-page .cp-price { margin: 18px 0 6px; display: flex; align-items: baseline; gap: 4px; }
+    .miplan-page .cp-price .c { font-size: 16px; color: var(--ink-500); margin-top: 4px; font-weight: 600; }
+    .miplan-page .cp.featured .cp-price .c { color: rgba(255,255,255,.5); }
+    .miplan-page .cp-price .n {
+      font-size: 40px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink-900);
     }
-
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 400px;
-      font-size: 1.1rem;
-      color: #64748b;
+    .miplan-page .cp.featured .cp-price .n { color: white; }
+    .miplan-page .cp.current .cp-price .n {
+      background: linear-gradient(160deg, var(--cyan-500), var(--cyan-700));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
     }
+    .miplan-page .cp-price .u { font-size: 12px; color: var(--ink-400); }
+    .miplan-page .cp.featured .cp-price .u { color: rgba(255,255,255,.5); }
 
-    .loading::after {
+    .miplan-page .cp-blurb {
+      font-size: 12.5px; color: var(--ink-500);
+      margin: 0 0 16px; line-height: 1.55; min-height: 36px;
+    }
+    .miplan-page .cp.featured .cp-blurb { color: rgba(255,255,255,.6); }
+
+    .miplan-page .cp-feats {
+      list-style: none; padding: 0; margin: 0 0 20px;
+      display: flex; flex-direction: column; gap: 9px;
+    }
+    .miplan-page .cp-feats li {
+      font-size: 12.5px; color: var(--ink-600);
+      display: flex; gap: 9px; align-items: center;
+    }
+    .miplan-page .cp.featured .cp-feats li { color: rgba(255,255,255,.75); }
+    .miplan-page .cp-feats li::before {
       content: '';
-      width: 30px;
-      height: 30px;
-      border: 3px solid rgba(8, 145, 178, 0.2);
-      border-top-color: #0891b2;
+      width: 14px; height: 14px;
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-left: 0.75rem;
+      background: var(--cyan-100) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%230BB5C9' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='3 8 7 12 13 4'/></svg>") center / 11px no-repeat;
+      flex-shrink: 0;
+    }
+    .miplan-page .cp.featured .cp-feats li::before {
+      background-color: rgba(11,181,201,.18);
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236FD6EA' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='3 8 7 12 13 4'/></svg>");
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .miplan-page .cp-cta {
+      width: 100%;
+      padding: 12px;
+      border-radius: 11px;
+      border: 0;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: .02em;
+      transition: all .15s ease;
+      background: var(--ink-50);
+      color: var(--ink-700);
+      border: 1px solid var(--ink-150);
+    }
+    .miplan-page .cp .cp-cta:hover {
+      background: white; border-color: var(--cyan-300); color: var(--cyan-700);
+    }
+    .miplan-page .cp.current .cp-cta {
+      background: white; border-color: var(--cyan-200); color: var(--cyan-700); cursor: default;
+    }
+    .miplan-page .cp.featured .cp-cta {
+      background: linear-gradient(160deg, var(--cyan-400), var(--cyan-600));
+      color: white;
+      border: 0;
+      box-shadow: 0 12px 22px -10px rgba(11,181,201,.65);
+    }
+    .miplan-page .cp.featured .cp-cta:hover { transform: translateY(-1px); }
+
+    .miplan-page .page-foot {
+      margin-top: 36px;
+      display: flex; justify-content: space-between; align-items: center;
+      color: var(--ink-400); font-size: 12px;
+      gap: 12px; flex-wrap: wrap;
+    }
+    .miplan-page .page-foot a {
+      color: var(--cyan-600); text-decoration: none; font-weight: 500;
+    }
+    .miplan-page .page-foot a:hover { text-decoration: underline; }
+
+    /* fade in */
+    .miplan-page .fade-up { animation: mp-fadeUp .6s cubic-bezier(.2,.7,.2,1) both; }
+    .miplan-page .fade-up.d1 { animation-delay: .05s; }
+    .miplan-page .fade-up.d2 { animation-delay: .12s; }
+    .miplan-page .fade-up.d3 { animation-delay: .2s; }
+    .miplan-page .fade-up.d4 { animation-delay: .28s; }
+    .miplan-page .fade-up.d5 { animation-delay: .36s; }
+    @keyframes mp-fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    @media (max-width: 768px) {
-      main { padding: 1.5rem 1rem; }
-      .page-header h1 { font-size: 1.8rem; }
-      .plan-card { padding: 1.5rem; }
-      .plan-header { flex-direction: column; }
-      .plan-price { text-align: left; margin-top: 1rem; }
-      .plan-price-amount { font-size: 1.8rem; }
-      .features-list { grid-template-columns: 1fr; }
-      .plan-stats { grid-template-columns: repeat(3, 1fr); }
-      .btn { font-size: 0.8rem; padding: 0.8rem 1.5rem; }
+    /* Loading + error states */
+    .miplan-page .mp-loading {
+      min-height: 360px;
+      display: grid; place-items: center;
+      color: var(--ink-400);
+      font-size: 14px;
+      gap: 14px;
+    }
+    .miplan-page .mp-spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--ink-150);
+      border-top-color: var(--cyan-500);
+      border-radius: 50%;
+      animation: mp-rot .8s linear infinite;
+    }
+    @keyframes mp-rot { to { transform: rotate(360deg); } }
+    .miplan-page .mp-error {
+      padding: 32px;
+      border: 1px solid #FECACA;
+      background: #FEF2F2;
+      color: #B91C1C;
+      border-radius: var(--mp-radius);
+      font-size: 14px;
     }
 
-    main::-webkit-scrollbar {
-      width: 6px;
+    /* Responsive */
+    @media (max-width: 1180px) {
+      .miplan-page .compare,
+      .miplan-page .usage-grid { grid-template-columns: 1fr 1fr; }
+      .miplan-page .split-2 { grid-template-columns: 1fr; }
     }
-
-    main::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    main::-webkit-scrollbar-thumb {
-      background: linear-gradient(135deg, rgba(8, 145, 178, 0.4) 0%, rgba(6, 182, 212, 0.4) 100%);
-      border-radius: 3px;
-    }
-
-    main::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(135deg, rgba(8, 145, 178, 0.6) 0%, rgba(6, 182, 212, 0.6) 100%);
+    @media (max-width: 760px) {
+      .miplan-page { padding: 4px 0 48px; }
+      .miplan-page .hero-left,
+      .miplan-page .hero-right { padding: 24px 22px; }
+      .miplan-page .compare,
+      .miplan-page .usage-grid { grid-template-columns: 1fr; }
+      .miplan-page .feat-list { grid-template-columns: 1fr; }
+      .miplan-page .plan-name { font-size: 30px; }
+      .miplan-page .price-num { font-size: 50px; }
+      .miplan-page .page-title { font-size: 28px; }
     }
   </style>
 </head>
 <body>
 
 <main class="layout-main">
-  <div class="page-header">
-    <h1>Mi Plan</h1>
-    <p>Información de tu suscripción actual</p>
-  </div>
-
-  <div class="plan-container" id="planContainer">
-    <div class="loading">Cargando plan...</div>
+  <div class="miplan-page" id="miplanRoot">
+    <div class="mp-loading">
+      <div class="mp-spinner"></div>
+      <span>Cargando tu plan…</span>
+    </div>
   </div>
 </main>
 
@@ -414,122 +825,527 @@
 <script>
   requireAuth(['clinic_admin']);
 
-  const planFeatures = {
-    basic: [
-      'Hasta 100 pacientes',
-      '2 doctores',
-      'Consultas ilimitadas',
-      'Reportes básicos',
-      'Soporte por email'
-    ],
-    professional: [
-      'Hasta 500 pacientes',
-      'Doctores ilimitados',
-      'Consultas ilimitadas',
-      'Reportes avanzados',
-      'Recordatorios WhatsApp',
-      'Soporte prioritario',
-      'API access'
-    ],
-    enterprise: [
-      'Pacientes ilimitados',
-      'Doctores ilimitados',
-      'Consultas ilimitadas',
-      'Reportes personalizados',
-      'Recordatorios WhatsApp',
-      'Soporte 24/7',
-      'API access',
-      'Integración personalizada'
-    ]
+  /* ========== Catálogo de planes ========== */
+  const PLAN_CATALOG = {
+    basic: {
+      key: 'basic',
+      name: 'Plan Básico',
+      tag: 'Para empezar',
+      price: 49,
+      blurb: 'Lo básico para una práctica individual con expediente digital.',
+      blurbLong: 'Acceso a la plataforma con consultas ilimitadas y recordatorios SMS para una práctica individual.',
+      patientLimit: 100,
+      doctorLimit: 2,
+      features: [
+        { t: 'Hasta 100 pacientes',          v: '' },
+        { t: 'Hasta 2 doctores',             v: '' },
+        { t: 'Consultas ilimitadas',         v: 'Sin tope' },
+        { t: 'Reportes básicos',             v: 'Incluido' },
+        { t: 'Recordatorios SMS',            v: 'Activos' },
+        { t: 'Soporte por email',            v: '< 24 hrs' }
+      ],
+      compareFeats: ['Hasta 100 pacientes', 'Hasta 2 doctores', 'Consultas ilimitadas', 'Reportes básicos', 'Recordatorios SMS']
+    },
+    professional: {
+      key: 'professional',
+      name: 'Plan Profesional',
+      tag: 'Tu plan actual',
+      price: 149,
+      blurb: 'Todo lo que necesita una clínica en crecimiento.',
+      blurbLong: 'Acceso completo a la plataforma con consultas y doctores ilimitados, recordatorios automáticos por WhatsApp y reportes avanzados para tu clínica.',
+      patientLimit: 500,
+      doctorLimit: null,
+      features: [
+        { t: 'Hasta 500 pacientes',          v: '' },
+        { t: 'Doctores ilimitados',          v: '' },
+        { t: 'Consultas ilimitadas',         v: 'Sin tope' },
+        { t: 'Reportes avanzados',           v: 'Incluido' },
+        { t: 'Recordatorios WhatsApp',       v: 'Activos' },
+        { t: 'Soporte prioritario',          v: '< 2 hrs' },
+        { t: 'API access',                    v: '1 token activo' },
+        { t: 'Exportar a CSV / Excel',       v: 'Incluido' }
+      ],
+      compareFeats: ['Hasta 500 pacientes', 'Doctores ilimitados', 'WhatsApp + Reportes', 'Soporte prioritario', 'API access']
+    },
+    enterprise: {
+      key: 'enterprise',
+      name: 'Plan Empresarial',
+      tag: 'Multi-clínica',
+      price: 399,
+      blurb: 'Para redes de clínicas con necesidades de cumplimiento y SSO.',
+      blurbLong: 'Solución empresarial con multi-sede, SSO, auditoría HIPAA y manager dedicado para redes de clínicas.',
+      patientLimit: null,
+      doctorLimit: null,
+      features: [
+        { t: 'Pacientes ilimitados',         v: '' },
+        { t: 'Doctores ilimitados',          v: '' },
+        { t: 'Consultas ilimitadas',         v: 'Sin tope' },
+        { t: 'Multi-sede',                   v: 'Activo' },
+        { t: 'SSO + SAML',                   v: 'Incluido' },
+        { t: 'Auditoría HIPAA',              v: 'Incluido' },
+        { t: 'Manager dedicado',             v: 'Asignado' },
+        { t: 'API access',                    v: 'Sin tope' }
+      ],
+      compareFeats: ['Pacientes ilimitados', 'Multi-sede', 'SSO + SAML', 'Auditoría HIPAA', 'Manager dedicado']
+    }
   };
 
-  const planNames = {
-    basic: 'Plan Básico',
-    professional: 'Plan Profesional',
-    enterprise: 'Plan Empresarial'
+  /* ========== Helpers de fechas ========== */
+  const MES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const MES_UPPER = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+
+  function diasEntre(a, b) {
+    const ms = b.getTime() - a.getTime();
+    return Math.round(ms / 86400000);
+  }
+  function addMonths(date, n) {
+    const d = new Date(date.getTime());
+    d.setMonth(d.getMonth() + n);
+    return d;
+  }
+
+  /* ========== SVG Icons (inline) ========== */
+  const I = {
+    arrow:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+    sup:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12c0 5-4 9-9 9s-9-4-9-9 4-9 9-9 9 4 9 9z"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 1.5-2.5 2-2.5 3.5M12 17h.01"/></svg>',
+    refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.5 9a9 9 0 0114.8-3.4L23 10M1 14l4.7 4.4A9 9 0 0020.5 15"/></svg>',
+    chev:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+    check:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>',
+    up:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg>',
+    dl:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M6 11l6 6 6-6M5 21h14"/></svg>',
+    spark:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--cyan-600)"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>',
+    card:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--cyan-600)"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18M7 16h3"/></svg>',
+    lock:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>'
   };
 
-  const planPrices = {
-    basic: '$49',
-    professional: '$149',
-    enterprise: 'Contactar'
-  };
-
-  (async () => {
-    try {
-      const plan = await api('/api/clinics/plan/info');
-
-      const features = planFeatures[plan.plan_type] || planFeatures.professional;
-      const displayName = planNames[plan.plan_type] || 'Plan Profesional';
-      const displayPrice = planPrices[plan.plan_type] || '$149';
-
-      const expiresDate = plan.plan_expires_at
-        ? new Date(plan.plan_expires_at).toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })
-        : 'Sin vencimiento';
-
-      const html = `
-        <div class="plan-card">
-          <div class="plan-header">
-            <div class="plan-name">
-              <h2>${esc(displayName)}</h2>
-              <div class="plan-badge">${plan.plan_status === 'active' ? '✓ Activo' : plan.plan_status}</div>
-            </div>
-            <div class="plan-price">
-              <div class="plan-price-amount">${displayPrice}</div>
-              <div class="plan-price-period">/${esc(plan.billing_cycle)}</div>
-            </div>
-          </div>
-
-          <div class="plan-features">
-            <div class="plan-features-title">Incluido en tu plan</div>
-            <div class="features-list">
-              ${features.map(f => `
-                <div class="feature-item">
-                  <div class="feature-check">✓</div>
-                  <div class="feature-text">${esc(f)}</div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-
-          <div class="plan-stats">
-            <div class="stat-item">
-              <div class="stat-label">Pacientes Activos</div>
-              <div class="stat-value">${plan.stats.total_patients}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">Doctores</div>
-              <div class="stat-value">${plan.stats.total_doctors}</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">Consultas Este Mes</div>
-              <div class="stat-value">${plan.stats.consultations_this_month}</div>
-            </div>
-          </div>
-
-          <div class="plan-cta">
-            <button class="btn btn-primary" onclick="alert('Contacta a ventas para mejorar tu plan')">
-              Mejorar Plan
-            </button>
-            <button class="btn btn-secondary" onclick="alert('Para cambios en tu suscripción, contacta a soporte')">
-              Contactar Soporte
-            </button>
-          </div>
-
-          <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(8, 145, 178, 0.1); color: #94a3b8; font-size: 0.85rem;">
-            <strong>Clínica:</strong> ${esc(plan.clinic_name)}<br>
-            <strong>Próxima renovación:</strong> ${esc(expiresDate)}
+  /* ========== Render: Hero ========== */
+  function renderHero(plan, currentPlan) {
+    const expiryRaw = plan.plan_expires_at ? new Date(plan.plan_expires_at) : null;
+    const today = new Date();
+    let nextBillBlock = '';
+    if (expiryRaw) {
+      const upcoming = new Date(expiryRaw.getTime());
+      const days = Math.max(0, diasEntre(today, upcoming));
+      const mesLong = upcoming.toLocaleDateString('es-HN', { month: 'long' });
+      const dia = upcoming.getDate();
+      const yr = upcoming.getFullYear();
+      const dow = DIAS[upcoming.getDay()];
+      nextBillBlock = `
+        <div class="next-bill">
+          <div class="next-bill-cal">${MES_UPPER[upcoming.getMonth()]}<b>${dia}</b></div>
+          <div class="next-bill-text">
+            <span class="nb-label">Próxima renovación</span>
+            <span class="nb-value">${dow.charAt(0).toUpperCase()+dow.slice(1)} ${dia} de ${mesLong} ${yr} · en ${days} día${days===1?'':'s'}</span>
           </div>
         </div>
       `;
+    } else {
+      nextBillBlock = `
+        <div class="next-bill">
+          <div class="next-bill-cal" style="background:linear-gradient(160deg,var(--ink-50),var(--ink-100));color:var(--ink-500);border-color:var(--ink-150)">∞</div>
+          <div class="next-bill-text">
+            <span class="nb-label">Renovación</span>
+            <span class="nb-value">Suscripción sin vencimiento</span>
+          </div>
+        </div>
+      `;
+    }
 
-      document.getElementById('planContainer').innerHTML = html;
+    const cycle = plan.billing_cycle === 'yearly' ? 'Anual · renovación automática' : 'Mensual · renovación automática';
+    const isActive = plan.plan_status === 'active';
+
+    return `
+      <section class="hero fade-up d1">
+        <div class="hero-grid">
+          <div class="hero-left">
+            <div class="plan-tag">Tu plan actual</div>
+            <h2 class="plan-name">
+              ${esc(currentPlan.name)}
+              <span class="badge-active ${isActive ? '' : 'badge-inactive'}">${isActive ? 'Activo' : esc(plan.plan_status || 'Inactivo')}</span>
+            </h2>
+            <p class="plan-blurb">${esc(currentPlan.blurbLong)}</p>
+
+            <div class="meta-row">
+              <div class="meta">
+                <span class="meta-label">Clínica</span>
+                <span class="meta-value"><span class="dot"></span>${esc(plan.clinic_name || '—')}</span>
+              </div>
+              <div class="meta">
+                <span class="meta-label">Ciclo</span>
+                <span class="meta-value">${cycle}</span>
+              </div>
+              <div class="meta">
+                <span class="meta-label">Estado</span>
+                <span class="meta-value">${isActive ? 'Al día · sin cargos pendientes' : esc(plan.plan_status || '—')}</span>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn btn-primary" id="mp-upgrade">
+                Mejorar plan ${I.arrow}
+              </button>
+              <button class="btn btn-ghost" id="mp-support">
+                ${I.sup} Contactar soporte
+              </button>
+              <button class="btn btn-ghost" id="mp-cycle">
+                ${I.refresh} Cambiar ciclo
+              </button>
+            </div>
+          </div>
+
+          <div class="hero-right">
+            <div>
+              <div class="meta-label" style="margin-bottom:4px">Precio actual</div>
+              <div class="price-row">
+                <span class="price-cur">L.</span>
+                <span class="price-num">${currentPlan.price}</span>
+                <span class="price-unit">Lempiras / ${plan.billing_cycle === 'yearly' ? 'año' : 'mes'}</span>
+              </div>
+              <div style="font-size:12px;color:var(--ink-400)">
+                IVA incluido · facturable a ${esc(plan.clinic_name || 'tu clínica')}
+              </div>
+            </div>
+
+            ${nextBillBlock}
+
+            <div class="pay-card">
+              <div class="pay-brand">VISA</div>
+              <div>
+                <div class="pc-num"><span class="mono">•••• •••• •••• 4827</span></div>
+                <div class="pc-sub">Vence 09/27 · método registrado</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  /* ========== Render: Usage cards (SVG ring) ========== */
+  function ringCard({ label, count, total, unit, longUnit, trend, trendDir, gradId, gradFrom, gradTo }) {
+    const isUnlimited = !total;
+    const pct = isUnlimited ? 1 : Math.min(count / total, 1);
+    const size = 124, stroke = 12, r = (size - stroke) / 2;
+    const C = 2 * Math.PI * r;
+    const offsetTarget = C * (1 - pct);
+
+    const center = isUnlimited
+      ? `<div class="inf">∞</div><div class="lbl">sin tope</div>`
+      : `<div class="big">${Math.round(pct*100)}<span class="pct-unit">%</span></div><div class="lbl">usado</div>`;
+
+    const trendBlock = trend ? `
+      <span class="ucp-delta ${trendDir==='flat'?'flat':''}">
+        ${trendDir==='up' ? I.up : ''}
+        ${esc(trend)}
+      </span>
+    ` : '';
+
+    return `
+      <div class="ucp">
+        <div class="ucp-head">
+          <div class="ucp-label">
+            <span class="dotx"></span>${esc(label)}
+          </div>
+          ${trendBlock}
+        </div>
+        <div class="ucp-body">
+          <div class="pring">
+            <svg viewBox="0 0 ${size} ${size}">
+              <defs>
+                <linearGradient id="${gradId}" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="${gradFrom}"/>
+                  <stop offset="100%" stop-color="${gradTo}"/>
+                </linearGradient>
+              </defs>
+              <circle class="track" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke-width="${stroke}"/>
+              <circle class="fill" cx="${size/2}" cy="${size/2}" r="${r}" fill="none"
+                stroke="url(#${gradId})" stroke-width="${stroke}"
+                stroke-dasharray="${C}" stroke-dashoffset="${C}"
+                data-target-offset="${offsetTarget}"/>
+            </svg>
+            <div class="pring-center">${center}</div>
+          </div>
+          <div class="ucp-info">
+            <div class="ucp-stat">
+              ${count.toLocaleString('es-HN')}
+              <span class="of">/ ${total ? total.toLocaleString('es-HN') : '∞'} ${esc(unit)}</span>
+            </div>
+            <div class="ucp-meta">
+              ${total
+                ? `Quedan <b>${Math.max(0, total-count).toLocaleString('es-HN')}</b> ${esc(longUnit)} en tu plan`
+                : `Tu plan no tiene límite de ${esc(longUnit)}`}
+            </div>
+          </div>
+        </div>
+        <div class="ucp-track ${isUnlimited?'indef':''}">
+          ${!isUnlimited ? `<div class="pfill" style="--p:${pct}"></div>` : ''}
+        </div>
+        <div class="ucp-foot">
+          <span>0</span>
+          <span class="max">${total ? total.toLocaleString('es-HN') : 'ilimitado'}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderUsage(stats, currentPlan) {
+    const today = new Date();
+    const periodStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const periodEnd = new Date(today.getFullYear(), today.getMonth()+1, 0);
+    const fmtPeriod = (d) => `${d.getDate()} ${MES_CORTO[d.getMonth()].toLowerCase()}`;
+    const periodLabel = `Período actual · ${fmtPeriod(periodStart)} — ${fmtPeriod(periodEnd)} ${periodEnd.getFullYear()}`;
+
+    const patientsCard = ringCard({
+      label: 'Pacientes activos',
+      count: stats.total_patients,
+      total: currentPlan.patientLimit,
+      unit: 'pac.', longUnit: 'pacientes',
+      trend: currentPlan.patientLimit ? null : 'Ilimitado',
+      trendDir: 'flat',
+      gradId: 'mp-grad-pat', gradFrom: '#2EBED9', gradTo: '#0794AA'
+    });
+    const doctorsCard = ringCard({
+      label: 'Doctores',
+      count: stats.total_doctors,
+      total: currentPlan.doctorLimit,
+      unit: 'doc.', longUnit: 'doctores',
+      trend: currentPlan.doctorLimit ? null : 'Ilimitado',
+      trendDir: 'flat',
+      gradId: 'mp-grad-doc', gradFrom: '#6FD6EA', gradTo: '#0BB5C9'
+    });
+    const consultationsCard = ringCard({
+      label: 'Consultas este mes',
+      count: stats.consultations_this_month,
+      total: null,
+      unit: 'cons.', longUnit: 'consultas',
+      trend: 'Ilimitado',
+      trendDir: 'flat',
+      gradId: 'mp-grad-con', gradFrom: '#2EBED9', gradTo: '#096F82'
+    });
+
+    return `
+      <div class="section fade-up d2">
+        <div class="sec-head">
+          <h2 class="sec-title"><span class="accent"></span> Uso de tu plan</h2>
+          <span class="sec-sub">${esc(periodLabel)}</span>
+        </div>
+        <div class="usage-grid">
+          ${patientsCard}
+          ${doctorsCard}
+          ${consultationsCard}
+        </div>
+      </div>
+    `;
+  }
+
+  /* ========== Render: Features + Billing ========== */
+  function renderFeatures(currentPlan, stats) {
+    const dynamicVal = (f) => {
+      if (f.t === 'Hasta 100 pacientes' || f.t === 'Hasta 500 pacientes')
+        return `${stats.total_patients} / ${currentPlan.patientLimit}`;
+      if (f.t === 'Pacientes ilimitados')
+        return `${stats.total_patients.toLocaleString('es-HN')} activos`;
+      if (f.t === 'Hasta 2 doctores')
+        return `${stats.total_doctors} / 2`;
+      if (f.t === 'Doctores ilimitados')
+        return `${stats.total_doctors} activos`;
+      if (f.t === 'Consultas ilimitadas' && currentPlan.key !== 'basic')
+        return 'Sin tope';
+      return f.v;
+    };
+    return `
+      <div class="card">
+        <h3>${I.spark} Incluido en tu plan</h3>
+        <div class="feat-list">
+          ${currentPlan.features.map(f => `
+            <div class="feat">
+              <div class="feat-ic">${I.check}</div>
+              <div class="feat-text">${esc(f.t)}</div>
+              <div class="feat-val">${esc(dynamicVal(f))}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderBilling(plan, currentPlan) {
+    const expiryRaw = plan.plan_expires_at ? new Date(plan.plan_expires_at) : null;
+    const rows = [];
+    const amount = `L. ${currentPlan.price.toLocaleString('es-HN')}.00`;
+    if (expiryRaw) {
+      // Próximo cargo (la fecha de expiración)
+      rows.push({
+        date: expiryRaw,
+        amt: amount, status: 'pending', label: 'Próximo'
+      });
+      // Cargos pasados (4 meses anteriores al expires_at, asumiendo ciclo mensual)
+      const stride = plan.billing_cycle === 'yearly' ? -12 : -1;
+      for (let i = 1; i <= 4; i++) {
+        const d = addMonths(expiryRaw, stride * i);
+        rows.push({ date: d, amt: amount, status: 'paid' });
+      }
+    } else {
+      // Solo historial sintético si no hay expiración
+      const today = new Date();
+      for (let i = 0; i < 5; i++) {
+        const d = addMonths(today, -i);
+        rows.push({ date: d, amt: amount, status: i === 0 ? 'pending' : 'paid', label: i === 0 ? 'Próximo' : null });
+      }
+    }
+    const html = rows.map(r => {
+      const dStr = `${r.date.getDate()} ${MES_CORTO[r.date.getMonth()]}`;
+      const yStr = `${r.date.getFullYear()} · VISA •• 4827`;
+      return `
+        <div class="bill-row ${r.status==='pending'?'pending':''}">
+          <div class="bill-dot"></div>
+          <div class="bill-date">
+            <span class="d">${esc(dStr)}${r.label ? `<span class="pending-label">· ${esc(r.label.toUpperCase())}</span>` : ''}</span>
+            <span class="y">${esc(yStr)}</span>
+          </div>
+          <div class="bill-amt">${esc(r.amt)}</div>
+          <button class="bill-act" title="Descargar factura" data-bill-download>${I.dl}</button>
+        </div>
+      `;
+    }).join('');
+    return `
+      <div class="card">
+        <h3 style="justify-content:space-between;display:flex">
+          <span style="display:inline-flex;align-items:center;gap:10px">
+            ${I.card} Facturación reciente
+          </span>
+          <a class="h3-link" href="#" data-action="see-all-bills">Ver todo →</a>
+        </h3>
+        <div class="bill-list">${html}</div>
+      </div>
+    `;
+  }
+
+  /* ========== Render: Compare plans ========== */
+  function renderCompare(currentKey) {
+    const order = ['basic', 'professional', 'enterprise'];
+    const cards = order.map(k => {
+      const p = PLAN_CATALOG[k];
+      let variant = '';
+      let cta = `Cambiar a ${p.name.replace('Plan ', '')}`;
+      let tag = p.key === 'basic' ? 'Para empezar' : p.key === 'enterprise' ? 'Multi-clínica' : 'Recomendado';
+      if (p.key === currentKey) {
+        variant = 'current';
+        cta = 'Plan actual';
+        tag = 'Tu plan actual';
+      } else if (p.key === 'enterprise') {
+        variant = 'featured';
+        cta = 'Hablar con ventas';
+      }
+      return `
+        <div class="cp ${variant}" data-plan="${esc(p.key)}">
+          <div class="cp-name">${esc(p.name.replace('Plan ', ''))}</div>
+          <span class="cp-tag">${esc(tag)}</span>
+          <div class="cp-price">
+            <span class="c">L.</span>
+            <span class="n">${p.price}</span>
+            <span class="u">/ mes</span>
+          </div>
+          <p class="cp-blurb">${esc(p.blurb)}</p>
+          <ul class="cp-feats">
+            ${p.compareFeats.map(f => `<li>${esc(f)}</li>`).join('')}
+          </ul>
+          <button class="cp-cta">${esc(cta)}</button>
+        </div>
+      `;
+    }).join('');
+    return `
+      <div class="section fade-up d3">
+        <div class="sec-head">
+          <h2 class="sec-title"><span class="accent"></span> Comparar planes</h2>
+          <span class="sec-sub">Cambia o mejora cuando lo necesites · prorrateo automático</span>
+        </div>
+        <div class="compare">${cards}</div>
+      </div>
+    `;
+  }
+
+  /* ========== Main render ========== */
+  function renderPage(plan) {
+    const planKey = PLAN_CATALOG[plan.plan_type] ? plan.plan_type : 'professional';
+    const currentPlan = PLAN_CATALOG[planKey];
+
+    return `
+      <div class="topbar fade-up">
+        <div class="crumbs">
+          <span>Cuenta</span> ${I.chev.replace('<svg', '<svg style="width:12px;height:12px;opacity:.4"')} <b>Mi Plan</b>
+        </div>
+        <div class="tb-right">
+          <button class="pill-btn" data-action="download-all">${I.dl} Descargar facturas</button>
+          <button class="pill-btn" data-action="security">${I.lock} Seguridad</button>
+        </div>
+      </div>
+
+      <h1 class="page-title fade-up">Mi Plan</h1>
+      <p class="page-sub fade-up">Información de tu suscripción, uso y facturación.</p>
+
+      ${renderHero(plan, currentPlan)}
+      ${renderUsage(plan.stats, currentPlan)}
+
+      <div class="section fade-up d3">
+        <div class="sec-head">
+          <h2 class="sec-title"><span class="accent"></span> Beneficios y facturación</h2>
+          <span class="sec-sub">Todo lo incluido + tus últimos cargos</span>
+        </div>
+        <div class="split-2">
+          ${renderFeatures(currentPlan, plan.stats)}
+          ${renderBilling(plan, currentPlan)}
+        </div>
+      </div>
+
+      ${renderCompare(planKey)}
+
+      <div class="page-foot fade-up d5">
+        <span>¿Dudas con la facturación? <a href="#" data-action="support">Contactar soporte</a> · responde en menos de 2 horas.</span>
+        <span style="font-family:var(--mp-mono);font-size:11px">v2.6 · salud digital</span>
+      </div>
+    `;
+  }
+
+  function attachInteractions(root) {
+    // Anillos: animar stroke-dashoffset hacia el target
+    requestAnimationFrame(() => {
+      root.querySelectorAll('.pring .fill').forEach(el => {
+        const target = el.getAttribute('data-target-offset');
+        if (target != null) el.style.strokeDashoffset = target;
+      });
+    });
+
+    const supportMsg = () => alert('Para cambios en tu suscripción, contacta a soporte: contacto@saluddigital.hn');
+    const upgradeMsg = () => alert('Contacta a ventas para mejorar tu plan: contacto@saluddigital.hn');
+    root.querySelector('#mp-upgrade')?.addEventListener('click', upgradeMsg);
+    root.querySelector('#mp-support')?.addEventListener('click', supportMsg);
+    root.querySelector('#mp-cycle')?.addEventListener('click', supportMsg);
+    root.querySelectorAll('[data-action="support"], [data-action="security"], [data-action="download-all"], [data-action="see-all-bills"], [data-bill-download]').forEach(el => {
+      el.addEventListener('click', (e) => { e.preventDefault(); supportMsg(); });
+    });
+    root.querySelectorAll('.cp .cp-cta').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.cp');
+        if (card?.classList.contains('current')) return;
+        upgradeMsg();
+      });
+    });
+  }
+
+  (async () => {
+    const root = document.getElementById('miplanRoot');
+    try {
+      const plan = await api('/api/clinics/plan/info');
+      root.innerHTML = renderPage(plan);
+      attachInteractions(root);
     } catch (e) {
       console.error(e);
-      document.getElementById('planContainer').innerHTML = `
-        <div class="plan-card" style="text-align: center; padding: 3rem;">
-          <p style="color: #ef4444; font-size: 1.1rem;">Error al cargar el plan</p>
-          <p style="color: #94a3b8; margin-top: 0.5rem;">${esc(e.message)}</p>
+      root.innerHTML = `
+        <div class="mp-error">
+          <strong>No pudimos cargar tu plan.</strong><br>
+          ${esc(e.message || 'Error desconocido')}
         </div>
       `;
     }

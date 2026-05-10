@@ -2,968 +2,1491 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SaludDigital — Gestión de Personal</title>
   <link rel="stylesheet" href="/layout.css">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; height: 100%; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; color: #1e293b; }
-
-    .layout-main {
-      padding: 2.5rem 2rem;
-      max-width: 100%;
+    /* ───────────── Design tokens (premium redesign) ───────────── */
+    :root{
+      --teal-50:#ecfeff; --teal-100:#cffafe; --teal-200:#a5f3fc; --teal-300:#67e8f9;
+      --teal-400:#22d3ee; --teal-500:#14b8a6; --teal-600:#0891b2; --teal-700:#0e7490;
+      --teal-800:#155e75; --teal-900:#134e4a;
+      --green-500:#22c55e; --green-600:#16a34a; --green-700:#15803d; --green-50:#f0fdf4;
+      --amber-50:#fffbeb; --amber-100:#fef3c7; --amber-500:#f59e0b; --amber-700:#b45309;
+      --indigo-50:#eef2ff; --indigo-100:#e0e7ff; --indigo-500:#6366f1; --indigo-600:#4f46e5; --indigo-700:#4338ca;
+      --rose-50:#fff1f2; --rose-500:#f43f5e; --rose-700:#be123c;
+      --purple-50:#faf5ff; --purple-500:#a855f7; --purple-700:#7e22ce;
+      --bg:oklch(98.5% 0.005 200); --bg-elev:#ffffff;
+      --surface:oklch(99% 0.003 200); --surface-2:oklch(96.5% 0.006 210);
+      --line:oklch(92% 0.008 215); --line-strong:oklch(86% 0.012 215);
+      --ink:oklch(22% 0.02 240); --ink-2:oklch(36% 0.02 240);
+      --ink-3:oklch(52% 0.015 240); --ink-4:oklch(68% 0.012 240);
+      --r-xs:6px; --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px; --r-full:999px;
+      --shadow-xs:0 1px 2px rgba(15,56,72,.04);
+      --shadow-sm:0 1px 2px rgba(15,56,72,.04),0 2px 6px rgba(15,56,72,.04);
+      --shadow-md:0 4px 12px -2px rgba(15,56,72,.08),0 2px 4px rgba(15,56,72,.04);
+      --shadow-lg:0 24px 48px -16px rgba(15,56,72,.18),0 6px 14px -6px rgba(15,56,72,.10);
+      --ring-focus:0 0 0 3px color-mix(in oklch, var(--teal-600) 28%, transparent);
+      --font-display:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+      --font-ui:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+      --font-mono:ui-monospace,SFMono-Regular,Menlo,Monaco,monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family:var(--font-ui); color:var(--ink); margin:0;
+      background:
+        radial-gradient(1200px 600px at 85% -10%, color-mix(in oklch, var(--teal-100) 70%, transparent), transparent 60%),
+        radial-gradient(900px 500px at -10% 10%, color-mix(in oklch, var(--indigo-50) 80%, transparent), transparent 55%),
+        var(--bg);
+      min-height:100vh; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+      font-feature-settings:"ss01","ss02","cv11";
+    }
+    body::before{
+      content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.035 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      mix-blend-mode:multiply; opacity:.55;
     }
 
-    .page-header {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-      text-align: left;
-      margin-bottom: 3rem;
-      gap: 2rem;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      padding: 3rem 2.5rem;
-      border-radius: 16px;
-      box-shadow: 0 20px 40px rgba(8, 145, 178, 0.15);
+    .layout-main{position:relative; z-index:1}
+    .page{
+      width:100%;
+      padding:28px 28px 80px;
+      display:flex; flex-direction:column; gap:24px;
+      container-type:inline-size;
     }
 
-    .header-content {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      flex: 1;
+    /* Breadcrumbs row */
+    .crumbs-row{display:flex; align-items:center; gap:8px; color:var(--ink-3); font-size:13px}
+    .crumbs-row b{color:var(--ink)}
+    .crumbs-row .sep{opacity:.4}
+    .crumbs-row .right{margin-left:auto; display:flex; gap:8px}
+
+    .icon-btn{
+      width:36px; height:36px; border-radius:10px;
+      display:grid; place-items:center;
+      background:var(--surface); border:1px solid var(--line);
+      color:var(--ink-2); cursor:pointer; transition:background .15s, color .15s;
+    }
+    .icon-btn:hover{background:#fff; color:var(--ink)}
+
+    /* Hero */
+    .hero{
+      position:relative; display:grid;
+      grid-template-columns:1.4fr 1fr; gap:24px; align-items:stretch;
+    }
+    @container (max-width: 980px){ .hero{ grid-template-columns:1fr } }
+    .hero-card{
+      position:relative; overflow:hidden;
+      border-radius:var(--r-xl);
+      padding:28px 32px;
+      background:
+        radial-gradient(80% 140% at 100% 0%, color-mix(in oklch, var(--teal-400) 28%, transparent), transparent 60%),
+        radial-gradient(60% 100% at 0% 100%, color-mix(in oklch, var(--indigo-100) 80%, transparent), transparent 65%),
+        linear-gradient(135deg, var(--teal-800) 0%, var(--teal-700) 50%, var(--teal-600) 100%);
+      color:#fff;
+      box-shadow:var(--shadow-lg), inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+    .hero-card::before{
+      content:""; position:absolute; inset:0; pointer-events:none;
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><defs><pattern id='g' width='40' height='40' patternUnits='userSpaceOnUse'><circle cx='1' cy='1' r='1' fill='white' opacity='.15'/></pattern></defs><rect width='100%25' height='100%25' fill='url(%23g)'/></svg>");
+      opacity:.35; mix-blend-mode:overlay;
+    }
+    .hero-card::after{
+      content:""; position:absolute; width:360px; height:360px; right:-120px; top:-120px;
+      border-radius:50%;
+      background:radial-gradient(circle, color-mix(in oklch, var(--teal-300) 60%, transparent), transparent 65%);
+      filter:blur(20px); animation:pulse 8s ease-in-out infinite;
+    }
+    @keyframes pulse{ 0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.1);opacity:.9} }
+    .hero-eyebrow{
+      position:relative; display:inline-flex; align-items:center; gap:8px;
+      background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+      padding:5px 11px 5px 8px; border-radius:999px;
+      font-size:12px; letter-spacing:.04em; backdrop-filter:blur(8px);
+    }
+    .hero-eyebrow .dot{
+      width:6px; height:6px; border-radius:50%; background:var(--green-500);
+      box-shadow:0 0 0 4px color-mix(in oklch, var(--green-500) 30%, transparent);
+      animation:blink 1.6s ease-in-out infinite;
+    }
+    @keyframes blink{ 50%{opacity:.5} }
+    .hero h1{
+      position:relative; font-family:var(--font-display); font-weight:600;
+      font-size:clamp(34px, 4.2vw, 52px); line-height:1.02; letter-spacing:-.02em;
+      margin:16px 0 8px;
+    }
+    .hero h1 em{
+      font-style:normal; font-family:var(--font-display);
+      background:linear-gradient(180deg, #fff, color-mix(in oklch, var(--teal-200) 70%, #fff));
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+    .hero p{
+      position:relative; color:color-mix(in oklch, #fff 80%, transparent);
+      font-size:14.5px; max-width:52ch; margin:0 0 20px; line-height:1.55;
+    }
+    .hero-actions{position:relative; display:flex; gap:10px; flex-wrap:wrap}
+
+    .btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 16px; border-radius:12px;
+      font-family:var(--font-ui); font-weight:600; font-size:13.5px;
+      cursor:pointer; border:none;
+      transition:transform .15s, box-shadow .15s, background .15s, border-color .15s, color .15s;
+    }
+    .btn .ic{width:16px; height:16px; display:inline-flex; align-items:center; justify-content:center}
+    .btn .ic svg{display:block}
+    .btn-primary{
+      background:#fff; color:var(--teal-800);
+      box-shadow:0 4px 12px -4px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.6);
+    }
+    .btn-primary:hover{transform:translateY(-1px); box-shadow:0 8px 20px -6px rgba(0,0,0,.3)}
+    .btn-ghost-light{
+      background:rgba(255,255,255,.08); color:#fff;
+      border:1px solid rgba(255,255,255,.2); backdrop-filter:blur(8px);
+    }
+    .btn-ghost-light:hover{background:rgba(255,255,255,.16)}
+    .btn-success{
+      background:linear-gradient(180deg, var(--green-500), var(--green-600));
+      color:#fff;
+      box-shadow:0 2px 6px -2px color-mix(in oklch, var(--green-600) 50%, transparent), inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .btn-success:hover{
+      background:linear-gradient(180deg, var(--green-600), var(--green-700));
+      transform:translateY(-1px);
+    }
+    .btn-ghost{
+      background:#fff; color:var(--ink-2); border:1px solid var(--line);
+    }
+    .btn-ghost:hover{border-color:var(--line-strong); color:var(--ink)}
+    .btn-danger{
+      background:linear-gradient(180deg, var(--rose-500), var(--rose-700));
+      color:#fff;
+      box-shadow:0 2px 6px -2px color-mix(in oklch, var(--rose-500) 40%, transparent), inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .btn-danger:hover{transform:translateY(-1px)}
+
+    /* KPI bento */
+    .kpis{ display:grid; grid-template-columns:1fr 1fr; gap:14px }
+    .kpi{
+      position:relative; overflow:hidden;
+      background:var(--bg-elev); border-radius:var(--r-lg); padding:18px;
+      border:1px solid var(--line); box-shadow:var(--shadow-sm);
+      display:flex; flex-direction:column; gap:10px; min-height:140px;
+    }
+    .kpi .label{
+      display:flex; align-items:center; gap:8px;
+      color:var(--ink-3); font-size:11.5px; letter-spacing:.08em;
+      text-transform:uppercase; font-weight:600;
+    }
+    .kpi .v{
+      font-family:var(--font-display);
+      font-size:38px; letter-spacing:-.02em; line-height:1;
+      font-weight:600; font-variant-numeric:tabular-nums;
+    }
+    .kpi .v .unit{font-size:14px; color:var(--ink-3); font-family:var(--font-ui); font-weight:500; margin-left:6px}
+    .kpi .trend{
+      display:inline-flex; align-items:center; gap:5px;
+      font-size:12px; color:var(--green-700);
+      background:var(--green-50); padding:3px 8px; border-radius:999px;
+      width:fit-content;
+    }
+    .kpi.warn .v{color:var(--amber-700)}
+    .kpi.warn .trend{color:var(--amber-700); background:var(--amber-50)}
+    .kpi.flag .v{color:var(--indigo-700)}
+    .kpi.flag .trend{color:var(--indigo-700); background:var(--indigo-50)}
+    .kpi.violet .v{color:var(--purple-700)}
+    .kpi.violet .trend{color:var(--purple-700); background:var(--purple-50)}
+    .kpi .spark{position:absolute; right:-6px; bottom:-6px; opacity:.4; pointer-events:none}
+
+    /* Toolbar */
+    .toolbar{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      padding:10px; background:var(--bg-elev);
+      border-radius:var(--r-lg); border:1px solid var(--line);
+      box-shadow:var(--shadow-sm);
+    }
+    .seg{
+      display:inline-flex; padding:3px;
+      background:var(--surface-2); border-radius:999px; border:1px solid var(--line);
+      flex-wrap:wrap; gap:2px; max-width:100%;
+    }
+    .seg button{
+      appearance:none; border:none; background:transparent;
+      padding:7px 14px; border-radius:999px;
+      font:inherit; font-size:13px; color:var(--ink-3); font-weight:500;
+      cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+      transition:background .2s, color .2s; white-space:nowrap;
+    }
+    .seg button .pill{
+      background:color-mix(in oklch, var(--ink-3) 15%, transparent);
+      color:var(--ink-2);
+      padding:1px 7px; border-radius:999px; font-size:11px; font-variant-numeric:tabular-nums;
+    }
+    .seg button:hover{color:var(--ink)}
+    .seg button.on{
+      background:var(--bg-elev); color:var(--teal-800);
+      box-shadow:var(--shadow-xs), inset 0 0 0 1px var(--line);
+      font-weight:600;
+    }
+    .seg button.on .pill{
+      background:color-mix(in oklch, var(--teal-600) 14%, transparent);
+      color:var(--teal-800);
     }
 
-    @media (max-width: 768px) {
-      .page-header {
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        gap: 1.5rem;
-      }
+    .search-wrap{
+      position:relative; display:inline-flex; align-items:center;
+      background:var(--surface); border:1px solid var(--line);
+      border-radius:999px; padding:0 12px 0 36px; height:36px;
+      transition:border-color .15s, background .15s, box-shadow .15s;
+      min-width:240px;
+    }
+    .search-wrap:focus-within{
+      background:#fff; border-color:var(--teal-500); box-shadow:var(--ring-focus);
+    }
+    .search-wrap svg{position:absolute; left:12px; color:var(--ink-4)}
+    .search-wrap input{
+      appearance:none; border:none; background:transparent; outline:none;
+      font:inherit; font-size:13.5px; color:var(--ink);
+      width:100%; height:100%; min-width:0;
+    }
+    .search-wrap input::placeholder{color:var(--ink-4)}
+    .search-wrap .clear-search{
+      background:transparent; border:none; cursor:pointer; padding:2px;
+      color:var(--ink-3); display:none;
+    }
+    .search-wrap.has-value .clear-search{display:inline-flex}
+
+    .sort-select, .chip-select{
+      appearance:none;
+      background:var(--surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right 12px center;
+      border:1px solid var(--line); border-radius:999px;
+      padding:8px 32px 8px 14px; height:36px;
+      font:inherit; font-size:13px; color:var(--ink-2); font-weight:500;
+      cursor:pointer; transition:border-color .15s, background-color .15s;
+    }
+    .sort-select:hover, .chip-select:hover{border-color:var(--line-strong)}
+    .sort-select:focus, .chip-select:focus{outline:none; border-color:var(--teal-500); box-shadow:var(--ring-focus)}
+
+    .toolbar .spacer{flex:1}
+
+    /* Filter chips row */
+    .chips-row{
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:6px;
+      background:#fff; border:1px solid var(--line);
+      padding:6px 11px; border-radius:999px;
+      font-size:12.5px; color:var(--ink-2); cursor:pointer;
+      transition:border-color .15s, background .15s;
+      font-weight:500;
+    }
+    .chip:hover{border-color:var(--line-strong)}
+    .chip.active{
+      background:color-mix(in oklch, var(--teal-600) 10%, #fff);
+      color:var(--teal-800);
+      border-color:color-mix(in oklch, var(--teal-600) 30%, transparent);
+    }
+    .chip .dot{width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.6}
+    .chip .count{
+      background:color-mix(in oklch, var(--ink-3) 12%, transparent);
+      color:var(--ink-2);
+      padding:1px 7px; border-radius:999px; font-size:11px; font-variant-numeric:tabular-nums;
+    }
+    .chip.active .count{
+      background:color-mix(in oklch, var(--teal-600) 18%, transparent);
+      color:var(--teal-800);
     }
 
-    .header-content h1 {
-      font-size: 2rem;
-      font-weight: 900;
-      color: white;
-      letter-spacing: -0.02em;
-      margin: 0;
+    /* Card grids */
+    .grid-section{
+      background:var(--bg-elev); border-radius:var(--r-xl);
+      border:1px solid var(--line); box-shadow:var(--shadow-md); overflow:hidden;
+    }
+    .grid-head{
+      display:flex; align-items:center; gap:14px;
+      padding:18px 20px; border-bottom:1px solid var(--line);
+      background:linear-gradient(180deg, var(--surface), #fff);
+      flex-wrap:wrap;
+    }
+    .grid-head h3{
+      font-family:var(--font-display); font-weight:600; font-size:18px;
+      letter-spacing:-.01em; margin:0;
+    }
+    .grid-head .meta{color:var(--ink-3); font-size:12.5px}
+    .grid-head .actions{margin-left:auto; display:flex; gap:8px; flex-wrap:wrap}
+    .grid-body{padding:18px}
+
+    .staff-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+      gap:14px;
+    }
+    .rooms-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+      gap:14px;
     }
 
-    .header-content p {
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 0.95rem;
-      line-height: 1.5;
-      font-weight: 500;
-      margin: 0;
+    /* Staff card */
+    .staff-card{
+      position:relative; background:#fff;
+      border:1px solid var(--line); border-radius:var(--r-lg);
+      padding:16px; display:flex; flex-direction:column; gap:12px;
+      transition:transform .15s, box-shadow .15s, border-color .15s;
+      box-shadow:var(--shadow-xs);
+    }
+    .staff-card:hover{
+      transform:translateY(-2px);
+      box-shadow:var(--shadow-md);
+      border-color:var(--line-strong);
+    }
+    .staff-card .header{display:flex; align-items:center; gap:12px}
+    .staff-avatar{
+      width:48px; height:48px; border-radius:14px;
+      display:grid; place-items:center; color:#fff;
+      font-weight:600; font-size:15px;
+      background:linear-gradient(135deg, var(--c1, var(--teal-500)), var(--c2, var(--indigo-500)));
+      box-shadow:inset 0 0 0 2px #fff, 0 1px 2px rgba(0,0,0,.08);
+      flex:0 0 48px;
+    }
+    .staff-card .name-block{min-width:0; flex:1}
+    .staff-card .name{
+      font-weight:600; font-size:14.5px; color:var(--ink);
+      line-height:1.3;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .staff-card .email{
+      font-size:12px; color:var(--ink-3); font-weight:500;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+      margin-top:2px;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:3px 9px; border-radius:999px;
+      font-size:11px; font-weight:600; letter-spacing:.04em;
+      background:color-mix(in oklch, var(--c, var(--teal-500)) 12%, #fff);
+      color:var(--c, var(--teal-700));
+      border:1px solid color-mix(in oklch, var(--c, var(--teal-500)) 25%, transparent);
+      white-space:nowrap; width:fit-content;
+    }
+    .badge .dot{width:5px; height:5px; border-radius:50%; background:currentColor; opacity:.7}
+
+    .staff-meta{
+      display:flex; flex-direction:column; gap:6px;
+      padding:10px 12px; background:var(--surface);
+      border-radius:var(--r-md); font-size:12.5px;
+    }
+    .staff-meta .row{display:flex; align-items:center; gap:8px; color:var(--ink-2)}
+    .staff-meta .row svg{color:var(--ink-4); flex:0 0 14px}
+
+    .card-actions{
+      display:flex; gap:6px; flex-wrap:wrap;
+      padding-top:6px;
+    }
+    .action-btn{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:7px 12px; border-radius:999px;
+      background:#fff; border:1px solid var(--line);
+      color:var(--ink-2); font-weight:500; font-size:12.5px;
+      cursor:pointer; font-family:inherit;
+      transition:border-color .15s, color .15s, background .15s;
+    }
+    .action-btn:hover{border-color:var(--teal-500); color:var(--teal-700); background:var(--teal-50)}
+    .action-btn.delete:hover{border-color:var(--rose-500); color:var(--rose-700); background:var(--rose-50)}
+    .action-btn svg{width:13px; height:13px}
+
+    /* Room card */
+    .room-card{
+      position:relative; background:#fff;
+      border:1px solid var(--line); border-radius:var(--r-lg);
+      padding:16px; display:flex; flex-direction:column; gap:10px;
+      transition:transform .15s, box-shadow .15s, border-color .15s;
+      box-shadow:var(--shadow-xs);
+      overflow:hidden;
+    }
+    .room-card::before{
+      content:""; position:absolute; left:0; top:0; bottom:0; width:4px;
+      background:var(--c, var(--green-500));
+    }
+    .room-card:hover{
+      transform:translateY(-2px);
+      box-shadow:var(--shadow-md);
+      border-color:var(--line-strong);
+    }
+    .room-card .top{display:flex; align-items:flex-start; gap:10px}
+    .room-icon{
+      width:36px; height:36px; border-radius:10px;
+      display:grid; place-items:center;
+      background:color-mix(in oklch, var(--c, var(--teal-500)) 12%, #fff);
+      color:var(--c, var(--teal-700));
+      flex:0 0 36px;
+    }
+    .room-icon svg{width:18px; height:18px}
+    .room-name{font-weight:600; font-size:14.5px; color:var(--ink); line-height:1.3}
+    .room-status-badge{
+      display:inline-flex; align-items:center; gap:5px;
+      padding:3px 9px; border-radius:999px;
+      font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+      background:color-mix(in oklch, var(--c, var(--teal-500)) 14%, #fff);
+      color:var(--c, var(--teal-700));
+      width:fit-content; margin-top:3px;
+    }
+    .room-status-badge .dot{width:5px; height:5px; border-radius:50%; background:currentColor}
+    .room-patient{
+      font-size:12.5px; color:var(--ink-2); padding:8px 10px;
+      background:var(--surface); border-radius:var(--r-sm);
+    }
+    .room-patient b{color:var(--ink); font-weight:600}
+
+    /* Empty / loading */
+    .empty{padding:60px 20px; text-align:center; color:var(--ink-3)}
+    .empty .ic-wrap{
+      width:56px; height:56px; border-radius:16px;
+      background:var(--surface-2); border:1px solid var(--line);
+      display:grid; place-items:center; margin:0 auto 14px;
+      color:var(--ink-4);
+    }
+    .empty h4{margin:0 0 4px; color:var(--ink); font-family:var(--font-display); font-weight:600; font-size:18px}
+    .empty p{margin:0; font-size:13.5px}
+    .empty .btn{margin-top:14px}
+
+    .skeleton-card{
+      background:#fff; border:1px solid var(--line); border-radius:var(--r-lg);
+      padding:16px; display:flex; flex-direction:column; gap:12px;
+    }
+    .skeleton-card .row{display:flex; align-items:center; gap:12px}
+    .sk{
+      background:linear-gradient(90deg, var(--surface-2) 0%, var(--line) 50%, var(--surface-2) 100%);
+      background-size:200% 100%; border-radius:8px;
+      animation:shimmer 1.4s ease-in-out infinite;
+    }
+    @keyframes shimmer{ 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* Toast */
+    .toast{
+      position:fixed; right:24px; bottom:24px; z-index:100;
+      display:inline-flex; align-items:center; gap:10px;
+      background:oklch(20% 0.02 240); color:#fff;
+      padding:12px 18px; border-radius:999px;
+      font-size:13.5px; font-weight:500;
+      box-shadow:var(--shadow-lg);
+      animation:toastIn .25s cubic-bezier(.2,.8,.2,1);
+    }
+    .toast.error{background:oklch(35% 0.15 25)}
+    .toast .ic-tick{color:var(--green-500)}
+    @keyframes toastIn{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+
+    /* Modal */
+    .modal-overlay{
+      position:fixed; inset:0; z-index:1000;
+      background:oklch(15% 0.02 240 / 0.45);
+      backdrop-filter:blur(4px);
+      display:none; align-items:center; justify-content:center;
+      padding:1rem;
+    }
+    .modal-overlay.active{display:flex}
+    .modal{
+      background:#fff; border-radius:var(--r-xl);
+      width:100%; max-width:520px; max-height:90vh;
+      overflow-y:auto; border:1px solid var(--line);
+      box-shadow:var(--shadow-lg);
+      animation:modalIn .25s cubic-bezier(.2,.8,.2,1);
+    }
+    @keyframes modalIn{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+    .modal-head{
+      padding:18px 22px; border-bottom:1px solid var(--line);
+      display:flex; justify-content:space-between; align-items:center;
+      background:linear-gradient(180deg, var(--surface), #fff);
+    }
+    .modal-head h2{
+      font-family:var(--font-display); font-size:18px; font-weight:600;
+      letter-spacing:-.01em; margin:0; color:var(--ink);
+    }
+    .modal-close{
+      width:32px; height:32px; border-radius:8px;
+      background:var(--surface-2); color:var(--ink-2);
+      border:none; cursor:pointer;
+      display:grid; place-items:center;
+    }
+    .modal-body{padding:22px; display:flex; flex-direction:column; gap:14px}
+    .modal-body p{margin:0; color:var(--ink-2); font-size:14px; line-height:1.55}
+    .modal-foot{
+      padding:14px 22px; border-top:1px solid var(--line);
+      display:flex; justify-content:flex-end; gap:8px;
+      background:var(--surface);
+    }
+    .warn-icon{
+      width:48px; height:48px; border-radius:14px;
+      background:var(--rose-50); color:var(--rose-700);
+      border:1px solid color-mix(in oklch, var(--rose-500) 30%, transparent);
+      display:grid; place-items:center;
     }
 
-    .btn-add-doctor {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6rem;
-      padding: 0.85rem 2.2rem;
-      border: none;
-      background: white;
-      color: #0891b2;
-      border-radius: 12px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      cursor: pointer;
-      font-weight: 700;
-      white-space: nowrap;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-      flex-shrink: 0;
+    .form-group{display:flex; flex-direction:column; gap:6px}
+    .form-group label{
+      font-size:11px; font-weight:600; text-transform:uppercase;
+      letter-spacing:.08em; color:var(--ink-3);
+    }
+    .form-group input, .form-group select{
+      padding:10px 12px; border:1px solid var(--line);
+      border-radius:var(--r-md); font:inherit; font-family:var(--font-ui);
+      background:var(--surface); color:var(--ink); font-size:14px;
+      transition:border-color .15s, box-shadow .15s, background .15s;
+    }
+    .form-group input:focus, .form-group select:focus{
+      outline:none; border-color:var(--teal-500); box-shadow:var(--ring-focus); background:#fff;
+    }
+    .form-group small{font-size:11.5px; color:var(--ink-4)}
+
+    .msg-inline{
+      font-size:12.5px; padding:9px 12px; border-radius:var(--r-md);
+      display:none; line-height:1.45;
+    }
+    .msg-inline.ok{display:block; background:var(--green-50); color:var(--green-700); border:1px solid color-mix(in oklch, var(--green-600) 25%, transparent)}
+    .msg-inline.err{display:block; background:var(--rose-50); color:var(--rose-700); border:1px solid color-mix(in oklch, var(--rose-500) 25%, transparent)}
+
+    /* Responsive */
+    @media (max-width: 980px){
+      .hero{grid-template-columns:1fr}
+      .page{padding:18px 16px 80px}
     }
 
-    @media (max-width: 768px) {
-      .header-content h1 { font-size: 2.5rem; }
-      .header-content p { max-width: 500px; margin: 0 auto; }
+    @media (max-width: 720px){
+      .kpis{grid-template-columns:1fr 1fr; gap:10px}
+      .hero-card{padding:22px 20px}
+      .hero h1{font-size:30px}
+      .kpi{padding:14px; min-height:auto}
+      .kpi .v{font-size:28px}
+      .kpi .spark{display:none}
+
+      .toolbar{padding:8px; gap:6px}
+      .seg button{padding:6px 10px; font-size:12.5px}
+      .search-wrap{min-width:0; flex:1 1 100%; order:3}
+      .sort-select{flex:1; min-width:0}
+
+      .grid-head{padding:14px 16px; flex-wrap:wrap; gap:8px}
+      .grid-head h3{font-size:16px}
+      .grid-body{padding:14px}
+
+      .staff-grid{grid-template-columns:1fr; gap:10px}
+      .rooms-grid{grid-template-columns:1fr 1fr; gap:10px}
     }
 
-    .btn-add-doctor:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-      background: #f0f9ff;
+    @media (max-width: 480px){
+      .page{padding:14px 10px 80px; gap:18px}
+      .hero-card{padding:18px 16px}
+      .hero h1{font-size:26px}
+      .hero p{font-size:13.5px}
+      .kpis{grid-template-columns:1fr}
+      .crumbs-row{font-size:12px}
+      .rooms-grid{grid-template-columns:1fr}
     }
-
-    .search-section { margin-bottom: 2.5rem; }
-
-    .search-wrap {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 0.85rem 1.5rem;
-      background: white;
-      width: 100%;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-
-    .search-wrap:focus-within {
-      border-color: #0891b2;
-      box-shadow: 0 8px 24px rgba(8, 145, 178, 0.12);
-    }
-
-    .search-wrap svg { color: #0891b2; flex-shrink: 0; width: 20px; height: 20px; }
-
-    .search-input {
-      flex: 1;
-      border: none;
-      outline: none;
-      font-size: 0.95rem;
-      font-family: inherit;
-      background: transparent;
-      color: #0f172a;
-    }
-
-    .search-input::placeholder { color: #cbd5e1; font-weight: 500; }
-
-    .doctors-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 2rem;
-      margin-bottom: 2rem;
-    }
-
-    .doctor-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-      padding: 1.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-      transition: all 0.2s ease;
-      border: 1px solid #f1f5f9;
-    }
-
-    .doctor-card:hover {
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-      border-color: #e2e8f0;
-    }
-
-    .doctor-header {
-      display: flex;
-      align-items: flex-start;
-      gap: 1.25rem;
-    }
-
-    .doctor-avatar {
-      width: 56px;
-      height: 56px;
-      border-radius: 10px;
-      background: #0891b2;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 700;
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-
-    .doctor-info { flex: 1; }
-
-    .doctor-name {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #0f172a;
-      margin-bottom: 0.5rem;
-      line-height: 1.3;
-      letter-spacing: -0.01em;
-    }
-
-    .doctor-specialty {
-      display: inline-block;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #0891b2;
-      background: #f0f9ff;
-      padding: 0.35rem 0.75rem;
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
-    }
-
-    .doctor-email {
-      font-size: 0.85rem;
-      color: #64748b;
-      word-break: break-all;
-      font-weight: 500;
-    }
-
-    .doctor-details {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 0.9rem;
-      color: #0891b2;
-      padding: 0.75rem 0;
-      font-weight: 600;
-    }
-
-    .card-actions {
-      display: flex;
-      gap: 0.75rem;
-      margin-top: auto;
-      padding-top: 1rem;
-      border-top: 1px solid #f1f5f9;
-    }
-
-    .btn-edit {
-      flex: 1;
-      padding: 0.75rem 1rem;
-      border: 2px solid #e2e8f0;
-      background: white;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-family: inherit;
-      font-weight: 600;
-      cursor: pointer;
-      color: #0891b2;
-      transition: all 0.3s ease;
-      display: none;
-    }
-
-    .btn-edit:hover {
-      background: #f0f9ff;
-      border-color: #0891b2;
-      transform: translateY(-2px);
-    }
-
-    .btn-delete {
-      flex: 1;
-      padding: 0.65rem 1rem;
-      border: 1px solid #fecaca;
-      background: white;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-family: inherit;
-      font-weight: 600;
-      cursor: pointer;
-      color: #dc2626;
-      transition: all 0.2s ease;
-    }
-
-    .btn-delete:hover {
-      background: #fef2f2;
-      border-color: #fca5a5;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 4rem 3rem;
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      border-radius: 16px;
-      border: 2px dashed #cbd5e1;
-      color: #64748b;
-    }
-
-    .empty-state p {
-      margin-bottom: 1rem;
-      font-size: 1.05rem;
-      font-weight: 500;
-    }
-
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(15, 23, 42, 0.5);
-      z-index: 200;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(4px);
-    }
-    .overlay.active { display: flex; }
-    .modal {
-      background: white;
-      border-radius: 18px;
-      width: calc(100% - 2rem);
-      max-width: 520px;
-      max-height: 90vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
-    }
-    .modal::-webkit-scrollbar { display: none; }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 2rem;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      border-bottom: none;
-      border-radius: 18px 18px 0 0;
-    }
-
-    .modal-header h2 {
-      font-size: 1.4rem;
-      font-weight: 800;
-      color: white;
-      letter-spacing: -0.01em;
-    }
-
-    .modal-close {
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      font-size: 1.4rem;
-      color: white;
-      cursor: pointer;
-      padding: 0.3rem 0.6rem;
-      border-radius: 8px;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-close:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: rotate(90deg);
-    }
-
-    .modal-body { padding: 2.5rem; overflow-y: auto; flex: 1; scrollbar-width: none; }
-    .modal-body::-webkit-scrollbar { display: none; }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 0.7rem;
-      letter-spacing: -0.01em;
-    }
-
-    .form-group input,
-    .form-group select {
-      width: 100%;
-      padding: 0.9rem 1rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      background: white;
-      color: #0f172a;
-      transition: all 0.3s ease;
-    }
-
-    .form-group input:focus,
-    .form-group select:focus {
-      outline: none;
-      border-color: #0891b2;
-      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
-    }
-
-    .modal-footer {
-      display: flex;
-      gap: 1rem;
-      padding: 2rem;
-      border-top: 1px solid #f1f5f9;
-      justify-content: flex-end;
-      background: #f9fafb;
-      border-radius: 0 0 18px 18px;
-    }
-
-    .btn-cancel {
-      padding: 0.8rem 1.5rem;
-      border: 2px solid #e2e8f0;
-      background: white;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      font-weight: 600;
-      cursor: pointer;
-      color: #64748b;
-      transition: all 0.3s ease;
-    }
-
-    .btn-cancel:hover {
-      background: #f8fafc;
-      border-color: #cbd5e1;
-      transform: translateY(-2px);
-    }
-
-    .btn-submit {
-      padding: 0.8rem 2rem;
-      border: none;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      font-weight: 700;
-      cursor: pointer;
-      color: white;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
-    }
-
-    .btn-submit:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.4);
-    }
-
-    .btn-submit:disabled {
-      background: #cbd5e1;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .msg {
-      font-size: 0.85rem;
-      margin-top: 1rem;
-      padding: 0.75rem 1rem;
-      border-radius: 7px;
-      display: none;
-    }
-
-    .msg.ok {
-      background: #f0fdf4;
-      color: #15803d;
-      display: block;
-    }
-
-    .msg.err {
-      background: #fef2f2;
-      color: #dc2626;
-      display: block;
-    }
-
-    @media (max-width: 768px) {
-      .page-header {
-        flex-direction: column;
-      }
-
-      .doctors-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .layout-main {
-        padding: 1.5rem 1rem;
-        padding-top: 90px;
-        width: 100%;
-        max-width: 100%;
-      }
-
-      .staff-tabs {
-        width: 100% !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        justify-content: center !important;
-      }
-    }
-    .staff-tabs {
-      display: flex;
-      gap: 0.5rem;
-      background: white;
-      border-radius: 14px;
-      padding: 0.4rem;
-      margin: 0 0 1.5rem 0;
-      box-shadow: 0 4px 16px rgba(8, 145, 178, 0.06);
-      width: fit-content;
-    }
-    .staff-tab {
-      background: transparent;
-      border: none;
-      padding: 0.65rem 1.2rem;
-      border-radius: 10px;
-      font-weight: 700;
-      color: #64748b;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.2s;
-    }
-    .staff-tab:hover { color: #0891b2; }
-    .staff-tab.active {
-      background: linear-gradient(135deg, #0891b2, #06b6d4);
-      color: white;
-      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25);
-    }
-    .rooms-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1rem;
-    }
-    .room-card {
-      background: white;
-      border-radius: 16px;
-      padding: 1.25rem;
-      box-shadow: 0 6px 20px rgba(8, 145, 178, 0.08);
-      border: 1.5px solid rgba(8, 145, 178, 0.1);
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    .room-name { font-weight: 800; font-size: 1.1rem; color: #0f172a; }
-    .room-status {
-      display: inline-block;
-      padding: 0.25rem 0.65rem;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-    .room-status.free { background: #d1fae5; color: #047857; }
-    .room-status.occupied { background: #fee2e2; color: #b91c1c; }
-    .room-status.cleaning { background: #fef3c7; color: #b45309; }
   </style>
 </head>
 <body>
-  <main class="layout-main">
-    <div class="page-header">
-      <div class="header-content">
-        <h1>Gestión de Personal</h1>
-        <p>Administra los médicos, recepción y habitaciones de tu clínica</p>
+
+<main class="layout-main">
+  <div class="page" id="page">
+
+    <!-- Crumbs row -->
+    <div class="crumbs-row">
+      <span>Clínica</span>
+      <span class="sep">/</span>
+      <b>Gestión de personal</b>
+      <div class="right">
+        <button class="icon-btn" id="refreshBtn" title="Refrescar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
+        </button>
       </div>
-      <button class="btn-add-doctor" id="addBtn" onclick="onAddClick()">
-        <span id="plusIcon"></span>
-        <span id="addBtnLabel">Doctor</span>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-card">
+        <div class="hero-eyebrow">
+          <span class="dot"></span>
+          <span id="syncStatus">Equipo activo · Sincronizando…</span>
+        </div>
+        <h1>Gestión de <em>personal</em></h1>
+        <p>Administra a tus doctores, recepcionistas y habitaciones desde un solo lugar. Invita a tu equipo, mantén el control de roles y ocupación de salas.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" id="primaryAddBtn">
+            <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span>
+            <span id="primaryAddLabel">Invitar doctor</span>
+          </button>
+          <button class="btn btn-ghost-light" id="scrollListBtn">
+            <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            Ver equipo
+          </button>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="label">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+            Personal total
+          </div>
+          <div class="v" id="kpiTotal">0<span class="unit">miembros</span></div>
+          <div class="trend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+            <span>Doctores + recepción</span>
+          </div>
+          <svg class="spark" width="120" height="36" viewBox="0 0 120 36"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0891b2" stop-opacity="0.4"/><stop offset="100%" stop-color="#0891b2" stop-opacity="0"/></linearGradient></defs><path d="M0,28 L10.9,18 L21.8,23 L32.7,14 L43.6,16 L54.5,7 L65.4,11 L76.3,4 L87.2,9 L98.1,6 L109,0 L120,2 L120,36 L0,36 Z" fill="url(#sg)"/><path d="M0,28 L10.9,18 L21.8,23 L32.7,14 L43.6,16 L54.5,7 L65.4,11 L76.3,4 L87.2,9 L98.1,6 L109,0 L120,2" fill="none" stroke="#0891b2" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="kpi flag">
+          <div class="label">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Doctores
+          </div>
+          <div class="v" id="kpiDoctors">0</div>
+          <div class="trend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span id="kpiDoctorsLabel">0 especialidades</span>
+          </div>
+        </div>
+        <div class="kpi violet">
+          <div class="label">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3"/><path d="M3 12h18"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7"/></svg>
+            Recepción
+          </div>
+          <div class="v" id="kpiReception">0<span class="unit">cuentas</span></div>
+          <div class="trend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Acceso al sistema</span>
+          </div>
+        </div>
+        <div class="kpi warn">
+          <div class="label">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Habitaciones
+          </div>
+          <div class="v" id="kpiRooms">0<span class="unit" id="kpiRoomsUnit">/ 0 libres</span></div>
+          <div class="trend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            <span id="kpiRoomsLabel">Ocupación</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabs toolbar -->
+    <div class="toolbar">
+      <div class="seg" id="tabs" role="tablist">
+        <button class="on" data-tab="doctors">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Doctores <span class="pill" id="pillDoctors">0</span>
+        </button>
+        <button data-tab="reception">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3"/><path d="M3 12h18"/></svg>
+          Recepción <span class="pill" id="pillReception">0</span>
+        </button>
+        <button data-tab="rooms">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Habitaciones <span class="pill" id="pillRooms">0</span>
+        </button>
+      </div>
+      <div class="spacer"></div>
+      <div class="search-wrap" id="searchWrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" placeholder="Buscar…" autocomplete="off">
+        <button class="clear-search" id="clearSearchBtn" title="Limpiar búsqueda">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <select class="sort-select" id="sortSelect" aria-label="Ordenar">
+        <option value="name">Nombre A–Z</option>
+        <option value="name_desc">Nombre Z–A</option>
+        <option value="recent">Más recientes</option>
+      </select>
+    </div>
+
+    <!-- Filter chips (contextual) -->
+    <div class="chips-row" id="filtersRow" style="display:none">
+      <!-- dynamic chips -->
+    </div>
+
+    <!-- DOCTORS section -->
+    <div class="grid-section" id="sectionDoctors">
+      <div class="grid-head">
+        <h3>Equipo médico</h3>
+        <span class="meta" id="metaDoctors">Cargando…</span>
+        <div class="actions">
+          <button class="btn btn-ghost" onclick="openDoctorModal()">
+            <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span>
+            Invitar doctor
+          </button>
+        </div>
+      </div>
+      <div class="grid-body">
+        <div class="staff-grid" id="doctorsList">
+          <div class="skeleton-card"><div class="row"><div class="sk" style="width:48px;height:48px;border-radius:14px"></div><div style="flex:1"><div class="sk" style="height:14px;width:60%"></div><div class="sk" style="height:11px;width:40%;margin-top:6px"></div></div></div><div class="sk" style="height:34px;border-radius:14px"></div></div>
+          <div class="skeleton-card"><div class="row"><div class="sk" style="width:48px;height:48px;border-radius:14px"></div><div style="flex:1"><div class="sk" style="height:14px;width:55%"></div><div class="sk" style="height:11px;width:35%;margin-top:6px"></div></div></div><div class="sk" style="height:34px;border-radius:14px"></div></div>
+          <div class="skeleton-card"><div class="row"><div class="sk" style="width:48px;height:48px;border-radius:14px"></div><div style="flex:1"><div class="sk" style="height:14px;width:65%"></div><div class="sk" style="height:11px;width:45%;margin-top:6px"></div></div></div><div class="sk" style="height:34px;border-radius:14px"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECEPTION section -->
+    <div class="grid-section" id="sectionReception" style="display:none">
+      <div class="grid-head">
+        <h3>Recepcionistas</h3>
+        <span class="meta" id="metaReception">Cargando…</span>
+        <div class="actions">
+          <button class="btn btn-ghost" onclick="openReceptionModal()">
+            <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span>
+            Nueva cuenta
+          </button>
+        </div>
+      </div>
+      <div class="grid-body">
+        <div class="staff-grid" id="receptionList"></div>
+      </div>
+    </div>
+
+    <!-- ROOMS section -->
+    <div class="grid-section" id="sectionRooms" style="display:none">
+      <div class="grid-head">
+        <h3>Habitaciones / Salas</h3>
+        <span class="meta" id="metaRooms">Cargando…</span>
+        <div class="actions">
+          <button class="btn btn-ghost" onclick="openRoomModal()">
+            <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span>
+            Nueva habitación
+          </button>
+        </div>
+      </div>
+      <div class="grid-body">
+        <div class="rooms-grid" id="roomsList"></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Doctor invitation modal -->
+<div class="modal-overlay" id="doctorModal">
+  <div class="modal" role="dialog">
+    <div class="modal-head">
+      <h2>Invitar a un doctor</h2>
+      <button class="modal-close" onclick="closeDoctorModal()" aria-label="Cerrar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
     </div>
-
-    <div class="staff-tabs">
-      <button class="staff-tab active" data-tab="doctors" onclick="switchTab('doctors')">Doctores</button>
-      <button class="staff-tab" data-tab="reception" onclick="switchTab('reception')">Recepción</button>
-      <button class="staff-tab" data-tab="rooms" onclick="switchTab('rooms')">Habitaciones</button>
+    <div class="modal-body">
+      <p>Se enviará una invitación al correo del doctor para que cree su cuenta y acceda a la clínica.</p>
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" id="fName" placeholder="Ej: Dr. Juan Pérez">
+      </div>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="fEmail" placeholder="doctor@clinica.com">
+      </div>
+      <div class="form-group">
+        <label>Especialidad</label>
+        <select id="fSpecialty">
+          <option value="">Seleccionar especialidad…</option>
+          <option value="Odontología">Odontología</option>
+          <option value="Podología">Podología</option>
+          <option value="Nutrición">Nutrición</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Teléfono <small style="text-transform:none; letter-spacing:0">(opcional)</small></label>
+        <input type="tel" id="fPhone" placeholder="Ej: 50488888888">
+      </div>
+      <div class="msg-inline" id="formMsg"></div>
     </div>
-
-    <div id="tabDoctors" class="tab-content">
-      <div class="search-section">
-        <div class="search-wrap">
-          <span id="searchIcon"></span>
-          <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre...">
-        </div>
-      </div>
-      <div class="doctors-grid" id="doctorsList">
-        <div class="empty-state"><p>Cargando doctores...</p></div>
-      </div>
-    </div>
-
-    <div id="tabReception" class="tab-content" style="display:none;">
-      <div class="doctors-grid" id="receptionList">
-        <div class="empty-state"><p>Cargando recepción...</p></div>
-      </div>
-    </div>
-
-    <div id="tabRooms" class="tab-content" style="display:none;">
-      <div class="rooms-grid" id="roomsList">
-        <div class="empty-state"><p>Cargando habitaciones...</p></div>
-      </div>
-    </div>
-  </main>
-
-  <div class="overlay" id="overlay" onclick="closeModal()">
-    <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <h2>Invitar Doctor</h2>
-        <button class="modal-close" onclick="closeModal()">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Nombre</label>
-          <input type="text" id="fName" placeholder="Ej: Dr. Juan Pérez">
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="fEmail" placeholder="doctor@clinica.com">
-        </div>
-        <div class="form-group">
-          <label>Especialidad</label>
-          <select id="fSpecialty">
-            <option value="">Seleccionar especialidad...</option>
-            <option value="Odontología">Odontología</option>
-            <option value="Podología">Podología</option>
-            <option value="Nutrición">Nutrición</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Teléfono</label>
-          <input type="tel" id="fPhone" placeholder="Ej: 3151234567">
-        </div>
-        <div class="msg" id="formMsg"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-        <button class="btn-submit" onclick="createDoctor()">Invitar Doctor</button>
-      </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeDoctorModal()">Cancelar</button>
+      <button class="btn btn-success" id="doctorSubmitBtn" onclick="createDoctor()">
+        <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
+        Enviar invitación
+      </button>
     </div>
   </div>
+</div>
 
-  <div class="overlay" id="overlayReception" onclick="closeRecModal()">
-    <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <h2>Crear cuenta de Recepción</h2>
-        <button class="modal-close" onclick="closeRecModal()">✕</button>
+<!-- Reception modal -->
+<div class="modal-overlay" id="receptionModal">
+  <div class="modal" role="dialog">
+    <div class="modal-head">
+      <h2>Crear cuenta de recepción</h2>
+      <button class="modal-close" onclick="closeReceptionModal()" aria-label="Cerrar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>La recepcionista podrá iniciar sesión con el correo y la contraseña que definas aquí.</p>
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" id="rName" placeholder="Ej: Ana Recepción">
       </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Nombre completo</label>
-          <input type="text" id="rName" placeholder="Ej: Ana Recepción">
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="rEmail" placeholder="recepcion@clinica.com">
-        </div>
-        <div class="form-group">
-          <label>Contraseña</label>
-          <input type="text" id="rPassword" placeholder="Mínimo 6 caracteres">
-        </div>
-        <div class="form-group">
-          <label>Teléfono</label>
-          <input type="tel" id="rPhone" placeholder="Opcional">
-        </div>
-        <div class="msg" id="recMsg"></div>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="rEmail" placeholder="recepcion@clinica.com">
       </div>
-      <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeRecModal()">Cancelar</button>
-        <button class="btn-submit" onclick="createReception()">Crear cuenta</button>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="text" id="rPassword" placeholder="Mínimo 6 caracteres">
       </div>
+      <div class="form-group">
+        <label>Teléfono <small style="text-transform:none; letter-spacing:0">(opcional)</small></label>
+        <input type="tel" id="rPhone" placeholder="Ej: 50488888888">
+      </div>
+      <div class="msg-inline" id="recMsg"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeReceptionModal()">Cancelar</button>
+      <button class="btn btn-success" onclick="createReception()">
+        <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg></span>
+        Crear cuenta
+      </button>
     </div>
   </div>
+</div>
 
-  <div class="overlay" id="overlayRoom" onclick="closeRoomModal()">
-    <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <h2>Nueva Habitación</h2>
-        <button class="modal-close" onclick="closeRoomModal()">✕</button>
+<!-- Room modal -->
+<div class="modal-overlay" id="roomModal">
+  <div class="modal" role="dialog">
+    <div class="modal-head">
+      <h2>Nueva habitación</h2>
+      <button class="modal-close" onclick="closeRoomModal()" aria-label="Cerrar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nombre de la habitación</label>
+        <input type="text" id="roomName" placeholder="Ej: Sala 1, Consultorio A">
       </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Nombre de la habitación</label>
-          <input type="text" id="roomName" placeholder="Ej: Sala 1, Consultorio A">
-        </div>
-        <div class="msg" id="roomMsg"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeRoomModal()">Cancelar</button>
-        <button class="btn-submit" onclick="createRoom()">Crear</button>
-      </div>
+      <div class="msg-inline" id="roomMsg"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeRoomModal()">Cancelar</button>
+      <button class="btn btn-success" onclick="createRoom()">
+        <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span>
+        Crear habitación
+      </button>
     </div>
   </div>
+</div>
 
-  <script src="/common.js"></script>
-  <script src="/layout.js"></script>
-  <script src="/icons.js"></script>
-  <script>
-    requireAuth(['clinic_admin']);
+<!-- Delete confirm modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal" role="dialog">
+    <div class="modal-head">
+      <h2 id="deleteTitle">Eliminar</h2>
+      <button class="modal-close" onclick="closeDeleteModal()" aria-label="Cerrar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="warn-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      </div>
+      <p id="deleteDescription">¿Seguro que quieres eliminar este elemento?</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancelar</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">
+        <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span>
+        Eliminar
+      </button>
+    </div>
+  </div>
+</div>
 
-    let allDoctors = [];
+<div id="toastContainer"></div>
 
-    async function loadDoctors() {
-      try {
-        const doctors = await api('/api/users/doctors');
-        allDoctors = doctors;
-        renderDoctors(doctors);
-      } catch (e) {
-        console.error('Error loading doctors:', e);
-        document.getElementById('doctorsList').innerHTML = '<div class="empty-state"><p>Error al cargar doctores</p></div>';
-      }
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script src="/icons.js"></script>
+<script>
+  requireAuth(['clinic_admin']);
+
+  const AVATAR_PALETTES = [
+    { c1:'#0891B2', c2:'#22D3EE' },
+    { c1:'#6366F1', c2:'#A855F7' },
+    { c1:'#F59E0B', c2:'#F43F5E' },
+    { c1:'#10B981', c2:'#14B8A6' },
+    { c1:'#EC4899', c2:'#F43F5E' },
+    { c1:'#8B5CF6', c2:'#6366F1' },
+    { c1:'#14B8A6', c2:'#0891B2' },
+    { c1:'#F97316', c2:'#F59E0B' }
+  ];
+  const SPECIALTY_COLORS = {};
+  const SPECIALTY_PALETTE = ['#0891B2','#6366F1','#F59E0B','#EC4899','#10B981','#A855F7','#F43F5E','#F97316'];
+
+  const ROOM_LABELS = { free:'Libre', occupied:'Ocupada', cleaning:'Limpieza' };
+  const ROOM_COLORS = { free:'#16A34A', occupied:'#DC2626', cleaning:'#D97706' };
+
+  let allDoctors = [];
+  let allReceptionists = [];
+  let allRooms = [];
+  let currentTab = 'doctors';
+  let searchQuery = '';
+  let sortOrder = 'name';
+  let specialtyFilter = 'all';
+  let roomStatusFilter = 'all';
+  let pendingDelete = null;
+
+  function hashStr(s){
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+  function avatarPair(seed){
+    return AVATAR_PALETTES[hashStr(seed || '') % AVATAR_PALETTES.length];
+  }
+  function specialtyColor(name){
+    const key = (name || '').toLowerCase().trim();
+    if (!(key in SPECIALTY_COLORS)) {
+      SPECIALTY_COLORS[key] = SPECIALTY_PALETTE[hashStr(key) % SPECIALTY_PALETTE.length];
     }
+    return SPECIALTY_COLORS[key];
+  }
+  function initials(name){
+    const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return '··';
+    if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  function escapeHtml(s){
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+  }
+  function esc(s){ return escapeHtml(s); }
 
-    function renderDoctors(doctors) {
-      const list = document.getElementById('doctorsList');
-      if (doctors.length === 0) {
-        list.innerHTML = '<div class="empty-state"><p>No hay doctores registrados aún</p><p style="font-size: 0.85rem;">Invita a tu primer doctor haciendo clic en el botón "+ Doctor"</p></div>';
-        return;
-      }
+  function showToast(text, type){
+    const c = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className = 'toast' + (type === 'error' ? ' error' : '');
+    el.innerHTML = `<svg class="ic-tick" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg> <span></span>`;
+    el.querySelector('span').textContent = text;
+    c.appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(10px)'; }, 2400);
+    setTimeout(() => el.remove(), 2800);
+  }
 
-      list.innerHTML = doctors.map(doctor => {
-        const initials = (doctor.name || doctor.email)
-          .split(' ')
-          .slice(0, 2)
-          .map(n => n[0])
-          .join('')
-          .toUpperCase();
+  function uniqueSpecialties(){
+    const set = new Set();
+    allDoctors.forEach(d => { if (d.specialty) set.add(d.specialty.trim()); });
+    return Array.from(set).sort((a,b) => a.localeCompare(b, 'es'));
+  }
 
-        return `
-          <div class="doctor-card">
-            <div class="doctor-header">
-              <div class="doctor-avatar">${initials}</div>
-              <div class="doctor-info">
-                <div class="doctor-name">${esc(doctor.name || doctor.email.split('@')[0])}</div>
-                ${doctor.specialty ? `<div class="doctor-specialty">${esc(doctor.specialty)}</div>` : ''}
-                <div class="doctor-email">${esc(doctor.email)}</div>
-              </div>
-            </div>
-            ${doctor.phone ? `<div class="doctor-details">
-              <span id="phoneIcon-${doctor.id}"></span>
-              <span>${esc(doctor.phone)}</span>
-            </div>` : ''}
-            <div class="card-actions">
-              <button class="btn-edit" onclick="editDoctor(${doctor.id})">Editar</button>
-              <button class="btn-delete" onclick="deleteDoctor(${doctor.id})">Eliminar Doctor</button>
-            </div>
-          </div>
-        `;
-      }).join('');
+  function updateKpis(){
+    const total = allDoctors.length + allReceptionists.length;
+    const doctors = allDoctors.length;
+    const reception = allReceptionists.length;
+    const rooms = allRooms.length;
+    const free = allRooms.filter(r => r.status === 'free').length;
+    const specialties = uniqueSpecialties().length;
 
-      if (typeof Icons !== 'undefined') {
-        doctors.forEach(d => {
-          if (d.phone) {
-            const phoneIcon = document.querySelector(`#phoneIcon-${d.id}`);
-            if (phoneIcon) phoneIcon.innerHTML = Icons.render('phone', 16);
-          }
-        });
-      }
-    }
+    document.getElementById('kpiTotal').innerHTML = `${total}<span class="unit">${total === 1 ? 'miembro' : 'miembros'}</span>`;
+    document.getElementById('kpiDoctors').textContent = doctors;
+    document.getElementById('kpiDoctorsLabel').textContent = `${specialties} ${specialties === 1 ? 'especialidad' : 'especialidades'}`;
+    document.getElementById('kpiReception').innerHTML = `${reception}<span class="unit">${reception === 1 ? 'cuenta' : 'cuentas'}</span>`;
+    document.getElementById('kpiRooms').innerHTML = `${rooms}<span class="unit" id="kpiRoomsUnit">/ ${free} libres</span>`;
+    document.getElementById('kpiRoomsLabel').textContent = rooms > 0 ? `${Math.round((rooms - free) / rooms * 100)}% ocupación` : 'Sin habitaciones';
 
-    function openModal() {
-      document.getElementById('overlay').classList.add('active');
-    }
+    document.getElementById('pillDoctors').textContent = doctors;
+    document.getElementById('pillReception').textContent = reception;
+    document.getElementById('pillRooms').textContent = rooms;
+  }
 
-    function closeModal() {
-      document.getElementById('overlay').classList.remove('active');
-      document.getElementById('formMsg').className = 'msg';
-      document.getElementById('formMsg').textContent = '';
-      document.getElementById('fName').value = '';
-      document.getElementById('fEmail').value = '';
-      document.getElementById('fSpecialty').value = '';
-      document.getElementById('fPhone').value = '';
-    }
-
-    async function createDoctor() {
-      const name = document.getElementById('fName').value.trim();
-      const email = document.getElementById('fEmail').value.trim();
-      const specialty = document.getElementById('fSpecialty').value.trim();
-      const phone = document.getElementById('fPhone').value.trim();
-
-      const msgEl = document.getElementById('formMsg');
-
-      if (!name || !email || !specialty) {
-        msgEl.className = 'msg err';
-        msgEl.textContent = 'Nombre, email y especialidad son requeridos';
-        return;
-      }
-
-      try {
-        await api('/api/invitations', {
-          method: 'POST',
-          body: { email, name, specialty, phone }
-        });
-        msgEl.className = 'msg ok';
-        msgEl.textContent = 'Invitación enviada al correo del doctor';
-        setTimeout(() => {
-          closeModal();
-          loadDoctors();
-        }, 1500);
-      } catch (e) {
-        msgEl.className = 'msg err';
-        msgEl.textContent = e.message || 'Error al crear doctor';
-      }
-    }
-
-    async function deleteDoctor(doctorId) {
-      const doctor = allDoctors.find(d => d.id === doctorId);
-      if (!doctor) return;
-
-      const confirmDelete = confirm(`¿Está seguro que desea eliminar a ${esc(doctor.name || doctor.email)}?`);
-      if (!confirmDelete) return;
-
-      try {
-        await api(`/api/users/${doctorId}`, { method: 'DELETE' });
-        loadDoctors();
-      } catch (e) {
-        alert('Error al eliminar doctor: ' + (e.message || 'Error desconocido'));
-      }
-    }
-
-    function editDoctor(doctorId) {
-      alert('La función de edición estará disponible próximamente');
-    }
-
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase();
-      const filtered = allDoctors.filter(d => {
-        const name = (d.name || d.email).toLowerCase();
-        const email = d.email.toLowerCase();
-        const specialty = (d.specialty || '').toLowerCase();
-        return name.includes(query) || email.includes(query) || specialty.includes(query);
-      });
-      renderDoctors(filtered);
+  function setTab(tab){
+    currentTab = tab;
+    document.querySelectorAll('#tabs button').forEach(b => {
+      b.classList.toggle('on', b.dataset.tab === tab);
     });
+    document.getElementById('sectionDoctors').style.display = tab === 'doctors' ? 'block' : 'none';
+    document.getElementById('sectionReception').style.display = tab === 'reception' ? 'block' : 'none';
+    document.getElementById('sectionRooms').style.display = tab === 'rooms' ? 'block' : 'none';
 
-    let currentTab = 'doctors';
-    let allReceptionists = [];
-    let allRooms = [];
+    document.getElementById('primaryAddLabel').textContent = {
+      doctors: 'Invitar doctor',
+      reception: 'Nueva recepción',
+      rooms: 'Nueva habitación'
+    }[tab];
 
-    function switchTab(tab) {
-      currentTab = tab;
-      document.querySelectorAll('.staff-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-      document.getElementById('tabDoctors').style.display = tab === 'doctors' ? 'block' : 'none';
-      document.getElementById('tabReception').style.display = tab === 'reception' ? 'block' : 'none';
-      document.getElementById('tabRooms').style.display = tab === 'rooms' ? 'block' : 'none';
-      document.getElementById('addBtnLabel').textContent = tab === 'doctors' ? 'Doctor' : tab === 'reception' ? 'Recepción' : 'Habitación';
-      if (tab === 'reception') loadReceptionists();
-      if (tab === 'rooms') loadRooms();
+    document.getElementById('searchInput').placeholder =
+      tab === 'rooms' ? 'Buscar por nombre…' : 'Buscar por nombre, email o especialidad…';
+
+    renderFiltersRow();
+    renderActiveTab();
+  }
+
+  function renderFiltersRow(){
+    const row = document.getElementById('filtersRow');
+    row.innerHTML = '';
+    if (currentTab === 'doctors' && allDoctors.length > 0) {
+      const specs = uniqueSpecialties();
+      if (specs.length === 0) { row.style.display = 'none'; return; }
+      row.style.display = 'flex';
+      const all = document.createElement('button');
+      all.className = 'chip' + (specialtyFilter === 'all' ? ' active' : '');
+      all.innerHTML = `Todas <span class="count">${allDoctors.length}</span>`;
+      all.onclick = () => { specialtyFilter = 'all'; renderFiltersRow(); renderActiveTab(); };
+      row.appendChild(all);
+      specs.forEach(s => {
+        const count = allDoctors.filter(d => (d.specialty || '').trim() === s).length;
+        const c = specialtyColor(s);
+        const btn = document.createElement('button');
+        btn.className = 'chip' + (specialtyFilter === s ? ' active' : '');
+        btn.innerHTML = `<span class="dot" style="background:${c}"></span>${esc(s)} <span class="count">${count}</span>`;
+        btn.onclick = () => { specialtyFilter = s; renderFiltersRow(); renderActiveTab(); };
+        row.appendChild(btn);
+      });
+    } else if (currentTab === 'rooms' && allRooms.length > 0) {
+      row.style.display = 'flex';
+      const counts = {
+        all: allRooms.length,
+        free: allRooms.filter(r => r.status === 'free').length,
+        occupied: allRooms.filter(r => r.status === 'occupied').length,
+        cleaning: allRooms.filter(r => r.status === 'cleaning').length
+      };
+      const items = [
+        ['all', 'Todas', null],
+        ['free', 'Libres', ROOM_COLORS.free],
+        ['occupied', 'Ocupadas', ROOM_COLORS.occupied],
+        ['cleaning', 'Limpieza', ROOM_COLORS.cleaning]
+      ];
+      items.forEach(([key, label, color]) => {
+        if (key !== 'all' && counts[key] === 0) return;
+        const btn = document.createElement('button');
+        btn.className = 'chip' + (roomStatusFilter === key ? ' active' : '');
+        btn.innerHTML = (color ? `<span class="dot" style="background:${color}"></span>` : '') + `${label} <span class="count">${counts[key]}</span>`;
+        btn.onclick = () => { roomStatusFilter = key; renderFiltersRow(); renderActiveTab(); };
+        row.appendChild(btn);
+      });
+    } else {
+      row.style.display = 'none';
+    }
+  }
+
+  function applySort(arr, key){
+    const out = arr.slice();
+    if (sortOrder === 'name_desc') {
+      out.sort((a,b) => (b[key] || b.email || '').localeCompare(a[key] || a.email || '', 'es'));
+    } else if (sortOrder === 'recent') {
+      out.sort((a,b) => (b.id || 0) - (a.id || 0));
+    } else {
+      out.sort((a,b) => (a[key] || a.email || '').localeCompare(b[key] || b.email || '', 'es'));
+    }
+    return out;
+  }
+
+  function filterByText(list, fields){
+    if (!searchQuery) return list;
+    const q = searchQuery.toLowerCase();
+    return list.filter(item =>
+      fields.some(f => String(item[f] || '').toLowerCase().includes(q))
+    );
+  }
+
+  // ── Doctors ──
+  async function loadDoctors(){
+    try {
+      allDoctors = await api('/api/users/doctors') || [];
+      renderDoctors();
+      updateKpis();
+      renderFiltersRow();
+    } catch (e) {
+      console.error(e);
+      document.getElementById('doctorsList').innerHTML = errorBlock(e.message, 'doctores');
+    }
+  }
+
+  function renderDoctors(){
+    const list = document.getElementById('doctorsList');
+    const meta = document.getElementById('metaDoctors');
+    let rows = allDoctors.slice();
+    if (specialtyFilter !== 'all') rows = rows.filter(d => (d.specialty || '').trim() === specialtyFilter);
+    rows = filterByText(rows, ['name', 'email', 'specialty', 'phone']);
+    rows = applySort(rows, 'name');
+
+    meta.textContent = rows.length === allDoctors.length
+      ? `${rows.length} ${rows.length === 1 ? 'doctor' : 'doctores'}`
+      : `${rows.length} de ${allDoctors.length}`;
+
+    if (allDoctors.length === 0) {
+      list.innerHTML = emptyBlock('No hay doctores aún', 'Invita a tu primer doctor para empezar.', 'Invitar doctor', 'openDoctorModal()');
+      return;
+    }
+    if (rows.length === 0) {
+      list.innerHTML = emptyBlock('Sin resultados', 'No encontramos doctores con esos filtros.');
+      return;
     }
 
-    function onAddClick() {
-      if (currentTab === 'doctors') openModal();
-      else if (currentTab === 'reception') document.getElementById('overlayReception').classList.add('active');
-      else document.getElementById('overlayRoom').classList.add('active');
-    }
-
-    function closeRecModal() {
-      document.getElementById('overlayReception').classList.remove('active');
-      ['rName','rEmail','rPassword','rPhone'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('recMsg').className = 'msg';
-      document.getElementById('recMsg').textContent = '';
-    }
-
-    function closeRoomModal() {
-      document.getElementById('overlayRoom').classList.remove('active');
-      document.getElementById('roomName').value = '';
-      document.getElementById('roomMsg').className = 'msg';
-      document.getElementById('roomMsg').textContent = '';
-    }
-
-    async function loadReceptionists() {
-      try {
-        const recs = await api('/api/users/receptionists');
-        allReceptionists = recs;
-        renderReceptionists(recs);
-      } catch (e) {
-        document.getElementById('receptionList').innerHTML = '<div class="empty-state"><p>Error al cargar recepcionistas</p></div>';
-      }
-    }
-
-    function renderReceptionists(recs) {
-      const list = document.getElementById('receptionList');
-      if (recs.length === 0) {
-        list.innerHTML = '<div class="empty-state"><p>No hay cuentas de recepción aún</p><p style="font-size:0.85rem;">Crea la primera con el botón "+ Recepción"</p></div>';
-        return;
-      }
-      list.innerHTML = recs.map(r => {
-        const initials = (r.name || r.email).split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
-        return `
-          <div class="doctor-card">
-            <div class="doctor-header">
-              <div class="doctor-avatar">${initials}</div>
-              <div class="doctor-info">
-                <div class="doctor-name">${esc(r.name || r.email.split('@')[0])}</div>
-                <div class="doctor-specialty">Recepción</div>
-                <div class="doctor-email">${esc(r.email)}</div>
-              </div>
-            </div>
-            ${r.phone ? `<div class="doctor-details"><span>📱</span><span>${esc(r.phone)}</span></div>` : ''}
-            <div class="card-actions">
-              <button class="btn-delete" onclick="deleteReception(${r.id})">Eliminar</button>
+    list.innerHTML = rows.map(d => {
+      const pal = avatarPair(d.name || d.email);
+      const name = d.name || d.email.split('@')[0];
+      const sc = specialtyColor(d.specialty);
+      return `
+        <div class="staff-card">
+          <div class="header">
+            <div class="staff-avatar" style="--c1:${pal.c1}; --c2:${pal.c2}">${initials(name)}</div>
+            <div class="name-block">
+              <div class="name">${esc(name)}</div>
+              <div class="email">${esc(d.email)}</div>
             </div>
           </div>
-        `;
-      }).join('');
-    }
-
-    async function createReception() {
-      const name = document.getElementById('rName').value.trim();
-      const email = document.getElementById('rEmail').value.trim();
-      const password = document.getElementById('rPassword').value.trim();
-      const phone = document.getElementById('rPhone').value.trim();
-      const msg = document.getElementById('recMsg');
-      if (!name || !email || !password) {
-        msg.className = 'msg err'; msg.textContent = 'Nombre, email y contraseña son requeridos'; return;
-      }
-      if (password.length < 6) {
-        msg.className = 'msg err'; msg.textContent = 'La contraseña debe tener al menos 6 caracteres'; return;
-      }
-      try {
-        await api('/api/users', { method: 'POST', body: { name, email, password, phone, role: 'receptionist' } });
-        msg.className = 'msg ok'; msg.textContent = 'Cuenta creada';
-        setTimeout(() => { closeRecModal(); loadReceptionists(); }, 1200);
-      } catch (e) {
-        msg.className = 'msg err'; msg.textContent = e.message || 'Error al crear cuenta';
-      }
-    }
-
-    async function deleteReception(id) {
-      const r = allReceptionists.find(x => x.id === id);
-      if (!r) return;
-      if (!confirm(`¿Eliminar cuenta de ${r.name || r.email}?`)) return;
-      try {
-        await api(`/api/users/${id}`, { method: 'DELETE' });
-        loadReceptionists();
-      } catch (e) { alert('Error: ' + e.message); }
-    }
-
-    async function loadRooms() {
-      try {
-        const rooms = await api('/api/rooms');
-        allRooms = rooms;
-        renderRooms(rooms);
-      } catch (e) {
-        document.getElementById('roomsList').innerHTML = '<div class="empty-state"><p>Error al cargar habitaciones</p></div>';
-      }
-    }
-
-    function renderRooms(rooms) {
-      const list = document.getElementById('roomsList');
-      if (rooms.length === 0) {
-        list.innerHTML = '<div class="empty-state"><p>No hay habitaciones configuradas</p><p style="font-size:0.85rem;">Crea la primera con el botón "+ Habitación"</p></div>';
-        return;
-      }
-      const labels = { free: 'Libre', occupied: 'Ocupada', cleaning: 'Limpieza' };
-      list.innerHTML = rooms.map(r => `
-        <div class="room-card">
-          <div class="room-name">${esc(r.name)}</div>
-          <span class="room-status ${r.status}">${labels[r.status] || r.status}</span>
-          ${r.patient_name ? `<div style="font-size:0.85rem;color:#475569;">Paciente: <strong>${esc(r.patient_name)}</strong></div>` : ''}
+          ${d.specialty ? `<span class="badge" style="--c:${sc}"><span class="dot"></span>${esc(d.specialty)}</span>` : ''}
+          ${d.phone ? `<div class="staff-meta"><div class="row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>${esc(d.phone)}</span></div></div>` : ''}
           <div class="card-actions">
-            <button class="btn-delete" onclick="deleteRoom(${r.id})">Eliminar</button>
+            <button class="action-btn delete" onclick="askDelete('doctor', ${d.id}, '${esc(name.replace(/'/g, "\\'"))}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+              Eliminar
+            </button>
           </div>
         </div>
-      `).join('');
+      `;
+    }).join('');
+  }
+
+  // ── Reception ──
+  async function loadReception(){
+    try {
+      allReceptionists = await api('/api/users/receptionists') || [];
+      renderReception();
+      updateKpis();
+    } catch (e) {
+      console.error(e);
+      document.getElementById('receptionList').innerHTML = errorBlock(e.message, 'recepcionistas');
+    }
+  }
+
+  function renderReception(){
+    const list = document.getElementById('receptionList');
+    const meta = document.getElementById('metaReception');
+    let rows = filterByText(allReceptionists.slice(), ['name', 'email', 'phone']);
+    rows = applySort(rows, 'name');
+
+    meta.textContent = rows.length === allReceptionists.length
+      ? `${rows.length} ${rows.length === 1 ? 'cuenta' : 'cuentas'}`
+      : `${rows.length} de ${allReceptionists.length}`;
+
+    if (allReceptionists.length === 0) {
+      list.innerHTML = emptyBlock('Sin cuentas de recepción', 'Crea la primera cuenta para tu equipo de recepción.', 'Nueva cuenta', 'openReceptionModal()');
+      return;
+    }
+    if (rows.length === 0) {
+      list.innerHTML = emptyBlock('Sin resultados', 'No encontramos recepcionistas con esos filtros.');
+      return;
     }
 
-    async function createRoom() {
-      const name = document.getElementById('roomName').value.trim();
-      const msg = document.getElementById('roomMsg');
-      if (!name) { msg.className = 'msg err'; msg.textContent = 'Nombre requerido'; return; }
-      try {
-        await api('/api/rooms', { method: 'POST', body: { name } });
-        msg.className = 'msg ok'; msg.textContent = 'Habitación creada';
-        setTimeout(() => { closeRoomModal(); loadRooms(); }, 1000);
-      } catch (e) { msg.className = 'msg err'; msg.textContent = e.message; }
+    list.innerHTML = rows.map(r => {
+      const pal = avatarPair(r.name || r.email);
+      const name = r.name || r.email.split('@')[0];
+      return `
+        <div class="staff-card">
+          <div class="header">
+            <div class="staff-avatar" style="--c1:${pal.c1}; --c2:${pal.c2}">${initials(name)}</div>
+            <div class="name-block">
+              <div class="name">${esc(name)}</div>
+              <div class="email">${esc(r.email)}</div>
+            </div>
+          </div>
+          <span class="badge" style="--c:#6366F1"><span class="dot"></span>Recepción</span>
+          ${r.phone ? `<div class="staff-meta"><div class="row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>${esc(r.phone)}</span></div></div>` : ''}
+          <div class="card-actions">
+            <button class="action-btn delete" onclick="askDelete('reception', ${r.id}, '${esc(name.replace(/'/g, "\\'"))}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+              Eliminar
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ── Rooms ──
+  async function loadRooms(){
+    try {
+      allRooms = await api('/api/rooms') || [];
+      renderRooms();
+      updateKpis();
+      renderFiltersRow();
+    } catch (e) {
+      console.error(e);
+      document.getElementById('roomsList').innerHTML = errorBlock(e.message, 'habitaciones');
+    }
+  }
+
+  function renderRooms(){
+    const list = document.getElementById('roomsList');
+    const meta = document.getElementById('metaRooms');
+    let rows = allRooms.slice();
+    if (roomStatusFilter !== 'all') rows = rows.filter(r => r.status === roomStatusFilter);
+    rows = filterByText(rows, ['name', 'patient_name']);
+    rows = applySort(rows, 'name');
+
+    meta.textContent = rows.length === allRooms.length
+      ? `${rows.length} ${rows.length === 1 ? 'habitación' : 'habitaciones'}`
+      : `${rows.length} de ${allRooms.length}`;
+
+    if (allRooms.length === 0) {
+      list.innerHTML = emptyBlock('Sin habitaciones', 'Configura las salas o consultorios de tu clínica.', 'Nueva habitación', 'openRoomModal()');
+      return;
+    }
+    if (rows.length === 0) {
+      list.innerHTML = emptyBlock('Sin resultados', 'No hay habitaciones con esos filtros.');
+      return;
     }
 
-    async function deleteRoom(id) {
-      const r = allRooms.find(x => x.id === id);
-      if (!r) return;
-      if (!confirm(`¿Eliminar habitación "${r.name}"?`)) return;
-      try {
-        await api(`/api/rooms/${id}`, { method: 'DELETE' });
-        loadRooms();
-      } catch (e) { alert('Error: ' + e.message); }
+    list.innerHTML = rows.map(r => {
+      const color = ROOM_COLORS[r.status] || ROOM_COLORS.free;
+      const label = ROOM_LABELS[r.status] || r.status;
+      return `
+        <div class="room-card" style="--c:${color}">
+          <div class="top">
+            <div class="room-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div style="flex:1; min-width:0">
+              <div class="room-name">${esc(r.name)}</div>
+              <span class="room-status-badge"><span class="dot"></span>${label}</span>
+            </div>
+          </div>
+          ${r.patient_name ? `<div class="room-patient">Paciente: <b>${esc(r.patient_name)}</b></div>` : ''}
+          <div class="card-actions">
+            <button class="action-btn delete" onclick="askDelete('room', ${r.id}, '${esc((r.name || '').replace(/'/g, "\\'"))}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+              Eliminar
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function emptyBlock(title, msg, ctaLabel, ctaAction){
+    return `
+      <div class="empty" style="grid-column:1/-1">
+        <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div>
+        <h4>${esc(title)}</h4>
+        <p>${esc(msg)}</p>
+        ${ctaLabel ? `<button class="btn btn-success" onclick="${ctaAction}"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span>${esc(ctaLabel)}</button>` : ''}
+      </div>`;
+  }
+
+  function errorBlock(msg, what){
+    return `
+      <div class="empty" style="grid-column:1/-1">
+        <div class="ic-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <h4>Error al cargar ${esc(what)}</h4>
+        <p>${esc(msg || 'Inténtalo de nuevo en unos segundos')}</p>
+      </div>`;
+  }
+
+  function renderActiveTab(){
+    if (currentTab === 'doctors') renderDoctors();
+    else if (currentTab === 'reception') renderReception();
+    else renderRooms();
+  }
+
+  // ── Modals ──
+  function openDoctorModal(){ document.getElementById('doctorModal').classList.add('active'); }
+  function closeDoctorModal(){
+    document.getElementById('doctorModal').classList.remove('active');
+    ['fName','fEmail','fSpecialty','fPhone'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('formMsg').className = 'msg-inline';
+    document.getElementById('formMsg').textContent = '';
+  }
+  function openReceptionModal(){ document.getElementById('receptionModal').classList.add('active'); }
+  function closeReceptionModal(){
+    document.getElementById('receptionModal').classList.remove('active');
+    ['rName','rEmail','rPassword','rPhone'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('recMsg').className = 'msg-inline';
+    document.getElementById('recMsg').textContent = '';
+  }
+  function openRoomModal(){ document.getElementById('roomModal').classList.add('active'); }
+  function closeRoomModal(){
+    document.getElementById('roomModal').classList.remove('active');
+    document.getElementById('roomName').value = '';
+    document.getElementById('roomMsg').className = 'msg-inline';
+    document.getElementById('roomMsg').textContent = '';
+  }
+
+  async function createDoctor(){
+    const name = document.getElementById('fName').value.trim();
+    const email = document.getElementById('fEmail').value.trim();
+    const specialty = document.getElementById('fSpecialty').value.trim();
+    const phone = document.getElementById('fPhone').value.trim();
+    const msg = document.getElementById('formMsg');
+    if (!name || !email || !specialty) {
+      msg.className = 'msg-inline err';
+      msg.textContent = 'Nombre, email y especialidad son requeridos';
+      return;
     }
+    const btn = document.getElementById('doctorSubmitBtn');
+    btn.disabled = true;
+    try {
+      await api('/api/invitations', { method:'POST', body:{ email, name, specialty, phone } });
+      msg.className = 'msg-inline ok';
+      msg.textContent = 'Invitación enviada al correo del doctor';
+      setTimeout(() => { closeDoctorModal(); loadDoctors(); showToast('Invitación enviada'); }, 1200);
+    } catch (e) {
+      msg.className = 'msg-inline err';
+      msg.textContent = e.message || 'Error al enviar invitación';
+    } finally { btn.disabled = false; }
+  }
 
-    setTimeout(() => {
-      if (typeof Icons !== 'undefined') {
-        const plusIcon = document.getElementById('plusIcon');
-        if (plusIcon) plusIcon.innerHTML = Icons.render('plus', 18);
+  async function createReception(){
+    const name = document.getElementById('rName').value.trim();
+    const email = document.getElementById('rEmail').value.trim();
+    const password = document.getElementById('rPassword').value.trim();
+    const phone = document.getElementById('rPhone').value.trim();
+    const msg = document.getElementById('recMsg');
+    if (!name || !email || !password) {
+      msg.className = 'msg-inline err';
+      msg.textContent = 'Nombre, email y contraseña son requeridos';
+      return;
+    }
+    if (password.length < 6) {
+      msg.className = 'msg-inline err';
+      msg.textContent = 'La contraseña debe tener al menos 6 caracteres';
+      return;
+    }
+    try {
+      await api('/api/users', { method:'POST', body:{ name, email, password, phone, role:'receptionist' } });
+      msg.className = 'msg-inline ok';
+      msg.textContent = 'Cuenta creada exitosamente';
+      setTimeout(() => { closeReceptionModal(); loadReception(); showToast('Cuenta creada'); }, 1000);
+    } catch (e) {
+      msg.className = 'msg-inline err';
+      msg.textContent = e.message || 'Error al crear cuenta';
+    }
+  }
 
-        const searchIcon = document.getElementById('searchIcon');
-        if (searchIcon) searchIcon.innerHTML = Icons.render('search', 18);
+  async function createRoom(){
+    const name = document.getElementById('roomName').value.trim();
+    const msg = document.getElementById('roomMsg');
+    if (!name) {
+      msg.className = 'msg-inline err';
+      msg.textContent = 'El nombre es requerido';
+      return;
+    }
+    try {
+      await api('/api/rooms', { method:'POST', body:{ name } });
+      msg.className = 'msg-inline ok';
+      msg.textContent = 'Habitación creada';
+      setTimeout(() => { closeRoomModal(); loadRooms(); showToast('Habitación creada'); }, 800);
+    } catch (e) {
+      msg.className = 'msg-inline err';
+      msg.textContent = e.message || 'Error al crear habitación';
+    }
+  }
+
+  function askDelete(kind, id, label){
+    pendingDelete = { kind, id, label };
+    const titles = { doctor:'Eliminar doctor', reception:'Eliminar cuenta de recepción', room:'Eliminar habitación' };
+    const descs = {
+      doctor: `¿Seguro que quieres eliminar al doctor <b>${esc(label)}</b>? Esta acción no se puede deshacer.`,
+      reception: `¿Seguro que quieres eliminar la cuenta de <b>${esc(label)}</b>? La persona ya no podrá acceder al sistema.`,
+      room: `¿Seguro que quieres eliminar la habitación <b>${esc(label)}</b>?`
+    };
+    document.getElementById('deleteTitle').textContent = titles[kind];
+    document.getElementById('deleteDescription').innerHTML = descs[kind];
+    document.getElementById('deleteModal').classList.add('active');
+  }
+  function closeDeleteModal(){
+    pendingDelete = null;
+    document.getElementById('deleteModal').classList.remove('active');
+  }
+  async function confirmDelete(){
+    if (!pendingDelete) return;
+    const { kind, id } = pendingDelete;
+    const btn = document.getElementById('confirmDeleteBtn');
+    btn.disabled = true;
+    try {
+      if (kind === 'doctor' || kind === 'reception') {
+        await api(`/api/users/${id}`, { method:'DELETE' });
+        if (kind === 'doctor') { allDoctors = allDoctors.filter(d => d.id !== id); renderDoctors(); }
+        else { allReceptionists = allReceptionists.filter(r => r.id !== id); renderReception(); }
+      } else if (kind === 'room') {
+        await api(`/api/rooms/${id}`, { method:'DELETE' });
+        allRooms = allRooms.filter(r => r.id !== id);
+        renderRooms();
       }
-    }, 100);
+      updateKpis();
+      renderFiltersRow();
+      closeDeleteModal();
+      showToast('Eliminado correctamente');
+    } catch (e) {
+      showToast(e.message || 'Error al eliminar', 'error');
+    } finally { btn.disabled = false; }
+  }
 
-    loadDoctors();
-  </script>
+  // ── Wire ──
+  document.querySelectorAll('#tabs button').forEach(b => {
+    b.addEventListener('click', () => setTab(b.dataset.tab));
+  });
+  document.getElementById('primaryAddBtn').addEventListener('click', () => {
+    if (currentTab === 'doctors') openDoctorModal();
+    else if (currentTab === 'reception') openReceptionModal();
+    else openRoomModal();
+  });
+  document.getElementById('refreshBtn').addEventListener('click', refreshAll);
+  document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+  document.getElementById('scrollListBtn').addEventListener('click', () => {
+    const target = currentTab === 'doctors' ? 'sectionDoctors' : currentTab === 'reception' ? 'sectionReception' : 'sectionRooms';
+    document.getElementById(target).scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+
+  const searchInput = document.getElementById('searchInput');
+  const searchWrap = document.getElementById('searchWrap');
+  searchInput.addEventListener('input', e => {
+    searchQuery = e.target.value.trim();
+    searchWrap.classList.toggle('has-value', !!searchQuery);
+    renderActiveTab();
+  });
+  document.getElementById('clearSearchBtn').addEventListener('click', () => {
+    searchInput.value = '';
+    searchQuery = '';
+    searchWrap.classList.remove('has-value');
+    renderActiveTab();
+    searchInput.focus();
+  });
+  document.getElementById('sortSelect').addEventListener('change', e => {
+    sortOrder = e.target.value;
+    renderActiveTab();
+  });
+
+  // Close modal on backdrop click
+  ['doctorModal','receptionModal','roomModal','deleteModal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', e => {
+      if (e.target.id === id) {
+        if (id === 'doctorModal') closeDoctorModal();
+        else if (id === 'receptionModal') closeReceptionModal();
+        else if (id === 'roomModal') closeRoomModal();
+        else closeDeleteModal();
+      }
+    });
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeDoctorModal();
+      closeReceptionModal();
+      closeRoomModal();
+      closeDeleteModal();
+    }
+  });
+
+  async function refreshAll(){
+    document.getElementById('syncStatus').textContent = 'Equipo activo · Sincronizando…';
+    try {
+      await Promise.all([loadDoctors(), loadReception(), loadRooms()]);
+      const tt = new Date().toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+      document.getElementById('syncStatus').textContent = `Equipo activo · Sincronizado ${tt}`;
+    } catch {
+      document.getElementById('syncStatus').textContent = 'Error de sincronización';
+    }
+  }
+
+  refreshAll();
+</script>
 </body>
 </html>

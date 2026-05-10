@@ -22,6 +22,9 @@
       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
       position: relative;
       overflow-x: hidden;
+      letter-spacing: -0.005em;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     body::before {
@@ -33,8 +36,7 @@
       top: -200px;
       right: -300px;
       border-radius: 50%;
-      z-index: 0;
-      animation: floatBg 20s ease-in-out infinite;
+      z-index: -2;
       filter: blur(60px);
       pointer-events: none;
     }
@@ -48,71 +50,9 @@
       bottom: -200px;
       left: -200px;
       border-radius: 50%;
-      z-index: 0;
-      animation: floatBg 25s ease-in-out infinite reverse;
+      z-index: -2;
       filter: blur(60px);
       pointer-events: none;
-    }
-
-    /* ── Nav ── */
-    nav {
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(8, 145, 178, 0.08);
-      padding: 0 2rem;
-      display: flex;
-      align-items: center;
-      height: 58px;
-      position: relative;
-      z-index: 10;
-      box-shadow: 0 4px 24px rgba(8, 145, 178, 0.08);
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: .45rem;
-      font-weight: 900;
-      font-size: 1.05rem;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-right: 2rem;
-      text-decoration: none;
-    }
-    .nav-tabs { display: flex; flex: 1; height: 100%; align-items: center; gap: .15rem; }
-    .nav-tab {
-      padding: .3rem .9rem;
-      display: flex;
-      align-items: center;
-      font-size: .875rem;
-      color: #64748b;
-      text-decoration: none;
-      border-radius: 8px;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .nav-tab:hover {
-      color: #0891b2;
-      background: rgba(8, 145, 178, 0.08);
-    }
-    .nav-tab.active {
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      color: white;
-      font-weight: 700;
-      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.2);
-    }
-    .nav-logout {
-      background: none;
-      border: none;
-      color: #64748b;
-      font-size: .875rem;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s ease;
-    }
-    .nav-logout:hover {
-      color: #0891b2;
     }
 
     /* ── Main ── */
@@ -134,21 +74,22 @@
     }
 
     .header-content h1 {
-      font-size: 2.5rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      font-size: clamp(28px, 3.4vw, 42px);
+      font-weight: 700;
+      background: linear-gradient(120deg, #155e75 0%, #0891b2 50%, #0ea5e9 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin-bottom: 0.5rem;
-      letter-spacing: -0.04em;
+      letter-spacing: -0.025em;
+      line-height: 1.05;
     }
 
     .header-content p {
       color: #64748b;
-      font-size: 0.95rem;
-      line-height: 1.6;
-      font-weight: 600;
+      font-size: 15px;
+      line-height: 1.55;
+      font-weight: 400;
     }
 
     /* ── Grid Layout ── */
@@ -241,28 +182,29 @@
 
     .stat-card-large .stat-label {
       color: rgba(255, 255, 255, 0.9);
-      font-size: .8rem;
+      font-size: 11px;
       margin-bottom: .75rem;
-      font-weight: 900;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: .12em;
+      letter-spacing: 0.14em;
       position: relative;
       z-index: 1;
     }
 
     .stat-card-large .stat-value {
-      font-size: 3.5rem;
-      font-weight: 900;
+      font-size: clamp(40px, 4.5vw, 56px);
+      font-weight: 700;
       line-height: 1;
       margin-bottom: 1rem;
       position: relative;
       z-index: 1;
+      letter-spacing: -0.025em;
     }
 
     .stat-card-large .stat-sub {
       color: rgba(255, 255, 255, 0.85);
-      font-size: .9rem;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 400;
       position: relative;
       z-index: 1;
     }
@@ -302,31 +244,33 @@
     }
 
     .stat-card-sm .stat-label {
-      font-size: .8rem;
+      font-size: 11px;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       text-transform: uppercase;
-      letter-spacing: .12em;
-      font-weight: 900;
+      letter-spacing: 0.14em;
+      font-weight: 600;
       margin-bottom: .8rem;
     }
 
     .stat-card-sm .stat-value {
-      font-size: 2.4rem;
-      font-weight: 900;
+      font-size: clamp(28px, 2.6vw, 36px);
+      font-weight: 700;
       background: linear-gradient(135deg, #0f172a 0%, #0891b2 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin-bottom: .4rem;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
     }
 
     .stat-card-sm .stat-sub {
-      font-size: .85rem;
+      font-size: 13px;
       color: #94a3b8;
-      font-weight: 700;
+      font-weight: 400;
     }
 
     /* ── Chart Container ── */
@@ -338,14 +282,14 @@
       opacity: 0;
     }
     .chart-card h3 {
-      font-size: 1.25rem;
-      font-weight: 900;
+      font-size: 18px;
+      font-weight: 600;
       margin-bottom: 1.5rem;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      letter-spacing: -0.04em;
+      letter-spacing: -0.015em;
     }
     .chart-container {
       flex: 1;
@@ -375,8 +319,8 @@
       top: -22px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: .7rem;
-      font-weight: 600;
+      font-size: 11px;
+      font-weight: 500;
       color: #0f172a;
       white-space: nowrap;
     }
@@ -428,8 +372,8 @@
         inset 0 -1px 0 rgba(8, 145, 178, 0.08);
     }
     .section h3 {
-      font-size: 1.15rem;
-      font-weight: 900;
+      font-size: 17px;
+      font-weight: 600;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -438,17 +382,18 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      letter-spacing: -0.04em;
+      letter-spacing: -0.015em;
     }
     .section-header-action {
-      font-size: .8rem;
+      font-size: 12px;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       cursor: pointer;
-      font-weight: 700;
+      font-weight: 600;
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      letter-spacing: -0.005em;
     }
     .section-header-action:hover {
       filter: brightness(1.1);
@@ -477,17 +422,19 @@
       justify-content: center;
     }
     .donut-value {
-      font-size: 2.4rem;
-      font-weight: 900;
+      font-size: clamp(28px, 2.4vw, 36px);
+      font-weight: 700;
       color: #0f172a;
       line-height: 1;
+      letter-spacing: -0.02em;
     }
     .donut-text {
-      font-size: .8rem;
+      font-size: 11px;
       color: #64748b;
-      font-weight: 800;
+      font-weight: 600;
       margin-top: .4rem;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
     }
 
     /* ── Legend ── */
@@ -502,8 +449,8 @@
       display: flex;
       align-items: center;
       gap: .6rem;
-      font-size: .9rem;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 500;
       color: #0f172a;
     }
     .legend-dot {
@@ -521,9 +468,9 @@
     }
     .legend-note {
       text-align: center;
-      font-size: .75rem;
+      font-size: 12px;
       color: #94a3b8;
-      font-weight: 500;
+      font-weight: 400;
       margin-top: 0.5rem;
     }
 
@@ -536,8 +483,8 @@
     .progress-label {
       display: flex;
       justify-content: space-between;
-      font-size: 0.9rem;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 500;
       color: #0f172a;
     }
     .progress-bar-bg {
@@ -558,29 +505,29 @@
     .section table {
       width: 100%;
       border-collapse: collapse;
-      font-size: .85rem;
+      font-size: 14px;
       table-layout: fixed;
     }
     th {
       text-align: left;
       padding: 1rem 0.5rem;
       background: transparent;
-      font-weight: 900;
-      font-size: .75rem;
+      font-weight: 600;
+      font-size: 11px;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       text-transform: uppercase;
-      letter-spacing: .12em;
+      letter-spacing: 0.14em;
       border-bottom: 1px solid rgba(8, 145, 178, 0.08);
       word-break: break-word;
     }
     td {
       padding: 1rem 0.5rem;
       border-bottom: 1px solid rgba(8, 145, 178, 0.04);
-      font-weight: 700;
-      font-size: .9rem;
+      font-weight: 400;
+      font-size: 14px;
       color: #475569;
       word-break: break-word;
       overflow-wrap: break-word;
@@ -590,7 +537,7 @@
       background: linear-gradient(90deg, rgba(8, 145, 178, 0.04) 0%, transparent 100%);
     }
 
-    .empty-table { padding: 2.5rem; text-align: center; color: #94a3b8; font-size: .9rem; }
+    .empty-table { padding: 2.5rem; text-align: center; color: #94a3b8; font-size: 14px; font-weight: 400; }
 
     /* ── Section Animations ── */
     .section {
@@ -621,8 +568,8 @@
 
     /* ── Pending Table (Smaller Font) ── */
     #pendingTable td {
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 400;
     }
 
     /* Mobile responsive table */
@@ -662,8 +609,8 @@
       opacity: 0.25;
     }
     .chart-empty-text {
-      font-size: 0.95rem;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 500;
       color: #94a3b8;
     }
 
@@ -755,7 +702,7 @@
       display: flex; justify-content: space-between; align-items: center;
     }
     .pm-head h3 {
-      font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; margin: 0;
+      font-size: 18px; font-weight: 600; letter-spacing: -0.015em; margin: 0;
     }
     .pm-close {
       background: rgba(255,255,255,.2); border: none; color: white;
@@ -771,24 +718,24 @@
     .pm-row.full { grid-template-columns: 1fr; }
     .pm-field label {
       display: block;
-      font-size: 0.72rem; font-weight: 800; color: #64748b;
-      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;
+      font-size: 11px; font-weight: 600; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 0.4rem;
     }
     .pm-readonly {
       padding: 0.7rem 0.9rem;
       background: linear-gradient(135deg, #f8fafc, #f0f9ff);
       border: 1.5px solid rgba(8, 145, 178, .12);
       border-radius: 10px;
-      font-size: 0.95rem; font-weight: 700; color: #0f172a;
+      font-size: 14px; font-weight: 500; color: #0f172a;
       min-height: 42px; display: flex; align-items: center;
     }
-    .pm-readonly.cost { color: #0891b2; }
+    .pm-readonly.cost { color: #0891b2; font-weight: 600; }
     .pm-select {
       width: 100%;
       padding: 0.75rem 0.9rem;
       border: 1.5px solid rgba(8, 145, 178, .2);
       border-radius: 10px;
-      font-size: 0.95rem; font-weight: 700; font-family: inherit;
+      font-size: 14px; font-weight: 500; font-family: inherit;
       background: white; color: #0f172a;
       cursor: pointer;
       appearance: none;
@@ -813,10 +760,11 @@
     .pm-btn {
       padding: 0.7rem 1.4rem;
       border-radius: 10px;
-      font-weight: 700; font-size: 0.9rem; font-family: inherit;
+      font-weight: 600; font-size: 13px; font-family: inherit;
       cursor: pointer; border: none;
       transition: all .25s;
       display: inline-flex; align-items: center; gap: .4rem;
+      letter-spacing: -0.005em;
     }
     .pm-btn-cancel {
       background: white; color: #64748b;
@@ -838,7 +786,7 @@
       padding: .9rem 1.1rem; border-radius: 12px;
       box-shadow: 0 12px 32px rgba(0, 0, 0, .18);
       display: none; align-items: center; gap: .65rem;
-      font-weight: 700; color: #0f172a; font-size: .9rem;
+      font-weight: 500; color: #0f172a; font-size: 13px;
       animation: pmIn .25s ease;
       max-width: 360px;
     }
@@ -966,18 +914,18 @@
     <!-- Date Filter with Calendar -->
     <div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: flex-end;">
       <div style="flex: 1; min-width: 200px; position: relative;">
-        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.12em;">Desde</label>
+        <label style="display: block; font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.14em;">Desde</label>
         <input type="text" id="paidStartDateDisplay" placeholder="Seleccionar fecha" readonly style="width: 100%; padding: 0.75rem; border: 1px solid rgba(8, 145, 178, 0.2); border-radius: 8px; font-size: 0.9rem; background: white; color: #0f172a; font-family: inherit; cursor: pointer; transition: all 0.3s ease;">
         <input type="hidden" id="paidStartDate">
         <div id="paidStartCalendar" style="display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid rgba(8, 145, 178, 0.15); border-radius: 12px; padding: 1rem; box-shadow: 0 8px 32px rgba(8, 145, 178, 0.15); z-index: 100; margin-top: 0.5rem; min-width: 300px;"></div>
       </div>
       <div style="flex: 1; min-width: 200px; position: relative;">
-        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.12em;">Hasta</label>
+        <label style="display: block; font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.14em;">Hasta</label>
         <input type="text" id="paidEndDateDisplay" placeholder="Seleccionar fecha" readonly style="width: 100%; padding: 0.75rem; border: 1px solid rgba(8, 145, 178, 0.2); border-radius: 8px; font-size: 0.9rem; background: white; color: #0f172a; font-family: inherit; cursor: pointer; transition: all 0.3s ease;">
         <input type="hidden" id="paidEndDate">
         <div id="paidEndCalendar" style="display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid rgba(8, 145, 178, 0.15); border-radius: 12px; padding: 1rem; box-shadow: 0 8px 32px rgba(8, 145, 178, 0.15); z-index: 100; margin-top: 0.5rem; min-width: 300px;"></div>
       </div>
-      <button id="paidClearBtn" style="padding: 0.75rem 2rem; background: rgba(8, 145, 178, 0.08); color: #0891b2; border: 1px solid rgba(8, 145, 178, 0.2); border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease;">Limpiar</button>
+      <button id="paidClearBtn" style="padding: 0.75rem 2rem; background: rgba(8, 145, 178, 0.08); color: #0891b2; border: 1px solid rgba(8, 145, 178, 0.2); border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s ease; letter-spacing: -0.005em;">Limpiar</button>
     </div>
 
     <table>
@@ -1186,11 +1134,11 @@
           calContainer.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
               <button type="button" class="cal-prev" style="background: none; border: none; color: #0891b2; cursor: pointer; font-size: 1.5rem; padding: 0.25rem 0.5rem;">‹</button>
-              <span style="font-weight: 700; color: #0f172a;">${MONTH_NAMES[currentMonth]} ${currentYear}</span>
+              <span style="font-weight: 600; color: #0f172a; font-size: 14px; letter-spacing: -0.01em;">${MONTH_NAMES[currentMonth]} ${currentYear}</span>
               <button type="button" class="cal-next" style="background: none; border: none; color: #0891b2; cursor: pointer; font-size: 1.5rem; padding: 0.25rem 0.5rem;">›</button>
             </div>
             <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; margin-bottom: 0.5rem;">
-              ${DAY_SHORT.map(day => `<div style="text-align: center; font-weight: 600; font-size: 0.8rem; color: #94a3b8; padding: 0.5rem 0;">${day}</div>`).join('')}
+              ${DAY_SHORT.map(day => `<div style="text-align: center; font-weight: 600; font-size: 11px; color: #94a3b8; padding: 0.5rem 0; text-transform: uppercase; letter-spacing: 0.14em;">${day}</div>`).join('')}
             </div>
             <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem;" id="${calendarId}-days"></div>
           `;
@@ -1219,7 +1167,7 @@
               color: ${isSelected ? 'white' : isCurrentMonth ? '#0f172a' : '#cbd5e1'};
               border-radius: 8px;
               cursor: ${isCurrentMonth ? 'pointer' : 'default'};
-              font-weight: ${isSelected ? '700' : '500'};
+              font-weight: ${isSelected ? '600' : '400'};
               transition: all 0.2s ease;
             `;
 

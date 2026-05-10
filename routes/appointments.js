@@ -107,7 +107,9 @@ router.get('/public-bookings/stats', authenticate, async (req, res) => {
   const conversion_rate = total > 0 ? Math.round(((total - cancelled) / total) * 100) : 0;
 
   const recentResult = await query(
-    `SELECT a.id, a.scheduled_at, a.status, a.reason, p.name AS patient_name, u.name AS doctor_name
+    `SELECT a.id, a.scheduled_at, a.status, a.reason, a.specialty,
+            p.id AS patient_id, p.name AS patient_name, p.phone AS patient_phone, p.age AS patient_age,
+            u.name AS doctor_name
      FROM appointments a
      JOIN patients p ON a.patient_id = p.id
      JOIN users u ON a.doctor_id = u.id

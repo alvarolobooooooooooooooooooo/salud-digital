@@ -6,536 +6,873 @@
   <title>SaludDigital — Citas Online</title>
   <link rel="stylesheet" href="/layout.css">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    .co-page {
+      --paper: #EFF2F6;
+      --paper-2: #E5EAF1;
+      --surface: #F7F9FC;
+      --surface-2: #FFFFFF;
+      --line: #E3E8EF;
+      --line-2: #CFD6DF;
+      --ink: #0F172A;
+      --ink-2: #334155;
+      --muted: #64748B;
+      --muted-2: #94A3B8;
 
-    body {
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      --accent: #0891b2;
+      --accent-strong: #0e7490;
+      --accent-soft: #f0f9ff;
+      --accent-ink: #155e75;
+
+      --warm: #F59E0B;
+      --warm-soft: #FEF3C7;
+      --warm-ink: #92400E;
+
+      --ok: #10B981;
+      --ok-soft: #D1FAE5;
+      --ok-ink: #065F46;
+
+      --info: #3B82F6;
+      --info-soft: #DBEAFE;
+      --info-ink: #1E40AF;
+
+      --danger: #EF4444;
+      --danger-soft: #FEE2E2;
+      --danger-ink: #991B1B;
+
+      --radius-xs: 6px;
+      --radius-sm: 8px;
+      --radius: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+
+      --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03);
+      --shadow-2: 0 4px 12px -4px rgba(15, 23, 42, 0.08), 0 20px 40px -20px rgba(15, 23, 42, 0.12);
+
+      /* Glass tokens */
+      --glass-bg: rgba(255, 255, 255, 0.55);
+      --glass-bg-strong: rgba(255, 255, 255, 0.72);
+      --glass-bg-soft: rgba(255, 255, 255, 0.38);
+      --glass-border: rgba(255, 255, 255, 0.55);
+      --glass-border-inner: rgba(255, 255, 255, 0.8);
+      --glass-blur: saturate(160%) blur(18px);
+      --glass-blur-strong: saturate(180%) blur(26px);
+      --glass-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 -1px 0 rgba(15, 23, 42, 0.04) inset,
+        0 6px 20px -10px rgba(15, 23, 42, 0.18),
+        0 22px 60px -30px rgba(15, 23, 42, 0.25);
+      --glass-shadow-lift:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 -1px 0 rgba(15, 23, 42, 0.05) inset,
+        0 14px 40px -16px rgba(15, 23, 42, 0.22),
+        0 32px 80px -40px rgba(15, 23, 42, 0.3);
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+
       position: relative;
-      overflow-x: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    }
-
-    main {
+      font-family: var(--font-sans);
+      color: var(--ink);
+      font-size: 14px;
+      letter-spacing: -0.005em;
+      -webkit-font-smoothing: antialiased;
       width: 100%;
-      margin: 0 auto;
-      padding: 2.5rem 2rem;
-      position: relative;
-      z-index: 1;
+      max-width: none;
+      margin: 0;
+      padding: 0 0 80px;
+      display: grid;
+      gap: 20px;
+      container-type: inline-size;
+      isolation: isolate;
+    }
+    .co-page::before {
+      content: "";
+      position: absolute; inset: -40px -20px;
+      background:
+        radial-gradient(620px 460px at 8% -6%, color-mix(in oklch, var(--accent) 14%, transparent), transparent 65%),
+        radial-gradient(540px 420px at 96% 4%, color-mix(in oklch, #0ea5e9 11%, transparent), transparent 65%),
+        radial-gradient(720px 560px at 100% 52%, color-mix(in oklch, var(--info) 8%, transparent), transparent 70%),
+        radial-gradient(680px 520px at 0% 70%, color-mix(in oklch, #06b6d4 9%, transparent), transparent 68%),
+        radial-gradient(820px 600px at 60% 110%, color-mix(in oklch, var(--accent-strong) 7%, transparent), transparent 70%),
+        linear-gradient(180deg, #f6f9fc 0%, #f4f7fb 50%, #f5fafc 100%);
+      pointer-events: none;
+      z-index: -2;
+      border-radius: 24px;
+      filter: saturate(100%);
+    }
+    .co-page::after {
+      content: "";
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(2px 2px at 14% 22%, rgba(255,255,255,0.7), transparent 60%),
+        radial-gradient(2px 2px at 78% 38%, rgba(255,255,255,0.55), transparent 60%),
+        radial-gradient(2px 2px at 42% 76%, rgba(255,255,255,0.5), transparent 60%),
+        radial-gradient(2px 2px at 88% 88%, rgba(255,255,255,0.6), transparent 60%);
+      pointer-events: none;
+      z-index: -1;
+      border-radius: 24px;
+      mix-blend-mode: screen;
+      opacity: 0.7;
+    }
+    .co-page *, .co-page *::before, .co-page *::after { box-sizing: border-box; }
+    .co-page ::selection { background: color-mix(in oklch, var(--accent) 30%, transparent); color: var(--ink); }
+
+    .co-page .mono { font-family: var(--font-mono); }
+    .co-page .eyebrow {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--muted);
     }
 
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      gap: 1rem;
-      flex-wrap: wrap;
+    /* Hero */
+    .co-hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 24px;
+      padding: 8px 0 12px;
     }
-
-    .header-content h1 {
-      font-size: 2.5rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.5rem;
-      letter-spacing: -0.04em;
-    }
-
-    .header-content p {
-      color: #64748b;
-      font-size: 0.95rem;
-      font-weight: 600;
-    }
-
-    .section {
-      background: white;
-      border-radius: 20px;
-      padding: 1.75rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 10px 30px rgba(8, 145, 178, 0.08);
-      border: 1px solid rgba(8, 145, 178, 0.1);
-    }
-
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: #0f172a;
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .link-box {
-      display: flex;
-      gap: 0.75rem;
-      align-items: center;
-      flex-wrap: wrap;
-      background: #f0f9ff;
-      padding: 1rem;
-      border-radius: 12px;
-      border: 1px dashed #0891b2;
-    }
-
-    .link-text {
-      flex: 1;
-      min-width: 250px;
-      font-family: monospace;
-      font-size: 0.9rem;
-      color: #0369a1;
-      word-break: break-all;
-    }
-
-    .btn {
-      padding: 0.6rem 1.1rem;
-      border-radius: 10px;
+    .co-hero h1 {
+      font-family: var(--font-sans);
       font-weight: 700;
-      font-size: 0.85rem;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
+      font-size: clamp(28px, 3.4vw, 42px);
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+      margin: 8px 0 0;
+      background: linear-gradient(120deg, var(--accent-ink) 0%, var(--accent) 50%, #0ea5e9 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .co-hero h1 em {
+      font-style: normal;
+      background: linear-gradient(120deg, var(--accent-strong) 0%, #0ea5e9 50%, var(--info) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .co-hero .lede {
+      margin-top: 12px;
+      max-width: 56ch;
+      color: var(--ink-2);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+    .co-hero .meta {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+      font-size: 12px; color: var(--muted);
+    }
+    .co-hero .meta .dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--ok);
+      box-shadow: 0 0 0 4px color-mix(in oklch, var(--ok) 20%, transparent);
+      display: inline-block; margin-right: 6px;
+      animation: co-pulse 2.2s ease-in-out infinite;
+    }
+    @keyframes co-pulse {
+      0%, 100% { box-shadow: 0 0 0 4px color-mix(in oklch, var(--ok) 20%, transparent); }
+      50% { box-shadow: 0 0 0 8px color-mix(in oklch, var(--ok) 6%, transparent); }
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #0891b2, #06b6d4);
+    /* Card */
+    .co-card {
+      position: relative;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--glass-shadow);
+      overflow: hidden;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      isolation: isolate;
+    }
+    .co-card::before {
+      content: "";
+      position: absolute; inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      background: linear-gradient(140deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.05) 38%, rgba(255,255,255,0) 60%);
+      mix-blend-mode: screen;
+      opacity: 0.9;
+      z-index: -1;
+    }
+    .co-card.lift { box-shadow: var(--glass-shadow-lift); }
+    .co-card-title { font-family: var(--font-sans); font-weight: 600; font-size: 17px; line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
+    .co-card-sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+    /* Share card */
+    .co-share {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0;
+      align-items: stretch;
+      padding: 26px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.45) 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .co-share::after {
+      content: "";
+      position: absolute; right: -120px; top: -120px;
+      width: 360px; height: 360px;
+      background:
+        conic-gradient(from 200deg, color-mix(in oklch, var(--accent) 22%, transparent), color-mix(in oklch, #0ea5e9 18%, transparent) 30%, color-mix(in oklch, var(--info) 15%, transparent) 55%, transparent 75%);
+      filter: blur(60px);
+      pointer-events: none;
+      opacity: 0.55;
+    }
+    .co-share-body { position: relative; z-index: 1; min-width: 0; }
+    .co-share-label {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 14px;
+    }
+    .co-url-pill {
+      display: flex; align-items: center; gap: 0;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(255,255,255,0.75);
+      border-radius: 14px;
+      padding: 4px 4px 4px 14px;
+      overflow: hidden;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      max-width: 100%;
+      backdrop-filter: saturate(160%) blur(10px);
+      -webkit-backdrop-filter: saturate(160%) blur(10px);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.7) inset,
+        0 4px 16px -8px rgba(15,23,42,0.18);
+    }
+    .co-url-pill .co-url-text {
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--ink-2);
+      padding-right: 10px;
+    }
+    .co-url-pill .co-url-text b { color: var(--accent-ink); font-weight: 600; }
+    .co-url-pill .co-copy {
+      height: 32px; padding: 0 14px;
+      border-radius: 8px;
+      border: 0;
+      background: var(--accent);
       color: white;
-      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25);
+      font-family: var(--font-sans);
+      font-size: 12.5px; font-weight: 600;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      white-space: nowrap;
+      transition: background 120ms ease;
     }
-
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(8, 145, 178, 0.35);
+    .co-url-pill .co-copy:hover { background: var(--accent-strong); }
+    .co-share-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .co-qr-card {
+      position: relative; z-index: 1;
+      align-self: stretch;
+      margin-left: 24px;
+      padding: 16px;
+      background: rgba(255,255,255,0.62);
+      border: 1px solid rgba(255,255,255,0.8);
+      border-radius: 18px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      min-width: 152px;
+      backdrop-filter: saturate(160%) blur(14px);
+      -webkit-backdrop-filter: saturate(160%) blur(14px);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.8) inset,
+        0 12px 28px -14px rgba(15,23,42,0.2);
     }
+    .co-qr-card svg { display: block; }
+    .co-qr-label { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
 
-    .btn-secondary {
-      background: white;
-      color: #0891b2;
-      border: 1.5px solid #0891b2;
+    /* Buttons */
+    .co-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 36px; padding: 0 14px;
+      border-radius: 10px;
+      font-family: var(--font-sans);
+      font-size: 13px; font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.55);
+      color: var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+      backdrop-filter: saturate(160%) blur(10px);
+      -webkit-backdrop-filter: saturate(160%) blur(10px);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.8) inset,
+        0 4px 12px -6px rgba(15,23,42,0.16);
     }
+    .co-btn:hover { background: rgba(255,255,255,0.72); border-color: rgba(255,255,255,0.9); }
+    .co-btn:active { transform: translateY(1px); }
+    .co-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .co-btn.primary { background: rgba(15,23,42,0.85); color: var(--paper); border-color: rgba(15,23,42,0.9); box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 8px 22px -10px rgba(15,23,42,0.55); }
+    .co-btn.primary:hover { background: rgba(15,23,42,0.92); }
+    .co-btn.accent { background: color-mix(in oklch, var(--accent) 82%, transparent); color: white; border-color: color-mix(in oklch, var(--accent) 70%, black); box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 8px 22px -10px color-mix(in oklch, var(--accent) 60%, transparent); }
+    .co-btn.ghost { background: rgba(255,255,255,0.3); }
+    .co-btn.sm { height: 30px; padding: 0 10px; font-size: 12.5px; border-radius: 8px; }
+    .co-btn.danger-ghost { color: var(--danger); background: rgba(255,255,255,0.3); }
 
-    .btn-secondary:hover {
-      background: #f0f9ff;
+    .co-icon-btn {
+      width: 32px; height: 32px;
+      display: grid; place-items: center;
+      border: 1px solid rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.55);
+      border-radius: 10px;
+      cursor: pointer;
+      color: var(--ink-2);
+      backdrop-filter: saturate(160%) blur(10px);
+      -webkit-backdrop-filter: saturate(160%) blur(10px);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 4px 12px -6px rgba(15,23,42,0.14);
     }
+    .co-icon-btn:hover { background: rgba(255,255,255,0.72); border-color: rgba(255,255,255,0.9); }
 
-    .stats {
+    /* KPIs */
+    .co-kpi-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-      margin-bottom: 1.5rem;
+      gap: 16px;
     }
-
-    .stat-card {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 18px;
-      box-shadow: 0 8px 24px rgba(8, 145, 178, 0.08);
-      border: 1px solid rgba(8, 145, 178, 0.08);
-    }
-
-    .stat-label {
-      font-size: 0.7rem;
-      font-weight: 800;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-value {
-      font-size: 2rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #0f172a 0%, #0891b2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .availability-grid {
-      display: grid;
-      gap: 1rem;
-    }
-
-    .day-row {
-      display: grid;
-      grid-template-columns: 120px 1fr 1fr 80px;
-      gap: 1rem;
-      align-items: center;
-      padding: 1.2rem;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 251, 252, 0.9) 100%);
-      border-radius: 16px;
-      border: 1.5px solid rgba(8, 145, 178, 0.15);
-      box-shadow: 0 8px 24px rgba(8, 145, 178, 0.08);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
+    .co-kpi {
       position: relative;
+      padding: 22px 22px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      isolation: isolate;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--glass-shadow);
     }
-
-    .day-row:hover:not(.disabled) {
-      border-color: rgba(8, 145, 178, 0.3);
-      box-shadow: 0 12px 32px rgba(8, 145, 178, 0.15);
-    }
-
-    .day-row.enabled {
-      background: linear-gradient(135deg, rgba(240, 249, 255, 0.97) 0%, rgba(224, 242, 254, 0.92) 100%);
-    }
-
-    .day-row label.day-name {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-weight: 700;
-      color: #0f172a;
-      cursor: pointer;
-      user-select: none;
-      font-size: 1rem;
-    }
-
-    .day-row input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-      accent-color: #0891b2;
-    }
-
-    .day-row.disabled .time-input,
-    .day-row.disabled .dur-input {
-      opacity: 0.35;
+    .co-kpi::before {
+      content: "";
+      position: absolute; inset: 0;
       pointer-events: none;
-      background: #f1f5f9 !important;
+      border-radius: inherit;
+      background: linear-gradient(140deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.05) 38%, rgba(255,255,255,0) 60%);
+      mix-blend-mode: screen;
+      z-index: -1;
+    }
+    .co-kpi::after {
+      content: ""; position: absolute; inset: 0;
+      background:
+        radial-gradient(360px 220px at 110% -10%, color-mix(in oklch, var(--kpi-tint, var(--accent)) 28%, transparent), transparent 70%),
+        radial-gradient(220px 160px at -10% 110%, color-mix(in oklch, var(--kpi-tint, var(--accent)) 14%, transparent), transparent 70%);
+      z-index: -1;
+      opacity: 0.9;
+    }
+    .co-kpi-head { display: flex; align-items: center; justify-content: space-between; }
+    .co-kpi-label { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .co-kpi-value {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 40px; line-height: 1;
+      margin-top: 12px;
+      letter-spacing: -0.025em;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+    .co-kpi-value .unit { font-size: 16px; color: var(--muted); margin-left: 4px; font-weight: 600; }
+    .co-kpi-foot { display: flex; align-items: end; justify-content: space-between; margin-top: 16px; gap: 12px; }
+    .co-kpi-delta {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; font-weight: 600;
+      padding: 3px 7px; border-radius: 999px;
+    }
+    .co-kpi-delta.up { color: var(--ok-ink); background: var(--ok-soft); }
+    .co-kpi-delta.down { color: var(--danger); background: var(--danger-soft); }
+    .co-kpi-delta.flat { color: var(--muted); background: color-mix(in oklch, var(--ink) 5%, transparent); }
+    .co-kpi svg.co-spark { display: block; }
+
+    /* Two-col */
+    .co-cols-2 {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 16px;
+    }
+    @container (max-width: 980px) {
+      .co-cols-2 { grid-template-columns: 1fr; }
+      .co-kpi-grid { grid-template-columns: 1fr; }
+      .co-hero { grid-template-columns: 1fr; }
+    }
+    @container (max-width: 720px) {
+      .co-qr-card { display: none; }
+      .co-share { grid-template-columns: 1fr; }
     }
 
-    .day-row.disabled {
-      opacity: 0.6;
+    /* Availability timeline */
+    .co-avail-head {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 22px;
+      border-bottom: 1px solid rgba(255,255,255,0.6);
+      gap: 12px; flex-wrap: wrap;
     }
-
-    .time-input, .dur-input {
-      padding: 0.8rem 1rem;
-      border: 1.5px solid rgba(8, 145, 178, 0.2);
+    .co-avail-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .co-doctor-select {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 4px 4px 12px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(255,255,255,0.75);
       border-radius: 12px;
-      font-size: 0.95rem;
-      font-weight: 600;
+      font-size: 13px;
+      backdrop-filter: saturate(160%) blur(10px);
+      -webkit-backdrop-filter: saturate(160%) blur(10px);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 4px 14px -8px rgba(15,23,42,0.18);
+    }
+    .co-doctor-select select {
+      border: 0; background: transparent; outline: 0;
+      font-family: inherit; font-size: 13px;
+      padding: 6px 24px 6px 4px;
+      color: var(--ink); cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+    }
+
+    .co-timeline-wrap { position: relative; z-index: 1; padding: 18px 22px 22px; overflow-x: auto; }
+    .co-timeline {
+      display: grid;
+      grid-template-columns: 112px 1fr;
+      gap: 0;
+      min-width: 720px;
+    }
+    .co-tl-hours {
+      grid-column: 2;
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--muted);
+      padding-bottom: 6px;
+      border-bottom: 1px dashed var(--line);
+    }
+    .co-tl-hours span { text-align: left; padding-left: 2px; }
+    .co-tl-day {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 12px 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .co-tl-day-name { font-size: 13.5px; font-weight: 600; }
+    .co-tl-day-meta { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+    .co-tl-track {
+      position: relative;
+      height: 56px;
+      border-bottom: 1px solid var(--line);
+      background:
+        repeating-linear-gradient(90deg,
+          transparent 0,
+          transparent calc((100% / 15) - 1px),
+          color-mix(in oklch, var(--ink) 5%, transparent) calc((100% / 15) - 1px),
+          color-mix(in oklch, var(--ink) 5%, transparent) calc(100% / 15));
+      cursor: crosshair;
+      overflow: hidden;
+    }
+    .co-tl-track.disabled { opacity: 0.4; cursor: not-allowed; background: color-mix(in oklch, var(--ink) 3%, transparent); }
+    .co-tl-track .co-now {
+      position: absolute; top: 0; bottom: 0;
+      width: 1px;
+      background: var(--danger);
+      pointer-events: none;
+    }
+    .co-tl-track .co-now::before {
+      content: ""; position: absolute; top: -3px; left: -3px;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--danger);
+    }
+    .co-tl-slot {
+      position: absolute; top: 8px; bottom: 8px;
+      background: color-mix(in oklch, var(--accent) 18%, transparent);
+      border: 1px solid color-mix(in oklch, var(--accent) 50%, transparent);
+      border-radius: 8px;
+      display: flex; align-items: center; padding: 0 8px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--accent-ink);
+      user-select: none;
+      cursor: pointer;
+      gap: 4px;
+    }
+    .co-tl-slot:hover { filter: brightness(0.97); }
+    .co-tl-slot .co-slot-time { cursor: pointer; }
+    .co-tl-slot .co-slot-x {
+      margin-left: auto;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border-radius: 4px;
+      color: var(--accent-ink); opacity: 0.6;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .co-tl-slot .co-slot-x:hover { opacity: 1; background: color-mix(in oklch, var(--accent) 25%, transparent); }
+    .co-tl-hover-tip {
+      position: absolute; top: 4px; transform: translateX(-50%);
+      font-size: 10px; font-family: var(--font-mono); color: var(--muted);
+      pointer-events: none;
+    }
+
+    .co-tl-toggle {
+      display: inline-flex; align-items: center; gap: 8px;
+      cursor: pointer;
+      font-size: 12.5px;
+      user-select: none;
+    }
+    .co-switch {
+      width: 30px; height: 18px;
+      border-radius: 999px;
+      background: color-mix(in oklch, var(--ink) 18%, transparent);
+      position: relative;
+      transition: background 160ms ease;
+      flex-shrink: 0;
+    }
+    .co-switch::after {
+      content: ""; position: absolute; top: 2px; left: 2px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: white;
+      box-shadow: 0 1px 2px color-mix(in oklch, var(--ink) 18%, transparent);
+      transition: transform 160ms ease;
+    }
+    .co-switch.on { background: var(--accent); }
+    .co-switch.on::after { transform: translateX(12px); }
+
+    .co-avail-foot {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 22px; border-top: 1px solid rgba(255,255,255,0.6);
+      gap: 12px; flex-wrap: wrap;
+      font-size: 12.5px; color: var(--muted);
+    }
+    .co-legend { display: inline-flex; gap: 14px; align-items: center; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+    .co-legend .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+    .co-avail-summary { display: flex; gap: 22px; font-family: var(--font-mono); }
+    .co-avail-summary b { color: var(--ink); font-weight: 600; }
+
+    /* Insights side */
+    .co-insights { display: grid; gap: 16px; align-content: start; }
+    .co-insight {
+      position: relative;
+      padding: 20px 22px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--glass-shadow);
+      isolation: isolate;
+    }
+    .co-insight::before {
+      content: "";
+      position: absolute; inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      background: linear-gradient(140deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.05) 38%, rgba(255,255,255,0) 60%);
+      mix-blend-mode: screen;
+      z-index: -1;
+    }
+    .co-insight-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .co-weekring {
+      display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center;
+    }
+    .co-weekring .legend2 { display: grid; gap: 6px; font-size: 12px; color: var(--ink-2); }
+    .co-weekring .legend2 .row { display: flex; align-items: center; gap: 8px; }
+    .co-weekring .legend2 .row b { margin-left: auto; font-variant-numeric: tabular-nums; font-family: var(--font-mono); color: var(--ink); font-weight: 600; }
+    .co-dotc { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .co-upcoming-list { display: grid; gap: 10px; }
+    .co-upcoming {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+      padding: 10px; border-radius: 12px;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+    .co-upcoming:hover { background: color-mix(in oklch, var(--ink) 3%, transparent); border-color: var(--line); }
+    .co-upc-time { font-family: var(--font-sans); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .co-upc-time b { color: var(--ink); display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+    .co-upc-name { font-size: 13.5px; font-weight: 600; }
+    .co-upc-reason { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .co-empty { text-align: center; padding: 24px; color: var(--muted); font-size: 13px; }
+
+    /* Appointments table */
+    .co-appts-head {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 22px;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.6);
+      flex-wrap: wrap;
+    }
+    .co-search {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(255,255,255,0.75);
+      border-radius: 12px;
+      width: 240px;
+      font-size: 13px;
+      backdrop-filter: saturate(160%) blur(10px);
+      -webkit-backdrop-filter: saturate(160%) blur(10px);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 4px 14px -8px rgba(15,23,42,0.18);
+    }
+    .co-search input {
+      border: 0; outline: 0; background: transparent;
+      color: var(--ink); flex: 1; font-family: inherit;
+      font-size: 13px; min-width: 0;
+    }
+    .co-filter-pills { position: relative; z-index: 1; display: flex; gap: 6px; flex-wrap: wrap; padding: 12px 22px 0; }
+    .co-filter-pill {
+      border: 1px solid rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.5);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 12.5px; color: var(--ink-2);
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
       font-family: inherit;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.85);
-      color: #0f172a;
-      transition: all 0.2s ease;
-      backdrop-filter: blur(10px);
+      backdrop-filter: saturate(160%) blur(8px);
+      -webkit-backdrop-filter: saturate(160%) blur(8px);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.7) inset, 0 2px 8px -4px rgba(15,23,42,0.12);
+      transition: background 120ms ease, border-color 120ms ease;
+    }
+    .co-filter-pill:hover { background: rgba(255,255,255,0.72); }
+    .co-filter-pill .cnt {
+      background: color-mix(in oklch, var(--ink) 5%, transparent);
+      padding: 0 6px; border-radius: 999px; font-size: 11px; font-variant-numeric: tabular-nums;
+    }
+    .co-filter-pill.on {
+      background: var(--accent); color: white; border-color: color-mix(in oklch, var(--accent) 70%, black);
+    }
+    .co-filter-pill.on .cnt { background: color-mix(in oklch, white 22%, transparent); color: white; }
+
+    table.co-appts-table {
+      position: relative; z-index: 1;
+      width: 100%; border-collapse: collapse;
+      font-size: 13.5px;
+      margin-top: 12px;
+    }
+    .co-appts-table thead th {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.45);
+      border-bottom: 1px solid rgba(255,255,255,0.7);
+      backdrop-filter: saturate(160%) blur(8px);
+      -webkit-backdrop-filter: saturate(160%) blur(8px);
+    }
+    .co-appts-table tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.45);
+      vertical-align: middle;
+    }
+    .co-appts-table tbody tr {
+      transition: background 120ms ease;
       cursor: pointer;
-      min-height: 44px;
     }
-
-    .time-input::-webkit-calendar-picker-indicator {
-      cursor: pointer;
-      margin: 0;
+    .co-appts-table tbody tr:hover { background: rgba(255,255,255,0.42); }
+    .co-appts-table tbody tr.selected { background: color-mix(in oklch, var(--accent) 10%, rgba(255,255,255,0.5)); }
+    .co-appts-table tbody tr:last-child td { border-bottom: 0; }
+    .co-row-date { font-family: var(--font-mono); font-size: 12.5px; color: var(--accent-ink); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .co-row-date b { color: var(--accent-ink); font-weight: 600; display: inline-block; }
+    .co-row-patient { display: flex; align-items: center; gap: 10px; }
+    .co-pavatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: var(--paper-2);
+      color: var(--ink); font-weight: 600; font-size: 12px;
+      border: 1px solid var(--line);
+      flex-shrink: 0;
     }
+    .co-row-patient .nm { font-weight: 600; }
+    .co-row-patient .sm { font-size: 11.5px; color: var(--muted); }
+    .co-row-doctor { color: var(--ink-2); }
 
-    .time-input:hover, .dur-input:hover {
-      border-color: rgba(8, 145, 178, 0.35);
-      background: rgba(255, 255, 255, 0.95);
-      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.1);
+    .co-status {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
     }
+    .co-status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; }
+    .co-status.pendiente { background: var(--warm-soft); color: var(--warm-ink); }
+    .co-status.pendiente::before { background: var(--warm); }
+    .co-status.completada { background: var(--ok-soft); color: var(--ok-ink); }
+    .co-status.completada::before { background: var(--ok); }
+    .co-status.espera { background: var(--info-soft); color: var(--info-ink); }
+    .co-status.espera::before { background: var(--info); }
+    .co-status.cancelada { background: var(--danger-soft); color: var(--danger); }
+    .co-status.cancelada::before { background: var(--danger); }
 
-    .time-input:focus, .dur-input:focus {
-      outline: none;
-      border-color: #0891b2;
-      background: rgba(255, 255, 255, 0.98);
-      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.15), 0 6px 16px rgba(8, 145, 178, 0.12);
+    .co-row-actions {
+      display: flex; gap: 4px;
+      opacity: 0;
+      transition: opacity 120ms ease;
+      justify-content: flex-end;
     }
+    .co-appts-table tr:hover .co-row-actions,
+    .co-appts-table tr.selected .co-row-actions { opacity: 1; }
+    .co-row-actions button {
+      width: 28px; height: 28px;
+      display: grid; place-items: center;
+      border: 1px solid rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.6);
+      border-radius: 8px;
+      cursor: pointer; color: var(--ink-2);
+      backdrop-filter: saturate(160%) blur(8px);
+      -webkit-backdrop-filter: saturate(160%) blur(8px);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 2px 6px -2px rgba(15,23,42,0.12);
+    }
+    .co-row-actions button.danger:hover { background: var(--danger-soft); color: var(--danger); border-color: var(--danger-soft); }
+    .co-row-actions button:hover { background: rgba(255,255,255,0.85); }
 
-    .doctor-select-row {
-      margin-bottom: 1rem;
-      display: flex;
-      gap: 0.75rem;
-      align-items: center;
+    .co-appts-foot {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 22px; border-top: 1px solid rgba(255,255,255,0.6);
+      font-size: 12.5px; color: var(--muted);
+      gap: 12px;
       flex-wrap: wrap;
     }
 
-    .doctor-select-row label {
-      font-weight: 700;
-      color: #475569;
-      font-size: 0.9rem;
+    /* Drawer */
+    .co-drawer-backdrop {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, rgba(15,23,42,0.28), rgba(8,145,178,0.18));
+      z-index: 1000;
+      backdrop-filter: saturate(140%) blur(8px);
+      -webkit-backdrop-filter: saturate(140%) blur(8px);
+      animation: co-fade 160ms ease;
+    }
+    .co-drawer {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: min(440px, 100vw);
+      background: rgba(255,255,255,0.72);
+      border-left: 1px solid rgba(255,255,255,0.8);
+      z-index: 1001;
+      overflow-y: auto;
+      animation: co-slideIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      display: flex; flex-direction: column;
+      font-family: var(--font-sans);
+      color: #0F172A;
+      backdrop-filter: saturate(180%) blur(28px);
+      -webkit-backdrop-filter: saturate(180%) blur(28px);
+      box-shadow:
+        1px 0 0 rgba(255,255,255,0.6) inset,
+        -28px 0 60px -20px rgba(15,23,42,0.25);
+    }
+    @keyframes co-fade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes co-slideIn {
+      from { transform: translateX(20px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .co-drawer-head { padding: 20px 22px 12px; border-bottom: 1px solid rgba(255,255,255,0.65); }
+    .co-drawer-body { padding: 22px; display: grid; gap: 18px; flex: 1; }
+    .co-drawer-foot { padding: 14px 22px; border-top: 1px solid rgba(255,255,255,0.65); display: flex; gap: 8px; align-items: center; }
+    .co-field { display: grid; gap: 6px; }
+    .co-field .lbl { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #64748B; }
+    .co-field .val { font-size: 14px; color: #0F172A; }
+    .co-note {
+      padding: 14px;
+      background: linear-gradient(135deg, rgba(254,243,199,0.65), rgba(255,255,255,0.4));
+      border: 1px solid rgba(245,158,11,0.35);
+      border-radius: 14px;
+      font-size: 13px;
+      color: #334155;
+      line-height: 1.5;
+      backdrop-filter: saturate(160%) blur(10px);
+      -webkit-backdrop-filter: saturate(160%) blur(10px);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.7) inset;
     }
 
-    .doctor-select {
-      padding: 0.5rem 0.75rem;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-family: inherit;
-      min-width: 200px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th {
-      text-align: left;
-      padding: 0.75rem;
-      background: #f8fafc;
-      font-weight: 700;
-      font-size: 0.75rem;
-      color: #475569;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-bottom: 2px solid #e2e8f0;
-    }
-
-    td {
-      padding: 0.75rem;
-      border-bottom: 1px solid #f1f5f9;
-      font-size: 0.9rem;
-    }
-
-    .empty-table {
-      text-align: center;
-      color: #94a3b8;
-      padding: 2rem !important;
-      font-style: italic;
-    }
-
-    .badge-status {
-      padding: 0.2rem 0.6rem;
-      border-radius: 12px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .badge-pending { background: #fef3c7; color: #b45309; }
-    .badge-completed { background: #d1fae5; color: #065f46; }
-    .badge-cancelled { background: #fee2e2; color: #991b1b; }
-    .badge-waiting { background: #dbeafe; color: #1e40af; }
-
-    .toast {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      background: #0f172a;
-      color: white;
-      padding: 0.75rem 1.25rem;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      z-index: 9999;
+    /* Toast */
+    .co-toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #0F172A; color: #EFF2F6;
+      padding: 10px 16px; border-radius: 12px;
+      font-size: 13px;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 20px 40px -20px rgba(15, 23, 42, 0.4);
+      z-index: 2000;
       opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.3s;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+      transform: translate(-50%, 12px);
+      font-family: var(--font-sans);
     }
-
-    .toast.show {
+    .co-toast.show {
       opacity: 1;
-      transform: translateY(0);
+      transform: translate(-50%, 0);
     }
 
-    .time-picker-modal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+    .co-page input:focus-visible,
+    .co-page button:focus-visible,
+    .co-page select:focus-visible {
+      outline: 2px solid color-mix(in oklch, var(--accent) 60%, transparent);
+      outline-offset: 2px;
+    }
+
+    /* Time picker modal (kept from previous) */
+    .co-time-picker-modal {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center; justify-content: center;
+      z-index: 2100;
+      font-family: var(--font-sans);
+    }
+    .co-time-picker-modal.active { display: flex; }
+    .co-time-picker-card {
       background: white;
-      border-radius: 24px;
-      padding: 2rem;
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-      z-index: 10000;
-      display: none;
-      min-width: 320px;
-      border: 1px solid rgba(8, 145, 178, 0.1);
-    }
-
-    .time-picker-modal.active {
-      display: block;
-    }
-
-    .time-picker-modal-title {
-      font-size: 0.85rem;
-      font-weight: 800;
-      color: #0891b2;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 1.5rem;
-      text-align: center;
-    }
-
-    .time-picker-display {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 2rem;
-      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-      padding: 1.5rem;
       border-radius: 16px;
+      padding: 22px;
+      width: min(340px, 92vw);
+      box-shadow: 0 30px 60px rgba(15, 23, 42, 0.2);
     }
-
-    .time-picker-input {
-      font-size: 3rem;
-      font-weight: 900;
-      color: #0891b2;
+    .co-time-picker-title { font-size: 13px; color: #64748B; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+    .co-time-picker-display {
       text-align: center;
-      min-width: 200px;
-      font-variant-numeric: tabular-nums;
+      font-family: var(--font-mono);
+      font-size: 44px; font-weight: 600;
+      color: #0F172A;
+      margin: 4px 0 18px;
+      letter-spacing: -0.02em;
     }
-
-    .time-picker-controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .time-picker-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .time-picker-label {
-      font-size: 0.7rem;
-      font-weight: 800;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      text-align: center;
-    }
-
-    .time-picker-btn-group {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .time-picker-btn-group button {
-      flex: 1;
-      padding: 0.6rem;
-      border: none;
-      border-radius: 12px;
-      background: rgba(8, 145, 178, 0.1);
-      color: #0891b2;
-      font-weight: 700;
+    .co-time-picker-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+    .co-time-picker-group { display: grid; gap: 6px; }
+    .co-time-picker-label { font-size: 11px; color: #64748B; letter-spacing: 0.1em; text-transform: uppercase; text-align: center; }
+    .co-time-picker-btn-group { display: flex; gap: 6px; justify-content: center; }
+    .co-time-picker-btn-group button {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      border: 1px solid #E3E8EF;
+      background: #F7F9FC;
+      color: #0F172A;
+      font-size: 18px; font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
-      font-size: 1rem;
     }
-
-    .time-picker-btn-group button:hover {
-      background: rgba(8, 145, 178, 0.2);
-    }
-
-    .time-picker-btn-group button:active {
-      transform: scale(0.95);
-    }
-
-    .time-picker-actions {
-      display: flex;
-      gap: 0.75rem;
-      justify-content: center;
-    }
-
-    .time-picker-action-btn {
-      padding: 0.75rem 1.75rem;
-      border: none;
-      border-radius: 12px;
-      font-weight: 700;
+    .co-time-picker-btn-group button:hover { background: #FFFFFF; border-color: #CFD6DF; }
+    .co-time-picker-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .co-time-picker-actions button {
+      height: 36px; padding: 0 14px;
+      border-radius: 10px;
+      font-size: 13px; font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
-      font-size: 0.95rem;
+      font-family: inherit;
     }
-
-    .time-picker-action-btn.confirm {
-      background: linear-gradient(135deg, #0891b2, #06b6d4);
-      color: white;
-      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25);
+    .co-time-picker-actions .cancel {
+      background: #F7F9FC; border: 1px solid #E3E8EF; color: #334155;
     }
-
-    .time-picker-action-btn.confirm:hover {
-      box-shadow: 0 6px 16px rgba(8, 145, 178, 0.35);
-      transform: translateY(-2px);
-    }
-
-    .time-picker-action-btn.cancel {
-      background: transparent;
-      color: #64748b;
-      border: 1.5px solid #e2e8f0;
-    }
-
-    .time-picker-action-btn.cancel:hover {
-      border-color: #0891b2;
-      color: #0891b2;
-    }
-
-    /* Loading animation */
-    .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-      gap: 1.5rem;
-    }
-
-    .loading-overlay.hidden {
-      display: none;
-    }
-
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid rgba(8, 145, 178, 0.15);
-      border-top-color: #0891b2;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .loading-text {
-      color: #64748b;
-      font-weight: 600;
-      font-size: 0.95rem;
-    }
-
-@media (max-width: 860px) {
-      main { padding: 1.5rem 1rem; padding-top: 80px; width: 100%; }
-      .header-content h1 { font-size: 1.8rem; }
-      .stats { grid-template-columns: 1fr; }
-      .day-row { grid-template-columns: 100px 1fr 1fr; gap: 0.75rem; padding: 1rem; }
-      .day-row .dur-input { grid-column: 1 / -1; }
-      .stat-value { font-size: 1.6rem; }
-      .section { padding: 1.25rem; }
-    }
-
-    @media (max-width: 480px) {
-      main { padding: 1rem 0.75rem; padding-top: 70px; width: 100%; }
-      .header-content h1 { font-size: 1.5rem; }
-      .page-header { margin-bottom: 1.5rem; }
-      .section { padding: 1rem; margin-bottom: 1rem; }
-      .section-title { font-size: 1rem; }
-      .stats { gap: 0.75rem; }
-      .stat-card { padding: 1rem; }
-      .stat-value { font-size: 1.4rem; }
-      .day-row { grid-template-columns: 1fr; gap: 0.6rem; padding: 0.9rem; }
-      .day-row label.day-name { font-size: 0.95rem; }
-      .time-input, .dur-input { padding: 0.7rem 0.9rem; font-size: 0.9rem; }
-      .btn { padding: 0.5rem 0.9rem; font-size: 0.8rem; }
-      table { font-size: 0.85rem; }
-      table th, table td { padding: 0.6rem; }
-      table th:nth-child(4),
-      table td:nth-child(4) { display: none; }
-      table th:nth-child(5),
-      table td:nth-child(5) { font-size: 0.75rem; max-width: 120px; }
-      .btn-delete { padding: 0.3rem 0.6rem !important; font-size: 0.7rem !important; }
+    .co-time-picker-actions .confirm {
+      background: #0F172A; border: 1px solid #0F172A; color: white;
     }
   </style>
 </head>
@@ -547,101 +884,242 @@
 </div>
 
 <main class="layout-main">
-  <div class="page-header">
-    <div class="header-content">
-      <h1>Citas Online</h1>
-      <p>Tu link público para que pacientes agenden citas en línea</p>
-    </div>
-  </div>
+  <div class="co-page" id="coPage">
+    <!-- Hero -->
+    <section class="co-hero">
+      <div>
+        <span class="eyebrow" id="heroEyebrow">Programación · Mayo 2026</span>
+        <h1>Citas <em>Online</em>.</h1>
+        <p class="lede">
+          Tu enlace público para que los pacientes agenden directamente desde la web, redes o WhatsApp.
+          Configurá tu disponibilidad por día y revisá las solicitudes entrantes en tiempo real.
+        </p>
+      </div>
+      <div class="meta">
+        <div><span class="dot"></span><span id="syncLabel">Sincronizado hace unos segundos</span></div>
+        <div class="mono" id="nowLabel">—</div>
+      </div>
+    </section>
 
-  <!-- Link compartible -->
-  <div class="section">
-    <div class="section-title">Link compartible</div>
-    <div class="link-box">
-      <div class="link-text" id="publicLink">Cargando...</div>
-      <button class="btn btn-secondary" onclick="copyLink()">Copiar</button>
-      <a id="whatsappShare" class="btn btn-primary" target="_blank" href="#">Compartir WhatsApp</a>
-    </div>
-  </div>
+    <!-- Share -->
+    <section class="co-card lift co-share">
+      <div class="co-share-body">
+        <div class="co-share-label">
+          <span class="eyebrow">Link público de agenda</span>
+          <span class="eyebrow" style="color: var(--ok-ink);">
+            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-right:6px;"></span>Activo
+          </span>
+        </div>
+        <div class="co-url-pill">
+          <div class="co-url-text" id="publicLink">Cargando…</div>
+          <button class="co-copy" id="copyBtn" type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copiar enlace
+          </button>
+        </div>
+        <div class="co-share-actions">
+          <a id="whatsappShare" class="co-btn sm" target="_blank" rel="noopener" href="#">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 14c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.2-.5-.5-1-1.1-1.4-1.7-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.1.2-.3.2-.4.1-.1.1-.3 0-.4-.1-.1-.6-1.3-.8-1.8-.1-.7-.3-.7-.5-.7h-.5c-.2 0-.5.2-.6.3-.6.6-.9 1.3-.9 2.1.1.9.4 1.8 1 2.6 1.1 1.6 2.5 2.9 4.2 3.7.5.2.9.4 1.4.5.5.2 1 .2 1.6.1.7-.1 1.3-.6 1.7-1.2.2-.4.2-.8.1-1.2zM12 2a10 10 0 0 0-8.6 15l-1.4 5 5.1-1.4A10 10 0 1 0 12 2z"/></svg>
+            WhatsApp
+          </a>
+          <button class="co-btn sm" id="shareBtn" type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Compartir
+          </button>
+          <a id="previewLink" class="co-btn sm ghost" target="_blank" rel="noopener" href="#">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Vista previa
+          </a>
+        </div>
+      </div>
+      <div class="co-qr-card">
+        <svg id="qrSvg" width="120" height="120" viewBox="0 0 120 120" aria-hidden="true"></svg>
+        <span class="co-qr-label">Escanear</span>
+      </div>
+    </section>
 
-  <!-- Stats -->
-  <div class="stats">
-    <div class="stat-card">
-      <div class="stat-label">Total Citas Online</div>
-      <div class="stat-value" id="statTotal">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Citas Este Mes</div>
-      <div class="stat-value" id="statMonth">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Tasa de Conversión</div>
-      <div class="stat-value" id="statConversion">—</div>
-    </div>
-  </div>
+    <!-- KPIs -->
+    <section class="co-kpi-grid">
+      <div class="co-kpi" style="--kpi-tint: var(--accent);">
+        <div class="co-kpi-head">
+          <span class="co-kpi-label">Total citas online</span>
+          <span class="co-kpi-delta flat" id="kpiTotalDelta">—</span>
+        </div>
+        <div class="co-kpi-value"><span id="statTotal">—</span><span class="unit">/ histórico</span></div>
+        <div class="co-kpi-foot">
+          <div style="font-size:12px;color:var(--muted);">
+            mes anterior <span class="mono" id="kpiTotalPrev">—</span>
+          </div>
+          <svg class="co-spark" id="sparkTotal" width="120" height="36" viewBox="0 0 120 36"></svg>
+        </div>
+      </div>
 
-  <!-- Availability config -->
-  <div class="section" id="availabilitySection">
-    <div class="section-title">Configurar disponibilidad horaria</div>
-    <div class="doctor-select-row" id="doctorSelectRow" style="display:none;">
-      <label>Doctor:</label>
-      <select class="doctor-select" id="doctorSelect"></select>
-    </div>
-    <div class="availability-grid" id="availabilityGrid">
-      <p class="empty-table">Cargando...</p>
-    </div>
-    <div style="margin-top: 1rem; text-align: right;">
-      <button class="btn btn-primary" onclick="saveAvailability()">Guardar disponibilidad</button>
-    </div>
-  </div>
+      <div class="co-kpi" style="--kpi-tint: var(--warm);">
+        <div class="co-kpi-head">
+          <span class="co-kpi-label">Citas este mes</span>
+          <span class="co-kpi-delta flat" id="kpiMonthDelta">—</span>
+        </div>
+        <div class="co-kpi-value"><span id="statMonth">—</span><span class="unit" id="kpiMonthUnit">—</span></div>
+        <div class="co-kpi-foot">
+          <div style="font-size:12px;color:var(--muted);">
+            meta mensual <span class="mono">10</span>
+          </div>
+          <svg class="co-spark" id="sparkMonth" width="120" height="36" viewBox="0 0 120 36"></svg>
+        </div>
+      </div>
 
-  <!-- Recent bookings -->
-  <div class="section">
-    <div class="section-title">Últimas citas agendadas vía link</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Paciente</th>
-          <th id="thDoctor" style="display:none;">Doctor</th>
-          <th>Estado</th>
-          <th>Razón</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="recentTable">
-        <tr><td colspan="6" class="empty-table">Cargando...</td></tr>
-      </tbody>
-    </table>
+      <div class="co-kpi" style="--kpi-tint: var(--ok);">
+        <div class="co-kpi-head">
+          <span class="co-kpi-label">Tasa de conversión</span>
+          <span class="co-kpi-delta flat" id="kpiConvDelta">—</span>
+        </div>
+        <div class="co-kpi-value"><span id="statConversion">—</span><span class="unit">%</span></div>
+        <div class="co-kpi-foot">
+          <div style="font-size:12px;color:var(--muted);" id="kpiConvSub">— agendadas · — visitas</div>
+          <svg id="ringConv" width="64" height="64" viewBox="0 0 64 64"></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- Availability + Insights -->
+    <section class="co-cols-2">
+      <div class="co-card">
+        <div class="co-avail-head">
+          <div>
+            <div class="co-card-title">Disponibilidad horaria</div>
+            <div class="co-card-sub">Tocá la pista para añadir bloques de 1 h. Tocá un bloque para ajustar inicio/fin. Snap cada 30 min.</div>
+          </div>
+          <div class="co-avail-controls">
+            <div class="co-doctor-select" id="doctorSelectRow" style="display:none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              <select id="doctorSelect"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="co-timeline-wrap">
+          <div class="co-timeline" id="timeline">
+            <p class="co-empty" style="grid-column:1/-1;">Cargando disponibilidad…</p>
+          </div>
+        </div>
+
+        <div class="co-avail-foot">
+          <div class="co-legend">
+            <span><span class="swatch" style="background:color-mix(in oklch, var(--accent) 30%, transparent);border:1px solid color-mix(in oklch, var(--accent) 50%, transparent);"></span>Bloque disponible</span>
+            <span><span class="swatch" style="background:var(--danger);"></span>Hora actual</span>
+            <span style="color:var(--muted);">Click en la pista para añadir bloque</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:18px;">
+            <div class="co-avail-summary">
+              <span><b id="totalHrs">0.0</b> h/sem</span>
+              <span><b id="totalSlots">0</b> turnos</span>
+            </div>
+            <button class="co-btn" id="saveBtn" disabled type="button">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="saveBtnLabel">Sin cambios</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="co-insights">
+        <div class="co-insight">
+          <div class="co-insight-head">
+            <div>
+              <span class="eyebrow">Resumen semanal</span>
+              <div class="co-card-title" style="font-size:20px;">Carga horaria</div>
+            </div>
+          </div>
+          <div class="co-weekring">
+            <svg id="weekRing" width="120" height="120" viewBox="0 0 120 120"></svg>
+            <div class="legend2" id="weekRingLegend"></div>
+          </div>
+        </div>
+        <div class="co-insight">
+          <div class="co-insight-head">
+            <div>
+              <span class="eyebrow">Próximas</span>
+              <div class="co-card-title" style="font-size:20px;">Citas en cola</div>
+            </div>
+          </div>
+          <div class="co-upcoming-list" id="upcomingList">
+            <p class="co-empty">Sin citas pendientes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Appointments table -->
+    <section class="co-card">
+      <div class="co-appts-head">
+        <div>
+          <div class="co-card-title">Últimas citas agendadas <span style="color:var(--muted);font-weight:400;">· vía link público</span></div>
+          <div class="co-card-sub">Click en una fila para ver el detalle y acciones.</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div class="co-search">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="searchInput" type="search" placeholder="Buscar paciente, doctor o razón…" />
+          </div>
+        </div>
+      </div>
+
+      <div class="co-filter-pills" id="filterPills"></div>
+
+      <div style="overflow-x:auto;">
+        <table class="co-appts-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Paciente</th>
+              <th id="thDoctor" style="display:none;">Doctor</th>
+              <th>Estado</th>
+              <th>Razón</th>
+              <th style="text-align:right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="apptsBody">
+            <tr><td colspan="6" class="co-empty">Cargando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="co-appts-foot">
+        <span>Mostrando <b class="mono" id="visibleCount" style="color:var(--ink);">0</b> de <span id="totalCount">0</span> citas</span>
+        <span>Actualizado hace <span class="mono" id="updatedAgo">— s</span></span>
+      </div>
+    </section>
   </div>
 </main>
 
-<div class="toast" id="toast"></div>
+<div id="drawerRoot"></div>
+<div class="co-toast" id="toast"></div>
 
-<div class="time-picker-modal" id="timepickerModal">
-  <div class="time-picker-modal-title" id="timepickerTitle">Hora de inicio</div>
-  <div class="time-picker-display">
-    <div class="time-picker-input" id="timepickerDisplay">08:00</div>
-  </div>
-  <div class="time-picker-controls">
-    <div class="time-picker-group">
-      <div class="time-picker-label">Hora</div>
-      <div class="time-picker-btn-group">
-        <button id="hourDown">−</button>
-        <button id="hourUp">+</button>
+<!-- Time picker modal (kept) -->
+<div class="co-time-picker-modal" id="timepickerModal">
+  <div class="co-time-picker-card">
+    <div class="co-time-picker-title" id="timepickerTitle">Hora de inicio</div>
+    <div class="co-time-picker-display" id="timepickerDisplay">08:00</div>
+    <div class="co-time-picker-controls">
+      <div class="co-time-picker-group">
+        <div class="co-time-picker-label">Hora</div>
+        <div class="co-time-picker-btn-group">
+          <button id="hourDown">−</button>
+          <button id="hourUp">+</button>
+        </div>
+      </div>
+      <div class="co-time-picker-group">
+        <div class="co-time-picker-label">Minuto</div>
+        <div class="co-time-picker-btn-group">
+          <button id="minuteDown">−</button>
+          <button id="minuteUp">+</button>
+        </div>
       </div>
     </div>
-    <div class="time-picker-group">
-      <div class="time-picker-label">Minuto</div>
-      <div class="time-picker-btn-group">
-        <button id="minuteDown">−</button>
-        <button id="minuteUp">+</button>
-      </div>
+    <div class="co-time-picker-actions">
+      <button class="cancel" id="timepickerCancel">Cancelar</button>
+      <button class="confirm" id="timepickerConfirm">OK</button>
     </div>
-  </div>
-  <div class="time-picker-actions">
-    <button class="time-picker-action-btn cancel" id="timepickerCancel">Cancelar</button>
-    <button class="time-picker-action-btn confirm" id="timepickerConfirm">OK</button>
   </div>
 </div>
 
@@ -651,13 +1129,79 @@
 <script>
   requireAuth(['clinic_admin', 'doctor']);
 
+  // ---------- Constants ----------
+  const HOUR_START = 7;
+  const HOUR_END = 21;
+  const HOURS_RANGE = HOUR_END - HOUR_START; // 14
+
+  // day_of_week: 0=Sunday, 1=Monday, ..., 6=Saturday
+  const DAYS = [
+    { dow: 1, label: 'Lunes' },
+    { dow: 2, label: 'Martes' },
+    { dow: 3, label: 'Miércoles' },
+    { dow: 4, label: 'Jueves' },
+    { dow: 5, label: 'Viernes' },
+    { dow: 6, label: 'Sábado' },
+    { dow: 0, label: 'Domingo' },
+  ];
+  const DAY_COLORS = [
+    'var(--accent)', 'var(--warm)', 'var(--ok)', 'var(--info)',
+    'oklch(0.62 0.13 320)', 'oklch(0.72 0.10 50)', 'oklch(0.55 0.08 220)'
+  ];
+  const STATUS_LABELS = {
+    todos:     { label: 'Todas',      mapTo: null },
+    pending:   { label: 'Pendientes', mapTo: 'pending'   },
+    waiting:   { label: 'En espera',  mapTo: 'waiting'   },
+    completed: { label: 'Completadas',mapTo: 'completed' },
+    cancelled: { label: 'Canceladas', mapTo: 'cancelled' },
+  };
+  const STATUS_TONE = {
+    pending:   { cls: 'pendiente',  label: 'Pendiente' },
+    waiting:   { cls: 'espera',     label: 'En espera' },
+    completed: { cls: 'completada', label: 'Completada' },
+    cancelled: { cls: 'cancelada',  label: 'Cancelada' },
+  };
+
+  // ---------- State ----------
   let userRole = null;
   let clinicId = null;
   let doctorsList = [];
   let currentDoctorId = null;
-  let currentAvailability = [];
+  let availability = {}; // { 1: { enabled: true, slots: [{start, end}] }, ... }
+  let savedAvailability = {};
+  let recent = [];
+  let totalCount = 0;
+  let monthCount = 0;
+  let conversion = 0;
+  let selected = null;
+  let filter = 'todos';
+  let queryStr = '';
+  let lastUpdated = Date.now();
 
-  const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  // ---------- Helpers ----------
+  const fmtHour = (h) => {
+    const hr = Math.floor(h);
+    const m = Math.round((h - hr) * 60);
+    return `${String(hr).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  };
+  const parseHour = (str) => {
+    const [h, m] = str.split(':').map(Number);
+    return h + (m || 0) / 60;
+  };
+  const fmtDateShort = (d) => {
+    const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return `${d.getDate()} ${months[d.getMonth()]}`;
+  };
+  const fmtDateLong = (d) => {
+    const dn = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    return `${dn[d.getDay()]}, ${d.getDate()} de ${months[d.getMonth()]}`;
+  };
+  const fmtTime = (d) => `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  const initials = (name) => {
+    if (!name) return '?';
+    return name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  };
 
   function showToast(msg) {
     const t = document.getElementById('toast');
@@ -666,15 +1210,719 @@
     setTimeout(() => t.classList.remove('show'), 2200);
   }
 
-  function getStatusBadge(s) {
-    const map = {
-      pending: { cls: 'badge-pending', label: 'Pendiente' },
-      waiting: { cls: 'badge-waiting', label: 'En espera' },
-      completed: { cls: 'badge-completed', label: 'Completada' },
-      cancelled: { cls: 'badge-cancelled', label: 'Cancelada' }
+  // ---------- QR (cosmetic SVG) ----------
+  function renderQR() {
+    const svg = document.getElementById('qrSvg');
+    const size = 120, grid = 21, cs = size / grid;
+    let seed = 7;
+    const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    const isFinder = (x, y) => {
+      const corner = (cx, cy) => (x >= cx && x < cx + 7 && y >= cy && y < cy + 7);
+      return corner(0,0) || corner(grid-7,0) || corner(0,grid-7);
     };
-    const m = map[s] || map.pending;
-    return `<span class="badge-status ${m.cls}">${m.label}</span>`;
+    const fg = '#0891b2';
+    let html = '';
+    for (let i = 0; i < grid * grid; i++) {
+      const on = rnd() > 0.5;
+      const x = i % grid, y = Math.floor(i / grid);
+      if (isFinder(x, y) || !on) continue;
+      html += `<rect x="${x*cs+0.5}" y="${y*cs+0.5}" width="${cs-1}" height="${cs-1}" rx="${cs*0.2}" fill="${fg}"/>`;
+    }
+    [[0,0],[grid-7,0],[0,grid-7]].forEach(([fx, fy]) => {
+      html += `<rect x="${fx*cs}" y="${fy*cs}" width="${7*cs}" height="${7*cs}" rx="${cs*1.2}" fill="${fg}"/>`;
+      html += `<rect x="${(fx+1)*cs}" y="${(fy+1)*cs}" width="${5*cs}" height="${5*cs}" rx="${cs}" fill="transparent"/>`;
+      html += `<rect x="${(fx+2)*cs}" y="${(fy+2)*cs}" width="${3*cs}" height="${3*cs}" rx="${cs*0.6}" fill="${fg}"/>`;
+    });
+    svg.innerHTML = html;
+  }
+
+  // ---------- Sparkline ----------
+  function renderSpark(svgId, data, color) {
+    const svg = document.getElementById(svgId);
+    if (!svg || !data.length) return;
+    const width = 120, height = 36;
+    const min = Math.min(...data), max = Math.max(...data);
+    const range = max - min || 1;
+    const pts = data.map((v, i) => {
+      const x = (i / (data.length - 1)) * width;
+      const y = height - ((v - min) / range) * (height - 4) - 2;
+      return [x, y];
+    });
+    const path = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+    const area = path + ` L ${width} ${height} L 0 ${height} Z`;
+    const lastX = pts[pts.length-1][0], lastY = pts[pts.length-1][1];
+    const gid = `spk-${svgId}`;
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="${gid}" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="${color}" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${area}" fill="url(#${gid})"/>
+      <path d="${path}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${lastX}" cy="${lastY}" r="2.5" fill="${color}"/>
+      <circle cx="${lastX}" cy="${lastY}" r="5" fill="${color}" fill-opacity="0.15"/>
+    `;
+  }
+
+  // ---------- Ring ----------
+  function renderRing(svgId, value, color) {
+    const svg = document.getElementById(svgId);
+    if (!svg) return;
+    const size = 64, stroke = 6;
+    const r = (size - stroke) / 2;
+    const c = 2 * Math.PI * r;
+    const off = c * (1 - Math.max(0, Math.min(1, value)));
+    svg.innerHTML = `
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none"
+        stroke="color-mix(in oklch, ${color} 8%, transparent)" stroke-width="${stroke}"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none"
+        stroke="${color}" stroke-width="${stroke}"
+        stroke-dasharray="${c}" stroke-dashoffset="${off}"
+        stroke-linecap="round"
+        transform="rotate(-90 ${size/2} ${size/2})"
+        style="transition: stroke-dashoffset 600ms cubic-bezier(0.2,0.8,0.2,1)"/>
+      <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif" font-size="${size*0.24}" font-weight="600" fill="#0F172A" letter-spacing="-0.02em">
+        ${Math.round(value * 100)}%
+      </text>
+    `;
+  }
+
+  // ---------- Week ring (donut) ----------
+  function renderWeekRing() {
+    const svg = document.getElementById('weekRing');
+    const legend = document.getElementById('weekRingLegend');
+    if (!svg || !legend) return;
+    const dayHrs = DAYS.map(d => {
+      const a = availability[d.dow];
+      if (!a || !a.enabled) return 0;
+      return a.slots.reduce((acc, s) => acc + (s.end - s.start), 0);
+    });
+    const total = dayHrs.reduce((a, b) => a + b, 0) || 0;
+    const size = 120, stroke = 14;
+    const r = (size - stroke) / 2;
+    const c = 2 * Math.PI * r;
+    let acc = 0;
+    let arcs = `<circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none"
+      stroke="color-mix(in oklch, #0F172A 6%, transparent)" stroke-width="${stroke}"/>`;
+    dayHrs.forEach((h, i) => {
+      if (h === 0 || total === 0) return;
+      const frac = h / total;
+      const dash = c * frac;
+      const gap = c - dash;
+      const offset = -acc * c;
+      acc += frac;
+      arcs += `<circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none"
+        stroke="${DAY_COLORS[i]}" stroke-width="${stroke}"
+        stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${offset}"
+        transform="rotate(-90 ${size/2} ${size/2})"
+        style="transition: all 400ms ease"/>`;
+    });
+    svg.innerHTML = `
+      ${arcs}
+      <text x="50%" y="46%" text-anchor="middle" dominant-baseline="middle"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif" font-weight="700" font-size="24" fill="#0F172A">${total.toFixed(1)}</text>
+      <text x="50%" y="62%" text-anchor="middle" dominant-baseline="middle"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif" font-size="9.5" letter-spacing="0.12em" fill="#64748B">HORAS / SEMANA</text>
+    `;
+    legend.innerHTML = DAYS.map((d, i) => `
+      <div class="row">
+        <span class="co-dotc" style="background:${dayHrs[i] ? DAY_COLORS[i] : 'color-mix(in oklch, #0F172A 10%, transparent)'}"></span>
+        <span>${d.label}</span>
+        <b>${dayHrs[i] ? dayHrs[i].toFixed(1) + 'h' : '—'}</b>
+      </div>
+    `).join('');
+  }
+
+  // ---------- Timeline ----------
+  function renderTimeline() {
+    const root = document.getElementById('timeline');
+    if (!root) return;
+    const now = new Date();
+    const nowDow = now.getDay();
+    const nowHour = now.getHours() + now.getMinutes() / 60;
+    const nowPct = ((nowHour - HOUR_START) / HOURS_RANGE) * 100;
+
+    let html = '<div></div><div class="co-tl-hours">';
+    for (let i = 0; i < HOURS_RANGE; i++) {
+      html += `<span>${String(HOUR_START + i).padStart(2, '0')}</span>`;
+    }
+    html += '</div>';
+
+    DAYS.forEach(day => {
+      const data = availability[day.dow] || { enabled: false, slots: [] };
+      const enabled = !!data.enabled;
+      const dayHrs = data.slots.reduce((a, s) => a + (s.end - s.start), 0);
+      const isToday = nowDow === day.dow;
+
+      html += `
+        <div class="co-tl-day">
+          <label class="co-tl-toggle" data-toggle="${day.dow}">
+            <span class="co-switch ${enabled ? 'on' : ''}"></span>
+            <span>
+              <div class="co-tl-day-name">${day.label}${isToday ? ' <span style="margin-left:6px;font-size:10px;color:var(--accent-ink);letter-spacing:0.06em;">HOY</span>' : ''}</div>
+              <div class="co-tl-day-meta">${enabled ? `${dayHrs.toFixed(1)} h` : 'Descanso'}</div>
+            </span>
+          </label>
+        </div>
+        <div class="co-tl-track ${!enabled ? 'disabled' : ''}" data-track="${day.dow}">
+          ${isToday && enabled && nowPct >= 0 && nowPct <= 100 ? `<div class="co-now" style="left:${nowPct}%;"></div>` : ''}
+          ${enabled ? data.slots.map((slot, idx) => {
+            const left = ((slot.start - HOUR_START) / HOURS_RANGE) * 100;
+            const width = ((slot.end - slot.start) / HOURS_RANGE) * 100;
+            return `
+              <div class="co-tl-slot" data-slot="${day.dow}:${idx}" style="left:${left}%;width:${width}%;">
+                <span class="co-slot-time" data-edit-slot="${day.dow}:${idx}">${fmtHour(slot.start)} – ${fmtHour(slot.end)}</span>
+                <span class="co-slot-x" data-del-slot="${day.dow}:${idx}">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </span>
+              </div>
+            `;
+          }).join('') : ''}
+        </div>
+      `;
+    });
+
+    root.innerHTML = html;
+
+    // Wire day toggles
+    root.querySelectorAll('[data-toggle]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        const dow = Number(el.dataset.toggle);
+        const cur = availability[dow] || { enabled: false, slots: [] };
+        availability[dow] = { ...cur, enabled: !cur.enabled };
+        afterAvailChange();
+      });
+    });
+
+    // Wire track clicks
+    root.querySelectorAll('[data-track]').forEach(track => {
+      const dow = Number(track.dataset.track);
+      track.addEventListener('click', (e) => {
+        const data = availability[dow];
+        if (!data || !data.enabled) return;
+        // Ignore clicks that originated on a slot child
+        if (e.target.closest('.co-tl-slot')) return;
+        const rect = track.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        let hour = HOUR_START + (x / rect.width) * HOURS_RANGE;
+        hour = Math.round(hour * 2) / 2; // snap 30 min
+        let start = hour;
+        let end = Math.min(hour + 1, HOUR_END);
+        if (end - start < 0.5) return;
+        const overlaps = data.slots.some(s => !(end <= s.start || start >= s.end));
+        if (overlaps) {
+          showToast('Ese horario se solapa con otro bloque');
+          return;
+        }
+        availability[dow] = {
+          ...data,
+          slots: [...data.slots, { start, end }].sort((a, b) => a.start - b.start)
+        };
+        afterAvailChange();
+      });
+    });
+
+    // Wire slot delete
+    root.querySelectorAll('[data-del-slot]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const [dowStr, idxStr] = el.dataset.delSlot.split(':');
+        const dow = Number(dowStr), idx = Number(idxStr);
+        const data = availability[dow];
+        if (!data) return;
+        availability[dow] = { ...data, slots: data.slots.filter((_, i) => i !== idx) };
+        afterAvailChange();
+      });
+    });
+
+    // Wire slot edit (open time picker)
+    root.querySelectorAll('[data-edit-slot]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const [dowStr, idxStr] = el.dataset.editSlot.split(':');
+        const dow = Number(dowStr), idx = Number(idxStr);
+        openSlotEditor(dow, idx);
+      });
+    });
+  }
+
+  function afterAvailChange() {
+    renderTimeline();
+    renderSummary();
+    renderWeekRing();
+    updateSaveBtn();
+  }
+
+  function renderSummary() {
+    let h = 0, slots = 0;
+    DAYS.forEach(d => {
+      const a = availability[d.dow];
+      if (!a || !a.enabled) return;
+      a.slots.forEach(s => {
+        h += (s.end - s.start);
+        slots += Math.floor((s.end - s.start) * 2);
+      });
+    });
+    document.getElementById('totalHrs').textContent = h.toFixed(1);
+    document.getElementById('totalSlots').textContent = slots;
+  }
+
+  function isDirty() {
+    return JSON.stringify(availability) !== JSON.stringify(savedAvailability);
+  }
+  function updateSaveBtn() {
+    const dirty = isDirty();
+    const btn = document.getElementById('saveBtn');
+    const label = document.getElementById('saveBtnLabel');
+    btn.disabled = !dirty;
+    btn.classList.toggle('primary', dirty);
+    label.textContent = dirty ? 'Guardar cambios' : 'Sin cambios';
+  }
+
+  // ---------- Slot editor via existing time-picker modal ----------
+  let editorState = null;
+  function openSlotEditor(dow, idx) {
+    const slot = availability[dow]?.slots[idx];
+    if (!slot) return;
+    editorState = { dow, idx, mode: 'start', start: slot.start, end: slot.end };
+    openPicker(slot.start, 'Hora de inicio');
+  }
+  let pickerHour = 8, pickerMinute = 0, pickerOnConfirm = null;
+  function openPicker(value, title) {
+    pickerHour = Math.floor(value);
+    pickerMinute = Math.round((value - pickerHour) * 60);
+    document.getElementById('timepickerTitle').textContent = title;
+    updatePickerDisplay();
+    document.getElementById('timepickerModal').classList.add('active');
+  }
+  function closePicker() {
+    document.getElementById('timepickerModal').classList.remove('active');
+  }
+  function updatePickerDisplay() {
+    document.getElementById('timepickerDisplay').textContent =
+      `${String(pickerHour).padStart(2,'0')}:${String(pickerMinute).padStart(2,'0')}`;
+  }
+
+  // ---------- Public link ----------
+  function buildPublicLink() {
+    return `${location.origin}/agendar.html?clinic=${clinicId}`;
+  }
+  function renderShareLink() {
+    const link = buildPublicLink();
+    const target = document.getElementById('publicLink');
+    target.innerHTML = `<span style="color:var(--muted);">${location.origin.replace(/^https?:\/\//, '')}</span><b>/agendar.html?clinic=${clinicId}</b>`;
+    target.dataset.link = link;
+    document.getElementById('whatsappShare').href =
+      `https://wa.me/?text=${encodeURIComponent('Agenda tu cita aquí: ' + link)}`;
+    document.getElementById('previewLink').href = link;
+  }
+
+  // ---------- Filter pills ----------
+  function renderFilterPills() {
+    const counts = { todos: recent.length };
+    Object.keys(STATUS_LABELS).filter(k => k !== 'todos').forEach(k => {
+      counts[k] = recent.filter(r => r.status === k).length;
+    });
+    const root = document.getElementById('filterPills');
+    root.innerHTML = Object.entries(STATUS_LABELS).map(([k, v]) => `
+      <button class="co-filter-pill ${filter === k ? 'on' : ''}" data-filter="${k}" type="button">
+        ${v.label}<span class="cnt">${counts[k] || 0}</span>
+      </button>
+    `).join('');
+    root.querySelectorAll('[data-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        filter = btn.dataset.filter;
+        renderFilterPills();
+        renderAppts();
+      });
+    });
+  }
+
+  // ---------- Appointments table ----------
+  function renderAppts() {
+    const body = document.getElementById('apptsBody');
+    const q = queryStr.toLowerCase().trim();
+    const filtered = recent.filter(r => {
+      if (filter !== 'todos' && r.status !== filter) return false;
+      if (q) {
+        const blob = `${r.patient_name || ''} ${r.doctor_name || ''} ${r.reason || ''}`.toLowerCase();
+        if (!blob.includes(q)) return false;
+      }
+      return true;
+    });
+    document.getElementById('visibleCount').textContent = filtered.length;
+    document.getElementById('totalCount').textContent = recent.length;
+
+    const colspan = userRole === 'clinic_admin' ? 6 : 5;
+    if (filtered.length === 0) {
+      body.innerHTML = `<tr><td colspan="${colspan}" class="co-empty">Sin resultados para tu filtro.</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = filtered.map(r => {
+      const dt = new Date(r.scheduled_at);
+      const tone = STATUS_TONE[r.status] || STATUS_TONE.pending;
+      const doctorCell = userRole === 'clinic_admin'
+        ? `<td class="co-row-doctor">${esc(r.doctor_name || '—')}</td>` : '';
+      const phoneAge = [r.patient_phone, (r.patient_age ? r.patient_age + 'a' : null)].filter(Boolean).join(' · ');
+      return `
+        <tr data-appt="${r.id}" class="${selected && selected.id === r.id ? 'selected' : ''}">
+          <td class="co-row-date"><b>${esc(fmtDateShort(dt))}</b>, ${esc(fmtTime(dt))}</td>
+          <td>
+            <div class="co-row-patient">
+              <div class="co-pavatar">${esc(initials(r.patient_name))}</div>
+              <div>
+                <div class="nm">${esc(r.patient_name || '—')}</div>
+                <div class="sm">${esc(phoneAge || '—')}</div>
+              </div>
+            </div>
+          </td>
+          ${doctorCell}
+          <td><span class="co-status ${tone.cls}">${tone.label}</span></td>
+          <td style="color:var(--ink-2);">${esc(r.reason || '—')}</td>
+          <td style="text-align:right;">
+            <div class="co-row-actions">
+              <button title="Ver detalle" data-detail="${r.id}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+              <button title="Eliminar" class="danger" data-del-appt="${r.id}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    body.querySelectorAll('tr[data-appt]').forEach(tr => {
+      tr.addEventListener('click', (e) => {
+        if (e.target.closest('[data-del-appt]')) return;
+        const id = Number(tr.dataset.appt);
+        openDrawer(id);
+      });
+    });
+    body.querySelectorAll('[data-del-appt]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteAppointment(Number(btn.dataset.delAppt));
+      });
+    });
+    body.querySelectorAll('[data-detail]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openDrawer(Number(btn.dataset.detail));
+      });
+    });
+  }
+
+  // ---------- Upcoming ----------
+  function renderUpcoming() {
+    const root = document.getElementById('upcomingList');
+    const list = recent
+      .filter(r => r.status === 'pending' || r.status === 'waiting')
+      .slice(0, 4);
+    if (list.length === 0) {
+      root.innerHTML = '<p class="co-empty">Sin citas pendientes.</p>';
+      return;
+    }
+    root.innerHTML = list.map(r => {
+      const dt = new Date(r.scheduled_at);
+      const tone = STATUS_TONE[r.status];
+      return `
+        <div class="co-upcoming" data-detail="${r.id}">
+          <div class="co-upc-time">
+            <b>${esc(fmtTime(dt))}</b>
+            ${esc(fmtDateShort(dt))}
+          </div>
+          <div>
+            <div class="co-upc-name">${esc(r.patient_name || '—')}</div>
+            <div class="co-upc-reason">${esc(r.reason || '—')}</div>
+          </div>
+          <span class="co-status ${tone.cls}">${tone.label}</span>
+        </div>
+      `;
+    }).join('');
+    root.querySelectorAll('[data-detail]').forEach(el => {
+      el.addEventListener('click', () => openDrawer(Number(el.dataset.detail)));
+    });
+  }
+
+  // ---------- KPIs ----------
+  let prevSnapshot = null;
+  function renderKPIs() {
+    document.getElementById('statTotal').textContent = totalCount;
+    document.getElementById('statMonth').textContent = monthCount;
+    document.getElementById('statConversion').textContent = conversion;
+
+    const monthLabel = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][new Date().getMonth()];
+    document.getElementById('kpiMonthUnit').textContent = monthLabel;
+    document.getElementById('kpiTotalPrev').textContent = Math.max(0, totalCount - monthCount);
+
+    // Sparklines: derive a deterministic growing trend ending at current count
+    const grow = (target, len) => {
+      const out = [];
+      const ease = (t) => t * t;
+      for (let i = 0; i < len; i++) {
+        const t = i / (len - 1);
+        out.push(Math.round(ease(t) * target));
+      }
+      return out;
+    };
+    renderSpark('sparkTotal', grow(totalCount, 12), '#0891b2');
+    renderSpark('sparkMonth', grow(monthCount, 10), '#F59E0B');
+    renderRing('ringConv', conversion / 100, '#10B981');
+
+    // Deltas: compare to previous snapshot (during session)
+    function setDelta(elId, cur, prev) {
+      const el = document.getElementById(elId);
+      if (prev == null || prev === cur) {
+        el.className = 'co-kpi-delta flat';
+        el.textContent = '—';
+        return;
+      }
+      if (cur > prev) {
+        el.className = 'co-kpi-delta up';
+        el.textContent = `▲ ${cur - prev}`;
+      } else {
+        el.className = 'co-kpi-delta down';
+        el.textContent = `▼ ${prev - cur}`;
+      }
+    }
+    if (prevSnapshot) {
+      setDelta('kpiTotalDelta', totalCount, prevSnapshot.total);
+      setDelta('kpiMonthDelta', monthCount, prevSnapshot.month);
+      setDelta('kpiConvDelta', conversion, prevSnapshot.conversion);
+    }
+    document.getElementById('kpiConvSub').textContent =
+      `${totalCount} agendadas · ${Math.max(0, totalCount - recent.filter(r => r.status === 'cancelled').length)} confirmadas`;
+  }
+
+  // ---------- Sync label ----------
+  function tickSyncLabel() {
+    const secs = Math.floor((Date.now() - lastUpdated) / 1000);
+    const label = secs < 10 ? 'Sincronizado hace unos segundos'
+      : secs < 60 ? `Sincronizado hace ${secs} s`
+      : `Sincronizado hace ${Math.floor(secs/60)} min`;
+    document.getElementById('syncLabel').textContent = label;
+    document.getElementById('updatedAgo').textContent = secs < 60 ? `${secs} s` : `${Math.floor(secs/60)} min`;
+    const now = new Date();
+    document.getElementById('nowLabel').textContent = now.toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' });
+    const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    document.getElementById('heroEyebrow').textContent =
+      `Programación · ${months[now.getMonth()][0].toUpperCase() + months[now.getMonth()].slice(1)} ${now.getFullYear()}`;
+  }
+
+  // ---------- Drawer ----------
+  function openDrawer(id) {
+    selected = recent.find(r => r.id === id) || null;
+    if (!selected) return;
+    renderDrawer();
+    renderAppts();
+  }
+  function closeDrawer() {
+    selected = null;
+    document.getElementById('drawerRoot').innerHTML = '';
+    renderAppts();
+  }
+  function renderDrawer() {
+    const root = document.getElementById('drawerRoot');
+    if (!selected) { root.innerHTML = ''; return; }
+    const dt = new Date(selected.scheduled_at);
+    const tone = STATUS_TONE[selected.status] || STATUS_TONE.pending;
+    root.innerHTML = `
+      <div class="co-drawer-backdrop" id="drawerBackdrop"></div>
+      <div class="co-drawer" role="dialog" aria-modal="true">
+        <div class="co-drawer-head">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="eyebrow" style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#64748B;">Cita #${String(selected.id).padStart(4,'0')}</span>
+            <button class="co-icon-btn" id="drawerCloseBtn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div style="font-family:var(--font-sans);font-weight:700;font-size:24px;line-height:1.15;letter-spacing:-0.02em;margin-top:8px;">
+            ${esc(selected.patient_name || '—')}
+          </div>
+          <div style="font-size:13px;color:#64748B;margin-top:4px;">
+            ${esc(fmtDateLong(dt))} · ${esc(fmtTime(dt))}${selected.specialty ? ' · ' + esc(selected.specialty) : ''}
+          </div>
+        </div>
+        <div class="co-drawer-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="co-field"><div class="lbl">Doctor</div><div class="val">${esc(selected.doctor_name || '—')}</div></div>
+            <div class="co-field"><div class="lbl">Estado</div><div><span class="co-status ${tone.cls}">${tone.label}</span></div></div>
+            <div class="co-field"><div class="lbl">Teléfono</div><div class="val mono" style="font-size:13px;font-family:var(--font-mono);">${esc(selected.patient_phone || '—')}</div></div>
+            <div class="co-field"><div class="lbl">Edad</div><div class="val">${selected.patient_age ? esc(selected.patient_age + ' años') : '—'}</div></div>
+          </div>
+          <div class="co-field">
+            <div class="lbl">Razón de consulta</div>
+            <div class="val" style="font-weight:600;font-size:16px;">${esc(selected.reason || '—')}</div>
+          </div>
+          <div class="co-field">
+            <div class="lbl">Acciones rápidas</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="co-btn sm" data-status="completed" type="button">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Marcar completada
+              </button>
+              <button class="co-btn sm" data-status="waiting" type="button">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                En espera
+              </button>
+              <button class="co-btn sm" data-status="pending" type="button">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/></svg>
+                Reabrir pendiente
+              </button>
+              ${selected.patient_phone ? `<a class="co-btn sm" target="_blank" rel="noopener" href="https://wa.me/${encodeURIComponent(selected.patient_phone.replace(/\\D/g,''))}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 14c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.7-.3-1.4-.7-2-1.2-.5-.5-1-1.1-1.4-1.7-.1-.2 0-.4.1-.5.1-.1.2-.3.4-.4.1-.1.2-.3.2-.4.1-.1.1-.3 0-.4-.1-.1-.6-1.3-.8-1.8-.1-.7-.3-.7-.5-.7h-.5c-.2 0-.5.2-.6.3-.6.6-.9 1.3-.9 2.1.1.9.4 1.8 1 2.6 1.1 1.6 2.5 2.9 4.2 3.7.5.2.9.4 1.4.5.5.2 1 .2 1.6.1.7-.1 1.3-.6 1.7-1.2.2-.4.2-.8.1-1.2zM12 2a10 10 0 0 0-8.6 15l-1.4 5 5.1-1.4A10 10 0 1 0 12 2z"/></svg>
+                WhatsApp
+              </a>` : ''}
+            </div>
+          </div>
+        </div>
+        <div class="co-drawer-foot">
+          <button class="co-btn danger-ghost" id="drawerDelBtn" type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Eliminar
+          </button>
+          <button class="co-btn primary" style="margin-left:auto;" id="drawerHistoryBtn" type="button">
+            Ir a historial clínico
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    `;
+    document.getElementById('drawerBackdrop').addEventListener('click', closeDrawer);
+    document.getElementById('drawerCloseBtn').addEventListener('click', closeDrawer);
+    document.getElementById('drawerDelBtn').addEventListener('click', () => {
+      if (selected) deleteAppointment(selected.id);
+    });
+    document.getElementById('drawerHistoryBtn').addEventListener('click', () => {
+      if (selected && selected.patient_id) {
+        location.href = `/patient.html?id=${selected.patient_id}`;
+      } else {
+        closeDrawer();
+      }
+    });
+    root.querySelectorAll('[data-status]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (selected) updateStatus(selected.id, btn.dataset.status);
+      });
+    });
+  }
+
+  // ---------- Actions ----------
+  async function updateStatus(id, status) {
+    try {
+      await api(`/api/appointments/${id}/status`, { method: 'PUT', body: { status } });
+      const tone = STATUS_TONE[status] || STATUS_TONE.pending;
+      showToast(`Cita marcada como ${tone.label.toLowerCase()}`);
+      await loadStats();
+      if (selected) {
+        const updated = recent.find(r => r.id === id);
+        if (updated) {
+          selected = updated;
+          renderDrawer();
+        } else {
+          closeDrawer();
+        }
+      }
+    } catch (e) {
+      showToast('Error: ' + e.message);
+    }
+  }
+
+  async function deleteAppointment(id) {
+    if (!confirm('¿Está seguro de que desea eliminar esta cita?')) return;
+    try {
+      await api(`/api/appointments/${id}`, { method: 'DELETE' });
+      showToast('Cita eliminada');
+      if (selected && selected.id === id) closeDrawer();
+      await loadStats();
+    } catch (e) {
+      showToast('Error al eliminar: ' + e.message);
+    }
+  }
+
+  async function saveAvailability() {
+    const payload = [];
+    DAYS.forEach(d => {
+      const data = availability[d.dow];
+      if (!data || !data.enabled) return;
+      data.slots.forEach(s => {
+        payload.push({
+          day_of_week: d.dow,
+          start_time: fmtHour(s.start),
+          end_time: fmtHour(s.end),
+          slot_duration: 30,
+          enabled: true,
+        });
+      });
+    });
+    try {
+      const body = { availability: payload };
+      if (userRole === 'clinic_admin' && currentDoctorId) body.doctor_id = currentDoctorId;
+      await api('/api/doctor-availability', { method: 'PUT', body });
+      savedAvailability = JSON.parse(JSON.stringify(availability));
+      updateSaveBtn();
+      showToast('Disponibilidad guardada');
+    } catch (e) {
+      showToast('Error al guardar: ' + e.message);
+    }
+  }
+
+  // ---------- Load ----------
+  async function loadAvailability() {
+    try {
+      const url = userRole === 'clinic_admin' && currentDoctorId
+        ? `/api/doctor-availability?doctor_id=${currentDoctorId}`
+        : '/api/doctor-availability';
+      const rows = await api(url);
+      const map = {};
+      DAYS.forEach(d => { map[d.dow] = { enabled: false, slots: [] }; });
+      rows.forEach(r => {
+        const start = parseHour(r.start_time);
+        const end = parseHour(r.end_time);
+        if (!map[r.day_of_week]) map[r.day_of_week] = { enabled: false, slots: [] };
+        map[r.day_of_week].enabled = true;
+        map[r.day_of_week].slots.push({ start, end });
+      });
+      Object.keys(map).forEach(k => map[k].slots.sort((a, b) => a.start - b.start));
+      availability = map;
+      savedAvailability = JSON.parse(JSON.stringify(map));
+      renderTimeline();
+      renderSummary();
+      renderWeekRing();
+      updateSaveBtn();
+    } catch (e) {
+      console.error(e);
+      document.getElementById('timeline').innerHTML =
+        '<p class="co-empty" style="grid-column:1/-1;">Error al cargar disponibilidad</p>';
+    }
+  }
+
+  async function loadStats() {
+    try {
+      const stats = await api('/api/appointments/public-bookings/stats');
+      prevSnapshot = (totalCount || monthCount || conversion)
+        ? { total: totalCount, month: monthCount, conversion }
+        : prevSnapshot;
+      totalCount = stats.total;
+      monthCount = stats.this_month;
+      conversion = stats.conversion_rate;
+      recent = stats.recent || [];
+      lastUpdated = Date.now();
+      renderKPIs();
+      renderFilterPills();
+      renderAppts();
+      renderUpcoming();
+      tickSyncLabel();
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   async function init() {
@@ -683,9 +1931,8 @@
       userRole = me.role;
       clinicId = me.clinic_id;
 
-      const link = `${location.origin}/agendar.html?clinic=${clinicId}`;
-      document.getElementById('publicLink').textContent = link;
-      document.getElementById('whatsappShare').href = `https://wa.me/?text=${encodeURIComponent('Agenda tu cita aquí: ' + link)}`;
+      renderShareLink();
+      renderQR();
 
       if (userRole === 'clinic_admin') {
         document.getElementById('doctorSelectRow').style.display = 'flex';
@@ -705,9 +1952,10 @@
       }
 
       await Promise.all([loadStats(), loadAvailability()]);
-
       document.getElementById('loadingOverlay').classList.add('hidden');
+
       setInterval(loadStats, 5000);
+      setInterval(tickSyncLabel, 1000);
     } catch (e) {
       console.error(e);
       showToast('Error al cargar la página');
@@ -715,192 +1963,78 @@
     }
   }
 
-  async function loadStats() {
-    try {
-      const stats = await api('/api/appointments/public-bookings/stats');
-      document.getElementById('statTotal').textContent = stats.total;
-      document.getElementById('statMonth').textContent = stats.this_month;
-      document.getElementById('statConversion').textContent = stats.conversion_rate + '%';
-
-      const tbody = document.getElementById('recentTable');
-      if (stats.recent.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-table">Aún no hay citas agendadas vía link</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = stats.recent.map(r => {
-        const dt = new Date(r.scheduled_at);
-        const dateStr = dt.toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-        const doctorCell = userRole === 'clinic_admin' ? `<td>${esc(r.doctor_name)}</td>` : '';
-        return `<tr>
-          <td>${esc(dateStr)}</td>
-          <td><strong>${esc(r.patient_name)}</strong></td>
-          ${doctorCell}
-          <td>${getStatusBadge(r.status)}</td>
-          <td style="max-width: 250px; color:#64748b;">${esc(r.reason || '—')}</td>
-          <td><button class="btn-delete" onclick="deleteAppointment(${r.id})" style="padding:0.4rem 0.8rem; background:#fee2e2; border:none; border-radius:6px; cursor:pointer; font-size:0.8rem; color:#dc2626; font-weight:700;">Eliminar</button></td>
-        </tr>`;
-      }).join('');
-    } catch (e) {
-      console.error(e);
+  // ---------- Wire global controls ----------
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    const link = document.getElementById('publicLink').dataset.link;
+    if (!link) return;
+    navigator.clipboard?.writeText(link).then(() => showToast('Link copiado al portapapeles'));
+  });
+  document.getElementById('shareBtn').addEventListener('click', async () => {
+    const link = document.getElementById('publicLink').dataset.link;
+    if (!link) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Agenda tu cita', text: 'Agenda tu cita aquí:', url: link });
+      } catch {}
+    } else {
+      navigator.clipboard?.writeText(link).then(() => showToast('Link copiado'));
     }
-  }
+  });
+  document.getElementById('saveBtn').addEventListener('click', saveAvailability);
+  document.getElementById('searchInput').addEventListener('input', (e) => {
+    queryStr = e.target.value;
+    renderAppts();
+  });
 
-  async function loadAvailability() {
-    try {
-      const url = userRole === 'clinic_admin' && currentDoctorId
-        ? `/api/doctor-availability?doctor_id=${currentDoctorId}`
-        : '/api/doctor-availability';
-      currentAvailability = await api(url);
-      renderAvailability();
-    } catch (e) {
-      console.error(e);
-      document.getElementById('availabilityGrid').innerHTML = '<p class="empty-table">Error al cargar disponibilidad</p>';
+  // Time picker wiring
+  document.getElementById('hourUp').addEventListener('click', () => { pickerHour = (pickerHour + 1) % 24; updatePickerDisplay(); });
+  document.getElementById('hourDown').addEventListener('click', () => { pickerHour = (pickerHour - 1 + 24) % 24; updatePickerDisplay(); });
+  document.getElementById('minuteUp').addEventListener('click', () => { pickerMinute = (pickerMinute + 30) % 60; updatePickerDisplay(); });
+  document.getElementById('minuteDown').addEventListener('click', () => { pickerMinute = (pickerMinute - 30 + 60) % 60; updatePickerDisplay(); });
+  document.getElementById('timepickerCancel').addEventListener('click', () => {
+    editorState = null;
+    closePicker();
+  });
+  document.getElementById('timepickerConfirm').addEventListener('click', () => {
+    if (!editorState) { closePicker(); return; }
+    const value = pickerHour + pickerMinute / 60;
+    if (editorState.mode === 'start') {
+      editorState.start = value;
+      editorState.mode = 'end';
+      closePicker();
+      setTimeout(() => openPicker(editorState.end, 'Hora de fin'), 80);
+      return;
     }
-  }
-
-  function renderAvailability() {
-    const grid = document.getElementById('availabilityGrid');
-    const byDay = {};
-    currentAvailability.forEach(a => { byDay[a.day_of_week] = a; });
-
-    const order = [1, 2, 3, 4, 5, 6, 0]; // Lun-Dom
-    grid.innerHTML = order.map(dow => {
-      const a = byDay[dow];
-      const enabled = !!a;
-      const start = a?.start_time || '08:00';
-      const end = a?.end_time || '17:00';
-      const dur = a?.slot_duration || 30;
-      return `
-        <div class="day-row ${enabled ? 'enabled' : 'disabled'}" data-dow="${dow}">
-          <label class="day-name">
-            <input type="checkbox" class="enable-cb" ${enabled ? 'checked' : ''}>
-            ${DAYS[dow]}
-          </label>
-          <input type="time" class="time-input start-time" value="${start}">
-          <input type="time" class="time-input end-time" value="${end}">
-          <input type="number" class="dur-input" value="${dur}" min="10" max="120" step="5" title="Duración (min)">
-        </div>
-      `;
-    }).join('');
-
-    grid.querySelectorAll('.enable-cb').forEach(cb => {
-      cb.addEventListener('change', () => {
-        const row = cb.closest('.day-row');
-        row.classList.toggle('disabled', !cb.checked);
-        row.classList.toggle('enabled', cb.checked);
-      });
-    });
-
-    let currentPickerInput = null;
-    let currentHour = 8, currentMinute = 0;
-
-    grid.querySelectorAll('.time-input').forEach(input => {
-      input.addEventListener('click', (e) => {
-        e.preventDefault();
-        const [h, m] = input.value.split(':').map(Number);
-        currentHour = h;
-        currentMinute = m;
-        currentPickerInput = input;
-        const isStart = input.classList.contains('start-time');
-        document.getElementById('timepickerTitle').textContent = isStart ? 'Hora de inicio' : 'Hora de fin';
-        updateTimepickerDisplay();
-        document.getElementById('timepickerModal').classList.add('active');
-      });
-    });
-
-    function updateTimepickerDisplay() {
-      const h = String(currentHour).padStart(2, '0');
-      const m = String(currentMinute).padStart(2, '0');
-      document.getElementById('timepickerDisplay').textContent = `${h}:${m}`;
+    editorState.end = value;
+    if (editorState.end <= editorState.start) {
+      showToast('La hora de fin debe ser mayor que el inicio');
+      editorState = null;
+      closePicker();
+      return;
     }
-
-    document.getElementById('hourUp').addEventListener('click', () => {
-      currentHour = (currentHour + 1) % 24;
-      updateTimepickerDisplay();
-    });
-
-    document.getElementById('hourDown').addEventListener('click', () => {
-      currentHour = (currentHour - 1 + 24) % 24;
-      updateTimepickerDisplay();
-    });
-
-    document.getElementById('minuteUp').addEventListener('click', () => {
-      currentMinute = (currentMinute + 15) % 60;
-      updateTimepickerDisplay();
-    });
-
-    document.getElementById('minuteDown').addEventListener('click', () => {
-      currentMinute = (currentMinute - 15 + 60) % 60;
-      updateTimepickerDisplay();
-    });
-
-    document.getElementById('timepickerConfirm').addEventListener('click', () => {
-      const h = String(currentHour).padStart(2, '0');
-      const m = String(currentMinute).padStart(2, '0');
-      if (currentPickerInput) {
-        currentPickerInput.value = `${h}:${m}`;
-      }
-      document.getElementById('timepickerModal').classList.remove('active');
-      currentPickerInput = null;
-    });
-
-    document.getElementById('timepickerCancel').addEventListener('click', () => {
-      document.getElementById('timepickerModal').classList.remove('active');
-      currentPickerInput = null;
-    });
-
-  }
-
-  async function saveAvailability() {
-    const rows = document.querySelectorAll('.day-row');
-    const availability = [];
-    for (const row of rows) {
-      const dow = parseInt(row.dataset.dow);
-      const enabled = row.querySelector('.enable-cb').checked;
-      if (!enabled) continue;
-      const start = row.querySelector('.start-time').value;
-      const end = row.querySelector('.end-time').value;
-      const dur = parseInt(row.querySelector('.dur-input').value) || 30;
-      if (!start || !end || start >= end) {
-        showToast('Verifica los horarios');
-        return;
-      }
-      availability.push({
-        day_of_week: dow,
-        start_time: start,
-        end_time: end,
-        slot_duration: dur,
-        enabled: true
-      });
+    if (editorState.end > HOUR_END || editorState.start < HOUR_START) {
+      showToast(`Horario permitido: ${HOUR_START}:00 – ${HOUR_END}:00`);
+      editorState = null;
+      closePicker();
+      return;
     }
-
-    try {
-      const body = { availability };
-      if (userRole === 'clinic_admin' && currentDoctorId) body.doctor_id = currentDoctorId;
-      await api('/api/doctor-availability', { method: 'PUT', body });
-      showToast('Disponibilidad guardada');
-      loadAvailability();
-    } catch (e) {
-      showToast('Error al guardar: ' + e.message);
+    const { dow, idx, start, end } = editorState;
+    const data = availability[dow];
+    if (!data) { editorState = null; closePicker(); return; }
+    const overlaps = data.slots.some((s, i) => i !== idx && !(end <= s.start || start >= s.end));
+    if (overlaps) {
+      showToast('Ese horario se solapa con otro bloque');
+      editorState = null;
+      closePicker();
+      return;
     }
-  }
-
-  function copyLink() {
-    const link = document.getElementById('publicLink').textContent;
-    navigator.clipboard.writeText(link).then(() => showToast('Link copiado al portapapeles'));
-  }
-
-  async function deleteAppointment(apptId) {
-    if (!confirm('¿Está seguro de que desea eliminar esta cita?')) return;
-
-    try {
-      await api(`/api/appointments/${apptId}`, { method: 'DELETE' });
-      showToast('Cita eliminada');
-      loadStats();
-    } catch (e) {
-      showToast('Error al eliminar: ' + e.message);
-    }
-  }
+    const newSlots = data.slots.map((s, i) => i === idx ? { start, end } : s)
+      .sort((a, b) => a.start - b.start);
+    availability[dow] = { ...data, slots: newSlots };
+    editorState = null;
+    closePicker();
+    afterAvailChange();
+  });
 
   init();
 </script>

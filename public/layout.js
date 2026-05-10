@@ -217,10 +217,14 @@
         </div>
 
         <div class="sb-profile">
-          <div class="sb-avatar" id="sbAvatar">?</div>
-          <div class="sb-user-name" id="sbName">—</div>
+          <div class="sb-profile-row">
+            <div class="sb-avatar" id="sbAvatar">?</div>
+            <div class="sb-user-block">
+              <div class="sb-user-name" id="sbName">—</div>
+              <div class="sb-clinic" id="sbClinic">—</div>
+            </div>
+          </div>
           <div class="sb-specialty-badge" id="sbSpecialty"></div>
-          <div class="sb-clinic" id="sbClinic">—</div>
         </div>
 
         <nav class="sb-nav">
