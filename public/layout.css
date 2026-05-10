@@ -149,13 +149,29 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   display: flex;
   flex-direction: column;
   padding: 1rem 0.75rem;
-  gap: 0.25rem;
+  gap: 1rem;
   margin: 0;
   list-style: none;
   overflow-y: auto;
   min-height: 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+.sb-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sb-section-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  padding: 0.5rem 1rem 0.25rem 1rem;
+  margin: 0;
 }
 
 .sb-nav::-webkit-scrollbar {
@@ -369,6 +385,7 @@ nav.old-nav {
   #sidebar .sb-user-name,
   #sidebar .sb-clinic,
   #sidebar .sb-specialty-badge,
+  #sidebar .sb-section-label,
   #sidebar .sb-item span:last-child,
   #sidebar .sb-logout span:last-child {
     display: none;
@@ -408,6 +425,7 @@ nav.old-nav {
   #sidebar.expanded .sb-user-name,
   #sidebar.expanded .sb-clinic,
   #sidebar.expanded .sb-specialty-badge,
+  #sidebar.expanded .sb-section-label,
   #sidebar.expanded .sb-item span:last-child,
   #sidebar.expanded .sb-logout span:last-child {
     display: block;

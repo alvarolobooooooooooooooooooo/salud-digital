@@ -44,57 +44,108 @@
   const isReceptionist = role === 'receptionist';
 
   function buildSidebarHTML() {
-    let items = [];
+    let sections = [];
 
     if (isSuperAdmin) {
       // Super admin sidebar
-      items = [
-        { href: '/admin.html', key: 'admin', iconName: 'settings', label: 'Administración' }
+      sections = [
+        {
+          label: 'AJUSTES',
+          items: [
+            { href: '/admin.html', key: 'admin', iconName: 'settings', label: 'Administración' }
+          ]
+        }
       ];
     } else if (isReceptionist) {
       // Receptionist sidebar
-      items = [
-        { href: '/recepcion-inicio.html', key: 'rec-inicio', iconName: 'home', label: 'Inicio' },
-        { href: '/recepcion-citas.html', key: 'rec-citas', iconName: 'calendar', label: 'Citas Hoy' },
-        { href: '/recepcion-pagos.html', key: 'rec-pagos', iconName: 'wallet', label: 'Pagos' }
+      sections = [
+        {
+          label: 'GENERAL',
+          items: [
+            { href: '/recepcion-inicio.html', key: 'rec-inicio', iconName: 'home', label: 'Inicio' },
+            { href: '/recepcion-citas.html', key: 'rec-citas', iconName: 'calendar', label: 'Citas Hoy' },
+            { href: '/recepcion-pagos.html', key: 'rec-pagos', iconName: 'wallet', label: 'Pagos' }
+          ]
+        }
       ];
     } else if (isClinicAdmin) {
       // Clinic admin sidebar
-      items = [
-        { href: '/dashboard.html', key: 'dashboard', iconName: 'home', label: 'Inicio' },
-        { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
-        { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
-        { href: '/doctors.html', key: 'doctors', iconName: 'staff', label: 'Personal' },
-        { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
-        { href: '/inventario.html', key: 'inventario', iconName: 'package', label: 'Inventario' },
-        { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
-        { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
-        { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' },
-        { href: '/plan.html', key: 'plan', iconName: 'creditCard', label: 'Mi Plan' }
+      sections = [
+        {
+          label: 'GENERAL',
+          items: [
+            { href: '/dashboard.html', key: 'dashboard', iconName: 'home', label: 'Inicio' },
+            { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
+            { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
+            { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
+          ]
+        },
+        {
+          label: 'CLÍNICA',
+          items: [
+            { href: '/doctors.html', key: 'doctors', iconName: 'staff', label: 'Personal' },
+            { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
+            { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
+            { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' }
+          ]
+        },
+        {
+          label: 'OPERACIONES',
+          items: [
+            { href: '/inventario.html', key: 'inventario', iconName: 'package', label: 'Inventario' }
+          ]
+        },
+        {
+          label: 'AJUSTES',
+          items: [
+            { href: '/plan.html', key: 'plan', iconName: 'creditCard', label: 'Mi Plan' }
+          ]
+        }
       ];
     } else {
       // Doctor sidebar
-      items = [
-        { href: '/dashboard.html', key: 'dashboard', iconName: 'home', label: 'Inicio' },
-        { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
-        { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
-        { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
-        { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
-        { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
-        { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' }
+      sections = [
+        {
+          label: 'GENERAL',
+          items: [
+            { href: '/dashboard.html', key: 'dashboard', iconName: 'home', label: 'Inicio' },
+            { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
+            { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
+            { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
+          ]
+        },
+        {
+          label: 'CLÍNICA',
+          items: [
+            { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
+            { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
+            { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' }
+          ]
+        }
       ];
     }
 
-    const navItems = items.map(item => {
-      const isActive = item.key === activePage ? 'active' : '';
-      return `<a href="${item.href}" class="sb-item ${isActive}" data-icon="${item.iconName}">
-        <span class="sb-icon"></span>
-        <span>${item.label}</span>
-      </a>`;
+    // Flatten sections to get all items for mobile menu
+    const allItems = sections.flatMap(section => section.items);
+
+    const navItems = sections.map(section => {
+      const sectionHTML = `
+        <div class="sb-section">
+          <div class="sb-section-label">${section.label}</div>
+          ${section.items.map(item => {
+            const isActive = item.key === activePage ? 'active' : '';
+            return `<a href="${item.href}" class="sb-item ${isActive}" data-icon="${item.iconName}">
+              <span class="sb-icon"></span>
+              <span>${item.label}</span>
+            </a>`;
+          }).join('')}
+        </div>
+      `;
+      return sectionHTML;
     }).join('');
 
     // Mobile menu items (exclude Consentimientos, Recordatorios, Citas Online, Mi Plan from mobile sticky menu)
-    const mobileMenuItems = items.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario').map(item => {
+    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
