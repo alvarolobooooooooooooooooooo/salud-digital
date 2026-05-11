@@ -1211,10 +1211,20 @@
       .citas-hero { padding: 18px 20px; }
       .hero-title { font-size: 26px; }
       .glass-icon-btn.tablet-hide { display: none !important; }
-      .kpi-card { min-width: 220px; flex: 0 0 auto; }
+      .kpi-card {
+        min-width: 240px; flex: 0 0 auto;
+        padding: 20px 22px; min-height: 130px;
+        display: flex; flex-direction: column; justify-content: space-between; gap: 10px;
+      }
+      .kpi-card .kpi-value { font-size: 32px; line-height: 1.05; }
       .filter-search { min-width: 220px; }
       .drawer { width: 420px; }
       .kanban-view { grid-template-columns: repeat(4, minmax(220px, 1fr)); overflow-x: auto; }
+    }
+    /* Sticky mobile nav from layout.css kicks in <=860px (height 64px),
+       so push the page down to clear it. */
+    @media (max-width: 860px) {
+      main.layout-main { padding: 84px 18px 32px !important; }
     }
 
     /* Week view collapses to a 7-day strip + single-day timeline well before 720px,
@@ -1285,7 +1295,7 @@
     }
 
     @media (max-width: 720px) {
-      main.layout-main { padding: 12px 12px 24px !important; }
+      main.layout-main { padding: 84px 12px 24px !important; }
       .citas-hero { padding: 14px 16px; border-radius: 14px; margin-bottom: 12px; }
       .hero-row { flex-direction: column; gap: 14px; }
       .hero-title { font-size: 22px; line-height: 1.15; }
@@ -1294,11 +1304,15 @@
       .glass-icon-btn.mobile-hide { display: none !important; }
       .btn-nueva-hero { flex: 1; min-width: 0; justify-content: center; }
       .kpi-strip { gap: 10px; }
-      .kpi-card { min-width: 72vw; max-width: 80vw; padding: 12px 14px; }
+      .kpi-card {
+        min-width: 75vw; max-width: 82vw;
+        padding: 18px 18px; min-height: 130px;
+        display: flex; flex-direction: column; justify-content: space-between; gap: 10px;
+      }
       .kpi-nav { width: 34px; height: 34px; }
       .kpi-nav-prev { left: 2px; }
       .kpi-nav-next { right: 2px; }
-      .kpi-card .kpi-value { font-size: 22px; }
+      .kpi-card .kpi-value { font-size: 30px; line-height: 1.05; }
       .filter-bar { padding: 10px; border-radius: 12px; }
       .filter-header { flex-wrap: wrap; gap: 8px; }
       .filter-search { min-width: 100%; width: 100%; flex: 1 1 100%; order: -1; }
