@@ -545,8 +545,9 @@
 
     @media (max-width: 720px){
       .kpis{grid-template-columns:1fr 1fr; gap:10px}
-      .hero-card{padding:22px 20px}
+      .hero-card{padding:0}
       .hero h1{font-size:30px}
+      .hero p{max-width:none}
       .kpi{padding:14px; min-height:auto}
       .kpi .v{font-size:28px}
       .kpi .spark{display:none}
@@ -566,9 +567,9 @@
 
     @media (max-width: 480px){
       .page{padding:0 10px 80px; gap:18px}
-      .hero-card{padding:18px 16px}
+      .hero-card{padding:0}
       .hero h1{font-size:26px}
-      .hero p{font-size:13.5px}
+      .hero p{font-size:13.5px; max-width:none}
       .kpis{grid-template-columns:1fr}
       .crumbs-row{font-size:12px}
       .rooms-grid{grid-template-columns:1fr}
