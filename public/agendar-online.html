@@ -877,7 +877,11 @@
 
     /* Mobile perf: backdrop-filter and large blurred gradients tank scroll
        on iOS Safari and most Android Chromes. Disable them below 720px so
-       the page scrolls smoothly on phones. Desktop look unchanged. */
+       the page scrolls smoothly on phones. Desktop look unchanged.
+
+       NOTE: setting container-type: normal also disables the @container
+       queries above (980px / 720px), so we re-declare their layout
+       collapses with @media here. */
     @media (max-width: 720px) {
       .co-page {
         container-type: normal;
@@ -901,6 +905,28 @@
       }
       .co-drawer-backdrop {
         background: rgba(15, 23, 42, 0.45);
+      }
+
+      /* Re-create the @container collapses with @media so layout works
+         when container queries are off. */
+      .co-cols-2 { grid-template-columns: 1fr !important; }
+      .co-kpi-grid { grid-template-columns: 1fr !important; }
+      .co-hero {
+        grid-template-columns: 1fr !important;
+        gap: 14px;
+      }
+      .co-hero .meta {
+        align-items: flex-start !important;
+        text-align: left;
+      }
+      .co-qr-card { display: none !important; }
+      .co-share { grid-template-columns: 1fr !important; }
+      .co-hero h1 {
+        font-size: clamp(28px, 8vw, 38px);
+      }
+      .co-hero .lede {
+        max-width: none;
+        font-size: 14.5px;
       }
     }
   </style>

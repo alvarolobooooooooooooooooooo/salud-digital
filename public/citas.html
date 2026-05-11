@@ -1305,13 +1305,16 @@
       .btn-nueva-hero { flex: 1; min-width: 0; justify-content: center; }
       .kpi-strip { gap: 10px; }
       .kpi-card {
-        min-width: 75vw; max-width: 82vw;
+        flex: 0 0 100%;
+        min-width: 100%; max-width: 100%;
         padding: 18px 18px; min-height: 130px;
         display: flex; flex-direction: column; justify-content: space-between; gap: 10px;
+        scroll-snap-align: center;
       }
-      .kpi-nav { width: 34px; height: 34px; }
-      .kpi-nav-prev { left: 2px; }
-      .kpi-nav-next { right: 2px; }
+      /* Hide carousel arrows on mobile — swipe is natural and the
+         arrows were overlapping the KPI value text. */
+      .kpi-nav,
+      .kpi-nav.show { display: none !important; }
       .kpi-card .kpi-value { font-size: 30px; line-height: 1.05; }
       .filter-bar { padding: 10px; border-radius: 12px; }
       .filter-header { flex-wrap: wrap; gap: 8px; }
