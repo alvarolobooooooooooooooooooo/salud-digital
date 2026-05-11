@@ -438,8 +438,11 @@
     @media (max-width: 720px){
       .kpis{grid-template-columns:1fr 1fr; gap:10px}
       .hero-card{padding:0}
-      .hero h1{font-size:30px}
-      .hero p{max-width:none}
+      .hero h1{font-size:30px; margin-top:6px}
+      /* Móvil: el párrafo descriptivo recarga visualmente; el título + KPIs
+         ya comunican la página. Lo ocultamos. */
+      .hero p{display:none}
+      .hero-actions{margin-top:14px}
       .kpi{padding:14px; min-height:auto}
       .kpi .v{font-size:28px}
       .kpi .spark{display:none}

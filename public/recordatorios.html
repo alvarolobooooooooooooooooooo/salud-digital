@@ -668,8 +668,11 @@
       .kpis{grid-template-columns:1fr}
       /* hero-card is transparent now; no inner padding so text aligns with KPIs */
       .hero-card{padding:0}
-      .hero h1{font-size:32px}
-      .hero p{max-width:none}
+      .hero h1{font-size:32px; margin-top:6px}
+      /* Móvil: el párrafo descriptivo recarga visualmente; el título + KPIs
+         ya comunican la página. Lo ocultamos. */
+      .hero p{display:none}
+      .hero-actions{margin-top:14px}
       .kpi .spark{display:none}
 
       .table-wrap{overflow-x:visible}
