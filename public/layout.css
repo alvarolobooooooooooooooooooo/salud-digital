@@ -605,6 +605,18 @@ nav.old-nav {
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Teal→cyan gradient on the SVG icons (mirrors the page heading style). */
+.mobile-nav-item .mobile-icon svg,
+.mobile-nav-item .mobile-icon svg *,
+.mobile-nav-hamburger svg,
+.mobile-nav-hamburger svg *,
+.sidebar-menu-link svg,
+.sidebar-menu-link svg *,
+#notificationIcon svg,
+#notificationIcon svg * {
+  stroke: url(#mobileNavIconGradient);
+}
+
 .mobile-nav-item:active span:first-child {
   transform: scale(0.92);
 }

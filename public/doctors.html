@@ -555,13 +555,34 @@
       .kpi .v{font-size:28px}
       .kpi .spark{display:none}
 
-      .toolbar{padding:8px; gap:6px}
-      /* When pills wrap to multiple rows the 999px pill shape becomes
-         an oversized blob; use a normal rounded rect on mobile. */
-      .seg{border-radius:12px; padding:4px; gap:4px}
-      .seg button{padding:6px 10px; font-size:12.5px; border-radius:8px}
-      .search-wrap{min-width:0; flex:1 1 100%; order:3}
-      .sort-select{flex:1; min-width:0}
+      .toolbar{padding:8px; gap:8px; flex-wrap:wrap}
+      .toolbar .spacer{display:none}
+      /* Tabs: full row, equal-width cells, no wrapping. */
+      .seg{
+        display:flex; flex-wrap:nowrap;
+        width:100%; flex:1 1 100%;
+        border-radius:12px; padding:4px; gap:4px;
+      }
+      .seg button{
+        flex:1 1 0; min-width:0;
+        padding:8px 6px; font-size:12.5px; border-radius:8px;
+        justify-content:center;
+      }
+      .seg button svg{flex-shrink:0}
+      .seg button .pill{padding:1px 6px; font-size:10.5px}
+      /* Search + sort share the next row. */
+      .search-wrap{order:2; min-width:0; flex:1 1 0; height:38px}
+      .sort-select{order:3; flex:0 0 auto; height:38px; padding:8px 30px 8px 12px}
+
+      /* Filter chips: horizontal scroll instead of wrapping into 3 rows. */
+      .chips-row{
+        flex-wrap:nowrap; overflow-x:auto;
+        scrollbar-width:none;
+        margin:0 -10px; padding:2px 10px 6px;
+        scroll-snap-type:x proximity;
+      }
+      .chips-row::-webkit-scrollbar{display:none}
+      .chip{flex:0 0 auto; scroll-snap-align:start}
 
       .grid-head{padding:14px 16px; flex-wrap:wrap; gap:8px}
       .grid-head h3{font-size:16px}
@@ -579,6 +600,9 @@
       .kpis{grid-template-columns:1fr}
       .crumbs-row{font-size:12px}
       .rooms-grid{grid-template-columns:1fr}
+      /* Free up tab width on narrow screens by dropping the icons. */
+      .seg button svg{display:none}
+      .seg button{padding:8px 4px; gap:4px}
     }
   </style>
 </head>
@@ -586,18 +610,6 @@
 
 <main class="layout-main">
   <div class="page" id="page">
-
-    <!-- Crumbs row -->
-    <div class="crumbs-row">
-      <span>Clínica</span>
-      <span class="sep">/</span>
-      <b>Gestión de personal</b>
-      <div class="right">
-        <button class="icon-btn" id="refreshBtn" title="Refrescar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
-        </button>
-      </div>
-    </div>
 
     <!-- Hero -->
     <section class="hero">
@@ -616,6 +628,9 @@
           <button class="btn btn-ghost-light" id="scrollListBtn">
             <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
             Ver equipo
+          </button>
+          <button class="icon-btn" id="refreshBtn" title="Refrescar" aria-label="Refrescar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
           </button>
         </div>
       </div>

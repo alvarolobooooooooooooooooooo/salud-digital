@@ -270,20 +270,61 @@
       position: relative; z-index: 1;
       align-self: stretch;
       margin-left: 24px;
-      padding: 16px;
-      background: rgba(255,255,255,0.62);
-      border: 1px solid rgba(255,255,255,0.8);
-      border-radius: 18px;
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
-      min-width: 152px;
-      backdrop-filter: saturate(160%) blur(14px);
-      -webkit-backdrop-filter: saturate(160%) blur(14px);
+      padding: 16px 16px 14px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.55) 100%);
+      border: 1px solid rgba(255,255,255,0.85);
+      border-radius: 20px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      min-width: 168px;
+      backdrop-filter: saturate(180%) blur(16px);
+      -webkit-backdrop-filter: saturate(180%) blur(16px);
       box-shadow:
-        0 1px 0 rgba(255,255,255,0.8) inset,
-        0 12px 28px -14px rgba(15,23,42,0.2);
+        0 1px 0 rgba(255,255,255,0.9) inset,
+        0 18px 36px -18px rgba(15,23,42,0.28),
+        0 4px 14px -8px color-mix(in oklch, var(--accent) 40%, transparent);
     }
-    .co-qr-card svg { display: block; }
-    .co-qr-label { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+    .co-qr-frame {
+      position: relative;
+      width: 136px; height: 136px;
+      padding: 10px;
+      border-radius: 14px;
+      background: #ffffff;
+      box-shadow:
+        0 1px 0 rgba(255,255,255,1) inset,
+        0 0 0 1px rgba(15,23,42,0.06),
+        0 8px 22px -12px rgba(15,23,42,0.25);
+    }
+    .co-qr-frame::before {
+      content: "";
+      position: absolute; inset: -1px;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(140deg, color-mix(in oklch, var(--accent) 55%, transparent), rgba(255,255,255,0.2) 60%, color-mix(in oklch, #0ea5e9 45%, transparent));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      pointer-events: none;
+    }
+    .co-qr-frame svg {
+      display: block;
+      width: 100%; height: 100%;
+      color: #0f172a;
+      shape-rendering: crispEdges;
+    }
+    .co-qr-meta {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      text-align: center; max-width: 160px;
+    }
+    .co-qr-title {
+      font-size: 12.5px; font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .co-qr-sub {
+      font-size: 11px; color: var(--muted);
+      line-height: 1.35;
+    }
 
     /* Buttons */
     .co-btn {
@@ -398,8 +439,16 @@
       .co-hero { grid-template-columns: 1fr; }
     }
     @container (max-width: 720px) {
-      .co-qr-card { display: none; }
       .co-share { grid-template-columns: 1fr; }
+      .co-qr-card {
+        margin-left: 0;
+        margin-top: 18px;
+        align-self: center;
+        width: 100%;
+        max-width: 320px;
+        padding: 18px 18px 16px;
+      }
+      .co-qr-frame { width: 196px; height: 196px; padding: 12px; }
     }
 
     /* Availability timeline */
@@ -919,8 +968,23 @@
         align-items: flex-start !important;
         text-align: left;
       }
-      .co-qr-card { display: none !important; }
       .co-share { grid-template-columns: 1fr !important; }
+      .co-qr-card {
+        margin-left: 0 !important;
+        margin-top: 18px !important;
+        align-self: center !important;
+        width: 100% !important;
+        max-width: 320px !important;
+        padding: 18px 18px 16px !important;
+        background: #FFFFFF !important;
+        box-shadow:
+          0 1px 0 rgba(255,255,255,1) inset,
+          0 14px 32px -18px rgba(15,23,42,0.22),
+          0 4px 14px -8px color-mix(in oklch, var(--accent) 35%, transparent) !important;
+      }
+      .co-qr-frame {
+        width: 196px !important; height: 196px !important; padding: 12px !important;
+      }
       .co-hero h1 {
         font-size: clamp(28px, 8vw, 38px);
       }
@@ -988,8 +1052,13 @@
         </div>
       </div>
       <div class="co-qr-card">
-        <svg id="qrSvg" width="120" height="120" viewBox="0 0 120 120" aria-hidden="true"></svg>
-        <span class="co-qr-label">Escanear</span>
+        <div class="co-qr-frame">
+          <svg id="qrSvg" viewBox="0 0 25 25" role="img" aria-label="Código QR del enlace público"></svg>
+        </div>
+        <div class="co-qr-meta">
+          <span class="co-qr-title">Escaneá para agendar</span>
+          <span class="co-qr-sub">Apuntá la cámara de tu celular al código</span>
+        </div>
       </div>
     </section>
 
@@ -1181,6 +1250,7 @@
 <script src="/icons.js"></script>
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 <script>
   requireAuth(['clinic_admin', 'doctor']);
 
@@ -1265,30 +1335,36 @@
     setTimeout(() => t.classList.remove('show'), 2200);
   }
 
-  // ---------- QR (cosmetic SVG) ----------
-  function renderQR() {
+  // ---------- QR (real, scannable) ----------
+  function renderQR(url) {
     const svg = document.getElementById('qrSvg');
-    const size = 120, grid = 21, cs = size / grid;
-    let seed = 7;
-    const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-    const isFinder = (x, y) => {
-      const corner = (cx, cy) => (x >= cx && x < cx + 7 && y >= cy && y < cy + 7);
-      return corner(0,0) || corner(grid-7,0) || corner(0,grid-7);
+    if (!svg) return;
+    if (typeof qrcode === 'undefined' || !url) return;
+    const qr = qrcode(0, 'M');
+    qr.addData(url);
+    qr.make();
+    const count = qr.getModuleCount();
+    const margin = 2;
+    const total = count + margin * 2;
+    const isFinder = (r, c) => {
+      const inBox = (br, bc) => r >= br && r < br + 7 && c >= bc && c < bc + 7;
+      return inBox(0, 0) || inBox(0, count - 7) || inBox(count - 7, 0);
     };
-    const fg = '#0891b2';
-    let html = '';
-    for (let i = 0; i < grid * grid; i++) {
-      const on = rnd() > 0.5;
-      const x = i % grid, y = Math.floor(i / grid);
-      if (isFinder(x, y) || !on) continue;
-      html += `<rect x="${x*cs+0.5}" y="${y*cs+0.5}" width="${cs-1}" height="${cs-1}" rx="${cs*0.2}" fill="${fg}"/>`;
+    let modules = '';
+    for (let r = 0; r < count; r++) {
+      for (let c = 0; c < count; c++) {
+        if (!qr.isDark(r, c) || isFinder(r, c)) continue;
+        modules += `<rect x="${c + margin + 0.08}" y="${r + margin + 0.08}" width="0.84" height="0.84" rx="0.22" fill="currentColor"/>`;
+      }
     }
-    [[0,0],[grid-7,0],[0,grid-7]].forEach(([fx, fy]) => {
-      html += `<rect x="${fx*cs}" y="${fy*cs}" width="${7*cs}" height="${7*cs}" rx="${cs*1.2}" fill="${fg}"/>`;
-      html += `<rect x="${(fx+1)*cs}" y="${(fy+1)*cs}" width="${5*cs}" height="${5*cs}" rx="${cs}" fill="transparent"/>`;
-      html += `<rect x="${(fx+2)*cs}" y="${(fy+2)*cs}" width="${3*cs}" height="${3*cs}" rx="${cs*0.6}" fill="${fg}"/>`;
+    let finders = '';
+    [[0, 0], [0, count - 7], [count - 7, 0]].forEach(([fr, fc]) => {
+      const x = fc + margin, y = fr + margin;
+      finders += `<rect x="${x + 0.5}" y="${y + 0.5}" width="6" height="6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1"/>`;
+      finders += `<rect x="${x + 2}" y="${y + 2}" width="3" height="3" rx="0.8" fill="currentColor"/>`;
     });
-    svg.innerHTML = html;
+    svg.setAttribute('viewBox', `0 0 ${total} ${total}`);
+    svg.innerHTML = modules + finders;
   }
 
   // ---------- Sparkline ----------
@@ -1574,6 +1650,7 @@
     document.getElementById('whatsappShare').href =
       `https://wa.me/?text=${encodeURIComponent('Agenda tu cita aquí: ' + link)}`;
     document.getElementById('previewLink').href = link;
+    renderQR(link);
   }
 
   // ---------- Filter pills ----------
@@ -1987,7 +2064,6 @@
       clinicId = me.clinic_id;
 
       renderShareLink();
-      renderQR();
 
       if (userRole === 'clinic_admin') {
         document.getElementById('doctorSelectRow').style.display = 'flex';

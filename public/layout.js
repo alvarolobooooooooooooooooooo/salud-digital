@@ -242,6 +242,15 @@
       </aside>
 
       <nav id="mobileNav" class="mobile-nav">
+        <svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="mobileNavIconGradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="24" y2="24">
+              <stop offset="0%" stop-color="#115e59"/>
+              <stop offset="50%" stop-color="#0d9488"/>
+              <stop offset="100%" stop-color="#0ea5e9"/>
+            </linearGradient>
+          </defs>
+        </svg>
         ${mobileMenuItems}
         ${hamburgerMenu}
       </nav>

@@ -1304,18 +1304,45 @@
       .glass-icon-btn.mobile-hide { display: none !important; }
       .btn-nueva-hero { flex: 1; min-width: 0; justify-content: center; }
       .kpi-strip { gap: 10px; }
+      /* Horizontal layout on mobile: big value anchors the left, label/hint
+         stack in the middle, icon sits right. Eliminates the empty space
+         from the previous stacked layout. */
       .kpi-card {
         flex: 0 0 100%;
         min-width: 100%; max-width: 100%;
-        padding: 18px 18px; min-height: 130px;
-        display: flex; flex-direction: column; justify-content: space-between; gap: 10px;
+        padding: 16px 18px; min-height: 96px;
+        display: grid !important;
+        grid-template-columns: auto 1fr auto;
+        grid-template-rows: auto auto;
+        column-gap: 16px; row-gap: 2px;
+        align-items: center;
         scroll-snap-align: center;
+      }
+      .kpi-card .kpi-head { display: contents; }
+      .kpi-card .kpi-value-row {
+        grid-column: 1; grid-row: 1 / span 2;
+        align-self: center;
+      }
+      .kpi-card .kpi-value { font-size: 22px; line-height: 1; letter-spacing: -.015em; }
+      .kpi-card .kpi-delta { display: block; margin-top: 4px; }
+      .kpi-card .kpi-label {
+        grid-column: 2; grid-row: 1;
+        align-self: end;
+      }
+      .kpi-card .kpi-hint {
+        grid-column: 2; grid-row: 2;
+        align-self: start;
+        margin-top: 0; font-size: 12px;
+      }
+      .kpi-card .kpi-icon {
+        grid-column: 3; grid-row: 1 / span 2;
+        align-self: center;
+        width: 40px; height: 40px;
       }
       /* Hide carousel arrows on mobile — swipe is natural and the
          arrows were overlapping the KPI value text. */
       .kpi-nav,
       .kpi-nav.show { display: none !important; }
-      .kpi-card .kpi-value { font-size: 30px; line-height: 1.05; }
       .filter-bar { padding: 10px; border-radius: 12px; }
       .filter-header { flex-wrap: wrap; gap: 8px; }
       .filter-search { min-width: 100%; width: 100%; flex: 1 1 100%; order: -1; }
@@ -1339,7 +1366,6 @@
       /* Kanban view is unusable on phone (horizontal-scrolling 260px columns) — hide its tab */
       .seg-btn[data-v="kanban"] { display: none; }
       .day-view { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .day-grid { min-width: 540px; }
       /* Month view fits viewport: smaller cells, compact appointment chips */
       .month-view { overflow: hidden; }
       .month-grid, .month-head {
@@ -1386,6 +1412,30 @@
       .modal-hdr h3 { font-size: 1.1rem; }
       .modal-body { padding: 1.5rem; gap: 1rem; grid-template-columns: 1fr; }
       .modal-ftr { padding: 1.25rem 1.5rem; gap: .75rem; }
+
+      /* Calendar text sizes — keep proportions sane on mobile. */
+      .date-label { font-size: 14px; }
+      .day-head { padding: 10px 14px; }
+      .day-head-date { font-size: 15px; }
+      .day-head-name { font-size: 10px; }
+      .day-pill { padding: 6px 2px 11px; }
+      .day-pill .dp-num { font-size: 13.5px; }
+      .day-pill .dp-name { font-size: 9px; }
+      .day-pill .dp-dot { bottom: 4px; width: 3.5px; height: 3.5px; }
+      /* Tighter rows so the timeline fits more hours without scrolling. */
+      .week-hour { height: 44px; padding: 3px 6px; }
+      .week-hour-label { font-size: 9.5px; }
+      .week-grid { grid-template-columns: 44px minmax(0, 1fr) !important; }
+      .day-hour { height: 52px; padding: 4px 8px; }
+      .day-hour-label { font-size: 9.5px; }
+      .day-hours-col { width: 48px; }
+      .day-grid { min-width: 0; }
+      /* Appointment blocks — smaller copy to match the tighter rows. */
+      .apt-time { font-size: 10.5px; }
+      .apt-name { font-size: 11.5px; }
+      .apt-meta { font-size: 10.5px; }
+      .week-apt-time { font-size: 9.5px; }
+      .week-apt-name { font-size: 10.5px; }
     }
 
     @media (max-width: 380px) {
