@@ -1482,11 +1482,11 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg>
           Día
         </button>
-        <button class="seg-btn active" data-v="week" onclick="setView('week')">
+        <button class="seg-btn" data-v="week" onclick="setView('week')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h7M14 6h7M3 12h11M16 12h5M3 18h7M14 18h7"/></svg>
           Semana
         </button>
-        <button class="seg-btn" data-v="month" onclick="setView('month')">
+        <button class="seg-btn active" data-v="month" onclick="setView('month')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
           Mes
         </button>
@@ -1707,7 +1707,7 @@ let waConfig = { whatsapp_enabled: false, whatsapp_number: '', whatsapp_template
 let reminderMap = {};
 
 /* ─────────── View state ─────────── */
-let calView = 'week';
+let calView = 'month';
 let calDate = new Date();
 let weekActiveDayIdx = null; // mobile: which day's column is shown (null = auto-pick today or Monday)
 

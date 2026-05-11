@@ -874,6 +874,35 @@
     .co-time-picker-actions .confirm {
       background: #0F172A; border: 1px solid #0F172A; color: white;
     }
+
+    /* Mobile perf: backdrop-filter and large blurred gradients tank scroll
+       on iOS Safari and most Android Chromes. Disable them below 720px so
+       the page scrolls smoothly on phones. Desktop look unchanged. */
+    @media (max-width: 720px) {
+      .co-page {
+        container-type: normal;
+      }
+      .co-page::before,
+      .co-page::after {
+        display: none;
+      }
+      .co-page,
+      .co-page * {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      .co-card,
+      .co-share,
+      .co-url-pill,
+      .co-doctor-select,
+      .co-drawer,
+      .co-drawer-backdrop {
+        background: #FFFFFF;
+      }
+      .co-drawer-backdrop {
+        background: rgba(15, 23, 42, 0.45);
+      }
+    }
   </style>
 </head>
 <body>

@@ -497,14 +497,33 @@
       .salas-grid { grid-template-columns: repeat(2, 1fr); }
       .two-col, .bottom-row { grid-template-columns: 1fr; }
     }
-    @media (max-width: 720px) {
-      .layout-main { padding: 16px; padding-top: 80px; }
-      .topbar { grid-template-columns: 1fr; gap: 12px; }
+    /* Tablet + mobile: layout.css renders the sticky mobile nav (64px) at
+       <=860px, so we need extra top padding to clear it. */
+    @media (max-width: 860px) {
+      .layout-main { padding: 20px; padding-top: 84px; }
+      .topbar { grid-template-columns: 1fr; gap: 14px; }
+      .topbar .clock-pill { justify-self: start; text-align: left; }
       .search { width: 100%; }
       .top-actions { flex-wrap: wrap; }
+      /* Make KPI cards larger and more readable on mobile/tablet */
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+      .kpi { padding: 20px 22px; border-radius: 18px; }
+      .kpi-value { font-size: 40px; }
+      .kpi-label { font-size: 11.5px; }
+      .kpi-delta { font-size: 11px; padding: 4px 9px; }
+      .kpi-foot .vs { font-size: 12px; }
+      .kpi-spark { width: 70px; height: 28px; }
+      .salas-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+      .greet h1 { font-size: 24px; }
+    }
+    /* Phones: stack KPIs and salas single-column for max prominence */
+    @media (max-width: 560px) {
       .kpi-grid { grid-template-columns: 1fr; }
       .salas-grid { grid-template-columns: 1fr; }
+      .kpi-value { font-size: 44px; }
+      .kpi { padding: 22px 24px; }
       .greet h1 { font-size: 22px; }
+      .clock-pill { width: 100%; min-width: 0; }
     }
   </style>
 </head>
