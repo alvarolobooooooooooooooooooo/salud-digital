@@ -31,6 +31,7 @@
     '/medical-record.html': '',
     '/admin.html': 'admin',
     '/inventario.html': 'inventario',
+    '/configuracion.html': 'configuracion',
     '/recepcion-inicio.html': 'rec-inicio',
     '/recepcion-citas.html': 'rec-citas',
     '/recepcion-pagos.html': 'rec-pagos'
@@ -66,6 +67,12 @@
             { href: '/recepcion-citas.html', key: 'rec-citas', iconName: 'calendar', label: 'Citas Hoy' },
             { href: '/recepcion-pagos.html', key: 'rec-pagos', iconName: 'wallet', label: 'Pagos' }
           ]
+        },
+        {
+          label: 'AJUSTES',
+          items: [
+            { href: '/configuracion.html', key: 'configuracion', iconName: 'settings', label: 'Configuración' }
+          ]
         }
       ];
     } else if (isClinicAdmin) {
@@ -98,7 +105,8 @@
         {
           label: 'AJUSTES',
           items: [
-            { href: '/plan.html', key: 'plan', iconName: 'creditCard', label: 'Mi Plan' }
+            { href: '/plan.html', key: 'plan', iconName: 'creditCard', label: 'Mi Plan' },
+            { href: '/configuracion.html', key: 'configuracion', iconName: 'settings', label: 'Configuración' }
           ]
         }
       ];
@@ -120,6 +128,12 @@
             { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
             { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
             { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' }
+          ]
+        },
+        {
+          label: 'AJUSTES',
+          items: [
+            { href: '/configuracion.html', key: 'configuracion', iconName: 'settings', label: 'Configuración' }
           ]
         }
       ];
@@ -145,7 +159,7 @@
     }).join('');
 
     // Mobile menu items (exclude Consentimientos, Recordatorios, Citas Online, Mi Plan from mobile sticky menu)
-    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario').map(item => {
+    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario' && item.key !== 'configuracion').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
@@ -176,7 +190,12 @@
             </div>
           </div>
 
-          ${isReceptionist ? '' : `<div class="sidebar-section">
+          ${isReceptionist ? `<div class="sidebar-section">
+            <a href="/configuracion.html" class="sidebar-menu-link">
+              <span id="configMenuIcon"></span>
+              <span>Configuración</span>
+            </a>
+          </div>` : `<div class="sidebar-section">
             <a href="/agendar-online.html" class="sidebar-menu-link">
               <span id="citasOnlineIcon"></span>
               <span>Citas Online</span>
@@ -196,6 +215,10 @@
             <a href="/recordatorios.html" class="sidebar-menu-link">
               <span id="remindersIcon"></span>
               <span>Recordatorios</span>
+            </a>
+            <a href="/configuracion.html" class="sidebar-menu-link">
+              <span id="configMenuIcon"></span>
+              <span>Configuración</span>
             </a>
           </div>`}
 
@@ -320,6 +343,10 @@
     // Inventario menu icon
     const inventarioMenuIcon = document.querySelector('#inventarioMenuIcon');
     if (inventarioMenuIcon && !inventarioMenuIcon.innerHTML.trim()) inventarioMenuIcon.innerHTML = Icons.render('package', 16);
+
+    // Configuración menu icon
+    const configMenuIcon = document.querySelector('#configMenuIcon');
+    if (configMenuIcon && !configMenuIcon.innerHTML.trim()) configMenuIcon.innerHTML = Icons.render('settings', 16);
   }
 
   function injectSidebar() {

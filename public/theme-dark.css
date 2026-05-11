@@ -1,0 +1,2108 @@
+/* ═══════════════════════════════════════════════════════════════════
+   theme-dark.css — Premium dark theme for SaludDigital
+   ─────────────────────────────────────────────────────────────────
+   Activated via [data-theme="dark"] on <html>. Uses CSS variables
+   defined in layout.css :root, plus targeted overrides for hardcoded
+   colors in individual pages (inventario, configuracion, plan…).
+
+   Design tokens — premium, calm, professional:
+   • Background base   : #0a0e1a (deep navy-black, not pure black)
+   • Background mid    : #111827
+   • Surface (cards)   : rgba(26, 34, 52, .72) + backdrop blur
+   • Border (subtle)   : rgba(255, 255, 255, .06)
+   • Border (default)  : rgba(255, 255, 255, .09)
+   • Text primary      : #f1f5f9
+   • Text secondary    : #94a3b8
+   • Text muted        : #64748b
+   • Cyan primary      : #06b6d4 (slightly brighter than light)
+   • Cyan accent       : #14b8a6 (for glow + active states)
+   ═══════════════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Re-map layout.css variables */
+  --primary: #06b6d4;
+  --primary-hover: #14b8a6;
+  --primary-light: #0a1d2e;
+  --bg: #0a0e1a;
+  --card: #1a2234;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: rgba(255, 255, 255, .09);
+
+  /* Extra page-level tokens (used by overrides below) */
+  --sd-bg-base: #0a0e1a;
+  --sd-bg-mid: #0d1426;
+  --sd-bg-blob-1: rgba(6, 182, 212, .07);
+  --sd-bg-blob-2: rgba(20, 184, 166, .05);
+  --sd-surface: rgba(26, 34, 52, .72);
+  --sd-surface-solid: #161e2e;
+  --sd-surface-2: rgba(34, 44, 64, .82);
+  --sd-border: rgba(255, 255, 255, .09);
+  --sd-border-soft: rgba(255, 255, 255, .055);
+  --sd-border-strong: rgba(255, 255, 255, .14);
+  --sd-text: #f1f5f9;
+  --sd-text-soft: #cbd5e1;
+  --sd-text-muted: #94a3b8;
+  --sd-text-faint: #64748b;
+  --sd-input-bg: rgba(15, 23, 42, .55);
+  --sd-input-border: rgba(255, 255, 255, .1);
+  --sd-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+  --sd-shadow-lg: 0 16px 40px rgba(0, 0, 0, .45);
+  --sd-shadow-glow: 0 6px 20px rgba(6, 182, 212, .25);
+  --sd-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+
+/* ── Body backgrounds (high specificity html[…] body to beat any inline style) ── */
+html[data-theme="dark"],
+html[data-theme="dark"] body {
+  background-color: #0a0e1a !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] body {
+  background-image: linear-gradient(135deg, #0a0e1a 0%, #0d1426 45%, #0a1525 100%) !important;
+}
+html[data-theme="dark"] body::before {
+  background: radial-gradient(circle, var(--sd-bg-blob-1) 0%, transparent 70%) !important;
+  filter: blur(70px) !important;
+}
+html[data-theme="dark"] body::after {
+  background: radial-gradient(circle, var(--sd-bg-blob-2) 0%, transparent 70%) !important;
+  filter: blur(70px) !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   SIDEBAR (#sidebar from layout.css)
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] #sidebar {
+  background: linear-gradient(180deg, #0c1322 0%, #0a0f1c 100%) !important;
+  border-right: 1px solid var(--sd-border-soft) !important;
+  box-shadow: 1px 0 24px rgba(0, 0, 0, .45);
+}
+[data-theme="dark"] .sb-logo span:not(:first-child) {
+  color: var(--sd-text) !important;
+}
+[data-theme="dark"] .sb-logo {
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .sb-profile {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .08), rgba(20, 184, 166, .04)) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .sb-avatar {
+  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: white !important;
+  box-shadow: 0 6px 14px rgba(6, 182, 212, .28);
+}
+[data-theme="dark"] .sb-user-name { color: var(--sd-text) !important; }
+[data-theme="dark"] .sb-clinic { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .sb-specialty-badge {
+  background: rgba(6, 182, 212, .14) !important;
+  color: #5eead4 !important;
+  border: 1px solid rgba(6, 182, 212, .25);
+}
+[data-theme="dark"] .sb-section-label {
+  color: #64748b !important;
+}
+[data-theme="dark"] .sb-item {
+  color: var(--sd-text-soft) !important;
+}
+[data-theme="dark"] .sb-item:hover {
+  background: rgba(6, 182, 212, .08) !important;
+  color: #5eead4 !important;
+}
+[data-theme="dark"] .sb-item.active {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .18) 0%, rgba(20, 184, 166, .12) 100%) !important;
+  color: #5eead4 !important;
+  border-color: rgba(6, 182, 212, .35) !important;
+  box-shadow: inset 0 0 0 1px rgba(6, 182, 212, .25), 0 4px 14px rgba(6, 182, 212, .18);
+}
+[data-theme="dark"] .sb-item.active::before {
+  background: linear-gradient(180deg, #14b8a6 0%, #06b6d4 100%) !important;
+}
+[data-theme="dark"] .sb-logout {
+  color: var(--sd-text-muted) !important;
+  border-top: 1px solid var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .sb-logout:hover {
+  background: rgba(239, 68, 68, .12) !important;
+  color: #fca5a5 !important;
+}
+[data-theme="dark"] .sb-toggle {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+[data-theme="dark"] .sb-toggle:hover {
+  background: rgba(6, 182, 212, .15) !important;
+  border-color: rgba(6, 182, 212, .4) !important;
+  color: #5eead4 !important;
+}
+
+/* ── Mobile sidebar + nav ── */
+[data-theme="dark"] #mobileNav {
+  background: rgba(12, 19, 34, .92) !important;
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border-top: 1px solid var(--sd-border-soft) !important;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, .35);
+}
+[data-theme="dark"] .mobile-nav-item {
+  color: var(--sd-text-muted) !important;
+}
+[data-theme="dark"] .mobile-nav-item.active {
+  color: #5eead4 !important;
+}
+[data-theme="dark"] .mobile-nav-hamburger {
+  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: white !important;
+}
+[data-theme="dark"] .mobile-sidebar {
+  background: linear-gradient(180deg, #0c1322 0%, #0a0f1c 100%) !important;
+  color: var(--sd-text) !important;
+}
+[data-theme="dark"] .mobile-sidebar-header { border-bottom: 1px solid var(--sd-border-soft) !important; }
+[data-theme="dark"] .mobile-sidebar-title { color: var(--sd-text) !important; }
+[data-theme="dark"] .mobile-sidebar-close {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+[data-theme="dark"] .sidebar-label { color: #64748b !important; }
+[data-theme="dark"] .sidebar-menu-link {
+  background: rgba(255, 255, 255, .02) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+  color: var(--sd-text-soft) !important;
+}
+[data-theme="dark"] .sidebar-menu-link:hover {
+  background: rgba(6, 182, 212, .1) !important;
+  border-color: rgba(6, 182, 212, .25) !important;
+  color: #5eead4 !important;
+}
+[data-theme="dark"] .sidebar-logout-btn {
+  background: rgba(239, 68, 68, .08) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(239, 68, 68, .2) !important;
+}
+[data-theme="dark"] .sidebar-logout-btn:hover {
+  background: rgba(239, 68, 68, .15) !important;
+}
+[data-theme="dark"] .notification-item {
+  background: rgba(255, 255, 255, .02) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .notification-item-title { color: var(--sd-text) !important; }
+[data-theme="dark"] .notification-item-text  { color: var(--sd-text-muted) !important; }
+
+/* ───────────────────────────────────────────────────────────────
+   PAGE HEADERS (used in inventario, configuracion, finanzas…)
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .page-header h1,
+[data-theme="dark"] .header-content h1 {
+  /* Use background-image (not shorthand) so background-clip:text is preserved. */
+  background-image: linear-gradient(120deg, #5eead4 0%, #14b8a6 45%, #06b6d4 100%) !important;
+  background-color: transparent !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+}
+[data-theme="dark"] .page-header p,
+[data-theme="dark"] .header-content p,
+[data-theme="dark"] #headerSubtitle {
+  color: var(--sd-text-muted) !important;
+}
+[data-theme="dark"] .pro-badge {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .14), rgba(20, 184, 166, .1)) !important;
+  border-color: rgba(6, 182, 212, .3) !important;
+  color: #5eead4 !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   GLASSMORPHIC CARDS (configuracion, inventario, finanzas, plan)
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .glass-card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .data-card,
+[data-theme="dark"] .toolbar,
+[data-theme="dark"] .filters-panel,
+[data-theme="dark"] .inv-card,
+[data-theme="dark"] .form-section,
+[data-theme="dark"] .preview-card,
+[data-theme="dark"] .session-item,
+[data-theme="dark"] .switch-row,
+[data-theme="dark"] .check-row {
+  background: var(--sd-surface) !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow: var(--sd-shadow), var(--sd-inset-highlight) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  color: var(--sd-text) !important;
+}
+
+/* Section heads, titles, descriptions inside cards */
+[data-theme="dark"] .card-head { border-bottom-color: var(--sd-border-soft) !important; }
+[data-theme="dark"] .card-head h2 { color: var(--sd-text) !important; }
+[data-theme="dark"] .card-head p { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .card-head .icon-box {
+  box-shadow: 0 6px 18px rgba(6, 182, 212, .35) !important;
+}
+
+/* Stat cards */
+[data-theme="dark"] .stat-card .stat-label { color: var(--sd-text-faint) !important; }
+[data-theme="dark"] .stat-card .stat-value { color: var(--sd-text) !important; }
+[data-theme="dark"] .stat-card .stat-meta  { color: var(--sd-text-muted) !important; }
+
+/* ───────────────────────────────────────────────────────────────
+   FORM CONTROLS (inputs, textareas, selects) — premium dark
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .field input,
+[data-theme="dark"] .field select,
+[data-theme="dark"] .field textarea,
+[data-theme="dark"] .filter-item input,
+[data-theme="dark"] .filter-item select,
+[data-theme="dark"] .search-input,
+[data-theme="dark"] .url-combo,
+[data-theme="dark"] .tag-chips {
+  /* IMPORTANT: use background-color, NOT the `background` shorthand —
+     shorthand wipes background-image/repeat/position/size, which would
+     destroy the custom chevron on .field select. */
+  background-color: var(--sd-input-bg) !important;
+  border-color: var(--sd-input-border) !important;
+  color: var(--sd-text) !important;
+}
+[data-theme="dark"] .field input::placeholder,
+[data-theme="dark"] .field textarea::placeholder,
+[data-theme="dark"] .filter-item input::placeholder,
+[data-theme="dark"] .search-input::placeholder,
+[data-theme="dark"] .tag-input::placeholder {
+  color: #475569 !important;
+}
+[data-theme="dark"] .field input:focus,
+[data-theme="dark"] .field select:focus,
+[data-theme="dark"] .field textarea:focus,
+[data-theme="dark"] .filter-item input:focus,
+[data-theme="dark"] .filter-item select:focus,
+[data-theme="dark"] .search-input:focus {
+  border-color: #14b8a6 !important;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, .2) !important;
+  background-color: rgba(15, 23, 42, .75) !important;
+}
+[data-theme="dark"] .url-combo:focus-within,
+[data-theme="dark"] .tag-chips:focus-within {
+  border-color: #14b8a6 !important;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, .2) !important;
+}
+[data-theme="dark"] .field label,
+[data-theme="dark"] .filter-item label {
+  color: var(--sd-text-soft) !important;
+}
+[data-theme="dark"] .field .hint { color: var(--sd-text-faint) !important; }
+[data-theme="dark"] .field .warn { color: #fbbf24 !important; }
+
+/* ── Select chevron: cyan SVG visible on dark bg ──
+   IMPORTANT: re-declare background-repeat / position / size with !important.
+   Other rules in this file use the `background:` shorthand on bare `select`,
+   which would otherwise reset repeat→repeat and size→auto, causing the
+   chevron to tile across the entire control. */
+[data-theme="dark"] .field select,
+[data-theme="dark"] select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2314b8a6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right .9rem center !important;
+  background-size: 14px 14px !important;
+  background-color: var(--sd-input-bg) !important;
+}
+[data-theme="dark"] .field select:hover:not(:disabled) {
+  background-color: rgba(15, 23, 42, .7) !important;
+  border-color: rgba(20, 184, 166, .4) !important;
+}
+[data-theme="dark"] .field select option {
+  background: #1a2234 !important;
+  color: var(--sd-text) !important;
+}
+[data-theme="dark"] .field select option:disabled { color: #475569 !important; }
+[data-theme="dark"] .field-readonly {
+  background: rgba(15, 23, 42, .45) !important;
+  border-color: var(--sd-border-soft) !important;
+  color: var(--sd-text-muted) !important;
+}
+
+/* URL combo prefix */
+[data-theme="dark"] .url-combo .prefix {
+  background: rgba(255, 255, 255, .03) !important;
+  border-right-color: var(--sd-border) !important;
+  color: var(--sd-text-muted) !important;
+}
+[data-theme="dark"] .url-combo input { background: transparent !important; }
+[data-theme="dark"] .url-combo .suffix-btn {
+  border-left-color: var(--sd-border) !important;
+  color: #5eead4 !important;
+}
+[data-theme="dark"] .url-combo .suffix-btn:hover { background: rgba(6, 182, 212, .1) !important; }
+
+/* ── Color input ── */
+[data-theme="dark"] input[type="color"] {
+  background: var(--sd-input-bg) !important;
+  border-color: var(--sd-input-border) !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   BUTTONS
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .btn-primary {
+  background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%) !important;
+  color: #052e36 !important;
+  box-shadow: 0 6px 18px rgba(6, 182, 212, .35) !important;
+  font-weight: 700;
+}
+[data-theme="dark"] .btn-primary:hover {
+  box-shadow: 0 10px 24px rgba(6, 182, 212, .5) !important;
+}
+[data-theme="dark"] .btn-secondary {
+  background: rgba(6, 182, 212, .08) !important;
+  color: #5eead4 !important;
+  border-color: rgba(6, 182, 212, .3) !important;
+}
+[data-theme="dark"] .btn-secondary:hover {
+  background: rgba(6, 182, 212, .14) !important;
+  border-color: rgba(6, 182, 212, .5) !important;
+}
+[data-theme="dark"] .btn-ghost {
+  background: transparent !important;
+  color: var(--sd-text-soft) !important;
+  border-color: var(--sd-border) !important;
+}
+[data-theme="dark"] .btn-ghost:hover {
+  background: rgba(255, 255, 255, .04) !important;
+  border-color: var(--sd-border-strong) !important;
+  color: var(--sd-text) !important;
+}
+[data-theme="dark"] .btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #f87171 100%) !important;
+  box-shadow: 0 6px 18px rgba(239, 68, 68, .35) !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   TABS NAV (configuracion)
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .tabs-nav {
+  background: var(--sd-surface) !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow: var(--sd-shadow), var(--sd-inset-highlight) !important;
+}
+[data-theme="dark"] .tab-btn { color: var(--sd-text-soft) !important; }
+[data-theme="dark"] .tab-btn:hover {
+  background: rgba(6, 182, 212, .08) !important;
+  color: #5eead4 !important;
+}
+[data-theme="dark"] .tab-btn.active {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .2), rgba(20, 184, 166, .14)) !important;
+  color: #5eead4 !important;
+  box-shadow: inset 0 0 0 1px rgba(6, 182, 212, .35), 0 4px 14px rgba(6, 182, 212, .15);
+}
+[data-theme="dark"] .tab-btn .tab-icon {
+  background: rgba(6, 182, 212, .12) !important;
+  color: #5eead4 !important;
+}
+[data-theme="dark"] .tab-btn.active .tab-icon {
+  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(6, 182, 212, .4) !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   PROFILE HERO (configuracion)
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .profile-hero {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .08) 0%, rgba(14, 165, 233, .04) 100%) !important;
+  border-color: rgba(6, 182, 212, .18) !important;
+}
+[data-theme="dark"] .avatar-wrap {
+  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  box-shadow: 0 12px 32px rgba(6, 182, 212, .35) !important;
+}
+[data-theme="dark"] .avatar {
+  background: #0d1426 !important;
+  color: #5eead4 !important;
+}
+[data-theme="dark"] .avatar-upload-btn {
+  background: #161e2e !important;
+  color: #5eead4 !important;
+  border-color: #1f2937 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .4);
+}
+[data-theme="dark"] .profile-hero-info .name { color: var(--sd-text) !important; }
+[data-theme="dark"] .profile-hero-info .specialty { color: #5eead4 !important; }
+[data-theme="dark"] .profile-hero-info .meta { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .verified-badge {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .18), rgba(20, 184, 166, .12)) !important;
+  color: #5eead4 !important;
+  border-color: rgba(6, 182, 212, .3) !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   SWITCHES + CHECK ROWS
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .switch-row:hover {
+  background: rgba(6, 182, 212, .04) !important;
+  border-color: rgba(6, 182, 212, .25) !important;
+}
+[data-theme="dark"] .switch-row .switch-title { color: var(--sd-text) !important; }
+[data-theme="dark"] .switch-row .switch-desc  { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .toggle .slider {
+  background: #2a3548 !important;
+}
+[data-theme="dark"] .toggle .slider::before {
+  background: #cbd5e1 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .5) !important;
+}
+[data-theme="dark"] .toggle input:checked + .slider {
+  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  box-shadow: 0 0 12px rgba(6, 182, 212, .4) !important;
+}
+[data-theme="dark"] .toggle input:checked + .slider::before {
+  background: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .check-row .check-title { color: var(--sd-text) !important; }
+[data-theme="dark"] .check-row .check-desc  { color: var(--sd-text-muted) !important; }
+
+/* ───────────────────────────────────────────────────────────────
+   TAG CHIPS + WEEKDAY PICKER
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .tag-chip {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .18), rgba(20, 184, 166, .12)) !important;
+  color: #5eead4 !important;
+}
+[data-theme="dark"] .tag-chip button { color: #5eead4 !important; }
+
+[data-theme="dark"] .weekday-btn {
+  background: var(--sd-input-bg) !important;
+  border-color: var(--sd-input-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+[data-theme="dark"] .weekday-btn:hover {
+  border-color: rgba(6, 182, 212, .5) !important;
+  color: #5eead4 !important;
+}
+[data-theme="dark"] .weekday-btn.active {
+  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: white !important;
+  box-shadow: 0 6px 14px rgba(6, 182, 212, .35) !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   PREVIEW CARD (public profile preview)
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .preview-card {
+  background: linear-gradient(135deg, var(--sd-surface) 0%, rgba(34, 44, 64, .65) 100%) !important;
+  border-color: rgba(6, 182, 212, .22) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .4), var(--sd-inset-highlight) !important;
+}
+[data-theme="dark"] .preview-card::before { color: #64748b !important; }
+[data-theme="dark"] .preview-card .pv-name { color: var(--sd-text) !important; }
+[data-theme="dark"] .preview-card .pv-specialty { color: #5eead4 !important; }
+[data-theme="dark"] .preview-card .pv-info-row { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .preview-card .pv-bio { color: var(--sd-text-soft) !important; }
+[data-theme="dark"] .preview-card .pv-tag {
+  background: rgba(6, 182, 212, .15) !important;
+  color: #5eead4 !important;
+}
+[data-theme="dark"] .preview-card .pv-footer {
+  border-top-color: rgba(6, 182, 212, .18) !important;
+  color: var(--sd-text-faint) !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   SESSIONS (security tab)
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .session-item .session-title { color: var(--sd-text) !important; }
+[data-theme="dark"] .session-item .session-meta  { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .session-item .session-icon {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(20, 184, 166, .1)) !important;
+  color: #5eead4 !important;
+}
+[data-theme="dark"] .session-current {
+  background: rgba(16, 185, 129, .18) !important;
+  color: #6ee7b7 !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   SAVE BAR (sticky)
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .save-bar {
+  background: var(--sd-surface-2) !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, .5), var(--sd-inset-highlight) !important;
+}
+[data-theme="dark"] .save-bar .save-text strong { color: var(--sd-text) !important; }
+[data-theme="dark"] .save-bar .save-text { color: var(--sd-text-soft) !important; }
+
+/* ───────────────────────────────────────────────────────────────
+   TOASTS
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .toast {
+  background: var(--sd-surface-2) !important;
+  color: var(--sd-text) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, .55), var(--sd-inset-highlight) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+[data-theme="dark"] .toast .toast-text { color: var(--sd-text) !important; }
+[data-theme="dark"] .toast.success .toast-icon { color: #34d399 !important; }
+[data-theme="dark"] .toast.error   .toast-icon { color: #fca5a5 !important; }
+[data-theme="dark"] .toast.info    .toast-icon { color: #5eead4 !important; }
+
+/* ───────────────────────────────────────────────────────────────
+   BADGES (status pills used in inventario & others)
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .badge-disponible { background: rgba(16, 185, 129, .15) !important; color: #6ee7b7 !important; }
+[data-theme="dark"] .badge-bajo_stock  { background: rgba(245, 158, 11, .15) !important; color: #fcd34d !important; }
+[data-theme="dark"] .badge-agotado     { background: rgba(239, 68, 68, .15)  !important; color: #fca5a5 !important; }
+[data-theme="dark"] .badge-por_vencer  { background: rgba(249, 115, 22, .15) !important; color: #fdba74 !important; }
+[data-theme="dark"] .badge-vencido     { background: rgba(220, 38, 38, .2)   !important; color: #fca5a5 !important; }
+[data-theme="dark"] .badge-vigente     { background: rgba(6, 182, 212, .15)  !important; color: #5eead4 !important; }
+[data-theme="dark"] .badge-archivado   { background: rgba(148, 163, 184, .15) !important; color: #cbd5e1 !important; }
+
+/* ───────────────────────────────────────────────────────────────
+   TABLES (inventario, citas, patients, etc.)
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .data-card { overflow: hidden; }
+[data-theme="dark"] table.inv-table,
+[data-theme="dark"] main table {
+  color: var(--sd-text) !important;
+}
+[data-theme="dark"] .inv-table thead th,
+[data-theme="dark"] main th {
+  background: rgba(15, 23, 42, .55) !important;
+  color: var(--sd-text-muted) !important;
+  border-bottom-color: var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .inv-table tbody td,
+[data-theme="dark"] main td {
+  color: var(--sd-text-soft) !important;
+  border-bottom-color: var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .inv-table tbody tr:hover {
+  background: rgba(6, 182, 212, .06) !important;
+}
+[data-theme="dark"] .inv-table tbody tr:hover td {
+  background: transparent !important;
+}
+[data-theme="dark"] .item-name { color: var(--sd-text) !important; }
+[data-theme="dark"] .item-sku  { color: var(--sd-text-faint) !important; }
+[data-theme="dark"] .item-thumb {
+  background: rgba(6, 182, 212, .1) !important;
+  border-color: rgba(6, 182, 212, .15) !important;
+}
+[data-theme="dark"] .stock-amount { color: var(--sd-text) !important; }
+[data-theme="dark"] .stock-amount .unit { color: var(--sd-text-faint) !important; }
+
+/* Toolbar (search + filter) */
+[data-theme="dark"] .search-wrap .search-icon { color: var(--sd-text-faint) !important; }
+[data-theme="dark"] .view-toggle {
+  background: rgba(15, 23, 42, .55) !important;
+}
+[data-theme="dark"] .view-toggle button { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .view-toggle button.active {
+  background: var(--sd-surface-solid) !important;
+  color: #5eead4 !important;
+}
+
+[data-theme="dark"] .icon-btn {
+  background: rgba(15, 23, 42, .55) !important;
+  border-color: var(--sd-border-soft) !important;
+  color: var(--sd-text-soft) !important;
+}
+[data-theme="dark"] .icon-btn:hover {
+  background: rgba(6, 182, 212, .12) !important;
+  border-color: rgba(6, 182, 212, .3) !important;
+  color: #5eead4 !important;
+}
+[data-theme="dark"] .icon-btn.danger:hover {
+  background: rgba(239, 68, 68, .14) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, .3) !important;
+}
+
+[data-theme="dark"] .filter-pill {
+  background: rgba(6, 182, 212, .15) !important;
+  color: #5eead4 !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   DRAWER / MODAL
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .drawer {
+  background: linear-gradient(180deg, #0c1322 0%, #0a0f1c 100%) !important;
+  color: var(--sd-text) !important;
+}
+[data-theme="dark"] .drawer-header {
+  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: #052e36 !important;
+}
+[data-theme="dark"] .drawer-body { background: transparent !important; }
+[data-theme="dark"] .drawer-footer {
+  background: rgba(0, 0, 0, .25) !important;
+  border-top-color: var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .section-head { color: var(--sd-text) !important; }
+[data-theme="dark"] .section-head:hover { background: rgba(6, 182, 212, .06) !important; }
+[data-theme="dark"] .section-head .title { color: var(--sd-text) !important; }
+[data-theme="dark"] .section-head .chev { color: var(--sd-text-faint) !important; }
+[data-theme="dark"] .form-section {
+  background: rgba(15, 23, 42, .35) !important;
+}
+
+[data-theme="dark"] .modal {
+  background: #161e2e !important;
+  color: var(--sd-text) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, .65) !important;
+}
+[data-theme="dark"] .modal-head {
+  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: #052e36 !important;
+}
+[data-theme="dark"] .modal-body { color: var(--sd-text-soft) !important; }
+[data-theme="dark"] .modal-foot {
+  background: rgba(0, 0, 0, .25) !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   EMPTY STATES, SKELETONS
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .empty-state { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .empty-state h3 { color: var(--sd-text) !important; }
+[data-theme="dark"] .empty-state .empty-icon {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(20, 184, 166, .12)) !important;
+  color: #5eead4 !important;
+}
+
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg, #161e2e 0px, #1f2a3f 200px, #161e2e 400px) !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   PAGE LOADER (defined in layout.css)
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] .page-loader {
+  background: rgba(10, 14, 26, .92) !important;
+}
+[data-theme="dark"] .page-loader-text { color: var(--sd-text-muted) !important; }
+
+/* ───────────────────────────────────────────────────────────────
+   GLOBAL OVERRIDES — generic style.css elements (dashboard, etc.)
+   ─────────────────────────────────────────────────────────────── */
+[data-theme="dark"] section {
+  background: var(--sd-surface) !important;
+  color: var(--sd-text) !important;
+  border: 1px solid var(--sd-border-soft);
+  box-shadow: var(--sd-shadow), var(--sd-inset-highlight) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+[data-theme="dark"] section h2,
+[data-theme="dark"] section h3,
+[data-theme="dark"] section h4 { color: var(--sd-text) !important; }
+[data-theme="dark"] h2 { color: var(--sd-text) !important; }
+[data-theme="dark"] h3 { color: var(--sd-text) !important; }
+[data-theme="dark"] h4 { color: var(--sd-text-soft) !important; }
+
+[data-theme="dark"] .stat-card strong { color: #5eead4 !important; }
+[data-theme="dark"] .nav-card {
+  background: var(--sd-surface) !important;
+  color: var(--sd-text) !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow: var(--sd-shadow), var(--sd-inset-highlight) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+[data-theme="dark"] .nav-card:hover {
+  border-color: rgba(6, 182, 212, .4) !important;
+  box-shadow: 0 12px 30px rgba(6, 182, 212, .2) !important;
+}
+
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"],
+[data-theme="dark"] input[type="tel"],
+[data-theme="dark"] input[type="url"],
+[data-theme="dark"] input[type="search"],
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  /* Use background-color instead of `background:` shorthand to avoid
+     wiping background-image/repeat/position/size on custom-chevron selects. */
+  background-color: var(--sd-input-bg);
+  border-color: var(--sd-input-border);
+  color: var(--sd-text);
+}
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder { color: #475569; }
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus {
+  outline-color: #14b8a6 !important;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, .2);
+}
+
+/* Plain anchors that look like buttons (style.css) */
+[data-theme="dark"] .back-link { color: #5eead4 !important; }
+[data-theme="dark"] .patient-link { color: #5eead4 !important; }
+[data-theme="dark"] .divider { border-top-color: var(--sd-border-soft) !important; }
+[data-theme="dark"] .consult-date { color: var(--sd-text-faint) !important; }
+[data-theme="dark"] .consult-field span { color: var(--sd-text-soft) !important; }
+[data-theme="dark"] .empty { color: var(--sd-text-faint) !important; }
+[data-theme="dark"] .msg.ok  { color: #34d399 !important; }
+[data-theme="dark"] .msg.err { color: #fca5a5 !important; }
+
+/* Tags from style.css */
+[data-theme="dark"] .tag-doctor { background: rgba(6, 182, 212, .2) !important; color: #5eead4 !important; }
+[data-theme="dark"] .tag-admin  { background: rgba(167, 139, 250, .2) !important; color: #c4b5fd !important; }
+
+/* Medical alerts */
+[data-theme="dark"] .alert-allergy    { background: rgba(239, 68, 68, .12) !important; color: #fca5a5 !important; border-left-color: #ef4444 !important; }
+[data-theme="dark"] .alert-medication { background: rgba(245, 158, 11, .1)  !important; color: #fcd34d !important; border-left-color: #f59e0b !important; }
+[data-theme="dark"] .alert-condition  { background: rgba(59, 130, 246, .1)  !important; color: #93c5fd !important; border-left-color: #3b82f6 !important; }
+
+/* Nav (top bar from style.css — used in some pages) */
+[data-theme="dark"] body > nav {
+  background: #0c1322 !important;
+  border-bottom: 1px solid var(--sd-border-soft);
+}
+
+/* ── Scrollbar (WebKit) ── */
+[data-theme="dark"] ::-webkit-scrollbar { width: 10px; height: 10px; }
+[data-theme="dark"] ::-webkit-scrollbar-track { background: #0a0e1a; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #2a3548; border-radius: 8px; border: 2px solid #0a0e1a;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #3a4860; }
+
+/* Firefox */
+[data-theme="dark"] * { scrollbar-color: #2a3548 #0a0e1a; }
+
+/* ── Selection ── */
+[data-theme="dark"] ::selection {
+  background: rgba(6, 182, 212, .35);
+  color: #f1f5f9;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SHARED DESIGN-TOKEN OVERRIDES
+   ─────────────────────────────────────────────────────────────────
+   Several pages (recepcion-inicio, citas, plan, agendar, agendar-online)
+   declare their own local design system via :root { --ink-*, --glass-*,
+   --bg, --surface, --line, … }. We re-map those tokens under dark theme
+   so the entire UI flips without touching the pages themselves.
+   ═══════════════════════════════════════════════════════════════════ */
+html[data-theme="dark"] {
+  /* Page chrome */
+  --bg: #0a0e1a;
+  --surface: #161e2e;
+  --surface-2: #1a2234;
+  --line: rgba(255, 255, 255, .08);
+
+  /* Ink palette → flipped (low number = light text in dark mode) */
+  --ink-900: #f1f5f9;
+  --ink-800: #e2e8f0;
+  --ink-700: #cbd5e1;
+  --ink-600: #94a3b8;
+  --ink-500: #94a3b8;
+  --ink-400: #64748b;
+  --ink-300: #475569;
+  --ink-200: rgba(255, 255, 255, .1);
+  --ink-100: rgba(255, 255, 255, .06);
+  --ink-50:  rgba(255, 255, 255, .04);
+
+  /* Glassmorphism tokens (used in recepcion-inicio glass cards) */
+  --glass-bg: rgba(26, 34, 52, .65);
+  --glass-bg-strong: rgba(26, 34, 52, .8);
+  --glass-border: rgba(255, 255, 255, .08);
+  --glass-line: rgba(6, 182, 212, .14);
+  --glass-blur: saturate(140%) blur(20px);
+
+  /* Shadows — darker, more pronounced on dark bg */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, .35);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, .4);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, .45);
+  --shadow-lg: 0 18px 40px rgba(0, 0, 0, .55);
+
+  /* Status accents — boost luminosity for dark backgrounds */
+  --teal-50:  #062e34; --teal-100: #083c44; --teal-200: rgba(6, 182, 212, .18);
+  --teal-300: #14b8a6; --teal-400: #14b8a6; --teal-500: #06b6d4;
+  --teal-600: #0891b2; --teal-700: #5eead4; --teal-800: #a5f3fc;
+  --teal-900: #cffafe;
+}
+
+/* ── Hardcoded `background: white` overrides (recepcion-inicio + others) ── */
+html[data-theme="dark"] .search,
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .seg,
+html[data-theme="dark"] .salas-empty,
+html[data-theme="dark"] .panel-head .tabs button.on,
+html[data-theme="dark"] .agenda-node,
+html[data-theme="dark"] .modal,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .agenda,
+html[data-theme="dark"] .activity,
+html[data-theme="dark"] .summary,
+html[data-theme="dark"] .pagos,
+html[data-theme="dark"] .pago-bar,
+html[data-theme="dark"] .kpi,
+html[data-theme="dark"] .sala-card,
+html[data-theme="dark"] .queue-card,
+html[data-theme="dark"] .staff-item,
+html[data-theme="dark"] .activity-item {
+  background-color: var(--glass-bg, rgba(26, 34, 52, .65)) !important;
+  background-image: none;
+  border-color: var(--glass-border, rgba(255, 255, 255, .08)) !important;
+  color: var(--ink-800, #e2e8f0);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+
+/* Stronger surfaces for "main" containers */
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .agenda,
+html[data-theme="dark"] .summary,
+html[data-theme="dark"] .pagos {
+  background-color: var(--glass-bg-strong) !important;
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+}
+
+/* Greet header + topbar */
+html[data-theme="dark"] .greet h1,
+html[data-theme="dark"] .greet .sun {
+  /* Page title may use gradient text — preserve clip */
+  background-image: linear-gradient(120deg, #5eead4 0%, #14b8a6 45%, #06b6d4 100%);
+  background-color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+html[data-theme="dark"] .greet .sub { color: var(--ink-500) !important; }
+html[data-theme="dark"] .live-dot {
+  background: rgba(6, 182, 212, .18) !important;
+  color: #5eead4 !important;
+}
+
+/* Search input */
+html[data-theme="dark"] .search input {
+  color: var(--ink-800) !important;
+  background: transparent !important;
+}
+html[data-theme="dark"] .search input::placeholder { color: #64748b !important; }
+html[data-theme="dark"] .search .ss { color: #64748b !important; }
+
+/* Clock pill (top-right time display) — sober tinted glass for max legibility */
+html[data-theme="dark"] .clock-pill {
+  background-image: none !important;
+  background-color: rgba(6, 182, 212, .12) !important;
+  color: #5eead4 !important;
+  border: 1px solid rgba(6, 182, 212, .3) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .05) !important;
+}
+html[data-theme="dark"] .clock-pill .time,
+html[data-theme="dark"] .clock-pill .date {
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .clock-pill .time .ss {
+  color: #5eead4 !important;
+  opacity: .7;
+}
+
+/* Icon button (notification bell) */
+html[data-theme="dark"] .icon-btn {
+  background: var(--surface) !important;
+  border-color: var(--line) !important;
+  color: var(--ink-700) !important;
+}
+html[data-theme="dark"] .icon-btn:hover {
+  background: rgba(6, 182, 212, .12) !important;
+  color: #5eead4 !important;
+}
+
+/* KPI cards (Atendidos hoy / En espera / En consulta / Espera promedio) */
+html[data-theme="dark"] .kpi {
+  background: var(--glass-bg) !important;
+  border-color: var(--glass-border) !important;
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+}
+html[data-theme="dark"] .kpi-label { color: var(--ink-500) !important; }
+html[data-theme="dark"] .kpi-value { color: var(--ink-900) !important; }
+html[data-theme="dark"] .kpi-foot  { color: var(--ink-500) !important; }
+html[data-theme="dark"] .kpi-unit  { color: var(--ink-500) !important; }
+html[data-theme="dark"] .kpi-icon {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(20, 184, 166, .12)) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .kpi-delta {
+  background: rgba(6, 182, 212, .12) !important;
+  color: #5eead4 !important;
+}
+
+/* Section heads (Salas de consulta / Cola de espera / Agenda de hoy) */
+html[data-theme="dark"] .section-head {
+  color: var(--ink-900) !important;
+}
+html[data-theme="dark"] .panel-head {
+  color: var(--ink-900) !important;
+  border-bottom-color: var(--line) !important;
+}
+
+/* Segmented control (Salas / Listado) */
+html[data-theme="dark"] .seg {
+  background: rgba(15, 23, 42, .55) !important;
+  border-color: var(--line) !important;
+}
+html[data-theme="dark"] .seg button {
+  color: var(--ink-500) !important;
+  background: transparent;
+}
+html[data-theme="dark"] .seg button.on,
+html[data-theme="dark"] .panel-head .tabs button.on {
+  background: var(--surface) !important;
+  color: #5eead4 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .35) !important;
+}
+html[data-theme="dark"] .tabs button {
+  color: var(--ink-500);
+}
+
+/* Sala cards (Sala 1 / Sala 2 / ...) */
+html[data-theme="dark"] .salas-grid > *,
+html[data-theme="dark"] .sala-card {
+  background: var(--glass-bg) !important;
+  border-color: var(--glass-border) !important;
+  color: var(--ink-800) !important;
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+}
+html[data-theme="dark"] .sala-name,
+html[data-theme="dark"] .sala-patient { color: var(--ink-900) !important; }
+html[data-theme="dark"] .sala-doc,
+html[data-theme="dark"] .sala-meta { color: var(--ink-500) !important; }
+html[data-theme="dark"] .sala-icon {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(20, 184, 166, .12)) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .sala-progress {
+  background: rgba(255, 255, 255, .08) !important;
+}
+html[data-theme="dark"] .progress-bar {
+  background: rgba(255, 255, 255, .08) !important;
+}
+html[data-theme="dark"] .progress-fill {
+  background: linear-gradient(90deg, #06b6d4, #14b8a6) !important;
+}
+
+/* Status pills (EXCEDIDA / LIBRE / CONSULTA / En curso) */
+html[data-theme="dark"] .status-pill,
+html[data-theme="dark"] .priority-tag {
+  background: rgba(6, 182, 212, .14) !important;
+  color: #5eead4 !important;
+  border-color: rgba(6, 182, 212, .25) !important;
+}
+html[data-theme="dark"] .status-pill.free,
+html[data-theme="dark"] .status-pill.clean {
+  background: rgba(16, 185, 129, .15) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(16, 185, 129, .3) !important;
+}
+html[data-theme="dark"] .priority-tag.urgent {
+  background: rgba(239, 68, 68, .15) !important;
+  color: #fca5a5 !important;
+}
+html[data-theme="dark"] .priority-tag.priority,
+html[data-theme="dark"] .priority-tag.first {
+  background: rgba(245, 158, 11, .15) !important;
+  color: #fcd34d !important;
+}
+
+/* Sala buttons (Avisar / Finalizar / Asignar paciente) */
+html[data-theme="dark"] .sala-btn,
+html[data-theme="dark"] .assign-btn,
+html[data-theme="dark"] .add-btn,
+html[data-theme="dark"] .qa-btn,
+html[data-theme="dark"] .primary-btn {
+  font-weight: 600;
+}
+html[data-theme="dark"] .sala-btn.teal,
+html[data-theme="dark"] .primary-btn {
+  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: #052e36 !important;
+  border-color: transparent !important;
+  box-shadow: 0 6px 14px rgba(6, 182, 212, .3) !important;
+}
+html[data-theme="dark"] .sala-btn:not(.teal),
+html[data-theme="dark"] .assign-btn {
+  background: rgba(6, 182, 212, .08) !important;
+  color: #5eead4 !important;
+  border: 1.5px solid rgba(6, 182, 212, .25) !important;
+}
+html[data-theme="dark"] .sala-btn:not(.teal):hover,
+html[data-theme="dark"] .assign-btn:hover {
+  background: rgba(6, 182, 212, .15) !important;
+  border-color: rgba(6, 182, 212, .45) !important;
+}
+html[data-theme="dark"] .add-btn {
+  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: #052e36 !important;
+  box-shadow: 0 6px 14px rgba(6, 182, 212, .3) !important;
+}
+
+/* Empty states for sala / queue / agenda */
+html[data-theme="dark"] .salas-empty,
+html[data-theme="dark"] .sala-empty,
+html[data-theme="dark"] .queue-empty,
+html[data-theme="dark"] .agenda-empty {
+  background: rgba(255, 255, 255, .03) !important;
+  border: 1px dashed var(--line) !important;
+  color: var(--ink-500) !important;
+}
+
+/* Cola de espera + agenda items */
+html[data-theme="dark"] .queue-item,
+html[data-theme="dark"] .agenda-item {
+  background: rgba(255, 255, 255, .02) !important;
+  border-color: var(--glass-border) !important;
+  color: var(--ink-800);
+}
+html[data-theme="dark"] .agenda-name,
+html[data-theme="dark"] .queue-name { color: var(--ink-900) !important; }
+html[data-theme="dark"] .agenda-meta,
+html[data-theme="dark"] .queue-doc,
+html[data-theme="dark"] .agenda-time { color: var(--ink-500) !important; }
+html[data-theme="dark"] .agenda-tag {
+  background: rgba(6, 182, 212, .14) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .agenda-rail {
+  background: rgba(255, 255, 255, .08) !important;
+}
+html[data-theme="dark"] .agenda-node {
+  background: var(--surface) !important;
+  border-color: rgba(6, 182, 212, .35) !important;
+}
+
+/* Activity / staff lists */
+html[data-theme="dark"] .activity-item,
+html[data-theme="dark"] .staff-item {
+  background: rgba(255, 255, 255, .02) !important;
+  border-color: var(--glass-border) !important;
+}
+html[data-theme="dark"] .act-text,
+html[data-theme="dark"] .staff-stat { color: var(--ink-800) !important; }
+html[data-theme="dark"] .act-time,
+html[data-theme="dark"] .staff-meta { color: var(--ink-500) !important; }
+html[data-theme="dark"] .staff-avatar {
+  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: white !important;
+}
+
+/* Modals + overlays */
+html[data-theme="dark"] .overlay {
+  background: rgba(10, 14, 26, .75) !important;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+html[data-theme="dark"] .modal {
+  background: var(--surface) !important;
+  border: 1px solid var(--line) !important;
+  color: var(--ink-800) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, .65) !important;
+}
+html[data-theme="dark"] .modal-title { color: var(--ink-900) !important; }
+html[data-theme="dark"] .modal-item {
+  background: rgba(255, 255, 255, .03) !important;
+  border-color: var(--line) !important;
+  color: var(--ink-800) !important;
+}
+html[data-theme="dark"] .modal-item:hover {
+  background: rgba(6, 182, 212, .08) !important;
+  border-color: rgba(6, 182, 212, .3) !important;
+}
+
+/* Pagos panel (recepcion-pagos) */
+html[data-theme="dark"] .pago-bar {
+  background: var(--glass-bg-strong) !important;
+}
+html[data-theme="dark"] .pago-row {
+  background: rgba(255, 255, 255, .02) !important;
+  border-color: var(--line) !important;
+}
+html[data-theme="dark"] .pago-headline { color: var(--ink-900) !important; }
+html[data-theme="dark"] .pago-sub { color: var(--ink-500) !important; }
+html[data-theme="dark"] .pago-legend { color: var(--ink-500) !important; }
+html[data-theme="dark"] .amount,
+html[data-theme="dark"] .count,
+html[data-theme="dark"] .num { color: var(--ink-900) !important; }
+html[data-theme="dark"] .label,
+html[data-theme="dark"] .lbl,
+html[data-theme="dark"] .meta,
+html[data-theme="dark"] .date,
+html[data-theme="dark"] .time,
+html[data-theme="dark"] .doc,
+html[data-theme="dark"] .name,
+html[data-theme="dark"] .spec,
+html[data-theme="dark"] .sub,
+html[data-theme="dark"] .summary { color: inherit; }
+html[data-theme="dark"] .name { color: var(--ink-900) !important; }
+html[data-theme="dark"] .meta,
+html[data-theme="dark"] .doc,
+html[data-theme="dark"] .spec,
+html[data-theme="dark"] .sub,
+html[data-theme="dark"] .lbl,
+html[data-theme="dark"] .date,
+html[data-theme="dark"] .time { color: var(--ink-500) !important; }
+
+/* Loading overlay + spinner */
+html[data-theme="dark"] .loading-overlay {
+  background: rgba(10, 14, 26, .85) !important;
+}
+html[data-theme="dark"] .spinner {
+  border-color: rgba(6, 182, 212, .15) !important;
+  border-top-color: #14b8a6 !important;
+}
+
+/* Top action bar */
+html[data-theme="dark"] .top-actions { color: var(--ink-700); }
+html[data-theme="dark"] .bottom-row { color: var(--ink-500); }
+html[data-theme="dark"] .two-col { color: var(--ink-800); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   RECEPCION-CITAS + RECEPCION-PAGOS overrides
+   ─────────────────────────────────────────────────────────────────
+   These pages declare all colors via hardcoded hex values (no CSS vars),
+   so we cover their specific class names one by one.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Header */
+html[data-theme="dark"] .header h1 {
+  background-image: linear-gradient(135deg, #5eead4, #14b8a6) !important;
+  background-color: transparent !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+}
+html[data-theme="dark"] .header p,
+html[data-theme="dark"] .loading-text { color: var(--sd-text-muted) !important; }
+
+/* Date pill */
+html[data-theme="dark"] .date-pill {
+  background-color: rgba(6, 182, 212, .12) !important;
+  background-image: none !important;
+  color: #5eead4 !important;
+  border: 1px solid rgba(6, 182, 212, .25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .3) !important;
+}
+
+/* Filter pills (Todas / Pendientes / En espera / En consulta / Atendidas) */
+html[data-theme="dark"] .filter-btn {
+  background-color: rgba(255, 255, 255, .04) !important;
+  background-image: none !important;
+  border-color: var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .filter-btn:hover {
+  border-color: rgba(6, 182, 212, .45) !important;
+  color: #5eead4 !important;
+  background-color: rgba(6, 182, 212, .08) !important;
+}
+html[data-theme="dark"] .filter-btn.active {
+  background-image: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background-color: transparent !important;
+  color: #052e36 !important;
+  border-color: transparent !important;
+  box-shadow: 0 6px 14px rgba(6, 182, 212, .3) !important;
+  font-weight: 700;
+}
+
+/* Appointment card */
+html[data-theme="dark"] .appt-card {
+  background-color: var(--sd-surface) !important;
+  background-image: none !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow: var(--sd-shadow), var(--sd-inset-highlight) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+html[data-theme="dark"] .appt-card:hover {
+  border-color: rgba(6, 182, 212, .3) !important;
+  box-shadow: 0 12px 32px rgba(6, 182, 212, .12), var(--sd-inset-highlight) !important;
+}
+html[data-theme="dark"] .appt-time { color: #14b8a6 !important; }
+html[data-theme="dark"] .appt-info .patient { color: var(--sd-text) !important; }
+html[data-theme="dark"] .appt-info .meta { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .appt-info .reason { color: var(--sd-text-faint) !important; }
+
+/* Status badges */
+html[data-theme="dark"] .badge.pending {
+  background: rgba(148, 163, 184, .18) !important;
+  color: #cbd5e1 !important;
+}
+html[data-theme="dark"] .badge.waiting {
+  background: rgba(245, 158, 11, .18) !important;
+  color: #fcd34d !important;
+}
+html[data-theme="dark"] .badge.in_progress {
+  background: rgba(6, 182, 212, .2) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .badge.completed {
+  background: rgba(16, 185, 129, .18) !important;
+  color: #6ee7b7 !important;
+}
+html[data-theme="dark"] .badge.cancelled {
+  background: rgba(239, 68, 68, .18) !important;
+  color: #fca5a5 !important;
+}
+
+/* Check-in button (already gradient cyan, just enhance shadow) */
+html[data-theme="dark"] .btn-checkin {
+  background-image: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: #052e36 !important;
+  box-shadow: 0 6px 16px rgba(6, 182, 212, .3) !important;
+  font-weight: 700;
+}
+
+/* Empty state */
+html[data-theme="dark"] .empty {
+  background-color: var(--sd-surface) !important;
+  background-image: none !important;
+  color: var(--sd-text-muted) !important;
+  border: 1px dashed var(--sd-border) !important;
+  box-shadow: var(--sd-shadow) !important;
+}
+
+/* Toast (recepcion-citas variant) */
+html[data-theme="dark"] .toast {
+  background-color: #161e2e !important;
+  color: var(--sd-text) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .55) !important;
+}
+
+/* Loading overlay */
+html[data-theme="dark"] .loading-overlay {
+  background-image: linear-gradient(135deg, #0a0e1a 0%, #0d1426 100%) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RECEPCION-PAGOS overrides (Gestión de Pagos)
+   ─────────────────────────────────────────────────────────────────
+   Hardcoded white cards + green Cobrar gradient. Re-skin to teal.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Total card (featured "Total cobrado hoy") */
+html[data-theme="dark"] .total-card {
+  background-color: var(--sd-surface) !important;
+  background-image: none !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow: var(--sd-shadow), var(--sd-inset-highlight) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .total-card.featured {
+  background-image: linear-gradient(135deg, #0e7490 0%, #0d9488 100%) !important;
+  border-color: rgba(20, 184, 166, .3) !important;
+  box-shadow: 0 12px 32px rgba(13, 148, 136, .25), var(--sd-inset-highlight) !important;
+  color: #f1f5f9 !important;
+}
+html[data-theme="dark"] .total-card .total-label,
+html[data-theme="dark"] .total-card .total-value,
+html[data-theme="dark"] .total-card .total-meta { color: var(--sd-text) !important; }
+html[data-theme="dark"] .total-card.featured .total-label,
+html[data-theme="dark"] .total-card.featured .total-value,
+html[data-theme="dark"] .total-card.featured .total-meta { color: #f1f5f9 !important; }
+html[data-theme="dark"] .total-card.featured .total-label,
+html[data-theme="dark"] .total-card.featured .total-meta { opacity: .85; }
+
+/* Section titles ("Consultas pendientes de cobro" / "Historial de pagos hoy") */
+html[data-theme="dark"] .section-title { color: var(--sd-text) !important; }
+
+/* Pay card (each pending charge row) */
+html[data-theme="dark"] .pay-card {
+  background-color: var(--sd-surface) !important;
+  background-image: none !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow: var(--sd-shadow), var(--sd-inset-highlight) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .pay-card:hover {
+  border-color: rgba(20, 184, 166, .3) !important;
+  box-shadow: 0 12px 32px rgba(13, 148, 136, .12), var(--sd-inset-highlight) !important;
+}
+html[data-theme="dark"] .pay-info .name { color: var(--sd-text) !important; }
+html[data-theme="dark"] .pay-info .meta { color: var(--sd-text-muted) !important; }
+
+/* "Cobrar" button — was green, now teal to match the medical palette */
+html[data-theme="dark"] .btn-charge {
+  background-image: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+  color: #052e36 !important;
+  box-shadow: 0 6px 14px rgba(13, 148, 136, .3) !important;
+  font-weight: 700;
+}
+html[data-theme="dark"] .btn-charge:hover {
+  box-shadow: 0 10px 22px rgba(13, 148, 136, .45) !important;
+}
+
+/* btn-primary inside modal — also teal (was green) */
+html[data-theme="dark"] .btn-primary {
+  background-image: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+  color: #052e36 !important;
+  box-shadow: 0 6px 14px rgba(13, 148, 136, .3) !important;
+}
+html[data-theme="dark"] .btn-cancel {
+  background-color: rgba(255, 255, 255, .04) !important;
+  color: var(--sd-text-soft) !important;
+  border: 1.5px solid var(--sd-border) !important;
+}
+html[data-theme="dark"] .btn-cancel:hover {
+  background-color: rgba(255, 255, 255, .08) !important;
+}
+
+/* Empty state */
+html[data-theme="dark"] .empty {
+  background-color: rgba(255, 255, 255, .03) !important;
+  color: var(--sd-text-muted) !important;
+  border: 1px dashed var(--sd-border) !important;
+}
+
+/* Charge modal (Cobrar form) */
+html[data-theme="dark"] .modal-sub { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .form-label { color: var(--sd-text-soft) !important; }
+html[data-theme="dark"] .form-input {
+  background-color: var(--sd-input-bg) !important;
+  border-color: var(--sd-input-border) !important;
+  color: var(--sd-text) !important;
+}
+
+/* Payment method buttons (Efectivo / Tarjeta / Transferencia) */
+html[data-theme="dark"] .method-btn {
+  background-color: rgba(255, 255, 255, .03) !important;
+  border-color: var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .method-btn:hover {
+  background-color: rgba(20, 184, 166, .08) !important;
+  border-color: rgba(20, 184, 166, .35) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .method-btn.active {
+  background-image: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+  color: #052e36 !important;
+  border-color: transparent !important;
+  box-shadow: 0 6px 14px rgba(13, 148, 136, .3) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DASHBOARD overrides (dashboard.html — admin home)
+   ─────────────────────────────────────────────────────────────────
+   Welcome banner, stat cards, patient summary donut, citas list,
+   reminders, mini calendar.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Welcome banner (Bienvenido, Admin Norte) — keep gradient but darker */
+html[data-theme="dark"] .welcome-banner {
+  background-image: linear-gradient(135deg, #0e7490 0%, #0d9488 100%) !important;
+  border-color: rgba(20, 184, 166, .3) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
+}
+html[data-theme="dark"] .welcome-banner-orb1,
+html[data-theme="dark"] .welcome-banner-orb2,
+html[data-theme="dark"] .welcome-banner-orb3 {
+  opacity: .5 !important;
+}
+html[data-theme="dark"] .welcome-mini-card {
+  background-color: rgba(255, 255, 255, .1) !important;
+  border-color: rgba(255, 255, 255, .14) !important;
+}
+html[data-theme="dark"] .welcome-mini-icon {
+  background-color: rgba(255, 255, 255, .12) !important;
+  color: white !important;
+}
+html[data-theme="dark"] .welcome-badge {
+  background-color: rgba(255, 255, 255, .12) !important;
+  color: white !important;
+  border-color: rgba(255, 255, 255, .2) !important;
+}
+
+/* Stat cards (Total Pacientes / Citas de Hoy / Ingresos del Mes) */
+html[data-theme="dark"] .stat-card {
+  background-image: none !important;
+  background-color: var(--sd-surface) !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+}
+html[data-theme="dark"] .stat-card:hover {
+  border-color: rgba(20, 184, 166, .3) !important;
+  box-shadow: 0 16px 40px rgba(13, 148, 136, .15), inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+}
+html[data-theme="dark"] .stat-icon {
+  background-image: linear-gradient(135deg, rgba(20, 184, 166, .25) 0%, rgba(6, 182, 212, .25) 100%) !important;
+  color: #5eead4 !important;
+  border-color: rgba(20, 184, 166, .3) !important;
+  box-shadow: 0 8px 20px rgba(13, 148, 136, .25), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
+}
+html[data-theme="dark"] .stat-label { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .stat-value {
+  /* Re-do the gradient with light-mode colors so the gradient-text is visible */
+  background-image: linear-gradient(135deg, #f1f5f9 0%, #5eead4 100%) !important;
+  background-color: transparent !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+}
+html[data-theme="dark"] .stat-sub { color: var(--sd-text-muted) !important; }
+
+/* Generic .card (Resumen de Pacientes / Citas de Hoy / Recordatorios / Calendario) */
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .patient-card {
+  background-image: none !important;
+  background-color: var(--sd-surface) !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .card::before { display: none; }
+html[data-theme="dark"] .card-title { color: var(--sd-text) !important; }
+html[data-theme="dark"] .card-badge {
+  background-image: linear-gradient(135deg, rgba(20, 184, 166, .2), rgba(6, 182, 212, .2)) !important;
+  color: #5eead4 !important;
+  border-color: rgba(20, 184, 166, .3) !important;
+}
+
+/* Patient summary donut */
+html[data-theme="dark"] .donut-svg {
+  filter: drop-shadow(0 14px 30px rgba(13, 148, 136, .2)) !important;
+}
+html[data-theme="dark"] .donut-value {
+  background-image: linear-gradient(135deg, #f1f5f9 0%, #5eead4 100%) !important;
+  background-color: transparent !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+}
+html[data-theme="dark"] .donut-text { color: var(--sd-text-muted) !important; }
+
+/* Patient stat rows (Con cita hoy / Sin cita hoy) */
+html[data-theme="dark"] .patient-stat {
+  background-image: none !important;
+  background-color: rgba(255, 255, 255, .03) !important;
+  border-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .patient-stat:hover {
+  background-color: rgba(20, 184, 166, .06) !important;
+  border-color: rgba(20, 184, 166, .25) !important;
+}
+html[data-theme="dark"] .patient-stat-label { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .patient-stat-val { color: var(--sd-text) !important; }
+html[data-theme="dark"] .patient-stat--with .patient-stat-icon {
+  background-image: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
+  box-shadow: 0 8px 20px rgba(13, 148, 136, .35) !important;
+}
+html[data-theme="dark"] .patient-stat--without .patient-stat-icon {
+  background-image: linear-gradient(135deg, #475569 0%, #64748b 100%) !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .4) !important;
+}
+html[data-theme="dark"] .patient-stat--with .patient-stat-pct {
+  background-color: rgba(20, 184, 166, .18) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .patient-stat--without .patient-stat-pct {
+  background-color: rgba(148, 163, 184, .16) !important;
+  color: #cbd5e1 !important;
+}
+html[data-theme="dark"] .patient-stat-bar {
+  background-color: rgba(255, 255, 255, .06) !important;
+}
+html[data-theme="dark"] .patient-stat--with .patient-stat-bar-fill {
+  background-image: linear-gradient(90deg, #0d9488, #14b8a6) !important;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, .35) !important;
+}
+html[data-theme="dark"] .patient-stat--without .patient-stat-bar-fill {
+  background-image: linear-gradient(90deg, #475569, #64748b) !important;
+}
+
+/* Appointment rows (Citas de Hoy list) */
+html[data-theme="dark"] .appt-row {
+  background-color: rgba(255, 255, 255, .02) !important;
+  border-color: var(--sd-border-soft);
+}
+html[data-theme="dark"] .appt-row:hover {
+  background-color: rgba(20, 184, 166, .06) !important;
+}
+html[data-theme="dark"] .appt-avatar {
+  background-image: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: white !important;
+  box-shadow: 0 6px 14px rgba(13, 148, 136, .3) !important;
+}
+html[data-theme="dark"] .appt-name { color: var(--sd-text) !important; }
+html[data-theme="dark"] .appt-sub { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .appt-time-badge {
+  background-color: rgba(20, 184, 166, .14) !important;
+  color: #5eead4 !important;
+  border: 1px solid rgba(20, 184, 166, .25);
+}
+
+/* Next patient block */
+html[data-theme="dark"] .next-patient {
+  background-image: linear-gradient(135deg, rgba(20, 184, 166, .1), rgba(6, 182, 212, .08)) !important;
+  border-color: rgba(20, 184, 166, .2) !important;
+}
+html[data-theme="dark"] .next-avatar {
+  background-image: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: white !important;
+}
+html[data-theme="dark"] .next-name { color: var(--sd-text) !important; }
+html[data-theme="dark"] .next-meta { color: var(--sd-text-muted) !important; }
+
+/* Reminders */
+html[data-theme="dark"] .reminder-row {
+  background-color: rgba(255, 255, 255, .02) !important;
+  border-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .reminder-row:hover {
+  background-color: rgba(20, 184, 166, .06) !important;
+}
+html[data-theme="dark"] .reminder-name { color: var(--sd-text) !important; }
+html[data-theme="dark"] .reminder-date { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .reminder-send-btn {
+  background-image: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+  color: #052e36 !important;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, .3) !important;
+}
+html[data-theme="dark"] .reminders-link {
+  color: #5eead4 !important;
+}
+
+/* Calendar mini */
+html[data-theme="dark"] .cal-btn {
+  background-color: rgba(255, 255, 255, .04) !important;
+  border-color: var(--sd-border-soft) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .cal-btn:hover {
+  background-color: rgba(20, 184, 166, .1) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .cal-dow { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .cal-day {
+  color: var(--sd-text-soft) !important;
+  background-color: transparent;
+}
+html[data-theme="dark"] .cal-day:hover {
+  background-color: rgba(20, 184, 166, .1) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .cal-day.today,
+html[data-theme="dark"] .cal-day.has-event {
+  background-image: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+  color: white !important;
+  box-shadow: 0 4px 10px rgba(13, 148, 136, .35) !important;
+}
+
+/* Greeting accent (decorative) + status badge */
+html[data-theme="dark"] .greeting-accent { color: #5eead4 !important; }
+html[data-theme="dark"] .status-badge {
+  background-color: rgba(20, 184, 166, .14) !important;
+  color: #5eead4 !important;
+}
+
+/* "Ver consulta" / consult button */
+html[data-theme="dark"] .btn-consult-full {
+  background-image: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+  color: #052e36 !important;
+  box-shadow: 0 6px 14px rgba(13, 148, 136, .3) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CITAS (Agenda) overrides
+   ─────────────────────────────────────────────────────────────────
+   Hero, KPI strip, view toolbar, day/week/month calendar grids.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Glass utility classes used as primary backgrounds (KPI cards, etc.) */
+html[data-theme="dark"] .glass {
+  background-color: var(--sd-surface) !important;
+  background-image: none !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .04) inset,
+    0 -1px 0 rgba(0, 0, 0, .25) inset,
+    var(--sd-shadow) !important;
+}
+html[data-theme="dark"] .glass-strong {
+  background-color: var(--sd-surface-2) !important;
+  background-image: none !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .05) inset,
+    0 -1px 0 rgba(0, 0, 0, .3) inset,
+    var(--sd-shadow-lg) !important;
+}
+
+/* Hero (Agenda banner) — slightly darker so it's still distinct from body */
+html[data-theme="dark"] .citas-hero {
+  background-image: linear-gradient(135deg, #0e7490 0%, #0d9488 100%) !important;
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, .55), 0 4px 12px -4px rgba(13, 148, 136, .25) !important;
+}
+html[data-theme="dark"] .glass-icon-btn {
+  background-color: rgba(255, 255, 255, .1) !important;
+  border-color: rgba(255, 255, 255, .18) !important;
+  color: #f1f5f9 !important;
+}
+html[data-theme="dark"] .glass-icon-btn:hover {
+  background-color: rgba(255, 255, 255, .18) !important;
+}
+html[data-theme="dark"] .btn-nueva-hero {
+  background-color: rgba(255, 255, 255, .12) !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(255, 255, 255, .25) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .25) !important;
+}
+html[data-theme="dark"] .btn-nueva-hero:hover {
+  background-color: rgba(255, 255, 255, .2) !important;
+}
+
+/* KPI strip cards */
+html[data-theme="dark"] .kpi-card {
+  background-color: var(--sd-surface) !important;
+  background-image: none !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .kpi-card::before {
+  background: radial-gradient(circle at 100% 0%, rgba(20, 184, 166, .12), transparent 70%) !important;
+}
+html[data-theme="dark"] .kpi-label { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .kpi-value { color: var(--sd-text) !important; }
+html[data-theme="dark"] .kpi-hint  { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .kpi-icon {
+  background-color: rgba(20, 184, 166, .15) !important;
+  background-image: none !important;
+  border-color: rgba(20, 184, 166, .25) !important;
+  color: #5eead4 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .4) !important;
+}
+html[data-theme="dark"] .kpi-nav {
+  background-color: var(--sd-surface-solid) !important;
+  border-color: var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+  box-shadow:
+    0 6px 20px -4px rgba(0, 0, 0, .55),
+    0 2px 6px -2px rgba(0, 0, 0, .35),
+    0 1px 0 rgba(255, 255, 255, .04) inset !important;
+}
+html[data-theme="dark"] .kpi-nav:hover {
+  background-color: rgba(20, 184, 166, .15) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .kpi-edge-left {
+  background-image: linear-gradient(90deg, rgba(10, 14, 26, .95), rgba(10, 14, 26, 0)) !important;
+}
+html[data-theme="dark"] .kpi-edge-right {
+  background-image: linear-gradient(270deg, rgba(10, 14, 26, .95), rgba(10, 14, 26, 0)) !important;
+}
+html[data-theme="dark"] .kpi-dot { background-color: var(--sd-border) !important; }
+html[data-theme="dark"] .kpi-dot.active { background-color: #14b8a6 !important; }
+html[data-theme="dark"] .kpi-delta.up { color: #6ee7b7 !important; }
+html[data-theme="dark"] .kpi-delta.down { color: #fca5a5 !important; }
+
+/* Filter toolbar */
+html[data-theme="dark"] .filter-toggle,
+html[data-theme="dark"] .btn-today,
+html[data-theme="dark"] .icon-btn-32 {
+  background-color: var(--sd-surface-solid) !important;
+  border-color: var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .filter-toggle:hover,
+html[data-theme="dark"] .btn-today:hover,
+html[data-theme="dark"] .icon-btn-32:hover {
+  background-color: rgba(20, 184, 166, .08) !important;
+  border-color: rgba(20, 184, 166, .3) !important;
+  color: #5eead4 !important;
+}
+
+/* Multi-select filter pills (Todas las fechas / Estado / Especialidad / Doctor / Paciente) */
+html[data-theme="dark"] .ms-trigger {
+  background-color: var(--sd-surface-solid) !important;
+  border-color: var(--sd-border) !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .ms-trigger:hover {
+  background-color: rgba(20, 184, 166, .08) !important;
+  border-color: rgba(20, 184, 166, .3) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .ms-trigger.active {
+  background-color: rgba(20, 184, 166, .14) !important;
+  border-color: rgba(20, 184, 166, .4) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .ms-trigger.active:hover {
+  background-color: rgba(20, 184, 166, .2) !important;
+}
+html[data-theme="dark"] .ms-icon { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .ms-trigger.active .ms-icon { color: #5eead4 !important; }
+html[data-theme="dark"] .ms-chev { color: var(--sd-text-faint) !important; }
+html[data-theme="dark"] .ms-count {
+  background-color: #0d9488 !important;
+  color: white !important;
+}
+
+/* Multi-select popover (dropdown that opens) */
+html[data-theme="dark"] .ms-pop {
+  background-color: var(--sd-surface-solid) !important;
+  border-color: var(--sd-border) !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .05) !important;
+}
+html[data-theme="dark"] .ms-search {
+  background-color: var(--sd-surface-solid) !important;
+}
+html[data-theme="dark"] .ms-search-inner svg { color: var(--sd-text-faint) !important; }
+html[data-theme="dark"] .ms-search-inner input {
+  background-color: rgba(15, 23, 42, .55) !important;
+  border-color: var(--sd-border) !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .ms-search-inner input::placeholder { color: var(--sd-text-faint) !important; }
+html[data-theme="dark"] .ms-search-inner input:focus {
+  border-color: rgba(20, 184, 166, .5) !important;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, .15) !important;
+}
+html[data-theme="dark"] .ms-opt {
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .ms-opt:hover {
+  background-color: rgba(20, 184, 166, .06) !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .ms-opt.active {
+  background-color: rgba(20, 184, 166, .12) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .ms-opt.active:hover {
+  background-color: rgba(20, 184, 166, .18) !important;
+}
+html[data-theme="dark"] .ms-checkbox {
+  background-color: rgba(15, 23, 42, .55) !important;
+  border-color: var(--sd-border) !important;
+}
+html[data-theme="dark"] .ms-opt.active .ms-checkbox {
+  background-color: #0d9488 !important;
+  border-color: #0d9488 !important;
+  color: white !important;
+}
+html[data-theme="dark"] .ms-opt-count { color: var(--sd-text-faint) !important; }
+html[data-theme="dark"] .ms-clear {
+  color: var(--sd-text-muted) !important;
+}
+html[data-theme="dark"] .ms-clear:hover {
+  background-color: rgba(255, 255, 255, .04) !important;
+  color: var(--sd-text-soft) !important;
+}
+
+/* Search input (Buscar paciente, doctor, especialidad...) */
+html[data-theme="dark"] .kbd-hint {
+  background-color: rgba(15, 23, 42, .55) !important;
+  border-color: var(--sd-border) !important;
+  color: var(--sd-text-faint) !important;
+}
+
+/* Date label between nav arrows */
+html[data-theme="dark"] .date-label { color: var(--sd-text) !important; }
+
+/* Segmented control (Día / Semana / Mes / Lista / Kanban) */
+html[data-theme="dark"] .segmented {
+  background-color: rgba(15, 23, 42, .55) !important;
+  border-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .seg-btn {
+  color: var(--sd-text-muted) !important;
+  background-color: transparent;
+}
+html[data-theme="dark"] .seg-btn:hover { color: #5eead4 !important; }
+html[data-theme="dark"] .seg-btn.active {
+  background-color: var(--sd-surface-solid) !important;
+  color: #5eead4 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .05) !important;
+}
+
+/* Month view */
+html[data-theme="dark"] .month-view { background: var(--sd-surface); }
+html[data-theme="dark"] .month-head { background-color: rgba(15, 23, 42, .55) !important; }
+html[data-theme="dark"] .month-head-cell {
+  color: var(--sd-text-muted) !important;
+  border-right-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .month-cell {
+  background-color: rgba(255, 255, 255, .02) !important;
+  border-right-color: var(--sd-border-soft) !important;
+  border-bottom-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .month-cell.out-of-month {
+  background-color: rgba(255, 255, 255, .01) !important;
+}
+html[data-theme="dark"] .month-cell.today {
+  background-color: rgba(20, 184, 166, .08) !important;
+}
+html[data-theme="dark"] .month-cell:hover:not(.today):not(.out-of-month) {
+  background-color: rgba(20, 184, 166, .04) !important;
+}
+html[data-theme="dark"] .month-day-num { color: var(--sd-text-soft) !important; }
+html[data-theme="dark"] .month-day-num.out { color: var(--sd-text-faint) !important; }
+html[data-theme="dark"] .month-day-num.today {
+  background-color: #0d9488 !important;
+  color: white !important;
+}
+html[data-theme="dark"] .month-overflow { color: var(--sd-text-muted) !important; }
+
+/* Month appointment chips (status-tinted) */
+html[data-theme="dark"] .month-apt.s-pending,
+html[data-theme="dark"] .apt-block.s-pending,
+html[data-theme="dark"] .week-apt.s-pending {
+  background-color: rgba(245, 158, 11, .15) !important;
+  border-color: rgba(245, 158, 11, .35) !important;
+  border-left-color: #f59e0b !important;
+  color: #fcd34d !important;
+}
+html[data-theme="dark"] .month-apt.s-pending .apt-time,
+html[data-theme="dark"] .apt-block.s-pending .apt-time { color: #fcd34d !important; }
+html[data-theme="dark"] .month-apt.s-waiting,
+html[data-theme="dark"] .apt-block.s-waiting,
+html[data-theme="dark"] .week-apt.s-waiting {
+  background-color: rgba(59, 130, 246, .15) !important;
+  border-color: rgba(59, 130, 246, .35) !important;
+  border-left-color: #3b82f6 !important;
+  color: #93c5fd !important;
+}
+html[data-theme="dark"] .apt-block.s-waiting .apt-time { color: #93c5fd !important; }
+html[data-theme="dark"] .month-apt.s-completed,
+html[data-theme="dark"] .apt-block.s-completed,
+html[data-theme="dark"] .week-apt.s-completed {
+  background-color: rgba(16, 185, 129, .15) !important;
+  border-color: rgba(16, 185, 129, .35) !important;
+  border-left-color: #10b981 !important;
+  color: #6ee7b7 !important;
+}
+html[data-theme="dark"] .apt-block.s-completed .apt-time { color: #6ee7b7 !important; }
+html[data-theme="dark"] .month-apt.s-cancelled,
+html[data-theme="dark"] .apt-block.s-cancelled,
+html[data-theme="dark"] .week-apt.s-cancelled {
+  background-color: rgba(239, 68, 68, .15) !important;
+  border-color: rgba(239, 68, 68, .35) !important;
+  border-left-color: #ef4444 !important;
+  color: #fca5a5 !important;
+}
+html[data-theme="dark"] .apt-block.s-cancelled .apt-time { color: #fca5a5 !important; }
+
+/* Apt block text */
+html[data-theme="dark"] .apt-name,
+html[data-theme="dark"] .week-apt-name,
+html[data-theme="dark"] .month-apt { color: var(--sd-text) !important; }
+html[data-theme="dark"] .apt-meta { color: var(--sd-text-muted) !important; }
+
+/* Day / Week / Month view chrome */
+html[data-theme="dark"] .day-view,
+html[data-theme="dark"] .week-view,
+html[data-theme="dark"] .month-view,
+html[data-theme="dark"] .list-view {
+  background: var(--sd-surface);
+}
+html[data-theme="dark"] .day-head,
+html[data-theme="dark"] .week-head {
+  background-color: rgba(15, 23, 42, .55) !important;
+  border-bottom-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .day-head-date,
+html[data-theme="dark"] .wh-num { color: var(--sd-text) !important; }
+html[data-theme="dark"] .day-head-name,
+html[data-theme="dark"] .wh-name { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .day-head-name.today,
+html[data-theme="dark"] .wh-name.today,
+html[data-theme="dark"] .wh-num.today { color: #5eead4 !important; }
+html[data-theme="dark"] .day-hours-col,
+html[data-theme="dark"] .week-hours-col {
+  background-color: rgba(15, 23, 42, .35) !important;
+  border-right-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .day-hour-label,
+html[data-theme="dark"] .week-hour-label { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .day-line,
+html[data-theme="dark"] .week-line { background-color: var(--sd-border-soft) !important; }
+html[data-theme="dark"] .day-line-half { border-top-color: var(--sd-border-soft) !important; }
+html[data-theme="dark"] .week-day-col {
+  border-right-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .week-day-col.today {
+  background-color: rgba(20, 184, 166, .05) !important;
+}
+html[data-theme="dark"] .week-head-cell {
+  border-right-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .week-head-cell.today {
+  background-color: rgba(20, 184, 166, .08) !important;
+}
+html[data-theme="dark"] .week-head-spacer { border-right-color: var(--sd-border-soft) !important; }
+
+/* ── List view ── */
+html[data-theme="dark"] .list-row {
+  background-color: var(--sd-surface) !important;
+  background-image: none !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow: var(--sd-shadow), inset 0 1px 0 rgba(255, 255, 255, .03) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+html[data-theme="dark"] .list-row:hover {
+  border-color: rgba(20, 184, 166, .3) !important;
+  box-shadow: 0 12px 30px rgba(13, 148, 136, .15), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+}
+html[data-theme="dark"] .list-pat-name,
+html[data-theme="dark"] .list-time-big { color: var(--sd-text) !important; }
+html[data-theme="dark"] .list-pat-meta,
+html[data-theme="dark"] .list-time-small { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .list-pat-meta-item svg { color: var(--sd-text-faint) !important; }
+html[data-theme="dark"] .list-avatar {
+  background-image: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  color: white !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .15), 0 4px 10px rgba(13, 148, 136, .25);
+}
+html[data-theme="dark"] .list-day-pill {
+  background-color: var(--sd-surface-solid) !important;
+  background-image: none !important;
+  color: var(--sd-text-soft) !important;
+  border-color: var(--sd-border) !important;
+}
+html[data-theme="dark"] .list-day-pill.today {
+  background-color: #0d9488 !important;
+  color: white !important;
+  border-color: transparent !important;
+}
+html[data-theme="dark"] .list-day-line { background-color: var(--sd-border-soft) !important; }
+html[data-theme="dark"] .list-day-count { color: var(--sd-text-muted) !important; }
+
+/* Empty card (no citas) */
+html[data-theme="dark"] .empty-card {
+  background-color: var(--sd-surface) !important;
+  border-color: var(--sd-border-soft) !important;
+  color: var(--sd-text-muted) !important;
+}
+html[data-theme="dark"] .empty-icon {
+  background-color: rgba(255, 255, 255, .04) !important;
+  color: var(--sd-text-faint) !important;
+}
+html[data-theme="dark"] .empty-title { color: var(--sd-text) !important; }
+html[data-theme="dark"] .empty-sub { color: var(--sd-text-muted) !important; }
+
+/* ── Status badges (Pendiente / Esperando / Atendido / Cancelado pills) ── */
+html[data-theme="dark"] .status-badge.s-pending {
+  background-color: rgba(245, 158, 11, .15) !important;
+  color: #fcd34d !important;
+  border-color: rgba(245, 158, 11, .3) !important;
+}
+html[data-theme="dark"] .status-badge.s-pending .dot { background-color: #f59e0b !important; }
+html[data-theme="dark"] .status-badge.s-waiting {
+  background-color: rgba(59, 130, 246, .15) !important;
+  color: #93c5fd !important;
+  border-color: rgba(59, 130, 246, .3) !important;
+}
+html[data-theme="dark"] .status-badge.s-waiting .dot { background-color: #3b82f6 !important; }
+html[data-theme="dark"] .status-badge.s-completed {
+  background-color: rgba(16, 185, 129, .15) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(16, 185, 129, .3) !important;
+}
+html[data-theme="dark"] .status-badge.s-completed .dot { background-color: #10b981 !important; }
+html[data-theme="dark"] .status-badge.s-cancelled {
+  background-color: rgba(239, 68, 68, .15) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, .3) !important;
+}
+html[data-theme="dark"] .status-badge.s-cancelled .dot { background-color: #ef4444 !important; }
+
+/* ── btn-sm variants ── */
+html[data-theme="dark"] .btn-sm.btn-primary {
+  background-color: #0d9488 !important;
+  color: white !important;
+  border-color: #0d9488 !important;
+  box-shadow: 0 4px 10px rgba(13, 148, 136, .3) !important;
+}
+html[data-theme="dark"] .btn-sm.btn-primary:hover {
+  background-color: #14b8a6 !important;
+  border-color: #14b8a6 !important;
+}
+html[data-theme="dark"] .btn-sm.btn-secondary {
+  background-color: var(--sd-surface-solid) !important;
+  color: var(--sd-text-soft) !important;
+  border-color: var(--sd-border) !important;
+}
+html[data-theme="dark"] .btn-sm.btn-secondary:hover {
+  background-color: rgba(20, 184, 166, .08) !important;
+  border-color: rgba(20, 184, 166, .3) !important;
+  color: #5eead4 !important;
+}
+html[data-theme="dark"] .btn-sm.btn-success {
+  background-color: #059669 !important;
+  color: white !important;
+  border-color: #059669 !important;
+}
+html[data-theme="dark"] .btn-sm.btn-success:hover { background-color: #10b981 !important; }
+html[data-theme="dark"] .btn-sm.btn-ghost { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .btn-sm.btn-ghost:hover {
+  background-color: rgba(255, 255, 255, .05) !important;
+  color: var(--sd-text) !important;
+}
+
+/* ── Kanban view ── */
+html[data-theme="dark"] .kanban-col {
+  background-color: rgba(15, 23, 42, .35) !important;
+  border: 1px solid var(--sd-border-soft);
+}
+html[data-theme="dark"] .kanban-col-head {
+  border-bottom-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .kanban-col-title { color: var(--sd-text) !important; }
+html[data-theme="dark"] .kanban-col-count {
+  background-color: rgba(255, 255, 255, .08) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .kanban-card {
+  background-color: var(--sd-surface) !important;
+  background-image: none !important;
+  border-color: var(--sd-border-soft) !important;
+  box-shadow: var(--sd-shadow), inset 0 1px 0 rgba(255, 255, 255, .03) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+html[data-theme="dark"] .kanban-card:hover {
+  border-color: rgba(20, 184, 166, .3) !important;
+  box-shadow: 0 12px 30px rgba(13, 148, 136, .15), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+}
+html[data-theme="dark"] .kanban-card.s-pending  { border-top: 2px solid #f59e0b !important; }
+html[data-theme="dark"] .kanban-card.s-waiting  { border-top: 2px solid #3b82f6 !important; }
+html[data-theme="dark"] .kanban-card.s-completed { border-top: 2px solid #10b981 !important; }
+html[data-theme="dark"] .kanban-card.s-cancelled { border-top: 2px solid #ef4444 !important; }
+html[data-theme="dark"] .kanban-card-name { color: var(--sd-text) !important; }
+html[data-theme="dark"] .kanban-card-when { color: var(--sd-text-soft) !important; }
+html[data-theme="dark"] .kanban-card-dur { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .kanban-card-meta { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .kanban-empty { color: var(--sd-text-faint) !important; }
+
+/* ── Smooth crossfade when toggling themes at runtime ── */
+html { transition: background-color .35s ease; }
+[data-theme] body,
+[data-theme] #sidebar,
+[data-theme] .glass-card,
+[data-theme] .stat-card,
+[data-theme] .toolbar,
+[data-theme] .preview-card,
+[data-theme] .tabs-nav,
+[data-theme] .switch-row,
+[data-theme] .tab-btn,
+[data-theme] .field input,
+[data-theme] .field select,
+[data-theme] .field textarea {
+  transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .35s ease;
+}

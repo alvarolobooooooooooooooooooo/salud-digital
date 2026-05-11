@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <script src="/theme.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>SaludDigital — Citas Online</title>
@@ -378,8 +379,10 @@
     .co-kpi {
       position: relative;
       padding: 22px 22px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
+      background:
+        linear-gradient(140deg, color-mix(in oklch, var(--kpi-tint, var(--accent)) 6%, transparent), color-mix(in oklch, var(--kpi-tint, var(--accent)) 2%, transparent)),
+        var(--glass-bg);
+      border: 1px solid color-mix(in oklch, var(--kpi-tint, var(--accent)) 12%, var(--glass-border));
       border-radius: var(--radius-xl);
       overflow: hidden;
       isolation: isolate;
@@ -392,17 +395,17 @@
       position: absolute; inset: 0;
       pointer-events: none;
       border-radius: inherit;
-      background: linear-gradient(140deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.05) 38%, rgba(255,255,255,0) 60%);
+      background: linear-gradient(140deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0) 70%);
       mix-blend-mode: screen;
       z-index: -1;
     }
     .co-kpi::after {
       content: ""; position: absolute; inset: 0;
       background:
-        radial-gradient(360px 220px at 110% -10%, color-mix(in oklch, var(--kpi-tint, var(--accent)) 28%, transparent), transparent 70%),
-        radial-gradient(220px 160px at -10% 110%, color-mix(in oklch, var(--kpi-tint, var(--accent)) 14%, transparent), transparent 70%);
+        radial-gradient(420px 280px at 110% -10%, color-mix(in oklch, var(--kpi-tint, var(--accent)) 16%, transparent), transparent 75%),
+        radial-gradient(320px 220px at -10% 110%, color-mix(in oklch, var(--kpi-tint, var(--accent)) 9%, transparent), transparent 75%);
       z-index: -1;
-      opacity: 0.9;
+      opacity: 0.85;
     }
     .co-kpi-head { display: flex; align-items: center; justify-content: space-between; }
     .co-kpi-label { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
@@ -1078,7 +1081,7 @@
         </div>
       </div>
 
-      <div class="co-kpi" style="--kpi-tint: var(--warm);">
+      <div class="co-kpi" style="--kpi-tint: var(--accent);">
         <div class="co-kpi-head">
           <span class="co-kpi-label">Citas este mes</span>
           <span class="co-kpi-delta flat" id="kpiMonthDelta">—</span>
@@ -1092,7 +1095,7 @@
         </div>
       </div>
 
-      <div class="co-kpi" style="--kpi-tint: var(--ok);">
+      <div class="co-kpi" style="--kpi-tint: var(--accent);">
         <div class="co-kpi-head">
           <span class="co-kpi-label">Tasa de conversión</span>
           <span class="co-kpi-delta flat" id="kpiConvDelta">—</span>
@@ -1805,8 +1808,8 @@
       return out;
     };
     renderSpark('sparkTotal', grow(totalCount, 12), '#0891b2');
-    renderSpark('sparkMonth', grow(monthCount, 10), '#F59E0B');
-    renderRing('ringConv', conversion / 100, '#10B981');
+    renderSpark('sparkMonth', grow(monthCount, 10), '#0891b2');
+    renderRing('ringConv', conversion / 100, '#0891b2');
 
     // Deltas: compare to previous snapshot (during session)
     function setDelta(elId, cur, prev) {

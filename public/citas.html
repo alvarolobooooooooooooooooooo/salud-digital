@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <script src="/theme.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SaludDigital — Citas</title>
@@ -2278,23 +2279,23 @@ function renderKpis() {
     {
       label: 'Esta semana', value: weekApts.length,
       hint: 'Lun – Dom',
-      icon: SVG.timeline, accent: 'rgba(59,130,246,.18)'
+      icon: SVG.timeline, accent: 'rgba(6,182,212,.18)'
     },
     {
       label: 'Este mes', value: monthApts.length,
       delta: monthDelta,
       hint: `${completed} atendidas · ${pending} pendientes`,
-      icon: SVG.bolt, accent: 'rgba(139,92,246,.18)'
+      icon: SVG.bolt, accent: 'rgba(6,182,212,.18)'
     },
     {
       label: 'Por confirmar', value: pending,
       hint: 'Requieren seguimiento',
-      icon: SVG.warn, accent: 'rgba(245,158,11,.18)'
+      icon: SVG.warn, accent: 'rgba(6,182,212,.18)'
     },
     {
       label: 'Tasa de asistencia', value: `${attendanceRate}%`,
       hint: `${cancelled} canceladas / no asistidas`,
-      icon: SVG.check, accent: 'rgba(16,185,129,.18)'
+      icon: SVG.check, accent: 'rgba(6,182,212,.18)'
     },
   ];
 

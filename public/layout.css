@@ -1,4 +1,5 @@
 /* ── Layout CSS — Sidebar + Header Global ── */
+@import url('/theme-dark.css');
 
 :root {
   --primary: #0891b2;
