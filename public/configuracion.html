@@ -446,14 +446,10 @@
     /* ── Responsive ── */
     @media (max-width: 1024px) {
       .settings-grid { grid-template-columns: 1fr; }
-      .tabs-nav {
-        position: static;
-        display: flex; gap: .4rem; overflow-x: auto; padding: .5rem;
-        scrollbar-width: none;
-      }
-      .tabs-nav::-webkit-scrollbar { display: none; }
-      .tab-btn { white-space: nowrap; flex-shrink: 0; padding: .55rem .75rem; font-size: 13px; }
-      .tab-btn .tab-icon { width: 26px; height: 26px; }
+      /* Mobile: no tab menu, all sections stacked vertically */
+      .tabs-nav { display: none !important; }
+      .settings-panel { display: block !important; margin-bottom: 1rem; }
+      .settings-panel[style*="display: none"] { display: block !important; }
     }
     @media (max-width: 768px) {
       .layout-main { padding: 1.25rem 1rem; padding-top: 90px; padding-bottom: 100px; }
