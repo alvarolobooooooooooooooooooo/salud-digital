@@ -22,7 +22,7 @@ class PodogramContainer {
   }
 
   getFootTypeSVG(type, selected) {
-    const opacity = selected ? '1' : '0.6';
+    const opacity = selected ? '1' : '0.85';
     const imageMap = {
       'Espiguio': '/assets/foot-types/tipo-espiguio.png',
       'Romano': '/assets/foot-types/tipo-romano.png',
@@ -31,18 +31,18 @@ class PodogramContainer {
       'Celta': '/assets/foot-types/tipo-celta.png'
     };
     const src = imageMap[type] || imageMap['Romano'];
-    return `<img src="${src}" alt="${type}" style="width: 85px; height: 95px; object-fit: contain; margin: 0 auto; display: block; opacity: ${opacity};"/>`;
+    return `<img class="foot-img foot-img--line" src="${src}" alt="${type}" style="width: 85px; height: 95px; object-fit: contain; margin: 0 auto; display: block; opacity: ${opacity};"/>`;
   }
 
   getFootShapeSVG(shape, selected) {
-    const opacity = selected ? '1' : '0.6';
+    const opacity = selected ? '1' : '0.85';
     const imageMap = {
       'Normal': '/assets/foot-types/pie-normal.png',
       'Plano': '/assets/foot-types/pie-plano.png',
       'Cavo': '/assets/foot-types/pie-cavo.png'
     };
     const src = imageMap[shape] || imageMap['Normal'];
-    return `<img src="${src}" alt="${shape}" style="width: 85px; height: 95px; object-fit: contain; margin: 0 auto; display: block; opacity: ${opacity};"/>`;
+    return `<img class="foot-img foot-img--photo" src="${src}" alt="${shape}" style="width: 85px; height: 95px; object-fit: contain; margin: 0 auto; display: block; opacity: ${opacity};"/>`;
   }
 
   render() {
@@ -53,19 +53,31 @@ class PodogramContainer {
     const footShapes = ['Normal', 'Plano', 'Cavo'];
 
     let html = `
+      <!-- SVG filter: knocks out near-white pixels so colored photos blend cleanly on dark cards -->
+      <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
+        <defs>
+          <filter id="podogramRemoveBg" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+            <feColorMatrix type="matrix" values="
+              1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              -1.4 -1.4 -1.4 3.8 0"/>
+          </filter>
+        </defs>
+      </svg>
       <div class="podogram-wrapper">
         <!-- Tipo de Pie -->
         <div class="podogram-section">
-          <h4 style="margin-bottom: 1.5rem; font-weight: 600; color: #0f172a;">Tipo de Pie</h4>
+          <h4 class="podogram-title">Tipo de Pie</h4>
           <div class="podogram-grid">
             <div class="podogram-column">
-              <div style="text-align: center; margin-bottom: 1rem; font-weight: 600; color: #475569;">Pie Derecho</div>
+              <div class="podogram-side-label">Pie Derecho</div>
               <div class="podogram-options">
                 ${footTypes.map(type => this.createFootTypeButton(type, 'Right')).join('')}
               </div>
             </div>
             <div class="podogram-column">
-              <div style="text-align: center; margin-bottom: 1rem; font-weight: 600; color: #475569;">Pie Izquierdo</div>
+              <div class="podogram-side-label">Pie Izquierdo</div>
               <div class="podogram-options">
                 ${footTypes.map(type => this.createFootTypeButton(type, 'Left')).join('')}
               </div>
@@ -75,16 +87,16 @@ class PodogramContainer {
 
         <!-- Forma de Pie -->
         <div class="podogram-section" style="margin-top: 2rem;">
-          <h4 style="margin-bottom: 1.5rem; font-weight: 600; color: #0f172a;">Forma de Pie</h4>
+          <h4 class="podogram-title">Forma de Pie</h4>
           <div class="podogram-grid">
             <div class="podogram-column">
-              <div style="text-align: center; margin-bottom: 1rem; font-weight: 600; color: #475569;">Pie Derecho</div>
+              <div class="podogram-side-label">Pie Derecho</div>
               <div class="podogram-options">
                 ${footShapes.map(shape => this.createFootShapeButton(shape, 'Right')).join('')}
               </div>
             </div>
             <div class="podogram-column">
-              <div style="text-align: center; margin-bottom: 1rem; font-weight: 600; color: #475569;">Pie Izquierdo</div>
+              <div class="podogram-side-label">Pie Izquierdo</div>
               <div class="podogram-options">
                 ${footShapes.map(shape => this.createFootShapeButton(shape, 'Left')).join('')}
               </div>
@@ -103,6 +115,17 @@ class PodogramContainer {
         }
         .podogram-section {
           margin-bottom: 2rem;
+        }
+        .podogram-title {
+          margin-bottom: 1.5rem;
+          font-weight: 600;
+          color: #0f172a;
+        }
+        .podogram-side-label {
+          text-align: center;
+          margin-bottom: 1rem;
+          font-weight: 600;
+          color: #475569;
         }
         .podogram-grid {
           display: grid;
@@ -165,6 +188,51 @@ class PodogramContainer {
           color: #0891b2;
           font-weight: 600;
         }
+
+        /* ── Dark theme overrides ── */
+        [data-theme="dark"] .podogram-wrapper {
+          background: rgba(20, 20, 22, 0.6);
+          border-color: rgba(255, 255, 255, 0.09);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+        }
+        [data-theme="dark"] .podogram-title {
+          color: #f1f5f9;
+        }
+        [data-theme="dark"] .podogram-side-label {
+          color: #cbd5e1;
+        }
+        [data-theme="dark"] .podogram-button {
+          background: rgba(28, 28, 30, 0.7);
+          border-color: rgba(255, 255, 255, 0.09);
+        }
+        [data-theme="dark"] .podogram-button:hover {
+          border-color: #06b6d4;
+          background: ${this.readOnly ? 'rgba(28, 28, 30, 0.7)' : 'rgba(6, 182, 212, 0.08)'};
+        }
+        [data-theme="dark"] .podogram-button.selected {
+          border-color: #06b6d4;
+          background: rgba(6, 182, 212, 0.08);
+          box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.25), 0 4px 14px rgba(6, 182, 212, 0.2);
+        }
+        [data-theme="dark"] .button-label {
+          color: #94a3b8;
+        }
+        [data-theme="dark"] .podogram-button.selected .button-label {
+          color: #06b6d4;
+        }
+        /* Line drawings: invert dark strokes → light, then screen-blend so the
+           inverted black background disappears into the card (no rectangle). */
+        [data-theme="dark"] .foot-img--line {
+          filter: invert(1) brightness(1.15) contrast(1.1);
+          mix-blend-mode: screen;
+        }
+        /* Photos: knock out the near-white PNG background via SVG luminance
+           filter so the colored foot floats directly on the card. */
+        [data-theme="dark"] .foot-img--photo {
+          filter: url(#podogramRemoveBg) brightness(1.05) contrast(1.02);
+        }
+
         @media (max-width: 768px) {
           .podogram-grid {
             grid-template-columns: 1fr;

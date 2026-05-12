@@ -2504,9 +2504,20 @@ function attachAptClickHandlers() {
 
 /* ─────────── Day view ─────────── */
 function renderDayView(filtered) {
-  const startHr = 7, endHr = 19, hourPx = 64;
-  const totalHeight = (endHr - startHr) * hourPx;
+  const hourPx = 64;
   const dayApts = filtered.filter(a => sameDay(aptDate(a), calDate)).sort((a,b) => aptDate(a) - aptDate(b));
+  // Default window 7am–7pm, but expand if any appt falls outside so it's always visible.
+  let startHr = 7, endHr = 19;
+  dayApts.forEach(a => {
+    const d = aptDate(a);
+    const startH = d.getHours() + d.getMinutes() / 60;
+    const endH = startH + aptDuration(a) / 60;
+    if (startH < startHr) startHr = Math.floor(startH);
+    if (endH > endHr) endHr = Math.ceil(endH);
+  });
+  startHr = Math.max(0, startHr);
+  endHr = Math.min(24, endHr);
+  const totalHeight = (endHr - startHr) * hourPx;
 
   // collision layout
   const positioned = layoutColumns(dayApts);
@@ -2619,9 +2630,22 @@ function layoutColumns(sorted) {
 function renderWeekView(filtered) {
   const ws = startOfMonday(calDate);
   const days = Array.from({length:7}, (_,i) => addDays(ws, i));
-  const startHr = 7, endHr = 19, hourPx = 60;
-  const totalHeight = (endHr - startHr) * hourPx;
+  const hourPx = 60;
   const today = new Date();
+  // Default window 7am–7pm, but expand to cover any out-of-range appts in this week.
+  const weekEnd = addDays(ws, 7);
+  const weekApts = filtered.filter(a => { const d = aptDate(a); return d >= ws && d < weekEnd; });
+  let startHr = 7, endHr = 19;
+  weekApts.forEach(a => {
+    const d = aptDate(a);
+    const startH = d.getHours() + d.getMinutes() / 60;
+    const endH = startH + aptDuration(a) / 60;
+    if (startH < startHr) startHr = Math.floor(startH);
+    if (endH > endHr) endHr = Math.ceil(endH);
+  });
+  startHr = Math.max(0, startHr);
+  endHr = Math.min(24, endHr);
+  const totalHeight = (endHr - startHr) * hourPx;
 
   // Mobile: pick which day is shown in the single-column timeline.
   // Auto-pick today if it's in this week, otherwise Monday. Lock the choice in
@@ -2666,17 +2690,21 @@ function renderWeekView(filtered) {
   const dayCols = dayData.map(({ isT, dayApts, i }) => {
     const lines = [];
     for (let j = 0; j <= endHr - startHr; j++) lines.push(`<div class="week-line" style="top:${j*hourPx}px"></div>`);
-    const apts = dayApts.map(a => {
+    const sorted = dayApts.slice().sort((a,b) => aptDate(a) - aptDate(b));
+    const positioned = layoutColumns(sorted);
+    const apts = positioned.map(({ apt: a, colIdx, total }) => {
       const dt = aptDate(a);
       const minFromStart = (dt.getHours() * 60 + dt.getMinutes()) - startHr * 60;
       const top = (minFromStart / 60) * hourPx;
       const dur = aptDuration(a);
-      const height = Math.max(38, (dur / 60) * hourPx - 2);
+      const height = Math.max(24, (dur / 60) * hourPx - 2);
       const cls = statusOf(a.status).cls;
       const first = (a.patient_name || '').split(' ')[0] || '';
       const lastInit = ((a.patient_name || '').split(' ')[1] || '')[0] || '';
+      const colW = `calc((100% - 6px) / ${total})`;
+      const left = `calc(3px + ${colIdx} * ((100% - 6px) / ${total}))`;
       return `
-        <div class="apt-block ${cls} week-apt" data-apt-id="${a.id}" style="top:${top}px;height:${height}px">
+        <div class="apt-block ${cls} week-apt" data-apt-id="${a.id}" style="top:${top}px;height:${height}px;left:${left};width:${colW};right:auto">
           <div class="week-apt-time">${fmtTimeShort(a.scheduled_at)}</div>
           <div class="week-apt-name">${esc(first)}${lastInit ? ' ' + esc(lastInit) + '.' : ''}</div>
         </div>`;
@@ -3122,7 +3150,11 @@ async function viewConsultation(appointmentId) {
     const url = viewConsultationPathForSpecialty(consultation.specialty, consultation.id);
     window.location.href = url;
   } catch(err) {
-    alert('Consulta no encontrada: ' + err.message);
+    if (err && err.status === 404) {
+      alert('Aún no hay una consulta registrada para esta cita.');
+    } else {
+      alert('No se pudo cargar la consulta: ' + (err && err.message ? err.message : 'error desconocido'));
+    }
   }
 }
 

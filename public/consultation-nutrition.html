@@ -178,7 +178,26 @@
       margin-bottom: 1.25rem;
       padding-bottom: 1rem;
       border-bottom: 2px solid #f1f5f9;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity .2s;
     }
+    .section-head:hover { opacity: .85; }
+    .section-chev {
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      color: #0891b2;
+      transition: transform .25s ease;
+      flex-shrink: 0;
+    }
+    .section-chev svg { width: 18px; height: 18px; }
+    .form-section.is-collapsed .section-chev { transform: rotate(-90deg); }
+    .form-section.is-collapsed .section-head {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .form-section.is-collapsed > *:not(.section-head) { display: none !important; }
     .section-num {
       width: 30px; height: 30px;
       border-radius: 8px;
@@ -3698,6 +3717,29 @@ function syncInBodyWeight() {
 
 // Initialize InBody segmental tables before init() runs
 buildSegmentalTables();
+
+// Collapsible sections: clicking a section-head folds the rest of the card.
+// First section opens by default; the others start collapsed.
+(function initNutritionSectionToggle() {
+  const chevSVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  document.querySelectorAll('#nutritionForm .form-section').forEach((sec, i) => {
+    const head = sec.querySelector(':scope > .section-head');
+    if (!head) return;
+    if (!head.querySelector('.section-chev')) {
+      const chev = document.createElement('div');
+      chev.className = 'section-chev';
+      chev.setAttribute('aria-hidden', 'true');
+      chev.innerHTML = chevSVG;
+      head.appendChild(chev);
+    }
+    if (i !== 0) sec.classList.add('is-collapsed');
+    head.addEventListener('click', (e) => {
+      // Don't toggle if user clicked on an interactive child (input, button, etc.)
+      if (e.target.closest('input, button, select, textarea, a')) return;
+      sec.classList.toggle('is-collapsed');
+    });
+  });
+})();
 
 init().then(() => {
   recomputeInBody();

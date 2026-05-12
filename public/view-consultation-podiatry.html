@@ -168,7 +168,8 @@
     }
     /* Read-only mode badge */
     .pod-readonly-badge {
-      position: absolute; top: 1.25rem; right: 1.25rem; z-index: 2;
+      position: relative; z-index: 2;
+      align-self: flex-end;
       display: inline-flex; align-items: center; gap: 0.4rem;
       padding: 0.4rem 0.85rem;
       background: rgba(255, 255, 255, 0.18);
@@ -184,7 +185,10 @@
     .pod-group {
       display: flex; align-items: center; gap: 0.85rem;
       margin: 2.5rem 0 1.25rem; padding-left: 0.25rem;
+      cursor: pointer; user-select: none;
+      transition: opacity .2s;
     }
+    .pod-group:hover { opacity: .85; }
     .pod-group:first-of-type { margin-top: 0.5rem; }
     .pod-group-num {
       width: 34px; height: 34px;
@@ -203,6 +207,16 @@
       background: linear-gradient(90deg, rgba(8,145,178,0.2), transparent);
       border-radius: 2px;
     }
+    .pod-group-chev {
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--pod-primary);
+      transition: transform .25s ease;
+      flex-shrink: 0;
+    }
+    .pod-group-chev svg { width: 18px; height: 18px; }
+    .pod-group.is-collapsed .pod-group-chev { transform: rotate(-90deg); }
+    .is-hidden-by-group { display: none !important; }
 
     /* ── Form Section Cards (Read-only) ── */
     .form-section {
@@ -284,6 +298,18 @@
       background: white;
       transition: all 0.2s ease;
     }
+    .form-group select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      padding-right: 2.6rem;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 0.95rem center;
+      background-size: 14px 14px;
+      cursor: pointer;
+    }
+    .form-group select:disabled { cursor: default; }
     /* Read-only / disabled styling */
     .form-group input:disabled,
     .form-group textarea:disabled,
@@ -317,6 +343,24 @@
       cursor: default; transition: all 0.2s;
     }
     .radio-group input { cursor: default; width: 16px; height: 16px; accent-color: var(--pod-primary); }
+    .radio-group label:has(input:checked) {
+      border-color: var(--pod-primary);
+      color: var(--pod-primary);
+      background: var(--pod-primary-soft);
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.10);
+      font-weight: 800;
+    }
+    html[data-theme="dark"] .radio-group label {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.10);
+      color: #cbd5e1;
+    }
+    html[data-theme="dark"] .radio-group label:has(input:checked) {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: #06b6d4;
+      color: #67e8f9;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.18);
+    }
 
     /* ── Form messages ── */
     .form-msg {
@@ -490,6 +534,30 @@
     #thermoFeetContainer .foot-path.temp-measured {
       fill: var(--temp-color, rgba(8, 145, 178, 0.2)) !important;
     }
+    /* Loading skeleton for the measurements list */
+    .measurement-skeleton {
+      height: 38px;
+      border-radius: 8px;
+      border-left: 3px solid rgba(148, 163, 184, 0.18);
+      background: linear-gradient(
+        90deg,
+        rgba(148, 163, 184, 0.06) 0%,
+        rgba(148, 163, 184, 0.16) 50%,
+        rgba(148, 163, 184, 0.06) 100%
+      );
+      background-size: 200% 100%;
+      animation: skeletonShimmer 1.3s ease-in-out infinite;
+    }
+    @keyframes skeletonShimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .measurements-empty {
+      color: var(--pod-muted-2);
+      font-size: 0.85rem;
+      padding: 0.75rem;
+      text-align: center;
+    }
 
     /* ── Image Grid ── */
     .pod-image-grid {
@@ -648,10 +716,6 @@
 <main class="layout-main">
   <!-- ── Premium Hero Header (Read-Only) ── -->
   <header class="pod-hero">
-    <div class="pod-readonly-badge">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-      Solo Lectura
-    </div>
     <div class="pod-hero-grid">
       <div>
         <div class="pod-hero-eyebrow">
@@ -668,6 +732,10 @@
         </div>
       </div>
       <div class="pod-hero-side">
+        <div class="pod-readonly-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Solo Lectura
+        </div>
         <button type="button" class="btn-back" onclick="history.back()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           Volver
@@ -695,10 +763,11 @@
 
   <form id="consultForm" onsubmit="return false;">
     <!-- ─── Sección 1: Información del Paciente ─── -->
-    <div class="pod-group">
+    <div class="pod-group" data-group-idx="0">
       <div class="pod-group-num">1</div>
       <div class="pod-group-title">Información del Paciente</div>
       <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
     </div>
 
     <!-- Datos Personales -->
@@ -717,10 +786,11 @@
     </div>
 
     <!-- ─── Sección 2: Historia Clínica ─── -->
-    <div class="pod-group">
+    <div class="pod-group is-collapsed" data-group-idx="1">
       <div class="pod-group-num">2</div>
       <div class="pod-group-title">Historia Clínica</div>
       <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
     </div>
 
     <!-- Antecedentes Familiares Patológicos -->
@@ -990,10 +1060,11 @@
     </div>
 
     <!-- ─── Sección 3: Evaluación Clínica ─── -->
-    <div class="pod-group">
+    <div class="pod-group is-collapsed" data-group-idx="2">
       <div class="pod-group-num">3</div>
       <div class="pod-group-title">Evaluación Clínica</div>
       <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
     </div>
 
     <!-- Historia de Enfermedad Actual -->
@@ -1310,10 +1381,11 @@
     </div>
 
     <!-- ─── Sección 4: Diagnóstico y Tratamiento ─── -->
-    <div class="pod-group">
+    <div class="pod-group is-collapsed" data-group-idx="3">
       <div class="pod-group-num">4</div>
       <div class="pod-group-title">Diagnóstico y Tratamiento</div>
       <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
     </div>
 
     <!-- Diagnóstico y Plan -->
@@ -1365,7 +1437,9 @@
           <div class="control-group">
             <label class="control-label">Mediciones Registradas</label>
             <div class="measurements-list" id="thermo-measurementsList">
-              <p style="color: #94a3b8; font-size: 0.85rem; padding: 0.75rem; text-align: center;">Sin mediciones aún</p>
+              <div class="measurement-skeleton"></div>
+              <div class="measurement-skeleton"></div>
+              <div class="measurement-skeleton"></div>
             </div>
           </div>
 
@@ -1434,10 +1508,11 @@
     <div id="inventoryUsageSection"></div>
 
     <!-- ─── Sección 5: Pago ─── -->
-    <div class="pod-group">
+    <div class="pod-group is-collapsed" data-group-idx="4">
       <div class="pod-group-num">5</div>
       <div class="pod-group-title">Información de Pago</div>
       <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
     </div>
 
     <!-- Costos y Pago -->
@@ -1669,6 +1744,7 @@ async function loadConsultation() {
     document.getElementById('thermoFeetContainer').innerHTML = thermoSVG;
 
     // Thermography
+    const measurementsList = document.getElementById('thermo-measurementsList');
     if (extraData.thermography) {
       const typeDisplay = document.getElementById('thermo-type-display');
       if (typeDisplay && extraData.thermography.type) {
@@ -1676,20 +1752,23 @@ async function loadConsultation() {
       }
 
       if (extraData.thermography.measurements && extraData.thermography.measurements.length > 0) {
-        const measurementsList = document.getElementById('thermo-measurementsList');
         measurementsList.innerHTML = extraData.thermography.measurements.map((m, idx) => `
-          <div class="measurement-item">
+          <div class="measurement-item" style="border-left-color: ${getTemperatureColor(m.temp)};">
             <span class="legend-color" style="background: ${getTemperatureColor(m.temp)}; margin-right: 0.8rem;"></span>
             <span style="flex: 1;">${esc(m.zone)}</span>
-            <span class="measurement-item-temp">${m.temp}°C</span>
+            <span class="measurement-item-temp" style="color: ${getTemperatureColor(m.temp)};">${m.temp}°C</span>
           </div>
         `).join('');
 
         // Color the SVG paths based on measurements
         updateSVGColorsView(extraData.thermography.measurements);
+      } else {
+        measurementsList.innerHTML = '<p class="measurements-empty">Sin mediciones aún</p>';
       }
 
       setInputValue('thermo-observations', extraData.thermography.observations);
+    } else {
+      measurementsList.innerHTML = '<p class="measurements-empty">Sin mediciones aún</p>';
     }
 
     // Load images
@@ -1757,6 +1836,33 @@ async function loadMedicalAlert() {
     console.warn('Error loading medical alert:', e);
   }
 }
+
+// Collapsible section groups (sections fold under their numbered heading)
+(function initPodGroupToggle() {
+  const form = document.getElementById('consultForm');
+  if (!form) return;
+  function siblingsUntilNextGroup(group) {
+    const out = [];
+    let el = group.nextElementSibling;
+    while (el && !el.classList.contains('pod-group')) {
+      if (el.classList.contains('footer') || el.classList.contains('form-msg')) break;
+      if (el.nodeType === 1) out.push(el);
+      el = el.nextElementSibling;
+    }
+    return out;
+  }
+  function applyState(group) {
+    const collapsed = group.classList.contains('is-collapsed');
+    siblingsUntilNextGroup(group).forEach(s => s.classList.toggle('is-hidden-by-group', collapsed));
+  }
+  form.querySelectorAll('.pod-group').forEach(g => {
+    applyState(g);
+    g.addEventListener('click', () => {
+      g.classList.toggle('is-collapsed');
+      applyState(g);
+    });
+  });
+})();
 
 // Init
 loadConsultation();

@@ -28,8 +28,17 @@ async function api(url, options = {}) {
   const res = await fetch(url, config);
   if (res.status === 401) { logout(); return; }
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
+  let data = null;
+  const text = await res.text();
+  if (text) {
+    try { data = JSON.parse(text); }
+    catch { data = { error: text.slice(0, 200) }; }
+  }
+  if (!res.ok) {
+    const err = new Error((data && data.error) || `Request failed (${res.status})`);
+    err.status = res.status;
+    throw err;
+  }
   return data;
 }
 

@@ -171,7 +171,10 @@
     .pod-group {
       display: flex; align-items: center; gap: 0.85rem;
       margin: 2.5rem 0 1.25rem; padding-left: 0.25rem;
+      cursor: pointer; user-select: none;
+      transition: opacity .2s;
     }
+    .pod-group:hover { opacity: .85; }
     .pod-group:first-of-type { margin-top: 0.5rem; }
     .pod-group-num {
       width: 34px; height: 34px;
@@ -190,6 +193,16 @@
       background: linear-gradient(90deg, rgba(8,145,178,0.2), transparent);
       border-radius: 2px;
     }
+    .pod-group-chev {
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--pod-primary);
+      transition: transform .25s ease;
+      flex-shrink: 0;
+    }
+    .pod-group-chev svg { width: 18px; height: 18px; }
+    .pod-group.is-collapsed .pod-group-chev { transform: rotate(-90deg); }
+    .is-hidden-by-group { display: none !important; }
 
     /* ── Premium Form Section Cards ── */
     .form-section {
@@ -323,6 +336,18 @@
       flex-shrink: 0;
       min-width: 18px;
       margin: 0;
+    }
+    html[data-theme="dark"] .radio-group label {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.10);
+      color: #cbd5e1;
+    }
+    html[data-theme="dark"] .radio-group label:hover,
+    html[data-theme="dark"] .radio-group label:has(input:checked) {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: #06b6d4;
+      color: #67e8f9;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.18);
     }
 
     /* ── Odontograma Container ── */
@@ -601,6 +626,12 @@
 </head>
 <body>
 
+<div class="page-loader" id="pageLoader">
+  <div class="page-loader-content">
+    <div class="page-loader-spinner"></div>
+    <div class="page-loader-text">Cargando consulta…</div>
+  </div>
+</div>
 
 <main class="layout-main">
   <!-- ── Premium Hero Header ── -->
@@ -649,10 +680,11 @@
 
   <form id="consultForm" onsubmit="submitConsult(event)">
     <!-- ─── Sección 1: Anamnesis ─── -->
-    <div class="pod-group">
+    <div class="pod-group" data-group-idx="0">
       <div class="pod-group-num">1</div>
       <div class="pod-group-title">Anamnesis</div>
       <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
     </div>
 
     <!-- Hábitos -->
@@ -684,10 +716,11 @@
     </div>
 
     <!-- ─── Sección 2: Evaluación Clínica ─── -->
-    <div class="pod-group">
+    <div class="pod-group is-collapsed" data-group-idx="1">
       <div class="pod-group-num">2</div>
       <div class="pod-group-title">Evaluación Clínica</div>
       <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
     </div>
 
     <!-- Odontograma Evaluación -->
@@ -703,10 +736,11 @@
     </div>
 
     <!-- ─── Sección 3: Tratamiento y Notas ─── -->
-    <div class="pod-group">
+    <div class="pod-group is-collapsed" data-group-idx="2">
       <div class="pod-group-num">3</div>
       <div class="pod-group-title">Tratamiento y Notas</div>
       <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
     </div>
 
     <!-- Procedimientos -->
@@ -732,10 +766,11 @@
     </div>
 
     <!-- ─── Sección 4: Documentación ─── -->
-    <div class="pod-group">
+    <div class="pod-group is-collapsed" data-group-idx="3">
       <div class="pod-group-num">4</div>
       <div class="pod-group-title">Documentación</div>
       <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
     </div>
 
     <!-- Imágenes de la Consulta -->
@@ -783,10 +818,11 @@
     <div id="inventoryUsageSection"></div>
 
     <!-- ─── Sección 5: Pago ─── -->
-    <div class="pod-group">
+    <div class="pod-group is-collapsed" data-group-idx="4">
       <div class="pod-group-num">5</div>
       <div class="pod-group-title">Información de Pago</div>
       <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
     </div>
 
     <!-- Costos y Pago -->
@@ -1402,8 +1438,37 @@ async function downloadConsentPDF() {
   }
 }
 
-loadConsentTemplates();
-loadAppointment();
+// Collapsible section groups (sections fold under their numbered heading)
+(function initPodGroupToggle() {
+  const form = document.getElementById('consultForm');
+  if (!form) return;
+  function siblingsUntilNextGroup(group) {
+    const out = [];
+    let el = group.nextElementSibling;
+    while (el && !el.classList.contains('pod-group')) {
+      if (el.classList.contains('footer') || el.classList.contains('form-msg')) break;
+      if (el.nodeType === 1) out.push(el);
+      el = el.nextElementSibling;
+    }
+    return out;
+  }
+  function applyState(group) {
+    const collapsed = group.classList.contains('is-collapsed');
+    siblingsUntilNextGroup(group).forEach(s => s.classList.toggle('is-hidden-by-group', collapsed));
+  }
+  form.querySelectorAll('.pod-group').forEach(g => {
+    applyState(g);
+    g.addEventListener('click', () => {
+      g.classList.toggle('is-collapsed');
+      applyState(g);
+    });
+  });
+})();
+
+Promise.allSettled([loadConsentTemplates(), loadAppointment()]).finally(() => {
+  const pl = document.getElementById('pageLoader');
+  if (pl) pl.classList.add('hidden');
+});
 
 // Trigger consent info on load in case a value is already selected
 setTimeout(() => {

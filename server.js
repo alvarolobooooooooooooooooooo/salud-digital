@@ -34,6 +34,15 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Global error handler — ensures async route failures return JSON
+// instead of leaving the connection hanging (which surfaces as Safari's
+// generic "Load failed" on the client).
+app.use((err, req, res, next) => {
+  console.error('Unhandled route error:', err);
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: err.message || 'Internal server error' });
+});
+
 const PORT = process.env.PORT || 3000;
 
 (async () => {

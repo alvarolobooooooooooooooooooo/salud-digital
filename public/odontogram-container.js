@@ -387,10 +387,12 @@ class OdontogramContainer {
 
     // Body
     const body = document.createElement('div');
+    body.className = 'odonto-detail-body';
     body.style.cssText = 'padding: 1rem; display: flex; flex-direction: column; gap: 0.85rem;';
 
     // General diagnosis card
     const dxCard = document.createElement('div');
+    dxCard.className = 'odonto-detail-dx-card';
     dxCard.style.cssText = `
       position: relative;
       display: flex; align-items: center; gap: 0.75rem;
@@ -420,10 +422,12 @@ class OdontogramContainer {
     const dxTxt = document.createElement('div');
     dxTxt.style.cssText = 'flex:1; display:flex; flex-direction:column; gap:2px; min-width:0;';
     const dxLabel = document.createElement('div');
+    dxLabel.className = 'odonto-detail-dx-label';
     dxLabel.style.cssText = `font-size:0.6rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:#64748b;`;
     dxLabel.textContent = 'Diagnóstico general';
     dxTxt.appendChild(dxLabel);
     const dxName = document.createElement('div');
+    dxName.className = 'odonto-detail-dx-name';
     dxName.style.cssText = `font-size:1.05rem; font-weight:800; color:#0f172a; line-height:1.2;`;
     dxName.textContent = cond.label;
     dxTxt.appendChild(dxName);
@@ -433,6 +437,7 @@ class OdontogramContainer {
 
     // Surfaces section
     const surfTitle = document.createElement('div');
+    surfTitle.className = 'odonto-detail-surf-title';
     surfTitle.style.cssText = `
       display:flex; align-items:center; justify-content:space-between;
       font-size:0.66rem; font-weight:800; letter-spacing:0.14em;
@@ -443,6 +448,7 @@ class OdontogramContainer {
     surfTitleLeft.textContent = 'Superficies';
     surfTitle.appendChild(surfTitleLeft);
     const surfCount = document.createElement('span');
+    surfCount.className = 'odonto-detail-surf-count' + (affected.length ? ' has-affected' : '');
     surfCount.style.cssText = `
       font-size:0.62rem; font-weight:800; letter-spacing:0.04em;
       padding: 0.18rem 0.5rem;
@@ -459,6 +465,7 @@ class OdontogramContainer {
 
     if(affected.length === 0) {
       const empty = document.createElement('div');
+      empty.className = 'odonto-detail-surf-empty';
       empty.style.cssText = `
         padding: 0.75rem; text-align: center;
         font-size: 0.78rem; color: #94a3b8;
@@ -475,6 +482,7 @@ class OdontogramContainer {
       ordered.forEach(([surface, condId]) => {
         const c = getConditionById(condId);
         const item = document.createElement('div');
+        item.className = 'odonto-detail-surf-item';
         item.style.cssText = `
           display:flex; align-items:center; gap:0.7rem;
           padding: 0.55rem 0.65rem;
@@ -510,10 +518,12 @@ class OdontogramContainer {
         const txt = document.createElement('div');
         txt.style.cssText = 'flex:1; display:flex; flex-direction:column; gap:1px; min-width:0;';
         const surfName = document.createElement('div');
+        surfName.className = 'odonto-detail-surf-name';
         surfName.style.cssText = `font-size:0.78rem; font-weight:700; color:#0f172a; line-height:1.15;`;
         surfName.textContent = this._getSurfaceLabel(surface, fdi);
         txt.appendChild(surfName);
         const surfDx = document.createElement('div');
+        surfDx.className = 'odonto-detail-surf-dx';
         surfDx.style.cssText = `font-size:0.7rem; font-weight:600; color:#64748b; line-height:1.15;`;
         surfDx.textContent = c.label;
         txt.appendChild(surfDx);
@@ -750,6 +760,7 @@ class OdontogramContainer {
 
   _renderDetailEmpty() {
     const wrap = document.createElement('div');
+    wrap.className = 'odonto-detail-empty';
     wrap.style.cssText = `
       padding: 1.25rem 1rem;
       display: flex; flex-direction: column; align-items: center;
@@ -757,6 +768,7 @@ class OdontogramContainer {
       text-align: center;
     `;
     const ico = document.createElement('div');
+    ico.className = 'odonto-detail-empty-icon';
     ico.style.cssText = `
       width: 44px; height: 44px; border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
@@ -768,11 +780,13 @@ class OdontogramContainer {
     wrap.appendChild(ico);
 
     const eyebrow = document.createElement('div');
+    eyebrow.className = 'odonto-detail-empty-eyebrow';
     eyebrow.style.cssText = `font-size:0.6rem; font-weight:800; letter-spacing:0.16em; text-transform:uppercase; color:#0891b2;`;
     eyebrow.textContent = 'Detalle clínico';
     wrap.appendChild(eyebrow);
 
     const txt = document.createElement('div');
+    txt.className = 'odonto-detail-empty-text';
     txt.style.cssText = `font-size: 0.82rem; color: #475569; max-width: 240px; line-height: 1.4;`;
     txt.textContent = this.readOnly
       ? 'Selecciona un diente para ver su diagnóstico, superficies afectadas y detalles clínicos.'
@@ -799,6 +813,7 @@ class OdontogramContainer {
 
     // Hint text on top
     const hint = document.createElement('div');
+    hint.className = 'odonto-tooth-preview-hint';
     hint.style.cssText = `
       font-size: 0.66rem; font-weight: 800; letter-spacing: 0.14em;
       text-transform: uppercase; color: #475569;
@@ -1790,6 +1805,179 @@ class OdontogramContainer {
           .condition-buttons {
             gap: 0.3rem !important;
           }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           DARK THEME OVERRIDES
+           Inline styles set via JS use !important to win over them.
+           ═══════════════════════════════════════════════════════════════ */
+        /* Outer wrapper used by consultation / view-consultation / clinical-record */
+        [data-theme="dark"] .odontogram-container {
+          background: linear-gradient(135deg, rgba(14,14,16,0.7) 0%, rgba(20,20,22,0.55) 100%) !important;
+          border: 1px solid rgba(255,255,255,0.06) !important;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.03) !important;
+        }
+        [data-theme="dark"] .arch-grid {
+          background: linear-gradient(135deg, rgba(20,20,22,0.7) 0%, rgba(14,14,16,0.85) 100%) !important;
+          border: 1.5px solid rgba(255,255,255,0.06) !important;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.35) !important;
+        }
+        [data-theme="dark"] .arch-label {
+          color: #22d3ee !important;
+        }
+        [data-theme="dark"] .tooth-container {
+          background: linear-gradient(180deg, rgba(28,28,30,0.85) 0%, rgba(20,20,22,0.7) 100%) !important;
+          border: 1px solid rgba(255,255,255,0.08) !important;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+        }
+        [data-theme="dark"] .tooth-container.tooth-editable:hover,
+        [data-theme="dark"] .tooth-container.tooth-readonly:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 10px 24px rgba(6,182,212,0.18), 0 2px 6px rgba(0,0,0,0.45) !important;
+          border-color: rgba(6,182,212,0.35) !important;
+        }
+        [data-theme="dark"] .tooth-container.tooth-selected {
+          background: linear-gradient(180deg, rgba(6,182,212,0.12) 0%, rgba(8,145,178,0.06) 100%) !important;
+          border-color: rgba(6,182,212,0.5) !important;
+          box-shadow: 0 0 0 1px rgba(6,182,212,0.35), 0 8px 22px rgba(6,182,212,0.20), 0 24px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+        }
+        [data-theme="dark"] .tooth-info-dot {
+          box-shadow: 0 0 0 2px #0a0a0c, 0 2px 6px rgba(0,0,0,0.6) !important;
+        }
+        [data-theme="dark"] .tooth-svg {
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+        [data-theme="dark"] .tooth-container:hover .tooth-svg {
+          filter: drop-shadow(0 4px 12px rgba(6,182,212,0.35));
+        }
+        [data-theme="dark"] .tooth-surface {
+          box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+          border-color: rgba(255,255,255,0.18) !important;
+        }
+        [data-theme="dark"] .tooth-surface.tooth-surface-healthy {
+          background-color: rgba(255,255,255,0.08) !important;
+          color: #cbd5e1 !important;
+        }
+        [data-theme="dark"] .tooth-surfaces-summary {
+          background: rgba(255,255,255,0.05) !important;
+        }
+        /* Tooth diagnosis chip: lighten label color (uses cond.color, easier read on dark) */
+        [data-theme="dark"] .tooth-dx-chip span:last-child {
+          color: inherit !important;
+          opacity: 0.95;
+        }
+        [data-theme="dark"] .tooth-dx-chip {
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.06) !important;
+        }
+
+        /* ── Detail panel (sticky drawer / inline card) ── */
+        [data-theme="dark"] .odonto-detail-panel {
+          background: rgba(20,20,22,0.92) !important;
+          border: 1px solid rgba(255,255,255,0.08) !important;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.45) !important;
+        }
+        [data-theme="dark"] .odonto-detail-panel.odonto-detail-active {
+          box-shadow: 0 16px 40px rgba(0,0,0,0.55), 0 4px 12px rgba(6,182,212,0.08) !important;
+        }
+        @media (max-width: 860px) {
+          [data-theme="dark"] .odonto-detail-panel.odonto-detail-active {
+            background: #0a0a0c !important;
+          }
+        }
+
+        /* Detail panel — populated state */
+        [data-theme="dark"] .odonto-detail-dx-card {
+          background: linear-gradient(135deg, rgba(28,28,30,0.85) 0%, rgba(20,20,22,0.7) 100%) !important;
+          border: 1px solid rgba(255,255,255,0.08) !important;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.04) !important;
+        }
+        [data-theme="dark"] .odonto-detail-dx-label {
+          color: #94a3b8 !important;
+        }
+        [data-theme="dark"] .odonto-detail-dx-name {
+          color: #f1f5f9 !important;
+        }
+        [data-theme="dark"] .odonto-detail-surf-title {
+          color: #cbd5e1 !important;
+        }
+        [data-theme="dark"] .odonto-detail-surf-count {
+          background: rgba(255,255,255,0.06) !important;
+          color: #94a3b8 !important;
+        }
+        [data-theme="dark"] .odonto-detail-surf-count.has-affected {
+          background: rgba(6,182,212,0.12) !important;
+          color: #22d3ee !important;
+        }
+        [data-theme="dark"] .odonto-detail-surf-empty {
+          background: rgba(255,255,255,0.03) !important;
+          border: 1px dashed rgba(255,255,255,0.1) !important;
+          color: #94a3b8 !important;
+        }
+        [data-theme="dark"] .odonto-detail-surf-item {
+          background: rgba(28,28,30,0.7) !important;
+          border-color: rgba(255,255,255,0.08) !important;
+        }
+        [data-theme="dark"] .odonto-detail-surf-name {
+          color: #f1f5f9 !important;
+        }
+        [data-theme="dark"] .odonto-detail-surf-dx {
+          color: #94a3b8 !important;
+        }
+
+        /* Detail panel — empty state */
+        [data-theme="dark"] .odonto-detail-empty-icon {
+          background: linear-gradient(135deg, rgba(6,182,212,0.12) 0%, rgba(8,145,178,0.08) 100%) !important;
+          border: 1px solid rgba(6,182,212,0.25) !important;
+          color: #22d3ee !important;
+        }
+        [data-theme="dark"] .odonto-detail-empty-eyebrow {
+          color: #22d3ee !important;
+        }
+        [data-theme="dark"] .odonto-detail-empty-text {
+          color: #94a3b8 !important;
+        }
+
+        /* Mobile tooth preview header inside the fullscreen modal */
+        [data-theme="dark"] .odonto-tooth-preview-section {
+          background: linear-gradient(180deg, rgba(14,14,16,0.6) 0%, rgba(20,20,22,0.4) 100%) !important;
+          border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+        }
+        [data-theme="dark"] .odonto-tooth-preview-hint {
+          color: #cbd5e1 !important;
+        }
+
+        /* ── Treatment toolbar ── */
+        [data-theme="dark"] .toolbar-container {
+          background: rgba(20,20,22,0.85) !important;
+          border: 1px solid rgba(255,255,255,0.08) !important;
+          color: #f1f5f9 !important;
+        }
+        [data-theme="dark"] #toolbar-info {
+          background: rgba(6,182,212,0.10) !important;
+          color: #22d3ee !important;
+        }
+        [data-theme="dark"] .condition-btn {
+          color: #f1f5f9 !important;
+        }
+
+        /* ── Legend ── */
+        [data-theme="dark"] .legend-container,
+        [data-theme="dark"] .odonto-legend {
+          background: linear-gradient(180deg, rgba(20,20,22,0.85) 0%, rgba(14,14,16,0.92) 100%) !important;
+          border: 1px solid rgba(255,255,255,0.08) !important;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.3) !important;
+        }
+        [data-theme="dark"] .odonto-legend > div:first-child > div:first-child {
+          color: #cbd5e1 !important;
+        }
+        [data-theme="dark"] .odonto-legend > div:first-child > div:last-child {
+          color: #64748b !important;
+        }
+        [data-theme="dark"] .legend-item {
+          background: rgba(28,28,30,0.7) !important;
+        }
+        [data-theme="dark"] .legend-item span:last-child {
+          color: #f1f5f9 !important;
         }
       `;
     }

@@ -3356,6 +3356,17 @@ html[data-theme="dark"] .form-group select {
   color: var(--sd-text) !important;
   border-color: var(--sd-input-border) !important;
 }
+/* Custom select chevron — brighter cyan for dark mode */
+html[data-theme="dark"] .form-group select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2367e8f9' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.95rem center !important;
+  background-size: 14px 14px !important;
+}
+html[data-theme="dark"] .form-group select option {
+  background: var(--sd-surface-solid) !important;
+  color: var(--sd-text) !important;
+}
 html[data-theme="dark"] .form-group input::placeholder,
 html[data-theme="dark"] .form-group textarea::placeholder {
   color: var(--sd-text-faint) !important;
@@ -3376,15 +3387,112 @@ html[data-theme="dark"] .clinical-table textarea {
   color: var(--sd-text) !important;
   border-color: var(--sd-input-border) !important;
 }
+html[data-theme="dark"] .clinical-table {
+  border-color: var(--sd-border-soft) !important;
+  background: transparent !important;
+}
+html[data-theme="dark"] .clinical-table thead {
+  background: rgba(255, 255, 255, .03) !important;
+}
 html[data-theme="dark"] .clinical-table th {
   color: var(--sd-text-muted) !important;
-  background: rgba(255, 255, 255, .02) !important;
+  background: transparent !important;
+  border-bottom-color: var(--sd-border-soft) !important;
 }
 html[data-theme="dark"] .clinical-table td {
   border-bottom: 1px solid var(--sd-border-soft) !important;
 }
 html[data-theme="dark"] .clinical-table tbody tr:hover {
   background: rgba(8, 145, 178, .05) !important;
+}
+
+/* ─── Pressure measurement diagram (white-background PNG) ─── */
+html[data-theme="dark"] .pressure-image-wrap {
+  background: rgba(255, 255, 255, .04) !important;
+  border-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .pressure-image-wrap img {
+  filter: invert(0.92) hue-rotate(180deg) brightness(1.05) contrast(0.95);
+  mix-blend-mode: screen;
+  border-radius: 8px;
+}
+
+/* ─── Termografía y Termometría (feet panel + legend) ─── */
+html[data-theme="dark"] .feet-section {
+  background: rgba(20, 20, 22, .55) !important;
+  background-image:
+    radial-gradient(circle at 30% 20%, rgba(8, 145, 178, .08) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, .02) 0%, rgba(255, 255, 255, 0) 100%) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03) !important;
+}
+html[data-theme="dark"] .feet-label { color: #67e8f9 !important; }
+html[data-theme="dark"] .control-label { color: #67e8f9 !important; }
+
+/* "—" type display + observations textarea (have inline background:var(--pod-bg)) */
+html[data-theme="dark"] #thermo-type-display {
+  background: rgba(255, 255, 255, .03) !important;
+  border-color: var(--sd-border) !important;
+  color: #67e8f9 !important;
+}
+html[data-theme="dark"] #thermo-observations {
+  background: rgba(255, 255, 255, .03) !important;
+  border-color: var(--sd-border) !important;
+  color: var(--sd-text) !important;
+  -webkit-text-fill-color: var(--sd-text) !important;
+}
+html[data-theme="dark"] #thermo-observations::placeholder { color: var(--sd-text-faint) !important; }
+
+html[data-theme="dark"] .type-option {
+  background: rgba(255, 255, 255, .03) !important;
+  border-color: var(--sd-border) !important;
+  color: var(--sd-text-muted) !important;
+}
+html[data-theme="dark"] .type-option.active {
+  background: linear-gradient(135deg, #0e7490 0%, #06b6d4 100%) !important;
+  color: #f1f5f9 !important;
+  border-color: #0891b2 !important;
+  box-shadow: 0 6px 18px rgba(6, 182, 212, .25) !important;
+}
+
+html[data-theme="dark"] .measurements-list {
+  background: rgba(255, 255, 255, .02) !important;
+  border-color: var(--sd-border-soft) !important;
+  color: var(--sd-text-muted) !important;
+}
+html[data-theme="dark"] .measurement-item {
+  background: rgba(255, 255, 255, .04) !important;
+  border-left-color: #06b6d4 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .35) !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .measurement-item-temp { color: #67e8f9 !important; }
+
+html[data-theme="dark"] .color-legend {
+  background: rgba(20, 20, 22, .55) !important;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .02) 0%, rgba(255, 255, 255, 0) 100%) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .legend-item { color: var(--sd-text-soft) !important; }
+html[data-theme="dark"] .legend-color { box-shadow: 0 2px 6px rgba(0, 0, 0, .45) !important; }
+
+/* Thermography SVG default fill in dark — vibrant cyan that pops on black */
+html[data-theme="dark"] #thermoFeetContainer .foot-path {
+  fill: rgba(6, 182, 212, .55) !important;
+  stroke: rgba(103, 232, 249, .45);
+  stroke-width: 30;
+  filter: drop-shadow(0 0 14px rgba(6, 182, 212, .35));
+}
+html[data-theme="dark"] #thermoFeetContainer .foot-path:hover {
+  fill: rgba(34, 211, 238, .75) !important;
+  filter: drop-shadow(0 0 18px rgba(34, 211, 238, .55));
+}
+html[data-theme="dark"] #thermoFeetContainer .foot-path.selected {
+  fill: #06b6d4 !important;
+  filter: drop-shadow(0 0 22px rgba(6, 182, 212, .7));
+}
+html[data-theme="dark"] #thermoFeetContainer .foot-path.temp-measured {
+  fill: var(--temp-color, rgba(6, 182, 212, .55)) !important;
 }
 
 /* ─── Inventario usado en esta consulta (consultation-inventory.js styles) ─── */

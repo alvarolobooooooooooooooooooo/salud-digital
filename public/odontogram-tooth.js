@@ -77,6 +77,7 @@ class OdontogramTooth {
     };
 
     if(this.isSelected) {
+      container.classList.add('tooth-selected');
       container.style.borderColor = 'rgba(8, 145, 178, 0.45)';
       container.style.background = 'linear-gradient(180deg, #f0f9ff 0%, #e8f5f9 100%)';
       container.style.boxShadow = '0 0 0 1px rgba(8, 145, 178, 0.25), 0 8px 22px rgba(8, 145, 178, 0.22), 0 24px 48px rgba(8, 145, 178, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.9)';

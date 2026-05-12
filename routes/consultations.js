@@ -165,49 +165,58 @@ router.post('/', authenticate, async (req, res) => {
 });
 
 router.get('/appointment/:appointment_id', authenticate, async (req, res) => {
-  const { appointment_id } = req.params;
+  try {
+    const { appointment_id } = req.params;
 
-  let queryStr = 'SELECT c.*, p.name as patient_name, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.appointment_id = $1 AND c.clinic_id = $2';
-  let params = [appointment_id, req.user.clinic_id];
-  let paramIndex = 3;
+    let queryStr = 'SELECT c.*, p.name as patient_name, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.appointment_id = $1 AND c.clinic_id = $2';
+    let params = [appointment_id, req.user.clinic_id];
+    let paramIndex = 3;
 
-  if (req.user.role === 'doctor') {
-    queryStr += ` AND c.doctor_id = $${paramIndex}`;
-    params.push(req.user.id);
-    paramIndex++;
-  }
+    if (req.user.role === 'doctor') {
+      queryStr += ` AND c.doctor_id = $${paramIndex}`;
+      params.push(req.user.id);
+      paramIndex++;
+    }
 
-  let result = await query(queryStr, params);
-  let consultation = result.rows[0];
+    let result = await query(queryStr, params);
+    let consultation = result.rows[0];
 
-  if (!consultation) {
-    const appointmentResult = await query('SELECT patient_id, doctor_id FROM appointments WHERE id = $1 AND clinic_id = $2', [appointment_id, req.user.clinic_id]);
-    if (appointmentResult.rows.length > 0) {
-      const appointment = appointmentResult.rows[0];
-      if (req.user.role !== 'doctor' || appointment.doctor_id === req.user.id) {
-        queryStr = 'SELECT c.*, p.name as patient_name, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = $1 AND c.clinic_id = $2';
-        params = [appointment.patient_id, req.user.clinic_id];
-        paramIndex = 3;
+    if (!consultation) {
+      const appointmentResult = await query('SELECT patient_id, doctor_id FROM appointments WHERE id = $1 AND clinic_id = $2', [appointment_id, req.user.clinic_id]);
+      if (appointmentResult.rows.length > 0) {
+        const appointment = appointmentResult.rows[0];
+        if (req.user.role !== 'doctor' || appointment.doctor_id === req.user.id) {
+          queryStr = 'SELECT c.*, p.name as patient_name, u.name as doctor_name, u.email as doctor_email FROM consultations c LEFT JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = $1 AND c.clinic_id = $2';
+          params = [appointment.patient_id, req.user.clinic_id];
+          paramIndex = 3;
 
-        if (req.user.role === 'doctor') {
-          queryStr += ` AND c.doctor_id = $${paramIndex}`;
-          params.push(req.user.id);
-          paramIndex++;
+          if (req.user.role === 'doctor') {
+            queryStr += ` AND c.doctor_id = $${paramIndex}`;
+            params.push(req.user.id);
+            paramIndex++;
+          }
+
+          queryStr += ' ORDER BY c.created_at DESC LIMIT 1';
+          result = await query(queryStr, params);
+          consultation = result.rows[0];
         }
-
-        queryStr += ' ORDER BY c.created_at DESC LIMIT 1';
-        result = await query(queryStr, params);
-        consultation = result.rows[0];
       }
     }
+
+    if (!consultation) return res.status(404).json({ error: 'Consultation not found' });
+
+    if (typeof consultation.odontogram_state === 'string') {
+      try { consultation.odontogram_state = JSON.parse(consultation.odontogram_state || '{}'); } catch { consultation.odontogram_state = {}; }
+    }
+    if (typeof consultation.lifestyle === 'string') {
+      try { consultation.lifestyle = JSON.parse(consultation.lifestyle || '{}'); } catch { consultation.lifestyle = {}; }
+    }
+
+    res.json(consultation);
+  } catch (err) {
+    console.error('GET /consultations/appointment/:appointment_id failed:', err);
+    res.status(500).json({ error: err.message || 'Internal server error' });
   }
-
-  if (!consultation) return res.status(404).json({ error: 'Consultation not found' });
-
-  try { consultation.odontogram_state = JSON.parse(consultation.odontogram_state || '{}'); } catch {}
-  try { consultation.lifestyle = JSON.parse(consultation.lifestyle || '{}'); } catch {}
-
-  res.json(consultation);
 });
 
 router.get('/:id', authenticate, async (req, res) => {

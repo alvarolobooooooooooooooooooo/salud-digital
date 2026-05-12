@@ -324,7 +324,8 @@ function createSurfaceElement(surface, fdi, condition = CONDITIONS.HEALTHY, isEd
   const container = document.createElement('div');
   container.setAttribute('data-surface', surface);
   container.setAttribute('data-fdi', fdi);
-  container.className = 'tooth-surface';
+  const isHealthy = (condition === CONDITIONS.HEALTHY.id) || (condition && condition.id === CONDITIONS.HEALTHY.id);
+  container.className = 'tooth-surface' + (isHealthy ? ' tooth-surface-healthy' : '');
 
   const condData = getConditionById(condition);
   const surfaceLabel = getSurfaceLabel(surface, fdi);
