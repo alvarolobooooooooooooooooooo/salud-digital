@@ -181,12 +181,15 @@
 
         <div class="mobile-sidebar-content">
           <div class="sidebar-section">
-            <div class="sidebar-label">Notificaciones</div>
-            <div class="notification-item" id="notificationPanel">
-              <div style="text-align: center; padding: 1.5rem; color: #94a3b8;">
-                <div id="notificationIcon" style="margin-bottom: 0.5rem; opacity: 0.6;"></div>
-                <p style="font-size: 0.85rem;">Sin notificaciones</p>
+            <div class="sb-profile" style="margin: 0;">
+              <div class="sb-profile-row">
+                <div class="sb-avatar" id="sbAvatarMobile">?</div>
+                <div class="sb-user-block">
+                  <div class="sb-user-name" id="sbNameMobile">—</div>
+                  <div class="sb-clinic" id="sbClinicMobile">—</div>
+                </div>
               </div>
+              <div class="sb-specialty-badge" id="sbSpecialtyMobile"></div>
             </div>
           </div>
 
@@ -441,25 +444,35 @@
       : rawName;
     const initials = displayName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 
-    const avatarEl = document.getElementById('sbAvatar');
-    const nameEl = document.getElementById('sbName');
-    const clinicEl = document.getElementById('sbClinic');
-    const specialtyEl = document.getElementById('sbSpecialty');
+    const avatarEls = [
+      document.getElementById('sbAvatar'),
+      document.getElementById('sbAvatarMobile')
+    ];
+    const nameEls = [
+      document.getElementById('sbName'),
+      document.getElementById('sbNameMobile')
+    ];
+    const clinicEls = [
+      document.getElementById('sbClinic'),
+      document.getElementById('sbClinicMobile')
+    ];
+    const specialtyEls = [
+      document.getElementById('sbSpecialty'),
+      document.getElementById('sbSpecialtyMobile')
+    ];
 
-    if (avatarEl) avatarEl.textContent = initials;
-    if (nameEl) nameEl.textContent = displayName;
-    if (clinicEl) clinicEl.textContent = user.clinic_name || '';
+    avatarEls.forEach(el => { if (el) el.textContent = initials; });
+    nameEls.forEach(el => { if (el) el.textContent = displayName; });
+    clinicEls.forEach(el => { if (el) el.textContent = user.clinic_name || ''; });
 
-    if (specialtyEl) {
-      if (user.role === 'receptionist') {
-        specialtyEl.textContent = 'Recepcionista';
-      } else if (user.role === 'clinic_admin') {
-        specialtyEl.textContent = 'Administrador de clínica';
-      } else if (user.specialty) {
-        specialtyEl.textContent = user.specialty;
-        localStorage.setItem('sd_user_specialty', user.specialty);
-      }
+    let specialtyText = '';
+    if (user.role === 'receptionist') specialtyText = 'Recepcionista';
+    else if (user.role === 'clinic_admin') specialtyText = 'Administrador de clínica';
+    else if (user.specialty) {
+      specialtyText = user.specialty;
+      localStorage.setItem('sd_user_specialty', user.specialty);
     }
+    specialtyEls.forEach(el => { if (el) el.textContent = specialtyText; });
   }
 
   function initSidebarToggle() {

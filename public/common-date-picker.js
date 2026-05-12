@@ -4,6 +4,7 @@
 
 function replaceWithCalendarDatetimePicker(input, options = {}) {
   const wrapper = document.createElement('div');
+  wrapper.className = 'cdp-wrapper';
   wrapper.style.display = 'flex';
   wrapper.style.flexDirection = 'column';
   wrapper.style.gap = '0.5rem';

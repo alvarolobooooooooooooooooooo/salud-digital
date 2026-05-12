@@ -4,7 +4,7 @@
 // applies data-theme to <html>.
 (function () {
   try {
-    var stored = localStorage.getItem('sd_theme') || 'light';
+    var stored = localStorage.getItem('sd_theme') || 'dark';
     var effective = stored;
     if (stored === 'auto') {
       effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
@@ -12,12 +12,12 @@
     document.documentElement.setAttribute('data-theme', effective);
     document.documentElement.setAttribute('data-theme-preference', stored);
   } catch (_) {
-    document.documentElement.setAttribute('data-theme', 'light');
+    document.documentElement.setAttribute('data-theme', 'dark');
   }
 
   // Public API to switch theme at runtime, used by /configuracion.html
   window.SDTheme = {
-    get: function () { return localStorage.getItem('sd_theme') || 'light'; },
+    get: function () { return localStorage.getItem('sd_theme') || 'dark'; },
     set: function (pref) {
       try { localStorage.setItem('sd_theme', pref); } catch (_) {}
       var effective = pref;
@@ -34,7 +34,7 @@
   if (window.matchMedia) {
     var mq = window.matchMedia('(prefers-color-scheme: dark)');
     var onChange = function () {
-      if ((localStorage.getItem('sd_theme') || 'light') === 'auto') {
+      if ((localStorage.getItem('sd_theme') || 'dark') === 'auto') {
         document.documentElement.setAttribute('data-theme', mq.matches ? 'dark' : 'light');
       }
     };
