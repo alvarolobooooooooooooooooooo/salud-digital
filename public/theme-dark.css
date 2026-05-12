@@ -5,17 +5,17 @@
    defined in layout.css :root, plus targeted overrides for hardcoded
    colors in individual pages (inventario, configuracion, plan…).
 
-   Design tokens — premium, calm, professional:
-   • Background base   : #0a0e1a (deep navy-black, not pure black)
-   • Background mid    : #111827
-   • Surface (cards)   : rgba(26, 34, 52, .72) + backdrop blur
+   Design tokens — neutral black, minimal color:
+   • Background base   : #050507 (near-pure black, no blue tint)
+   • Background mid    : #0a0a0c
+   • Surface (cards)   : rgba(20, 20, 22, .72) + backdrop blur
    • Border (subtle)   : rgba(255, 255, 255, .06)
    • Border (default)  : rgba(255, 255, 255, .09)
    • Text primary      : #f1f5f9
    • Text secondary    : #94a3b8
    • Text muted        : #64748b
-   • Cyan primary      : #06b6d4 (slightly brighter than light)
-   • Cyan accent       : #14b8a6 (for glow + active states)
+   • Cyan primary      : #06b6d4 (used sparingly as accent only)
+   • Cyan accent       : #0891b2 (for glow + active states)
    ═══════════════════════════════════════════════════════════════════ */
 
 [data-theme="dark"] {
@@ -23,22 +23,22 @@
 
   /* Re-map layout.css variables */
   --primary: #06b6d4;
-  --primary-hover: #14b8a6;
-  --primary-light: #0a1d2e;
-  --bg: #0a0e1a;
-  --card: #1a2234;
+  --primary-hover: #0891b2;
+  --primary-light: #141416;
+  --bg: #050507;
+  --card: #141416;
   --text: #f1f5f9;
   --muted: #94a3b8;
   --border: rgba(255, 255, 255, .09);
 
   /* Extra page-level tokens (used by overrides below) */
-  --sd-bg-base: #0a0e1a;
-  --sd-bg-mid: #0d1426;
-  --sd-bg-blob-1: rgba(6, 182, 212, .07);
-  --sd-bg-blob-2: rgba(20, 184, 166, .05);
-  --sd-surface: rgba(26, 34, 52, .72);
-  --sd-surface-solid: #161e2e;
-  --sd-surface-2: rgba(34, 44, 64, .82);
+  --sd-bg-base: #050507;
+  --sd-bg-mid: #0a0a0c;
+  --sd-bg-blob-1: rgba(6, 182, 212, .025);
+  --sd-bg-blob-2: rgba(8, 145, 178, .02);
+  --sd-surface: rgba(20, 20, 22, .72);
+  --sd-surface-solid: #131315;
+  --sd-surface-2: rgba(28, 28, 30, .82);
   --sd-border: rgba(255, 255, 255, .09);
   --sd-border-soft: rgba(255, 255, 255, .055);
   --sd-border-strong: rgba(255, 255, 255, .14);
@@ -46,7 +46,7 @@
   --sd-text-soft: #cbd5e1;
   --sd-text-muted: #94a3b8;
   --sd-text-faint: #64748b;
-  --sd-input-bg: rgba(15, 23, 42, .55);
+  --sd-input-bg: rgba(18, 18, 20, .55);
   --sd-input-border: rgba(255, 255, 255, .1);
   --sd-shadow: 0 8px 24px rgba(0, 0, 0, .35);
   --sd-shadow-lg: 0 16px 40px rgba(0, 0, 0, .45);
@@ -57,26 +57,28 @@
 /* ── Body backgrounds (high specificity html[…] body to beat any inline style) ── */
 html[data-theme="dark"],
 html[data-theme="dark"] body {
-  background-color: #0a0e1a !important;
+  background-color: #050507 !important;
   color: var(--sd-text) !important;
 }
 html[data-theme="dark"] body {
-  background-image: linear-gradient(135deg, #0a0e1a 0%, #0d1426 45%, #0a1525 100%) !important;
+  background-image: linear-gradient(180deg, #050507 0%, #08080a 100%) !important;
 }
 html[data-theme="dark"] body::before {
   background: radial-gradient(circle, var(--sd-bg-blob-1) 0%, transparent 70%) !important;
-  filter: blur(70px) !important;
+  filter: blur(90px) !important;
+  opacity: .6 !important;
 }
 html[data-theme="dark"] body::after {
   background: radial-gradient(circle, var(--sd-bg-blob-2) 0%, transparent 70%) !important;
-  filter: blur(70px) !important;
+  filter: blur(90px) !important;
+  opacity: .5 !important;
 }
 
 /* ───────────────────────────────────────────────────────────────
    SIDEBAR (#sidebar from layout.css)
    ─────────────────────────────────────────────────────────────── */
 [data-theme="dark"] #sidebar {
-  background: linear-gradient(180deg, #0c1322 0%, #0a0f1c 100%) !important;
+  background: linear-gradient(180deg, #0c0c0e 0%, #07070a 100%) !important;
   border-right: 1px solid var(--sd-border-soft) !important;
   box-shadow: 1px 0 24px rgba(0, 0, 0, .45);
 }
@@ -87,11 +89,11 @@ html[data-theme="dark"] body::after {
   border-bottom: 1px solid var(--sd-border-soft) !important;
 }
 [data-theme="dark"] .sb-profile {
-  background: linear-gradient(135deg, rgba(6, 182, 212, .08), rgba(20, 184, 166, .04)) !important;
+  background: linear-gradient(135deg, rgba(6, 182, 212, .08), rgba(8, 145, 178, .04)) !important;
   border: 1px solid var(--sd-border-soft) !important;
 }
 [data-theme="dark"] .sb-avatar {
-  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: white !important;
   box-shadow: 0 6px 14px rgba(6, 182, 212, .28);
 }
@@ -99,7 +101,7 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .sb-clinic { color: var(--sd-text-muted) !important; }
 [data-theme="dark"] .sb-specialty-badge {
   background: rgba(6, 182, 212, .14) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
   border: 1px solid rgba(6, 182, 212, .25);
 }
 [data-theme="dark"] .sb-section-label {
@@ -110,16 +112,16 @@ html[data-theme="dark"] body::after {
 }
 [data-theme="dark"] .sb-item:hover {
   background: rgba(6, 182, 212, .08) !important;
-  color: #5eead4 !important;
+  color: #22d3ee !important;
 }
 [data-theme="dark"] .sb-item.active {
-  background: linear-gradient(135deg, rgba(6, 182, 212, .18) 0%, rgba(20, 184, 166, .12) 100%) !important;
-  color: #5eead4 !important;
+  background: linear-gradient(135deg, rgba(6, 182, 212, .18) 0%, rgba(8, 145, 178, .12) 100%) !important;
+  color: #22d3ee !important;
   border-color: rgba(6, 182, 212, .35) !important;
   box-shadow: inset 0 0 0 1px rgba(6, 182, 212, .25), 0 4px 14px rgba(6, 182, 212, .18);
 }
 [data-theme="dark"] .sb-item.active::before {
-  background: linear-gradient(180deg, #14b8a6 0%, #06b6d4 100%) !important;
+  background: linear-gradient(180deg, #06b6d4 0%, #0891b2 100%) !important;
 }
 [data-theme="dark"] .sb-logout {
   color: var(--sd-text-muted) !important;
@@ -137,31 +139,50 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .sb-toggle:hover {
   background: rgba(6, 182, 212, .15) !important;
   border-color: rgba(6, 182, 212, .4) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 
 /* ── Mobile sidebar + nav ── */
 [data-theme="dark"] #mobileNav {
-  background: rgba(12, 19, 34, .92) !important;
-  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-  border-top: 1px solid var(--sd-border-soft) !important;
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, .35);
+  background: #050507 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .4) !important;
 }
 [data-theme="dark"] .mobile-nav-item {
   color: var(--sd-text-muted) !important;
 }
 [data-theme="dark"] .mobile-nav-item.active {
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 [data-theme="dark"] .mobile-nav-hamburger {
-  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
-  color: white !important;
+  background: transparent !important;
+  color: var(--sd-text-muted) !important;
+}
+[data-theme="dark"] .mobile-nav-hamburger:hover {
+  background: rgba(8, 145, 178, .08) !important;
+  color: #22d3ee !important;
+}
+
+/* Mobile nav icons — bypass the SVG gradient and use solid cyan-500
+   (same color as .stat-icon stroke via var(--primary) → #06b6d4) */
+[data-theme="dark"] .mobile-nav-item .mobile-icon svg,
+[data-theme="dark"] .mobile-nav-item .mobile-icon svg *,
+[data-theme="dark"] .mobile-nav-hamburger svg,
+[data-theme="dark"] .mobile-nav-hamburger svg * {
+  stroke: #06b6d4 !important;
 }
 [data-theme="dark"] .mobile-sidebar {
-  background: linear-gradient(180deg, #0c1322 0%, #0a0f1c 100%) !important;
+  background: linear-gradient(180deg, #0c0c0e 0%, #07070a 100%) !important;
   color: var(--sd-text) !important;
+  border-left: 1px solid var(--sd-border-soft) !important;
 }
-[data-theme="dark"] .mobile-sidebar-header { border-bottom: 1px solid var(--sd-border-soft) !important; }
+[data-theme="dark"] .mobile-sidebar-header {
+  background: transparent !important;
+  background-image: none !important;
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
 [data-theme="dark"] .mobile-sidebar-title { color: var(--sd-text) !important; }
 [data-theme="dark"] .mobile-sidebar-close {
   background: var(--sd-surface-solid) !important;
@@ -177,7 +198,7 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .sidebar-menu-link:hover {
   background: rgba(6, 182, 212, .1) !important;
   border-color: rgba(6, 182, 212, .25) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 [data-theme="dark"] .sidebar-logout-btn {
   background: rgba(239, 68, 68, .08) !important;
@@ -200,7 +221,7 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .page-header h1,
 [data-theme="dark"] .header-content h1 {
   /* Use background-image (not shorthand) so background-clip:text is preserved. */
-  background-image: linear-gradient(120deg, #5eead4 0%, #14b8a6 45%, #06b6d4 100%) !important;
+  background-image: linear-gradient(120deg, #67e8f9 0%, #0891b2 45%, #06b6d4 100%) !important;
   background-color: transparent !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
@@ -213,9 +234,9 @@ html[data-theme="dark"] body::after {
   color: var(--sd-text-muted) !important;
 }
 [data-theme="dark"] .pro-badge {
-  background: linear-gradient(135deg, rgba(6, 182, 212, .14), rgba(20, 184, 166, .1)) !important;
+  background: linear-gradient(135deg, rgba(6, 182, 212, .14), rgba(8, 145, 178, .1)) !important;
   border-color: rgba(6, 182, 212, .3) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -283,13 +304,13 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .filter-item input:focus,
 [data-theme="dark"] .filter-item select:focus,
 [data-theme="dark"] .search-input:focus {
-  border-color: #14b8a6 !important;
+  border-color: #0891b2 !important;
   box-shadow: 0 0 0 3px rgba(6, 182, 212, .2) !important;
-  background-color: rgba(15, 23, 42, .75) !important;
+  background-color: rgba(18, 18, 20, .75) !important;
 }
 [data-theme="dark"] .url-combo:focus-within,
 [data-theme="dark"] .tag-chips:focus-within {
-  border-color: #14b8a6 !important;
+  border-color: #0891b2 !important;
   box-shadow: 0 0 0 3px rgba(6, 182, 212, .2) !important;
 }
 [data-theme="dark"] .field label,
@@ -313,16 +334,16 @@ html[data-theme="dark"] body::after {
   background-color: var(--sd-input-bg) !important;
 }
 [data-theme="dark"] .field select:hover:not(:disabled) {
-  background-color: rgba(15, 23, 42, .7) !important;
-  border-color: rgba(20, 184, 166, .4) !important;
+  background-color: rgba(18, 18, 20, .7) !important;
+  border-color: rgba(8, 145, 178, .4) !important;
 }
 [data-theme="dark"] .field select option {
-  background: #1a2234 !important;
+  background: #141416 !important;
   color: var(--sd-text) !important;
 }
 [data-theme="dark"] .field select option:disabled { color: #475569 !important; }
 [data-theme="dark"] .field-readonly {
-  background: rgba(15, 23, 42, .45) !important;
+  background: rgba(18, 18, 20, .45) !important;
   border-color: var(--sd-border-soft) !important;
   color: var(--sd-text-muted) !important;
 }
@@ -336,7 +357,7 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .url-combo input { background: transparent !important; }
 [data-theme="dark"] .url-combo .suffix-btn {
   border-left-color: var(--sd-border) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 [data-theme="dark"] .url-combo .suffix-btn:hover { background: rgba(6, 182, 212, .1) !important; }
 
@@ -350,7 +371,7 @@ html[data-theme="dark"] body::after {
    BUTTONS
    ─────────────────────────────────────────────────────────────── */
 [data-theme="dark"] .btn-primary {
-  background: linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%) !important;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
   color: #052e36 !important;
   box-shadow: 0 6px 18px rgba(6, 182, 212, .35) !important;
   font-weight: 700;
@@ -360,7 +381,7 @@ html[data-theme="dark"] body::after {
 }
 [data-theme="dark"] .btn-secondary {
   background: rgba(6, 182, 212, .08) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
   border-color: rgba(6, 182, 212, .3) !important;
 }
 [data-theme="dark"] .btn-secondary:hover {
@@ -393,19 +414,19 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .tab-btn { color: var(--sd-text-soft) !important; }
 [data-theme="dark"] .tab-btn:hover {
   background: rgba(6, 182, 212, .08) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 [data-theme="dark"] .tab-btn.active {
-  background: linear-gradient(135deg, rgba(6, 182, 212, .2), rgba(20, 184, 166, .14)) !important;
-  color: #5eead4 !important;
+  background: linear-gradient(135deg, rgba(6, 182, 212, .2), rgba(8, 145, 178, .14)) !important;
+  color: #67e8f9 !important;
   box-shadow: inset 0 0 0 1px rgba(6, 182, 212, .35), 0 4px 14px rgba(6, 182, 212, .15);
 }
 [data-theme="dark"] .tab-btn .tab-icon {
   background: rgba(6, 182, 212, .12) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 [data-theme="dark"] .tab-btn.active .tab-icon {
-  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: white !important;
   box-shadow: 0 4px 12px rgba(6, 182, 212, .4) !important;
 }
@@ -414,29 +435,29 @@ html[data-theme="dark"] body::after {
    PROFILE HERO (configuracion)
    ─────────────────────────────────────────────────────────────── */
 [data-theme="dark"] .profile-hero {
-  background: linear-gradient(135deg, rgba(6, 182, 212, .08) 0%, rgba(14, 165, 233, .04) 100%) !important;
-  border-color: rgba(6, 182, 212, .18) !important;
+  background: linear-gradient(180deg, #111113 0%, #0c0c0e 100%) !important;
+  border-color: var(--sd-border-soft) !important;
 }
 [data-theme="dark"] .avatar-wrap {
-  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   box-shadow: 0 12px 32px rgba(6, 182, 212, .35) !important;
 }
 [data-theme="dark"] .avatar {
-  background: #0d1426 !important;
-  color: #5eead4 !important;
+  background: #0a0a0c !important;
+  color: #67e8f9 !important;
 }
 [data-theme="dark"] .avatar-upload-btn {
-  background: #161e2e !important;
-  color: #5eead4 !important;
+  background: #131315 !important;
+  color: #67e8f9 !important;
   border-color: #1f2937 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, .4);
 }
 [data-theme="dark"] .profile-hero-info .name { color: var(--sd-text) !important; }
-[data-theme="dark"] .profile-hero-info .specialty { color: #5eead4 !important; }
+[data-theme="dark"] .profile-hero-info .specialty { color: #67e8f9 !important; }
 [data-theme="dark"] .profile-hero-info .meta { color: var(--sd-text-muted) !important; }
 [data-theme="dark"] .verified-badge {
-  background: linear-gradient(135deg, rgba(6, 182, 212, .18), rgba(20, 184, 166, .12)) !important;
-  color: #5eead4 !important;
+  background: linear-gradient(135deg, rgba(6, 182, 212, .18), rgba(8, 145, 178, .12)) !important;
+  color: #67e8f9 !important;
   border-color: rgba(6, 182, 212, .3) !important;
 }
 
@@ -450,14 +471,14 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .switch-row .switch-title { color: var(--sd-text) !important; }
 [data-theme="dark"] .switch-row .switch-desc  { color: var(--sd-text-muted) !important; }
 [data-theme="dark"] .toggle .slider {
-  background: #2a3548 !important;
+  background: #2a2a2c !important;
 }
 [data-theme="dark"] .toggle .slider::before {
   background: #cbd5e1 !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, .5) !important;
 }
 [data-theme="dark"] .toggle input:checked + .slider {
-  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   box-shadow: 0 0 12px rgba(6, 182, 212, .4) !important;
 }
 [data-theme="dark"] .toggle input:checked + .slider::before {
@@ -471,10 +492,10 @@ html[data-theme="dark"] body::after {
    TAG CHIPS + WEEKDAY PICKER
    ─────────────────────────────────────────────────────────────── */
 [data-theme="dark"] .tag-chip {
-  background: linear-gradient(135deg, rgba(6, 182, 212, .18), rgba(20, 184, 166, .12)) !important;
-  color: #5eead4 !important;
+  background: linear-gradient(135deg, rgba(6, 182, 212, .18), rgba(8, 145, 178, .12)) !important;
+  color: #67e8f9 !important;
 }
-[data-theme="dark"] .tag-chip button { color: #5eead4 !important; }
+[data-theme="dark"] .tag-chip button { color: #67e8f9 !important; }
 
 [data-theme="dark"] .weekday-btn {
   background: var(--sd-input-bg) !important;
@@ -483,10 +504,10 @@ html[data-theme="dark"] body::after {
 }
 [data-theme="dark"] .weekday-btn:hover {
   border-color: rgba(6, 182, 212, .5) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 [data-theme="dark"] .weekday-btn.active {
-  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: white !important;
   box-shadow: 0 6px 14px rgba(6, 182, 212, .35) !important;
 }
@@ -501,12 +522,12 @@ html[data-theme="dark"] body::after {
 }
 [data-theme="dark"] .preview-card::before { color: #64748b !important; }
 [data-theme="dark"] .preview-card .pv-name { color: var(--sd-text) !important; }
-[data-theme="dark"] .preview-card .pv-specialty { color: #5eead4 !important; }
+[data-theme="dark"] .preview-card .pv-specialty { color: #67e8f9 !important; }
 [data-theme="dark"] .preview-card .pv-info-row { color: var(--sd-text-muted) !important; }
 [data-theme="dark"] .preview-card .pv-bio { color: var(--sd-text-soft) !important; }
 [data-theme="dark"] .preview-card .pv-tag {
   background: rgba(6, 182, 212, .15) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 [data-theme="dark"] .preview-card .pv-footer {
   border-top-color: rgba(6, 182, 212, .18) !important;
@@ -519,8 +540,8 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .session-item .session-title { color: var(--sd-text) !important; }
 [data-theme="dark"] .session-item .session-meta  { color: var(--sd-text-muted) !important; }
 [data-theme="dark"] .session-item .session-icon {
-  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(20, 184, 166, .1)) !important;
-  color: #5eead4 !important;
+  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(8, 145, 178, .1)) !important;
+  color: #67e8f9 !important;
 }
 [data-theme="dark"] .session-current {
   background: rgba(16, 185, 129, .18) !important;
@@ -550,7 +571,7 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .toast .toast-text { color: var(--sd-text) !important; }
 [data-theme="dark"] .toast.success .toast-icon { color: #34d399 !important; }
 [data-theme="dark"] .toast.error   .toast-icon { color: #fca5a5 !important; }
-[data-theme="dark"] .toast.info    .toast-icon { color: #5eead4 !important; }
+[data-theme="dark"] .toast.info    .toast-icon { color: #67e8f9 !important; }
 
 /* ───────────────────────────────────────────────────────────────
    BADGES (status pills used in inventario & others)
@@ -560,7 +581,7 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .badge-agotado     { background: rgba(239, 68, 68, .15)  !important; color: #fca5a5 !important; }
 [data-theme="dark"] .badge-por_vencer  { background: rgba(249, 115, 22, .15) !important; color: #fdba74 !important; }
 [data-theme="dark"] .badge-vencido     { background: rgba(220, 38, 38, .2)   !important; color: #fca5a5 !important; }
-[data-theme="dark"] .badge-vigente     { background: rgba(6, 182, 212, .15)  !important; color: #5eead4 !important; }
+[data-theme="dark"] .badge-vigente     { background: rgba(6, 182, 212, .15)  !important; color: #67e8f9 !important; }
 [data-theme="dark"] .badge-archivado   { background: rgba(148, 163, 184, .15) !important; color: #cbd5e1 !important; }
 
 /* ───────────────────────────────────────────────────────────────
@@ -573,7 +594,7 @@ html[data-theme="dark"] body::after {
 }
 [data-theme="dark"] .inv-table thead th,
 [data-theme="dark"] main th {
-  background: rgba(15, 23, 42, .55) !important;
+  background: rgba(18, 18, 20, .55) !important;
   color: var(--sd-text-muted) !important;
   border-bottom-color: var(--sd-border-soft) !important;
 }
@@ -600,23 +621,23 @@ html[data-theme="dark"] body::after {
 /* Toolbar (search + filter) */
 [data-theme="dark"] .search-wrap .search-icon { color: var(--sd-text-faint) !important; }
 [data-theme="dark"] .view-toggle {
-  background: rgba(15, 23, 42, .55) !important;
+  background: rgba(18, 18, 20, .55) !important;
 }
 [data-theme="dark"] .view-toggle button { color: var(--sd-text-muted) !important; }
 [data-theme="dark"] .view-toggle button.active {
   background: var(--sd-surface-solid) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 
 [data-theme="dark"] .icon-btn {
-  background: rgba(15, 23, 42, .55) !important;
+  background: rgba(18, 18, 20, .55) !important;
   border-color: var(--sd-border-soft) !important;
   color: var(--sd-text-soft) !important;
 }
 [data-theme="dark"] .icon-btn:hover {
   background: rgba(6, 182, 212, .12) !important;
   border-color: rgba(6, 182, 212, .3) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 [data-theme="dark"] .icon-btn.danger:hover {
   background: rgba(239, 68, 68, .14) !important;
@@ -626,18 +647,97 @@ html[data-theme="dark"] body::after {
 
 [data-theme="dark"] .filter-pill {
   background: rgba(6, 182, 212, .15) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 
 /* ───────────────────────────────────────────────────────────────
    DRAWER / MODAL
    ─────────────────────────────────────────────────────────────── */
+/* Drawer backdrop in citas.html — original is rgba(15,23,42,.32) which over
+   the dark body makes the agenda look opaque/black. Lighten it so the
+   underlying agenda stays visible behind the side panel. */
+[data-theme="dark"] .drawer-backdrop {
+  background: rgba(0, 0, 0, .45) !important;
+  backdrop-filter: blur(2px) !important;
+  -webkit-backdrop-filter: blur(2px) !important;
+}
+
 [data-theme="dark"] .drawer {
-  background: linear-gradient(180deg, #0c1322 0%, #0a0f1c 100%) !important;
+  background: linear-gradient(180deg, #0c0c0e 0%, #07070a 100%) !important;
+  color: var(--sd-text) !important;
+  border-left: 1px solid var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .drawer-head {
+  background: rgba(255, 255, 255, .02) !important;
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .drawer-id { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .drawer-icon-btn {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+[data-theme="dark"] .drawer-icon-btn:hover {
+  background: rgba(255, 255, 255, .05) !important;
   color: var(--sd-text) !important;
 }
+[data-theme="dark"] .drawer-section {
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .drawer-label { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .drawer-pat-name { color: var(--sd-text) !important; }
+[data-theme="dark"] .drawer-pat-sub { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .wa-block.sent {
+  background: rgba(34, 197, 94, .14) !important;
+  color: #6ee7b7 !important;
+}
+
+/* "Nuevo Paciente" modal footer (patients.html) — was a white gradient strip */
+[data-theme="dark"] .modal-ftr {
+  background: rgba(255, 255, 255, .02) !important;
+  border-top: 1px solid var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .btn-cancel {
+  background: var(--sd-surface-solid) !important;
+  border: 1.5px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+[data-theme="dark"] .btn-cancel:hover {
+  background: rgba(255, 255, 255, .05) !important;
+  border-color: var(--sd-border-strong) !important;
+  color: var(--sd-text) !important;
+}
+[data-theme="dark"] .btn-save {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%) !important;
+  box-shadow: 0 4px 15px rgba(8, 145, 178, .35) !important;
+}
+
+/* Modal form fields in patients.html (Nombre, Identidad, Teléfono, Sexo, Fecha) */
+[data-theme="dark"] .modal .field label {
+  color: var(--sd-text-muted) !important;
+}
+[data-theme="dark"] .modal .field input,
+[data-theme="dark"] .modal .field select {
+  background-color: var(--sd-input-bg) !important;
+  border: 2px solid var(--sd-input-border) !important;
+  color: var(--sd-text) !important;
+}
+[data-theme="dark"] .modal .field input::placeholder {
+  color: var(--sd-text-faint) !important;
+}
+[data-theme="dark"] .modal .field input:focus,
+[data-theme="dark"] .modal .field select:focus {
+  border-color: #06b6d4 !important;
+  background-color: rgba(18, 18, 20, .8) !important;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, .2) !important;
+}
+[data-theme="dark"] .modal .field select option {
+  background: var(--sd-surface-solid) !important;
+  color: var(--sd-text) !important;
+}
+
 [data-theme="dark"] .drawer-header {
-  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: #052e36 !important;
 }
 [data-theme="dark"] .drawer-body { background: transparent !important; }
@@ -650,16 +750,16 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .section-head .title { color: var(--sd-text) !important; }
 [data-theme="dark"] .section-head .chev { color: var(--sd-text-faint) !important; }
 [data-theme="dark"] .form-section {
-  background: rgba(15, 23, 42, .35) !important;
+  background: rgba(18, 18, 20, .35) !important;
 }
 
 [data-theme="dark"] .modal {
-  background: #161e2e !important;
+  background: #131315 !important;
   color: var(--sd-text) !important;
   box-shadow: 0 25px 60px rgba(0, 0, 0, .65) !important;
 }
 [data-theme="dark"] .modal-head {
-  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: #052e36 !important;
 }
 [data-theme="dark"] .modal-body { color: var(--sd-text-soft) !important; }
@@ -673,12 +773,12 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .empty-state { color: var(--sd-text-muted) !important; }
 [data-theme="dark"] .empty-state h3 { color: var(--sd-text) !important; }
 [data-theme="dark"] .empty-state .empty-icon {
-  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(20, 184, 166, .12)) !important;
-  color: #5eead4 !important;
+  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(8, 145, 178, .12)) !important;
+  color: #67e8f9 !important;
 }
 
 [data-theme="dark"] .skeleton {
-  background: linear-gradient(90deg, #161e2e 0px, #1f2a3f 200px, #161e2e 400px) !important;
+  background: linear-gradient(90deg, #131315 0px, #1a1a1c 200px, #131315 400px) !important;
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -699,6 +799,17 @@ html[data-theme="dark"] body::after {
   box-shadow: var(--sd-shadow), var(--sd-inset-highlight) !important;
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
 }
+/* Hero sections in admin pages (doctors, consentimientos, recordatorios)
+   are wrapper layout containers, not visible cards — keep them transparent
+   so the body bg shows through and only the inner KPI cards have surface. */
+[data-theme="dark"] section.hero,
+[data-theme="dark"] section.co-hero {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
 [data-theme="dark"] section h2,
 [data-theme="dark"] section h3,
 [data-theme="dark"] section h4 { color: var(--sd-text) !important; }
@@ -706,7 +817,7 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] h3 { color: var(--sd-text) !important; }
 [data-theme="dark"] h4 { color: var(--sd-text-soft) !important; }
 
-[data-theme="dark"] .stat-card strong { color: #5eead4 !important; }
+[data-theme="dark"] .stat-card strong { color: #67e8f9 !important; }
 [data-theme="dark"] .nav-card {
   background: var(--sd-surface) !important;
   color: var(--sd-text) !important;
@@ -741,14 +852,14 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] input:focus,
 [data-theme="dark"] textarea:focus,
 [data-theme="dark"] select:focus {
-  outline-color: #14b8a6 !important;
-  border-color: #14b8a6;
+  outline-color: #0891b2 !important;
+  border-color: #0891b2;
   box-shadow: 0 0 0 3px rgba(6, 182, 212, .2);
 }
 
 /* Plain anchors that look like buttons (style.css) */
-[data-theme="dark"] .back-link { color: #5eead4 !important; }
-[data-theme="dark"] .patient-link { color: #5eead4 !important; }
+[data-theme="dark"] .back-link { color: #67e8f9 !important; }
+[data-theme="dark"] .patient-link { color: #67e8f9 !important; }
 [data-theme="dark"] .divider { border-top-color: var(--sd-border-soft) !important; }
 [data-theme="dark"] .consult-date { color: var(--sd-text-faint) !important; }
 [data-theme="dark"] .consult-field span { color: var(--sd-text-soft) !important; }
@@ -757,7 +868,7 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .msg.err { color: #fca5a5 !important; }
 
 /* Tags from style.css */
-[data-theme="dark"] .tag-doctor { background: rgba(6, 182, 212, .2) !important; color: #5eead4 !important; }
+[data-theme="dark"] .tag-doctor { background: rgba(6, 182, 212, .2) !important; color: #67e8f9 !important; }
 [data-theme="dark"] .tag-admin  { background: rgba(167, 139, 250, .2) !important; color: #c4b5fd !important; }
 
 /* Medical alerts */
@@ -767,20 +878,20 @@ html[data-theme="dark"] body::after {
 
 /* Nav (top bar from style.css — used in some pages) */
 [data-theme="dark"] body > nav {
-  background: #0c1322 !important;
+  background: #0c0c0e !important;
   border-bottom: 1px solid var(--sd-border-soft);
 }
 
 /* ── Scrollbar (WebKit) ── */
 [data-theme="dark"] ::-webkit-scrollbar { width: 10px; height: 10px; }
-[data-theme="dark"] ::-webkit-scrollbar-track { background: #0a0e1a; }
+[data-theme="dark"] ::-webkit-scrollbar-track { background: #050507; }
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: #2a3548; border-radius: 8px; border: 2px solid #0a0e1a;
+  background: #2a2a2c; border-radius: 8px; border: 2px solid #050507;
 }
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #3a4860; }
 
 /* Firefox */
-[data-theme="dark"] * { scrollbar-color: #2a3548 #0a0e1a; }
+[data-theme="dark"] * { scrollbar-color: #2a2a2c #050507; }
 
 /* ── Selection ── */
 [data-theme="dark"] ::selection {
@@ -798,10 +909,18 @@ html[data-theme="dark"] body::after {
    ═══════════════════════════════════════════════════════════════════ */
 html[data-theme="dark"] {
   /* Page chrome */
-  --bg: #0a0e1a;
-  --surface: #161e2e;
-  --surface-2: #1a2234;
+  --bg: #050507;
+  --bg-elev: #131315;
+  --surface: #131315;
+  --surface-2: #141416;
   --line: rgba(255, 255, 255, .08);
+  --line-strong: rgba(255, 255, 255, .14);
+
+  /* Doctors / recordatorios / agendar semantic ink tokens (no number suffix) */
+  --ink: #f1f5f9;
+  --ink-2: #cbd5e1;
+  --ink-3: #94a3b8;
+  --ink-4: #64748b;
 
   /* Ink palette → flipped (low number = light text in dark mode) */
   --ink-900: #f1f5f9;
@@ -830,8 +949,8 @@ html[data-theme="dark"] {
 
   /* Status accents — boost luminosity for dark backgrounds */
   --teal-50:  #062e34; --teal-100: #083c44; --teal-200: rgba(6, 182, 212, .18);
-  --teal-300: #14b8a6; --teal-400: #14b8a6; --teal-500: #06b6d4;
-  --teal-600: #0891b2; --teal-700: #5eead4; --teal-800: #a5f3fc;
+  --teal-300: #0891b2; --teal-400: #0891b2; --teal-500: #06b6d4;
+  --teal-600: #0891b2; --teal-700: #67e8f9; --teal-800: #a5f3fc;
   --teal-900: #cffafe;
 }
 
@@ -874,7 +993,7 @@ html[data-theme="dark"] .pagos {
 html[data-theme="dark"] .greet h1,
 html[data-theme="dark"] .greet .sun {
   /* Page title may use gradient text — preserve clip */
-  background-image: linear-gradient(120deg, #5eead4 0%, #14b8a6 45%, #06b6d4 100%);
+  background-image: linear-gradient(120deg, #67e8f9 0%, #0891b2 45%, #06b6d4 100%);
   background-color: transparent;
   -webkit-background-clip: text;
   background-clip: text;
@@ -884,7 +1003,7 @@ html[data-theme="dark"] .greet .sun {
 html[data-theme="dark"] .greet .sub { color: var(--ink-500) !important; }
 html[data-theme="dark"] .live-dot {
   background: rgba(6, 182, 212, .18) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 
 /* Search input */
@@ -899,16 +1018,16 @@ html[data-theme="dark"] .search .ss { color: #64748b !important; }
 html[data-theme="dark"] .clock-pill {
   background-image: none !important;
   background-color: rgba(6, 182, 212, .12) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
   border: 1px solid rgba(6, 182, 212, .3) !important;
   box-shadow: 0 6px 18px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .05) !important;
 }
 html[data-theme="dark"] .clock-pill .time,
 html[data-theme="dark"] .clock-pill .date {
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .clock-pill .time .ss {
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
   opacity: .7;
 }
 
@@ -920,7 +1039,7 @@ html[data-theme="dark"] .icon-btn {
 }
 html[data-theme="dark"] .icon-btn:hover {
   background: rgba(6, 182, 212, .12) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 
 /* KPI cards (Atendidos hoy / En espera / En consulta / Espera promedio) */
@@ -934,12 +1053,12 @@ html[data-theme="dark"] .kpi-value { color: var(--ink-900) !important; }
 html[data-theme="dark"] .kpi-foot  { color: var(--ink-500) !important; }
 html[data-theme="dark"] .kpi-unit  { color: var(--ink-500) !important; }
 html[data-theme="dark"] .kpi-icon {
-  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(20, 184, 166, .12)) !important;
-  color: #5eead4 !important;
+  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(8, 145, 178, .12)) !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .kpi-delta {
   background: rgba(6, 182, 212, .12) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 
 /* Section heads (Salas de consulta / Cola de espera / Agenda de hoy) */
@@ -953,7 +1072,7 @@ html[data-theme="dark"] .panel-head {
 
 /* Segmented control (Salas / Listado) */
 html[data-theme="dark"] .seg {
-  background: rgba(15, 23, 42, .55) !important;
+  background: rgba(18, 18, 20, .55) !important;
   border-color: var(--line) !important;
 }
 html[data-theme="dark"] .seg button {
@@ -963,7 +1082,7 @@ html[data-theme="dark"] .seg button {
 html[data-theme="dark"] .seg button.on,
 html[data-theme="dark"] .panel-head .tabs button.on {
   background: var(--surface) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, .35) !important;
 }
 html[data-theme="dark"] .tabs button {
@@ -983,8 +1102,8 @@ html[data-theme="dark"] .sala-patient { color: var(--ink-900) !important; }
 html[data-theme="dark"] .sala-doc,
 html[data-theme="dark"] .sala-meta { color: var(--ink-500) !important; }
 html[data-theme="dark"] .sala-icon {
-  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(20, 184, 166, .12)) !important;
-  color: #5eead4 !important;
+  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(8, 145, 178, .12)) !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .sala-progress {
   background: rgba(255, 255, 255, .08) !important;
@@ -993,14 +1112,14 @@ html[data-theme="dark"] .progress-bar {
   background: rgba(255, 255, 255, .08) !important;
 }
 html[data-theme="dark"] .progress-fill {
-  background: linear-gradient(90deg, #06b6d4, #14b8a6) !important;
+  background: linear-gradient(90deg, #06b6d4, #0891b2) !important;
 }
 
 /* Status pills (EXCEDIDA / LIBRE / CONSULTA / En curso) */
 html[data-theme="dark"] .status-pill,
 html[data-theme="dark"] .priority-tag {
   background: rgba(6, 182, 212, .14) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
   border-color: rgba(6, 182, 212, .25) !important;
 }
 html[data-theme="dark"] .status-pill.free,
@@ -1029,7 +1148,7 @@ html[data-theme="dark"] .primary-btn {
 }
 html[data-theme="dark"] .sala-btn.teal,
 html[data-theme="dark"] .primary-btn {
-  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: #052e36 !important;
   border-color: transparent !important;
   box-shadow: 0 6px 14px rgba(6, 182, 212, .3) !important;
@@ -1037,7 +1156,7 @@ html[data-theme="dark"] .primary-btn {
 html[data-theme="dark"] .sala-btn:not(.teal),
 html[data-theme="dark"] .assign-btn {
   background: rgba(6, 182, 212, .08) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
   border: 1.5px solid rgba(6, 182, 212, .25) !important;
 }
 html[data-theme="dark"] .sala-btn:not(.teal):hover,
@@ -1046,7 +1165,7 @@ html[data-theme="dark"] .assign-btn:hover {
   border-color: rgba(6, 182, 212, .45) !important;
 }
 html[data-theme="dark"] .add-btn {
-  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: #052e36 !important;
   box-shadow: 0 6px 14px rgba(6, 182, 212, .3) !important;
 }
@@ -1075,7 +1194,7 @@ html[data-theme="dark"] .queue-doc,
 html[data-theme="dark"] .agenda-time { color: var(--ink-500) !important; }
 html[data-theme="dark"] .agenda-tag {
   background: rgba(6, 182, 212, .14) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .agenda-rail {
   background: rgba(255, 255, 255, .08) !important;
@@ -1096,7 +1215,7 @@ html[data-theme="dark"] .staff-stat { color: var(--ink-800) !important; }
 html[data-theme="dark"] .act-time,
 html[data-theme="dark"] .staff-meta { color: var(--ink-500) !important; }
 html[data-theme="dark"] .staff-avatar {
-  background: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: white !important;
 }
 
@@ -1161,7 +1280,7 @@ html[data-theme="dark"] .loading-overlay {
 }
 html[data-theme="dark"] .spinner {
   border-color: rgba(6, 182, 212, .15) !important;
-  border-top-color: #14b8a6 !important;
+  border-top-color: #0891b2 !important;
 }
 
 /* Top action bar */
@@ -1178,7 +1297,7 @@ html[data-theme="dark"] .two-col { color: var(--ink-800); }
 
 /* Header */
 html[data-theme="dark"] .header h1 {
-  background-image: linear-gradient(135deg, #5eead4, #14b8a6) !important;
+  background-image: linear-gradient(135deg, #67e8f9, #0891b2) !important;
   background-color: transparent !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
@@ -1192,7 +1311,7 @@ html[data-theme="dark"] .loading-text { color: var(--sd-text-muted) !important; 
 html[data-theme="dark"] .date-pill {
   background-color: rgba(6, 182, 212, .12) !important;
   background-image: none !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
   border: 1px solid rgba(6, 182, 212, .25);
   box-shadow: 0 4px 12px rgba(0, 0, 0, .3) !important;
 }
@@ -1206,11 +1325,11 @@ html[data-theme="dark"] .filter-btn {
 }
 html[data-theme="dark"] .filter-btn:hover {
   border-color: rgba(6, 182, 212, .45) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
   background-color: rgba(6, 182, 212, .08) !important;
 }
 html[data-theme="dark"] .filter-btn.active {
-  background-image: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background-image: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   background-color: transparent !important;
   color: #052e36 !important;
   border-color: transparent !important;
@@ -1230,7 +1349,7 @@ html[data-theme="dark"] .appt-card:hover {
   border-color: rgba(6, 182, 212, .3) !important;
   box-shadow: 0 12px 32px rgba(6, 182, 212, .12), var(--sd-inset-highlight) !important;
 }
-html[data-theme="dark"] .appt-time { color: #14b8a6 !important; }
+html[data-theme="dark"] .appt-time { color: #0891b2 !important; }
 html[data-theme="dark"] .appt-info .patient { color: var(--sd-text) !important; }
 html[data-theme="dark"] .appt-info .meta { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .appt-info .reason { color: var(--sd-text-faint) !important; }
@@ -1246,7 +1365,7 @@ html[data-theme="dark"] .badge.waiting {
 }
 html[data-theme="dark"] .badge.in_progress {
   background: rgba(6, 182, 212, .2) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .badge.completed {
   background: rgba(16, 185, 129, .18) !important;
@@ -1259,31 +1378,31 @@ html[data-theme="dark"] .badge.cancelled {
 
 /* Check-in button (already gradient cyan, just enhance shadow) */
 html[data-theme="dark"] .btn-checkin {
-  background-image: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background-image: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: #052e36 !important;
   box-shadow: 0 6px 16px rgba(6, 182, 212, .3) !important;
   font-weight: 700;
 }
 
-/* Empty state */
+/* Empty state — soft dashed rounded card */
 html[data-theme="dark"] .empty {
-  background-color: var(--sd-surface) !important;
-  background-image: none !important;
   color: var(--sd-text-muted) !important;
+  background-color: rgba(255, 255, 255, .03) !important;
   border: 1px dashed var(--sd-border) !important;
-  box-shadow: var(--sd-shadow) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
 }
 
 /* Toast (recepcion-citas variant) */
 html[data-theme="dark"] .toast {
-  background-color: #161e2e !important;
+  background-color: #131315 !important;
   color: var(--sd-text) !important;
   box-shadow: 0 12px 32px rgba(0, 0, 0, .55) !important;
 }
 
 /* Loading overlay */
 html[data-theme="dark"] .loading-overlay {
-  background-image: linear-gradient(135deg, #0a0e1a 0%, #0d1426 100%) !important;
+  background-image: linear-gradient(135deg, #050507 0%, #0a0a0c 100%) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1302,9 +1421,9 @@ html[data-theme="dark"] .total-card {
   color: var(--sd-text) !important;
 }
 html[data-theme="dark"] .total-card.featured {
-  background-image: linear-gradient(135deg, #0e7490 0%, #0d9488 100%) !important;
-  border-color: rgba(20, 184, 166, .3) !important;
-  box-shadow: 0 12px 32px rgba(13, 148, 136, .25), var(--sd-inset-highlight) !important;
+  background-image: linear-gradient(180deg, #141416 0%, #0c0c0e 100%) !important;
+  border-color: rgba(8, 145, 178, .22) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .45), var(--sd-inset-highlight) !important;
   color: #f1f5f9 !important;
 }
 html[data-theme="dark"] .total-card .total-label,
@@ -1329,28 +1448,28 @@ html[data-theme="dark"] .pay-card {
   color: var(--sd-text) !important;
 }
 html[data-theme="dark"] .pay-card:hover {
-  border-color: rgba(20, 184, 166, .3) !important;
-  box-shadow: 0 12px 32px rgba(13, 148, 136, .12), var(--sd-inset-highlight) !important;
+  border-color: rgba(8, 145, 178, .3) !important;
+  box-shadow: 0 12px 32px rgba(14, 116, 144, .12), var(--sd-inset-highlight) !important;
 }
 html[data-theme="dark"] .pay-info .name { color: var(--sd-text) !important; }
 html[data-theme="dark"] .pay-info .meta { color: var(--sd-text-muted) !important; }
 
 /* "Cobrar" button — was green, now teal to match the medical palette */
 html[data-theme="dark"] .btn-charge {
-  background-image: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+  background-image: linear-gradient(135deg, #0e7490, #0891b2) !important;
   color: #052e36 !important;
-  box-shadow: 0 6px 14px rgba(13, 148, 136, .3) !important;
+  box-shadow: 0 6px 14px rgba(14, 116, 144, .3) !important;
   font-weight: 700;
 }
 html[data-theme="dark"] .btn-charge:hover {
-  box-shadow: 0 10px 22px rgba(13, 148, 136, .45) !important;
+  box-shadow: 0 10px 22px rgba(14, 116, 144, .45) !important;
 }
 
 /* btn-primary inside modal — also teal (was green) */
 html[data-theme="dark"] .btn-primary {
-  background-image: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+  background-image: linear-gradient(135deg, #0e7490, #0891b2) !important;
   color: #052e36 !important;
-  box-shadow: 0 6px 14px rgba(13, 148, 136, .3) !important;
+  box-shadow: 0 6px 14px rgba(14, 116, 144, .3) !important;
 }
 html[data-theme="dark"] .btn-cancel {
   background-color: rgba(255, 255, 255, .04) !important;
@@ -1366,6 +1485,7 @@ html[data-theme="dark"] .empty {
   background-color: rgba(255, 255, 255, .03) !important;
   color: var(--sd-text-muted) !important;
   border: 1px dashed var(--sd-border) !important;
+  border-radius: 18px !important;
 }
 
 /* Charge modal (Cobrar form) */
@@ -1384,15 +1504,15 @@ html[data-theme="dark"] .method-btn {
   color: var(--sd-text-soft) !important;
 }
 html[data-theme="dark"] .method-btn:hover {
-  background-color: rgba(20, 184, 166, .08) !important;
-  border-color: rgba(20, 184, 166, .35) !important;
-  color: #5eead4 !important;
+  background-color: rgba(8, 145, 178, .08) !important;
+  border-color: rgba(8, 145, 178, .35) !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .method-btn.active {
-  background-image: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+  background-image: linear-gradient(135deg, #0e7490, #0891b2) !important;
   color: #052e36 !important;
   border-color: transparent !important;
-  box-shadow: 0 6px 14px rgba(13, 148, 136, .3) !important;
+  box-shadow: 0 6px 14px rgba(14, 116, 144, .3) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1402,29 +1522,41 @@ html[data-theme="dark"] .method-btn.active {
    reminders, mini calendar.
    ═══════════════════════════════════════════════════════════════════ */
 
-/* Welcome banner (Bienvenido, Admin Norte) — keep gradient but darker */
+/* Welcome banner (Bienvenido, Admin Norte) — neutral near-black surface */
 html[data-theme="dark"] .welcome-banner {
-  background-image: linear-gradient(135deg, #0e7490 0%, #0d9488 100%) !important;
-  border-color: rgba(20, 184, 166, .3) !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
+  background-image: linear-gradient(180deg, #15151a 0%, #0c0c0e 100%) !important;
+  border: 1px solid rgba(255, 255, 255, .07) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+}
+/* Reduce the decorative SVG pattern (plus signs, hearts, pulse lines) — was opacity .07-.15 on white svg, too bright on dark */
+html[data-theme="dark"] .welcome-banner::before {
+  opacity: .35 !important;
 }
 html[data-theme="dark"] .welcome-banner-orb1,
 html[data-theme="dark"] .welcome-banner-orb2,
 html[data-theme="dark"] .welcome-banner-orb3 {
-  opacity: .5 !important;
+  opacity: .3 !important;
 }
 html[data-theme="dark"] .welcome-mini-card {
-  background-color: rgba(255, 255, 255, .1) !important;
-  border-color: rgba(255, 255, 255, .14) !important;
+  background-color: rgba(255, 255, 255, .04) !important;
+  border-color: rgba(255, 255, 255, .08) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .35) !important;
+}
+html[data-theme="dark"] .welcome-mini-card:hover {
+  background-color: rgba(255, 255, 255, .07) !important;
 }
 html[data-theme="dark"] .welcome-mini-icon {
-  background-color: rgba(255, 255, 255, .12) !important;
-  color: white !important;
+  background-color: rgba(8, 145, 178, .18) !important;
+  border: 1px solid rgba(8, 145, 178, .3) !important;
+  color: #22d3ee !important;
 }
+html[data-theme="dark"] .welcome-mini-icon svg { stroke: #22d3ee !important; }
+html[data-theme="dark"] .welcome-mini-value { color: #f1f5f9 !important; }
+html[data-theme="dark"] .welcome-mini-label { color: rgba(255, 255, 255, .65) !important; }
 html[data-theme="dark"] .welcome-badge {
-  background-color: rgba(255, 255, 255, .12) !important;
-  color: white !important;
-  border-color: rgba(255, 255, 255, .2) !important;
+  background-color: rgba(255, 255, 255, .05) !important;
+  color: rgba(255, 255, 255, .85) !important;
+  border-color: rgba(255, 255, 255, .1) !important;
 }
 
 /* Stat cards (Total Pacientes / Citas de Hoy / Ingresos del Mes) */
@@ -1435,19 +1567,19 @@ html[data-theme="dark"] .stat-card {
   box-shadow: 0 8px 24px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
 }
 html[data-theme="dark"] .stat-card:hover {
-  border-color: rgba(20, 184, 166, .3) !important;
-  box-shadow: 0 16px 40px rgba(13, 148, 136, .15), inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+  border-color: rgba(8, 145, 178, .3) !important;
+  box-shadow: 0 16px 40px rgba(14, 116, 144, .15), inset 0 1px 0 rgba(255, 255, 255, .06) !important;
 }
 html[data-theme="dark"] .stat-icon {
-  background-image: linear-gradient(135deg, rgba(20, 184, 166, .25) 0%, rgba(6, 182, 212, .25) 100%) !important;
-  color: #5eead4 !important;
-  border-color: rgba(20, 184, 166, .3) !important;
-  box-shadow: 0 8px 20px rgba(13, 148, 136, .25), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
+  background-image: linear-gradient(135deg, rgba(8, 145, 178, .25) 0%, rgba(6, 182, 212, .25) 100%) !important;
+  color: #67e8f9 !important;
+  border-color: rgba(8, 145, 178, .3) !important;
+  box-shadow: 0 8px 20px rgba(14, 116, 144, .25), inset 0 1px 0 rgba(255, 255, 255, .08) !important;
 }
 html[data-theme="dark"] .stat-label { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .stat-value {
   /* Re-do the gradient with light-mode colors so the gradient-text is visible */
-  background-image: linear-gradient(135deg, #f1f5f9 0%, #5eead4 100%) !important;
+  background-image: linear-gradient(135deg, #f1f5f9 0%, #67e8f9 100%) !important;
   background-color: transparent !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
@@ -1468,17 +1600,20 @@ html[data-theme="dark"] .patient-card {
 html[data-theme="dark"] .card::before { display: none; }
 html[data-theme="dark"] .card-title { color: var(--sd-text) !important; }
 html[data-theme="dark"] .card-badge {
-  background-image: linear-gradient(135deg, rgba(20, 184, 166, .2), rgba(6, 182, 212, .2)) !important;
-  color: #5eead4 !important;
-  border-color: rgba(20, 184, 166, .3) !important;
+  background-image: linear-gradient(135deg, rgba(8, 145, 178, .2), rgba(6, 182, 212, .2)) !important;
+  color: #67e8f9 !important;
+  border-color: rgba(8, 145, 178, .3) !important;
 }
 
 /* Patient summary donut */
 html[data-theme="dark"] .donut-svg {
-  filter: drop-shadow(0 14px 30px rgba(13, 148, 136, .2)) !important;
+  filter: drop-shadow(0 14px 30px rgba(14, 116, 144, .2)) !important;
+}
+html[data-theme="dark"] .donut-svg > circle:first-of-type {
+  stroke: rgba(255, 255, 255, .06) !important;
 }
 html[data-theme="dark"] .donut-value {
-  background-image: linear-gradient(135deg, #f1f5f9 0%, #5eead4 100%) !important;
+  background-image: linear-gradient(135deg, #f1f5f9 0%, #67e8f9 100%) !important;
   background-color: transparent !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
@@ -1494,22 +1629,22 @@ html[data-theme="dark"] .patient-stat {
   border-color: var(--sd-border-soft) !important;
 }
 html[data-theme="dark"] .patient-stat:hover {
-  background-color: rgba(20, 184, 166, .06) !important;
-  border-color: rgba(20, 184, 166, .25) !important;
+  background-color: rgba(8, 145, 178, .06) !important;
+  border-color: rgba(8, 145, 178, .25) !important;
 }
 html[data-theme="dark"] .patient-stat-label { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .patient-stat-val { color: var(--sd-text) !important; }
 html[data-theme="dark"] .patient-stat--with .patient-stat-icon {
-  background-image: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
-  box-shadow: 0 8px 20px rgba(13, 148, 136, .35) !important;
+  background-image: linear-gradient(135deg, #0e7490 0%, #0891b2 100%) !important;
+  box-shadow: 0 8px 20px rgba(14, 116, 144, .35) !important;
 }
 html[data-theme="dark"] .patient-stat--without .patient-stat-icon {
   background-image: linear-gradient(135deg, #475569 0%, #64748b 100%) !important;
   box-shadow: 0 8px 18px rgba(0, 0, 0, .4) !important;
 }
 html[data-theme="dark"] .patient-stat--with .patient-stat-pct {
-  background-color: rgba(20, 184, 166, .18) !important;
-  color: #5eead4 !important;
+  background-color: rgba(8, 145, 178, .18) !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .patient-stat--without .patient-stat-pct {
   background-color: rgba(148, 163, 184, .16) !important;
@@ -1519,8 +1654,8 @@ html[data-theme="dark"] .patient-stat-bar {
   background-color: rgba(255, 255, 255, .06) !important;
 }
 html[data-theme="dark"] .patient-stat--with .patient-stat-bar-fill {
-  background-image: linear-gradient(90deg, #0d9488, #14b8a6) !important;
-  box-shadow: 0 2px 8px rgba(13, 148, 136, .35) !important;
+  background-image: linear-gradient(90deg, #0e7490, #0891b2) !important;
+  box-shadow: 0 2px 8px rgba(14, 116, 144, .35) !important;
 }
 html[data-theme="dark"] .patient-stat--without .patient-stat-bar-fill {
   background-image: linear-gradient(90deg, #475569, #64748b) !important;
@@ -1532,28 +1667,28 @@ html[data-theme="dark"] .appt-row {
   border-color: var(--sd-border-soft);
 }
 html[data-theme="dark"] .appt-row:hover {
-  background-color: rgba(20, 184, 166, .06) !important;
+  background-color: rgba(8, 145, 178, .06) !important;
 }
 html[data-theme="dark"] .appt-avatar {
-  background-image: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background-image: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: white !important;
-  box-shadow: 0 6px 14px rgba(13, 148, 136, .3) !important;
+  box-shadow: 0 6px 14px rgba(14, 116, 144, .3) !important;
 }
 html[data-theme="dark"] .appt-name { color: var(--sd-text) !important; }
 html[data-theme="dark"] .appt-sub { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .appt-time-badge {
-  background-color: rgba(20, 184, 166, .14) !important;
-  color: #5eead4 !important;
-  border: 1px solid rgba(20, 184, 166, .25);
+  background-color: rgba(8, 145, 178, .14) !important;
+  color: #67e8f9 !important;
+  border: 1px solid rgba(8, 145, 178, .25);
 }
 
 /* Next patient block */
 html[data-theme="dark"] .next-patient {
-  background-image: linear-gradient(135deg, rgba(20, 184, 166, .1), rgba(6, 182, 212, .08)) !important;
-  border-color: rgba(20, 184, 166, .2) !important;
+  background-image: linear-gradient(135deg, rgba(8, 145, 178, .1), rgba(6, 182, 212, .08)) !important;
+  border-color: rgba(8, 145, 178, .2) !important;
 }
 html[data-theme="dark"] .next-avatar {
-  background-image: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background-image: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: white !important;
 }
 html[data-theme="dark"] .next-name { color: var(--sd-text) !important; }
@@ -1565,17 +1700,17 @@ html[data-theme="dark"] .reminder-row {
   border-color: var(--sd-border-soft) !important;
 }
 html[data-theme="dark"] .reminder-row:hover {
-  background-color: rgba(20, 184, 166, .06) !important;
+  background-color: rgba(8, 145, 178, .06) !important;
 }
 html[data-theme="dark"] .reminder-name { color: var(--sd-text) !important; }
 html[data-theme="dark"] .reminder-date { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .reminder-send-btn {
-  background-image: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+  background-image: linear-gradient(135deg, #0e7490, #0891b2) !important;
   color: #052e36 !important;
-  box-shadow: 0 4px 12px rgba(13, 148, 136, .3) !important;
+  box-shadow: 0 4px 12px rgba(14, 116, 144, .3) !important;
 }
 html[data-theme="dark"] .reminders-link {
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
 }
 
 /* Calendar mini */
@@ -1585,37 +1720,41 @@ html[data-theme="dark"] .cal-btn {
   color: var(--sd-text-soft) !important;
 }
 html[data-theme="dark"] .cal-btn:hover {
-  background-color: rgba(20, 184, 166, .1) !important;
-  color: #5eead4 !important;
+  background-color: rgba(8, 145, 178, .1) !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .cal-dow { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .cal-day {
   color: var(--sd-text-soft) !important;
   background-color: transparent;
 }
+html[data-theme="dark"] .cal-day.other-month {
+  color: var(--sd-text-faint) !important;
+  opacity: .5;
+}
 html[data-theme="dark"] .cal-day:hover {
-  background-color: rgba(20, 184, 166, .1) !important;
-  color: #5eead4 !important;
+  background-color: rgba(8, 145, 178, .1) !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .cal-day.today,
 html[data-theme="dark"] .cal-day.has-event {
-  background-image: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+  background-image: linear-gradient(135deg, #0e7490, #0891b2) !important;
   color: white !important;
-  box-shadow: 0 4px 10px rgba(13, 148, 136, .35) !important;
+  box-shadow: 0 4px 10px rgba(14, 116, 144, .35) !important;
 }
 
 /* Greeting accent (decorative) + status badge */
-html[data-theme="dark"] .greeting-accent { color: #5eead4 !important; }
+html[data-theme="dark"] .greeting-accent { color: #67e8f9 !important; }
 html[data-theme="dark"] .status-badge {
-  background-color: rgba(20, 184, 166, .14) !important;
-  color: #5eead4 !important;
+  background-color: rgba(8, 145, 178, .14) !important;
+  color: #67e8f9 !important;
 }
 
 /* "Ver consulta" / consult button */
 html[data-theme="dark"] .btn-consult-full {
-  background-image: linear-gradient(135deg, #0d9488, #14b8a6) !important;
+  background-image: linear-gradient(135deg, #0e7490, #0891b2) !important;
   color: #052e36 !important;
-  box-shadow: 0 6px 14px rgba(13, 148, 136, .3) !important;
+  box-shadow: 0 6px 14px rgba(14, 116, 144, .3) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1644,10 +1783,28 @@ html[data-theme="dark"] .glass-strong {
     var(--sd-shadow-lg) !important;
 }
 
-/* Hero (Agenda banner) — slightly darker so it's still distinct from body */
+/* Hero (Agenda banner) — neutral near-black surface with subtle accent edge */
 html[data-theme="dark"] .citas-hero {
-  background-image: linear-gradient(135deg, #0e7490 0%, #0d9488 100%) !important;
-  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, .55), 0 4px 12px -4px rgba(13, 148, 136, .25) !important;
+  background-image: linear-gradient(180deg, #111113 0%, #0c0c0e 100%) !important;
+  border: 1px solid rgba(255, 255, 255, .06) !important;
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .03) !important;
+}
+html[data-theme="dark"] .citas-hero::before,
+html[data-theme="dark"] .citas-hero::after {
+  display: none !important;
+}
+html[data-theme="dark"] .hero-title {
+  background-image: linear-gradient(120deg, #f1f5f9 0%, #cbd5e1 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  text-shadow: none !important;
+}
+html[data-theme="dark"] .hero-sub,
+html[data-theme="dark"] .hero-crumb,
+html[data-theme="dark"] .hero-crumb-current {
+  color: var(--sd-text-muted) !important;
 }
 html[data-theme="dark"] .glass-icon-btn {
   background-color: rgba(255, 255, 255, .1) !important;
@@ -1674,16 +1831,16 @@ html[data-theme="dark"] .kpi-card {
   color: var(--sd-text) !important;
 }
 html[data-theme="dark"] .kpi-card::before {
-  background: radial-gradient(circle at 100% 0%, rgba(20, 184, 166, .12), transparent 70%) !important;
+  background: radial-gradient(circle at 100% 0%, rgba(8, 145, 178, .12), transparent 70%) !important;
 }
 html[data-theme="dark"] .kpi-label { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .kpi-value { color: var(--sd-text) !important; }
 html[data-theme="dark"] .kpi-hint  { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .kpi-icon {
-  background-color: rgba(20, 184, 166, .15) !important;
+  background-color: rgba(8, 145, 178, .15) !important;
   background-image: none !important;
-  border-color: rgba(20, 184, 166, .25) !important;
-  color: #5eead4 !important;
+  border-color: rgba(8, 145, 178, .25) !important;
+  color: #67e8f9 !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, .4) !important;
 }
 html[data-theme="dark"] .kpi-nav {
@@ -1696,8 +1853,8 @@ html[data-theme="dark"] .kpi-nav {
     0 1px 0 rgba(255, 255, 255, .04) inset !important;
 }
 html[data-theme="dark"] .kpi-nav:hover {
-  background-color: rgba(20, 184, 166, .15) !important;
-  color: #5eead4 !important;
+  background-color: rgba(8, 145, 178, .15) !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .kpi-edge-left {
   background-image: linear-gradient(90deg, rgba(10, 14, 26, .95), rgba(10, 14, 26, 0)) !important;
@@ -1706,7 +1863,7 @@ html[data-theme="dark"] .kpi-edge-right {
   background-image: linear-gradient(270deg, rgba(10, 14, 26, .95), rgba(10, 14, 26, 0)) !important;
 }
 html[data-theme="dark"] .kpi-dot { background-color: var(--sd-border) !important; }
-html[data-theme="dark"] .kpi-dot.active { background-color: #14b8a6 !important; }
+html[data-theme="dark"] .kpi-dot.active { background-color: #0891b2 !important; }
 html[data-theme="dark"] .kpi-delta.up { color: #6ee7b7 !important; }
 html[data-theme="dark"] .kpi-delta.down { color: #fca5a5 !important; }
 
@@ -1721,9 +1878,9 @@ html[data-theme="dark"] .icon-btn-32 {
 html[data-theme="dark"] .filter-toggle:hover,
 html[data-theme="dark"] .btn-today:hover,
 html[data-theme="dark"] .icon-btn-32:hover {
-  background-color: rgba(20, 184, 166, .08) !important;
-  border-color: rgba(20, 184, 166, .3) !important;
-  color: #5eead4 !important;
+  background-color: rgba(8, 145, 178, .08) !important;
+  border-color: rgba(8, 145, 178, .3) !important;
+  color: #67e8f9 !important;
 }
 
 /* Multi-select filter pills (Todas las fechas / Estado / Especialidad / Doctor / Paciente) */
@@ -1733,23 +1890,23 @@ html[data-theme="dark"] .ms-trigger {
   color: var(--sd-text) !important;
 }
 html[data-theme="dark"] .ms-trigger:hover {
-  background-color: rgba(20, 184, 166, .08) !important;
-  border-color: rgba(20, 184, 166, .3) !important;
-  color: #5eead4 !important;
+  background-color: rgba(8, 145, 178, .08) !important;
+  border-color: rgba(8, 145, 178, .3) !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .ms-trigger.active {
-  background-color: rgba(20, 184, 166, .14) !important;
-  border-color: rgba(20, 184, 166, .4) !important;
-  color: #5eead4 !important;
+  background-color: rgba(8, 145, 178, .14) !important;
+  border-color: rgba(8, 145, 178, .4) !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .ms-trigger.active:hover {
-  background-color: rgba(20, 184, 166, .2) !important;
+  background-color: rgba(8, 145, 178, .2) !important;
 }
 html[data-theme="dark"] .ms-icon { color: var(--sd-text-muted) !important; }
-html[data-theme="dark"] .ms-trigger.active .ms-icon { color: #5eead4 !important; }
+html[data-theme="dark"] .ms-trigger.active .ms-icon { color: #67e8f9 !important; }
 html[data-theme="dark"] .ms-chev { color: var(--sd-text-faint) !important; }
 html[data-theme="dark"] .ms-count {
-  background-color: #0d9488 !important;
+  background-color: #0e7490 !important;
   color: white !important;
 }
 
@@ -1764,36 +1921,36 @@ html[data-theme="dark"] .ms-search {
 }
 html[data-theme="dark"] .ms-search-inner svg { color: var(--sd-text-faint) !important; }
 html[data-theme="dark"] .ms-search-inner input {
-  background-color: rgba(15, 23, 42, .55) !important;
+  background-color: rgba(18, 18, 20, .55) !important;
   border-color: var(--sd-border) !important;
   color: var(--sd-text) !important;
 }
 html[data-theme="dark"] .ms-search-inner input::placeholder { color: var(--sd-text-faint) !important; }
 html[data-theme="dark"] .ms-search-inner input:focus {
-  border-color: rgba(20, 184, 166, .5) !important;
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, .15) !important;
+  border-color: rgba(8, 145, 178, .5) !important;
+  box-shadow: 0 0 0 3px rgba(8, 145, 178, .15) !important;
 }
 html[data-theme="dark"] .ms-opt {
   color: var(--sd-text-soft) !important;
 }
 html[data-theme="dark"] .ms-opt:hover {
-  background-color: rgba(20, 184, 166, .06) !important;
+  background-color: rgba(8, 145, 178, .06) !important;
   color: var(--sd-text) !important;
 }
 html[data-theme="dark"] .ms-opt.active {
-  background-color: rgba(20, 184, 166, .12) !important;
-  color: #5eead4 !important;
+  background-color: rgba(8, 145, 178, .12) !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .ms-opt.active:hover {
-  background-color: rgba(20, 184, 166, .18) !important;
+  background-color: rgba(8, 145, 178, .18) !important;
 }
 html[data-theme="dark"] .ms-checkbox {
-  background-color: rgba(15, 23, 42, .55) !important;
+  background-color: rgba(18, 18, 20, .55) !important;
   border-color: var(--sd-border) !important;
 }
 html[data-theme="dark"] .ms-opt.active .ms-checkbox {
-  background-color: #0d9488 !important;
-  border-color: #0d9488 !important;
+  background-color: #0e7490 !important;
+  border-color: #0e7490 !important;
   color: white !important;
 }
 html[data-theme="dark"] .ms-opt-count { color: var(--sd-text-faint) !important; }
@@ -1807,7 +1964,7 @@ html[data-theme="dark"] .ms-clear:hover {
 
 /* Search input (Buscar paciente, doctor, especialidad...) */
 html[data-theme="dark"] .kbd-hint {
-  background-color: rgba(15, 23, 42, .55) !important;
+  background-color: rgba(18, 18, 20, .55) !important;
   border-color: var(--sd-border) !important;
   color: var(--sd-text-faint) !important;
 }
@@ -1817,23 +1974,23 @@ html[data-theme="dark"] .date-label { color: var(--sd-text) !important; }
 
 /* Segmented control (Día / Semana / Mes / Lista / Kanban) */
 html[data-theme="dark"] .segmented {
-  background-color: rgba(15, 23, 42, .55) !important;
+  background-color: rgba(18, 18, 20, .55) !important;
   border-color: var(--sd-border-soft) !important;
 }
 html[data-theme="dark"] .seg-btn {
   color: var(--sd-text-muted) !important;
   background-color: transparent;
 }
-html[data-theme="dark"] .seg-btn:hover { color: #5eead4 !important; }
+html[data-theme="dark"] .seg-btn:hover { color: #67e8f9 !important; }
 html[data-theme="dark"] .seg-btn.active {
   background-color: var(--sd-surface-solid) !important;
-  color: #5eead4 !important;
+  color: #67e8f9 !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .05) !important;
 }
 
 /* Month view */
 html[data-theme="dark"] .month-view { background: var(--sd-surface); }
-html[data-theme="dark"] .month-head { background-color: rgba(15, 23, 42, .55) !important; }
+html[data-theme="dark"] .month-head { background-color: rgba(18, 18, 20, .55) !important; }
 html[data-theme="dark"] .month-head-cell {
   color: var(--sd-text-muted) !important;
   border-right-color: var(--sd-border-soft) !important;
@@ -1847,15 +2004,15 @@ html[data-theme="dark"] .month-cell.out-of-month {
   background-color: rgba(255, 255, 255, .01) !important;
 }
 html[data-theme="dark"] .month-cell.today {
-  background-color: rgba(20, 184, 166, .08) !important;
+  background-color: rgba(8, 145, 178, .08) !important;
 }
 html[data-theme="dark"] .month-cell:hover:not(.today):not(.out-of-month) {
-  background-color: rgba(20, 184, 166, .04) !important;
+  background-color: rgba(8, 145, 178, .04) !important;
 }
 html[data-theme="dark"] .month-day-num { color: var(--sd-text-soft) !important; }
 html[data-theme="dark"] .month-day-num.out { color: var(--sd-text-faint) !important; }
 html[data-theme="dark"] .month-day-num.today {
-  background-color: #0d9488 !important;
+  background-color: #0e7490 !important;
   color: white !important;
 }
 html[data-theme="dark"] .month-overflow { color: var(--sd-text-muted) !important; }
@@ -1914,7 +2071,7 @@ html[data-theme="dark"] .list-view {
 }
 html[data-theme="dark"] .day-head,
 html[data-theme="dark"] .week-head {
-  background-color: rgba(15, 23, 42, .55) !important;
+  background-color: rgba(18, 18, 20, .55) !important;
   border-bottom-color: var(--sd-border-soft) !important;
 }
 html[data-theme="dark"] .day-head-date,
@@ -1923,10 +2080,10 @@ html[data-theme="dark"] .day-head-name,
 html[data-theme="dark"] .wh-name { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .day-head-name.today,
 html[data-theme="dark"] .wh-name.today,
-html[data-theme="dark"] .wh-num.today { color: #5eead4 !important; }
+html[data-theme="dark"] .wh-num.today { color: #67e8f9 !important; }
 html[data-theme="dark"] .day-hours-col,
 html[data-theme="dark"] .week-hours-col {
-  background-color: rgba(15, 23, 42, .35) !important;
+  background-color: rgba(18, 18, 20, .35) !important;
   border-right-color: var(--sd-border-soft) !important;
 }
 html[data-theme="dark"] .day-hour-label,
@@ -1938,13 +2095,13 @@ html[data-theme="dark"] .week-day-col {
   border-right-color: var(--sd-border-soft) !important;
 }
 html[data-theme="dark"] .week-day-col.today {
-  background-color: rgba(20, 184, 166, .05) !important;
+  background-color: rgba(8, 145, 178, .05) !important;
 }
 html[data-theme="dark"] .week-head-cell {
   border-right-color: var(--sd-border-soft) !important;
 }
 html[data-theme="dark"] .week-head-cell.today {
-  background-color: rgba(20, 184, 166, .08) !important;
+  background-color: rgba(8, 145, 178, .08) !important;
 }
 html[data-theme="dark"] .week-head-spacer { border-right-color: var(--sd-border-soft) !important; }
 
@@ -1957,8 +2114,8 @@ html[data-theme="dark"] .list-row {
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
 }
 html[data-theme="dark"] .list-row:hover {
-  border-color: rgba(20, 184, 166, .3) !important;
-  box-shadow: 0 12px 30px rgba(13, 148, 136, .15), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+  border-color: rgba(8, 145, 178, .3) !important;
+  box-shadow: 0 12px 30px rgba(14, 116, 144, .15), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
 }
 html[data-theme="dark"] .list-pat-name,
 html[data-theme="dark"] .list-time-big { color: var(--sd-text) !important; }
@@ -1966,9 +2123,9 @@ html[data-theme="dark"] .list-pat-meta,
 html[data-theme="dark"] .list-time-small { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .list-pat-meta-item svg { color: var(--sd-text-faint) !important; }
 html[data-theme="dark"] .list-avatar {
-  background-image: linear-gradient(135deg, #06b6d4, #14b8a6) !important;
+  background-image: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: white !important;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .15), 0 4px 10px rgba(13, 148, 136, .25);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .15), 0 4px 10px rgba(14, 116, 144, .25);
 }
 html[data-theme="dark"] .list-day-pill {
   background-color: var(--sd-surface-solid) !important;
@@ -1977,7 +2134,7 @@ html[data-theme="dark"] .list-day-pill {
   border-color: var(--sd-border) !important;
 }
 html[data-theme="dark"] .list-day-pill.today {
-  background-color: #0d9488 !important;
+  background-color: #0e7490 !important;
   color: white !important;
   border-color: transparent !important;
 }
@@ -2025,14 +2182,14 @@ html[data-theme="dark"] .status-badge.s-cancelled .dot { background-color: #ef44
 
 /* ── btn-sm variants ── */
 html[data-theme="dark"] .btn-sm.btn-primary {
-  background-color: #0d9488 !important;
+  background-color: #0e7490 !important;
   color: white !important;
-  border-color: #0d9488 !important;
-  box-shadow: 0 4px 10px rgba(13, 148, 136, .3) !important;
+  border-color: #0e7490 !important;
+  box-shadow: 0 4px 10px rgba(14, 116, 144, .3) !important;
 }
 html[data-theme="dark"] .btn-sm.btn-primary:hover {
-  background-color: #14b8a6 !important;
-  border-color: #14b8a6 !important;
+  background-color: #0891b2 !important;
+  border-color: #0891b2 !important;
 }
 html[data-theme="dark"] .btn-sm.btn-secondary {
   background-color: var(--sd-surface-solid) !important;
@@ -2040,9 +2197,9 @@ html[data-theme="dark"] .btn-sm.btn-secondary {
   border-color: var(--sd-border) !important;
 }
 html[data-theme="dark"] .btn-sm.btn-secondary:hover {
-  background-color: rgba(20, 184, 166, .08) !important;
-  border-color: rgba(20, 184, 166, .3) !important;
-  color: #5eead4 !important;
+  background-color: rgba(8, 145, 178, .08) !important;
+  border-color: rgba(8, 145, 178, .3) !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .btn-sm.btn-success {
   background-color: #059669 !important;
@@ -2058,7 +2215,7 @@ html[data-theme="dark"] .btn-sm.btn-ghost:hover {
 
 /* ── Kanban view ── */
 html[data-theme="dark"] .kanban-col {
-  background-color: rgba(15, 23, 42, .35) !important;
+  background-color: rgba(18, 18, 20, .35) !important;
   border: 1px solid var(--sd-border-soft);
 }
 html[data-theme="dark"] .kanban-col-head {
@@ -2077,8 +2234,8 @@ html[data-theme="dark"] .kanban-card {
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
 }
 html[data-theme="dark"] .kanban-card:hover {
-  border-color: rgba(20, 184, 166, .3) !important;
-  box-shadow: 0 12px 30px rgba(13, 148, 136, .15), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+  border-color: rgba(8, 145, 178, .3) !important;
+  box-shadow: 0 12px 30px rgba(14, 116, 144, .15), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
 }
 html[data-theme="dark"] .kanban-card.s-pending  { border-top: 2px solid #f59e0b !important; }
 html[data-theme="dark"] .kanban-card.s-waiting  { border-top: 2px solid #3b82f6 !important; }
@@ -2089,6 +2246,823 @@ html[data-theme="dark"] .kanban-card-when { color: var(--sd-text-soft) !importan
 html[data-theme="dark"] .kanban-card-dur { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .kanban-card-meta { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .kanban-empty { color: var(--sd-text-faint) !important; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   PATIENTS PAGE (patients.html — queue + detail)
+   ─────────────────────────────────────────────────────────────────
+   Page has its own inline <style> with light backgrounds; override
+   here so dark mode looks consistent with the rest of the app.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Left queue panel */
+html[data-theme="dark"] .patient-queue {
+  background: linear-gradient(180deg, #0c0c0e 0%, #07070a 100%) !important;
+  border-right: 1px solid var(--sd-border-soft) !important;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, .35) !important;
+}
+html[data-theme="dark"] .queue-header {
+  background: linear-gradient(180deg, rgba(8, 145, 178, .06) 0%, transparent 100%) !important;
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .queue-header h3 {
+  color: transparent !important;
+}
+html[data-theme="dark"] .queue-search {
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .search-wrap {
+  background-color: var(--sd-input-bg) !important;
+  border: 1.5px solid var(--sd-input-border) !important;
+  box-shadow: none !important;
+}
+html[data-theme="dark"] .search-wrap:focus-within {
+  border-color: #06b6d4 !important;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, .2) !important;
+  background-color: rgba(18, 18, 20, .75) !important;
+}
+html[data-theme="dark"] .search-input { color: var(--sd-text) !important; }
+html[data-theme="dark"] .search-input::placeholder { color: var(--sd-text-faint) !important; }
+
+/* Tabs (Todos / Recientes / Antiguos) */
+html[data-theme="dark"] .queue-tabs {
+  background: rgba(255, 255, 255, .02) !important;
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .queue-tabs .tab-btn { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .queue-tabs .tab-btn:hover { color: #67e8f9 !important; }
+html[data-theme="dark"] .queue-tabs .tab-btn.active {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(8, 145, 178, .35) !important;
+}
+
+/* Patient list cards (override generic .patient-card for this page's context) */
+html[data-theme="dark"] .patient-queue .patient-card {
+  background-color: rgba(255, 255, 255, .025) !important;
+  background-image: none !important;
+  border: 1.5px solid transparent !important;
+  box-shadow: none !important;
+}
+html[data-theme="dark"] .patient-queue .patient-card:hover {
+  background-color: rgba(255, 255, 255, .04) !important;
+  border-color: rgba(8, 145, 178, .25) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .35) !important;
+}
+html[data-theme="dark"] .patient-queue .patient-card.selected {
+  background: linear-gradient(135deg, rgba(8, 145, 178, .16) 0%, rgba(6, 182, 212, .1) 100%) !important;
+  border-color: rgba(8, 145, 178, .35) !important;
+  box-shadow: 0 6px 20px rgba(8, 145, 178, .15) !important;
+}
+html[data-theme="dark"] .patient-card-name { color: var(--sd-text) !important; }
+html[data-theme="dark"] .patient-card-date { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .patient-card-arrow { color: #67e8f9 !important; }
+html[data-theme="dark"] .empty-queue { color: var(--sd-text-faint) !important; }
+
+/* Right detail panel */
+html[data-theme="dark"] .patient-detail {
+  background: transparent !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .empty-state { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .empty-state h3 {
+  color: #67e8f9 !important;
+}
+html[data-theme="dark"] .empty-state p { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .empty-state svg { stroke: #06b6d4 !important; opacity: .4 !important; }
+
+/* Detail header */
+html[data-theme="dark"] .detail-header {
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .detail-name { color: var(--sd-text) !important; }
+html[data-theme="dark"] .action-btn {
+  background-color: var(--sd-surface-solid) !important;
+  border: 1.5px solid var(--sd-border) !important;
+  color: #67e8f9 !important;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+html[data-theme="dark"] .action-btn:hover {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%) !important;
+  color: white !important;
+  border-color: transparent !important;
+  box-shadow: 0 8px 20px rgba(8, 145, 178, .35) !important;
+}
+
+/* Info cards in detail */
+html[data-theme="dark"] .info-card {
+  background-color: var(--sd-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--sd-border-soft) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+html[data-theme="dark"] .info-card:hover {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .05) !important;
+}
+html[data-theme="dark"] .info-card h4 {
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .info-value { color: var(--sd-text) !important; }
+html[data-theme="dark"] .info-value.empty { color: var(--sd-text-faint) !important; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   FINANZAS PAGE (finanzas.html — sections, tables)
+   ─────────────────────────────────────────────────────────────────
+   Page has its own inline <style> with .section / table styles that
+   default to white backgrounds; override here for dark mode.
+   ═══════════════════════════════════════════════════════════════════ */
+
+html[data-theme="dark"] .section {
+  background: var(--sd-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--sd-border-soft) !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, .35),
+    inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .section::before { display: none !important; }
+html[data-theme="dark"] .section:hover {
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, .45),
+    inset 0 1px 0 rgba(255, 255, 255, .05) !important;
+}
+
+/* Tables inside .section */
+html[data-theme="dark"] .section table th {
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .section table td {
+  color: var(--sd-text-soft) !important;
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .section tbody tr:hover td {
+  background: rgba(8, 145, 178, .06) !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .section .empty-table {
+  color: var(--sd-text-faint) !important;
+}
+
+/* Donut center text, legend, progress bars */
+html[data-theme="dark"] .donut-value { color: var(--sd-text) !important; }
+html[data-theme="dark"] .donut-text { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .legend-item { color: var(--sd-text) !important; }
+html[data-theme="dark"] .legend-note { color: var(--sd-text-faint) !important; }
+html[data-theme="dark"] .progress-label { color: var(--sd-text) !important; }
+html[data-theme="dark"] .progress-bar-bg { background: rgba(255, 255, 255, .06) !important; }
+
+/* Chart bar value labels (L. 20,000.00 above each bar) — were hardcoded #0f172a */
+html[data-theme="dark"] .chart-bar::after {
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .chart-empty,
+html[data-theme="dark"] .chart-empty-text { color: var(--sd-text-muted) !important; }
+
+/* Date range filter inputs in "Consultas Pagadas" (inline-styled in finanzas.html) */
+html[data-theme="dark"] #paidStartDateDisplay,
+html[data-theme="dark"] #paidEndDateDisplay {
+  background: var(--sd-input-bg) !important;
+  color: var(--sd-text) !important;
+  border: 1px solid var(--sd-input-border) !important;
+}
+html[data-theme="dark"] #paidStartDateDisplay::placeholder,
+html[data-theme="dark"] #paidEndDateDisplay::placeholder {
+  color: var(--sd-text-faint) !important;
+}
+html[data-theme="dark"] #paidStartCalendar,
+html[data-theme="dark"] #paidEndCalendar {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .55) !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] #paidClearBtn {
+  background: rgba(8, 145, 178, .12) !important;
+  color: #67e8f9 !important;
+  border: 1px solid rgba(8, 145, 178, .3) !important;
+}
+html[data-theme="dark"] #paidClearBtn:hover {
+  background: rgba(8, 145, 178, .2) !important;
+  border-color: rgba(8, 145, 178, .5) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PERSONAL / GESTIÓN DE PERSONAL (doctors.html)
+   ─────────────────────────────────────────────────────────────────
+   Override hardcoded `background:#fff` rules on chips, cards, etc.
+   The token mapping above already covers var(--bg-elev), --ink, --line.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Grid sections (Equipo médico / Recepcionistas / Habitaciones) */
+html[data-theme="dark"] .grid-section {
+  background: var(--sd-surface) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+html[data-theme="dark"] .grid-head {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .03), transparent) !important;
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .grid-head h3 { color: var(--sd-text) !important; }
+html[data-theme="dark"] .grid-head .meta { color: var(--sd-text-muted) !important; }
+
+/* Filter chips */
+html[data-theme="dark"] .chips-row .chip {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .chips-row .chip:hover {
+  border-color: rgba(8, 145, 178, .35) !important;
+  color: #67e8f9 !important;
+}
+html[data-theme="dark"] .chips-row .chip.active {
+  background: rgba(8, 145, 178, .18) !important;
+  color: #67e8f9 !important;
+  border-color: rgba(8, 145, 178, .4) !important;
+}
+html[data-theme="dark"] .chips-row .chip .count {
+  background: rgba(255, 255, 255, .08) !important;
+  color: var(--sd-text-muted) !important;
+}
+html[data-theme="dark"] .chips-row .chip.active .count {
+  background: rgba(8, 145, 178, .25) !important;
+  color: #a5f3fc !important;
+}
+
+/* Staff cards (doctor / receptionist) */
+html[data-theme="dark"] .staff-card {
+  background: var(--sd-surface) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .35) !important;
+}
+html[data-theme="dark"] .staff-card:hover {
+  border-color: rgba(8, 145, 178, .3) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .45) !important;
+}
+html[data-theme="dark"] .staff-card .name { color: var(--sd-text) !important; }
+html[data-theme="dark"] .staff-card .email { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .staff-meta {
+  background: rgba(255, 255, 255, .03) !important;
+}
+html[data-theme="dark"] .staff-meta .row { color: var(--sd-text-soft) !important; }
+html[data-theme="dark"] .staff-meta .row svg { color: var(--sd-text-faint) !important; }
+html[data-theme="dark"] .staff-avatar {
+  box-shadow: inset 0 0 0 2px var(--sd-surface), 0 2px 6px rgba(0, 0, 0, .4) !important;
+}
+
+/* Color-tinted badges (.badge in doctors, .type-badge in consentimientos,
+   .room-status-badge in rooms). Original light styling mixes the accent
+   color with #fff → pastel. On dark we mix with transparent so the tint
+   lets the surface show through. */
+html[data-theme="dark"] .staff-card .badge,
+html[data-theme="dark"] .room-card .badge,
+html[data-theme="dark"] .type-badge,
+html[data-theme="dark"] .room-status-badge {
+  background: color-mix(in oklch, var(--c, #06b6d4) 18%, transparent) !important;
+  border-color: color-mix(in oklch, var(--c, #06b6d4) 35%, transparent) !important;
+  color: color-mix(in oklch, var(--c, #06b6d4) 60%, #f1f5f9) !important;
+}
+
+/* KPI cards (Gestión de personal, Consentimientos) — neutral gray-black
+   so they lift visibly from the pure-black hero/body background */
+html[data-theme="dark"] .kpis .kpi {
+  background: #15151a !important;
+  background-image: none !important;
+  border: 1px solid rgba(255, 255, 255, .07) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .55) !important;
+}
+html[data-theme="dark"] .kpis .kpi .spark { opacity: .25 !important; }
+
+/* KPI trend pills (Doctores + recepción / 5 especialidades / Acceso al
+   sistema / 75% ocupación / Últimos 30 días). Originally use --*-50
+   pastel backgrounds on white cards; map to translucent tints on dark. */
+html[data-theme="dark"] .kpi .trend {
+  background: rgba(34, 197, 94, .14) !important;
+  color: #6ee7b7 !important;
+}
+html[data-theme="dark"] .kpi.warn .trend {
+  background: rgba(245, 158, 11, .14) !important;
+  color: #fcd34d !important;
+}
+html[data-theme="dark"] .kpi.flag .trend {
+  background: rgba(99, 102, 241, .16) !important;
+  color: #a5b4fc !important;
+}
+html[data-theme="dark"] .kpi.violet .trend {
+  background: rgba(168, 85, 247, .16) !important;
+  color: #d8b4fe !important;
+}
+
+/* Action buttons inside cards */
+html[data-theme="dark"] .staff-card .action-btn,
+html[data-theme="dark"] .room-card .action-btn {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .staff-card .action-btn:hover,
+html[data-theme="dark"] .room-card .action-btn:hover {
+  background: rgba(8, 145, 178, .12) !important;
+  border-color: rgba(8, 145, 178, .4) !important;
+  color: #67e8f9 !important;
+}
+html[data-theme="dark"] .staff-card .action-btn.delete:hover,
+html[data-theme="dark"] .room-card .action-btn.delete:hover {
+  background: rgba(239, 68, 68, .14) !important;
+  border-color: rgba(239, 68, 68, .35) !important;
+  color: #fca5a5 !important;
+}
+
+/* Room cards */
+html[data-theme="dark"] .room-card {
+  background: var(--sd-surface) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .35) !important;
+}
+html[data-theme="dark"] .room-card:hover {
+  border-color: rgba(8, 145, 178, .3) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .45) !important;
+}
+html[data-theme="dark"] .room-card .room-name { color: var(--sd-text) !important; }
+html[data-theme="dark"] .room-patient {
+  background: rgba(255, 255, 255, .03) !important;
+  color: var(--sd-text-soft) !important;
+}
+
+/* Ghost buttons used in grid-head actions ("Invitar doctor") */
+html[data-theme="dark"] .btn-ghost {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .btn-ghost:hover {
+  border-color: rgba(8, 145, 178, .4) !important;
+  color: #67e8f9 !important;
+}
+html[data-theme="dark"] .btn-ghost-light {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .btn-ghost-light:hover {
+  background: rgba(255, 255, 255, .05) !important;
+  border-color: var(--sd-border-strong) !important;
+  color: var(--sd-text) !important;
+}
+
+/* Icon buttons in toolbar */
+html[data-theme="dark"] .icon-btn {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .icon-btn:hover {
+  background: rgba(255, 255, 255, .05) !important;
+  color: var(--sd-text) !important;
+}
+
+/* Sort/chip selects */
+html[data-theme="dark"] .sort-select,
+html[data-theme="dark"] .chip-select {
+  background-color: var(--sd-surface-solid) !important;
+  border-color: var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+
+/* Search wrap focus state — keep dark instead of flashing white */
+html[data-theme="dark"] .search-wrap:focus-within {
+  background: rgba(18, 18, 20, .8) !important;
+  border-color: #06b6d4 !important;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, .2) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CONSENTIMIENTOS PAGE (consentimientos.html)
+   ─────────────────────────────────────────────────────────────────
+   Page has .card / .card-head / .table / .action-btn with hardcoded
+   white gradient strips and white button backgrounds; override here.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Card header gradient strip (consentimientos, recordatorios, etc.)
+   — original mixes var(--surface) → #fff which renders as white in dark */
+html[data-theme="dark"] .card .card-head {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .03), transparent) !important;
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .card .card-head h3 { color: var(--sd-text) !important; }
+html[data-theme="dark"] .card .card-head .meta { color: var(--sd-text-muted) !important; }
+
+/* Templates table */
+html[data-theme="dark"] .table thead th {
+  background: rgba(255, 255, 255, .025) !important;
+  color: #67e8f9 !important;
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .table td {
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .table tbody tr:hover {
+  background: rgba(8, 145, 178, .06) !important;
+}
+html[data-theme="dark"] .tpl .name b { color: var(--sd-text) !important; }
+html[data-theme="dark"] .tpl .name small { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .tpl-icon {
+  box-shadow: inset 0 0 0 2px var(--sd-surface), 0 2px 6px rgba(0, 0, 0, .4) !important;
+}
+html[data-theme="dark"] .date .d { color: var(--sd-text) !important; }
+html[data-theme="dark"] .date .rel { color: var(--sd-text-muted) !important; }
+
+/* Row action buttons (override hardcoded white) */
+html[data-theme="dark"] .row-actions .action-btn {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .row-actions .action-btn:hover {
+  background: rgba(8, 145, 178, .12) !important;
+  border-color: rgba(8, 145, 178, .4) !important;
+  color: #67e8f9 !important;
+}
+html[data-theme="dark"] .row-actions .action-btn.delete:hover {
+  background: rgba(239, 68, 68, .14) !important;
+  border-color: rgba(239, 68, 68, .35) !important;
+  color: #fca5a5 !important;
+}
+
+/* Empty state inside card */
+html[data-theme="dark"] .empty { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .empty h4 { color: var(--sd-text) !important; }
+html[data-theme="dark"] .empty .ic-wrap {
+  background: rgba(255, 255, 255, .04) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+  color: var(--sd-text-faint) !important;
+}
+
+/* Skeleton rows */
+html[data-theme="dark"] .skeleton-row {
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .skeleton-row .sk {
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, .03) 0%,
+    rgba(255, 255, 255, .08) 50%,
+    rgba(255, 255, 255, .03) 100%) !important;
+  background-size: 200% 100% !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RECORDATORIOS PAGE (recordatorios.html)
+   ─────────────────────────────────────────────────────────────────
+   Notice banner, range chip, status badges, date-group pill, checkbox.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* "Antes de enviar" info banner */
+html[data-theme="dark"] .note {
+  background: linear-gradient(135deg, rgba(99, 102, 241, .12), rgba(6, 182, 212, .08)) !important;
+  border: 1px solid rgba(99, 102, 241, .25) !important;
+  color: var(--sd-text-soft) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .35) !important;
+}
+html[data-theme="dark"] .note b { color: var(--sd-text) !important; }
+html[data-theme="dark"] .note .ic-wrap {
+  background: rgba(99, 102, 241, .18) !important;
+  border: 1px solid rgba(99, 102, 241, .35) !important;
+  color: #a5b4fc !important;
+}
+html[data-theme="dark"] .note .close { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .note.warn {
+  background: linear-gradient(135deg, rgba(245, 158, 11, .14), rgba(245, 158, 11, .06)) !important;
+  border-color: rgba(245, 158, 11, .35) !important;
+}
+html[data-theme="dark"] .note.warn .ic-wrap {
+  background: rgba(245, 158, 11, .18) !important;
+  border-color: rgba(245, 158, 11, .4) !important;
+  color: #fcd34d !important;
+}
+
+/* Range chip ("Próximos 14 días") */
+html[data-theme="dark"] #rangeChip.chip,
+html[data-theme="dark"] .toolbar > .chip {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] #rangeChip.chip:hover,
+html[data-theme="dark"] .toolbar > .chip:hover {
+  border-color: rgba(8, 145, 178, .35) !important;
+  color: #67e8f9 !important;
+}
+
+/* Segmented tabs (Todas / Pendientes / Enviados / Sin WhatsApp / Hoy) */
+html[data-theme="dark"] .seg {
+  background: rgba(255, 255, 255, .03) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .seg button { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .seg button:hover { color: var(--sd-text) !important; }
+html[data-theme="dark"] .seg button.on {
+  background: rgba(8, 145, 178, .15) !important;
+  color: #67e8f9 !important;
+  box-shadow: inset 0 0 0 1px rgba(8, 145, 178, .35) !important;
+}
+html[data-theme="dark"] .seg button .pill {
+  background: rgba(255, 255, 255, .06) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .seg button.on .pill {
+  background: rgba(8, 145, 178, .25) !important;
+  color: #a5f3fc !important;
+}
+
+/* Date group header inside the reminder table (LUN 20 ABR / 1 cita pill) */
+html[data-theme="dark"] .date-group td {
+  background: rgba(255, 255, 255, .025) !important;
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .date-group .head { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .date-group .head .pill-soft {
+  background: rgba(255, 255, 255, .06) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .date-group .head .relative { color: #67e8f9 !important; }
+
+/* Checkboxes (table column 1) */
+html[data-theme="dark"] .cb {
+  background: var(--sd-input-bg) !important;
+  border: 1.5px solid var(--sd-border) !important;
+}
+html[data-theme="dark"] .cb.on {
+  background: #06b6d4 !important;
+  border-color: #06b6d4 !important;
+}
+
+/* Patient column */
+html[data-theme="dark"] .patient .name b { color: var(--sd-text) !important; }
+html[data-theme="dark"] .patient .name small { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .pat-avatar {
+  box-shadow: inset 0 0 0 2px var(--sd-surface), 0 1px 3px rgba(0, 0, 0, .4) !important;
+}
+
+/* Doctor column */
+html[data-theme="dark"] .doctor span { color: var(--sd-text-soft) !important; }
+
+/* Status badges in ESTADO column — invert pastel mixes to translucent tints */
+html[data-theme="dark"] .badge.pending {
+  background: rgba(245, 158, 11, .16) !important;
+  color: #fcd34d !important;
+}
+html[data-theme="dark"] .badge.sent {
+  background: rgba(34, 197, 94, .16) !important;
+  color: #6ee7b7 !important;
+}
+html[data-theme="dark"] .badge.nowhats {
+  background: rgba(99, 102, 241, .18) !important;
+  color: #a5b4fc !important;
+}
+html[data-theme="dark"] .badge.disabled {
+  background: rgba(244, 63, 94, .14) !important;
+  color: #fda4af !important;
+}
+html[data-theme="dark"] .sent-meta { color: var(--sd-text-faint) !important; }
+
+/* "Agregar nº" / "Configurar" / "Reenviar" pill buttons in ACCIONES column */
+html[data-theme="dark"] .btn-add {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .btn-add:hover {
+  background: rgba(99, 102, 241, .14) !important;
+  border-color: rgba(99, 102, 241, .4) !important;
+  color: #a5b4fc !important;
+}
+
+/* Mini eye/preview buttons in row */
+html[data-theme="dark"] .mini-btn { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .mini-btn:hover {
+  background: rgba(255, 255, 255, .05) !important;
+  border-color: var(--sd-border) !important;
+  color: var(--sd-text) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CITAS ONLINE (agendar-online.html — admin view, .co-page namespace)
+   ─────────────────────────────────────────────────────────────────
+   Page has its own self-contained tokens scoped to `.co-page` and a
+   bright glassmorphism aesthetic. Re-map the tokens for dark mode so
+   every nested rule using var(--paper|surface|glass|ink…) flips.
+   ═══════════════════════════════════════════════════════════════════ */
+
+html[data-theme="dark"] .co-page {
+  --paper: #0a0a0c;
+  --paper-2: #08080a;
+  --surface: #131315;
+  --surface-2: #18181a;
+  --line: rgba(255, 255, 255, .08);
+  --line-2: rgba(255, 255, 255, .14);
+  --ink: #f1f5f9;
+  --ink-2: #cbd5e1;
+  --muted: #94a3b8;
+  --muted-2: #64748b;
+
+  --accent: #06b6d4;
+  --accent-strong: #0e7490;
+  --accent-soft: rgba(8, 145, 178, .14);
+  --accent-ink: #67e8f9;
+
+  --warm-soft: rgba(245, 158, 11, .14);
+  --warm-ink: #fcd34d;
+  --ok-soft: rgba(16, 185, 129, .14);
+  --ok-ink: #6ee7b7;
+  --info-soft: rgba(59, 130, 246, .14);
+  --info-ink: #93c5fd;
+  --danger-soft: rgba(239, 68, 68, .14);
+  --danger-ink: #fca5a5;
+
+  --glass-bg: rgba(10, 10, 10, .9);
+  --glass-bg-strong: rgba(10, 10, 10, .95);
+  --glass-bg-soft: rgba(10, 10, 10, .6);
+  --glass-border: rgba(255, 255, 255, .05);
+  --glass-border-inner: rgba(255, 255, 255, .04);
+  --glass-shadow:
+    0 1px 0 rgba(255, 255, 255, .04) inset,
+    0 -1px 0 rgba(0, 0, 0, .3) inset,
+    0 6px 20px -10px rgba(0, 0, 0, .5),
+    0 22px 60px -30px rgba(0, 0, 0, .6);
+  --glass-shadow-lift:
+    0 1px 0 rgba(255, 255, 255, .05) inset,
+    0 -1px 0 rgba(0, 0, 0, .35) inset,
+    0 14px 40px -16px rgba(0, 0, 0, .55),
+    0 32px 80px -40px rgba(0, 0, 0, .65);
+}
+
+/* Background wash — only the cyan radial tints; transparent base so it
+   doesn't create a visible rounded rectangle boundary at the top */
+html[data-theme="dark"] .co-page::before {
+  inset: 0 !important;
+  border-radius: 0 !important;
+  background:
+    radial-gradient(620px 460px at 8% -6%, rgba(8, 145, 178, .06), transparent 65%),
+    radial-gradient(540px 420px at 96% 4%, rgba(14, 165, 233, .05), transparent 65%),
+    radial-gradient(720px 560px at 100% 52%, rgba(59, 130, 246, .03), transparent 70%),
+    radial-gradient(680px 520px at 0% 70%, rgba(6, 182, 212, .04), transparent 68%) !important;
+}
+html[data-theme="dark"] .co-page::after {
+  opacity: .25 !important;
+  border-radius: 0 !important;
+}
+
+/* Card highlight overlay was a near-white gradient — tone down on dark */
+html[data-theme="dark"] .co-card::before {
+  background: linear-gradient(140deg, rgba(255, 255, 255, .04) 0%, rgba(255, 255, 255, .01) 38%, transparent 60%) !important;
+  opacity: .8 !important;
+}
+
+/* KPI card top-left highlight — was rgba(255,255,255,0.45) with mix-blend-mode:screen
+   which painted a bright white sheen on dark cards. Kill it. */
+html[data-theme="dark"] .co-kpi::before,
+html[data-theme="dark"] .co-insight::before {
+  background: linear-gradient(140deg, rgba(255, 255, 255, .03) 0%, rgba(255, 255, 255, .01) 45%, transparent 70%) !important;
+  mix-blend-mode: normal !important;
+  opacity: .6 !important;
+}
+
+/* Kill the cyan radial-gradient glow corners on KPI cards (Citas Online) */
+html[data-theme="dark"] .co-kpi::after {
+  display: none !important;
+}
+
+/* Force pure black on co-kpi and co-insight so the diagonal accent tint
+   doesn't paint a blue cast over the cards */
+html[data-theme="dark"] .co-kpi,
+html[data-theme="dark"] .co-insight {
+  background: #0a0a0a !important;
+  background-image: none !important;
+  border: 1px solid rgba(255, 255, 255, .05) !important;
+}
+
+/* URL pill ("localhost:3000/agendar.html?clinic=1") */
+html[data-theme="dark"] .co-url-pill {
+  background: rgba(255, 255, 255, .04) !important;
+  border: 1px solid var(--sd-border) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .04),
+    0 4px 16px -8px rgba(0, 0, 0, .5) !important;
+}
+
+/* Glass buttons (WhatsApp / Compartir / Vista previa) — match dark glass */
+html[data-theme="dark"] .co-btn {
+  background: rgba(255, 255, 255, .04) !important;
+  border: 1px solid rgba(255, 255, 255, .08) !important;
+  color: var(--sd-text-soft) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .04),
+    0 4px 12px -6px rgba(0, 0, 0, .5) !important;
+}
+html[data-theme="dark"] .co-btn:hover {
+  background: rgba(255, 255, 255, .07) !important;
+  border-color: rgba(255, 255, 255, .14) !important;
+}
+html[data-theme="dark"] .co-btn.ghost { background: rgba(255, 255, 255, .02) !important; }
+html[data-theme="dark"] .co-btn.primary {
+  background: rgba(8, 145, 178, .9) !important;
+  border-color: rgba(8, 145, 178, .9) !important;
+  color: #f1f5f9 !important;
+}
+html[data-theme="dark"] .co-btn.primary:hover { background: #0e7490 !important; }
+html[data-theme="dark"] .co-btn.danger-ghost {
+  background: rgba(239, 68, 68, .08) !important;
+  border-color: rgba(239, 68, 68, .25) !important;
+  color: #fca5a5 !important;
+}
+
+/* Icon buttons in this page */
+html[data-theme="dark"] .co-icon-btn {
+  background: rgba(255, 255, 255, .04) !important;
+  border: 1px solid rgba(255, 255, 255, .08) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .co-icon-btn:hover {
+  background: rgba(255, 255, 255, .07) !important;
+  border-color: rgba(255, 255, 255, .14) !important;
+}
+
+/* QR card — keep the inner QR white (for scannability), darken the frame */
+html[data-theme="dark"] .co-qr-card {
+  background: linear-gradient(180deg, rgba(20, 20, 22, .8) 0%, rgba(20, 20, 22, .6) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, .08) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .04),
+    0 18px 36px -18px rgba(0, 0, 0, .6) !important;
+}
+html[data-theme="dark"] .co-qr-frame {
+  background: #ffffff !important;  /* keep — QR codes need light bg */
+}
+
+/* Appointments table / filter pills / row actions (lower-half of page) */
+html[data-theme="dark"] .co-filter-pill {
+  background: rgba(255, 255, 255, .04) !important;
+  border: 1px solid rgba(255, 255, 255, .08) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .co-filter-pill:hover { background: rgba(255, 255, 255, .07) !important; }
+html[data-theme="dark"] .co-appts-table tbody tr:hover { background: rgba(8, 145, 178, .06) !important; }
+html[data-theme="dark"] .co-row-actions button {
+  background: rgba(255, 255, 255, .04) !important;
+  border: 1px solid rgba(255, 255, 255, .08) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .co-row-actions button:hover { background: rgba(255, 255, 255, .08) !important; }
+
+/* "−" delta pills (flat state) — were faint white-ish on dark */
+html[data-theme="dark"] .co-kpi-delta.flat {
+  background: rgba(255, 255, 255, .06) !important;
+  color: var(--sd-text-muted) !important;
+}
+html[data-theme="dark"] .co-kpi-delta.up {
+  background: rgba(16, 185, 129, .14) !important;
+  color: #6ee7b7 !important;
+}
+html[data-theme="dark"] .co-kpi-delta.down {
+  background: rgba(239, 68, 68, .14) !important;
+  color: #fca5a5 !important;
+}
+
+/* SVG ring & donut hardcoded #0F172A / #64748B text fills override */
+html[data-theme="dark"] #ringConv text,
+html[data-theme="dark"] #weekRing text {
+  fill: #f1f5f9 !important;
+}
+html[data-theme="dark"] #weekRing text[font-size="9.5"] {
+  fill: #94a3b8 !important;
+}
+
+/* Availability head divider — was rgba(255,255,255,0.6) */
+html[data-theme="dark"] .co-avail-head {
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+
+/* Doctor select inside availability head */
+html[data-theme="dark"] .co-doctor-select {
+  background: rgba(255, 255, 255, .04) !important;
+  border: 1px solid var(--sd-border) !important;
+}
+html[data-theme="dark"] .co-doctor-select select {
+  color: var(--sd-text) !important;
+  background: transparent !important;
+}
+
+/* Resumen semanal card (Carga horaria + weekday list) */
+html[data-theme="dark"] .co-card .co-card-title { color: var(--sd-text) !important; }
+html[data-theme="dark"] .co-card .co-card-sub { color: var(--sd-text-muted) !important; }
+
+/* Toolbar container itself uses var(--bg-elev) (already mapped to dark) */
 
 /* ── Smooth crossfade when toggling themes at runtime ── */
 html { transition: background-color .35s ease; }
