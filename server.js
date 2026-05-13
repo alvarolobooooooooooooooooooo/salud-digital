@@ -1,15 +1,42 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const compression = require('compression');
 const { initDb } = require('./db');
 
 process.env.TZ = 'America/Chicago'; // Zona horaria local (CST/CDT)
 
 const app = express();
 
+// gzip/deflate compression — ~5x reduction on the landing HTML
+// (most-impactful single change for first paint over slow networks)
+app.use(compression({
+  threshold: 1024, // only compress responses >= 1KB
+  level: 6,
+}));
+
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Static files: hint browsers to cache JS/CSS for a day, HTML always revalidated
+const ONE_DAY = 24 * 60 * 60;
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: true,
+  lastModified: true,
+  maxAge: 0,
+  setHeaders(res, filePath) {
+    if (/\.(?:js|css|svg|woff2?|ttf|otf|png|jpe?g|webp|gif|ico)$/i.test(filePath)) {
+      // Static assets: cache for a day, browser revalidates with etag after that
+      res.setHeader('Cache-Control', 'public, max-age=' + ONE_DAY + ', stale-while-revalidate=' + ONE_DAY);
+    } else if (/\.html$/i.test(filePath)) {
+      // HTML: always revalidate so deploys are picked up immediately
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  },
+}));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  maxAge: '7d',
+  etag: true,
+}));
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/invitations', require('./routes/invitations'));

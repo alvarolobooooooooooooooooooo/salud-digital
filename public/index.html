@@ -5,6 +5,47 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Salud Digital — Plataforma Sanitaria Profesional</title>
+<!-- Resource hints: warm cache for scripts needed mid-page -->
+<link rel="preload" as="script" href="/icons.js" />
+<!-- Render-skipping hints: browsers skip layout/paint for off-screen sections
+     until they're near the viewport. Uses contain-intrinsic-size so the
+     scrollbar height stays stable (no layout shift). -->
+<style id="performance-hints">
+  #producto,
+  #para-quien,
+  .pipeline-section,
+  #precios,
+  footer {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 800px;
+  }
+  /* Tell the compositor which elements actively transform — avoids
+     repainting siblings when they animate. Excluded: any container with
+     children that overflow visually (notifs, glows). */
+  .persona-panel,
+  .pipeline-stage,
+  .mockup,
+  .float-card,
+  .hero-notif {
+    contain: layout paint style;
+  }
+  /* These have children that extend outside their box (glows, floating
+     notifs) — keep style/layout containment only, no paint clip. */
+  .hero-preview,
+  .workflow-visual {
+    contain: layout style;
+  }
+  /* Hero animations pause when scrolled off-screen to free the GPU.
+     The IO toggles [data-anim-paused] on .hero below. */
+  .hero[data-anim-paused="1"] .hero-beam,
+  .hero[data-anim-paused="1"] .hero-particle,
+  .hero[data-anim-paused="1"] .hero-spark-svg path.line,
+  .hero[data-anim-paused="1"] .hero-spark-svg circle.end,
+  .hero[data-anim-paused="1"] .cycle-word .cw-item,
+  .hero[data-anim-paused="1"] .hero-notif {
+    animation-play-state: paused;
+  }
+</style>
 <style>
   :root {
     --primary: #0891b2;
@@ -4777,20 +4818,32 @@
     }, 100);
   });
 
+  // ─── Visibility tracker — pauses hero JS intervals when off-screen ───
+  window.__heroVisible = true;
+  (function watchHero() {
+    const hero = document.querySelector('.hero');
+    if (!hero || !window.IntersectionObserver) return;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        window.__heroVisible = e.isIntersecting;
+        hero.setAttribute('data-anim-paused', e.isIntersecting ? '0' : '1');
+      });
+    }, { rootMargin: '50px' });
+    io.observe(hero);
+  })();
+
   // ─── Hero motion: cycling word (Anthropic-style, ghost-locked width) ───
   (function cycleHeroWord() {
     const wrap = document.getElementById('cycleWord');
     if (!wrap) return;
     const words = ['simple', 'rápida', 'segura', 'clara', 'moderna', 'inteligente'];
-    const ghost = wrap.querySelector('.cw-ghost');
 
     let idx = 0;
     setInterval(() => {
+      if (!window.__heroVisible) return; // skip work when off-screen
       idx = (idx + 1) % words.length;
       const current = wrap.querySelector('.cw-item:not(.in-down):not(.out-up)');
       if (!current) return;
-      // Update the ghost to the *next* word so the container always fits content
-      // (combined with `inteligente` as a static max, ensures no shift even for shorter→longer)
       const next = document.createElement('span');
       next.className = 'cw-item in-down';
       next.textContent = words[idx];
@@ -4808,21 +4861,31 @@
   })();
 
   // ─── Hero particle stream ───
+  // Deferred to idle so first paint isn't delayed by DOM creation
   (function spawnHeroParticles() {
-    const container = document.getElementById('heroParticles');
-    if (!container) return;
-    const count = 14;
-    for (let i = 0; i < count; i++) {
-      const p = document.createElement('div');
-      p.className = 'hero-particle';
-      p.style.left = Math.random() * 100 + '%';
-      p.style.animationDuration = (10 + Math.random() * 12) + 's';
-      p.style.animationDelay = (Math.random() * 10) + 's';
-      p.style.opacity = 0.35 + Math.random() * 0.5;
-      const size = 2 + Math.random() * 3;
-      p.style.width = size + 'px';
-      p.style.height = size + 'px';
-      container.appendChild(p);
+    const run = () => {
+      const container = document.getElementById('heroParticles');
+      if (!container) return;
+      const count = 14;
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'hero-particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (10 + Math.random() * 12) + 's';
+        p.style.animationDelay = (Math.random() * 10) + 's';
+        p.style.opacity = 0.35 + Math.random() * 0.5;
+        const size = 2 + Math.random() * 3;
+        p.style.width = size + 'px';
+        p.style.height = size + 'px';
+        frag.appendChild(p);
+      }
+      container.appendChild(frag);
+    };
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(run, { timeout: 1500 });
+    } else {
+      setTimeout(run, 800);
     }
   })();
 
@@ -4836,10 +4899,12 @@
     if (notifs.some(n => !n)) return;
     let i = 0;
     function step() {
-      const current = notifs[i];
-      current.classList.add('show');
-      setTimeout(() => current.classList.remove('show'), 3200);
-      i = (i + 1) % notifs.length;
+      if (window.__heroVisible) {
+        const current = notifs[i];
+        current.classList.add('show');
+        setTimeout(() => current.classList.remove('show'), 3200);
+        i = (i + 1) % notifs.length;
+      }
       setTimeout(step, 3800);
     }
     setTimeout(step, 2200);
@@ -4860,7 +4925,7 @@
     // Start after counter animations finish
     setTimeout(() => {
       setInterval(() => {
-        // Alternate: bump pacientes, then citas, then both
+        if (!window.__heroVisible) return; // pause when off-screen
         const r = Math.random();
         if (r < 0.5) {
           pacientes += 1;
