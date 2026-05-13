@@ -10,6 +10,81 @@
 <!-- Render-skipping hints: browsers skip layout/paint for off-screen sections
      until they're near the viewport. Uses contain-intrinsic-size so the
      scrollbar height stays stable (no layout shift). -->
+<style id="performance-hints-mobile">
+  /* ── Mobile-only performance overrides ──
+     Mobile GPUs choke on backdrop-filter, large blurred fixed elements,
+     and many concurrent infinite animations. Disable them and compensate
+     with more opaque backgrounds so the visual feel stays close. */
+  @media (max-width: 720px) {
+    /* 1) Disable backdrop-filter everywhere (biggest mobile GPU killer) */
+    *, *::before, *::after {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    /* 2) Kill the giant blurred background blobs — they alone can drop
+       60fps to 20fps on mid-range Android. */
+    body::before, body::after { display: none !important; }
+
+    /* 3) Particle streams and orbit rings — pure decoration, expensive */
+    .hero-particles, .particles,
+    .orbit-ring, .orbit-ring-2 { display: none !important; }
+
+    /* 4) Beam sweeps on hero + workflow cards */
+    .hero-beam,
+    .workflow-visual::after { display: none !important; }
+
+    /* 5) Idle glow pulse animations — keep the glow, drop the animation */
+    .card-glow, .mockup-glow {
+      animation: none !important;
+      opacity: 0.25 !important;
+    }
+
+    /* 6) 3D tilt transforms on the hero preview — flat on mobile */
+    .mockup { transform: none !important; }
+    .mockup:hover { transform: none !important; }
+
+    /* 7) Replace transparent + blur backgrounds with opaque equivalents
+       so panels still look "frosted" without the GPU cost. */
+    .workflow-visual {
+      background: linear-gradient(135deg, rgba(20, 20, 24, 0.96) 0%, rgba(15, 15, 17, 0.96) 100%) !important;
+    }
+    .hero-preview {
+      background: linear-gradient(135deg, rgba(20, 20, 24, 0.96) 0%, rgba(15, 15, 17, 0.96) 100%) !important;
+    }
+    .mockup,
+    .float-card,
+    .hero-notif,
+    .preview-stat {
+      background: rgba(22, 22, 26, 0.98) !important;
+    }
+    .persona-panel,
+    .pipeline-stage,
+    .feature-card {
+      background: linear-gradient(135deg, rgba(20, 20, 22, 0.97) 0%, rgba(15, 15, 17, 0.97) 100%) !important;
+    }
+
+    /* 8) Shorter reveal transitions + simpler easing on mobile.
+       The default bouncy cubic-bezier overshoots and costs more frames. */
+    .reveal {
+      transition-duration: 0.4s !important;
+      transition-timing-function: ease-out !important;
+      transform: translateY(16px) !important;
+    }
+    .reveal.in { transform: translateY(0) !important; }
+
+    /* 9) Drop content-visibility on mobile — the section-by-section
+       render hitch is more noticeable than the saved paint cost. */
+    #producto,
+    #para-quien,
+    .pipeline-section,
+    #precios,
+    footer {
+      content-visibility: visible;
+    }
+  }
+</style>
+
 <style id="performance-hints">
   #producto,
   #para-quien,
@@ -3836,7 +3911,6 @@
 
 <!-- ── HERO ── -->
 <header class="hero">
-  <div class="hero-beam" aria-hidden="true"></div>
   <div class="hero-particles" id="heroParticles" aria-hidden="true"></div>
   <div class="container">
     <div class="hero-badge reveal">
@@ -4517,7 +4591,7 @@
       <div class="pipe-track-fill" id="pipeTrackFill"></div>
       <div class="pipe-orb" id="pipeOrb"></div>
       <div class="pipeline-nodes">
-        <div class="pipe-node active" data-stage="0">
+        <div class="pipe-node" data-stage="0">
           <div class="pipe-node-circle">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -4577,7 +4651,7 @@
     <div class="pipeline-stage reveal">
 
       <!-- Stage 0: Ingreso del paciente -->
-      <div class="pipe-panel active" data-panel="0">
+      <div class="pipe-panel" data-panel="0">
         <div class="pipe-info">
           <span class="pipe-info-tag">Etapa 01 · Intake</span>
           <h3>El médico <span class="grad">ingresa al paciente</span> en segundos</h3>
@@ -4965,6 +5039,9 @@
   });
 
   // ─── Reveal on scroll ───
+  // rootMargin '300px 0px' triggers the reveal 300px BEFORE the element
+  // enters the viewport — content has time to render before the user sees
+  // it, eliminating the "pop-in on slow phones" lag.
   const io = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
@@ -4972,7 +5049,7 @@
         io.unobserve(e.target);
       }
     });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: 0, rootMargin: '300px 0px 300px 0px' });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
   // ─── Number counter animation ───
@@ -5278,6 +5355,7 @@
     let userInteracted = false;
     let cycleTimer = null;
     let isVisible = false;
+    let hasStarted = false;
 
     function moveOrbTo(stageIdx) {
       // Use real DOM positions of the node circles for pixel-perfect alignment
@@ -5332,8 +5410,16 @@
       entries.forEach(e => {
         isVisible = e.isIntersecting;
         if (isVisible) {
-          // Recalc on first reveal in case layout was off-screen at init
-          requestAnimationFrame(() => moveOrbTo(currentStage));
+          if (!hasStarted) {
+            // First reveal: activate stage 0 now so CSS typing animations
+            // start as the user sees the section (instead of finishing
+            // before they ever scroll here).
+            hasStarted = true;
+            setStage(0);
+          } else {
+            // Recalc on re-reveal in case layout shifted
+            requestAnimationFrame(() => moveOrbTo(currentStage));
+          }
           startCycle();
         }
       });
@@ -5355,8 +5441,10 @@
     const themeObs = new MutationObserver(recalibrate);
     themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-    // Init
-    setStage(0);
+    // Init: position the orb at stage 0 but don't activate the panel yet —
+    // the IntersectionObserver will activate it on first reveal so the
+    // typing animation plays in front of the user.
+    requestAnimationFrame(() => moveOrbTo(0));
     // Re-measure once layout settles (fonts, images)
     window.addEventListener('load', () => moveOrbTo(currentStage));
   })();
