@@ -714,6 +714,37 @@ html[data-theme="dark"] body::after {
   background: rgba(34, 197, 94, .14) !important;
   color: #6ee7b7 !important;
 }
+[data-theme="dark"] .wa-block.warn {
+  background: rgba(99, 102, 241, .14) !important;
+  color: #c7d2fe !important;
+}
+[data-theme="dark"] .wa-block.warn a { color: #a5b4fc !important; }
+[data-theme="dark"] .wa-block.disabled {
+  background: rgba(245, 158, 11, .12) !important;
+  color: #fcd34d !important;
+}
+[data-theme="dark"] .wa-block.disabled a { color: #fbbf24 !important; }
+
+[data-theme="dark"] .drawer-footer .btn-danger {
+  background: rgba(239, 68, 68, .12) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(239, 68, 68, .35) !important;
+  box-shadow: none !important;
+}
+[data-theme="dark"] .drawer-footer .btn-danger:hover {
+  background: rgba(239, 68, 68, .2) !important;
+  border-color: rgba(239, 68, 68, .55) !important;
+  color: #fecaca !important;
+}
+[data-theme="dark"] .drawer-footer .btn-secondary {
+  background: var(--sd-surface-solid) !important;
+  color: var(--sd-text-soft) !important;
+  border: 1px solid var(--sd-border) !important;
+}
+[data-theme="dark"] .drawer-footer .btn-secondary:hover {
+  background: rgba(255, 255, 255, .05) !important;
+  color: var(--sd-text) !important;
+}
 
 /* "Nuevo Paciente" modal footer (patients.html) — was a white gradient strip */
 [data-theme="dark"] .modal-ftr {
