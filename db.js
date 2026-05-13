@@ -255,6 +255,20 @@ const initDb = async () => {
       CREATE INDEX IF NOT EXISTS idx_civ_consultation ON consultation_inventory_usage(consultation_id);
       CREATE INDEX IF NOT EXISTS idx_civ_inventory ON consultation_inventory_usage(inventory_item_id);
       CREATE INDEX IF NOT EXISTS idx_civ_clinic ON consultation_inventory_usage(clinic_id);
+
+      CREATE TABLE IF NOT EXISTS user_sessions (
+        id SERIAL PRIMARY KEY,
+        jti TEXT UNIQUE NOT NULL,
+        user_id INTEGER NOT NULL,
+        user_agent TEXT DEFAULT '',
+        ip TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        revoked_at TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+      CREATE INDEX IF NOT EXISTS idx_sessions_user ON user_sessions(user_id);
+      CREATE INDEX IF NOT EXISTS idx_sessions_jti ON user_sessions(jti);
     `);
 
     const alterCommands = [
@@ -303,7 +317,10 @@ const initDb = async () => {
       'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT \'\'',
       'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP',
       'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS paid_by INTEGER',
-      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_notes TEXT DEFAULT \'\''
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_notes TEXT DEFAULT \'\'',
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret TEXT DEFAULT NULL',
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE',
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_pending_secret TEXT DEFAULT NULL'
     ];
 
     for (const cmd of alterCommands) {

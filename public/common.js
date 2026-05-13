@@ -2,6 +2,16 @@ function getToken() { return localStorage.getItem('sd_token'); }
 function getRole()  { return localStorage.getItem('sd_role'); }
 
 function logout() {
+  const token = getToken();
+  if (token) {
+    try {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        keepalive: true
+      }).catch(() => {});
+    } catch (_) {}
+  }
   localStorage.clear();
   window.location.href = '/';
 }

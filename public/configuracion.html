@@ -81,7 +81,77 @@
     .btn-ghost { background: transparent; color: #475569; border: 1.5px solid #e2e8f0; }
     .btn-ghost:hover { background: #f8fafc; border-color: #cbd5e1; }
     .btn-sm { padding: .45rem .8rem; font-size: .82rem; border-radius: 9px; }
+    .btn-danger { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; box-shadow: 0 6px 18px rgba(220, 38, 38, .25); }
+    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(220, 38, 38, .35); }
     .btn:disabled { opacity: .55; cursor: not-allowed; transform: none !important; }
+
+    /* ── Floating modal (used for 2FA setup / disable) ── */
+    .sd-modal-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, .55); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; padding: 1rem;
+      z-index: 1000; animation: sdFade .2s ease;
+    }
+    @keyframes sdFade { from { opacity: 0; } to { opacity: 1; } }
+    .sd-modal {
+      background: white; border-radius: 22px; width: 100%;
+      box-shadow: 0 25px 70px rgba(0,0,0,.25), 0 0 1px rgba(0,0,0,.08);
+      display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;
+      animation: sdSlide .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes sdSlide { from { opacity: 0; transform: translateY(20px) scale(.98); } to { opacity: 1; transform: none; } }
+    .sd-modal-hdr {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.5rem 1.75rem;
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    }
+    .sd-modal-hdr h3 { font-size: 1.15rem; font-weight: 800; color: white; margin: 0; letter-spacing: -.01em; }
+    .sd-modal-close {
+      background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.25);
+      color: white; cursor: pointer; width: 32px; height: 32px; border-radius: 8px;
+      font-size: 1rem; display: flex; align-items: center; justify-content: center;
+      transition: transform .25s ease, background .25s ease;
+    }
+    .sd-modal-close:hover { background: rgba(255,255,255,.28); transform: rotate(90deg); }
+    .sd-modal-body { padding: 1.5rem 1.75rem; overflow-y: auto; }
+    .sd-modal-body .field { margin: 0; }
+    .sd-modal-body label { display: block; font-size: .78rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .5rem; }
+    .sd-modal-body input[type="text"], .sd-modal-body input[type="password"] {
+      width: 100%; padding: .75rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 10px;
+      font-size: .95rem; font-family: inherit; background: #f8fafc; color: #0f172a; transition: all .2s ease;
+    }
+    .sd-modal-body input:focus { outline: none; border-color: #0891b2; background: white; box-shadow: 0 0 0 3px rgba(8, 145, 178, .12); }
+    .sd-modal-ftr {
+      display: flex; justify-content: flex-end; gap: .75rem;
+      padding: 1.25rem 1.75rem; border-top: 1px solid #f1f5f9; background: #fafbfc;
+    }
+    .sd-modal-error { color: #dc2626; font-size: .85rem; min-height: 1.1em; margin-top: .5rem; font-weight: 500; }
+
+    .sd-2fa-steps { color: #475569; font-size: .9rem; padding-left: 1.2rem; margin-bottom: 1.25rem; line-height: 1.65; }
+    .sd-2fa-steps li { margin-bottom: .35rem; }
+    .sd-qr-wrap { display: flex; justify-content: center; padding: .5rem 0 1rem; }
+    .sd-secret-row {
+      display: flex; align-items: center; gap: .65rem; flex-wrap: wrap;
+      background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 10px; padding: .65rem .85rem;
+    }
+    .sd-secret-row label { margin: 0; font-size: .7rem; }
+    .sd-secret-row code {
+      flex: 1; min-width: 180px; font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
+      font-size: .85rem; color: #0f172a; letter-spacing: .08em; word-break: break-all;
+    }
+
+    /* Dark theme overrides */
+    [data-theme="dark"] .sd-modal { background: var(--sd-surface-solid, #131315) !important; border: 1px solid var(--sd-border, rgba(255,255,255,.09)); }
+    [data-theme="dark"] .sd-modal-body { color: var(--sd-text, #f1f5f9); }
+    [data-theme="dark"] .sd-modal-body label { color: var(--sd-text-muted, #94a3b8); }
+    [data-theme="dark"] .sd-modal-body input[type="text"],
+    [data-theme="dark"] .sd-modal-body input[type="password"] {
+      background: rgba(255,255,255,.04) !important; border-color: var(--sd-border, rgba(255,255,255,.09)) !important; color: var(--sd-text, #f1f5f9) !important;
+    }
+    [data-theme="dark"] .sd-modal-body input:focus { background: rgba(8, 145, 178, .08) !important; border-color: #06b6d4 !important; }
+    [data-theme="dark"] .sd-modal-ftr { background: rgba(0,0,0,.25) !important; border-top-color: var(--sd-border-soft, rgba(255,255,255,.055)) !important; }
+    [data-theme="dark"] .sd-2fa-steps { color: var(--sd-text-soft, #cbd5e1); }
+    [data-theme="dark"] .sd-secret-row { background: rgba(255,255,255,.04); border-color: var(--sd-border, rgba(255,255,255,.09)); }
+    [data-theme="dark"] .sd-secret-row code { color: var(--sd-text, #f1f5f9); }
 
     /* ── Layout grid (tabs sidebar + content) ── */
     .settings-grid {
@@ -395,6 +465,17 @@
       background: #dcfce7; color: #15803d;
       font-size: 11px; font-weight: 700; letter-spacing: .02em;
     }
+    .session-item .session-revoke {
+      background: transparent; border: 1.5px solid #fecaca; color: #b91c1c;
+      padding: .35rem .7rem; border-radius: 8px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all .2s ease; font-family: inherit;
+    }
+    .session-item .session-revoke:hover { background: #fef2f2; border-color: #f87171; }
+    .session-empty { padding: 1rem; text-align: center; color: #94a3b8; font-size: .9rem; }
+    [data-theme="dark"] .session-item .session-title { color: var(--sd-text, #f1f5f9) !important; }
+    [data-theme="dark"] .session-item .session-meta { color: var(--sd-text-muted, #94a3b8) !important; }
+    [data-theme="dark"] .session-item .session-revoke { border-color: rgba(239, 68, 68, .35); color: #fca5a5; }
+    [data-theme="dark"] .session-item .session-revoke:hover { background: rgba(239, 68, 68, .12); }
 
     /* ── Toast ── */
     .toast-wrap {
@@ -1074,16 +1155,9 @@
             <div class="switch-row">
               <div class="switch-text">
                 <div class="switch-title">2FA por aplicación autenticadora</div>
-                <div class="switch-desc">Usa Google Authenticator, Authy o similar para generar códigos al iniciar sesión.</div>
+                <div class="switch-desc">Usa Google Authenticator, Authy, 1Password o similar para generar códigos al iniciar sesión.</div>
               </div>
               <label class="toggle"><input type="checkbox" id="sw2faApp"><span class="slider"></span></label>
-            </div>
-            <div class="switch-row">
-              <div class="switch-text">
-                <div class="switch-title">2FA por SMS</div>
-                <div class="switch-desc">Recibe un código por mensaje de texto en tu teléfono.</div>
-              </div>
-              <label class="toggle"><input type="checkbox" id="sw2faSms"><span class="slider"></span></label>
             </div>
           </div>
 
@@ -1096,29 +1170,8 @@
               </div>
             </div>
 
-            <div class="session-list">
-              <div class="session-item">
-                <div class="session-icon"><span data-icon="home" data-size="18"></span></div>
-                <div class="session-info">
-                  <div class="session-title">MacBook Pro · Safari</div>
-                  <div class="session-meta">Tegucigalpa, Honduras · Hace 2 minutos</div>
-                </div>
-                <span class="session-current">Esta sesión</span>
-              </div>
-              <div class="session-item">
-                <div class="session-icon"><span data-icon="phone" data-size="18"></span></div>
-                <div class="session-info">
-                  <div class="session-title">iPhone 15 · App SaludDigital</div>
-                  <div class="session-meta">Tegucigalpa, Honduras · Hace 3 horas</div>
-                </div>
-              </div>
-              <div class="session-item">
-                <div class="session-icon"><span data-icon="archive" data-size="18"></span></div>
-                <div class="session-info">
-                  <div class="session-title">Chrome · Windows</div>
-                  <div class="session-meta">San Pedro Sula · Hace 2 días</div>
-                </div>
-              </div>
+            <div class="session-list" id="sessionList">
+              <div class="session-empty" id="sessionLoading">Cargando sesiones…</div>
             </div>
 
             <div style="margin-top: 1.25rem;">
@@ -1219,6 +1272,7 @@
   <script src="/icons.js"></script>
   <script src="/common.js"></script>
   <script src="/layout.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <script>
     // ──────────────────────────────────────────────────────────
     // Configuración module — vanilla JS, follows project conventions
@@ -1325,7 +1379,6 @@
         cancel: true, daily: true, reviews: true,
         weeklyAdmin: true, inventory: true, payments: true
       },
-      security: { twoFaApp: false, twoFaSms: false },
       preferences: {
         language: 'es', timezone: 'America/Tegucigalpa',
         timeFormat: '12', dateFormat: 'dmy',
@@ -1603,8 +1656,7 @@
     bind('swNotifInventory', 'notifications.inventory');
     bind('swNotifPayments', 'notifications.payments');
 
-    bind('sw2faApp', 'security.twoFaApp');
-    bind('sw2faSms', 'security.twoFaSms');
+    // 2FA toggle has its own dedicated flow (modal + verification) — handled below.
 
     bind('fldLanguage', 'preferences.language');
     bind('fldTimezone', 'preferences.timezone');
@@ -1672,23 +1724,308 @@
 
     // ── Change password ──
     document.getElementById('changePwdBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('changePwdBtn');
       const curr = document.getElementById('fldCurrPwd').value;
       const newP = document.getElementById('fldNewPwd').value;
       const newP2 = document.getElementById('fldNewPwd2').value;
       if (!curr || !newP || !newP2) { toast('Completa todos los campos de contraseña.', 'error'); return; }
       if (newP.length < 8) { toast('La nueva contraseña debe tener al menos 8 caracteres.', 'error'); return; }
       if (newP !== newP2) { toast('Las contraseñas no coinciden.', 'error'); return; }
-      // Ready to wire up to /api/auth/change-password
-      toast('Contraseña actualizada correctamente.', 'success');
-      ['fldCurrPwd', 'fldNewPwd', 'fldNewPwd2'].forEach(id => document.getElementById(id).value = '');
+      btn.disabled = true;
+      try {
+        await api('/api/auth/change-password', { method: 'POST', body: { current: curr, new_password: newP } });
+        toast('Contraseña actualizada correctamente.', 'success');
+        ['fldCurrPwd', 'fldNewPwd', 'fldNewPwd2'].forEach(id => document.getElementById(id).value = '');
+      } catch (err) {
+        toast(err.message || 'No se pudo actualizar la contraseña.', 'error');
+      } finally {
+        btn.disabled = false;
+      }
     });
 
-    // ── Close other sessions ──
-    document.getElementById('closeSessionsBtn').addEventListener('click', () => {
-      if (!confirm('¿Cerrar sesión en todos los demás dispositivos?')) return;
-      toast('Sesiones cerradas en otros dispositivos.', 'success');
-      // Ready to wire up to /api/auth/sessions/revoke-others
+    // ── Two-factor auth (TOTP) ──
+    const sw2faApp = document.getElementById('sw2faApp');
+    let twoFaEnabled = false;
+
+    async function load2faStatus() {
+      try {
+        const r = await api('/api/auth/2fa/status');
+        twoFaEnabled = !!r?.enabled;
+        sw2faApp.checked = twoFaEnabled;
+      } catch (_) {
+        twoFaEnabled = false;
+        sw2faApp.checked = false;
+      }
+    }
+
+    sw2faApp.addEventListener('change', async (e) => {
+      // Always revert to current truth — modal flows update it on success.
+      e.target.checked = twoFaEnabled;
+      if (!twoFaEnabled) await open2faSetupModal();
+      else await open2faDisableModal();
     });
+
+    function closeFloatingModal() {
+      const ov = document.getElementById('floatingModalOverlay');
+      if (ov) ov.remove();
+    }
+
+    function openFloatingModal(html) {
+      closeFloatingModal();
+      const ov = document.createElement('div');
+      ov.id = 'floatingModalOverlay';
+      ov.className = 'sd-modal-overlay';
+      ov.innerHTML = html;
+      ov.addEventListener('click', (ev) => { if (ev.target === ov) closeFloatingModal(); });
+      document.body.appendChild(ov);
+      hydrateIcons(ov);
+      return ov;
+    }
+
+    function renderQrSvg(text, container) {
+      try {
+        const qr = window.qrcode(0, 'M');
+        qr.addData(text);
+        qr.make();
+        container.innerHTML = qr.createSvgTag({ cellSize: 5, margin: 2, scalable: true });
+        const svg = container.querySelector('svg');
+        if (svg) {
+          svg.style.width = '220px';
+          svg.style.height = '220px';
+          svg.style.background = '#fff';
+          svg.style.borderRadius = '12px';
+          svg.style.padding = '8px';
+        }
+      } catch (err) {
+        container.innerHTML = '<div style="color:#dc2626;font-size:.85rem;">No se pudo generar el QR. Usa el código manual.</div>';
+      }
+    }
+
+    async function open2faSetupModal() {
+      let setup;
+      try {
+        setup = await api('/api/auth/2fa/setup', { method: 'POST' });
+      } catch (err) {
+        toast(err.message || 'No se pudo iniciar la configuración.', 'error');
+        return;
+      }
+
+      const ov = openFloatingModal(`
+        <div class="sd-modal" style="max-width:480px;">
+          <div class="sd-modal-hdr">
+            <h3>Activar 2FA por aplicación</h3>
+            <button class="sd-modal-close" type="button" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="sd-modal-body">
+            <ol class="sd-2fa-steps">
+              <li>Abre tu app autenticadora (Google Authenticator, Authy, 1Password…).</li>
+              <li>Escanea el código QR o ingresa la clave manualmente.</li>
+              <li>Escribe el código de 6 dígitos que aparece en la app.</li>
+            </ol>
+            <div class="sd-qr-wrap" id="sd2faQr"></div>
+            <div class="sd-secret-row">
+              <label>Clave manual</label>
+              <code id="sd2faSecret">${esc(setup.secret)}</code>
+              <button type="button" class="btn btn-ghost btn-sm" id="sd2faCopy"><span data-icon="copy" data-size="13"></span>Copiar</button>
+            </div>
+            <div class="field" style="margin-top:1rem;">
+              <label>Código de verificación</label>
+              <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" id="sd2faCode" placeholder="123456" style="letter-spacing:.4em;text-align:center;font-size:1.2rem;">
+              <div class="sd-modal-error" id="sd2faErr"></div>
+            </div>
+          </div>
+          <div class="sd-modal-ftr">
+            <button class="btn btn-ghost" type="button" id="sd2faCancel">Cancelar</button>
+            <button class="btn btn-primary" type="button" id="sd2faVerify"><span data-icon="lock" data-size="14"></span>Activar 2FA</button>
+          </div>
+        </div>
+      `);
+
+      renderQrSvg(setup.otpauth_url, ov.querySelector('#sd2faQr'));
+
+      ov.querySelector('.sd-modal-close').addEventListener('click', closeFloatingModal);
+      ov.querySelector('#sd2faCancel').addEventListener('click', closeFloatingModal);
+      ov.querySelector('#sd2faCopy').addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(setup.secret); toast('Clave copiada.', 'success'); }
+        catch { toast('No se pudo copiar.', 'error'); }
+      });
+
+      const codeInput = ov.querySelector('#sd2faCode');
+      const verifyBtn = ov.querySelector('#sd2faVerify');
+      const errEl = ov.querySelector('#sd2faErr');
+      codeInput.focus();
+
+      const submit = async () => {
+        errEl.textContent = '';
+        const code = codeInput.value.trim();
+        if (!/^\d{6}$/.test(code)) { errEl.textContent = 'Ingresa los 6 dígitos.'; return; }
+        verifyBtn.disabled = true;
+        try {
+          await api('/api/auth/2fa/enable', { method: 'POST', body: { code } });
+          twoFaEnabled = true;
+          sw2faApp.checked = true;
+          closeFloatingModal();
+          toast('2FA activado. La próxima vez que inicies sesión te pediremos el código.', 'success');
+        } catch (err) {
+          errEl.textContent = err.message || 'No se pudo activar.';
+          verifyBtn.disabled = false;
+        }
+      };
+      verifyBtn.addEventListener('click', submit);
+      codeInput.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') submit(); });
+    }
+
+    async function open2faDisableModal() {
+      const ov = openFloatingModal(`
+        <div class="sd-modal" style="max-width:420px;">
+          <div class="sd-modal-hdr">
+            <h3>Desactivar 2FA</h3>
+            <button class="sd-modal-close" type="button" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="sd-modal-body">
+            <p style="color:#475569;font-size:.9rem;margin:0 0 1rem;">Confirma con tu contraseña actual o un código de tu app autenticadora.</p>
+            <div class="field">
+              <label>Contraseña actual</label>
+              <input type="password" id="sd2faDisablePwd" autocomplete="current-password" placeholder="••••••••">
+            </div>
+            <div class="field" style="margin-top:.75rem;">
+              <label>O código TOTP (6 dígitos)</label>
+              <input type="text" inputmode="numeric" maxlength="6" id="sd2faDisableCode" placeholder="123456" style="letter-spacing:.4em;text-align:center;">
+            </div>
+            <div class="sd-modal-error" id="sd2faDisableErr"></div>
+          </div>
+          <div class="sd-modal-ftr">
+            <button class="btn btn-ghost" type="button" id="sd2faDisableCancel">Cancelar</button>
+            <button class="btn btn-danger" type="button" id="sd2faDisableConfirm"><span data-icon="unlock" data-size="14"></span>Desactivar</button>
+          </div>
+        </div>
+      `);
+
+      ov.querySelector('.sd-modal-close').addEventListener('click', closeFloatingModal);
+      ov.querySelector('#sd2faDisableCancel').addEventListener('click', closeFloatingModal);
+
+      const errEl = ov.querySelector('#sd2faDisableErr');
+      const btn = ov.querySelector('#sd2faDisableConfirm');
+      btn.addEventListener('click', async () => {
+        errEl.textContent = '';
+        const password = ov.querySelector('#sd2faDisablePwd').value;
+        const code = ov.querySelector('#sd2faDisableCode').value.trim();
+        if (!password && !code) { errEl.textContent = 'Ingresa tu contraseña o un código TOTP.'; return; }
+        btn.disabled = true;
+        try {
+          await api('/api/auth/2fa/disable', { method: 'POST', body: { password: password || undefined, code: code || undefined } });
+          twoFaEnabled = false;
+          sw2faApp.checked = false;
+          closeFloatingModal();
+          toast('2FA desactivado.', 'success');
+        } catch (err) {
+          errEl.textContent = err.message || 'No se pudo desactivar.';
+          btn.disabled = false;
+        }
+      });
+    }
+
+    load2faStatus();
+
+    // ── Active sessions ──
+    function parseUserAgent(ua) {
+      ua = ua || '';
+      let device = 'Dispositivo';
+      let icon = 'archive';
+      if (/iPhone/i.test(ua)) { device = 'iPhone'; icon = 'phone'; }
+      else if (/iPad/i.test(ua)) { device = 'iPad'; icon = 'phone'; }
+      else if (/Android/i.test(ua)) { device = 'Android'; icon = 'phone'; }
+      else if (/Macintosh|Mac OS X/i.test(ua)) { device = 'Mac'; icon = 'home'; }
+      else if (/Windows/i.test(ua)) { device = 'Windows'; icon = 'archive'; }
+      else if (/Linux/i.test(ua)) { device = 'Linux'; icon = 'archive'; }
+
+      let browser = '';
+      if (/Edg\//i.test(ua)) browser = 'Edge';
+      else if (/Chrome\//i.test(ua) && !/Edg\//i.test(ua)) browser = 'Chrome';
+      else if (/Firefox\//i.test(ua)) browser = 'Firefox';
+      else if (/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) browser = 'Safari';
+
+      const title = browser ? `${device} · ${browser}` : device;
+      return { title, icon };
+    }
+
+    function relativeTime(iso) {
+      if (!iso) return '';
+      const t = new Date(iso).getTime();
+      if (!t) return '';
+      const diff = (Date.now() - t) / 1000;
+      if (diff < 60) return 'hace unos segundos';
+      if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
+      if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
+      const days = Math.floor(diff / 86400);
+      return days === 1 ? 'hace 1 día' : `hace ${days} días`;
+    }
+
+    async function loadSessions() {
+      const list = document.getElementById('sessionList');
+      list.innerHTML = '<div class="session-empty">Cargando sesiones…</div>';
+      let sessions;
+      try {
+        sessions = await api('/api/auth/sessions');
+      } catch (err) {
+        list.innerHTML = `<div class="session-empty">No se pudieron cargar las sesiones.</div>`;
+        return;
+      }
+      if (!sessions || sessions.length === 0) {
+        list.innerHTML = '<div class="session-empty">No hay sesiones activas.</div>';
+        return;
+      }
+      list.innerHTML = sessions.map(s => {
+        const ua = parseUserAgent(s.user_agent);
+        const meta = [s.ip, relativeTime(s.last_seen)].filter(Boolean).join(' · ');
+        return `
+          <div class="session-item" data-id="${s.id}">
+            <div class="session-icon"><span data-icon="${ua.icon}" data-size="18"></span></div>
+            <div class="session-info">
+              <div class="session-title">${esc(ua.title)}</div>
+              <div class="session-meta">${esc(meta)}</div>
+            </div>
+            ${s.current
+              ? '<span class="session-current">Esta sesión</span>'
+              : `<button class="session-revoke" type="button" data-revoke="${s.id}">Cerrar</button>`}
+          </div>
+        `;
+      }).join('');
+      hydrateIcons(list);
+
+      list.querySelectorAll('button[data-revoke]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.revoke;
+          if (!confirm('¿Cerrar esta sesión?')) return;
+          btn.disabled = true;
+          try {
+            await api('/api/auth/sessions/' + encodeURIComponent(id), { method: 'DELETE' });
+            toast('Sesión cerrada.', 'success');
+            loadSessions();
+          } catch (err) {
+            toast(err.message || 'No se pudo cerrar la sesión.', 'error');
+            btn.disabled = false;
+          }
+        });
+      });
+    }
+
+    document.getElementById('closeSessionsBtn').addEventListener('click', async () => {
+      if (!confirm('¿Cerrar sesión en todos los demás dispositivos?')) return;
+      const btn = document.getElementById('closeSessionsBtn');
+      btn.disabled = true;
+      try {
+        const r = await api('/api/auth/sessions/revoke-others', { method: 'POST' });
+        toast(r.revoked > 0 ? `${r.revoked} sesión(es) cerrada(s).` : 'No había otras sesiones activas.', 'success');
+        loadSessions();
+      } catch (err) {
+        toast(err.message || 'No se pudieron cerrar las sesiones.', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    loadSessions();
 
     // ── Save handler ──
     async function handleSave() {
@@ -1699,7 +2036,6 @@
         clinic: { ...state.clinic },
         agenda: { ...state.agenda },
         notifications: { ...state.notifications },
-        security: { ...state.security },
         preferences: { ...state.preferences }
       };
       // Don't ship blob/file
@@ -1826,8 +2162,7 @@
       setChk('swNotifInventory', state.notifications.inventory);
       setChk('swNotifPayments', state.notifications.payments);
 
-      setChk('sw2faApp', state.security.twoFaApp);
-      setChk('sw2faSms', state.security.twoFaSms);
+      // 2FA state hydrated by load2faStatus() — see below.
 
       setVal('fldLanguage', state.preferences.language);
       setVal('fldTimezone', state.preferences.timezone);
