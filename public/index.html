@@ -7,11 +7,12 @@
 <!-- Static so iOS Safari knows the chrome color BEFORE first paint
      (theme.js also updates this on theme switch, but the static value is
      critical for the initial status bar / home indicator tint). -->
-<meta name="theme-color" content="#050507" />
-<!-- color-scheme: dark tells Safari to use DARK browser chrome (dark URL bar,
-     dark status bar). Without this, Safari assumes light mode and paints the
-     bottom toolbar white even with theme-color set. -->
-<meta name="color-scheme" content="dark" />
+<!-- Theme-color paired with media queries so iOS Safari tints the status
+     bar / URL bar to match the user's system preference. -->
+<meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#050507" media="(prefers-color-scheme: dark)" />
+<!-- color-scheme: light dark lets the browser pick chrome based on system. -->
+<meta name="color-scheme" content="light dark" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <title>Salud Digital — Plataforma Sanitaria Profesional</title>
@@ -21,9 +22,10 @@
      until they're near the viewport. Uses contain-intrinsic-size so the
      scrollbar height stays stable (no layout shift). -->
 <style id="color-scheme-bootstrap">
-  /* Tell rendering engines this page uses dark UI. Reinforces the
-     meta tag and keeps form controls / scrollbars / iOS chrome dark. */
-  html { color-scheme: dark; }
+  /* Color-scheme follows the resolved theme. When theme-preference is
+     auto, the resolved data-theme reflects the OS, so form controls /
+     scrollbars / iOS chrome adapt automatically. */
+  html[data-theme="dark"] { color-scheme: dark; }
   html[data-theme="light"] { color-scheme: light; }
 </style>
 

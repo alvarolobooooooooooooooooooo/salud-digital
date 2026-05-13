@@ -2,8 +2,15 @@
 <html lang="es" data-theme="dark">
 <head>
   <script src="/theme.js"></script>
+  <script>
+    /* Login is dark-only — re-pin data-theme after theme.js's auto resolution
+       so a light-mode system doesn't bleed into the hardcoded dark UI. */
+    document.documentElement.setAttribute('data-theme', 'dark');
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <!-- Login UI is dark-only by design — keep meta tags forced dark
+       so iOS chrome matches even when the system is in light mode. -->
   <meta name="theme-color" content="#050507">
   <meta name="color-scheme" content="dark">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

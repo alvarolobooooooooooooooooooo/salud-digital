@@ -5,7 +5,7 @@
 (function () {
   var effective;
   try {
-    var stored = localStorage.getItem('sd_theme') || 'dark';
+    var stored = localStorage.getItem('sd_theme') || 'auto';
     effective = stored;
     if (stored === 'auto') {
       effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
@@ -67,7 +67,7 @@
 
   // Public API to switch theme at runtime, used by /configuracion.html
   window.SDTheme = {
-    get: function () { return localStorage.getItem('sd_theme') || 'dark'; },
+    get: function () { return localStorage.getItem('sd_theme') || 'auto'; },
     set: function (pref) {
       try { localStorage.setItem('sd_theme', pref); } catch (_) {}
       var eff = pref;
@@ -85,7 +85,7 @@
   if (window.matchMedia) {
     var mq = window.matchMedia('(prefers-color-scheme: dark)');
     var onChange = function () {
-      if ((localStorage.getItem('sd_theme') || 'dark') === 'auto') {
+      if ((localStorage.getItem('sd_theme') || 'auto') === 'auto') {
         var eff = mq.matches ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', eff);
         applyMobileMeta(eff);
