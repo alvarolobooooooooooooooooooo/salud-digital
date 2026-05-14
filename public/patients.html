@@ -266,7 +266,7 @@
       width: 44px;
       height: 44px;
       border-radius: 12px;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      background: linear-gradient(135deg, var(--c1, #0891b2) 0%, var(--c2, #06b6d4) 100%);
       color: white;
       display: flex;
       align-items: center;
@@ -362,7 +362,7 @@
       width: 100px;
       height: 100px;
       border-radius: 20px;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      background: linear-gradient(135deg, var(--c1, #0891b2) 0%, var(--c2, #06b6d4) 100%);
       color: white;
       display: flex;
       align-items: center;
@@ -1005,6 +1005,20 @@
     return list;
   }
 
+  // Same palette+hash as /recordatorios pat-avatar so initials get a
+  // colorful gradient deterministic per patient name.
+  const AVATAR_GRADS = [
+    ['#14b8a6','#6366f1'], ['#0891b2','#22d3ee'], ['#6366f1','#a855f7'],
+    ['#f59e0b','#f43f5e'], ['#10b981','#0891b2'], ['#ec4899','#f43f5e'],
+    ['#8b5cf6','#0891b2']
+  ];
+  function gradPair(seed) {
+    let h = 0;
+    const s = seed || '';
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return AVATAR_GRADS[Math.abs(h) % AVATAR_GRADS.length];
+  }
+
   // ── Render Queue ──
   function renderQueue() {
     const list = getFilteredList();
@@ -1018,9 +1032,10 @@
     queueEl.innerHTML = list.map(p => {
       const initials = p.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
       const isSelected = p.id === selectedPatientId;
+      const [c1, c2] = gradPair(p.name);
       return `
         <div class="patient-card ${isSelected ? 'selected' : ''}" onclick="selectPatient(${p.id})">
-          <div class="patient-avatar">${initials}</div>
+          <div class="patient-avatar" style="--c1:${c1}; --c2:${c2}">${initials}</div>
           <div class="patient-card-info">
             <div class="patient-card-name">${esc(p.name)}</div>
             <div class="patient-card-date">${esc(p.identity_number)}</div>
@@ -1068,6 +1083,7 @@
   // ── Render Patient Detail ──
   function renderPatientDetail(patient, allAppointments, currentUser) {
     const initials = patient.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const [avC1, avC2] = gradPair(patient.name);
     const age = getAge(patient.birth_date);
     const userAppointments = (allAppointments || []).filter(a => a.patient_id === patient.id).slice(0, 3);
     const consultations = patient.consultations || [];
@@ -1079,7 +1095,7 @@
 
       <!-- Header -->
       <div class="detail-header">
-        <div class="detail-avatar-lg">${initials}</div>
+        <div class="detail-avatar-lg" style="--c1:${avC1}; --c2:${avC2}">${initials}</div>
         <div class="detail-header-info">
           <div class="detail-name">${esc(patient.name)}</div>
           <div class="detail-badge">ID: ${esc(formatIdentityDisplay(patient.identity_number))}</div>
