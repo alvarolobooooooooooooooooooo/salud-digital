@@ -568,9 +568,9 @@
         <div class="pro-badge"><span class="dot"></span><span id="headerBadge" data-label-doctor="Perfil médico profesional" data-label-clinic_admin="Cuenta de administrador de clínica" data-label-receptionist="Cuenta de recepción">Perfil médico profesional</span></div>
         <h1>Configuración</h1>
         <p id="headerSubtitle"
-           data-desc-doctor="Administra tu perfil profesional, perfil online público, disponibilidad para citas, notificaciones y preferencias de la plataforma. Tus cambios son visibles para tus pacientes en cuanto los guardes."
-           data-desc-clinic_admin="Administra los datos de tu cuenta, la información de la clínica, las notificaciones que recibes y las preferencias de la plataforma."
-           data-desc-receptionist="Administra los datos de tu cuenta, las notificaciones que recibes y tus preferencias de la plataforma.">Administra tu perfil profesional, perfil online público, disponibilidad para citas, notificaciones y preferencias de la plataforma. Tus cambios son visibles para tus pacientes en cuanto los guardes.</p>
+           data-desc-doctor="Administra tu perfil profesional, perfil online público, disponibilidad para citas y preferencias de la plataforma. Tus cambios son visibles para tus pacientes en cuanto los guardes."
+           data-desc-clinic_admin="Administra los datos de tu cuenta, la información de la clínica y las preferencias de la plataforma."
+           data-desc-receptionist="Administra los datos de tu cuenta y tus preferencias de la plataforma.">Administra tu perfil profesional, perfil online público, disponibilidad para citas y preferencias de la plataforma. Tus cambios son visibles para tus pacientes en cuanto los guardes.</p>
       </div>
       <div class="header-actions">
         <button class="btn btn-ghost" id="resetBtn" type="button"><span data-icon="refresh" data-size="16"></span>Descartar</button>
@@ -598,10 +598,6 @@
         <button class="tab-btn" data-tab="agenda" data-roles="doctor" type="button">
           <span class="tab-icon" data-icon="calendar" data-size="14"></span>
           <span class="tab-label">Agenda y disponibilidad</span>
-        </button>
-        <button class="tab-btn" data-tab="notifications" data-roles="doctor clinic_admin receptionist" type="button">
-          <span class="tab-icon" data-icon="bell" data-size="14"></span>
-          <span class="tab-label">Notificaciones</span>
         </button>
         <button class="tab-btn" data-tab="security" data-roles="doctor clinic_admin receptionist" type="button">
           <span class="tab-icon" data-icon="lock" data-size="14"></span>
@@ -1030,88 +1026,6 @@
         </section>
 
         <!-- ════════════════════════════════════════════════════ -->
-        <!-- 5. NOTIFICACIONES -->
-        <!-- ════════════════════════════════════════════════════ -->
-        <section class="settings-panel" data-panel="notifications" data-roles="doctor clinic_admin receptionist">
-          <div class="glass-card">
-            <div class="card-head">
-              <div class="icon-box"><span data-icon="bell" data-size="20"></span></div>
-              <div>
-                <h2>Notificaciones</h2>
-                <p>Define qué eventos te avisan y por qué canal.</p>
-              </div>
-            </div>
-
-            <div class="switch-row" data-roles="doctor clinic_admin receptionist">
-              <div class="switch-text">
-                <div class="switch-title">Email de nuevas citas</div>
-                <div class="switch-desc" id="descNotifEmail"
-                  data-desc-doctor="Recibe un email cuando un paciente reserva una cita."
-                  data-desc-clinic_admin="Recibe un resumen por email de las reservas en tu clínica."
-                  data-desc-receptionist="Recibe un email cuando entra una reserva online a confirmar.">Recibe un email cuando un paciente reserva una cita.</div>
-              </div>
-              <label class="toggle"><input type="checkbox" id="swNotifEmail" checked><span class="slider"></span></label>
-            </div>
-            <div class="switch-row" data-roles="doctor clinic_admin">
-              <div class="switch-text">
-                <div class="switch-title">Recordatorios por WhatsApp a pacientes</div>
-                <div class="switch-desc">Tus pacientes reciben recordatorios automáticos en WhatsApp antes de cada cita.</div>
-              </div>
-              <label class="toggle"><input type="checkbox" id="swNotifWhatsapp" checked><span class="slider"></span></label>
-            </div>
-            <div class="switch-row" data-roles="doctor clinic_admin">
-              <div class="switch-text">
-                <div class="switch-title">Recordatorios por SMS a pacientes</div>
-                <div class="switch-desc">Refuerzo por SMS para pacientes sin WhatsApp.</div>
-              </div>
-              <label class="toggle"><input type="checkbox" id="swNotifSms"><span class="slider"></span></label>
-            </div>
-            <div class="switch-row" data-roles="doctor clinic_admin receptionist">
-              <div class="switch-text">
-                <div class="switch-title">Alertas de cancelaciones</div>
-                <div class="switch-desc">Avisos inmediatos cuando un paciente cancela una cita.</div>
-              </div>
-              <label class="toggle"><input type="checkbox" id="swNotifCancel" checked><span class="slider"></span></label>
-            </div>
-            <div class="switch-row" data-roles="doctor receptionist">
-              <div class="switch-text">
-                <div class="switch-title">Resumen diario de agenda</div>
-                <div class="switch-desc">Recibe a las 7:00 AM tu lista de citas del día.</div>
-              </div>
-              <label class="toggle"><input type="checkbox" id="swNotifDaily" checked><span class="slider"></span></label>
-            </div>
-            <div class="switch-row" data-roles="clinic_admin">
-              <div class="switch-text">
-                <div class="switch-title">Resumen semanal de la clínica</div>
-                <div class="switch-desc">Reporte cada lunes con ingresos, citas atendidas y top de doctores.</div>
-              </div>
-              <label class="toggle"><input type="checkbox" id="swNotifWeeklyAdmin" checked><span class="slider"></span></label>
-            </div>
-            <div class="switch-row" data-roles="clinic_admin">
-              <div class="switch-text">
-                <div class="switch-title">Alertas de inventario bajo</div>
-                <div class="switch-desc">Avisos cuando un insumo se acerca al stock mínimo o vence pronto.</div>
-              </div>
-              <label class="toggle"><input type="checkbox" id="swNotifInventory" checked><span class="slider"></span></label>
-            </div>
-            <div class="switch-row" data-roles="receptionist">
-              <div class="switch-text">
-                <div class="switch-title">Notificación de pagos pendientes</div>
-                <div class="switch-desc">Alerta cuando una cita queda con pago pendiente al cierre del día.</div>
-              </div>
-              <label class="toggle"><input type="checkbox" id="swNotifPayments" checked><span class="slider"></span></label>
-            </div>
-            <div class="switch-row" data-roles="doctor">
-              <div class="switch-text">
-                <div class="switch-title">Reseñas nuevas</div>
-                <div class="switch-desc">Notificación cuando un paciente deja una reseña.</div>
-              </div>
-              <label class="toggle"><input type="checkbox" id="swNotifReviews" checked><span class="slider"></span></label>
-            </div>
-          </div>
-        </section>
-
-        <!-- ════════════════════════════════════════════════════ -->
         <!-- 6. SEGURIDAD -->
         <!-- ════════════════════════════════════════════════════ -->
         <section class="settings-panel" data-panel="security" data-roles="doctor clinic_admin receptionist">
@@ -1373,11 +1287,6 @@
         duration: '30', buffer: '10', leadTime: '24',
         maxBookings: 20,
         onlineBooking: true, manualApproval: false, telemedicine: false
-      },
-      notifications: {
-        email: true, whatsapp: true, sms: false,
-        cancel: true, daily: true, reviews: true,
-        weeklyAdmin: true, inventory: true, payments: true
       },
       preferences: {
         language: 'es', timezone: 'America/Tegucigalpa',
@@ -1645,16 +1554,6 @@
     bind('swOnlineBooking', 'agenda.onlineBooking');
     bind('swManualApproval', 'agenda.manualApproval');
     bind('swTelemedicine', 'agenda.telemedicine');
-
-    bind('swNotifEmail', 'notifications.email');
-    bind('swNotifWhatsapp', 'notifications.whatsapp');
-    bind('swNotifSms', 'notifications.sms');
-    bind('swNotifCancel', 'notifications.cancel');
-    bind('swNotifDaily', 'notifications.daily');
-    bind('swNotifReviews', 'notifications.reviews');
-    bind('swNotifWeeklyAdmin', 'notifications.weeklyAdmin');
-    bind('swNotifInventory', 'notifications.inventory');
-    bind('swNotifPayments', 'notifications.payments');
 
     // 2FA toggle has its own dedicated flow (modal + verification) — handled below.
 
@@ -2035,7 +1934,6 @@
         public: { ...state.public },
         clinic: { ...state.clinic },
         agenda: { ...state.agenda },
-        notifications: { ...state.notifications },
         preferences: { ...state.preferences }
       };
       // Don't ship blob/file
@@ -2151,16 +2049,6 @@
       setChk('swOnlineBooking', state.agenda.onlineBooking);
       setChk('swManualApproval', state.agenda.manualApproval);
       setChk('swTelemedicine', state.agenda.telemedicine);
-
-      setChk('swNotifEmail', state.notifications.email);
-      setChk('swNotifWhatsapp', state.notifications.whatsapp);
-      setChk('swNotifSms', state.notifications.sms);
-      setChk('swNotifCancel', state.notifications.cancel);
-      setChk('swNotifDaily', state.notifications.daily);
-      setChk('swNotifReviews', state.notifications.reviews);
-      setChk('swNotifWeeklyAdmin', state.notifications.weeklyAdmin);
-      setChk('swNotifInventory', state.notifications.inventory);
-      setChk('swNotifPayments', state.notifications.payments);
 
       // 2FA state hydrated by load2faStatus() — see below.
 
