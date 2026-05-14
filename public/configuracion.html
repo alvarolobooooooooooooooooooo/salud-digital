@@ -883,8 +883,15 @@
               <div class="field span-2" data-roles="clinic_admin">
                 <label>Logo de la clínica</label>
                 <div class="field-readonly" style="display:flex; align-items:center; justify-content:space-between; gap:.75rem;">
-                  <span>Carga un PNG o JPG (máx. 2 MB).</span>
-                  <button class="btn btn-secondary btn-sm" type="button" id="clinicLogoBtn"><span data-icon="image" data-size="14"></span>Subir logo</button>
+                  <div style="display:flex; align-items:center; gap:.75rem;">
+                    <img id="clinicLogoPreview" alt="" style="display:none; width:48px; height:48px; object-fit:contain; border-radius:8px; background:rgba(255,255,255,0.04); padding:4px;">
+                    <span id="clinicLogoStatus">Carga un PNG o JPG (máx. 2 MB).</span>
+                  </div>
+                  <div style="display:flex; gap:.5rem;">
+                    <button class="btn btn-secondary btn-sm" type="button" id="clinicLogoBtn"><span data-icon="image" data-size="14"></span>Subir logo</button>
+                    <button class="btn btn-ghost btn-sm" type="button" id="clinicLogoRemoveBtn" style="display:none;"><span data-icon="x" data-size="14"></span>Quitar</button>
+                  </div>
+                  <input type="file" id="clinicLogoFile" accept="image/png,image/jpeg,image/jpg,image/webp" style="display:none;">
                 </div>
               </div>
             </div>
@@ -1233,6 +1240,16 @@
     }
     applyRole(CURRENT_ROLE);
 
+    // The PUT /api/clinics/me endpoint requires clinic_admin. For doctors who can
+    // see the clinic section but cannot edit it, disable the visible inputs.
+    if (CURRENT_ROLE !== 'clinic_admin') {
+      ['fldClinicName', 'fldClinicAddress', 'fldClinicCity', 'fldClinicPhone', 'fldClinicInfo']
+        .forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.disabled = true;
+        });
+    }
+
     // ── Icon hydration ──
     function hydrateIcons(root = document) {
       if (typeof Icons === 'undefined') { setTimeout(() => hydrateIcons(root), 50); return; }
@@ -1279,7 +1296,8 @@
       },
       clinic: {
         name: '', type: '', taxId: '', address: '', city: '', phone: '',
-        email: '', info: '', brandColor: '#0891b2', currency: 'HNL', website: ''
+        email: '', info: '', brandColor: '#0891b2', currency: 'HNL', website: '',
+        logoUrl: ''
       },
       agenda: {
         startTime: '08:00', endTime: '17:00',
@@ -1614,10 +1632,83 @@
     }
 
     // ── Clinic logo upload (clinic_admin only) ──
+    function renderClinicLogo() {
+      const img = document.getElementById('clinicLogoPreview');
+      const status = document.getElementById('clinicLogoStatus');
+      const removeBtn = document.getElementById('clinicLogoRemoveBtn');
+      if (!img || !status) return;
+      const url = state.clinic.logoUrl;
+      if (url) {
+        img.src = url;
+        img.style.display = '';
+        status.textContent = 'Logo cargado.';
+        if (removeBtn) removeBtn.style.display = '';
+      } else {
+        img.style.display = 'none';
+        img.removeAttribute('src');
+        status.textContent = 'Carga un PNG o JPG (máx. 2 MB).';
+        if (removeBtn) removeBtn.style.display = 'none';
+      }
+    }
+
     const clinicLogoBtn = document.getElementById('clinicLogoBtn');
-    if (clinicLogoBtn) {
-      clinicLogoBtn.addEventListener('click', () => {
-        toast('Función de logo lista para conectar al backend.', 'info');
+    const clinicLogoFile = document.getElementById('clinicLogoFile');
+    const clinicLogoRemoveBtn = document.getElementById('clinicLogoRemoveBtn');
+
+    if (clinicLogoBtn && clinicLogoFile) {
+      clinicLogoBtn.addEventListener('click', () => clinicLogoFile.click());
+
+      clinicLogoFile.addEventListener('change', async () => {
+        const file = clinicLogoFile.files && clinicLogoFile.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+          toast('El logo no puede superar 2 MB.', 'error');
+          clinicLogoFile.value = '';
+          return;
+        }
+        const status = document.getElementById('clinicLogoStatus');
+        const prev = status.textContent;
+        status.textContent = 'Subiendo logo…';
+        clinicLogoBtn.disabled = true;
+        try {
+          const fd = new FormData();
+          fd.append('logo', file);
+          // common.js's api() expects JSON; use fetch directly for multipart.
+          const res = await fetch('/api/clinics/me/logo', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('sd_token') || '') },
+            body: fd,
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || 'No se pudo subir el logo');
+          state.clinic.logoUrl = data.logo_url || '';
+          renderClinicLogo();
+          toast('Logo actualizado correctamente.', 'success');
+        } catch (err) {
+          status.textContent = prev;
+          toast(err.message || 'No se pudo subir el logo.', 'error');
+        } finally {
+          clinicLogoBtn.disabled = false;
+          clinicLogoFile.value = '';
+        }
+      });
+    }
+
+    if (clinicLogoRemoveBtn) {
+      clinicLogoRemoveBtn.addEventListener('click', async () => {
+        if (!confirm('¿Quitar el logo de la clínica?')) return;
+        clinicLogoRemoveBtn.disabled = true;
+        try {
+          await api('/api/clinics/me/logo', { method: 'DELETE' });
+          state.clinic.logoUrl = '';
+          renderClinicLogo();
+          toast('Logo eliminado.', 'success');
+        } catch (err) {
+          toast(err.message || 'No se pudo quitar el logo.', 'error');
+        } finally {
+          clinicLogoRemoveBtn.disabled = false;
+        }
       });
     }
 
@@ -1942,14 +2033,41 @@
         delete payload.profile.photoUrl;
       }
 
-      // Ready to wire up: await api('/api/users/me/settings', { method: 'PUT', body: payload });
-      // If photo: const fd = new FormData(); fd.append('image', state.profile.photoFile); ...
+      // Disable save buttons during the request to avoid double-submits
+      const saveButtons = [document.getElementById('saveTopBtn'), document.getElementById('saveBarSave')].filter(Boolean);
+      saveButtons.forEach(b => { b.disabled = true; });
 
-      // Persist locally for now so values survive reload
-      try { localStorage.setItem('sd_settings_draft', JSON.stringify(payload)); } catch (_) {}
-      originalSnapshot = JSON.stringify(state);
-      markClean();
-      toast('Cambios guardados correctamente.', 'success');
+      try {
+        // Clinic data — clinic_admin only (only role allowed by the PUT endpoint)
+        if (CURRENT_ROLE === 'clinic_admin') {
+          await api('/api/clinics/me', {
+            method: 'PUT',
+            body: {
+              name: state.clinic.name,
+              type: state.clinic.type,
+              tax_id: state.clinic.taxId,
+              address: state.clinic.address,
+              city: state.clinic.city,
+              phone: state.clinic.phone,
+              email: state.clinic.email,
+              info: state.clinic.info,
+              brand_color: state.clinic.brandColor,
+              currency: state.clinic.currency,
+              website: state.clinic.website,
+            }
+          });
+        }
+
+        // Persist remaining sections locally until their backends are wired up
+        try { localStorage.setItem('sd_settings_draft', JSON.stringify(payload)); } catch (_) {}
+        originalSnapshot = JSON.stringify(state);
+        markClean();
+        toast('Cambios guardados correctamente.', 'success');
+      } catch (err) {
+        toast(err.message || 'No se pudieron guardar los cambios.', 'error');
+      } finally {
+        saveButtons.forEach(b => { b.disabled = false; });
+      }
     }
 
     // ── Discard ──
@@ -1990,6 +2108,25 @@
           state.profile.email = me.email || state.profile.email;
           state.profile.specialty = me.specialty || state.profile.specialty;
           state.clinic.name = me.clinic_name || state.clinic.name;
+        }
+      } catch (_) {}
+
+      // Hydrate full clinic data from the server
+      try {
+        const c = await api('/api/clinics/me');
+        if (c) {
+          state.clinic.name = c.name || '';
+          state.clinic.type = c.type || '';
+          state.clinic.taxId = c.tax_id || '';
+          state.clinic.address = c.address || '';
+          state.clinic.city = c.city || '';
+          state.clinic.phone = c.phone || '';
+          state.clinic.email = c.email || '';
+          state.clinic.info = c.info || '';
+          state.clinic.brandColor = c.brand_color || '#0891b2';
+          state.clinic.currency = c.currency || 'HNL';
+          state.clinic.website = c.website || '';
+          state.clinic.logoUrl = c.logo_url || '';
         }
       } catch (_) {}
 
@@ -2039,6 +2176,7 @@
       setVal('fldBrandColor', state.clinic.brandColor);
       setVal('fldClinicCurrency', state.clinic.currency);
       setVal('fldClinicWebsite', state.clinic.website);
+      renderClinicLogo();
 
       setVal('fldStartTime', state.agenda.startTime);
       setVal('fldEndTime', state.agenda.endTime);
