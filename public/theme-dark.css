@@ -766,6 +766,68 @@ html[data-theme="dark"] body::after {
   box-shadow: 0 4px 15px rgba(8, 145, 178, .35) !important;
 }
 
+/* Consultation sticky footer (consultation.html / consultation-podiatry.html)
+   was a white card; override to a dark surface that matches the rest of the
+   page in dark mode. */
+[data-theme="dark"] .footer {
+  background: var(--sd-surface) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+  box-shadow:
+    0 -4px 18px rgba(0, 0, 0, .35),
+    0 20px 40px rgba(0, 0, 0, .45) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+[data-theme="dark"] .footer-spacer {
+  color: var(--sd-text-muted) !important;
+}
+
+/* ─── Inventory search modal (consultation-inventory.js) ───
+   The modal is appended to <body> by JS; rules need higher specificity
+   than the JS-injected <style id="ci-style"> block (which gets appended
+   to <head> at runtime, after this CSS loads). Using html[data-theme]
+   prefix + body to maximize specificity wins the cascade. */
+html[data-theme="dark"] body .ci-modal {
+  background: var(--sd-surface-solid) !important;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .55) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] body .ci-search-wrap {
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] body .ci-search-input {
+  background: var(--sd-input-bg) !important;
+  border-color: var(--sd-input-border) !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] body .ci-search-input::placeholder {
+  color: var(--sd-text-faint) !important;
+}
+html[data-theme="dark"] body .ci-search-input:focus {
+  background: rgba(20, 20, 24, .9) !important;
+  border-color: rgba(6, 182, 212, .55) !important;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, .15) !important;
+}
+html[data-theme="dark"] body .ci-result {
+  background: transparent !important;
+}
+html[data-theme="dark"] body .ci-result:hover {
+  background: rgba(6, 182, 212, .08) !important;
+}
+html[data-theme="dark"] body .ci-result-thumb {
+  background: rgba(6, 182, 212, .14) !important;
+  color: #22d3ee !important;
+}
+html[data-theme="dark"] body .ci-result-name { color: var(--sd-text) !important; }
+html[data-theme="dark"] body .ci-result-meta { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] body .ci-result-meta .dot { color: var(--sd-text-faint) !important; }
+html[data-theme="dark"] body .ci-result-stock { color: var(--sd-text) !important; }
+html[data-theme="dark"] body .ci-result-stock .unit { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] body .ci-results-empty,
+html[data-theme="dark"] body .ci-results-loading {
+  color: var(--sd-text-muted) !important;
+}
+
 /* Modal form fields in patients.html (Nombre, Identidad, Teléfono, Sexo, Fecha) */
 [data-theme="dark"] .modal .field label {
   color: var(--sd-text-muted) !important;
@@ -2598,6 +2660,28 @@ html[data-theme="dark"] .cdp-wrapper button[style*="background-color: rgba(0, 0,
   background: transparent !important;
   border: 0 !important;
   color: var(--sd-text-soft) !important;
+}
+/* Occupied/disabled time slots — clearly distinguishable from available
+   slots in dark mode. Without this they inherit the same bg as available
+   slots from the generic .cdp-wrapper button rule above. */
+html[data-theme="dark"] .cdp-wrapper button[disabled],
+html[data-theme="dark"] .cdp-wrapper button:disabled {
+  background-color: rgba(220, 38, 38, .10) !important;
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 6px,
+    rgba(255, 255, 255, .03) 6px,
+    rgba(255, 255, 255, .03) 12px
+  ) !important;
+  border: 1px solid rgba(220, 38, 38, .35) !important;
+  color: rgba(252, 165, 165, .8) !important;
+  opacity: 1 !important;
+  text-decoration: line-through !important;
+  text-decoration-color: rgba(252, 165, 165, .9) !important;
+  text-decoration-thickness: 1.5px !important;
+  cursor: not-allowed !important;
+  font-weight: 600 !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════

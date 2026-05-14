@@ -312,6 +312,77 @@
         .ci-toast-wrap { left: 1rem; right: 1rem; bottom: 90px; }
         .ci-toast { max-width: 100%; }
       }
+
+      /* ─── Dark theme overrides (live in this style block so they always
+         beat the light defaults above, regardless of stylesheet load order) ─── */
+      html[data-theme="dark"] .ci-section {
+        background: rgba(20, 20, 22, 0.72);
+        border-color: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      }
+      html[data-theme="dark"] .ci-head h3 { color: #f1f5f9; }
+      html[data-theme="dark"] .ci-head .ci-sub { color: #94a3b8; }
+      html[data-theme="dark"] .ci-empty {
+        background: linear-gradient(135deg, rgba(20, 20, 22, 0.5), rgba(28, 28, 30, 0.5));
+        border-color: rgba(6, 182, 212, 0.2);
+        color: #64748b;
+      }
+      html[data-theme="dark"] .ci-empty p { color: #94a3b8; }
+      html[data-theme="dark"] .ci-empty .ci-empty-icon {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.18), rgba(8, 145, 178, 0.10));
+        color: #22d3ee;
+      }
+      html[data-theme="dark"] .ci-item {
+        background: rgba(20, 20, 24, 0.5);
+        border-color: rgba(255, 255, 255, 0.06);
+      }
+      html[data-theme="dark"] .ci-item:hover {
+        border-color: rgba(6, 182, 212, 0.30);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+      }
+      html[data-theme="dark"] .ci-item-name { color: #f1f5f9; }
+      html[data-theme="dark"] .ci-item-meta { color: #94a3b8; }
+      html[data-theme="dark"] .ci-item-meta .dot { color: #475569; }
+      html[data-theme="dark"] .ci-item-thumb {
+        background: rgba(6, 182, 212, 0.14);
+        color: #22d3ee;
+        border-color: rgba(6, 182, 212, 0.20);
+      }
+
+      /* Modal — the part the user is complaining about */
+      html[data-theme="dark"] .ci-modal {
+        background: #131315;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      html[data-theme="dark"] .ci-search-wrap {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+      }
+      html[data-theme="dark"] .ci-search-input {
+        background: rgba(18, 18, 20, 0.55);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #f1f5f9;
+      }
+      html[data-theme="dark"] .ci-search-input::placeholder { color: #64748b; }
+      html[data-theme="dark"] .ci-search-input:focus {
+        background: rgba(20, 20, 24, 0.9);
+        border-color: rgba(6, 182, 212, 0.55);
+        box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+      }
+      html[data-theme="dark"] .ci-search-icon { color: #64748b; }
+      html[data-theme="dark"] .ci-result { background: transparent; }
+      html[data-theme="dark"] .ci-result:hover { background: rgba(6, 182, 212, 0.08); }
+      html[data-theme="dark"] .ci-result-thumb {
+        background: rgba(6, 182, 212, 0.14);
+        color: #22d3ee;
+      }
+      html[data-theme="dark"] .ci-result-name { color: #f1f5f9; }
+      html[data-theme="dark"] .ci-result-meta { color: #94a3b8; }
+      html[data-theme="dark"] .ci-result-meta .dot { color: #475569; }
+      html[data-theme="dark"] .ci-result-stock { color: #f1f5f9; }
+      html[data-theme="dark"] .ci-result-stock .unit { color: #94a3b8; }
+      html[data-theme="dark"] .ci-results-empty,
+      html[data-theme="dark"] .ci-results-loading { color: #94a3b8; }
     `;
     const styleEl = document.createElement('style');
     styleEl.id = 'ci-style';
