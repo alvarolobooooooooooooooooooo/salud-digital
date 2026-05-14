@@ -145,6 +145,46 @@
     }
     .view-toggle button.active { background: white; color: #0891b2; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
 
+    /* ── Sort dropdown (custom-styled native select) ── */
+    .sort-select {
+      appearance: none; -webkit-appearance: none; -moz-appearance: none;
+      padding: .7rem 2.4rem .7rem 1rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      background: #f8fafc;
+      color: #0f172a;
+      font-size: 13px; font-weight: 500; font-family: inherit;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, box-shadow .2s;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 0.9rem center;
+      background-size: 12px 8px;
+    }
+    .sort-select:hover { border-color: #cbd5e1; background-color: white; }
+    .sort-select:focus {
+      outline: none; border-color: #0891b2; background-color: white;
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, .12);
+    }
+    [data-theme="dark"] .sort-select {
+      background-color: rgba(18, 18, 20, .55);
+      border-color: rgba(255, 255, 255, .1);
+      color: #f1f5f9;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    }
+    [data-theme="dark"] .sort-select:hover {
+      background-color: rgba(255, 255, 255, .04);
+      border-color: rgba(255, 255, 255, .18);
+    }
+    [data-theme="dark"] .sort-select:focus {
+      background-color: rgba(8, 145, 178, .08);
+      border-color: #06b6d4;
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, .15);
+    }
+    [data-theme="dark"] .sort-select option {
+      background: #131315; color: #f1f5f9;
+    }
+
     .filter-pill {
       display: inline-flex; align-items: center; gap: .35rem; padding: .35rem .7rem;
       background: rgba(8, 145, 178, .1); color: #0e7490; border-radius: 999px;
@@ -583,7 +623,7 @@
         Filtros
         <span id="activeFilterCount" style="display:none;background:#0891b2;color:white;font-size:11px;padding:1px 7px;border-radius:999px;font-weight:600;">0</span>
       </button>
-      <select class="filter-item" id="sortSelect" style="padding:.55rem .8rem;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;background:white;color:#475569;cursor:pointer;font-weight:500;">
+      <select class="sort-select" id="sortSelect">
         <option value="name">Ordenar: Nombre</option>
         <option value="stock">Ordenar: Stock</option>
         <option value="expiration">Ordenar: Vencimiento</option>

@@ -544,7 +544,7 @@ class OdontogramContainer {
 
   _renderDxPicker(fdi) {
     const wrap = document.createElement('div');
-    wrap.className = 'odonto-dx-picker';
+    wrap.className = 'odonto-dx-picker odonto-dx-picker--wrap';
     wrap.style.cssText = `
       padding: 0.85rem 1rem 1rem;
       background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
@@ -559,6 +559,7 @@ class OdontogramContainer {
       gap: 0.5rem; flex-wrap: wrap;
     `;
     const ttl = document.createElement('div');
+    ttl.className = 'odonto-dx-title';
     ttl.style.cssText = `
       font-size: 0.66rem; font-weight: 800; letter-spacing: 0.14em;
       text-transform: uppercase; color: #475569;
@@ -567,6 +568,7 @@ class OdontogramContainer {
     titleRow.appendChild(ttl);
 
     const target = document.createElement('div');
+    target.className = 'odonto-dx-target';
     const isSurface = !!this.selectedSurface;
     const surfLabel = isSurface ? this._getSurfaceLabel(this.selectedSurface, fdi) : null;
     target.style.cssText = `
@@ -594,6 +596,7 @@ class OdontogramContainer {
 
     // Helper hint
     const help = document.createElement('div');
+    help.className = 'odonto-dx-help';
     help.style.cssText = `
       font-size: 0.7rem; color: #64748b; line-height: 1.35;
       margin-top: -0.15rem;
@@ -605,6 +608,7 @@ class OdontogramContainer {
 
     // Picker grid
     const grid = document.createElement('div');
+    grid.className = 'odonto-dx-grid';
     grid.style.cssText = `
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -628,6 +632,7 @@ class OdontogramContainer {
     // Clear button
     const clearBtn = document.createElement('button');
     clearBtn.type = 'button';
+    clearBtn.className = 'odonto-dx-clear';
     clearBtn.style.cssText = `
       display: flex; align-items: center; justify-content: center;
       gap: 0.45rem;
@@ -673,6 +678,7 @@ class OdontogramContainer {
   _makeDxButton(cond, isActive) {
     const btn = document.createElement('button');
     btn.type = 'button';
+    btn.className = 'odonto-dx-btn' + (isActive ? ' is-active' : '');
     btn.title = cond.label;
 
     const baseBg = isActive
@@ -1922,6 +1928,45 @@ class OdontogramContainer {
         }
         [data-theme="dark"] .odonto-detail-surf-dx {
           color: #94a3b8 !important;
+        }
+
+        /* Detail panel — diagnosis picker ("Aplicar diagnóstico") */
+        [data-theme="dark"] .odonto-dx-picker {
+          background: linear-gradient(180deg, rgba(20,20,22,0.6) 0%, rgba(14,14,16,0.4) 100%) !important;
+          border-top-color: rgba(255,255,255,0.08) !important;
+        }
+        [data-theme="dark"] .odonto-dx-title {
+          color: #cbd5e1 !important;
+        }
+        [data-theme="dark"] .odonto-dx-help {
+          color: #94a3b8 !important;
+        }
+        [data-theme="dark"] .odonto-dx-target {
+          background: rgba(255,255,255,0.05) !important;
+          border-color: rgba(255,255,255,0.10) !important;
+          color: #cbd5e1 !important;
+        }
+        [data-theme="dark"] .odonto-dx-btn {
+          background: rgba(28,28,30,0.85) !important;
+          border-color: rgba(255,255,255,0.08) !important;
+          color: #f1f5f9 !important;
+        }
+        [data-theme="dark"] .odonto-dx-btn.is-active {
+          background: linear-gradient(135deg, rgba(6,182,212,0.18) 0%, rgba(6,182,212,0.08) 100%) !important;
+          border-color: rgba(6,182,212,0.45) !important;
+        }
+        [data-theme="dark"] .odonto-dx-btn:hover {
+          background: rgba(255,255,255,0.07) !important;
+          border-color: rgba(6,182,212,0.35) !important;
+        }
+        [data-theme="dark"] .odonto-dx-clear {
+          background: rgba(239,68,68,0.10) !important;
+          border-color: rgba(239,68,68,0.30) !important;
+          color: #fca5a5 !important;
+        }
+        [data-theme="dark"] .odonto-dx-clear:hover {
+          background: rgba(239,68,68,0.18) !important;
+          border-color: rgba(239,68,68,0.50) !important;
         }
 
         /* Detail panel — empty state */
