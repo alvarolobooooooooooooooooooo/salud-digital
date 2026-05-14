@@ -557,9 +557,39 @@
     @media (max-width: 480px) {
       .weekday-btn { width: 38px; height: 38px; font-size: 11px; }
     }
+
+    /* ── Page Loader ── */
+    .page-loader {
+      position: fixed; inset: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(248, 250, 252, 0.95);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      transition: opacity .3s ease;
+    }
+    .page-loader.hidden { opacity: 0; pointer-events: none; }
+    .page-loader-content { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    .page-loader-spinner {
+      width: 48px; height: 48px;
+      border: 3px solid rgba(8, 145, 178, 0.15);
+      border-top-color: #0891b2;
+      border-radius: 50%;
+      animation: sd-spin 0.8s linear infinite;
+    }
+    .page-loader-text { font-size: .95rem; color: #475569; font-weight: 500; letter-spacing: .3px; }
+    @keyframes sd-spin { to { transform: rotate(360deg); } }
+
+    [data-theme="dark"] .page-loader { background: rgba(5, 5, 7, 0.92); }
+    [data-theme="dark"] .page-loader-spinner { border-color: rgba(6, 182, 212, 0.18); border-top-color: #06b6d4; }
+    [data-theme="dark"] .page-loader-text { color: #94a3b8; }
   </style>
 </head>
 <body>
+  <div class="page-loader" id="pageLoader">
+    <div class="page-loader-content">
+      <div class="page-loader-spinner"></div>
+      <div class="page-loader-text">Cargando configuración...</div>
+    </div>
+  </div>
   <main class="layout-main">
 
     <!-- ── Page Header ── -->
@@ -1418,42 +1448,83 @@
       });
     }
 
-    // ── Avatar upload ──
+    // ── Avatar upload (uploads to Cloudinary via /api/users/me/photo) ──
     const avatarInput = document.getElementById('avatarInput');
-    function handleAvatarFile(file) {
+    const changePhotoBtn = document.getElementById('changePhotoBtn');
+    const removePhotoBtn = document.getElementById('removePhotoBtn');
+
+    async function uploadAvatar(file) {
       if (!file) return;
       if (!file.type.startsWith('image/')) {
         toast('El archivo debe ser una imagen (JPG, PNG, WebP).', 'error');
         return;
       }
-      if (file.size > 8 * 1024 * 1024) {
-        toast('La imagen no puede superar 8 MB.', 'error');
+      if (file.size > 2 * 1024 * 1024) {
+        toast('La imagen no puede superar 2 MB.', 'error');
         return;
       }
-      // Revoke previous object URL if any
-      if (state.profile.photoUrl && state.profile.photoUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(state.profile.photoUrl);
+      changePhotoBtn.disabled = true;
+      removePhotoBtn.disabled = true;
+      try {
+        const fd = new FormData();
+        fd.append('photo', file);
+        const res = await fetch('/api/users/me/photo', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('sd_token') || '') },
+          body: fd,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'No se pudo subir la foto');
+        state.profile.photoUrl = data.photo_url;
+        state.profile.photoFile = null;
+        renderAvatar();
+        renderPreview();
+        refreshLayoutProfileCache();
+        toast('Foto actualizada correctamente.', 'success');
+      } catch (err) {
+        toast(err.message || 'No se pudo subir la foto.', 'error');
+      } finally {
+        changePhotoBtn.disabled = false;
+        removePhotoBtn.disabled = false;
+        avatarInput.value = '';
       }
-      state.profile.photoFile = file;
-      state.profile.photoUrl = URL.createObjectURL(file);
-      renderAvatar();
-      renderPreview();
-      markDirty();
-      toast('Foto cargada. Recuerda guardar los cambios.', 'success');
     }
-    avatarInput.addEventListener('change', (e) => handleAvatarFile(e.target.files?.[0]));
-    document.getElementById('changePhotoBtn').addEventListener('click', () => avatarInput.click());
-    document.getElementById('removePhotoBtn').addEventListener('click', () => {
-      if (state.profile.photoUrl && state.profile.photoUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(state.profile.photoUrl);
+
+    avatarInput.addEventListener('change', (e) => uploadAvatar(e.target.files?.[0]));
+    changePhotoBtn.addEventListener('click', () => avatarInput.click());
+    removePhotoBtn.addEventListener('click', async () => {
+      if (!state.profile.photoUrl) return;
+      if (!confirm('¿Quitar la foto de perfil?')) return;
+      removePhotoBtn.disabled = true;
+      changePhotoBtn.disabled = true;
+      try {
+        await api('/api/users/me/photo', { method: 'DELETE' });
+        state.profile.photoUrl = null;
+        state.profile.photoFile = null;
+        renderAvatar();
+        renderPreview();
+        refreshLayoutProfileCache();
+        toast('Foto eliminada.', 'success');
+      } catch (err) {
+        toast(err.message || 'No se pudo quitar la foto.', 'error');
+      } finally {
+        removePhotoBtn.disabled = false;
+        changePhotoBtn.disabled = false;
       }
-      state.profile.photoFile = null;
-      state.profile.photoUrl = null;
-      avatarInput.value = '';
-      renderAvatar();
-      renderPreview();
-      markDirty();
     });
+
+    // Refresh the cached profile that the sidebar (layout.js) reads on every page
+    function refreshLayoutProfileCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem('sd_user_profile') || '{}');
+        cached.name = state.profile.name || cached.name;
+        cached.email = state.profile.email || cached.email;
+        cached.phone = state.profile.phone || cached.phone;
+        cached.specialty = state.profile.specialty || cached.specialty;
+        cached.photo_url = state.profile.photoUrl || '';
+        localStorage.setItem('sd_user_profile', JSON.stringify(cached));
+      } catch (_) {}
+    }
 
     function renderAvatar() {
       const box = document.getElementById('avatarBox');
@@ -2038,6 +2109,26 @@
       saveButtons.forEach(b => { b.disabled = true; });
 
       try {
+        // Profile — any authenticated user can update their own
+        await api('/api/users/me', {
+          method: 'PUT',
+          body: {
+            name: state.profile.name,
+            email: state.profile.email,
+            specialty: state.profile.specialty,
+            phone: state.profile.phone,
+            admin_role: state.profile.adminRole,
+            location: state.profile.location,
+            bio: state.profile.bio,
+            license: state.profile.license,
+            experience: state.profile.experience === '' ? 0 : Number(state.profile.experience),
+            shift: state.profile.shift,
+            languages: state.profile.languages,
+            focus: state.profile.focus,
+          }
+        });
+        refreshLayoutProfileCache();
+
         // Clinic data — clinic_admin only (only role allowed by the PUT endpoint)
         if (CURRENT_ROLE === 'clinic_admin') {
           await api('/api/clinics/me', {
@@ -2101,12 +2192,23 @@
         }
       } catch (_) {}
 
+      // Hydrate full user profile from the server
       try {
-        const me = await api('/api/auth/me');
+        const me = await api('/api/users/me');
         if (me) {
-          state.profile.name = me.name || state.profile.name;
-          state.profile.email = me.email || state.profile.email;
-          state.profile.specialty = me.specialty || state.profile.specialty;
+          state.profile.name = me.name || '';
+          state.profile.email = me.email || '';
+          state.profile.specialty = me.specialty || '';
+          state.profile.phone = me.phone || '';
+          state.profile.adminRole = me.admin_role || '';
+          state.profile.location = me.location || '';
+          state.profile.bio = me.bio || '';
+          state.profile.license = me.license || '';
+          state.profile.experience = me.experience != null ? me.experience : '';
+          state.profile.shift = me.shift || '';
+          state.profile.photoUrl = me.photo_url || null;
+          state.profile.languages = Array.isArray(me.languages) ? me.languages : [];
+          state.profile.focus = Array.isArray(me.focus) ? me.focus : [];
           state.clinic.name = me.clinic_name || state.clinic.name;
         }
       } catch (_) {}
@@ -2219,7 +2321,10 @@
       activateTab(initialTab);
     }
 
-    loadInitial();
+    loadInitial().finally(() => {
+      const pageLoader = document.getElementById('pageLoader');
+      if (pageLoader) pageLoader.classList.add('hidden');
+    });
   </script>
 </body>
 </html>

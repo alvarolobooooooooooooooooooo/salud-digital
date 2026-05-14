@@ -461,7 +461,19 @@
       document.getElementById('sbSpecialtyMobile')
     ];
 
-    avatarEls.forEach(el => { if (el) el.textContent = initials; });
+    avatarEls.forEach(el => {
+      if (!el) return;
+      if (user.photo_url) {
+        el.innerHTML = '';
+        el.style.backgroundImage = `url("${user.photo_url}")`;
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+        el.textContent = '';
+      } else {
+        el.style.backgroundImage = '';
+        el.textContent = initials;
+      }
+    });
     nameEls.forEach(el => { if (el) el.textContent = displayName; });
     clinicEls.forEach(el => { if (el) el.textContent = user.clinic_name || ''; });
 
