@@ -91,10 +91,17 @@
       transition: all .35s cubic-bezier(.34, 1.56, .64, 1);
       position: relative; overflow: hidden;
     }
+    .stat-card::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(circle at 100% 0%, var(--stat-accent, rgba(6,182,212,.18)), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
     .stat-card:hover {
       transform: translateY(-4px);
       box-shadow: 0 16px 36px rgba(8, 145, 178, .12);
     }
+    .stat-card > * { position: relative; z-index: 1; }
     .stat-card .stat-icon {
       width: 38px; height: 38px; border-radius: 11px;
       display: flex; align-items: center; justify-content: center;
@@ -1237,31 +1244,31 @@
     function renderStats(stats) {
       const grid = document.getElementById('statsGrid');
       grid.innerHTML = `
-        <div class="stat-card">
+        <div class="stat-card" style="--stat-accent: rgba(6,182,212,.18)">
           <div class="stat-icon bg-cyan" data-icon="package" data-size="20"></div>
           <div class="stat-label">Total de artículos</div>
           <div class="stat-value">${stats.total ?? 0}</div>
           <div class="stat-meta">${stats.total === 1 ? 'artículo registrado' : 'artículos registrados'}</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" style="--stat-accent: rgba(245,158,11,.20)">
           <div class="stat-icon bg-amber" data-icon="alert" data-size="20"></div>
           <div class="stat-label">Bajo stock</div>
           <div class="stat-value">${stats.low_stock ?? 0}</div>
           <div class="stat-meta">${(stats.low_stock || 0) === 0 ? 'todo en orden' : 'requieren reposición'}</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" style="--stat-accent: rgba(249,115,22,.20)">
           <div class="stat-icon bg-orange" data-icon="clock" data-size="20"></div>
           <div class="stat-label">Próximos a vencer</div>
           <div class="stat-value">${stats.expiring_soon ?? 0}</div>
           <div class="stat-meta">${(stats.expired || 0) > 0 ? `+ ${stats.expired} ya vencidos` : 'dentro de la ventana de alerta'}</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" style="--stat-accent: rgba(16,185,129,.20)">
           <div class="stat-icon bg-green" data-icon="wallet" data-size="20"></div>
           <div class="stat-label">Valor estimado</div>
           <div class="stat-value">${fmtMoney(stats.estimated_value || 0)}</div>
           <div class="stat-meta">stock total × costo unitario</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" style="--stat-accent: rgba(239,68,68,.20)">
           <div class="stat-icon bg-red" data-icon="x" data-size="20"></div>
           <div class="stat-label">Agotados</div>
           <div class="stat-value">${stats.out_of_stock ?? 0}</div>
