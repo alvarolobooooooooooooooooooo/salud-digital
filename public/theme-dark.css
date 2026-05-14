@@ -3391,6 +3391,17 @@ html[data-theme="dark"] .co-drawer .co-btn.danger-ghost {
   color: #fca5a5 !important;
 }
 
+/* Inventario sort dropdown — has inline white background + light border */
+html[data-theme="dark"] #sortSelect {
+  background: var(--sd-input-bg) !important;
+  border: 1.5px solid var(--sd-input-border) !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] #sortSelect option {
+  background: var(--sd-surface-solid) !important;
+  color: var(--sd-text) !important;
+}
+
 /* Inventario mobile cards — placeholder thumb was light cyan, text dark */
 html[data-theme="dark"] .inv-card .card-thumb {
   background: rgba(8, 145, 178, .14) !important;
