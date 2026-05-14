@@ -3402,6 +3402,53 @@ html[data-theme="dark"] .inv-card .card-cat { color: var(--sd-text-muted) !impor
 html[data-theme="dark"] .inv-card .card-row .lbl { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .inv-card .card-row .val { color: var(--sd-text) !important; }
 
+/* Inventario detail drawer (#detailDrawer) — hero + section cards */
+html[data-theme="dark"] .detail-hero {
+  background: var(--sd-surface-2) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .detail-hero .hero-img {
+  background: rgba(8, 145, 178, .10) !important;
+  border-color: rgba(255, 255, 255, .08) !important;
+  color: var(--sd-text-muted) !important;
+}
+html[data-theme="dark"] .detail-hero h2 { color: var(--sd-text) !important; }
+html[data-theme="dark"] .detail-hero .hero-cat { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .detail-hero .hero-stat .lbl { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .detail-hero .hero-stat .val { color: var(--sd-text) !important; }
+
+html[data-theme="dark"] .detail-section {
+  background: var(--sd-surface) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .detail-section h4 { color: #22d3ee !important; }
+html[data-theme="dark"] .info-grid .info-item .il-lbl { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .info-grid .info-item .il-val { color: var(--sd-text) !important; }
+
+/* Inline color:#0f172a on the "Notas internas" body — beat inline style */
+html[data-theme="dark"] .detail-section > div[style*="color:#0f172a"],
+html[data-theme="dark"] .detail-section > div[style*="color: #0f172a"] {
+  color: var(--sd-text) !important;
+}
+
+/* Movement history list */
+html[data-theme="dark"] .movement-item {
+  background: rgba(20, 20, 24, .55) !important;
+  border-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .movement-title { color: var(--sd-text) !important; }
+html[data-theme="dark"] .movement-meta { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .movement-meta .dot { color: var(--sd-text-faint) !important; }
+html[data-theme="dark"] .movement-qty { color: var(--sd-text) !important; }
+/* Movement inline note (style="color:#475569;font-style:italic;") */
+html[data-theme="dark"] .movement-info > div[style*="color:#475569"] {
+  color: var(--sd-text-soft) !important;
+}
+/* "Aún no hay movimientos…" empty state */
+html[data-theme="dark"] .movement-list > div[style*="color:#94a3b8"] {
+  color: var(--sd-text-muted) !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    PODIATRY CONSULTATION VIEW (view-consultation-podiatry.html)
    ─────────────────────────────────────────────────────────────────
