@@ -1,12 +1,59 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const compression = require('compression');
 const { initDb } = require('./db');
 
 process.env.TZ = 'America/Chicago'; // Zona horaria local (CST/CDT)
 
 const app = express();
+
+// Cache-busting: every deploy changes ASSET_VERSION, which gets appended as ?v=…
+// to every local <script src> and <link href>. Browsers then fetch fresh copies
+// without users needing a hard refresh. Render exposes RENDER_GIT_COMMIT per deploy.
+const ASSET_VERSION =
+  (process.env.RENDER_GIT_COMMIT || '').slice(0, 8) || String(Date.now());
+
+const PUBLIC_DIR = path.join(__dirname, 'public');
+
+function serveHtmlWithVersion(filePath, res) {
+  fs.readFile(filePath, 'utf8', (err, raw) => {
+    if (err) {
+      res.status(404).end();
+      return;
+    }
+    const html = raw
+      .replace(
+        /(<script\b[^>]*\bsrc=")(\/[^"?#]+\.js)(")/gi,
+        `$1$2?v=${ASSET_VERSION}$3`,
+      )
+      .replace(
+        /(<link\b[^>]*\bhref=")(\/[^"?#]+\.(?:css|js))(")/gi,
+        `$1$2?v=${ASSET_VERSION}$3`,
+      );
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(html);
+  });
+}
+
+// Intercept *.html requests before express.static so we can inject ?v=… into asset URLs
+app.use((req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+  let urlPath = decodeURIComponent(req.path);
+  if (urlPath.endsWith('/')) urlPath += 'index.html';
+  if (!urlPath.endsWith('.html')) return next();
+  const filePath = path.join(PUBLIC_DIR, urlPath);
+  // Path-traversal guard
+  if (filePath !== PUBLIC_DIR && !filePath.startsWith(PUBLIC_DIR + path.sep)) {
+    return next();
+  }
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) return next();
+    serveHtmlWithVersion(filePath, res);
+  });
+});
 
 // gzip/deflate compression — ~5x reduction on the landing HTML
 // (most-impactful single change for first paint over slow networks)
@@ -58,7 +105,7 @@ app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/inventory-usage', require('./routes/inventory-usage'));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  serveHtmlWithVersion(path.join(PUBLIC_DIR, 'index.html'), res);
 });
 
 // Global error handler — ensures async route failures return JSON
