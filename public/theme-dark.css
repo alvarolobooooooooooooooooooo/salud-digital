@@ -2790,6 +2790,12 @@ html[data-theme="dark"] .section:hover {
 /* Tables inside .section */
 html[data-theme="dark"] .section table th {
   border-bottom: 1px solid var(--sd-border-soft) !important;
+  /* Light theme uses a -webkit-text-fill-color:transparent gradient trick on TH.
+     The generic `main th { background: ... !important }` rule above overrides the
+     gradient background and leaves the text invisible — restore a solid color. */
+  background: transparent !important;
+  -webkit-text-fill-color: #67e8f9 !important;
+  color: #67e8f9 !important;
 }
 html[data-theme="dark"] .section table td {
   color: var(--sd-text-soft) !important;
@@ -2801,6 +2807,14 @@ html[data-theme="dark"] .section tbody tr:hover td {
 }
 html[data-theme="dark"] .section .empty-table {
   color: var(--sd-text-faint) !important;
+}
+
+/* Top productos del mes — product name was hardcoded #0f172a (invisible in dark) */
+html[data-theme="dark"] .top-product-name { color: var(--sd-text) !important; }
+html[data-theme="dark"] .top-product-meta { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .top-product-thumb {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border-soft) !important;
 }
 
 /* Donut center text, legend, progress bars */
