@@ -853,10 +853,56 @@ html[data-theme="dark"] body .ci-results-loading {
 }
 
 [data-theme="dark"] .drawer-header {
-  background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
-  color: #052e36 !important;
+  background: rgba(255, 255, 255, .02) !important;
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+  color: var(--sd-text) !important;
+}
+[data-theme="dark"] .drawer-header h2 { color: var(--sd-text) !important; }
+[data-theme="dark"] .drawer-header p { color: var(--sd-text-muted) !important; opacity: 1 !important; }
+[data-theme="dark"] .drawer-close {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: var(--sd-text-soft) !important;
+}
+[data-theme="dark"] .drawer-close:hover {
+  background: rgba(255, 255, 255, .05) !important;
+  color: var(--sd-text) !important;
 }
 [data-theme="dark"] .drawer-body { background: transparent !important; }
+[data-theme="dark"] .status-preview,
+[data-theme="dark"] #stockStatusPreview {
+  background: var(--sd-input-bg) !important;
+  border-color: var(--sd-input-border) !important;
+  color: var(--sd-text) !important;
+}
+[data-theme="dark"] .badge-disponible {
+  background: rgba(34, 197, 94, .14) !important;
+  color: #6ee7b7 !important;
+}
+[data-theme="dark"] .badge-bajo_stock {
+  background: rgba(245, 158, 11, .14) !important;
+  color: #fcd34d !important;
+}
+[data-theme="dark"] .badge-agotado {
+  background: rgba(239, 68, 68, .14) !important;
+  color: #fca5a5 !important;
+}
+[data-theme="dark"] .badge-por_vencer {
+  background: rgba(249, 115, 22, .14) !important;
+  color: #fdba74 !important;
+}
+[data-theme="dark"] .badge-vencido {
+  background: rgba(220, 38, 38, .16) !important;
+  color: #fecaca !important;
+}
+[data-theme="dark"] .badge-vigente {
+  background: rgba(6, 182, 212, .14) !important;
+  color: #67e8f9 !important;
+}
+[data-theme="dark"] .badge-archivado {
+  background: rgba(148, 163, 184, .14) !important;
+  color: #cbd5e1 !important;
+}
 [data-theme="dark"] .drawer-footer {
   background: rgba(0, 0, 0, .25) !important;
   border-top-color: var(--sd-border-soft) !important;
@@ -1250,6 +1296,14 @@ html[data-theme="dark"] .status-pill.clean {
   color: #6ee7b7 !important;
   border-color: rgba(16, 185, 129, .3) !important;
 }
+/* Urgent reminder row — was bleeding a white amber-50 gradient in dark mode */
+html[data-theme="dark"] .table tbody tr.urgent {
+  background: linear-gradient(90deg, rgba(245, 158, 11, .12), transparent 35%) !important;
+}
+html[data-theme="dark"] .table tbody tr.urgent:hover {
+  background: linear-gradient(90deg, rgba(245, 158, 11, .18), rgba(6, 182, 212, .05) 70%) !important;
+}
+
 html[data-theme="dark"] .priority-tag.urgent {
   background: rgba(239, 68, 68, .15) !important;
   color: #fca5a5 !important;
@@ -1730,6 +1784,17 @@ html[data-theme="dark"] .patient-card {
   color: var(--sd-text) !important;
 }
 html[data-theme="dark"] .card::before { display: none; }
+
+/* Soft cyan glass tint on the large balance card in dark mode */
+html[data-theme="dark"] .stat-card-large {
+  background-image:
+    linear-gradient(135deg, rgba(8, 145, 178, .18) 0%, rgba(6, 182, 212, .08) 100%) !important;
+  background-color: rgba(14, 116, 144, .06) !important;
+  border-color: rgba(8, 145, 178, .22) !important;
+  box-shadow:
+    0 24px 60px rgba(8, 145, 178, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .08) !important;
+}
 html[data-theme="dark"] .card-title { color: var(--sd-text) !important; }
 html[data-theme="dark"] .card-badge {
   background-image: linear-gradient(135deg, rgba(8, 145, 178, .2), rgba(6, 182, 212, .2)) !important;
@@ -2255,9 +2320,9 @@ html[data-theme="dark"] .list-pat-meta,
 html[data-theme="dark"] .list-time-small { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .list-pat-meta-item svg { color: var(--sd-text-faint) !important; }
 html[data-theme="dark"] .list-avatar {
-  background-image: linear-gradient(135deg, #06b6d4, #0891b2) !important;
+  background-image: linear-gradient(135deg, var(--c1, #06b6d4), var(--c2, #0891b2)) !important;
   color: white !important;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .15), 0 4px 10px rgba(14, 116, 144, .25);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18), 0 4px 10px rgba(0, 0, 0, .35);
 }
 html[data-theme="dark"] .list-day-pill {
   background-color: var(--sd-surface-solid) !important;
@@ -2739,6 +2804,19 @@ html[data-theme="dark"] .chart-bar::after {
 html[data-theme="dark"] .chart-empty,
 html[data-theme="dark"] .chart-empty-text { color: var(--sd-text-muted) !important; }
 
+/* Day labels under bars */
+html[data-theme="dark"] .chart-day { color: var(--sd-text-faint) !important; }
+html[data-theme="dark"] .chart-day .chart-day-num { color: var(--sd-text) !important; }
+html[data-theme="dark"] .chart-day.is-today { color: #22d3ee !important; }
+html[data-theme="dark"] .chart-day.is-today .chart-day-num { color: #67e8f9 !important; }
+html[data-theme="dark"] .chart-days::before {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(8, 145, 178, 0.30) 18%,
+    rgba(8, 145, 178, 0.30) 82%,
+    transparent 100%) !important;
+}
+
 /* Chart container — flex: 1 inside .chart-card was collapsing in the
    2-row grid (stat-card-large spans rows 1-2). Enforce min-height so the
    bars actually render at full 220px */
@@ -3035,6 +3113,17 @@ html[data-theme="dark"] .skeleton-row {
   border-bottom: 1px solid var(--sd-border-soft) !important;
 }
 html[data-theme="dark"] .skeleton-row .sk {
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, .03) 0%,
+    rgba(255, 255, 255, .08) 50%,
+    rgba(255, 255, 255, .03) 100%) !important;
+  background-size: 200% 100% !important;
+}
+html[data-theme="dark"] .skeleton-card {
+  background: var(--sd-surface) !important;
+  border-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .skeleton-card .sk {
   background: linear-gradient(90deg,
     rgba(255, 255, 255, .03) 0%,
     rgba(255, 255, 255, .08) 50%,
@@ -3734,6 +3823,53 @@ html[data-theme="dark"] .ci-badge.por_vencer {
   background: rgba(249, 115, 22, .14) !important;
   color: #fdba74 !important;
 }
+
+/* Remove button + note input inside item card */
+html[data-theme="dark"] .ci-remove {
+  background: rgba(239, 68, 68, .08) !important;
+  border-color: rgba(239, 68, 68, .35) !important;
+  color: #fca5a5 !important;
+}
+html[data-theme="dark"] .ci-remove:hover {
+  background: rgba(239, 68, 68, .16) !important;
+  border-color: rgba(239, 68, 68, .55) !important;
+  color: #fecaca !important;
+}
+html[data-theme="dark"] .ci-note-input {
+  background: var(--sd-input-bg) !important;
+  border-color: var(--sd-input-border) !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .ci-note-input::placeholder {
+  color: var(--sd-text-faint) !important;
+}
+html[data-theme="dark"] .ci-note-input:focus {
+  border-color: rgba(6, 182, 212, .55) !important;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, .15) !important;
+}
+
+/* Quantity stepper (− 1 +) inside item card */
+html[data-theme="dark"] .ci-qty-wrap {
+  background: var(--sd-input-bg) !important;
+  border-color: var(--sd-input-border) !important;
+}
+html[data-theme="dark"] .ci-qty-wrap:focus-within {
+  border-color: rgba(6, 182, 212, .55) !important;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, .15) !important;
+}
+html[data-theme="dark"] .ci-qty-wrap button {
+  background: rgba(255, 255, 255, .03) !important;
+  color: var(--sd-text-soft) !important;
+}
+html[data-theme="dark"] .ci-qty-wrap button:hover {
+  background: rgba(6, 182, 212, .1) !important;
+  color: #67e8f9 !important;
+}
+html[data-theme="dark"] .ci-qty-wrap input {
+  background: transparent !important;
+  color: var(--sd-text) !important;
+}
+html[data-theme="dark"] .ci-qty-unit { color: var(--sd-text-muted) !important; }
 
 /* Section divider */
 html[data-theme="dark"] .ci-footer {

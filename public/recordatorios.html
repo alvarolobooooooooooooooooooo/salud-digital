@@ -1149,7 +1149,7 @@
     try {
       const data = await api('/api/reminders');
       allReminders = (data || []).slice().sort((a,b) => {
-        return new Date(a.scheduled_at) - new Date(b.scheduled_at);
+        return new Date(b.scheduled_at) - new Date(a.scheduled_at);
       });
       render();
       const now = new Date();

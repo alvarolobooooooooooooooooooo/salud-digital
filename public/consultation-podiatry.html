@@ -912,7 +912,14 @@
     <!-- Datos Personales -->
     <div class="form-section" data-icon="user">
       <h3>Datos Personales</h3>
-      <div class="form-grid two">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Tipo de consulta</label>
+          <select id="consVisitType">
+            <option value="primera_vez">Primera vez (paciente nuevo)</option>
+            <option value="seguimiento">Seguimiento / control</option>
+          </select>
+        </div>
         <div class="form-group">
           <label>Edad</label>
           <input type="number" id="consAge" placeholder="Ej: 45">
@@ -1944,6 +1951,7 @@ async function submitConsult(e) {
       treatment: document.getElementById('consTreatmentPlan').value || null,
       procedures: document.getElementById('consProcedures').value || null,
       radiography_notes: JSON.stringify({
+        visit_type: document.getElementById('consVisitType').value,
         age: document.getElementById('consAge').value,
         occupation: document.getElementById('consOccupation').value,
         footwear: document.getElementById('consFootwear').value,

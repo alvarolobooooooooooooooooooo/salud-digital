@@ -348,6 +348,16 @@
         color: #22d3ee;
         border-color: rgba(6, 182, 212, 0.20);
       }
+      html[data-theme="dark"] .ci-remove {
+        background: rgba(239, 68, 68, 0.08);
+        border-color: rgba(239, 68, 68, 0.35);
+        color: #fca5a5;
+      }
+      html[data-theme="dark"] .ci-remove:hover {
+        background: rgba(239, 68, 68, 0.16);
+        border-color: rgba(239, 68, 68, 0.55);
+        color: #fecaca;
+      }
 
       /* Modal — the part the user is complaining about */
       html[data-theme="dark"] .ci-modal {
@@ -490,9 +500,9 @@
   // ── Render: editable mode ──
   function renderEditable() {
     const total = state.pendingItems.length + state.committedUsages.length;
-    const totalCost =
-      state.pendingItems.reduce((s, p) => s + Number(p.quantity_used || 0) * Number(p.item.unit_cost || 0), 0) +
-      state.committedUsages.reduce((s, u) => s + Number(u.total_cost || 0), 0);
+    const totalSale =
+      state.pendingItems.reduce((s, p) => s + Number(p.quantity_used || 0) * Number(p.item.sale_price || 0), 0) +
+      state.committedUsages.reduce((s, u) => s + Number(u.quantity_used || 0) * Number(u.item_sale_price || 0), 0);
 
     const headHTML = `
       <div class="ci-head">
@@ -525,8 +535,8 @@
             <div class="val">${total}</div>
           </div>
           <div class="ci-summary-item">
-            <div class="lbl">Costo total</div>
-            <div class="val cost">${fmtMoney(totalCost)}</div>
+            <div class="lbl">Total venta</div>
+            <div class="val cost">${fmtMoney(totalSale)}</div>
           </div>
         </div>
         ${state.pendingItems.length > 0
@@ -549,7 +559,8 @@
     const it = p.item;
     const stockStatus = deriveStockStatus(it);
     const expBadge = expirationBadge(it.expiration_date);
-    const totalCost = Number(p.quantity_used || 0) * Number(it.unit_cost || 0);
+    const salePrice = Number(it.sale_price || 0);
+    const totalSale = Number(p.quantity_used || 0) * salePrice;
     const stockWarn = Number(p.quantity_used || 0) > Number(it.current_stock || 0)
       ? `<div class="ci-warn danger">${icon('alert', 12)} La cantidad excede el stock disponible (${it.current_stock} ${it.unit || ''})</div>`
       : (stockStatus === 'bajo_stock'
@@ -582,7 +593,7 @@
             <span style="color:#94a3b8; font-size: .78rem;">
               · Stock: <strong style="color:#0f172a;">${Number(it.current_stock).toLocaleString('es-HN')}</strong>
             </span>
-            <span class="ci-cost">${fmtMoney(totalCost)}</span>
+            <span class="ci-cost" title="Precio de venta">${salePrice > 0 ? fmtMoney(totalSale) : '<span style="color:#94a3b8;font-weight:600;">Sin precio</span>'}</span>
             <input type="text" class="ci-note-input" placeholder="Nota / motivo de uso (opcional)" value="${escapeHtml(p.notes || '')}" data-note-input>
           </div>
         </div>
@@ -596,6 +607,8 @@
       ? deriveStockStatus({ current_stock: u.item_current_stock, min_stock: u.item_min_stock })
       : null;
     const expBadge = expirationBadge(u.item_expiration_date);
+    const salePrice = Number(u.item_sale_price || 0);
+    const totalSale = Number(u.quantity_used || 0) * salePrice;
 
     return `
       <div class="ci-item" data-usage-id="${u.id}">
@@ -621,7 +634,7 @@
             <span style="color:#94a3b8; font-size: .78rem;">
               · Stock actual: <strong style="color:#0f172a;">${Number(u.item_current_stock || 0).toLocaleString('es-HN')}</strong>
             </span>
-            <span class="ci-cost">${fmtMoney(u.total_cost)}</span>
+            <span class="ci-cost" title="Precio de venta">${salePrice > 0 ? fmtMoney(totalSale) : '<span style="color:#94a3b8;font-weight:600;">Sin precio</span>'}</span>
             <input type="text" class="ci-note-input" placeholder="Nota / motivo de uso" value="${escapeHtml(u.notes || '')}" data-note-input>
           </div>
         </div>
@@ -788,6 +801,10 @@
         const status = it.stock_status || deriveStockStatus(it);
         const expBadge = expirationBadge(it.expiration_date);
         const already = usedIds.has(it.id);
+        const salePrice = Number(it.sale_price || 0);
+        const priceLabel = salePrice > 0
+          ? `<span style="color:#0891b2;font-weight:800;">${fmtMoney(salePrice)}</span>`
+          : `<span style="color:#94a3b8;font-weight:600;">Sin precio venta</span>`;
         return `
           <button type="button" class="ci-result ${status === 'agotado' ? 'disabled' : ''}" data-id="${it.id}" ${status === 'agotado' ? 'disabled' : ''}>
             <div class="ci-result-thumb">
@@ -797,6 +814,8 @@
               <div class="ci-result-name">${escapeHtml(it.name)}${already ? ' <span style="color:#0891b2;font-size:.72rem;">(ya agregado · sumar más)</span>' : ''}</div>
               <div class="ci-result-meta">
                 <span>${escapeHtml(it.category || TYPE_LABELS[it.type] || 'Sin categoría')}</span>
+                <span class="dot">·</span>
+                ${priceLabel}
                 <span class="dot">·</span>
                 <span class="ci-badge ${status}">${status === 'agotado' ? 'Agotado' : status === 'bajo_stock' ? 'Bajo stock' : 'Disponible'}</span>
                 ${expBadge}
@@ -901,7 +920,9 @@
   // ── Render: read-only mode ──
   function renderReadonly() {
     const usages = state.committedUsages;
-    const totalCost = usages.reduce((s, u) => s + Number(u.total_cost || 0), 0);
+    const totalSale = usages.reduce(
+      (s, u) => s + Number(u.quantity_used || 0) * Number(u.item_sale_price || 0), 0
+    );
     const alertCount = usages.filter(u => {
       if (u.item_current_stock != null) {
         const status = deriveStockStatus({ current_stock: u.item_current_stock, min_stock: u.item_min_stock });
@@ -942,7 +963,7 @@
     const summaryHTML = `
       <div class="ci-readonly-summary">
         <div class="stat"><div class="lbl">Total artículos</div><div class="val">${usages.length}</div></div>
-        <div class="stat"><div class="lbl">Costo estimado</div><div class="val">${fmtMoney(totalCost)}</div></div>
+        <div class="stat"><div class="lbl">Total venta</div><div class="val">${fmtMoney(totalSale)}</div></div>
         ${alertCount > 0 ? `<div class="stat"><div class="lbl">Con alertas</div><div class="val alert">${alertCount}</div></div>` : ''}
       </div>
     `;
@@ -956,6 +977,8 @@
       ? deriveStockStatus({ current_stock: u.item_current_stock, min_stock: u.item_min_stock })
       : null;
     const expBadge = expirationBadge(u.item_expiration_date);
+    const salePrice = Number(u.item_sale_price || 0);
+    const totalSale = Number(u.quantity_used || 0) * salePrice;
     const linkBtn = u.inventory_item_id
       ? `<a href="/inventario.html" style="display:inline-flex;align-items:center;gap:.3rem;font-size:.78rem;color:#0891b2;font-weight:700;text-decoration:none;margin-top:.4rem;">${icon('arrowRight', 12)} Ver en inventario</a>`
       : '';
@@ -975,10 +998,11 @@
                 ${expBadge}
               </div>
             </div>
-            <span class="ci-cost">${fmtMoney(u.total_cost)}</span>
+            <span class="ci-cost" title="Precio de venta">${salePrice > 0 ? fmtMoney(totalSale) : '<span style="color:#94a3b8;font-weight:600;">Sin precio</span>'}</span>
           </div>
           <div class="ci-readonly-grid">
             <div class="ci-readonly-field"><div class="lbl">Cantidad</div><div class="val">${Number(u.quantity_used).toLocaleString('es-HN')} ${escapeHtml(u.unit || '')}</div></div>
+            <div class="ci-readonly-field"><div class="lbl">Precio venta</div><div class="val">${salePrice > 0 ? fmtMoney(salePrice) : '—'}</div></div>
             <div class="ci-readonly-field"><div class="lbl">Costo unitario</div><div class="val">${fmtMoney(u.unit_cost)}</div></div>
             <div class="ci-readonly-field"><div class="lbl">Ubicación</div><div class="val">${escapeHtml(u.item_area ? AREA_LABELS[u.item_area] || u.item_area : '—')}${u.item_location ? ' · ' + escapeHtml(u.item_location) : ''}</div></div>
             <div class="ci-readonly-field"><div class="lbl">Registrado por</div><div class="val">${escapeHtml(u.used_by_name || '—')}</div></div>

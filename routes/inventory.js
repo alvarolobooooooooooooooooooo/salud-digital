@@ -99,6 +99,7 @@ function buildItemPayload(body) {
     expiration_date: dateOrNull(body.expiration_date),
     expiration_alert_days: intOrNull(body.expiration_alert_days) || 30,
     unit_cost: num(body.unit_cost, 0),
+    sale_price: num(body.sale_price, 0),
     currency: str(body.currency, 'HNL'),
     supplier_name: str(body.supplier_name).trim(),
     invoice_number: str(body.invoice_number).trim(),
@@ -249,18 +250,18 @@ router.post('/', authenticate, async (req, res) => {
         clinic_id, name, description, image_url, sku, barcode, category, type,
         current_stock, min_stock, max_stock, unit, low_stock_alert,
         purchase_date, expiration_date, expiration_alert_days,
-        unit_cost, currency, supplier_name, invoice_number, purchase_notes,
+        unit_cost, sale_price, currency, supplier_name, invoice_number, purchase_notes,
         branch, area, exact_location, responsible_user_id,
         is_active, requires_expiration_control, requires_authorization_for_use,
         allow_use_in_appointments, internal_notes, created_by
        ) VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32
        ) RETURNING *`,
       [
         req.user.clinic_id, data.name, data.description, data.image_url, data.sku, data.barcode, data.category, data.type,
         data.current_stock, data.min_stock, data.max_stock, data.unit, data.low_stock_alert,
         data.purchase_date, data.expiration_date, data.expiration_alert_days,
-        data.unit_cost, data.currency, data.supplier_name, data.invoice_number, data.purchase_notes,
+        data.unit_cost, data.sale_price, data.currency, data.supplier_name, data.invoice_number, data.purchase_notes,
         data.branch, data.area, data.exact_location, data.responsible_user_id,
         data.is_active, data.requires_expiration_control, data.requires_authorization_for_use,
         data.allow_use_in_appointments, data.internal_notes, req.user.id
@@ -301,16 +302,16 @@ router.put('/:id', authenticate, async (req, res) => {
         name = $1, description = $2, image_url = $3, sku = $4, barcode = $5, category = $6, type = $7,
         current_stock = $8, min_stock = $9, max_stock = $10, unit = $11, low_stock_alert = $12,
         purchase_date = $13, expiration_date = $14, expiration_alert_days = $15,
-        unit_cost = $16, currency = $17, supplier_name = $18, invoice_number = $19, purchase_notes = $20,
-        branch = $21, area = $22, exact_location = $23, responsible_user_id = $24,
-        is_active = $25, requires_expiration_control = $26, requires_authorization_for_use = $27,
-        allow_use_in_appointments = $28, internal_notes = $29, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $30 AND clinic_id = $31 RETURNING *`,
+        unit_cost = $16, sale_price = $17, currency = $18, supplier_name = $19, invoice_number = $20, purchase_notes = $21,
+        branch = $22, area = $23, exact_location = $24, responsible_user_id = $25,
+        is_active = $26, requires_expiration_control = $27, requires_authorization_for_use = $28,
+        allow_use_in_appointments = $29, internal_notes = $30, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $31 AND clinic_id = $32 RETURNING *`,
       [
         data.name, data.description, data.image_url, data.sku, data.barcode, data.category, data.type,
         data.current_stock, data.min_stock, data.max_stock, data.unit, data.low_stock_alert,
         data.purchase_date, data.expiration_date, data.expiration_alert_days,
-        data.unit_cost, data.currency, data.supplier_name, data.invoice_number, data.purchase_notes,
+        data.unit_cost, data.sale_price, data.currency, data.supplier_name, data.invoice_number, data.purchase_notes,
         data.branch, data.area, data.exact_location, data.responsible_user_id,
         data.is_active, data.requires_expiration_control, data.requires_authorization_for_use,
         data.allow_use_in_appointments, data.internal_notes,
@@ -394,18 +395,18 @@ router.post('/:id/duplicate', authenticate, async (req, res) => {
       clinic_id, name, description, image_url, sku, barcode, category, type,
       current_stock, min_stock, max_stock, unit, low_stock_alert,
       purchase_date, expiration_date, expiration_alert_days,
-      unit_cost, currency, supplier_name, invoice_number, purchase_notes,
+      unit_cost, sale_price, currency, supplier_name, invoice_number, purchase_notes,
       branch, area, exact_location, responsible_user_id,
       is_active, requires_expiration_control, requires_authorization_for_use,
       allow_use_in_appointments, internal_notes, created_by
      ) VALUES (
-      $1,$2,$3,$4,$5,$6,$7,$8,0,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30
+      $1,$2,$3,$4,$5,$6,$7,$8,0,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31
      ) RETURNING *`,
     [
       req.user.clinic_id, `${o.name} (copia)`, o.description, '', o.sku ? `${o.sku}-COPY` : '', o.barcode, o.category, o.type,
       o.min_stock, o.max_stock, o.unit, o.low_stock_alert,
       o.purchase_date, o.expiration_date, o.expiration_alert_days,
-      o.unit_cost, o.currency, o.supplier_name, o.invoice_number, o.purchase_notes,
+      o.unit_cost, o.sale_price, o.currency, o.supplier_name, o.invoice_number, o.purchase_notes,
       o.branch, o.area, o.exact_location, o.responsible_user_id,
       o.is_active, o.requires_expiration_control, o.requires_authorization_for_use,
       o.allow_use_in_appointments, o.internal_notes, req.user.id
@@ -443,13 +444,124 @@ router.post('/:id/adjust', authenticate, async (req, res) => {
     [next, id, req.user.clinic_id]
   );
 
+  // For 'salida' the caller may flag the movement as a sale and capture
+  // sale price + cost snapshot so /finanzas can compute profit later.
+  const isSale = type === 'salida' && bool(req.body.is_sale, false);
+  const salePrice = isSale ? num(req.body.unit_sale_price, Number(item.sale_price || 0)) : null;
+  const costAtSale = isSale ? Number(item.unit_cost || 0) : null;
+
   await query(
-    `INSERT INTO inventory_movements (inventory_item_id, clinic_id, type, quantity, previous_stock, new_stock, reason, note, user_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-    [id, req.user.clinic_id, type, qty, previous, next, str(req.body.reason), str(req.body.note), req.user.id]
+    `INSERT INTO inventory_movements
+       (inventory_item_id, clinic_id, type, quantity, previous_stock, new_stock,
+        reason, note, user_id, is_sale, unit_sale_price, unit_cost_at_sale)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+    [
+      id, req.user.clinic_id, type, qty, previous, next,
+      str(req.body.reason), str(req.body.note), req.user.id,
+      isSale, salePrice, costAtSale
+    ]
   );
 
   res.json(decorate(updated.rows[0]));
+});
+
+// ── Product sales summary (Finanzas card) ──
+// Returns aggregate sale metrics from inventory_movements rows where
+// is_sale = TRUE. Profit per row = (unit_sale_price − unit_cost_at_sale) * quantity.
+// Doctors only see their own sales; admins see clinic-wide totals.
+router.get('/sales/summary', authenticate, async (req, res) => {
+  try {
+    const clinicId = req.user.clinic_id;
+    const isDoctor = req.user.role === 'doctor';
+    const userFilter = isDoctor ? ' AND user_id = $2' : '';
+    const userFilterAliased = isDoctor ? ' AND m.user_id = $2' : '';
+    const baseParams = isDoctor ? [clinicId, req.user.id] : [clinicId];
+
+    const monthAgg = await query(
+      `SELECT
+         COALESCE(SUM((COALESCE(unit_sale_price,0) - COALESCE(unit_cost_at_sale,0)) * quantity), 0) AS profit,
+         COALESCE(SUM(COALESCE(unit_sale_price,0) * quantity), 0) AS revenue,
+         COALESCE(SUM(quantity), 0) AS units,
+         COUNT(*)::int AS sales_count
+       FROM inventory_movements
+       WHERE clinic_id = $1
+         AND is_sale = TRUE
+         AND date_trunc('month', created_at) = date_trunc('month', CURRENT_TIMESTAMP)
+         ${userFilter}`,
+      baseParams
+    );
+
+    const histAgg = await query(
+      `SELECT
+         COALESCE(SUM((COALESCE(unit_sale_price,0) - COALESCE(unit_cost_at_sale,0)) * quantity), 0) AS profit,
+         COALESCE(SUM(COALESCE(unit_sale_price,0) * quantity), 0) AS revenue,
+         COALESCE(SUM(quantity), 0) AS units,
+         COUNT(*)::int AS sales_count
+       FROM inventory_movements
+       WHERE clinic_id = $1 AND is_sale = TRUE${userFilter}`,
+      baseParams
+    );
+
+    const topProducts = await query(
+      `SELECT i.id, i.name, i.image_url,
+              SUM(m.quantity) AS units,
+              SUM((COALESCE(m.unit_sale_price,0) - COALESCE(m.unit_cost_at_sale,0)) * m.quantity) AS profit,
+              SUM(COALESCE(m.unit_sale_price,0) * m.quantity) AS revenue
+       FROM inventory_movements m
+       JOIN inventory_items i ON i.id = m.inventory_item_id
+       WHERE m.clinic_id = $1
+         AND m.is_sale = TRUE
+         AND date_trunc('month', m.created_at) = date_trunc('month', CURRENT_TIMESTAMP)
+         ${userFilterAliased}
+       GROUP BY i.id, i.name, i.image_url
+       ORDER BY profit DESC
+       LIMIT 5`,
+      baseParams
+    );
+
+    res.json({
+      month: monthAgg.rows[0],
+      historic: histAgg.rows[0],
+      top_products: topProducts.rows
+    });
+  } catch (err) {
+    console.error('[inventory] sales summary error:', err);
+    res.status(500).json({ error: 'Error calculando ventas' });
+  }
+});
+
+// ── Product sales list (table in Finanzas) ──
+// Doctors only see their own sales; admins see clinic-wide rows.
+router.get('/sales/list', authenticate, async (req, res) => {
+  try {
+    const clinicId = req.user.clinic_id;
+    const isDoctor = req.user.role === 'doctor';
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
+    const params = isDoctor ? [clinicId, req.user.id, limit] : [clinicId, limit];
+    const userFilter = isDoctor ? ' AND m.user_id = $2' : '';
+    const limitParam = isDoctor ? '$3' : '$2';
+    const r = await query(
+      `SELECT m.id, m.created_at, m.quantity,
+              m.unit_sale_price, m.unit_cost_at_sale,
+              ((COALESCE(m.unit_sale_price,0) - COALESCE(m.unit_cost_at_sale,0)) * m.quantity) AS profit,
+              (COALESCE(m.unit_sale_price,0) * m.quantity) AS revenue,
+              m.note, m.reason,
+              i.id AS item_id, i.name AS item_name, i.image_url AS item_image,
+              i.unit AS item_unit,
+              u.name AS user_name
+       FROM inventory_movements m
+       JOIN inventory_items i ON i.id = m.inventory_item_id
+       LEFT JOIN users u ON u.id = m.user_id
+       WHERE m.clinic_id = $1 AND m.is_sale = TRUE${userFilter}
+       ORDER BY m.created_at DESC
+       LIMIT ${limitParam}`,
+      params
+    );
+    res.json(r.rows);
+  } catch (err) {
+    console.error('[inventory] sales list error:', err);
+    res.status(500).json({ error: 'Error listando ventas' });
+  }
 });
 
 // ── Movements ──

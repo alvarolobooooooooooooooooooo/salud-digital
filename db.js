@@ -337,7 +337,11 @@ const initDb = async () => {
       'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_notes TEXT DEFAULT \'\'',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret TEXT DEFAULT NULL',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE',
-      'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_pending_secret TEXT DEFAULT NULL'
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_pending_secret TEXT DEFAULT NULL',
+      'ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS sale_price NUMERIC NOT NULL DEFAULT 0',
+      'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS is_sale BOOLEAN NOT NULL DEFAULT FALSE',
+      'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS unit_sale_price NUMERIC',
+      'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS unit_cost_at_sale NUMERIC'
     ];
 
     for (const cmd of alterCommands) {

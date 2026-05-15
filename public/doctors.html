@@ -453,6 +453,17 @@
       background-size:200% 100%; border-radius:8px;
       animation:shimmer 1.4s ease-in-out infinite;
     }
+    html[data-theme="dark"] .skeleton-card{
+      background: rgba(20, 20, 22, .72) !important;
+      border-color: rgba(255, 255, 255, .055) !important;
+    }
+    html[data-theme="dark"] .sk{
+      background: linear-gradient(90deg,
+        rgba(255, 255, 255, .03) 0%,
+        rgba(255, 255, 255, .08) 50%,
+        rgba(255, 255, 255, .03) 100%) !important;
+      background-size: 200% 100% !important;
+    }
     @keyframes shimmer{ 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
     /* Toast */

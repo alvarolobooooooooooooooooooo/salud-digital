@@ -40,6 +40,7 @@ router.get('/', authenticate, async (req, res) => {
             i.type AS item_type, i.area AS item_area, i.exact_location AS item_location,
             i.expiration_date AS item_expiration_date, i.current_stock AS item_current_stock,
             i.min_stock AS item_min_stock, i.is_archived AS item_is_archived,
+            i.sale_price AS item_sale_price,
             usr.name AS used_by_name
      FROM consultation_inventory_usage u
      LEFT JOIN inventory_items i ON i.id = u.inventory_item_id
@@ -113,7 +114,9 @@ router.post('/', authenticate, async (req, res) => {
     }
 
     const unitCost = Number(item.unit_cost || 0);
+    const unitSalePrice = Number(item.sale_price || 0);
     const totalCost = unitCost * qty;
+    const isSale = unitSalePrice > 0;
 
     // Insert the usage row (already marked as applied since we deduct here)
     const ins = await client.query(
@@ -136,16 +139,19 @@ router.post('/', authenticate, async (req, res) => {
       [stockAfter, itemId]
     );
 
-    // Record movement (uses existing 'salida' type; reason links it to consultation)
+    // Record movement — when the product has a sale_price > 0 we treat the
+    // consultation use as a sale so it surfaces in /finanzas product cards.
     await client.query(
       `INSERT INTO inventory_movements
-        (inventory_item_id, clinic_id, type, quantity, previous_stock, new_stock, reason, note, user_id)
-       VALUES ($1,$2,'salida',$3,$4,$5,$6,$7,$8)`,
+        (inventory_item_id, clinic_id, type, quantity, previous_stock, new_stock,
+         reason, note, user_id, is_sale, unit_sale_price, unit_cost_at_sale)
+       VALUES ($1,$2,'salida',$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
       [
         itemId, req.user.clinic_id, qty, stockBefore, stockAfter,
         `Usado en consulta #${consultationId}`,
         notes || `Consulta ${consultationType}`,
-        req.user.id
+        req.user.id,
+        isSale, isSale ? unitSalePrice : null, isSale ? unitCost : null
       ]
     );
 
@@ -158,6 +164,7 @@ router.post('/', authenticate, async (req, res) => {
               i.type AS item_type, i.area AS item_area, i.exact_location AS item_location,
               i.expiration_date AS item_expiration_date, i.current_stock AS item_current_stock,
               i.min_stock AS item_min_stock,
+              i.sale_price AS item_sale_price,
               usr.name AS used_by_name
        FROM consultation_inventory_usage u
        LEFT JOIN inventory_items i ON i.id = u.inventory_item_id
@@ -237,7 +244,9 @@ router.post('/bulk', authenticate, async (req, res) => {
           continue;
         }
         const unitCost = Number(inv.unit_cost || 0);
+        const unitSalePrice = Number(inv.sale_price || 0);
         const totalCost = unitCost * qty;
+        const isSale = unitSalePrice > 0;
         const ins = await client.query(
           `INSERT INTO consultation_inventory_usage
             (clinic_id, consultation_id, consultation_type, patient_id, inventory_item_id,
@@ -257,12 +266,14 @@ router.post('/bulk', authenticate, async (req, res) => {
         );
         await client.query(
           `INSERT INTO inventory_movements
-            (inventory_item_id, clinic_id, type, quantity, previous_stock, new_stock, reason, note, user_id)
-           VALUES ($1,$2,'salida',$3,$4,$5,$6,$7,$8)`,
+            (inventory_item_id, clinic_id, type, quantity, previous_stock, new_stock,
+             reason, note, user_id, is_sale, unit_sale_price, unit_cost_at_sale)
+           VALUES ($1,$2,'salida',$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
           [
             itemId, req.user.clinic_id, qty, stockBefore, stockAfter,
             `Usado en consulta #${consultationId}`,
-            (it.notes || ''), req.user.id
+            (it.notes || ''), req.user.id,
+            isSale, isSale ? unitSalePrice : null, isSale ? unitCost : null
           ]
         );
         await client.query('COMMIT');
@@ -343,6 +354,18 @@ router.put('/:id', authenticate, async (req, res) => {
           req.user.id
         ]
       );
+      // Keep the original sale row in inventory_movements in sync so Finanzas
+      // totals reflect the edit (without polluting history with refund movements).
+      await client.query(
+        `UPDATE inventory_movements
+            SET quantity = $1
+          WHERE clinic_id = $2
+            AND inventory_item_id = $3
+            AND type = 'salida'
+            AND is_sale = TRUE
+            AND reason = $4`,
+        [newQty, req.user.clinic_id, item.id, `Usado en consulta #${usage.consultation_id}`]
+      );
       finalQty = newQty;
     }
     if (newNotes !== undefined) finalNotes = newNotes;
@@ -411,6 +434,16 @@ router.delete('/:id', authenticate, async (req, res) => {
             'Devolución por eliminación de uso',
             req.user.id
           ]
+        );
+        // Cancel the original sale row so Finanzas no longer counts it.
+        await client.query(
+          `DELETE FROM inventory_movements
+            WHERE clinic_id = $1
+              AND inventory_item_id = $2
+              AND type = 'salida'
+              AND is_sale = TRUE
+              AND reason = $3`,
+          [req.user.clinic_id, item.id, `Usado en consulta #${usage.consultation_id}`]
         );
       }
     }
