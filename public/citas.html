@@ -868,6 +868,20 @@
     .status-badge.s-cancelled { background: var(--bad-50); color: var(--bad-700); border: 1px solid var(--bad-100); }
     .status-badge.s-cancelled .dot { background: var(--bad-500); }
 
+    .appt-type-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: .01em;
+      border-radius: 999px;
+      line-height: 1.1;
+      white-space: nowrap;
+      color: var(--c);
+      background: color-mix(in srgb, var(--c) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c) 28%, transparent);
+    }
+    .appt-type-badge .appt-type-dot { width: 5px; height: 5px; border-radius: 999px; background: var(--c); }
+
     .btn-sm {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 5px 11px; height: 28px;
@@ -1673,6 +1687,16 @@
           <input type="text" id="fSpecialty" placeholder="Medicina General" readonly style="background:#f8fafc;color:#64748b;">
         </div>
         <div class="field full">
+          <label>Tipo de Cita *</label>
+          <select id="fAppointmentType" required>
+            <option value="nuevo_paciente">Nuevo paciente</option>
+            <option value="seguimiento" selected>Seguimiento</option>
+            <option value="control">Control</option>
+            <option value="urgencia">Urgencia</option>
+            <option value="procedimiento">Procedimiento</option>
+          </select>
+        </div>
+        <div class="field full">
           <label>Fecha y hora *</label>
           <input type="datetime-local" id="fDatetime" data-calendar-picker required>
         </div>
@@ -1784,9 +1808,25 @@ let filterState = {
   dateRange: 'all',  // today | tomorrow | week | nextweek | month | nextmonth | 30 | all
   status: [],
   type: [],
+  apptType: [],
   doctor: [],
   patient: [],
 };
+
+const APPT_TYPE_META = {
+  nuevo_paciente: { label: 'Nuevo paciente', color: '#8b5cf6' },
+  seguimiento:    { label: 'Seguimiento',    color: '#06b6d4' },
+  control:        { label: 'Control',        color: '#10b981' },
+  urgencia:       { label: 'Urgencia',       color: '#ef4444' },
+  procedimiento:  { label: 'Procedimiento',  color: '#f59e0b' },
+};
+function apptTypeLabel(v) { return (APPT_TYPE_META[v] && APPT_TYPE_META[v].label) || 'Seguimiento'; }
+function apptTypeColor(v) { return (APPT_TYPE_META[v] && APPT_TYPE_META[v].color) || '#06b6d4'; }
+function apptTypeBadgeHtml(a) {
+  const v = a && a.appointment_type ? a.appointment_type : 'seguimiento';
+  const c = apptTypeColor(v);
+  return `<span class="appt-type-badge" style="--c:${c}"><span class="appt-type-dot"></span>${esc(apptTypeLabel(v))}</span>`;
+}
 
 let activeMs = null; // open multiselect dropdown id
 
@@ -1949,6 +1989,7 @@ function applyFilterState(list) {
   }
   if (filterState.status.length)  out = out.filter(a => filterState.status.includes(a.status || 'pending'));
   if (filterState.type.length)    out = out.filter(a => filterState.type.includes(a.specialty || 'Medicina General'));
+  if (filterState.apptType.length) out = out.filter(a => filterState.apptType.includes(a.appointment_type || 'seguimiento'));
   if (filterState.doctor.length)  out = out.filter(a => filterState.doctor.includes(a.doctor_id));
   if (filterState.patient.length) out = out.filter(a => filterState.patient.includes(a.patient_id));
 
@@ -1969,6 +2010,7 @@ function applyFilterState(list) {
 function activeFilterCount() {
   return (filterState.status.length || 0)
     + (filterState.type.length || 0)
+    + (filterState.apptType.length || 0)
     + (filterState.doctor.length || 0)
     + (filterState.patient.length || 0)
     + (filterState.dateRange !== 'all' ? 1 : 0)
@@ -1976,7 +2018,7 @@ function activeFilterCount() {
 }
 
 function clearAllFilters() {
-  filterState = { q:'', dateRange:'all', status:[], type:[], doctor:[], patient:[] };
+  filterState = { q:'', dateRange:'all', status:[], type:[], apptType:[], doctor:[], patient:[] };
   document.getElementById('searchInput').value = '';
   renderFilters();
   renderEverything();
@@ -2082,6 +2124,26 @@ function renderFilters() {
     }));
   }
 
+  // Tipo de cita (appointment_type)
+  const apptTypeOrder = ['nuevo_paciente','seguimiento','control','urgencia','procedimiento'];
+  const apptTypeOpts = apptTypeOrder
+    .map(v => ({
+      value: v,
+      label: APPT_TYPE_META[v].label,
+      dot: APPT_TYPE_META[v].color,
+      count: apptsForCounts.filter(a => (a.appointment_type || 'seguimiento') === v).length,
+    }))
+    .filter(o => o.count > 0 || filterState.apptType.includes(o.value));
+  if (apptTypeOpts.length > 0) {
+    row.appendChild(buildDropdownTrigger({
+      id: 'apptType',
+      icon: SVG.flag,
+      label: 'Tipo de cita',
+      active: filterState.apptType.length > 0,
+      count: filterState.apptType.length,
+    }));
+  }
+
   // Doctor
   if (allDoctors.length > 1) {
     row.appendChild(buildDropdownTrigger({
@@ -2112,10 +2174,10 @@ function renderFilters() {
   }
 
   // Stash options for dropdowns
-  filterRowMeta = { statusOpts, typeOpts, dateRangeLabels };
+  filterRowMeta = { statusOpts, typeOpts, apptTypeOpts, dateRangeLabels };
 }
 
-let filterRowMeta = { statusOpts: [], typeOpts: [], dateRangeLabels: {} };
+let filterRowMeta = { statusOpts: [], typeOpts: [], apptTypeOpts: [], dateRangeLabels: {} };
 
 function buildDropdownTrigger({ id, icon, label, active, count }) {
   const wrap = document.createElement('div');
@@ -2152,6 +2214,7 @@ function toggleDropdown(id, anchor) {
   if (id === 'date') renderDatePop(pop);
   else if (id === 'status') renderMsPop(pop, filterRowMeta.statusOpts, filterState.status, (sel) => { filterState.status = sel; renderFilters(); renderEverything(); });
   else if (id === 'type') renderMsPop(pop, filterRowMeta.typeOpts, filterState.type, (sel) => { filterState.type = sel; renderFilters(); renderEverything(); });
+  else if (id === 'apptType') renderMsPop(pop, filterRowMeta.apptTypeOpts, filterState.apptType, (sel) => { filterState.apptType = sel; renderFilters(); renderEverything(); });
   else if (id === 'doctor') {
     const docOpts = allDoctors.map(d => ({
       value: d.id,
@@ -2575,11 +2638,12 @@ function renderDayView(filtered) {
     const cls = statusOf(apt.status).cls;
     const colW = `calc((100% - 16px) / ${total})`;
     const left = `calc(8px + ${colIdx} * ((100% - 16px) / ${total}) + ${colIdx * 4}px)`;
+    const tColor = apptTypeColor(apt.appointment_type || 'seguimiento');
     return `
-      <div class="apt-block ${cls}" data-apt-id="${apt.id}" style="top:${top}px;left:${left};width:${colW};height:${height}px">
+      <div class="apt-block ${cls}" data-apt-id="${apt.id}" style="top:${top}px;left:${left};width:${colW};height:${height}px;box-shadow:inset 3px 0 0 ${tColor}">
         <div class="apt-time">${fmtTime(apt.scheduled_at)}<span class="apt-time-dur">· ${dur}min</span></div>
         <div class="apt-name">${esc(apt.patient_name || '?')}</div>
-        ${height > 50 ? `<div class="apt-meta"><span class="dot" style="background:var(--teal-600)"></span>${esc(apt.specialty || 'Consulta')}</div>` : ''}
+        ${height > 50 ? `<div class="apt-meta"><span class="dot" style="background:${tColor}"></span>${esc(apptTypeLabel(apt.appointment_type || 'seguimiento'))}</div>` : ''}
       </div>`;
   }).join('');
 
@@ -2858,6 +2922,7 @@ function listRowHtml(a) {
           <div class="list-pat-meta">
             <span class="list-pat-meta-item">${SVG.stethoscope}${esc(a.doctor_name ? 'Dr. ' + a.doctor_name : 'Sin doctor')}</span>
             ${a.specialty ? `<span class="list-pat-meta-item">${dotForSpecialty(a.specialty)}${esc(a.specialty)}</span>` : ''}
+            ${apptTypeBadgeHtml(a)}
             ${a.notes ? `<span class="list-pat-meta-item">${SVG.notes}<em>${esc(String(a.notes).slice(0, 60))}${a.notes.length > 60 ? '…' : ''}</em></span>` : ''}
           </div>
         </div>
@@ -2917,6 +2982,7 @@ function renderKanbanView(filtered) {
                     </div>
                     <div class="kanban-card-name">${esc(a.patient_name || '?')}</div>
                     <div class="kanban-card-meta"><span style="width:5px;height:5px;border-radius:999px;background:var(--teal-600)"></span>${esc(a.specialty || 'Consulta')}</div>
+                    <div style="margin-top:6px">${apptTypeBadgeHtml(a)}</div>
                   </div>`;
               }).join('')}
             </div>
@@ -3027,6 +3093,13 @@ function openDrawer(id) {
             <div class="detail-content">
               <div class="detail-key">Especialidad</div>
               <div class="detail-val"><strong>${esc(a.specialty || 'Medicina General')}</strong></div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-icon">${SVG.flag}</div>
+            <div class="detail-content">
+              <div class="detail-key">Tipo de cita</div>
+              <div class="detail-val">${apptTypeBadgeHtml(a)}</div>
             </div>
           </div>
           <div class="detail-row">
@@ -3190,6 +3263,7 @@ function openModal() {
   document.getElementById('btnDelete').style.display = 'none';
   document.getElementById('citaForm').reset();
   document.getElementById('fStatus').value = 'pending';
+  document.getElementById('fAppointmentType').value = 'seguimiento';
   const now = new Date(); now.setMinutes(0,0,0);
   document.getElementById('fDatetime').value = now.toISOString().slice(0,16);
 
@@ -3217,6 +3291,7 @@ function openEdit(id) {
 
   document.getElementById('fDatetime').value = a.scheduled_at.slice(0,16);
   document.getElementById('fStatus').value   = a.status;
+  document.getElementById('fAppointmentType').value = a.appointment_type || 'seguimiento';
 
   initializeDatePicker();
   const dtInput = document.getElementById('fDatetime');
@@ -3258,7 +3333,8 @@ async function submitCita(e) {
         doctor_id: +document.getElementById('fDoctor').value,
         specialty: document.getElementById('fSpecialty').value,
         scheduled_at: document.getElementById('fDatetime').value,
-        status: document.getElementById('fStatus').value
+        status: document.getElementById('fStatus').value,
+        appointment_type: document.getElementById('fAppointmentType').value
       }});
       msgEl.textContent = 'Cita actualizada'; msgEl.className = 'form-msg ok';
     } else {
@@ -3266,7 +3342,8 @@ async function submitCita(e) {
         patient_id: +document.getElementById('fPatient').value,
         doctor_id:  +document.getElementById('fDoctor').value,
         specialty:   document.getElementById('fSpecialty').value,
-        scheduled_at: document.getElementById('fDatetime').value
+        scheduled_at: document.getElementById('fDatetime').value,
+        appointment_type: document.getElementById('fAppointmentType').value
       }});
       msgEl.textContent = 'Cita creada'; msgEl.className = 'form-msg ok';
     }

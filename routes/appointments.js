@@ -26,8 +26,10 @@ router.get('/', authenticate, async (req, res) => {
   res.json(result.rows);
 });
 
+const VALID_APPOINTMENT_TYPES = ['nuevo_paciente', 'seguimiento', 'control', 'urgencia', 'procedimiento'];
+
 router.put('/:id', authenticate, async (req, res) => {
-  const { patient_id, doctor_id, scheduled_at, status } = req.body;
+  const { patient_id, doctor_id, scheduled_at, status, appointment_type } = req.body;
   const apptResult = await query('SELECT id, doctor_id as current_doctor_id FROM appointments WHERE id = $1 AND clinic_id = $2',
     [req.params.id, req.user.clinic_id]);
   const appt = apptResult.rows[0];
@@ -62,6 +64,13 @@ router.put('/:id', authenticate, async (req, res) => {
   if (status !== undefined) {
     fields.push(`status = $${paramIndex++}`);
     vals.push(status);
+  }
+  if (appointment_type !== undefined) {
+    if (!VALID_APPOINTMENT_TYPES.includes(appointment_type)) {
+      return res.status(400).json({ error: 'Tipo de cita inválido' });
+    }
+    fields.push(`appointment_type = $${paramIndex++}`);
+    vals.push(appointment_type);
   }
 
   if (!fields.length) return res.status(400).json({ error: 'Nada que actualizar' });
@@ -147,9 +156,14 @@ router.post('/', authenticate, async (req, res) => {
   if (req.user.role === 'clinic_admin') {
     return res.status(403).json({ error: 'Clinic admin cannot create appointments' });
   }
-  const { patient_id, doctor_id, scheduled_at } = req.body;
+  const { patient_id, doctor_id, scheduled_at, appointment_type } = req.body;
   if (!patient_id || !doctor_id || !scheduled_at) {
     return res.status(400).json({ error: 'patient_id, doctor_id y scheduled_at son requeridos' });
+  }
+
+  const aptType = appointment_type || 'seguimiento';
+  if (!VALID_APPOINTMENT_TYPES.includes(aptType)) {
+    return res.status(400).json({ error: 'Tipo de cita inválido' });
   }
 
   const patientResult = await query('SELECT id FROM patients WHERE id = $1 AND clinic_id = $2',
@@ -161,8 +175,8 @@ router.post('/', authenticate, async (req, res) => {
   if (doctorResult.rows.length === 0) return res.status(404).json({ error: 'Doctor no encontrado' });
 
   const result = await query(
-    'INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-    [patient_id, doctor_id, req.user.clinic_id, doctorResult.rows[0].specialty || '', scheduled_at, 'pending']
+    'INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status, appointment_type) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+    [patient_id, doctor_id, req.user.clinic_id, doctorResult.rows[0].specialty || '', scheduled_at, 'pending', aptType]
   );
   res.json({ id: result.rows[0].id });
 });

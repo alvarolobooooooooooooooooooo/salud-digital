@@ -2520,6 +2520,20 @@ html[data-theme="dark"] .patient-detail {
   background: transparent !important;
   color: var(--sd-text) !important;
 }
+@media (max-width: 860px) {
+  html[data-theme="dark"] .patient-detail {
+    background: var(--sd-bg-base) !important;
+  }
+}
+html[data-theme="dark"] .detail-back-btn-mobile {
+  background: var(--sd-surface-solid) !important;
+  border: 1px solid var(--sd-border) !important;
+  color: #67e8f9 !important;
+}
+html[data-theme="dark"] .detail-back-btn-mobile:hover {
+  background: rgba(6, 182, 212, 0.1) !important;
+  border-color: #06b6d4 !important;
+}
 html[data-theme="dark"] .empty-state { color: var(--sd-text-muted) !important; }
 html[data-theme="dark"] .empty-state h3 {
   color: #67e8f9 !important;

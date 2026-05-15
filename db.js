@@ -335,6 +335,7 @@ const initDb = async () => {
       'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP',
       'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS paid_by INTEGER',
       'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_notes TEXT DEFAULT \'\'',
+      'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS appointment_type TEXT DEFAULT \'seguimiento\'',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret TEXT DEFAULT NULL',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_pending_secret TEXT DEFAULT NULL',
