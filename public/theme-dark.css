@@ -2853,6 +2853,15 @@ html[data-theme="dark"] .chart-container {
   flex-basis: 220px !important;
 }
 
+/* Inventario — "Registrar como venta" labels inside adjustSaleBlock (inline-styled #0f172a / #475569 in HTML) */
+html[data-theme="dark"] .adjust-sale-label { color: var(--sd-text) !important; }
+html[data-theme="dark"] .adjust-sale-sublabel { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] #adjustSalePrice {
+  background: var(--sd-input-bg) !important;
+  color: var(--sd-text) !important;
+  border: 1.5px solid var(--sd-input-border) !important;
+}
+
 /* Date range filter inputs in "Consultas Pagadas" (inline-styled in finanzas.html) */
 html[data-theme="dark"] #paidStartDateDisplay,
 html[data-theme="dark"] #paidEndDateDisplay {
