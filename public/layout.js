@@ -18,6 +18,7 @@
     '/patients.html': 'patients',
     '/patient.html': 'patients',
     '/citas.html': 'citas',
+    '/calendario-compartido.html': 'calendario-compartido',
     '/finanzas.html': 'finanzas',
     '/doctors.html': 'doctors',
     '/consentimientos.html': 'consentimientos',
@@ -83,6 +84,7 @@
           items: [
             { href: '/dashboard.html', key: 'dashboard', iconName: 'home', label: 'Inicio' },
             { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
+            { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
             { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
           ]
@@ -118,6 +120,7 @@
           items: [
             { href: '/dashboard.html', key: 'dashboard', iconName: 'home', label: 'Inicio' },
             { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
+            { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
             { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
           ]
@@ -159,7 +162,7 @@
     }).join('');
 
     // Mobile menu items (exclude Consentimientos, Recordatorios, Citas Online, Mi Plan from mobile sticky menu)
-    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario' && item.key !== 'configuracion').map(item => {
+    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'calendario-compartido').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
@@ -199,6 +202,10 @@
               <span>Configuración</span>
             </a>
           </div>` : `<div class="sidebar-section">
+            <a href="/calendario-compartido.html" class="sidebar-menu-link">
+              <span id="calCompartidoIcon"></span>
+              <span>Calendario Compartido</span>
+            </a>
             <a href="/agendar-online.html" class="sidebar-menu-link">
               <span id="citasOnlineIcon"></span>
               <span>Citas Online</span>
@@ -326,6 +333,10 @@
     // Notification icon
     const notificationIcon = document.querySelector('#notificationIcon');
     if (notificationIcon && !notificationIcon.innerHTML.trim()) notificationIcon.innerHTML = Icons.render('bell', 24);
+
+    // Calendario Compartido menu icon
+    const calCompartidoIcon = document.querySelector('#calCompartidoIcon');
+    if (calCompartidoIcon && !calCompartidoIcon.innerHTML.trim()) calCompartidoIcon.innerHTML = Icons.render('calendar', 16);
 
     // Citas Online menu icon
     const citasOnlineIcon = document.querySelector('#citasOnlineIcon');

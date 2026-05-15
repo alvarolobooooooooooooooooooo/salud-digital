@@ -26,6 +26,12 @@ router.get('/', authenticate, async (req, res) => {
   res.json(result.rows);
 });
 
+router.get('/calendar', authenticate, async (req, res) => {
+  const queryStr = `SELECT a.*, p.name AS patient_name, p.phone AS patient_phone, u.name AS doctor_name, u.email AS doctor_email, u.specialty AS doctor_specialty FROM appointments a JOIN patients p ON a.patient_id = p.id JOIN users u ON a.doctor_id = u.id WHERE a.clinic_id = $1 ORDER BY a.scheduled_at ASC`;
+  const result = await query(queryStr, [req.user.clinic_id]);
+  res.json(result.rows);
+});
+
 const VALID_APPOINTMENT_TYPES = ['nuevo_paciente', 'seguimiento', 'control', 'urgencia', 'procedimiento'];
 
 router.put('/:id', authenticate, async (req, res) => {

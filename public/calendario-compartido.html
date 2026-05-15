@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="/theme.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SaludDigital — Calendario Compartido</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    :root {
+      --teal-50:#ecfeff; --teal-100:#cffafe; --teal-200:#a5f3fc; --teal-300:#67e8f9;
+      --teal-400:#22d3ee; --teal-500:#06b6d4; --teal-600:#0891b2; --teal-700:#0e7490;
+      --teal-800:#155e75; --teal-900:#164e63;
+      --ink-900:#0f172a; --ink-800:#1e293b; --ink-700:#334155; --ink-600:#475569;
+      --ink-500:#64748b; --ink-400:#94a3b8; --ink-300:#cbd5e1; --ink-200:#e2e8f0;
+      --ink-150:#eef2f6; --ink-100:#f1f5f9; --ink-50:#f8fafc;
+      --shadow-xs: 0 1px 2px rgba(15,23,42,.04);
+      --shadow-sm: 0 1px 2px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.04);
+      --shadow-md: 0 2px 4px rgba(15,23,42,.04), 0 6px 16px rgba(15,23,42,.06);
+      --shadow-lg: 0 6px 24px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.04);
+      --shadow-xl: 0 24px 48px -12px rgba(15,23,42,.18);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      color: var(--ink-800);
+      background: #eef4f8;
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 1200px 800px at 0% 0%, rgba(6,182,212,.18), transparent 60%),
+        radial-gradient(ellipse 900px 700px at 100% 0%, rgba(34,211,238,.14), transparent 55%),
+        radial-gradient(ellipse 1000px 800px at 80% 100%, rgba(14,116,144,.12), transparent 60%),
+        radial-gradient(ellipse 700px 600px at 20% 90%, rgba(165,243,252,.20), transparent 55%),
+        linear-gradient(180deg, #f0f7fa 0%, #e8f1f6 100%);
+      z-index: -2;
+      pointer-events: none;
+    }
+    body::after {
+      content: "";
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+      opacity: .35;
+      z-index: -1;
+      pointer-events: none;
+      mix-blend-mode: overlay;
+    }
+
+    .glass {
+      background: rgba(255,255,255,.62);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255,255,255,.6);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,.9) inset,
+        0 -1px 0 rgba(15,23,42,.04) inset,
+        0 8px 24px -8px rgba(8,51,68,.12),
+        0 2px 6px -2px rgba(8,51,68,.06);
+    }
+    .glass-strong {
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255,255,255,.7);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,.95) inset,
+        0 -1px 0 rgba(15,23,42,.05) inset,
+        0 16px 40px -12px rgba(8,51,68,.18),
+        0 4px 10px -4px rgba(8,51,68,.08);
+    }
+
+    button { font-family: inherit; cursor: pointer; }
+    input, select, textarea { font-family: inherit; }
+
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--ink-200); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--ink-300); border: 2px solid transparent; background-clip: padding-box; }
+
+    [data-tip] { position: relative; }
+    [data-tip]:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink-900);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 240ms ease-out both; }
+    @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    .slide-in-right { animation: slideInRight 220ms cubic-bezier(0.16,1,0.3,1) both; }
+
+    main.layout-main { padding: 22px 28px 32px; overflow-x: visible; position: relative; z-index: 1; background: transparent; }
+
+    /* ════════════ HERO ════════════ */
+    .citas-hero {
+      position: relative;
+      padding: 22px 26px;
+      margin-bottom: 16px;
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #6d28d9 0%, #0891b2 50%, #06b6d4 100%);
+      box-shadow: 0 16px 40px -12px rgba(109,40,217,.35), 0 4px 12px -4px rgba(14,116,144,.25);
+    }
+    .citas-hero::before {
+      content: ""; position: absolute; top: -60px; right: -40px;
+      width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(165,243,252,.35), transparent 70%);
+      pointer-events: none;
+    }
+    .citas-hero::after {
+      content: ""; position: absolute; bottom: -80px; right: 200px;
+      width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.18), transparent 70%);
+      pointer-events: none;
+    }
+    .hero-dots {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%; opacity: .12; pointer-events: none;
+    }
+    .hero-row { position: relative; display: flex; align-items: flex-start; gap: 16px; }
+    .hero-content { flex: 1; min-width: 0; }
+    .hero-crumb {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 500;
+      color: rgba(255,255,255,.75);
+      margin-bottom: 8px;
+    }
+    .hero-crumb svg { opacity: .85; }
+    .hero-crumb-current { color: white; font-weight: 600; }
+    .hero-crumb a { color: rgba(255,255,255,.75); text-decoration: none; }
+    .hero-title {
+      font-size: 32px; font-weight: 700;
+      color: white;
+      letter-spacing: -.025em;
+      margin: 0;
+      text-shadow: 0 1px 2px rgba(0,0,0,.1);
+      line-height: 1.1;
+    }
+    .hero-sub {
+      margin: 5px 0 0;
+      font-size: 14px;
+      color: rgba(255,255,255,.85);
+      font-weight: 450;
+    }
+    .hero-actions { display: flex; align-items: center; gap: 8px; }
+    .glass-icon-btn {
+      width: 38px; height: 38px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 10px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 120ms;
+    }
+    .glass-icon-btn:hover { background: rgba(255,255,255,.25); }
+
+    /* ════════════ Doctor legend ════════════ */
+    .doc-legend {
+      padding: 12px 14px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    }
+    .doc-legend-label {
+      font-size: 11px; font-weight: 600; letter-spacing: .05em;
+      color: var(--ink-500); text-transform: uppercase;
+      margin-right: 4px;
+    }
+    .doc-chip {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 12px; font-weight: 500;
+      color: var(--ink-800);
+      background: color-mix(in srgb, var(--dc) 14%, white);
+      border: 1px solid color-mix(in srgb, var(--dc) 36%, transparent);
+      cursor: pointer;
+      transition: all 140ms;
+    }
+    .doc-chip:hover {
+      background: color-mix(in srgb, var(--dc) 22%, white);
+      transform: translateY(-1px);
+    }
+    .doc-chip.is-muted {
+      opacity: .45;
+      background: white;
+      border-color: var(--ink-200);
+    }
+    .doc-chip-dot {
+      width: 9px; height: 9px; border-radius: 999px;
+      background: var(--dc);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--dc) 22%, white);
+    }
+    .doc-chip-count {
+      min-width: 18px; height: 18px; padding: 0 6px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: white; color: var(--ink-700);
+      border-radius: 999px;
+      font-size: 10.5px; font-weight: 600;
+      border: 1px solid color-mix(in srgb, var(--dc) 28%, transparent);
+    }
+    .doc-legend-actions {
+      margin-left: auto;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .doc-legend-action {
+      padding: 5px 10px;
+      background: white;
+      border: 1px solid var(--ink-200);
+      border-radius: 7px;
+      font-size: 11.5px; font-weight: 500;
+      color: var(--ink-700);
+      cursor: pointer;
+      transition: all 120ms;
+    }
+    .doc-legend-action:hover { background: var(--ink-50); }
+
+    /* ════════════ Filter bar ════════════ */
+    .filters-wrapper { position: relative; z-index: 40; margin-bottom: 14px; }
+    .filter-bar { border-radius: 14px; padding: 12px; position: relative; z-index: 40; }
+    .filter-header { display: flex; align-items: center; gap: 10px; }
+    .filter-search { position: relative; flex: 1; min-width: 240px; }
+    .filter-search input {
+      width: 100%; height: 36px;
+      padding: 0 12px 0 36px;
+      font-size: 13px;
+      background: white;
+      border: 1px solid var(--ink-200);
+      border-radius: 8px;
+      outline: none;
+      color: var(--ink-800);
+      transition: all 120ms;
+    }
+    .filter-search input:focus { border-color: var(--teal-400); box-shadow: 0 0 0 3px var(--teal-100); }
+    .filter-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-400); pointer-events: none; }
+    .kbd-hint {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      padding: 2px 6px; font-size: 10.5px; font-weight: 500;
+      color: var(--ink-400); border: 1px solid var(--ink-200);
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    }
+    .ms-trigger {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 0 12px; height: 36px;
+      background: white;
+      border: 1px solid var(--ink-200);
+      border-radius: 8px;
+      font-size: 13px; font-weight: 500;
+      color: var(--ink-700);
+      cursor: pointer; white-space: nowrap;
+      transition: all 120ms;
+    }
+    .ms-trigger.active { background: var(--teal-50); border-color: var(--teal-200); color: var(--teal-700); }
+    .ms-trigger:hover { background: var(--ink-50); }
+    .ms-trigger.active:hover { background: var(--teal-100); }
+    .ms-icon { color: var(--ink-500); display: inline-flex; }
+    .ms-trigger.active .ms-icon { color: var(--teal-600); }
+    .ms-count {
+      min-width: 18px; height: 18px; padding: 0 6px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--teal-600); color: white;
+      border-radius: 999px;
+      font-size: 10.5px; font-weight: 600;
+    }
+    .ms-chev { color: var(--ink-400); margin-left: auto; transition: transform 160ms; }
+    .ms-trigger[data-open="true"] .ms-chev { transform: rotate(180deg); }
+    .ms-pop {
+      position: absolute;
+      top: calc(100% + 6px); left: 0;
+      min-width: 240px; max-height: 360px; overflow: auto;
+      background: white;
+      border: 1px solid var(--ink-200);
+      border-radius: 10px;
+      box-shadow: var(--shadow-lg);
+      z-index: 200; padding: 6px;
+      animation: fadeIn 140ms ease-out both;
+    }
+    .ms-search { padding: 4px 4px 8px; position: sticky; top: -6px; background: white; }
+    .ms-search-inner { position: relative; }
+    .ms-search-inner svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--ink-400); pointer-events: none; }
+    .ms-search-inner input {
+      width: 100%; height: 30px;
+      padding: 0 10px 0 30px;
+      font-size: 12.5px;
+      background: var(--ink-50);
+      border: 1px solid var(--ink-200);
+      border-radius: 7px; outline: none;
+    }
+    .ms-opt {
+      display: flex; align-items: center; gap: 9px; width: 100%;
+      padding: 7px 8px;
+      font-size: 13px;
+      background: transparent; color: var(--ink-800);
+      border: none; border-radius: 6px;
+      cursor: pointer; text-align: left;
+    }
+    .ms-opt:hover { background: var(--ink-50); }
+    .ms-opt.active { background: var(--teal-50); }
+    .ms-opt.active:hover { background: var(--teal-100); }
+    .ms-checkbox {
+      width: 16px; height: 16px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1.5px solid var(--ink-300);
+      background: white;
+      border-radius: 4px; color: white;
+      flex-shrink: 0;
+    }
+    .ms-opt.active .ms-checkbox { background: var(--teal-600); border-color: var(--teal-600); }
+    .ms-opt-dot { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; }
+    .ms-opt-label { flex: 1; }
+    .ms-opt-count { font-size: 11px; color: var(--ink-400); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; }
+    .ms-clear {
+      width: 100%; padding: 6px 8px;
+      font-size: 12px; font-weight: 500;
+      background: transparent; border: none;
+      color: var(--ink-500); cursor: pointer; border-radius: 6px;
+      text-align: left;
+    }
+    .ms-clear:hover { background: var(--ink-50); }
+    .ms-divider { height: 1px; background: var(--ink-150); margin: 4px 0; }
+    .filter-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* ════════════ View toolbar ════════════ */
+    .view-toolbar {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .nav-cluster { display: flex; align-items: center; gap: 4px; }
+    .icon-btn-32 {
+      width: 32px; height: 32px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: white;
+      color: var(--ink-600);
+      border: 1px solid var(--ink-200);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 120ms;
+    }
+    .icon-btn-32:hover { background: var(--ink-50); }
+    .btn-today {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0 11px; height: 32px;
+      background: white;
+      color: var(--ink-700);
+      border: 1px solid var(--ink-200);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12.5px; font-weight: 500;
+      transition: all 120ms;
+    }
+    .btn-today:hover { background: var(--ink-50); }
+    .date-label {
+      font-size: 17px; font-weight: 700;
+      color: var(--ink-900);
+      letter-spacing: -.01em;
+      text-transform: capitalize;
+    }
+    .toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .segmented {
+      display: inline-flex;
+      padding: 3px;
+      background: var(--ink-100);
+      border-radius: 9px;
+      border: 1px solid var(--ink-200);
+    }
+    .seg-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0 14px; height: 34px;
+      font-size: 13px; font-weight: 500;
+      border: none; border-radius: 7px;
+      background: transparent;
+      color: var(--ink-600);
+      cursor: pointer;
+      transition: all 120ms;
+    }
+    .seg-btn.active {
+      background: white;
+      color: var(--teal-700);
+      box-shadow: var(--shadow-xs);
+    }
+
+    /* ════════════ Day view ════════════ */
+    .day-view { border-radius: 16px; overflow: hidden; }
+    .day-head {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--ink-150);
+      background: var(--ink-50);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .day-head-name { font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--ink-500); text-transform: uppercase; }
+    .day-head-date { font-size: 18px; font-weight: 700; color: var(--ink-900); letter-spacing: -.01em; margin-top: 1px; text-transform: capitalize; }
+    .day-head-stat { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-500); }
+    .day-head-stat svg { color: var(--ink-400); }
+
+    .day-grid { display: flex; max-height: 600px; overflow: auto; position: relative; }
+    .day-hours-col { flex-shrink: 0; width: 64px; background: var(--ink-50); border-right: 1px solid var(--ink-150); }
+    .day-hour { height: 64px; padding: 6px 10px; text-align: right; position: relative; }
+    .day-hour-label { font-size: 10.5px; font-weight: 500; color: var(--ink-500); font-feature-settings: "tnum"; }
+    .day-canvas { flex: 1; position: relative; }
+    .day-line { position: absolute; left: 0; right: 0; height: 1px; background: var(--ink-150); }
+    .day-line-half { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed var(--ink-150); }
+    .day-now { position: absolute; left: 0; right: 0; height: 0; z-index: 5; }
+    .day-now-line { height: 2px; background: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,.4); }
+    .day-now-dot { position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; border-radius: 999px; background: #ef4444; box-shadow: 0 0 0 3px white; }
+    .day-now-time { position: absolute; right: 8px; top: -22px; padding: 2px 6px; font-size: 10.5px; font-weight: 600; background: #ef4444; color: white; border-radius: 4px; font-variant-numeric: tabular-nums; }
+
+    .apt-block {
+      position: absolute;
+      border-radius: 7px;
+      padding: 6px 8px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: box-shadow 120ms, transform 120ms;
+      display: flex; flex-direction: column; gap: 2px;
+      background: color-mix(in srgb, var(--dc) 14%, white);
+      border: 1px solid color-mix(in srgb, var(--dc) 38%, transparent);
+      border-left: 3px solid var(--dc);
+    }
+    .apt-block:hover { box-shadow: var(--shadow-md); z-index: 4; transform: translateY(-1px); }
+    .apt-time { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--dc) 80%, var(--ink-900)); }
+    .apt-time-dur { font-size: 10px; opacity: .7; }
+    .apt-name { font-size: 12.5px; font-weight: 600; color: var(--ink-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .apt-meta { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-600); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .apt-meta .dot { width: 5px; height: 5px; border-radius: 999px; background: var(--dc); }
+
+    /* ════════════ Week view ════════════ */
+    .week-view { border-radius: 16px; overflow: hidden; }
+    .week-day-strip { display: none; }
+    .week-head {
+      display: grid; grid-template-columns: 56px repeat(7, 1fr);
+      border-bottom: 1px solid var(--ink-150);
+      background: var(--ink-50);
+    }
+    .week-head-spacer { border-right: 1px solid var(--ink-150); }
+    .week-head-cell {
+      padding: 10px 12px;
+      border-right: 1px solid var(--ink-150);
+    }
+    .week-head-cell:last-child { border-right: none; }
+    .week-head-cell.today { background: var(--teal-50); }
+    .wh-name { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; color: var(--ink-500); text-transform: uppercase; }
+    .wh-name.today { color: var(--teal-700); }
+    .wh-num-row { display: flex; align-items: baseline; gap: 6px; margin-top: 2px; }
+    .wh-num { font-size: 18px; font-weight: 700; color: var(--ink-900); letter-spacing: -.02em; }
+    .wh-num.today { color: var(--teal-700); }
+    .wh-count { font-size: 11px; color: var(--ink-500); font-weight: 500; }
+    .week-grid {
+      display: grid; grid-template-columns: 56px repeat(7, 1fr);
+      max-height: 540px; overflow: auto; position: relative;
+    }
+    .week-hours-col { background: var(--ink-50); border-right: 1px solid var(--ink-150); }
+    .week-hour { height: 50px; padding: 4px 8px; text-align: right; }
+    .week-hour-label { font-size: 10px; font-weight: 500; color: var(--ink-500); font-variant-numeric: tabular-nums; }
+    .week-day-col {
+      position: relative;
+      border-right: 1px solid var(--ink-150);
+      min-height: var(--week-h, 600px);
+    }
+    .week-day-col:last-child { border-right: none; }
+    .week-day-col.today { background: rgba(6,182,212,.025); }
+    .week-line { position: absolute; left: 0; right: 0; height: 1px; background: var(--ink-150); }
+    .week-apt {
+      position: absolute;
+      left: 3px; right: 3px;
+      border-radius: 5px;
+      padding: 3px 6px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: box-shadow 120ms;
+      background: color-mix(in srgb, var(--dc) 14%, white);
+      border: 1px solid color-mix(in srgb, var(--dc) 38%, transparent);
+      border-left: 3px solid var(--dc);
+    }
+    .week-apt:hover { box-shadow: var(--shadow-md); z-index: 4; }
+    .week-apt-time { font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; color: color-mix(in srgb, var(--dc) 80%, var(--ink-900)); }
+    .week-apt-name { font-size: 11px; font-weight: 600; color: var(--ink-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+
+    /* ════════════ Month view ════════════ */
+    .month-view { border-radius: 16px; overflow: hidden; }
+    .month-head {
+      display: grid; grid-template-columns: repeat(7, 1fr);
+      border-bottom: 1px solid var(--ink-150);
+      background: var(--ink-50);
+    }
+    .month-head-cell {
+      padding: 10px 12px;
+      font-size: 10.5px; font-weight: 600; letter-spacing: .06em;
+      color: var(--ink-500);
+      border-right: 1px solid var(--ink-150);
+    }
+    .month-head-cell:last-child { border-right: none; }
+    .month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-auto-rows: minmax(106px, auto);
+    }
+    .month-cell {
+      position: relative;
+      padding: 8px;
+      background: white;
+      border-right: 1px solid var(--ink-150);
+      border-bottom: 1px solid var(--ink-150);
+      cursor: pointer;
+      transition: background 120ms;
+    }
+    .month-cell:nth-child(7n) { border-right: none; }
+    .month-cell.out-of-month { background: var(--ink-50); cursor: default; }
+    .month-cell.today { background: var(--teal-50); }
+    .month-cell:hover:not(.today):not(.out-of-month) { background: var(--ink-50); }
+    .month-day-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .month-day-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 22px;
+      font-size: 12.5px; font-weight: 500;
+      color: var(--ink-700);
+      padding: 0 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    }
+    .month-day-num.today {
+      width: 22px;
+      background: var(--teal-600);
+      color: white;
+      border-radius: 999px;
+      font-weight: 700;
+      padding: 0;
+    }
+    .month-day-num.out { color: var(--ink-400); }
+    .month-overflow { font-size: 10.5px; color: var(--ink-500); font-weight: 500; }
+    .month-apts { display: flex; flex-direction: column; gap: 2px; }
+    .month-apt {
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--ink-800);
+      min-width: 0;
+      max-width: 100%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      cursor: pointer;
+      background: color-mix(in srgb, var(--dc) 14%, white);
+      border-left: 2px solid var(--dc);
+    }
+    .month-cell { overflow: hidden; }
+    .month-apt-time { font-weight: 600; margin-right: 4px; font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--dc) 80%, var(--ink-900)); }
+
+    /* ════════════ List view ════════════ */
+    .list-view { display: flex; flex-direction: column; gap: 16px; }
+    .list-day-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; padding: 0 4px; }
+    .list-day-pill {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 10px;
+      background: white;
+      color: var(--ink-700);
+      border: 1px solid var(--ink-200);
+      border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+      text-transform: capitalize;
+    }
+    .list-day-pill.today { background: var(--teal-600); color: white; border-color: var(--teal-600); }
+    .list-day-line { flex: 1; height: 1px; background: var(--ink-150); }
+    .list-day-count { font-size: 12px; color: var(--ink-500); font-weight: 500; }
+    .list-rows { display: flex; flex-direction: column; gap: 6px; }
+    .list-row {
+      display: grid;
+      grid-template-columns: 76px 1fr auto;
+      gap: 14px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,.7);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid rgba(255,255,255,.7);
+      border-left: 3px solid var(--dc);
+      border-radius: 12px;
+      box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 4px 12px -4px rgba(8,51,68,.06);
+      cursor: pointer;
+      transition: all 120ms;
+    }
+    .list-row:hover { box-shadow: var(--shadow-md); border-color: var(--ink-300); border-left-color: var(--dc); transform: translateY(-1px); }
+    .list-time { display: flex; flex-direction: column; justify-content: center; }
+    .list-time-big { font-size: 14px; font-weight: 700; color: var(--ink-900); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+    .list-time-small { font-size: 11px; color: var(--ink-500); font-weight: 500; font-variant-numeric: tabular-nums; }
+    .list-pat { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .list-avatar {
+      width: 38px; height: 38px; flex-shrink: 0;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--dc), color-mix(in srgb, var(--dc) 65%, #000));
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600;
+      letter-spacing: .02em;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 2px 6px rgba(15,23,42,.12);
+    }
+    .list-pat-info { min-width: 0; flex: 1; }
+    .list-pat-name-row { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+    .list-pat-name { font-size: 13.5px; font-weight: 600; color: var(--ink-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .list-pat-meta { display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--ink-600); flex-wrap: wrap; }
+    .list-pat-meta-item { display: inline-flex; align-items: center; gap: 4px; }
+    .list-pat-meta-item svg { color: var(--ink-400); }
+    .list-doctor-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: .01em;
+      border-radius: 999px;
+      line-height: 1.1;
+      white-space: nowrap;
+      color: color-mix(in srgb, var(--dc) 80%, var(--ink-900));
+      background: color-mix(in srgb, var(--dc) 14%, white);
+      border: 1px solid color-mix(in srgb, var(--dc) 30%, transparent);
+    }
+    .list-doctor-tag-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--dc); }
+
+    /* ════════════ Empty card ════════════ */
+    .empty-card {
+      padding: 60px;
+      text-align: center;
+      background: white;
+      border-radius: 12px;
+      border: 1px solid var(--ink-200);
+    }
+    .empty-icon {
+      width: 48px; height: 48px;
+      margin: 0 auto 12px;
+      border-radius: 999px;
+      background: var(--ink-100);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--ink-400);
+    }
+    .empty-title { font-size: 14px; font-weight: 600; color: var(--ink-700); }
+    .empty-sub { font-size: 12.5px; color: var(--ink-500); margin-top: 4px; }
+
+    /* ════════════ Drawer ════════════ */
+    .drawer-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,.32);
+      backdrop-filter: blur(2px);
+      z-index: 100;
+      animation: fadeIn 200ms ease-out both;
+    }
+    .drawer {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 440px; max-width: 100vw;
+      background: rgba(255,255,255,.94);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border-left: 1px solid rgba(255,255,255,.7);
+      z-index: 101;
+      display: flex; flex-direction: column;
+      box-shadow: -16px 0 40px -12px rgba(8,51,68,.18);
+    }
+    .drawer-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--ink-150);
+      background: var(--ink-50);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .drawer-head-left { display: flex; align-items: center; gap: 10px; }
+    .drawer-id { font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--ink-500); text-transform: uppercase; }
+    .drawer-actions { display: flex; gap: 6px; }
+    .drawer-icon-btn {
+      width: 30px; height: 30px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: white;
+      color: var(--ink-600);
+      border: 1px solid var(--ink-200);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 120ms;
+    }
+    .drawer-icon-btn:hover { background: var(--ink-100); }
+    .drawer-body { flex: 1; overflow: auto; }
+    .drawer-section { padding: 18px 20px; border-bottom: 1px solid var(--ink-150); }
+    .drawer-section:last-child { border-bottom: none; }
+    .drawer-label {
+      font-size: 10.5px; font-weight: 600; letter-spacing: .06em;
+      color: var(--ink-500); text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .drawer-pat-row { display: flex; align-items: center; gap: 13px; }
+    .drawer-pat-avatar {
+      width: 50px; height: 50px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--dc), color-mix(in srgb, var(--dc) 65%, #000));
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; font-weight: 600;
+    }
+    .drawer-pat-name { font-size: 16px; font-weight: 700; color: var(--ink-900); letter-spacing: -.01em; }
+    .drawer-pat-sub { font-size: 12px; color: var(--ink-500); margin-top: 1px; }
+    .detail-rows { display: flex; flex-direction: column; gap: 12px; }
+    .detail-row { display: flex; align-items: center; gap: 10px; }
+    .detail-icon {
+      width: 28px; height: 28px; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--ink-100); color: var(--ink-600);
+      border-radius: 7px;
+    }
+    .detail-content { flex: 1; min-width: 0; }
+    .detail-key { font-size: 11px; color: var(--ink-500); font-weight: 500; margin-bottom: 2px; }
+    .detail-val { font-size: 13px; color: var(--ink-700); }
+    .detail-val strong { color: var(--ink-900); font-weight: 600; }
+    .notes-box {
+      padding: 12px;
+      background: var(--ink-50);
+      border: 1px solid var(--ink-150);
+      border-radius: 8px;
+      font-size: 13px; color: var(--ink-700); line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .notes-box.empty { color: var(--ink-400); font-style: italic; }
+
+    /* Page loader */
+    .page-loader {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(238,244,248,.8);
+      backdrop-filter: blur(6px);
+      z-index: 9000;
+      transition: opacity 220ms;
+    }
+    .page-loader.hidden { opacity: 0; pointer-events: none; }
+    .page-loader-content { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .page-loader-spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--ink-200);
+      border-top-color: var(--teal-600);
+      border-radius: 999px;
+      animation: spin 700ms linear infinite;
+    }
+    .page-loader-text { font-size: 13px; color: var(--ink-500); font-weight: 500; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ════════════ Responsive ════════════ */
+    @media (max-width: 980px) {
+      main.layout-main { padding: 14px 14px 80px; }
+      .hero-title { font-size: 24px; }
+      .citas-hero { padding: 16px 18px; }
+    }
+    @media (max-width: 720px) {
+      .week-view > .week-head { display: none; }
+      .week-view .week-day-strip {
+        display: flex; gap: 6px;
+        padding: 10px 10px 6px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-bottom: 1px solid var(--ink-150);
+        background: var(--ink-50);
+      }
+      .day-pill {
+        flex-shrink: 0;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        min-width: 46px; padding: 6px 4px;
+        background: white;
+        border: 1px solid var(--ink-200);
+        border-radius: 10px;
+        font-size: 11px; color: var(--ink-600);
+        cursor: pointer; position: relative;
+        transition: all 120ms;
+      }
+      .day-pill.today { border-color: var(--teal-300); }
+      .day-pill.active {
+        background: var(--teal-600); color: white; border-color: var(--teal-600);
+      }
+      .day-pill.active .dp-num { color: white; }
+      .dp-name { font-size: 10px; letter-spacing: .04em; font-weight: 600; text-transform: uppercase; }
+      .dp-num { font-size: 15px; font-weight: 700; color: var(--ink-900); margin-top: 1px; }
+      .dp-dot { width: 5px; height: 5px; border-radius: 999px; background: var(--teal-500); margin-top: 3px; }
+      .week-grid { grid-template-columns: 56px 1fr; }
+      .week-day-col { display: none; }
+      .week-day-col.is-active { display: block; }
+
+      .view-toolbar { flex-wrap: wrap; gap: 8px; }
+      .toolbar-right { width: 100%; }
+      .segmented { width: 100%; justify-content: space-between; }
+      .seg-btn { flex: 1; padding: 0 8px; font-size: 12px; }
+      .month-cell { padding: 4px; min-height: 70px; overflow: hidden; }
+      .month-day-num { font-size: 11.5px; height: 18px; }
+      .month-apt { font-size: 9.5px; padding: 1px 2px 1px 3px; border-left-width: 2px; min-width: 0; }
+      .month-apt > span:last-child { display: none; }
+      .month-apt-time { margin-right: 0; }
+      .list-row { grid-template-columns: 64px 1fr; }
+      .list-row > .list-doctor-tag { grid-column: 1 / -1; justify-self: start; margin-top: 4px; }
+      .drawer { width: 100%; }
+    }
+
+    @media (max-width: 720px) {
+      .filter-header { flex-direction: column; align-items: stretch; gap: 8px; }
+      .filter-search { width: 100%; min-width: 0; }
+      .filter-row { width: 100%; flex-wrap: wrap !important; }
+      .kbd-hint { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-title { font-size: 22px; }
+      .doc-legend-actions { width: 100%; margin-left: 0; }
+    }
+  </style>
+</head>
+<body class="cal-shared">
+  <div class="page-loader" id="pageLoader">
+    <div class="page-loader-content">
+      <div class="page-loader-spinner"></div>
+      <div class="page-loader-text">Cargando calendario...</div>
+    </div>
+  </div>
+
+<main class="layout-main">
+
+  <!-- HERO -->
+  <section class="citas-hero">
+    <svg class="hero-dots" preserveAspectRatio="none">
+      <defs>
+        <pattern id="hero-dots" x="0" y="0" width="22" height="22" patternUnits="userSpaceOnUse">
+          <circle cx="1.2" cy="1.2" r="1.2" fill="white"></circle>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#hero-dots)"></rect>
+    </svg>
+    <div class="hero-row">
+      <div class="hero-content">
+        <div class="hero-crumb">
+          <a href="/dashboard.html">Inicio</a>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          <span class="hero-crumb-current">Calendario Compartido</span>
+        </div>
+        <h1 class="hero-title">Calendario Compartido</h1>
+        <p class="hero-sub" id="heroSub">Agenda de todos los doctores en un solo lugar</p>
+      </div>
+      <div class="hero-actions">
+        <button class="glass-icon-btn" data-tip="Actualizar" onclick="reloadAll()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 4v4h-4M21 12a9 9 0 0 1-15 6.7L3 16M3 20v-4h4"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Doctor legend -->
+  <div class="doc-legend glass" id="docLegend"></div>
+
+  <!-- Filters -->
+  <div class="filters-wrapper">
+    <div class="glass filter-bar">
+      <div class="filter-header">
+        <div class="filter-search">
+          <svg class="filter-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="text" id="searchInput" placeholder="Buscar paciente, doctor, especialidad…" oninput="onSearchChange()">
+          <span class="kbd-hint">⌘K</span>
+        </div>
+        <div class="filter-row" id="filterRow" style="flex: 0 0 auto; flex-wrap: nowrap;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View toolbar -->
+  <div class="view-toolbar">
+    <div class="nav-cluster" id="navCluster">
+      <button class="icon-btn-32" data-tip="Anterior" onclick="calPrev()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>
+      </button>
+      <button class="btn-today" onclick="calToday()">Hoy</button>
+      <button class="icon-btn-32" data-tip="Siguiente" onclick="calNext()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+    </div>
+    <div class="date-label" id="dateLabel"></div>
+    <div class="toolbar-right">
+      <div class="segmented" id="viewSwitcher" role="segmented">
+        <button class="seg-btn" data-v="day" onclick="setView('day')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg>
+          Día
+        </button>
+        <button class="seg-btn" data-v="week" onclick="setView('week')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h7M14 6h7M3 12h11M16 12h5M3 18h7M14 18h7"/></svg>
+          Semana
+        </button>
+        <button class="seg-btn active" data-v="month" onclick="setView('month')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Mes
+        </button>
+        <button class="seg-btn" data-v="list" onclick="setView('list')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          Lista
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewBody" class="fade-in"></div>
+</main>
+
+<div id="drawerBackdrop" class="drawer-backdrop" style="display:none" onclick="closeDrawer()"></div>
+<aside id="apptDrawer" class="drawer slide-in-right" style="display:none"></aside>
+
+<script src="/common.js"></script>
+<script src="/icons.js"></script>
+<script src="/layout.js"></script>
+<script>
+requireAuth(['clinic_admin', 'doctor']);
+
+const SVG = {
+  calendar: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg>',
+  stethoscope: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v6a4 4 0 0 0 8 0V3M9 14v3a4 4 0 0 0 8 0v-1"/><circle cx="17" cy="13" r="2"/></svg>',
+  user: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-7 8-7s7 2.5 8 7"/></svg>',
+  chevD: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+  search: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  close: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 12 5 5L20 6"/></svg>',
+  clock: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  notes: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M9 10h6M9 14h6M9 18h4"/></svg>',
+  phone: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.29a2 2 0 0 1 2.11-.45c.9.35 1.84.59 2.8.72A2 2 0 0 1 22 16.92z"/></svg>',
+};
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+}
+
+/* ─────────── Doctor color palette (16 distinct) ─────────── */
+const DOCTOR_COLOR_PALETTE = [
+  '#0891b2', // teal
+  '#7c3aed', // violet
+  '#dc2626', // red
+  '#059669', // emerald
+  '#d97706', // amber
+  '#2563eb', // blue
+  '#db2777', // pink
+  '#16a34a', // green
+  '#ea580c', // orange
+  '#4f46e5', // indigo
+  '#0d9488', // dark teal
+  '#9333ea', // purple
+  '#c026d3', // fuchsia
+  '#65a30d', // lime
+  '#0284c7', // sky
+  '#e11d48', // rose
+];
+
+/* ─────────── State ─────────── */
+let allAppts   = [];
+let allDoctors = [];
+let doctorColorMap = new Map();   // doctor_id -> hex color
+let doctorIndexMap = new Map();   // doctor_id -> doctor object
+let calView = 'month';
+let calDate = new Date();
+let weekActiveDayIdx = null;
+
+let filterState = {
+  q: '',
+  dateRange: 'all',
+  doctor: [],  // empty = all selected
+};
+
+let activeMs = null;
+
+/* ─────────── Helpers ─────────── */
+const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MONTH_SHORT = ['ene.','feb.','mar.','abr.','may.','jun.','jul.','ago.','sep.','oct.','nov.','dic.'];
+const DAY_SHORT_ES = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+
+function fmtTime(dt) {
+  const d = new Date(dt);
+  let h = d.getHours(), m = String(d.getMinutes()).padStart(2,'0');
+  const ampm = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12;
+  return `${h}:${m}${ampm}`;
+}
+function fmtTimeShort(dt) {
+  const d = new Date(dt);
+  let h = d.getHours(), m = d.getMinutes();
+  const ampm = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12;
+  return `${h}:${String(m).padStart(2,'0')}${ampm}`;
+}
+function fmtDateLongCap(d) {
+  const s = d.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function fmtDt(dt) {
+  const d = new Date(dt);
+  let h = d.getHours(), m = String(d.getMinutes()).padStart(2,'0');
+  const ampm = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12;
+  return `${MONTH_SHORT[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} · ${h}:${m}${ampm}`;
+}
+function startOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function startOfMonday(d) { const x = startOfDay(d); const day = x.getDay(); const diff = day === 0 ? -6 : 1 - day; x.setDate(x.getDate() + diff); return x; }
+function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function nameInitials(name) { return String(name || '?').split(' ').filter(Boolean).slice(0,2).map(s => s[0]).join('').toUpperCase(); }
+
+function aptDate(a) { return new Date(a.scheduled_at); }
+function aptDuration(a) { return a.duration || 30; }
+
+function doctorName(d) {
+  if (!d) return 'Doctor';
+  if (d.name && d.name.trim()) return 'Dr. ' + d.name;
+  return 'Dr. ' + ((d.email||'').split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g, l => l.toUpperCase()));
+}
+function doctorNameFromAppt(a) {
+  if (a.doctor_name && a.doctor_name.trim()) return 'Dr. ' + a.doctor_name;
+  return 'Dr. ' + ((a.doctor_email||'').split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g, l => l.toUpperCase()));
+}
+
+/* ─────────── Color assignment (stable & unique) ─────────── */
+function assignDoctorColors(doctors) {
+  doctorColorMap = new Map();
+  doctorIndexMap = new Map();
+  const sorted = [...doctors].sort((a,b) => a.id - b.id);
+  sorted.forEach((d, i) => {
+    doctorIndexMap.set(d.id, d);
+    if (i < DOCTOR_COLOR_PALETTE.length) {
+      doctorColorMap.set(d.id, DOCTOR_COLOR_PALETTE[i]);
+    } else {
+      // Spread the rest of the hue wheel — keep distance from existing palette
+      const extraIdx = i - DOCTOR_COLOR_PALETTE.length;
+      const hue = (extraIdx * 137.508) % 360; // golden-angle
+      doctorColorMap.set(d.id, `hsl(${hue.toFixed(0)}, 65%, 45%)`);
+    }
+  });
+}
+function colorForDoctorId(id) {
+  return doctorColorMap.get(id) || '#64748b';
+}
+
+/* ─────────── Boot ─────────── */
+(async () => {
+  const pageLoader = document.getElementById('pageLoader');
+  try {
+    const [appts, doctors] = await Promise.all([
+      api('/api/appointments/calendar'),
+      api('/api/users/doctors'),
+    ]);
+    allAppts = appts;
+    allDoctors = doctors;
+    assignDoctorColors(doctors);
+
+    // Jump to nearest upcoming appointment, otherwise today
+    const upcoming = appts
+      .filter(a => new Date(a.scheduled_at) >= startOfDay(new Date()))
+      .sort((a,b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
+    if (upcoming.length) calDate = new Date(upcoming[0].scheduled_at);
+
+    renderDoctorLegend();
+    renderFilters();
+    renderEverything();
+    pageLoader.classList.add('hidden');
+  } catch(e) {
+    console.error(e);
+    pageLoader.classList.add('hidden');
+  }
+})();
+
+async function reloadAll() {
+  try {
+    const [appts, doctors] = await Promise.all([
+      api('/api/appointments/calendar'),
+      api('/api/users/doctors'),
+    ]);
+    allAppts = appts;
+    allDoctors = doctors;
+    assignDoctorColors(doctors);
+    renderDoctorLegend();
+    renderFilters();
+    renderEverything();
+  } catch (e) { console.error(e); }
+}
+
+/* ─────────── Doctor legend ─────────── */
+function renderDoctorLegend() {
+  const wrap = document.getElementById('docLegend');
+  if (!allDoctors.length) {
+    wrap.innerHTML = `<div style="font-size:12.5px;color:var(--ink-500)">No hay doctores registrados en la clínica.</div>`;
+    return;
+  }
+  const selectedSet = new Set(filterState.doctor);
+  const anySelected = selectedSet.size > 0;
+  const chips = [...allDoctors].sort((a,b) => a.id - b.id).map(d => {
+    const c = colorForDoctorId(d.id);
+    const count = allAppts.filter(a => a.doctor_id === d.id).length;
+    const muted = anySelected && !selectedSet.has(d.id);
+    return `<button type="button" class="doc-chip${muted ? ' is-muted' : ''}" style="--dc:${c}" data-doc-id="${d.id}">
+      <span class="doc-chip-dot"></span>
+      <span>${esc(doctorName(d))}</span>
+      <span class="doc-chip-count">${count}</span>
+    </button>`;
+  }).join('');
+  wrap.innerHTML = `
+    <span class="doc-legend-label">Doctores</span>
+    ${chips}
+    <div class="doc-legend-actions">
+      ${anySelected ? `<button class="doc-legend-action" id="docShowAll">Mostrar todos</button>` : ''}
+    </div>
+  `;
+  wrap.querySelectorAll('.doc-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.docId);
+      const idx = filterState.doctor.indexOf(id);
+      if (idx >= 0) filterState.doctor.splice(idx, 1);
+      else filterState.doctor.push(id);
+      renderDoctorLegend();
+      renderFilters();
+      renderEverything();
+    });
+  });
+  const showAll = document.getElementById('docShowAll');
+  if (showAll) {
+    showAll.addEventListener('click', () => {
+      filterState.doctor = [];
+      renderDoctorLegend();
+      renderFilters();
+      renderEverything();
+    });
+  }
+}
+
+/* ─────────── Filtering ─────────── */
+function applyFilterState(list) {
+  let out = list;
+  const q = filterState.q.trim().toLowerCase();
+  if (q) {
+    out = out.filter(a => {
+      const blob = [a.patient_name, a.doctor_name, a.specialty, a.notes].filter(Boolean).join(' ').toLowerCase();
+      return blob.includes(q);
+    });
+  }
+  if (filterState.doctor.length) out = out.filter(a => filterState.doctor.includes(a.doctor_id));
+
+  if (filterState.dateRange !== 'all') {
+    const today = startOfDay(new Date());
+    let from = today, to = addDays(today, 1);
+    if (filterState.dateRange === 'tomorrow')  { from = addDays(today, 1); to = addDays(today, 2); }
+    else if (filterState.dateRange === 'week') { from = startOfMonday(today); to = addDays(from, 7); }
+    else if (filterState.dateRange === 'nextweek') { from = addDays(startOfMonday(today), 7); to = addDays(from, 7); }
+    else if (filterState.dateRange === 'month') { from = new Date(today.getFullYear(), today.getMonth(), 1); to = new Date(today.getFullYear(), today.getMonth()+1, 1); }
+    else if (filterState.dateRange === 'nextmonth') { from = new Date(today.getFullYear(), today.getMonth()+1, 1); to = new Date(today.getFullYear(), today.getMonth()+2, 1); }
+    else if (filterState.dateRange === '30')   { from = addDays(today, -30); to = addDays(today, 1); }
+    out = out.filter(a => { const d = aptDate(a); return d >= from && d < to; });
+  }
+  return out;
+}
+
+function activeFilterCount() {
+  return (filterState.doctor.length || 0)
+    + (filterState.dateRange !== 'all' ? 1 : 0)
+    + (filterState.q ? 1 : 0);
+}
+
+function clearAllFilters() {
+  filterState = { q:'', dateRange:'all', doctor:[] };
+  document.getElementById('searchInput').value = '';
+  renderDoctorLegend();
+  renderFilters();
+  renderEverything();
+}
+
+function onSearchChange() {
+  filterState.q = document.getElementById('searchInput').value;
+  renderEverything();
+}
+
+/* ─────────── Filter dropdowns ─────────── */
+function renderFilters() {
+  const row = document.getElementById('filterRow');
+  row.innerHTML = '';
+
+  const dateRangeLabels = {
+    today:'Hoy', tomorrow:'Mañana', week:'Esta semana', nextweek:'Próxima semana',
+    month:'Este mes', nextmonth:'Próximo mes', '30':'Últimos 30 días', all:'Todas las fechas'
+  };
+  row.appendChild(buildDropdownTrigger({
+    id: 'date',
+    icon: SVG.calendar,
+    label: dateRangeLabels[filterState.dateRange],
+    active: filterState.dateRange !== 'all',
+    count: 0,
+  }));
+
+  if (allDoctors.length > 1) {
+    row.appendChild(buildDropdownTrigger({
+      id: 'doctor',
+      icon: SVG.stethoscope,
+      label: 'Doctores',
+      active: filterState.doctor.length > 0,
+      count: filterState.doctor.length,
+    }));
+  }
+
+  if (activeFilterCount() > 0) {
+    const clr = document.createElement('button');
+    clr.className = 'ms-trigger';
+    clr.style.border = '1px dashed var(--ink-300)';
+    clr.style.color = 'var(--ink-600)';
+    clr.innerHTML = `${SVG.close} Limpiar (${activeFilterCount()})`;
+    clr.onclick = clearAllFilters;
+    row.appendChild(clr);
+  }
+}
+
+function buildDropdownTrigger({ id, icon, label, active, count }) {
+  const wrap = document.createElement('div');
+  wrap.style.position = 'relative';
+  const btn = document.createElement('button');
+  btn.className = 'ms-trigger' + (active ? ' active' : '');
+  btn.dataset.msId = id;
+  btn.innerHTML = `<span class="ms-icon">${icon}</span><span>${esc(label)}</span>${count > 0 ? `<span class="ms-count">${count}</span>` : ''}<span class="ms-chev">${SVG.chevD}</span>`;
+  btn.onclick = (e) => { e.stopPropagation(); toggleDropdown(id, wrap); };
+  wrap.appendChild(btn);
+  return wrap;
+}
+
+function closeDropdown() {
+  if (!activeMs) return;
+  const old = document.querySelector('.ms-pop');
+  if (old) old.remove();
+  document.querySelectorAll('.ms-trigger').forEach(b => b.dataset.open = '');
+  activeMs = null;
+}
+
+function toggleDropdown(id, anchor) {
+  if (activeMs === id) { closeDropdown(); return; }
+  closeDropdown();
+  activeMs = id;
+  const trigger = anchor.querySelector('.ms-trigger');
+  trigger.dataset.open = 'true';
+
+  const pop = document.createElement('div');
+  pop.className = 'ms-pop';
+  pop.onclick = (e) => e.stopPropagation();
+  anchor.appendChild(pop);
+
+  if (id === 'date') renderDatePop(pop);
+  else if (id === 'doctor') {
+    const docOpts = [...allDoctors].sort((a,b) => a.id - b.id).map(d => ({
+      value: d.id,
+      label: doctorName(d),
+      dot: colorForDoctorId(d.id),
+      count: allAppts.filter(a => a.doctor_id === d.id).length,
+    }));
+    renderMsPop(pop, docOpts, filterState.doctor, (sel) => {
+      filterState.doctor = sel;
+      renderDoctorLegend();
+      renderFilters();
+      renderEverything();
+    }, true);
+  }
+}
+
+function renderDatePop(pop) {
+  const presets = [
+    { v:'today', label:'Hoy' },
+    { v:'tomorrow', label:'Mañana' },
+    { v:'week', label:'Esta semana' },
+    { v:'nextweek', label:'Próxima semana' },
+    { v:'month', label:'Este mes' },
+    { v:'nextmonth', label:'Próximo mes' },
+    { v:'30', label:'Últimos 30 días' },
+    { v:'all', label:'Todas las fechas' },
+  ];
+  pop.style.minWidth = '220px';
+  pop.style.padding = '4px';
+  presets.forEach(p => {
+    const b = document.createElement('button');
+    const active = filterState.dateRange === p.v;
+    b.className = 'ms-opt' + (active ? ' active' : '');
+    b.style.fontWeight = active ? '600' : '450';
+    if (active) b.style.color = 'var(--teal-700)';
+    b.innerHTML = `<span class="ms-opt-label">${esc(p.label)}</span>`;
+    b.onclick = () => { filterState.dateRange = p.v; closeDropdown(); renderFilters(); renderEverything(); };
+    pop.appendChild(b);
+  });
+}
+
+function renderMsPop(pop, options, selected, onChange, searchable) {
+  let q = '';
+  function rerender() {
+    pop.innerHTML = '';
+    if (searchable) {
+      const wrap = document.createElement('div');
+      wrap.className = 'ms-search';
+      wrap.innerHTML = `<div class="ms-search-inner">${SVG.search}<input type="text" placeholder="Buscar..." autofocus></div>`;
+      const inp = wrap.querySelector('input');
+      inp.value = q;
+      inp.oninput = (e) => { q = e.target.value; rerender(); inp.focus(); };
+      pop.appendChild(wrap);
+    }
+    const filtered = options.filter(o => !q || o.label.toLowerCase().includes(q.toLowerCase()));
+    filtered.forEach(opt => {
+      const active = selected.includes(opt.value);
+      const b = document.createElement('button');
+      b.className = 'ms-opt' + (active ? ' active' : '');
+      b.innerHTML = `
+        <span class="ms-checkbox">${active ? SVG.check : ''}</span>
+        ${opt.dot ? `<span class="ms-opt-dot" style="background:${opt.dot}"></span>` : ''}
+        <span class="ms-opt-label">${esc(opt.label)}</span>
+        ${opt.count != null ? `<span class="ms-opt-count">${opt.count}</span>` : ''}
+      `;
+      b.onclick = () => {
+        const next = active ? selected.filter(s => s !== opt.value) : [...selected, opt.value];
+        selected = next;
+        onChange(next);
+      };
+      pop.appendChild(b);
+    });
+    if (selected.length > 0) {
+      const div = document.createElement('div'); div.className = 'ms-divider'; pop.appendChild(div);
+      const b = document.createElement('button');
+      b.className = 'ms-clear';
+      b.textContent = 'Limpiar selección';
+      b.onclick = () => { selected = []; onChange([]); };
+      pop.appendChild(b);
+    }
+  }
+  rerender();
+}
+
+document.addEventListener('mousedown', (e) => {
+  if (!activeMs) return;
+  if (!e.target.closest('.ms-pop') && !e.target.closest('.ms-trigger')) closeDropdown();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { closeDropdown(); closeDrawer(); }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+});
+
+/* ─────────── View toolbar / nav ─────────── */
+function setView(v) {
+  calView = v;
+  document.querySelectorAll('#viewSwitcher .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  renderEverything();
+}
+function calPrev() {
+  const d = new Date(calDate);
+  if (calView === 'day')  d.setDate(d.getDate() - 1);
+  if (calView === 'week') d.setDate(d.getDate() - 7);
+  if (calView === 'month') d.setMonth(d.getMonth() - 1);
+  calDate = d; renderEverything();
+}
+function calNext() {
+  const d = new Date(calDate);
+  if (calView === 'day')  d.setDate(d.getDate() + 1);
+  if (calView === 'week') d.setDate(d.getDate() + 7);
+  if (calView === 'month') d.setMonth(d.getMonth() + 1);
+  calDate = d; renderEverything();
+}
+function calToday() { calDate = new Date(); weekActiveDayIdx = null; renderEverything(); }
+
+function updateDateLabel(filteredCount) {
+  const lbl = document.getElementById('dateLabel');
+  const navCluster = document.getElementById('navCluster');
+  if (calView === 'list') {
+    navCluster.style.visibility = 'hidden';
+    lbl.innerHTML = `Mostrando <strong style="color:var(--ink-900);font-weight:700;">${filteredCount}</strong> de ${allAppts.length} citas`;
+    lbl.style.fontSize = '14px';
+    lbl.style.fontWeight = '500';
+    lbl.style.color = 'var(--ink-600)';
+    return;
+  }
+  navCluster.style.visibility = 'visible';
+  lbl.style.fontSize = '17px';
+  lbl.style.fontWeight = '700';
+  lbl.style.color = 'var(--ink-900)';
+  if (calView === 'day') {
+    lbl.textContent = fmtDateLongCap(calDate);
+  } else if (calView === 'week') {
+    const m = startOfMonday(calDate);
+    const s = addDays(m, 6);
+    lbl.textContent = `${m.getDate()} ${MONTH_SHORT[m.getMonth()]} – ${s.getDate()} ${MONTH_SHORT[s.getMonth()]} ${s.getFullYear()}`;
+  } else if (calView === 'month') {
+    lbl.textContent = `${MONTH_NAMES[calDate.getMonth()]} ${calDate.getFullYear()}`;
+  }
+}
+
+/* ─────────── Master render ─────────── */
+function renderEverything() {
+  const filtered = applyFilterState(allAppts);
+  updateDateLabel(filtered.length);
+  const body = document.getElementById('viewBody');
+  body.classList.remove('fade-in');
+  void body.offsetWidth;
+  body.classList.add('fade-in');
+  if (calView === 'day')       body.innerHTML = renderDayView(filtered);
+  else if (calView === 'week') body.innerHTML = renderWeekView(filtered);
+  else if (calView === 'month') body.innerHTML = renderMonthView(filtered);
+  else if (calView === 'list')  body.innerHTML = renderListView(filtered);
+  attachClickHandlers();
+}
+
+function attachClickHandlers() {
+  document.querySelectorAll('[data-apt-id]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = parseInt(el.dataset.aptId);
+      openDrawer(id);
+    });
+  });
+  document.querySelectorAll('[data-month-day]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.month-apt')) return;
+      const ds = el.dataset.monthDay;
+      calDate = new Date(ds + 'T00:00:00');
+      setView('day');
+    });
+  });
+  document.querySelectorAll('.day-pill[data-day-idx]').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.dayIdx);
+      weekActiveDayIdx = idx;
+      document.querySelectorAll('.day-pill[data-day-idx]').forEach(p =>
+        p.classList.toggle('active', parseInt(p.dataset.dayIdx) === idx));
+      document.querySelectorAll('.week-day-col[data-day-idx]').forEach(c =>
+        c.classList.toggle('is-active', parseInt(c.dataset.dayIdx) === idx));
+    });
+  });
+}
+
+/* ─────────── Collision layout ─────────── */
+function layoutColumns(sorted) {
+  const columns = [];
+  const placed = sorted.map(a => {
+    const start = aptDate(a).getTime();
+    const end = start + aptDuration(a) * 60000;
+    let colIdx = -1;
+    for (let i = 0; i < columns.length; i++) {
+      if (columns[i] <= start) { columns[i] = end; colIdx = i; break; }
+    }
+    if (colIdx === -1) { columns.push(end); colIdx = columns.length - 1; }
+    return { apt: a, start, end, colIdx };
+  });
+  return placed.map(p => {
+    let total = 1;
+    for (const q of placed) {
+      if (q === p) continue;
+      if (q.start < p.end && q.end > p.start) total = Math.max(total, q.colIdx + 1);
+    }
+    total = Math.max(total, p.colIdx + 1);
+    return { apt: p.apt, colIdx: p.colIdx, total };
+  });
+}
+
+/* ─────────── Day view ─────────── */
+function renderDayView(filtered) {
+  const hourPx = 64;
+  const dayApts = filtered.filter(a => sameDay(aptDate(a), calDate)).sort((a,b) => aptDate(a) - aptDate(b));
+  let startHr = 7, endHr = 19;
+  dayApts.forEach(a => {
+    const d = aptDate(a);
+    const startH = d.getHours() + d.getMinutes() / 60;
+    const endH = startH + aptDuration(a) / 60;
+    if (startH < startHr) startHr = Math.floor(startH);
+    if (endH > endHr) endHr = Math.ceil(endH);
+  });
+  startHr = Math.max(0, startHr);
+  endHr = Math.min(24, endHr);
+  const totalHeight = (endHr - startHr) * hourPx;
+
+  const positioned = layoutColumns(dayApts);
+  const today = new Date();
+  const isToday = sameDay(today, calDate);
+  let nowHtml = '';
+  if (isToday) {
+    const nowMin = today.getHours() * 60 + today.getMinutes();
+    const nowOff = ((nowMin/60) - startHr) * hourPx;
+    if (nowOff >= 0 && nowOff <= totalHeight) {
+      let h = today.getHours(), m = String(today.getMinutes()).padStart(2,'0');
+      const ampm = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12;
+      nowHtml = `
+        <div class="day-now" style="top:${nowOff}px">
+          <div class="day-now-line"></div>
+          <div class="day-now-dot"></div>
+          <div class="day-now-time">${h}:${m}${ampm}</div>
+        </div>`;
+    }
+  }
+
+  const totalDur = dayApts.reduce((s, a) => s + aptDuration(a), 0);
+
+  const hours = [];
+  for (let i = 0; i < endHr - startHr; i++) {
+    const h = startHr + i;
+    const h12 = h % 12 || 12;
+    const ampm = h < 12 ? 'am' : 'pm';
+    hours.push(`<div class="day-hour"><div class="day-hour-label">${h12}:00 ${ampm}</div></div>`);
+  }
+  const lines = [];
+  for (let i = 0; i <= endHr - startHr; i++) {
+    lines.push(`<div class="day-line" style="top:${i * hourPx}px"></div>`);
+    if (i < endHr - startHr) lines.push(`<div class="day-line-half" style="top:${i * hourPx + hourPx/2}px"></div>`);
+  }
+
+  const blocks = positioned.map(({ apt, colIdx, total }) => {
+    const d = aptDate(apt);
+    const minFromStart = (d.getHours() * 60 + d.getMinutes()) - startHr * 60;
+    const top = (minFromStart / 60) * hourPx;
+    const dur = aptDuration(apt);
+    const height = Math.max(28, (dur / 60) * hourPx - 2);
+    const c = colorForDoctorId(apt.doctor_id);
+    const colW = `calc((100% - 16px) / ${total})`;
+    const left = `calc(8px + ${colIdx} * ((100% - 16px) / ${total}) + ${colIdx * 4}px)`;
+    return `
+      <div class="apt-block" data-apt-id="${apt.id}" style="--dc:${c};top:${top}px;left:${left};width:${colW};height:${height}px">
+        <div class="apt-time">${fmtTime(apt.scheduled_at)}<span class="apt-time-dur">· ${dur}min</span></div>
+        <div class="apt-name">${esc(apt.patient_name || '?')}</div>
+        ${height > 50 ? `<div class="apt-meta"><span class="dot"></span>${esc(doctorNameFromAppt(apt))}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  const dayName = calDate.toLocaleDateString('es-ES', { weekday: 'long' });
+  const dateStrLong = calDate.toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' });
+  return `
+    <div class="day-view glass-strong">
+      <div class="day-head">
+        <div>
+          <div class="day-head-name">${dayName}</div>
+          <div class="day-head-date">${dateStrLong}</div>
+        </div>
+        <div class="day-head-stat">${SVG.clock}<span>${dayApts.length} citas · ${totalDur} min total</span></div>
+      </div>
+      <div class="day-grid">
+        <div class="day-hours-col">${hours.join('')}</div>
+        <div class="day-canvas" style="min-height:${totalHeight}px">
+          ${lines.join('')}
+          ${nowHtml}
+          ${blocks}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ─────────── Week view ─────────── */
+function renderWeekView(filtered) {
+  const ws = startOfMonday(calDate);
+  const days = Array.from({length:7}, (_,i) => addDays(ws, i));
+  const hourPx = 60;
+  const today = new Date();
+  const weekEnd = addDays(ws, 7);
+  const weekApts = filtered.filter(a => { const d = aptDate(a); return d >= ws && d < weekEnd; });
+  let startHr = 7, endHr = 19;
+  weekApts.forEach(a => {
+    const d = aptDate(a);
+    const startH = d.getHours() + d.getMinutes() / 60;
+    const endH = startH + aptDuration(a) / 60;
+    if (startH < startHr) startHr = Math.floor(startH);
+    if (endH > endHr) endHr = Math.ceil(endH);
+  });
+  startHr = Math.max(0, startHr);
+  endHr = Math.min(24, endHr);
+  const totalHeight = (endHr - startHr) * hourPx;
+
+  let activeIdx = weekActiveDayIdx;
+  if (activeIdx == null || activeIdx < 0 || activeIdx > 6) {
+    const todayIdx = days.findIndex(d => sameDay(d, today));
+    activeIdx = todayIdx >= 0 ? todayIdx : 0;
+  }
+  weekActiveDayIdx = activeIdx;
+
+  const dayData = days.map((d, i) => ({
+    d, i,
+    isT: sameDay(d, today),
+    dayApts: filtered.filter(a => sameDay(aptDate(a), d)),
+  }));
+
+  const headCells = dayData.map(({ d, isT, dayApts }) => `
+    <div class="week-head-cell${isT ? ' today' : ''}">
+      <div class="wh-name${isT ? ' today' : ''}">${DAY_SHORT_ES[d.getDay()]}</div>
+      <div class="wh-num-row">
+        <span class="wh-num${isT ? ' today' : ''}">${d.getDate()}</span>
+        ${dayApts.length ? `<span class="wh-count">${dayApts.length} cita${dayApts.length===1?'':'s'}</span>` : ''}
+      </div>
+    </div>`).join('');
+
+  const dayStrip = dayData.map(({ d, i, isT, dayApts }) => `
+    <button type="button" class="day-pill${isT ? ' today' : ''}${i === activeIdx ? ' active' : ''}" data-day-idx="${i}" aria-label="${DAY_SHORT_ES[d.getDay()]} ${d.getDate()}, ${dayApts.length} cita${dayApts.length===1?'':'s'}">
+      <span class="dp-name">${DAY_SHORT_ES[d.getDay()]}</span>
+      <span class="dp-num">${d.getDate()}</span>
+      ${dayApts.length ? `<span class="dp-dot"></span>` : ''}
+    </button>`).join('');
+
+  const hourLabels = [];
+  for (let i = 0; i < endHr - startHr; i++) {
+    const h = startHr + i;
+    const h12 = h % 12 || 12;
+    const ampm = h < 12 ? 'a' : 'p';
+    hourLabels.push(`<div class="week-hour"><div class="week-hour-label">${h12}${ampm}</div></div>`);
+  }
+
+  const dayCols = dayData.map(({ isT, dayApts, i }) => {
+    const lines = [];
+    for (let j = 0; j <= endHr - startHr; j++) lines.push(`<div class="week-line" style="top:${j*hourPx}px"></div>`);
+    const sorted = dayApts.slice().sort((a,b) => aptDate(a) - aptDate(b));
+    const positioned = layoutColumns(sorted);
+    const apts = positioned.map(({ apt: a, colIdx, total }) => {
+      const dt = aptDate(a);
+      const minFromStart = (dt.getHours() * 60 + dt.getMinutes()) - startHr * 60;
+      const top = (minFromStart / 60) * hourPx;
+      const dur = aptDuration(a);
+      const height = Math.max(24, (dur / 60) * hourPx - 2);
+      const c = colorForDoctorId(a.doctor_id);
+      const first = (a.patient_name || '').split(' ')[0] || '';
+      const lastInit = ((a.patient_name || '').split(' ')[1] || '')[0] || '';
+      const colW = `calc((100% - 6px) / ${total})`;
+      const left = `calc(3px + ${colIdx} * ((100% - 6px) / ${total}))`;
+      return `
+        <div class="week-apt" data-apt-id="${a.id}" style="--dc:${c};top:${top}px;height:${height}px;left:${left};width:${colW};right:auto">
+          <div class="week-apt-time">${fmtTimeShort(a.scheduled_at)}</div>
+          <div class="week-apt-name">${esc(first)}${lastInit ? ' ' + esc(lastInit) + '.' : ''}</div>
+        </div>`;
+    }).join('');
+    return `<div class="week-day-col${isT ? ' today' : ''}${i === activeIdx ? ' is-active' : ''}" data-day-idx="${i}" style="--week-h:${totalHeight}px">${lines.join('')}${apts}</div>`;
+  }).join('');
+
+  return `
+    <div class="week-view glass-strong">
+      <div class="week-day-strip">${dayStrip}</div>
+      <div class="week-head">
+        <div class="week-head-spacer"></div>
+        ${headCells}
+      </div>
+      <div class="week-grid" style="--week-h:${totalHeight}px">
+        <div class="week-hours-col">${hourLabels.join('')}</div>
+        ${dayCols}
+      </div>
+    </div>`;
+}
+
+/* ─────────── Month view ─────────── */
+function renderMonthView(filtered) {
+  const y = calDate.getFullYear();
+  const m = calDate.getMonth();
+  const first = new Date(y, m, 1);
+  const last = new Date(y, m+1, 0);
+  const startDay = first.getDay() === 0 ? 6 : first.getDay() - 1;
+  const totalDays = last.getDate();
+  const totalCells = Math.ceil((startDay + totalDays) / 7) * 7;
+  const today = new Date();
+
+  const headCells = ['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM']
+    .map(w => `<div class="month-head-cell">${w}</div>`).join('');
+
+  const cells = [];
+  for (let i = 0; i < totalCells; i++) {
+    const dayNum = i - startDay + 1;
+    const cellDate = new Date(y, m, dayNum);
+    const inMonth = dayNum >= 1 && dayNum <= totalDays;
+    const isT = sameDay(cellDate, today);
+    const dayApts = inMonth ? filtered.filter(a => sameDay(aptDate(a), cellDate)).sort((a,b) => aptDate(a) - aptDate(b)) : [];
+    const overflow = dayApts.length > 3 ? `<span class="month-overflow">+${dayApts.length - 3}</span>` : '';
+    const items = dayApts.slice(0, 3).map(a => {
+      const c = colorForDoctorId(a.doctor_id);
+      const first = (a.patient_name || '').split(' ')[0] || '';
+      const lastInit = ((a.patient_name || '').split(' ')[1] || '')[0] || '';
+      return `<div class="month-apt" data-apt-id="${a.id}" style="--dc:${c}"><span class="month-apt-time">${fmtTimeShort(a.scheduled_at)}</span><span>${esc(first)}${lastInit ? ' ' + esc(lastInit) + '.' : ''}</span></div>`;
+    }).join('');
+    cells.push(`
+      <div class="month-cell${!inMonth ? ' out-of-month' : ''}${isT ? ' today' : ''}" ${inMonth ? `data-month-day="${dateStr(cellDate)}"` : ''}>
+        <div class="month-day-row">
+          <span class="month-day-num${isT ? ' today' : ''}${!inMonth ? ' out' : ''}">${cellDate.getDate()}</span>
+          ${overflow}
+        </div>
+        <div class="month-apts">${items}</div>
+      </div>`);
+  }
+
+  return `
+    <div class="month-view glass-strong">
+      <div class="month-head">${headCells}</div>
+      <div class="month-grid">${cells.join('')}</div>
+    </div>`;
+}
+
+/* ─────────── List view ─────────── */
+function renderListView(filtered) {
+  if (!filtered.length) {
+    return `
+      <div class="empty-card">
+        <div class="empty-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></div>
+        <div class="empty-title">No hay citas que coincidan con los filtros</div>
+        <div class="empty-sub">Prueba ajustando los criterios de búsqueda</div>
+      </div>`;
+  }
+  const groups = new Map();
+  filtered.slice().sort((a,b) => aptDate(a) - aptDate(b)).forEach(a => {
+    const key = dateStr(aptDate(a));
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(a);
+  });
+  const today = new Date();
+  return `
+    <div class="list-view">
+      ${[...groups.entries()].map(([key, apts]) => {
+        const d = new Date(key + 'T00:00:00');
+        const isT = sameDay(d, today);
+        const pillTxt = (isT ? 'Hoy · ' : '') + d.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+        return `
+          <div>
+            <div class="list-day-head">
+              <span class="list-day-pill${isT ? ' today' : ''}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg>
+                ${esc(pillTxt)}
+              </span>
+              <span class="list-day-line"></span>
+              <span class="list-day-count">${apts.length} cita${apts.length===1?'':'s'}</span>
+            </div>
+            <div class="list-rows">
+              ${apts.map(a => listRowHtml(a)).join('')}
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function listRowHtml(a) {
+  const dur = aptDuration(a);
+  const c = colorForDoctorId(a.doctor_id);
+  const pname = a.patient_name || '?';
+  const init = nameInitials(pname);
+  const docDisplay = doctorNameFromAppt(a);
+  return `
+    <div class="list-row" data-apt-id="${a.id}" style="--dc:${c}">
+      <div class="list-time">
+        <div class="list-time-big">${fmtTime(a.scheduled_at)}</div>
+        <div class="list-time-small">${dur} min</div>
+      </div>
+      <div class="list-pat">
+        <div class="list-avatar" style="--dc:${c}">${init}</div>
+        <div class="list-pat-info">
+          <div class="list-pat-name-row">
+            <div class="list-pat-name">${esc(pname)}</div>
+          </div>
+          <div class="list-pat-meta">
+            ${a.specialty ? `<span class="list-pat-meta-item">${SVG.stethoscope}${esc(a.specialty)}</span>` : ''}
+            ${a.notes ? `<span class="list-pat-meta-item">${SVG.notes}<em>${esc(String(a.notes).slice(0, 60))}${a.notes.length > 60 ? '…' : ''}</em></span>` : ''}
+          </div>
+        </div>
+      </div>
+      <span class="list-doctor-tag" style="--dc:${c}">
+        <span class="list-doctor-tag-dot"></span>
+        ${esc(docDisplay)}
+      </span>
+    </div>`;
+}
+
+/* ─────────── Drawer ─────────── */
+function openDrawer(id) {
+  const a = allAppts.find(x => x.id === id);
+  if (!a) return;
+  const drawer = document.getElementById('apptDrawer');
+  const backdrop = document.getElementById('drawerBackdrop');
+  const start = aptDate(a);
+  const dur = aptDuration(a);
+  const end = new Date(start.getTime() + dur * 60000);
+  const c = colorForDoctorId(a.doctor_id);
+  const pname = a.patient_name || '?';
+  const init = nameInitials(pname);
+  const phone = a.patient_phone || a.phone || '';
+
+  drawer.innerHTML = `
+    <div class="drawer-head">
+      <div class="drawer-head-left">
+        <span class="drawer-id">Cita #${a.id}</span>
+      </div>
+      <div class="drawer-actions">
+        <button class="drawer-icon-btn" onclick="closeDrawer()" data-tip="Cerrar">${SVG.close}</button>
+      </div>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-section">
+        <div class="drawer-label">Paciente</div>
+        <div class="drawer-pat-row">
+          <div class="drawer-pat-avatar" style="--dc:${c}">${init}</div>
+          <div>
+            <div class="drawer-pat-name">${esc(pname)}</div>
+            <div class="drawer-pat-sub">${phone ? esc(phone) : 'Sin teléfono registrado'}</div>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-label">Detalles</div>
+        <div class="detail-rows">
+          <div class="detail-row">
+            <div class="detail-icon" style="background:color-mix(in srgb, ${c} 18%, white);color:${c}">${SVG.stethoscope}</div>
+            <div class="detail-content">
+              <div class="detail-key">Doctor</div>
+              <div class="detail-val"><strong>${esc(doctorNameFromAppt(a))}</strong>${a.specialty ? ' · ' + esc(a.specialty) : ''}</div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-icon">${SVG.calendar}</div>
+            <div class="detail-content">
+              <div class="detail-key">Fecha y hora</div>
+              <div class="detail-val"><strong>${esc(fmtDt(start))}</strong> · ${dur} min</div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-icon">${SVG.clock}</div>
+            <div class="detail-content">
+              <div class="detail-key">Finaliza</div>
+              <div class="detail-val">${esc(fmtDt(end))}</div>
+            </div>
+          </div>
+          ${phone ? `
+          <div class="detail-row">
+            <div class="detail-icon">${SVG.phone}</div>
+            <div class="detail-content">
+              <div class="detail-key">Teléfono</div>
+              <div class="detail-val">${esc(phone)}</div>
+            </div>
+          </div>` : ''}
+        </div>
+      </div>
+      ${a.notes ? `
+      <div class="drawer-section">
+        <div class="drawer-label">Notas</div>
+        <div class="notes-box">${esc(a.notes)}</div>
+      </div>` : ''}
+    </div>
+  `;
+  drawer.style.display = 'flex';
+  backdrop.style.display = 'block';
+}
+function closeDrawer() {
+  document.getElementById('apptDrawer').style.display = 'none';
+  document.getElementById('drawerBackdrop').style.display = 'none';
+}
+</script>
+</body>
+</html>
