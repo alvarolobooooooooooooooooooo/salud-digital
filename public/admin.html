@@ -483,9 +483,14 @@
         <h1 class="admin-title">Panel Administrativo</h1>
         <p class="admin-subtitle">Gestiona las clínicas y administra los accesos a la plataforma</p>
       </div>
-      <button class="new-clinic-btn" onclick="openInviteClinicOwnerModal()">
-        <span style="font-size:1.1rem;">+</span> Invitar dueño de clínica
-      </button>
+      <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+        <button class="new-clinic-btn" onclick="openInviteClinicOwnerModal()">
+          <span style="font-size:1.1rem;">+</span> Invitar dueño de clínica
+        </button>
+        <button class="new-clinic-btn" onclick="openInviteDoctorModal()" style="background:linear-gradient(135deg,#059669 0%,#10b981 100%); box-shadow:0 6px 16px rgba(16,185,129,0.25);">
+          <span style="font-size:1.1rem;">+</span> Invitar doctor
+        </button>
+      </div>
     </div>
 
     <div class="stats-grid">
@@ -572,11 +577,58 @@
     </div>
   </div>
 
+  <!-- Modal: Invitar Doctor (super admin: elige la clínica) -->
+  <div class="modal-overlay" id="inviteDoctorModal">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeInviteDoctorModal()">×</button>
+      <div class="modal-header">
+        <h2 class="modal-title">Invitar doctor</h2>
+        <p class="modal-subtitle">Envía una invitación a un doctor y asígnalo a una clínica de la plataforma.</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-field full">
+          <label>Clínica destino *</label>
+          <select id="docClinicId">
+            <option value="">Cargando clínicas…</option>
+          </select>
+        </div>
+        <div class="form-field full">
+          <label>Nombre completo *</label>
+          <input type="text" id="docName" placeholder="Ej: Dr. Juan Pérez">
+        </div>
+        <div class="form-field full">
+          <label>Correo electrónico *</label>
+          <input type="email" id="docEmail" placeholder="doctor@clinica.com">
+        </div>
+        <div class="form-field full">
+          <label>Especialidad *</label>
+          <select id="docSpecialty">
+            <option value="">Seleccionar especialidad…</option>
+            <option value="Odontología">Odontología</option>
+            <option value="Periodoncia">Periodoncia</option>
+            <option value="Ortodoncia">Ortodoncia</option>
+            <option value="Podología">Podología</option>
+            <option value="Nutrición">Nutrición</option>
+          </select>
+        </div>
+        <div class="form-field full">
+          <label>Teléfono (opcional)</label>
+          <input type="tel" id="docPhone" placeholder="Ej: 50488888888">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeInviteDoctorModal()">Cancelar</button>
+        <button class="btn-primary" id="sendDoctorInviteBtn" onclick="sendDoctorInvitation()">Enviar invitación</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/common.js"></script>
   <script>
     requireAuth(['super_admin']);
 
     let inviteClinicId = null;
+    let clinicsCache = [];
 
     function showToast(message, type = 'success') {
       const t = document.createElement('div');
@@ -598,6 +650,7 @@
     async function loadClinics() {
       try {
         const clinics = await api('/api/clinics');
+        clinicsCache = clinics;
         const list = document.getElementById('clinicsList');
         if (clinics.length === 0) {
           list.innerHTML = `
@@ -705,7 +758,55 @@
       }
     }
 
-    [document.getElementById('inviteClinicOwnerModal'), document.getElementById('inviteAdminModal')].forEach(m => {
+    function openInviteDoctorModal() {
+      const select = document.getElementById('docClinicId');
+      if (!clinicsCache.length) {
+        select.innerHTML = '<option value="">No hay clínicas registradas</option>';
+      } else {
+        select.innerHTML = '<option value="">Seleccionar clínica…</option>' +
+          clinicsCache.map(c => `<option value="${c.id}">${esc(c.name)}${c.has_admin > 0 ? '' : ' · (sin admin)'}</option>`).join('');
+      }
+      document.getElementById('docName').value = '';
+      document.getElementById('docEmail').value = '';
+      document.getElementById('docSpecialty').value = '';
+      document.getElementById('docPhone').value = '';
+      document.getElementById('inviteDoctorModal').classList.add('active');
+    }
+    function closeInviteDoctorModal() {
+      document.getElementById('inviteDoctorModal').classList.remove('active');
+    }
+
+    async function sendDoctorInvitation() {
+      const clinicId = document.getElementById('docClinicId').value;
+      const name = document.getElementById('docName').value.trim();
+      const email = document.getElementById('docEmail').value.trim();
+      const specialty = document.getElementById('docSpecialty').value;
+      const phone = document.getElementById('docPhone').value.trim();
+      if (!clinicId) { showToast('Selecciona una clínica destino', 'error'); return; }
+      if (!name || !email || !specialty) {
+        showToast('Nombre, correo y especialidad son requeridos', 'error');
+        return;
+      }
+      const btn = document.getElementById('sendDoctorInviteBtn');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      try {
+        await api('/api/invitations', {
+          method: 'POST',
+          body: { email, name, specialty, phone, clinic_id: Number(clinicId), role: 'doctor' }
+        });
+        showToast('Invitación enviada al doctor');
+        closeInviteDoctorModal();
+        loadStats();
+      } catch (e) {
+        showToast(e.message || 'Error al enviar invitación', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar invitación';
+      }
+    }
+
+    [document.getElementById('inviteClinicOwnerModal'), document.getElementById('inviteAdminModal'), document.getElementById('inviteDoctorModal')].forEach(m => {
       m.addEventListener('click', e => {
         if (e.target === m) m.classList.remove('active');
       });

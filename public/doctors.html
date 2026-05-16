@@ -790,48 +790,41 @@
   </div>
 </main>
 
-<!-- Doctor invitation modal -->
+<!-- Doctor invitation modal (paywall: contact support) -->
 <div class="modal-overlay" id="doctorModal">
   <div class="modal" role="dialog">
     <div class="modal-head">
-      <h2>Invitar a un doctor</h2>
+      <h2>Agregar un doctor</h2>
       <button class="modal-close" onclick="closeDoctorModal()" aria-label="Cerrar">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
     </div>
-    <div class="modal-body">
-      <p>Se enviará una invitación al correo del doctor para que cree su cuenta y acceda a la clínica.</p>
-      <div class="form-group">
-        <label>Nombre completo</label>
-        <input type="text" id="fName" placeholder="Ej: Dr. Juan Pérez">
+    <div class="modal-body" style="text-align:center; padding-top:8px;">
+      <div style="display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:18px; background:linear-gradient(135deg,#0891B2 0%,#22D3EE 100%); color:#fff; margin:6px auto 14px; box-shadow:0 12px 28px rgba(8,145,178,0.28);">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       </div>
-      <div class="form-group">
-        <label>Correo electrónico</label>
-        <input type="email" id="fEmail" placeholder="doctor@clinica.com">
+      <h3 style="margin:0 0 8px; font-size:18px; font-weight:800;">Agregar un doctor a tu clínica</h3>
+      <p style="margin:0 0 18px; color:var(--muted, #64748b); line-height:1.55;">
+        El costo por cada doctor adicional es de <b>USD&nbsp;$10</b> por mes.<br>
+        Para añadir un doctor, por favor contacta al soporte de Salud Digital y nuestro equipo se encargará de habilitar el acceso.
+      </p>
+      <div style="background:rgba(8,145,178,0.06); border:1px solid rgba(8,145,178,0.18); border-radius:12px; padding:14px 16px; text-align:left; display:flex; flex-direction:column; gap:6px; max-width:380px; margin:0 auto;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <a href="mailto:saluddigitalhn@gmail.com?subject=Solicitud%20de%20alta%20de%20doctor" style="color:#0891b2; font-weight:700; text-decoration:none;">saluddigitalhn@gmail.com</a>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span style="color:#475569;">Soporte: contáctanos por correo</span>
+        </div>
       </div>
-      <div class="form-group">
-        <label>Especialidad</label>
-        <select id="fSpecialty">
-          <option value="">Seleccionar especialidad…</option>
-          <option value="Odontología">Odontología</option>
-          <option value="Periodoncia">Periodoncia</option>
-          <option value="Ortodoncia">Ortodoncia</option>
-          <option value="Podología">Podología</option>
-          <option value="Nutrición">Nutrición</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Teléfono <small style="text-transform:none; letter-spacing:0">(opcional)</small></label>
-        <input type="tel" id="fPhone" placeholder="Ej: 50488888888">
-      </div>
-      <div class="msg-inline" id="formMsg"></div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeDoctorModal()">Cancelar</button>
-      <button class="btn btn-success" id="doctorSubmitBtn" onclick="createDoctor()">
+      <button class="btn btn-ghost" onclick="closeDoctorModal()">Cerrar</button>
+      <a class="btn btn-success" href="mailto:saluddigitalhn@gmail.com?subject=Solicitud%20de%20alta%20de%20doctor&body=Hola%20equipo%20de%20Salud%20Digital%2C%0A%0AQuiero%20agregar%20un%20nuevo%20doctor%20a%20mi%20cl%C3%ADnica.%20Estos%20son%20los%20datos%3A%0A%0ANombre%3A%20%0AEspecialidad%3A%20%0ACorreo%3A%20%0ATel%C3%A9fono%3A%20%0A%0AGracias." style="text-decoration:none;">
         <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
-        Enviar invitación
-      </button>
+        Contactar a soporte
+      </a>
     </div>
   </div>
 </div>
@@ -1318,9 +1311,6 @@
   function openDoctorModal(){ document.getElementById('doctorModal').classList.add('active'); }
   function closeDoctorModal(){
     document.getElementById('doctorModal').classList.remove('active');
-    ['fName','fEmail','fSpecialty','fPhone'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('formMsg').className = 'msg-inline';
-    document.getElementById('formMsg').textContent = '';
   }
   function openReceptionModal(){ document.getElementById('receptionModal').classList.add('active'); }
   function closeReceptionModal(){
@@ -1335,30 +1325,6 @@
     document.getElementById('roomName').value = '';
     document.getElementById('roomMsg').className = 'msg-inline';
     document.getElementById('roomMsg').textContent = '';
-  }
-
-  async function createDoctor(){
-    const name = document.getElementById('fName').value.trim();
-    const email = document.getElementById('fEmail').value.trim();
-    const specialty = document.getElementById('fSpecialty').value.trim();
-    const phone = document.getElementById('fPhone').value.trim();
-    const msg = document.getElementById('formMsg');
-    if (!name || !email || !specialty) {
-      msg.className = 'msg-inline err';
-      msg.textContent = 'Nombre, email y especialidad son requeridos';
-      return;
-    }
-    const btn = document.getElementById('doctorSubmitBtn');
-    btn.disabled = true;
-    try {
-      await api('/api/invitations', { method:'POST', body:{ email, name, specialty, phone } });
-      msg.className = 'msg-inline ok';
-      msg.textContent = 'Invitación enviada al correo del doctor';
-      setTimeout(() => { closeDoctorModal(); loadDoctors(); showToast('Invitación enviada'); }, 1200);
-    } catch (e) {
-      msg.className = 'msg-inline err';
-      msg.textContent = e.message || 'Error al enviar invitación';
-    } finally { btn.disabled = false; }
   }
 
   async function createReception(){

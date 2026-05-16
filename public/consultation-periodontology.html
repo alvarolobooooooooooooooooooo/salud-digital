@@ -374,6 +374,25 @@
       .perio-widget-container { margin: 0 -0.75rem; }
     }
 
+    /* ── Odontograma container (reused from cita odontológica) ── */
+    .odontogram-container {
+      background: linear-gradient(135deg, #f8fafc 0%, rgba(236, 254, 255, 0.6) 100%);
+      padding: 1.75rem 1.25rem;
+      border-radius: 16px;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--pod-border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+    }
+    .odontogram-container .odonto-detail-panel {
+      max-height: calc(100vh - 130px) !important;
+      overflow-y: auto !important;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    @media (max-width: 860px) {
+      .odontogram-container { padding: 1rem 0.5rem; }
+    }
+
     .footer {
       position: sticky; bottom: 1rem; z-index: 50;
       display: flex; justify-content: flex-end; align-items: center;
@@ -738,9 +757,23 @@
       </div>
     </div>
 
-    <!-- ─── Sección 3: Tratamiento y Notas ─── -->
+    <!-- ─── Sección 3: Odontograma ─── -->
     <div class="pod-group is-collapsed" data-group-idx="2">
       <div class="pod-group-num">3</div>
+      <div class="pod-group-title">Odontograma</div>
+      <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+
+    <!-- Odontograma Evaluación -->
+    <div class="form-section" data-icon="tooth">
+      <h3>Odontograma Interactivo</h3>
+      <div class="odontogram-container" id="odontogram1"></div>
+    </div>
+
+    <!-- ─── Sección 4: Tratamiento y Notas ─── -->
+    <div class="pod-group is-collapsed" data-group-idx="3">
+      <div class="pod-group-num">4</div>
       <div class="pod-group-title">Tratamiento y Notas</div>
       <div class="pod-group-line"></div>
       <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
@@ -768,9 +801,9 @@
       </div>
     </div>
 
-    <!-- ─── Sección 4: Documentación ─── -->
-    <div class="pod-group is-collapsed" data-group-idx="3">
-      <div class="pod-group-num">4</div>
+    <!-- ─── Sección 5: Documentación ─── -->
+    <div class="pod-group is-collapsed" data-group-idx="4">
+      <div class="pod-group-num">5</div>
       <div class="pod-group-title">Documentación</div>
       <div class="pod-group-line"></div>
       <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
@@ -820,9 +853,9 @@
     <!-- Inventario utilizado -->
     <div id="inventoryUsageSection"></div>
 
-    <!-- ─── Sección 5: Pago ─── -->
-    <div class="pod-group is-collapsed" data-group-idx="4">
-      <div class="pod-group-num">5</div>
+    <!-- ─── Sección 6: Pago ─── -->
+    <div class="pod-group is-collapsed" data-group-idx="5">
+      <div class="pod-group-num">6</div>
       <div class="pod-group-title">Información de Pago</div>
       <div class="pod-group-line"></div>
       <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
@@ -870,6 +903,16 @@
 <script src="/layout.js"></script>
 <script src="/consultation-inventory.js"></script>
 
+<!-- Odontograma (reused from cita odontológica) -->
+<script src="/odontogram.types.js"></script>
+<script src="/odontogram.data.js"></script>
+<script src="/odontogram.utils.js"></script>
+<script src="/odontogram-tooth.js"></script>
+<script src="/odontogram-arch.js"></script>
+<script src="/odontogram-toolbar.js"></script>
+<script src="/odontogram-legend.js"></script>
+<script src="/odontogram-container.js"></script>
+
 <!-- Periodontograma (React + Babel standalone, scoped to its container) -->
 <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
@@ -885,6 +928,7 @@ requireAuth(['clinic_admin', 'doctor']);
 
 let appointmentId = null;
 let patientId = null;
+let odontogram1 = null;
 let consultSubmitting = false;
 
 function formatCostBlur(el) {
@@ -934,6 +978,17 @@ async function loadAppointment() {
     // Wait for Babel to compile the JSX scripts before mounting the widget.
     await whenPerioReady();
     window.PerioWidget.init('periodontogram1', null);
+
+    // Mount the odontograma — preload any saved state for this patient
+    let savedOdonto = {};
+    try {
+      const patientDetail = await api(`/api/patients/${patientId}`);
+      if (patientDetail && patientDetail.odontogram_state) {
+        const raw = patientDetail.odontogram_state;
+        savedOdonto = typeof raw === 'string' ? JSON.parse(raw || '{}') : (raw || {});
+      }
+    } catch (_) { /* fall back to empty odontograma */ }
+    odontogram1 = new OdontogramContainer('odontogram1', savedOdonto, false);
 
     // Mount inventory section (consultation not saved yet → items stay pending until commit)
     if (window.ConsultationInventory) {
@@ -1128,7 +1183,14 @@ async function submitConsult(e) {
     const me = await api('/api/auth/me');
 
     const perioTeeth = (window.PerioWidget && window.PerioWidget.getState) ? window.PerioWidget.getState() : null;
-    const perioStateStr = JSON.stringify({ type: 'periodontogram', version: 1, teeth: perioTeeth || {} });
+    const odontoState = odontogram1 ? odontogram1.getState() : {};
+    const combinedStateStr = JSON.stringify({
+      type: 'periodontogram+odontogram',
+      version: 1,
+      periodontogram: { teeth: perioTeeth || {} },
+      odontogram: odontoState
+    });
+    const odontoOnlyStr = JSON.stringify(odontoState);
 
     const body = {
       patient_id: patientId,
@@ -1138,7 +1200,7 @@ async function submitConsult(e) {
       notes: document.getElementById('consRadNotes').value || null,
       diagnosis: null,
       treatment: document.getElementById('consProcedures').value || null,
-      odontogram_state: perioStateStr,
+      odontogram_state: combinedStateStr,
       cost,
       payment_status: document.getElementById('consPayment').value,
       payment_notes: document.getElementById('consPaymentNotes').value || '',
@@ -1162,6 +1224,16 @@ async function submitConsult(e) {
       body
     });
     const savedConsultId = consultResult.id;
+
+    // Persist the patient-level odontograma so it carries across visits
+    try {
+      await api(`/api/patients/${patientId}/odontogram`, {
+        method: 'PUT',
+        body: { odontogram_state: odontoOnlyStr }
+      });
+    } catch (odontoErr) {
+      console.warn('No se pudo persistir el odontograma del paciente:', odontoErr);
+    }
 
     await api(`/api/appointments/${appointmentId}/status`, {
       method: 'PUT',
