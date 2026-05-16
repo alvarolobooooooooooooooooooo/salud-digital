@@ -29,35 +29,38 @@
 
     .totals {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
     }
     .total-card {
       background: white;
-      padding: 1.25rem 1.5rem;
-      border-radius: 16px;
+      padding: 2rem 2.25rem;
+      border-radius: 20px;
       box-shadow: 0 4px 16px rgba(8, 145, 178, 0.08);
       border: 1px solid rgba(8, 145, 178, 0.08);
+      min-height: 140px;
+      display: flex; flex-direction: column; justify-content: center;
     }
     .total-card.featured {
       background: linear-gradient(135deg, #0891b2, #06b6d4);
       color: white;
     }
     .total-label {
-      font-size: 0.7rem;
+      font-size: 0.78rem;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      opacity: 0.8;
-      margin-bottom: 0.4rem;
+      opacity: 0.85;
+      margin-bottom: 0.6rem;
     }
     .total-value {
-      font-size: 1.7rem;
+      font-size: 2.5rem;
       font-weight: 900;
       font-variant-numeric: tabular-nums;
+      line-height: 1.05;
     }
-    .total-meta { font-size: 0.75rem; opacity: 0.85; margin-top: 0.2rem; }
+    .total-meta { font-size: 0.85rem; opacity: 0.85; margin-top: 0.5rem; }
 
     .section { margin-bottom: 2rem; }
     .section-title {
@@ -460,7 +463,12 @@
   }
 
   load();
-  setInterval(load, 8000);
+  // Live updates: refresh every 3s and immediately when the tab regains focus
+  setInterval(load, 3000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') load();
+  });
+  window.addEventListener('focus', load);
 </script>
 </body>
 </html>

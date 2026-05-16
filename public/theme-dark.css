@@ -1271,35 +1271,48 @@ html[data-theme="dark"] .sala-card {
   color: var(--ink-800) !important;
   box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
 }
-/* Subtle radial accent for sala cards (same vibe as the kpi cards) */
+/* Subtle radial accent for sala cards — match the cyan vibe from the kpi
+   cards above (rgba(8, 145, 178, .14)) so the layout reads consistently */
 html[data-theme="dark"] .salas-grid > *::after,
 html[data-theme="dark"] .sala::after {
-  background: radial-gradient(circle at 100% 0%, rgba(8, 145, 178, .12), transparent 65%) !important;
+  background: radial-gradient(circle at 100% 0%, rgba(8, 145, 178, .14), transparent 65%) !important;
+}
+/* Top accent stripe — desaturate the blue / indigo gradients */
+html[data-theme="dark"] .sala.occupied::before,
+html[data-theme="dark"] .sala.overtime::before {
+  background: linear-gradient(90deg, rgba(255,255,255,0.20), rgba(255,255,255,0.06)) !important;
 }
 html[data-theme="dark"] .sala-name,
 html[data-theme="dark"] .sala-patient { color: var(--ink-900) !important; }
 html[data-theme="dark"] .sala-doc,
 html[data-theme="dark"] .sala-meta { color: var(--ink-500) !important; }
-html[data-theme="dark"] .sala-icon {
-  background: linear-gradient(135deg, rgba(6, 182, 212, .15), rgba(8, 145, 178, .12)) !important;
-  color: #67e8f9 !important;
+html[data-theme="dark"] .sala-icon,
+html[data-theme="dark"] .sala.occupied .sala-icon,
+html[data-theme="dark"] .sala.overtime .sala-icon {
+  background: linear-gradient(135deg, rgba(255, 255, 255, .10), rgba(255, 255, 255, .04)) !important;
+  color: #d4d4d8 !important;
+}
+/* Overtime progress fill (light CSS uses indigo gradient) — gray it out */
+html[data-theme="dark"] .sala.overtime .progress-fill,
+html[data-theme="dark"] .sala.occupied .progress-fill {
+  background: linear-gradient(90deg, #0891b2, #155e75) !important;
 }
 html[data-theme="dark"] .sala-progress {
-  background: rgba(255, 255, 255, .08) !important;
+  background: transparent !important;
 }
 html[data-theme="dark"] .progress-bar {
   background: rgba(255, 255, 255, .08) !important;
 }
 html[data-theme="dark"] .progress-fill {
-  background: linear-gradient(90deg, #06b6d4, #0891b2) !important;
+  background: linear-gradient(90deg, #0891b2, #155e75) !important;
 }
 
-/* Status pills (EXCEDIDA / LIBRE / CONSULTA / En curso) */
+/* Status pills (EXCEDIDA / LIBRE / CONSULTA / En curso) — gray neutrals */
 html[data-theme="dark"] .status-pill,
 html[data-theme="dark"] .priority-tag {
-  background: rgba(6, 182, 212, .14) !important;
-  color: #67e8f9 !important;
-  border-color: rgba(6, 182, 212, .25) !important;
+  background: rgba(255, 255, 255, .08) !important;
+  color: #e4e4e7 !important;
+  border-color: rgba(255, 255, 255, .14) !important;
 }
 html[data-theme="dark"] .status-pill.free,
 html[data-theme="dark"] .status-pill.clean {
@@ -1362,15 +1375,15 @@ html[data-theme="dark"] .salas-empty,
 html[data-theme="dark"] .sala-empty,
 html[data-theme="dark"] .queue-empty,
 html[data-theme="dark"] .agenda-empty {
-  background: rgba(255, 255, 255, .03) !important;
-  border: 1px dashed var(--line) !important;
+  background: transparent !important;
+  border: none !important;
   color: var(--ink-500) !important;
 }
 
 /* Cola de espera + agenda items */
 html[data-theme="dark"] .queue-item,
 html[data-theme="dark"] .agenda-item {
-  background: rgba(255, 255, 255, .02) !important;
+  background: transparent !important;
   border-color: var(--glass-border) !important;
   color: var(--ink-800);
 }
@@ -1394,8 +1407,10 @@ html[data-theme="dark"] .agenda-node {
 /* Activity / staff lists */
 html[data-theme="dark"] .activity-item,
 html[data-theme="dark"] .staff-item {
-  background: rgba(255, 255, 255, .02) !important;
-  border-color: var(--glass-border) !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
 }
 html[data-theme="dark"] .act-text,
 html[data-theme="dark"] .staff-stat { color: var(--ink-800) !important; }

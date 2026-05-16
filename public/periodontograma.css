@@ -716,10 +716,14 @@
 /* ---------- Responsive ---------------------------------- */
 @media (max-width: 1100px) {
   .perio-root .perio-main {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr) prevents the column from auto-expanding to the chart's
+       intrinsic 1100px+ width — the chart-wrap scrolls horizontally inside
+       its own container instead of pushing the whole right panel offscreen. */
+    grid-template-columns: minmax(0, 1fr);
     min-height: 0;
     align-items: start;
   }
+  .perio-root .perio-chart-wrap { max-width: 100%; }
   .perio-root .perio-chart-area {
     padding: 0 var(--p-sp-3) var(--p-sp-3) !important;
     gap: var(--p-sp-3) !important;
