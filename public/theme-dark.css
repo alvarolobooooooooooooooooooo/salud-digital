@@ -1056,7 +1056,7 @@ html[data-theme="dark"] body .ci-results-loading {
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
   background: #2a2a2c; border-radius: 8px; border: 2px solid #050507;
 }
-[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #3a4860; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #3d3d44; }
 
 /* Firefox */
 [data-theme="dark"] * { scrollbar-color: #2a2a2c #050507; }

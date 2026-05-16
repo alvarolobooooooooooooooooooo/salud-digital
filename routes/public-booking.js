@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { query } = require('../db');
+const { checkRoomCapacity } = require('../lib/room-capacity');
 
 function timeToMinutes(t) {
   const [h, m] = t.split(':').map(Number);
@@ -107,6 +108,14 @@ router.post('/clinic/:clinicId/booking', async (req, res) => {
   );
   if (conflictCheck.rows.length > 0) {
     return res.status(409).json({ error: 'Este horario ya no está disponible' });
+  }
+
+  const cap = await checkRoomCapacity(clinicId, scheduled_at, null);
+  if (!cap.ok) {
+    return res.status(409).json({
+      error: 'Este horario ya no está disponible',
+      code: 'rooms_full',
+    });
   }
 
   let patientId;

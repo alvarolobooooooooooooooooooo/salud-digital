@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { query } = require('../db');
 const { authenticate } = require('../middleware/auth');
+const { checkRoomCapacity } = require('../lib/room-capacity');
 
 function getLocalDateString(date = new Date()) {
   const year = date.getFullYear();
@@ -64,6 +65,19 @@ router.put('/:id', authenticate, async (req, res) => {
   }
 
   if (scheduled_at !== undefined) {
+    // Only revalidate room capacity if the new status (if provided) isn't 'cancelled',
+    // since cancelled appointments don't occupy a room.
+    const futureStatus = status !== undefined ? status : null;
+    if (futureStatus !== 'cancelled') {
+      const cap = await checkRoomCapacity(req.user.clinic_id, scheduled_at, req.params.id);
+      if (!cap.ok) {
+        return res.status(409).json({
+          error: `No hay salas disponibles en ese horario (${cap.overlapping}/${cap.roomCount} ocupadas).`,
+          code: 'rooms_full',
+          ...cap,
+        });
+      }
+    }
     fields.push(`scheduled_at = $${paramIndex++}`);
     vals.push(scheduled_at);
   }
@@ -179,6 +193,15 @@ router.post('/', authenticate, async (req, res) => {
   const doctorResult = await query('SELECT specialty FROM users WHERE id = $1 AND clinic_id = $2 AND role = $3',
     [doctor_id, req.user.clinic_id, 'doctor']);
   if (doctorResult.rows.length === 0) return res.status(404).json({ error: 'Doctor no encontrado' });
+
+  const cap = await checkRoomCapacity(req.user.clinic_id, scheduled_at, null);
+  if (!cap.ok) {
+    return res.status(409).json({
+      error: `No hay salas disponibles en ese horario (${cap.overlapping}/${cap.roomCount} ocupadas).`,
+      code: 'rooms_full',
+      ...cap,
+    });
+  }
 
   const result = await query(
     'INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status, appointment_type) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',

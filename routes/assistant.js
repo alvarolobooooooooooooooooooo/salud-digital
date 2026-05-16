@@ -2,6 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
+const { checkRoomCapacity } = require('../lib/room-capacity');
 
 // Helper — obtiene la fecha local en formato YYYY-MM-DD según la zona horaria del servidor
 function getLocalDateString() {
@@ -243,6 +244,15 @@ router.post('/schedule', authenticate, requireRole('doctor'), async (req, res) =
 
     const patient = patientResult.rows[0];
     const scheduledAt = new Date(`${date}T${time}:00-06:00`);
+
+    const cap = await checkRoomCapacity(req.user.clinic_id, scheduledAt.toISOString(), null);
+    if (!cap.ok) {
+      return res.json({
+        success: false,
+        error: 'No hay salas disponibles en ese horario.',
+        spoken_response: `No hay salas disponibles a las ${time}. Ya hay ${cap.overlapping} citas ocupando las ${cap.roomCount} salas.`
+      });
+    }
 
     const result = await query(`
       INSERT INTO appointments (doctor_id, patient_id, clinic_id, scheduled_at, status)

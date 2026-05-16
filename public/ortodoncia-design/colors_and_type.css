@@ -1,0 +1,295 @@
+/* =========================================================
+   Salud Digital — Foundations
+   Colors + typography variables for the whole brand system.
+   ========================================================= */
+
+/* --- Webfonts (substitutions — see README) ---------------- */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ====== BRAND CORE =====================================
+     Sampled directly from the official logo.            */
+  --sd-navy-900: #001638;        /* darkest – deep ink */
+  --sd-navy-800: #002050;        /* logomark dark arm */
+  --sd-navy-700: #002A60;        /* wordmark "Salud Digital" */
+  --sd-navy-600: #103A78;        /* hover/elevated navy */
+  --sd-navy-500: #25579E;        /* link, navy on light */
+
+  --sd-blue-700: #00638A;        /* deep cyan-blue */
+  --sd-blue-600: #0080B0;        /* primary brand blue (logomark) */
+  --sd-blue-500: #1796C6;        /* hover */
+  --sd-blue-400: #54B0DD;        /* mid-tint */
+  --sd-blue-300: #9BD0EA;        /* soft */
+  --sd-blue-200: #D2E9F5;        /* tint, badges */
+  --sd-blue-100: #EAF4FA;        /* surface tint */
+  --sd-blue-50:  #F4FAFD;        /* faintest wash */
+
+  /* ====== NEUTRAL ========================================
+     Cool-leaning grays — clinical, not sterile.        */
+  --sd-ink-1000: #0B1424;        /* near-black headings on white */
+  --sd-ink-900:  #1A2235;
+  --sd-ink-700:  #3F485C;        /* body text */
+  --sd-ink-500:  #606A7C;        /* secondary text (tagline gray) */
+  --sd-ink-400:  #8A93A4;
+  --sd-ink-300:  #BDC4D0;
+  --sd-ink-200:  #DCE1E9;        /* borders */
+  --sd-ink-150:  #E8ECF2;
+  --sd-ink-100:  #F1F4F8;        /* subtle surface */
+  --sd-ink-50:   #F7F9FC;        /* app canvas */
+  --sd-ink-0:    #FFFFFF;
+
+  /* ====== SEMANTIC (healthcare) ===========================
+     Tuned for clarity in medical UI — never alarmist.    */
+  --sd-vital-600: #198754;       /* success / stable / "saludable" */
+  --sd-vital-500: #2BA86A;
+  --sd-vital-100: #E3F4EC;
+
+  --sd-alert-600: #C7811C;       /* warning / requires attention */
+  --sd-alert-500: #E0992E;
+  --sd-alert-100: #FBEFDB;
+
+  --sd-critical-600: #C2362C;    /* critical / urgent */
+  --sd-critical-500: #DA453A;
+  --sd-critical-100: #FBE5E3;
+
+  --sd-info-600: var(--sd-blue-600);
+  --sd-info-100: var(--sd-blue-100);
+
+  /* ====== SEMANTIC ROLES =================================
+     Use THESE in components — they map to the scales.   */
+  --bg-app:        var(--sd-ink-50);
+  --bg-surface:    var(--sd-ink-0);
+  --bg-raised:     var(--sd-ink-0);
+  --bg-subtle:     var(--sd-ink-100);
+  --bg-inverse:    var(--sd-navy-800);
+  --bg-brand:      var(--sd-blue-600);
+  --bg-brand-soft: var(--sd-blue-100);
+
+  --fg-default:   var(--sd-ink-900);
+  --fg-strong:    var(--sd-ink-1000);
+  --fg-muted:     var(--sd-ink-500);
+  --fg-subtle:    var(--sd-ink-400);
+  --fg-on-brand:  var(--sd-ink-0);
+  --fg-link:      var(--sd-blue-700);
+  --fg-brand:     var(--sd-navy-700);
+
+  --border-soft:    var(--sd-ink-150);
+  --border-default: var(--sd-ink-200);
+  --border-strong:  var(--sd-ink-300);
+  --border-focus:   var(--sd-blue-600);
+
+  /* ====== TYPOGRAPHY =====================================
+     Manrope: display / wordmark substitute (rounded geometric).
+     Plus Jakarta Sans: body / UI (humanist sans).
+     JetBrains Mono: data, IDs, codes.                    */
+  --font-display: 'Manrope', 'Nunito Sans', system-ui, sans-serif;
+  --font-body:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  /* Scale (1.200 — minor third) */
+  --t-12: 0.75rem;
+  --t-13: 0.8125rem;
+  --t-14: 0.875rem;
+  --t-15: 0.9375rem;
+  --t-16: 1rem;
+  --t-18: 1.125rem;
+  --t-20: 1.25rem;
+  --t-24: 1.5rem;
+  --t-28: 1.75rem;
+  --t-32: 2rem;
+  --t-40: 2.5rem;
+  --t-48: 3rem;
+  --t-60: 3.75rem;
+
+  /* Line heights */
+  --lh-tight:  1.1;
+  --lh-snug:   1.25;
+  --lh-normal: 1.45;
+  --lh-loose:  1.65;
+
+  /* Letter spacing */
+  --ls-tightest: -0.03em;
+  --ls-tight:    -0.015em;
+  --ls-normal:    0;
+  --ls-wide:      0.04em;
+  --ls-widest:    0.12em;
+
+  /* ====== SPACING (4-pt) =================================*/
+  --sp-0:  0;
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
+
+  /* ====== RADII ==========================================*/
+  --r-xs:   4px;
+  --r-sm:   6px;
+  --r-md:   10px;
+  --r-lg:   14px;
+  --r-xl:   20px;
+  --r-2xl:  28px;
+  --r-pill: 999px;
+
+  /* ====== ELEVATION ======================================
+     Soft, cool-tinted (slight navy bias).                 */
+  --shadow-xs: 0 1px 2px rgba(11,20,36,0.05);
+  --shadow-sm: 0 1px 2px rgba(11,20,36,0.06), 0 1px 3px rgba(11,20,36,0.04);
+  --shadow-md: 0 4px 12px rgba(11,20,36,0.06), 0 2px 4px rgba(11,20,36,0.04);
+  --shadow-lg: 0 12px 28px rgba(11,20,36,0.10), 0 4px 10px rgba(11,20,36,0.05);
+  --shadow-xl: 0 24px 48px rgba(11,20,36,0.14), 0 8px 16px rgba(11,20,36,0.06);
+  --shadow-focus: 0 0 0 4px rgba(0,128,176,0.22);
+
+  /* ====== MOTION =========================================*/
+  --ease-out: cubic-bezier(.22,.61,.36,1);
+  --ease-in-out: cubic-bezier(.65,.05,.36,1);
+  --dur-1: 120ms;
+  --dur-2: 180ms;
+  --dur-3: 240ms;
+  --dur-4: 360ms;
+}
+
+/* =========================================================
+   SEMANTIC TYPE STYLES — apply as classes or @extend.
+   ========================================================= */
+
+.sd-display-xl,
+.sd-display-lg,
+.sd-display-md,
+.sd-h1, .sd-h2, .sd-h3, .sd-h4,
+.sd-eyebrow {
+  font-family: var(--font-display);
+  color: var(--fg-strong);
+}
+
+.sd-display-xl { font-size: var(--t-60); line-height: var(--lh-tight); letter-spacing: var(--ls-tightest); font-weight: 800; }
+.sd-display-lg { font-size: var(--t-48); line-height: var(--lh-tight); letter-spacing: var(--ls-tight);    font-weight: 800; }
+.sd-display-md { font-size: var(--t-40); line-height: var(--lh-tight); letter-spacing: var(--ls-tight);    font-weight: 700; }
+
+.sd-h1 { font-size: var(--t-32); line-height: var(--lh-snug); letter-spacing: var(--ls-tight); font-weight: 700; }
+.sd-h2 { font-size: var(--t-24); line-height: var(--lh-snug); letter-spacing: var(--ls-tight); font-weight: 700; }
+.sd-h3 { font-size: var(--t-20); line-height: var(--lh-snug); font-weight: 700; }
+.sd-h4 { font-size: var(--t-18); line-height: var(--lh-snug); font-weight: 600; }
+
+.sd-eyebrow {
+  font-size: var(--t-12);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-widest);
+  color: var(--fg-brand);
+}
+
+.sd-body-lg, .sd-body, .sd-body-sm, .sd-caption, .sd-label, .sd-mono {
+  font-family: var(--font-body);
+  color: var(--fg-default);
+}
+.sd-body-lg { font-size: var(--t-18); line-height: var(--lh-loose); font-weight: 400; }
+.sd-body    { font-size: var(--t-16); line-height: var(--lh-normal); font-weight: 400; }
+.sd-body-sm { font-size: var(--t-14); line-height: var(--lh-normal); font-weight: 400; }
+.sd-caption { font-size: var(--t-12); line-height: var(--lh-normal); color: var(--fg-muted); }
+.sd-label   { font-size: var(--t-13); line-height: var(--lh-snug);   font-weight: 600; letter-spacing: 0.01em; }
+.sd-mono    { font-family: var(--font-mono); font-size: var(--t-13); letter-spacing: 0; }
+
+/* Element baselines (when colors_and_type.css is loaded standalone) */
+html, body {
+  font-family: var(--font-body);
+  color: var(--fg-default);
+  background: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+}
+h1 { @apply: .sd-h1; }
+h2 { @apply: .sd-h2; }
+h3 { @apply: .sd-h3; }
+p  { line-height: var(--lh-normal); }
+a  { color: var(--fg-link); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 2px; }
+code, kbd, samp { font-family: var(--font-mono); font-size: 0.95em; }
+
+/* =========================================================
+   DARK MODE — semantic role overrides
+   Activated by html[data-theme="dark"]. Only flips the
+   high-level role tokens so all components react automatically.
+   ========================================================= */
+html[data-theme="dark"] {
+  /* Surfaces / canvases — pure neutral grays (no navy tint) */
+  --bg-app:        #08080a;
+  --bg-surface:    #141418;
+  --bg-raised:     #1c1c20;
+  --bg-subtle:     #141418;
+  --bg-inverse:    #E8ECF2;
+  --bg-brand-soft: rgba(255,255,255,0.08);
+
+  /* Foreground */
+  --fg-default:    #E5E7EB;
+  --fg-strong:     #F9FAFB;
+  --fg-muted:      #9CA3AF;
+  --fg-subtle:     #6B7280;
+  --fg-brand:      #E5E7EB;
+  --fg-link:       #E5E7EB;
+  --fg-on-brand:   #08080a;
+
+  /* Borders — neutral grays */
+  --border-soft:    #1f1f24;
+  --border-default: #2a2a2f;
+  --border-strong:  #3d3d44;
+
+  /* Subtle ink shades used as backgrounds inside components */
+  --sd-ink-50:     #08080a;
+  --sd-ink-100:    #141418;
+  --sd-ink-150:    #1c1c20;
+  --sd-ink-200:    #2a2a2f;
+  --sd-ink-300:    #3d3d44;
+
+  /* Brand accents on dark surfaces — neutralized to grays to avoid
+     blue contrast on the near-black canvas (host design request). */
+  --sd-navy-800:   #0B0E14;
+  --sd-navy-700:   #E5E7EB;
+  --sd-blue-700:   #E5E7EB;
+  --sd-blue-600:   #9CA3AF;
+  --sd-blue-500:   #6B7280;
+  --sd-blue-400:   #4B5563;
+  --sd-blue-300:   #6B7280;
+  --sd-blue-200:   #D1D5DB;
+  --sd-blue-100:   rgba(255,255,255,0.08);
+  --sd-blue-50:    rgba(255,255,255,0.04);
+  --fg-link:       #E5E7EB;
+  --border-focus:  #6B7280;
+  --shadow-focus:  0 0 0 4px rgba(255,255,255,0.12);
+
+  /* Semantic tints — keep the hue, deepen the tint background */
+  --sd-vital-100:  rgba(43,168,106,0.18);
+  --sd-alert-100:  rgba(224,153,46,0.18);
+  --sd-critical-100: rgba(218,69,58,0.18);
+
+  background: var(--bg-app);
+  color: var(--fg-default);
+}
+
+html[data-theme="dark"] body {
+  background: var(--bg-app);
+  color: var(--fg-default);
+}
+
+/* Form controls (checkboxes used in the canvas legend) */
+html[data-theme="dark"] input[type="checkbox"] {
+  accent-color: #9CA3AF;
+}
+
+/* Inputs / textareas that the design uses for notes & magnitude slider */
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+  background: var(--bg-raised);
+  color: var(--fg-default);
+  border-color: var(--border-default);
+}
+
+/* The "boot" splash before React mounts */
+html[data-theme="dark"] #boot { background: var(--bg-app); color: var(--fg-muted); }

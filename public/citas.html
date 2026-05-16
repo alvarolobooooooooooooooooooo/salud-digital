@@ -1884,6 +1884,8 @@ function drLabel(a) {
 function consultationPathForSpecialty(specialty) {
   if (specialty === 'Podología') return '/consultation-podiatry.html';
   if (specialty === 'Nutrición') return '/consultation-nutrition.html';
+  if (specialty === 'Periodoncia') return '/consultation-periodontology.html';
+  if (specialty === 'Ortodoncia') return '/consultation-orthodontics.html';
   return '/consultation.html';
 }
 function colorForSpecialty(specialty) {
@@ -1891,6 +1893,8 @@ function colorForSpecialty(specialty) {
   if (specialty === 'Medicina General')return 'var(--info-500)';
   if (specialty === 'Podología')       return 'var(--warn-500)';
   if (specialty === 'Nutrición')       return 'var(--ok-500)';
+  if (specialty === 'Periodoncia')     return '#0080B0';
+  if (specialty === 'Ortodoncia')      return '#7B3FF2';
   return 'var(--ink-400)';
 }
 function dotForSpecialty(specialty) {

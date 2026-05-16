@@ -512,6 +512,8 @@
     }
     .image-uploader .uploader-title { font-weight: 600; color: #0f172a; font-size: 14px; margin-bottom: .25rem; letter-spacing: -.005em; }
     .image-uploader .uploader-sub { font-size: 12px; color: #64748b; margin-bottom: 1rem; font-weight: 400; }
+    [data-theme="dark"] .image-uploader .uploader-title { color: #f1f5f9; }
+    [data-theme="dark"] .image-uploader .uploader-sub { color: #9ca3af; }
     .image-uploader .uploader-actions { display: inline-flex; gap: .5rem; }
     .image-uploader .preview-img { width: 100%; max-height: 240px; object-fit: contain; border-radius: 14px; background: #0f172a; }
     .image-uploader .preview-overlay {
@@ -762,6 +764,7 @@
             <option value="insumo_medico">Insumo médico</option>
             <option value="equipo">Equipo</option>
             <option value="descartable">Material descartable</option>
+            <option value="cuidado_personal">Cuidado personal</option>
             <option value="administrativo">Producto administrativo</option>
             <option value="otro">Otro</option>
           </select>
@@ -877,6 +880,7 @@
                   <option value="insumo_medico">Insumo médico</option>
                   <option value="equipo">Equipo</option>
                   <option value="descartable">Material descartable</option>
+                  <option value="cuidado_personal">Cuidado personal</option>
                   <option value="administrativo">Producto administrativo</option>
                   <option value="otro" selected>Otro</option>
                 </select>
@@ -1233,6 +1237,7 @@
       insumo_medico: 'Insumo médico',
       equipo: 'Equipo',
       descartable: 'Material descartable',
+      cuidado_personal: 'Cuidado personal',
       administrativo: 'Administrativo',
       otro: 'Otro'
     };

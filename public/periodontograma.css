@@ -1,0 +1,921 @@
+/* =========================================================
+   Periodontograma — scoped widget styles
+   All rules are scoped under .perio-root so they do not bleed
+   into the surrounding consultation page.
+   Adapted from the Claude Design bundle.
+   ========================================================= */
+
+.perio-root {
+  /* Brand */
+  --sd-navy-900: #001638;
+  --sd-navy-800: #002050;
+  --sd-navy-700: #002A60;
+  --sd-navy-600: #103A78;
+  --sd-navy-500: #25579E;
+
+  --sd-blue-700: #00638A;
+  --sd-blue-600: #0080B0;
+  --sd-blue-500: #1796C6;
+  --sd-blue-400: #54B0DD;
+  --sd-blue-300: #9BD0EA;
+  --sd-blue-200: #D2E9F5;
+  --sd-blue-100: #EAF4FA;
+  --sd-blue-50:  #F4FAFD;
+
+  --sd-ink-1000: #0B1424;
+  --sd-ink-900:  #1A2235;
+  --sd-ink-700:  #3F485C;
+  --sd-ink-500:  #606A7C;
+  --sd-ink-400:  #8A93A4;
+  --sd-ink-300:  #BDC4D0;
+  --sd-ink-200:  #DCE1E9;
+  --sd-ink-150:  #E8ECF2;
+  --sd-ink-100:  #F1F4F8;
+  --sd-ink-50:   #F7F9FC;
+  --sd-ink-0:    #FFFFFF;
+
+  --sd-vital-600: #198754;
+  --sd-vital-500: #2BA86A;
+  --sd-vital-100: #E3F4EC;
+
+  --sd-alert-600: #C7811C;
+  --sd-alert-500: #E0992E;
+  --sd-alert-100: #FBEFDB;
+
+  --sd-critical-600: #C2362C;
+  --sd-critical-500: #DA453A;
+  --sd-critical-100: #FBE5E3;
+
+  --p-bg-app:        var(--sd-ink-50);
+  --p-bg-surface:    var(--sd-ink-0);
+  --p-bg-subtle:     var(--sd-ink-100);
+  --p-fg-default:    var(--sd-ink-900);
+  --p-fg-strong:     var(--sd-ink-1000);
+  --p-fg-muted:      var(--sd-ink-500);
+  --p-fg-subtle:     var(--sd-ink-400);
+  --p-border-soft:    var(--sd-ink-150);
+  --p-border-default: var(--sd-ink-200);
+  --p-border-strong:  var(--sd-ink-300);
+
+  --p-font-display: 'Manrope', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --p-font-body:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --p-font-mono:    'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  --p-t-12: 0.75rem;
+  --p-t-13: 0.8125rem;
+  --p-t-14: 0.875rem;
+  --p-t-16: 1rem;
+  --p-t-18: 1.125rem;
+  --p-t-20: 1.25rem;
+  --p-t-24: 1.5rem;
+
+  --p-lh-snug:   1.25;
+  --p-lh-normal: 1.45;
+
+  --p-ls-tight:    -0.015em;
+  --p-ls-widest:    0.12em;
+
+  --p-sp-1:  4px;
+  --p-sp-2:  8px;
+  --p-sp-3:  12px;
+  --p-sp-4:  16px;
+  --p-sp-5:  20px;
+  --p-sp-6:  24px;
+
+  --p-r-xs:   4px;
+  --p-r-sm:   6px;
+  --p-r-md:   10px;
+  --p-r-lg:   14px;
+  --p-r-pill: 999px;
+
+  --p-shadow-xs: 0 1px 2px rgba(11,20,36,0.05);
+  --p-shadow-focus: 0 0 0 4px rgba(0,128,176,0.22);
+
+  --p-ease-out: cubic-bezier(.22,.61,.36,1);
+  --p-dur-1: 120ms;
+  --p-dur-2: 180ms;
+
+  font-family: var(--p-font-body);
+  color: var(--p-fg-default);
+  background: var(--p-bg-app);
+  display: block;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--p-border-default);
+}
+
+.perio-root *, .perio-root *::before, .perio-root *::after { box-sizing: border-box; }
+.perio-root button { font-family: inherit; cursor: pointer; }
+
+/* ---------- Layout grid (chart + right panel) ----------- */
+.perio-root .perio-main {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 0;
+  min-height: 760px;
+}
+
+.perio-root .perio-chart-area {
+  padding: var(--p-sp-4) var(--p-sp-5) var(--p-sp-5);
+  overflow: auto;
+  background: var(--p-bg-app);
+  display: flex; flex-direction: column; gap: var(--p-sp-4);
+}
+
+.perio-root .perio-exam-header {
+  display: flex; align-items: flex-end; justify-content: space-between; gap: var(--p-sp-5);
+  padding-bottom: var(--p-sp-3);
+  border-bottom: 1px solid var(--p-border-default);
+}
+.perio-root .perio-exam-header h2 {
+  font-family: var(--p-font-display);
+  font-size: var(--p-t-18);
+  font-weight: 700;
+  letter-spacing: var(--p-ls-tight);
+  color: var(--p-fg-strong);
+  margin: 0;
+}
+.perio-root .perio-exam-header .perio-sub {
+  font-size: var(--p-t-12);
+  color: var(--p-fg-muted);
+  margin-top: 2px;
+}
+.perio-root .perio-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--p-ls-widest);
+  color: var(--sd-navy-700);
+}
+
+.perio-root .perio-btn {
+  border: 1px solid var(--p-border-default);
+  background: var(--p-bg-surface);
+  color: var(--p-fg-default);
+  border-radius: var(--p-r-md);
+  padding: 7px 12px;
+  font-size: var(--p-t-12);
+  font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background var(--p-dur-1) var(--p-ease-out), border-color var(--p-dur-1) var(--p-ease-out);
+}
+.perio-root .perio-btn:hover { background: var(--sd-ink-100); }
+.perio-root .perio-btn.is-active {
+  border-color: var(--sd-blue-600);
+  color: var(--sd-blue-700);
+  background: var(--sd-blue-50);
+}
+
+/* ---------- Legend ---------- */
+.perio-root .perio-legend {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 11px;
+  color: var(--p-fg-default);
+  flex-wrap: wrap;
+  background: var(--p-bg-surface);
+  border: 1px solid var(--p-border-default);
+  border-radius: var(--p-r-md);
+  padding: 8px 12px;
+}
+.perio-root .perio-legend-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.perio-root .perio-legend-dot { width: 9px; height: 9px; border-radius: var(--p-r-pill); flex-shrink: 0; }
+.perio-root .perio-legend-divider { width: 1px; height: 14px; background: var(--p-border-default); }
+
+/* ---------- Chart ---------------------------------------- */
+.perio-root .perio-chart-wrap {
+  background: var(--p-bg-surface);
+  border: 1px solid var(--p-border-default);
+  border-radius: var(--p-r-lg);
+  padding: var(--p-sp-3) var(--p-sp-4) var(--p-sp-4);
+  overflow-x: auto;
+}
+.perio-root .perio-chart-scroll { min-width: 100%; }
+
+.perio-root .perio-arch-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: var(--p-ls-widest);
+  text-transform: uppercase;
+  color: var(--sd-navy-700);
+  padding: 4px 0 6px;
+  display: flex; align-items: center; gap: var(--p-sp-3);
+}
+.perio-root .perio-arch-label::after { content: ''; flex: 1; height: 1px; background: var(--p-border-default); }
+
+.perio-root .perio-chart-grid {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  align-items: stretch;
+  gap: 0;
+}
+
+.perio-root .perio-row-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: var(--p-ls-widest);
+  color: var(--p-fg-muted);
+  font-weight: 700;
+  display: flex; align-items: center;
+  padding-right: var(--p-sp-3);
+  border-right: 1px solid var(--p-border-soft);
+  white-space: nowrap;
+  min-height: 28px;
+}
+.perio-root .perio-row-label.tall { padding: var(--p-sp-2) var(--p-sp-3) var(--p-sp-2) 0; min-height: 32px; }
+.perio-root .perio-row-label .perio-row-sub {
+  display: block;
+  font-size: 9px;
+  color: var(--p-fg-subtle);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.perio-root .perio-teeth-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 60px;
+  align-items: center;
+  padding-left: var(--p-sp-2);
+}
+
+.perio-root .perio-tooth-cell {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  height: 28px;
+  border-right: 1px solid var(--p-border-soft);
+  align-items: stretch;
+}
+.perio-root .perio-tooth-cell:last-child { border-right: none; }
+
+.perio-root .perio-site-cell {
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--p-font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--p-fg-default);
+  cursor: pointer;
+  border-radius: 3px;
+  user-select: none;
+  position: relative;
+  letter-spacing: -0.02em;
+}
+.perio-root .perio-site-cell:hover { background: rgba(0,128,176,0.08); }
+.perio-root .perio-site-cell.is-selected {
+  background: var(--sd-blue-100);
+  outline: 1.5px solid var(--sd-blue-600);
+  outline-offset: -1.5px;
+  z-index: 1;
+  color: var(--sd-navy-700);
+}
+.perio-root .perio-site-cell.is-empty { color: var(--sd-ink-300); font-weight: 400; }
+.perio-root .perio-site-cell.pd-shallow { color: var(--sd-ink-900); }
+.perio-root .perio-site-cell.pd-moderate {
+  color: var(--sd-alert-600);
+  font-weight: 700;
+  background: rgba(224,153,46,0.10);
+}
+.perio-root .perio-site-cell.pd-deep {
+  color: var(--sd-critical-600);
+  font-weight: 800;
+  background: rgba(218,69,58,0.12);
+}
+
+.perio-root .perio-dot-cell {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  height: 18px;
+  border-right: 1px solid var(--p-border-soft);
+  align-items: center;
+}
+.perio-root .perio-dot-cell:last-child { border-right: none; }
+
+.perio-root .perio-dot-slot {
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  position: relative;
+  border-radius: 3px;
+  transition: background var(--p-dur-1) var(--p-ease-out);
+}
+.perio-root .perio-dot-slot:hover { background: rgba(0,128,176,0.06); }
+.perio-root .perio-dot {
+  width: 9px; height: 9px; border-radius: var(--p-r-pill);
+  background: var(--sd-ink-150);
+}
+.perio-root .perio-dot.on-bop { background: var(--sd-critical-500); box-shadow: 0 0 0 1.5px rgba(218,69,58,0.18); }
+.perio-root .perio-dot.on-plaque { background: var(--sd-alert-500); box-shadow: 0 0 0 1.5px rgba(224,153,46,0.20); }
+.perio-root .perio-dot.on-sup {
+  background: #FFFFFF; border: 1.8px solid var(--sd-critical-500);
+  box-shadow: 0 0 0 2px rgba(218,69,58,0.18);
+}
+
+.perio-root .perio-fdi-cell {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 34px;
+  font-family: var(--p-font-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--sd-navy-800);
+  border-right: 1px solid var(--p-border-soft);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--p-dur-1) var(--p-ease-out);
+}
+.perio-root .perio-fdi-cell:hover { background: rgba(0,128,176,0.05); }
+.perio-root .perio-fdi-cell:last-child { border-right: none; }
+.perio-root .perio-fdi-cell.is-selected {
+  background: var(--sd-blue-100);
+  color: var(--sd-navy-900);
+  box-shadow: inset 0 -2.5px 0 var(--sd-blue-600);
+}
+.perio-root .perio-fdi-cell.is-absent { color: var(--sd-ink-300); }
+.perio-root .perio-fdi-cell.is-absent .perio-fdi-sub { color: var(--sd-ink-300); }
+.perio-root .perio-fdi-cell.is-implant { color: var(--sd-blue-700); }
+.perio-root .perio-fdi-cell .perio-fdi-sub {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--p-fg-muted);
+  font-family: var(--p-font-body);
+  font-weight: 700;
+  margin-top: 0px;
+}
+
+.perio-root .perio-tooth-cell-img {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  border-right: 1px solid var(--p-border-soft);
+  cursor: pointer;
+  position: relative;
+  background: var(--p-bg-surface);
+  height: 158px;
+  transition: background var(--p-dur-1) var(--p-ease-out);
+}
+.perio-root .perio-tooth-cell-img:hover { background: rgba(0,128,176,0.03); }
+.perio-root .perio-tooth-cell-img:last-child { border-right: none; }
+.perio-root .perio-tooth-cell-img.is-selected {
+  background: rgba(0,128,176,0.06);
+  box-shadow: inset 0 0 0 1.5px var(--sd-blue-600);
+  z-index: 1;
+}
+.perio-root .perio-tooth-cell-img.is-absent {
+  background:
+    linear-gradient(to bottom, transparent 0%, transparent 100%),
+    repeating-linear-gradient(45deg, var(--p-bg-surface) 0 5px, var(--sd-ink-100) 5px 10px);
+}
+
+.perio-root .perio-indicator-cell {
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+  height: 26px;
+  border-right: 1px solid var(--p-border-soft);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--p-font-mono);
+  color: var(--p-fg-muted);
+  cursor: pointer;
+}
+.perio-root .perio-indicator-cell:last-child { border-right: none; }
+
+.perio-root .perio-mobility-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 1px 6px;
+  background: var(--sd-alert-100);
+  color: var(--sd-alert-600);
+  border-radius: var(--p-r-pill);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--p-font-body);
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(224,153,46,0.4);
+}
+.perio-root .perio-mobility-pill.mob-2 { background: rgba(218,69,58,0.12); color: var(--sd-critical-600); border-color: rgba(218,69,58,0.4); }
+.perio-root .perio-mobility-pill.mob-3 { background: var(--sd-critical-500); color: white; border-color: var(--sd-critical-500); }
+
+.perio-root .perio-furcation-marker {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--p-font-body);
+  border: 1.5px solid var(--sd-alert-500);
+  color: var(--sd-alert-600);
+  background: var(--sd-alert-100);
+}
+.perio-root .perio-furcation-marker.f-2 { background: var(--sd-alert-500); color: white; }
+.perio-root .perio-furcation-marker.f-3 { background: var(--sd-critical-500); color: white; border-color: var(--sd-critical-500); }
+
+/* ---------- Right panel ---------------------------------- */
+.perio-root .perio-right-panel {
+  background: var(--p-bg-surface);
+  border-left: 1px solid var(--p-border-default);
+  padding: var(--p-sp-5);
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: var(--p-sp-4);
+}
+
+.perio-root .perio-dx-card {
+  background: linear-gradient(135deg, #0891b2 0%, #0369a1 45%, #06b6d4 100%);
+  color: white;
+  border-radius: var(--p-r-lg);
+  padding: var(--p-sp-4);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(8, 145, 178, 0.22), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.perio-root .perio-dx-card .perio-dx-eyebrow {
+  font-size: 11px;
+  letter-spacing: var(--p-ls-widest);
+  text-transform: uppercase;
+  color: var(--sd-blue-300);
+  font-weight: 700;
+}
+.perio-root .perio-dx-card .perio-dx-title {
+  font-family: var(--p-font-display);
+  font-size: var(--p-t-18);
+  font-weight: 700;
+  margin-top: var(--p-sp-2);
+  line-height: var(--p-lh-snug);
+  letter-spacing: var(--p-ls-tight);
+}
+.perio-root .perio-dx-card .perio-dx-meta {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: var(--p-sp-2); margin-top: var(--p-sp-3);
+}
+.perio-root .perio-dx-card .perio-dx-tile {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--p-r-md);
+  padding: 6px 8px;
+}
+.perio-root .perio-dx-card .perio-dx-tile .perio-label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: var(--p-ls-widest);
+  color: var(--sd-blue-300);
+  font-weight: 700;
+}
+.perio-root .perio-dx-card .perio-dx-tile .perio-value {
+  font-family: var(--p-font-display);
+  font-size: 20px; font-weight: 800; line-height: 1.1;
+  margin-top: 2px;
+}
+.perio-root .perio-dx-card .perio-dx-tile .perio-value .perio-small {
+  font-size: 11px; font-weight: 600; color: var(--sd-blue-300); margin-left: 2px;
+}
+.perio-root .perio-dx-card .perio-dx-note {
+  margin-top: var(--p-sp-3);
+  font-size: 11px;
+  color: var(--sd-blue-200);
+  line-height: var(--p-lh-snug);
+}
+
+.perio-root .perio-metric-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: var(--p-sp-2);
+}
+.perio-root .perio-metric {
+  background: var(--p-bg-surface);
+  border: 1px solid var(--p-border-default);
+  border-radius: var(--p-r-md);
+  padding: var(--p-sp-2) var(--p-sp-3);
+}
+.perio-root .perio-metric .perio-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: var(--p-ls-widest);
+  font-weight: 700; color: var(--p-fg-muted);
+}
+.perio-root .perio-metric .perio-value {
+  font-family: var(--p-font-display);
+  font-size: 22px; font-weight: 800;
+  color: var(--p-fg-strong);
+  line-height: 1; margin-top: 4px;
+}
+.perio-root .perio-metric .perio-value .perio-unit { font-size: 12px; color: var(--p-fg-muted); font-weight: 600; margin-left: 2px; }
+
+.perio-root .perio-bar-chart { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.perio-root .perio-bar-row {
+  display: grid; grid-template-columns: 56px 1fr 32px;
+  align-items: center; gap: 8px;
+  font-size: 11px;
+}
+.perio-root .perio-bar-row .perio-blabel { color: var(--p-fg-muted); font-weight: 600; font-family: var(--p-font-mono); }
+.perio-root .perio-bar-row .perio-btrack {
+  height: 8px; background: var(--sd-ink-100); border-radius: var(--p-r-pill); overflow: hidden;
+}
+.perio-root .perio-bar-row .perio-bfill {
+  height: 100%; border-radius: var(--p-r-pill);
+  transition: width var(--p-dur-2) var(--p-ease-out);
+}
+.perio-root .perio-bfill.shallow { background: var(--sd-vital-500); }
+.perio-root .perio-bfill.moderate { background: var(--sd-alert-500); }
+.perio-root .perio-bfill.deep { background: var(--sd-critical-500); }
+.perio-root .perio-bar-row .perio-bnum { font-family: var(--p-font-mono); font-size: 11px; color: var(--p-fg-default); text-align: right; font-weight: 600; }
+
+.perio-root .perio-section-card {
+  background: var(--p-bg-surface);
+  border: 1px solid var(--p-border-default);
+  border-radius: var(--p-r-lg);
+  padding: var(--p-sp-3) var(--p-sp-4);
+}
+.perio-root .perio-section-card-title {
+  font-family: var(--p-font-display);
+  font-weight: 700;
+  font-size: var(--p-t-13);
+  color: var(--p-fg-strong);
+  margin: 0 0 var(--p-sp-2) 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.perio-root .perio-section-card-title .perio-badge {
+  font-size: 9px; font-weight: 700;
+  background: var(--sd-blue-100); color: var(--sd-blue-700);
+  padding: 2px 8px; border-radius: var(--p-r-pill);
+  text-transform: uppercase; letter-spacing: var(--p-ls-widest);
+}
+
+/* Site editor */
+.perio-root .perio-site-editor {
+  background: var(--p-bg-surface);
+  border: 1px solid var(--p-border-default);
+  border-radius: var(--p-r-lg);
+  padding: var(--p-sp-3) var(--p-sp-4);
+}
+.perio-root .perio-site-editor h3 {
+  margin: 0; font-family: var(--p-font-display); font-weight: 700;
+  font-size: var(--p-t-13); color: var(--p-fg-strong);
+  display: flex; align-items: baseline; justify-content: space-between;
+}
+.perio-root .perio-site-editor h3 .perio-mono { font-family: var(--p-font-mono); color: var(--p-fg-muted); font-size: var(--p-t-12); font-weight: 500; }
+
+.perio-root .perio-site-table {
+  display: grid; grid-template-columns: 36px repeat(3, 1fr);
+  gap: 0; margin-top: var(--p-sp-3);
+  font-size: 12px;
+  border: 1px solid var(--p-border-soft);
+  border-radius: var(--p-r-md);
+  overflow: hidden;
+}
+.perio-root .perio-site-table .perio-head {
+  background: var(--sd-ink-100);
+  font-weight: 700; font-size: 10px;
+  text-transform: uppercase; letter-spacing: var(--p-ls-widest);
+  color: var(--p-fg-muted);
+  text-align: center;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--p-border-soft);
+}
+.perio-root .perio-site-table .perio-rh {
+  background: var(--sd-ink-50);
+  font-weight: 700; font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--p-fg-muted);
+  display: flex; align-items: center; justify-content: center;
+  border-right: 1px solid var(--p-border-soft);
+  border-bottom: 1px solid var(--p-border-soft);
+}
+.perio-root .perio-site-table .perio-cell {
+  padding: 4px;
+  border-right: 1px solid var(--p-border-soft);
+  border-bottom: 1px solid var(--p-border-soft);
+  background: var(--p-bg-surface);
+  display: flex; align-items: center; justify-content: center;
+}
+.perio-root .perio-site-table .perio-cell:last-child,
+.perio-root .perio-site-table .perio-head:last-child,
+.perio-root .perio-site-table .perio-rh:last-child { border-right: none; }
+.perio-root .perio-site-table input {
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--p-r-xs);
+  padding: 4px 0;
+  text-align: center;
+  font-family: var(--p-font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--p-fg-strong);
+  outline: none;
+  min-width: 0;
+}
+.perio-root .perio-site-table input:focus {
+  border-color: var(--sd-blue-600);
+  background: var(--p-bg-surface);
+  box-shadow: var(--p-shadow-focus);
+}
+.perio-root .perio-site-table input.pd-moderate { color: var(--sd-alert-600); }
+.perio-root .perio-site-table input.pd-deep { color: var(--sd-critical-600); }
+
+.perio-root .perio-flag-row {
+  display: grid;
+  grid-template-columns: 36px repeat(3, 1fr);
+  gap: 0;
+  margin-top: 6px;
+  font-size: 11px;
+}
+.perio-root .perio-flag-row .perio-rh {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: var(--p-fg-muted);
+  text-transform: uppercase;
+}
+.perio-root .perio-flag-cell {
+  display: flex; align-items: center; justify-content: center;
+  padding: 4px 0;
+}
+.perio-root .perio-flag-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--p-border-default);
+  background: var(--p-bg-surface);
+  color: var(--p-fg-muted);
+  font-size: 9px; font-weight: 700;
+}
+.perio-root .perio-flag-btn.on-bop { background: var(--sd-critical-500); border-color: var(--sd-critical-500); color: white; }
+.perio-root .perio-flag-btn.on-plaque { background: var(--sd-alert-500); border-color: var(--sd-alert-500); color: white; }
+.perio-root .perio-flag-btn.on-sup { background: white; border-color: var(--sd-critical-500); color: var(--sd-critical-600); box-shadow: inset 0 0 0 2px white, 0 0 0 1.5px var(--sd-critical-500); }
+
+.perio-root .perio-tooth-ctrls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--p-sp-3);
+  margin-top: var(--p-sp-3);
+}
+.perio-root .perio-field-block .perio-field-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: var(--p-ls-widest);
+  color: var(--p-fg-muted); font-weight: 700; margin-bottom: 4px;
+}
+.perio-root .perio-seg {
+  display: flex;
+  border: 1px solid var(--p-border-default);
+  border-radius: var(--p-r-md);
+  overflow: hidden;
+}
+.perio-root .perio-seg button {
+  flex: 1; border: 0; background: var(--p-bg-surface);
+  padding: 6px 0;
+  font-size: 12px; font-weight: 600; color: var(--p-fg-default);
+  border-right: 1px solid var(--p-border-default);
+}
+.perio-root .perio-seg button:last-child { border-right: none; }
+.perio-root .perio-seg button.is-active {
+  background: var(--sd-blue-600); color: white;
+}
+.perio-root .perio-seg.warn button.is-active { background: var(--sd-alert-500); }
+
+.perio-root .perio-kbd {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; padding: 1px 5px;
+  border: 1px solid var(--p-border-default);
+  border-bottom-width: 2px;
+  border-radius: var(--p-r-xs);
+  background: var(--p-bg-surface);
+  font-family: var(--p-font-mono);
+  font-size: 10px;
+  color: var(--p-fg-default);
+}
+
+.perio-root .perio-hint-line {
+  display: flex; flex-wrap: wrap; gap: 8px 14px;
+  font-size: 11px;
+  color: var(--p-fg-muted);
+  margin-top: var(--p-sp-2);
+}
+.perio-root .perio-hint-line span { display: inline-flex; align-items: center; gap: 4px; }
+
+/* ---------- SVG / tooth visualization -------------------- */
+.perio-root .perio-tooth-svg { display: block; width: 100%; height: 100%; }
+
+.perio-root .perio-midline-gap {
+  width: 14px;
+  border-right: 1px dashed var(--p-border-default);
+}
+
+/* ---------- Scrollbars ---------------------------------- */
+.perio-root .perio-chart-wrap::-webkit-scrollbar,
+.perio-root .perio-chart-area::-webkit-scrollbar,
+.perio-root .perio-right-panel::-webkit-scrollbar { height: 10px; width: 10px; }
+.perio-root .perio-chart-wrap::-webkit-scrollbar-thumb,
+.perio-root .perio-chart-area::-webkit-scrollbar-thumb,
+.perio-root .perio-right-panel::-webkit-scrollbar-thumb { background: var(--sd-ink-200); border-radius: var(--p-r-pill); }
+
+/* ---------- Section header inside chart ---------- */
+.perio-root .perio-section-header-row {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: var(--p-ls-widest);
+  text-transform: uppercase;
+  color: var(--sd-navy-600);
+  padding: 5px 0 3px 0;
+  border-bottom: 1px solid var(--p-border-soft);
+  display: flex; align-items: center; gap: 8px;
+}
+.perio-root .perio-section-header-row .perio-bullet {
+  display: inline-block; width: 6px; height: 6px;
+  border-radius: 999px; background: var(--sd-blue-500);
+}
+
+/* ---------- Responsive ---------------------------------- */
+@media (max-width: 1100px) {
+  .perio-root .perio-main {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    align-items: start;
+  }
+  .perio-root .perio-chart-area {
+    padding: 0 var(--p-sp-3) var(--p-sp-3) !important;
+    gap: var(--p-sp-3) !important;
+    overflow: visible !important;
+    min-height: 0 !important;
+  }
+  .perio-root .perio-exam-header {
+    padding-bottom: var(--p-sp-2) !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  .perio-root .perio-right-panel {
+    border-left: none;
+    border-top: 1px solid var(--p-border-default);
+    padding: var(--p-sp-3);
+  }
+}
+
+/* ---------- Dark mode tweaks ---------------------------- */
+html[data-theme="dark"] .perio-root {
+  --p-bg-app:        #08080a;
+  --p-bg-surface:    #141418;
+  --p-bg-subtle:     #08080a;
+  --p-fg-default:    #e2e8f0;
+  --p-fg-strong:     #f1f5f9;
+  --p-fg-muted:      #94a3b8;
+  --p-fg-subtle:     #64748b;
+  --p-border-soft:    #141418;
+  --p-border-default: #2a2a2f;
+  --p-border-strong:  #3a3a40;
+  --sd-ink-50:        #08080a;
+  --sd-ink-100:       #141418;
+  --sd-ink-150:       #2a2a2f;
+  --sd-ink-200:       #2a2a2f;
+  --sd-ink-300:       #3a3a40;
+  --sd-ink-400:       #94a3b8;
+  --sd-ink-900:       #f1f5f9;        /* text — was near-black */
+  --sd-ink-1000:      #f8fafc;
+  --sd-navy-600:      #cbd5e1;        /* section headers */
+  --sd-navy-700:      #e2e8f0;        /* eyebrow, arch label */
+  --sd-navy-800:      #f1f5f9;        /* FDI numbers — was dark navy */
+  --sd-navy-900:      #ffffff;
+  --sd-blue-100:      rgba(148,163,184,0.18);
+  --sd-blue-200:      #cbd5e1;
+  --sd-blue-300:      #cbd5e1;
+  --sd-blue-400:      #cbd5e1;
+  --sd-blue-500:      #e2e8f0;
+  --sd-blue-600:      #e2e8f0;
+  --sd-blue-700:      #f1f5f9;
+  --sd-blue-50:       rgba(148,163,184,0.08);
+  border-color: #2a2a2f;
+}
+
+/* Selected FDI cell: keep the accent readable on dark (neutral, no blue tint) */
+html[data-theme="dark"] .perio-root .perio-fdi-cell.is-selected {
+  background: rgba(226,232,240,0.14);
+  color: #ffffff;
+  box-shadow: inset 0 -2.5px 0 #cbd5e1;
+}
+html[data-theme="dark"] .perio-root .perio-fdi-cell.is-implant {
+  color: #cbd5e1;
+}
+html[data-theme="dark"] .perio-root .perio-fdi-cell.is-absent,
+html[data-theme="dark"] .perio-root .perio-fdi-cell.is-absent .perio-fdi-sub {
+  color: #64748b;
+}
+
+/* Site cells: empty/sentinel should be dim but visible */
+html[data-theme="dark"] .perio-root .perio-site-cell.is-empty {
+  color: #64748b;
+}
+html[data-theme="dark"] .perio-root .perio-site-cell.pd-shallow {
+  color: #e2e8f0;
+}
+
+/* Idle dots (off state) need a lighter gray than the surface */
+html[data-theme="dark"] .perio-root .perio-dot {
+  background: #55555f;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.04);
+}
+/* Subtle row-tint so empty BOP and Placa rows are distinguishable on dark surfaces */
+html[data-theme="dark"] .perio-root .perio-dot.row-bop:not(.on-bop) {
+  background: #4a2f2c;
+}
+html[data-theme="dark"] .perio-root .perio-dot.row-plaque:not(.on-plaque) {
+  background: #4a3a26;
+}
+/* Active dots: brighter fills + colored glow so they pop on dark surfaces */
+html[data-theme="dark"] .perio-root .perio-dot.on-bop {
+  background: #ff5a4d;
+  box-shadow: 0 0 0 1.5px rgba(255, 90, 77, 0.35), 0 0 6px rgba(255, 90, 77, 0.55);
+}
+html[data-theme="dark"] .perio-root .perio-dot.on-plaque {
+  background: #f5b13e;
+  box-shadow: 0 0 0 1.5px rgba(245, 177, 62, 0.35), 0 0 6px rgba(245, 177, 62, 0.55);
+}
+html[data-theme="dark"] .perio-root .perio-dot.on-sup {
+  background: #08080a;
+  border-color: #ff5a4d;
+  box-shadow: 0 0 0 2px rgba(255, 90, 77, 0.30), 0 0 6px rgba(255, 90, 77, 0.55);
+}
+/* Right-panel flag buttons: matching dark-mode brightness */
+html[data-theme="dark"] .perio-root .perio-flag-btn.on-bop {
+  background: #ff5a4d; border-color: #ff5a4d; color: #08080a;
+  box-shadow: 0 0 8px rgba(255, 90, 77, 0.40);
+}
+html[data-theme="dark"] .perio-root .perio-flag-btn.on-plaque {
+  background: #f5b13e; border-color: #f5b13e; color: #08080a;
+  box-shadow: 0 0 8px rgba(245, 177, 62, 0.40);
+}
+html[data-theme="dark"] .perio-root .perio-flag-btn.on-sup {
+  background: #141418; border-color: #ff5a4d; color: #ff5a4d;
+  box-shadow: inset 0 0 0 2px #141418, 0 0 0 1.5px #ff5a4d, 0 0 8px rgba(255, 90, 77, 0.35);
+}
+
+/* Dashed midline divider between Q1↔Q2 / Q4↔Q3 */
+html[data-theme="dark"] .perio-root .perio-fdi-cell[style*="dashed"],
+html[data-theme="dark"] .perio-root .perio-tooth-cell[style*="dashed"],
+html[data-theme="dark"] .perio-root .perio-dot-cell[style*="dashed"],
+html[data-theme="dark"] .perio-root .perio-indicator-cell[style*="dashed"],
+html[data-theme="dark"] .perio-root .perio-tooth-cell-img[style*="dashed"] {
+  border-left-color: #3a3a40 !important;
+}
+
+/* Right-panel cards: keep diagnosis card matching the page hero gradient */
+html[data-theme="dark"] .perio-root .perio-dx-card {
+  background: linear-gradient(135deg, #0891b2 0%, #0369a1 45%, #06b6d4 100%);
+  border-color: transparent;
+  box-shadow: 0 14px 36px rgba(8, 145, 178, 0.30), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+html[data-theme="dark"] .perio-root .perio-section-card,
+html[data-theme="dark"] .perio-root .perio-site-editor,
+html[data-theme="dark"] .perio-root .perio-metric {
+  background: #141418;
+  border-color: #2a2a2f;
+}
+html[data-theme="dark"] .perio-root .perio-site-table .perio-head,
+html[data-theme="dark"] .perio-root .perio-site-table .perio-rh {
+  background: #08080a;
+}
+html[data-theme="dark"] .perio-root .perio-site-table .perio-cell {
+  background: #141418;
+}
+html[data-theme="dark"] .perio-root .perio-site-table .perio-cell[style*="ink-50"] {
+  background: #08080a !important;
+}
+html[data-theme="dark"] .perio-root .perio-seg button {
+  background: #08080a;
+  color: #e2e8f0;
+  border-right-color: #2a2a2f;
+}
+html[data-theme="dark"] .perio-root .perio-flag-btn {
+  background: #08080a;
+  border-color: #2a2a2f;
+  color: #94a3b8;
+}
+html[data-theme="dark"] .perio-root .perio-btn {
+  background: #08080a;
+  border-color: #2a2a2f;
+  color: #e2e8f0;
+}
+html[data-theme="dark"] .perio-root .perio-btn:hover {
+  background: #141418;
+}
+
+/* Bar-track background for pocket distribution */
+html[data-theme="dark"] .perio-root .perio-bar-row .perio-btrack {
+  background: #08080a;
+}
+html[data-theme="dark"] .perio-root .perio-legend {
+  background: #141418;
+  border-color: #2a2a2f;
+}
+html[data-theme="dark"] .perio-root .perio-chart-wrap {
+  background: #141418;
+  border-color: #2a2a2f;
+}
+html[data-theme="dark"] .perio-root .perio-chart-area {
+  background: #08080a;
+}
+html[data-theme="dark"] .perio-root .perio-right-panel {
+  background: #141418;
+  border-left-color: #2a2a2f;
+}
+
+/* Borders inside the chart — bump contrast so cell separators are visible */
+html[data-theme="dark"] .perio-root .perio-tooth-cell,
+html[data-theme="dark"] .perio-root .perio-dot-cell,
+html[data-theme="dark"] .perio-root .perio-fdi-cell,
+html[data-theme="dark"] .perio-root .perio-tooth-cell-img,
+html[data-theme="dark"] .perio-root .perio-indicator-cell {
+  border-right-color: #141418;
+}
+html[data-theme="dark"] .perio-root .perio-row-label {
+  border-right-color: #2a2a2f;
+}
+html[data-theme="dark"] .perio-root .perio-section-header-row {
+  border-bottom-color: #2a2a2f;
+}

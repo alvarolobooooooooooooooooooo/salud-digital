@@ -1,0 +1,978 @@
+/* =========================================================
+   Ortodoncia — Prototipo
+   Estilos sobre Salud Digital design system
+   ========================================================= */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font-body);
+  color: var(--fg-default);
+  background: var(--bg-app);
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+button:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-radius: var(--r-md); }
+
+/* Containment to prevent ResizeObserver feedback loops */
+.canvas, .canvas-inner, .arch-wrap, .smile-wrap, .evo-wrap, .angle-wrap { contain: layout; }
+.arch-svg, .smile-svg, .profile-svg { display: block; }
+
+/* ============ Shell ============ */
+.shell {
+  display: grid;
+  grid-template-rows: 56px 1fr;
+  height: 100%;
+  background: var(--bg-app);
+}
+
+/* ============ Top bar ============ */
+.topbar {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  display: grid;
+  grid-template-columns: 280px 1fr auto;
+  align-items: center;
+  padding: 0 var(--sp-6);
+  gap: var(--sp-6);
+  position: relative;
+  z-index: 10;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--fg-brand);
+  font-size: var(--t-16);
+  letter-spacing: var(--ls-tight);
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--sd-blue-600) 0%, var(--sd-navy-700) 100%);
+  display: grid; place-items: center;
+  color: white;
+  font-size: 14px;
+}
+.brand-sub {
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--fg-muted);
+  font-size: var(--t-12);
+  margin-left: var(--sp-2);
+  padding-left: var(--sp-3);
+  border-left: 1px solid var(--border-default);
+}
+
+.viewtabs {
+  display: flex;
+  gap: 2px;
+  background: var(--sd-ink-100);
+  padding: 4px;
+  border-radius: var(--r-md);
+  width: fit-content;
+  margin: 0 auto;
+}
+.viewtab {
+  padding: 6px 14px;
+  font-size: var(--t-13);
+  font-weight: 600;
+  color: var(--fg-muted);
+  border-radius: 8px;
+  transition: all var(--dur-1) var(--ease-out);
+  display: flex; align-items: center; gap: 6px;
+}
+.viewtab:hover { color: var(--fg-default); }
+.viewtab.active {
+  background: var(--bg-surface);
+  color: var(--fg-brand);
+  box-shadow: var(--shadow-xs);
+}
+
+.topbar-right {
+  display: flex; align-items: center; gap: var(--sp-3);
+}
+.iconbtn {
+  width: 36px; height: 36px;
+  border-radius: var(--r-md);
+  display: grid; place-items: center;
+  color: var(--fg-muted);
+  transition: background var(--dur-1) var(--ease-out);
+}
+.iconbtn:hover { background: var(--sd-ink-100); color: var(--fg-default); }
+.btn {
+  padding: 8px 14px;
+  border-radius: var(--r-md);
+  font-size: var(--t-13);
+  font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: all var(--dur-1) var(--ease-out);
+}
+.btn-primary {
+  background: var(--sd-blue-600);
+  color: white;
+}
+.btn-primary:hover { background: var(--sd-blue-500); }
+.btn-ghost {
+  color: var(--fg-default);
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
+}
+.btn-ghost:hover { background: var(--sd-ink-100); }
+
+/* ============ Main grid ============ */
+.main {
+  display: grid;
+  grid-template-columns: 260px 1fr 340px;
+  overflow: hidden;
+}
+
+/* ============ Tool palette (left) ============ */
+.palette {
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-default);
+  overflow-y: auto;
+  padding: var(--sp-5) 0;
+}
+.palette-section { padding: 0 var(--sp-5) var(--sp-5); }
+.palette-section + .palette-section {
+  border-top: 1px solid var(--border-soft);
+  padding-top: var(--sp-5);
+}
+.palette-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-12);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-widest);
+  color: var(--fg-muted);
+  margin-bottom: var(--sp-3);
+}
+.tool-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.tool {
+  padding: 10px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  font-size: var(--t-12);
+  font-weight: 600;
+  color: var(--fg-default);
+  background: var(--bg-surface);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  text-align: center;
+  transition: all var(--dur-1) var(--ease-out);
+  min-height: 64px; justify-content: center;
+}
+.tool:hover { border-color: var(--sd-blue-400); background: var(--sd-blue-50); }
+.tool.active {
+  border-color: var(--sd-blue-600);
+  background: var(--sd-blue-100);
+  color: var(--sd-blue-700);
+  box-shadow: inset 0 0 0 1px var(--sd-blue-600);
+}
+.tool-glyph { width: 32px; height: 32px; display: grid; place-items: center; }
+
+.swatch-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.swatch {
+  width: 28px; height: 28px;
+  border-radius: var(--r-pill);
+  border: 2px solid transparent;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--dur-1) var(--ease-out);
+}
+.swatch:hover { transform: scale(1.08); }
+.swatch.active { border-color: var(--fg-strong); box-shadow: var(--shadow-sm); }
+.swatch.empty { background: white; border: 1px dashed var(--border-strong); display: grid; place-items: center; color: var(--fg-muted); }
+
+/* ============ Canvas (center) ============ */
+.canvas {
+  position: relative;
+  overflow: auto;
+  overflow-y: scroll; /* always-on to prevent scrollbar appearance loop */
+  background:
+    radial-gradient(circle at 50% 30%, var(--sd-blue-50) 0%, transparent 60%),
+    var(--bg-app);
+}
+.canvas-inner {
+  min-height: 100%;
+  display: flex; flex-direction: column;
+  padding: var(--sp-6);
+}
+
+.canvas-header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: var(--sp-5);
+}
+.canvas-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-24);
+  color: var(--fg-strong);
+  letter-spacing: var(--ls-tight);
+  margin: 0;
+}
+.canvas-sub {
+  font-size: var(--t-13);
+  color: var(--fg-muted);
+  margin-top: 4px;
+}
+.legend {
+  display: flex; gap: var(--sp-4); font-size: var(--t-12); color: var(--fg-muted);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-dot { width: 10px; height: 10px; border-radius: var(--r-pill); }
+
+/* ============ Arch view ============ */
+.arch-wrap {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--sp-4);
+  position: relative;
+}
+.arch-svg {
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+  filter: drop-shadow(0 8px 24px rgba(11,20,36,0.06));
+}
+.arch-label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-13);
+  color: var(--fg-muted);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+}
+
+.tooth-group { cursor: pointer; transition: filter var(--dur-1) var(--ease-out); }
+.tooth-group:hover { filter: brightness(0.96) drop-shadow(0 2px 6px rgba(0,128,176,0.18)); }
+.tooth-group.selected .tooth-crown { stroke: var(--sd-blue-600); stroke-width: 2; }
+.tooth-group.selected .tooth-halo { opacity: 1; }
+.tooth-halo {
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+.tooth-fdi {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  fill: var(--fg-muted);
+  text-anchor: middle;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+/* ============ Detail panel (right) ============ */
+.detail {
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-default);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.detail-empty {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: var(--sp-8);
+  text-align: center;
+  color: var(--fg-muted);
+  gap: var(--sp-3);
+}
+.detail-empty-icon {
+  width: 56px; height: 56px; border-radius: var(--r-lg);
+  background: var(--sd-blue-100);
+  display: grid; place-items: center;
+  color: var(--sd-blue-600);
+}
+.detail-header {
+  padding: var(--sp-5);
+  border-bottom: 1px solid var(--border-soft);
+}
+.detail-fdi {
+  font-family: var(--font-mono);
+  font-size: var(--t-12);
+  color: var(--fg-muted);
+  letter-spacing: var(--ls-wide);
+}
+.detail-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-20);
+  color: var(--fg-strong);
+  margin: 2px 0 4px;
+  letter-spacing: var(--ls-tight);
+}
+.detail-meta {
+  font-size: var(--t-12); color: var(--fg-muted);
+  display: flex; gap: var(--sp-3); flex-wrap: wrap;
+}
+.detail-meta span { display: inline-flex; gap: 4px; align-items: center; }
+.detail-body { padding: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-5); }
+.detail-section { display: flex; flex-direction: column; gap: var(--sp-2); }
+.detail-section-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-12);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-widest);
+  color: var(--fg-brand);
+}
+
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  padding: 6px 10px;
+  border-radius: var(--r-pill);
+  background: var(--sd-ink-100);
+  color: var(--fg-default);
+  font-size: var(--t-12);
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: all var(--dur-1) var(--ease-out);
+}
+.chip:hover { background: var(--sd-blue-100); color: var(--sd-blue-700); }
+.chip.active {
+  background: var(--sd-blue-600); color: white;
+}
+.chip.danger.active { background: var(--sd-critical-500); }
+.chip.warn.active { background: var(--sd-alert-500); }
+.chip.success.active { background: var(--sd-vital-500); }
+
+.movement-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.move-btn {
+  padding: 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  font-size: var(--t-12);
+  font-weight: 600;
+  display: flex; align-items: center; gap: 6px; justify-content: flex-start;
+  background: var(--bg-surface);
+  transition: all var(--dur-1) var(--ease-out);
+}
+.move-btn:hover { border-color: var(--sd-blue-400); }
+.move-btn.active { background: var(--sd-blue-100); border-color: var(--sd-blue-600); color: var(--sd-blue-700); }
+.move-glyph { width: 16px; height: 16px; color: var(--fg-muted); }
+.move-btn.active .move-glyph { color: var(--sd-blue-600); }
+
+.notes-textarea {
+  width: 100%;
+  min-height: 70px;
+  padding: 10px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  font-family: var(--font-body);
+  font-size: var(--t-13);
+  resize: vertical;
+  color: var(--fg-default);
+  background: var(--bg-surface);
+}
+.notes-textarea:focus {
+  outline: none; border-color: var(--sd-blue-600); box-shadow: var(--shadow-focus);
+}
+
+.slider-row { display: flex; align-items: center; gap: var(--sp-3); }
+.slider-row input[type=range] { flex: 1; accent-color: var(--sd-blue-600); }
+.slider-val {
+  font-family: var(--font-mono);
+  font-size: var(--t-12);
+  min-width: 40px; text-align: right;
+  color: var(--fg-default);
+}
+
+/* ============ Timeline (bottom of detail or canvas) ============ */
+.timeline {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-default);
+  padding: var(--sp-4) var(--sp-6);
+  display: flex; align-items: center; gap: var(--sp-4);
+  position: relative;
+}
+.timeline-track {
+  flex: 1;
+  position: relative;
+  height: 48px;
+}
+.timeline-line {
+  position: absolute;
+  top: 50%; left: 0; right: 0; height: 2px;
+  background: var(--border-default);
+  transform: translateY(-50%);
+}
+.timeline-progress {
+  position: absolute;
+  top: 50%; left: 0; height: 2px;
+  background: linear-gradient(90deg, var(--sd-blue-600), var(--sd-vital-500));
+  transform: translateY(-50%);
+  transition: width var(--dur-3) var(--ease-out);
+}
+.timeline-stop {
+  position: absolute;
+  top: 50%; transform: translate(-50%, -50%);
+  width: 14px; height: 14px;
+  border-radius: var(--r-pill);
+  background: white;
+  border: 2px solid var(--border-strong);
+  cursor: pointer;
+  display: grid; place-items: center;
+}
+.timeline-stop:hover { border-color: var(--sd-blue-600); }
+.timeline-stop.done { background: var(--sd-blue-600); border-color: var(--sd-blue-600); }
+.timeline-stop.done::after {
+  content: ''; width: 4px; height: 4px; border-radius: 50%; background: white;
+}
+.timeline-stop.current {
+  background: var(--sd-blue-600); border-color: white;
+  box-shadow: 0 0 0 3px var(--sd-blue-600);
+  width: 16px; height: 16px;
+}
+.timeline-stop-label {
+  position: absolute;
+  top: 22px; left: 50%; transform: translateX(-50%);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.timeline-stop-label.upper {
+  top: auto; bottom: 22px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--fg-default);
+}
+
+/* ============ Frontal smile view ============ */
+.smile-wrap {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative;
+}
+.smile-svg { width: 100%; max-width: 760px; height: auto; }
+.lips-bg {
+  fill: url(#lipsGrad);
+}
+
+/* ============ Lateral (Angle) view ============ */
+.angle-wrap {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: var(--sp-6);
+  flex-wrap: wrap;
+}
+
+/* Profile v2 layout: 260px Angle picker + Cephalometric profile.
+   On narrow viewports collapse to a single column and put the profile
+   on top (it's the primary diagnostic view), Angle picker below. */
+.profile-v2-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: var(--sp-6);
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .profile-v2-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-v2-main { order: 1; }   /* Perfil cefalométrico first */
+  .profile-v2-side { order: 2; }   /* Clasificación de Angle below */
+}
+.angle-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  flex: 1;
+  min-width: 280px;
+  max-width: 420px;
+}
+.angle-class-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--sd-blue-100);
+  color: var(--sd-blue-700);
+  font-weight: 700; font-size: var(--t-12);
+  font-family: var(--font-mono);
+}
+.profile-svg { width: 100%; height: auto; }
+
+/* ============ Evolución view ============ */
+.evo-wrap {
+  flex: 1; display: flex; flex-direction: column; gap: var(--sp-5);
+}
+.evo-compare {
+  position: relative;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  padding: var(--sp-6);
+  overflow: hidden;
+}
+.evo-compare-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: linear-gradient(180deg, #fdf3ea 0%, #f4dfd1 100%);
+}
+.evo-after-mask {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 0 0 50%);
+}
+.evo-divider {
+  position: absolute; top: 0; bottom: 0; left: 50%;
+  width: 2px; background: white; transform: translateX(-50%);
+  box-shadow: 0 0 12px rgba(11,20,36,0.2);
+  pointer-events: none;
+}
+.evo-divider-handle {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: white;
+  display: grid; place-items: center;
+  box-shadow: var(--shadow-md);
+  color: var(--sd-navy-700);
+  pointer-events: auto;
+  cursor: ew-resize;
+}
+.evo-label {
+  position: absolute;
+  top: var(--sp-4);
+  padding: 4px 10px;
+  background: rgba(11,20,36,0.7);
+  color: white;
+  border-radius: var(--r-pill);
+  font-size: var(--t-12);
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: var(--ls-wide);
+  z-index: 3;
+}
+.evo-label.left { left: var(--sp-4); }
+.evo-label.right { right: var(--sp-4); }
+.evo-slider {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0;
+  cursor: ew-resize;
+  z-index: 5;
+}
+
+.evo-months {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--sp-2);
+}
+.evo-month {
+  padding: var(--sp-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  background: var(--bg-surface);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--dur-1) var(--ease-out);
+}
+.evo-month:hover { border-color: var(--sd-blue-400); }
+.evo-month.active {
+  border-color: var(--sd-blue-600);
+  background: var(--sd-blue-100);
+  box-shadow: inset 0 0 0 1px var(--sd-blue-600);
+}
+.evo-month-num { font-family: var(--font-display); font-weight: 800; font-size: var(--t-20); color: var(--fg-strong); }
+.evo-month-label { font-size: 10px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: var(--ls-wide); font-weight: 600; }
+
+/* ============ Plano view (FDI grid) ============ */
+.plano-wrap {
+  flex: 1;
+  display: flex; flex-direction: column;
+  gap: var(--sp-3);
+}
+.plano-quadrant-label {
+  font-size: var(--t-12);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+  color: var(--fg-muted);
+  margin-bottom: 4px;
+}
+.plano-arch {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+}
+.plano-arch + .plano-arch { margin-top: var(--sp-3); }
+.plano-grid {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 6px;
+}
+.plano-tooth {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background var(--dur-1) var(--ease-out);
+}
+.plano-tooth:hover { background: var(--sd-blue-50); }
+.plano-tooth.selected { background: var(--sd-blue-100); box-shadow: inset 0 0 0 1px var(--sd-blue-600); }
+.plano-tooth-num { font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted); font-weight: 600; }
+.plano-divider {
+  border-left: 1px dashed var(--border-strong);
+  margin: 0 4px;
+}
+
+/* ============ Fotos & Rx view ============ */
+.media-wrap {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-5);
+}
+.media-section {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+  display: flex; flex-direction: column; gap: var(--sp-4);
+}
+.media-section-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--t-18);
+  color: var(--fg-strong);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.media-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3);
+}
+.media-tile {
+  aspect-ratio: 1;
+  border-radius: var(--r-md);
+  background: var(--sd-ink-100);
+  border: 1px solid var(--border-default);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: all var(--dur-1) var(--ease-out);
+}
+.media-tile:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.media-tile-label {
+  position: absolute;
+  bottom: 4px; left: 4px; right: 4px;
+  padding: 3px 6px;
+  background: rgba(11,20,36,0.65);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: var(--r-xs);
+  text-align: center;
+}
+.media-tile.empty {
+  display: grid; place-items: center;
+  color: var(--fg-muted);
+  background: repeating-linear-gradient(135deg, var(--sd-ink-50) 0 8px, var(--sd-ink-100) 8px 16px);
+}
+
+/* Cephalometric mini-chart */
+.ceph-table {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 4px 12px;
+  font-size: var(--t-12);
+}
+.ceph-table .ceph-label { color: var(--fg-muted); }
+.ceph-table .ceph-val { font-family: var(--font-mono); font-weight: 600; text-align: right; }
+.ceph-table .ceph-norm { color: var(--fg-subtle); font-family: var(--font-mono); }
+
+/* Misc */
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: var(--r-xs);
+  border: 1px solid var(--border-default);
+  background: var(--bg-subtle);
+  color: var(--fg-muted);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); background-clip: padding-box; border: 2px solid transparent; }
+
+/* =========================================================
+   DARK MODE — component-level overrides for hardcoded colors
+   that bypass the semantic token system.
+   ========================================================= */
+
+/* Evolución view — compare frame & divider (neutral grays) */
+html[data-theme="dark"] .evo-compare-frame {
+  background: linear-gradient(180deg, #1c1c20 0%, #141418 100%);
+}
+html[data-theme="dark"] .evo-divider {
+  background: #9CA3AF;
+  box-shadow: 0 0 12px rgba(255,255,255,0.18);
+}
+html[data-theme="dark"] .evo-divider-handle {
+  background: #1c1c20;
+  color: #E5E7EB;
+  border: 1px solid #2a2a2f;
+}
+html[data-theme="dark"] .evo-label {
+  background: rgba(241,245,249,0.10);
+  color: #F1F5F9;
+  backdrop-filter: blur(8px);
+}
+
+/* Timeline stops */
+html[data-theme="dark"] .timeline-stop {
+  background: #1c1c20;
+  border-color: #3d3d44;
+}
+html[data-theme="dark"] .timeline-stop.current {
+  border-color: #1c1c20;
+  box-shadow: 0 0 0 3px #9CA3AF;
+}
+
+/* Profile-v2 ribbon and any other dark-on-dark overlay */
+html[data-theme="dark"] .ribbon,
+html[data-theme="dark"] [class*="overlay-dark"] {
+  background: rgba(241,245,249,0.10);
+  color: #F1F5F9;
+}
+
+/* Tool palette / chip / move / viewtab active state on dark — neutral gray, no blue */
+html[data-theme="dark"] .tool.active,
+html[data-theme="dark"] .chip.active,
+html[data-theme="dark"] .move-btn.active,
+html[data-theme="dark"] .viewtab.active {
+  background: rgba(255,255,255,0.08);
+  color: #F1F5F9;
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+}
+
+/* Brand mark — keep readable */
+html[data-theme="dark"] .brand-mark {
+  background: #D1D5DB;
+  color: #0B0E14;
+}
+
+/* Inputs / textareas */
+html[data-theme="dark"] .notes-textarea,
+html[data-theme="dark"] input[type="range"] {
+  background: var(--bg-raised);
+  color: var(--fg-default);
+}
+
+/* The scrollbars on dark surfaces — neutral gray, no navy */
+html[data-theme="dark"] *::-webkit-scrollbar-thumb {
+  background: #2a2a2f;
+}
+html[data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
+  background: #3d3d44;
+}
+
+/* Detail panel "fdi pill" backgrounds — usually use sd-blue-100, already covered */
+
+/* Misc: any literal "white" text that lands on now-dark backgrounds — leave as-is.
+   Those are pill labels on colored buttons (still readable). */
+
+/* =========================================================
+   EMBED MODE — adjustments when used inside a host page
+   ========================================================= */
+
+/* Hide the "Ortodoncia · Salud Digital" brand block — the host
+   consultation page already shows the module name in its hero. */
+.shell .topbar .brand { display: none !important; }
+
+/* With .brand hidden, only 2 grid items remain — collapse to 2 tracks
+   so the view tabs use the freed space without breaking layout. */
+.shell .topbar { grid-template-columns: 1fr auto !important; }
+
+/* True near-black canvas in dark mode — neutral grays, no navy tint */
+html[data-theme="dark"] {
+  --bg-app:        #050507;
+  --bg-surface:    #141418;
+  --bg-raised:     #1c1c20;
+  --bg-subtle:     #141418;
+  --sd-ink-50:     #050507;
+  --sd-ink-100:    #141418;
+  --sd-ink-150:    #1c1c20;
+}
+
+/* Match topbar, tool palette and detail panel to the pure-black app bg
+   in dark mode — host requested no contrast between panels and canvas. */
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .palette,
+html[data-theme="dark"] .detail {
+  background: var(--bg-app);
+}
+
+/* Viewtabs pill — flatten so it doesn't show as a bluish bar on black */
+html[data-theme="dark"] .viewtabs {
+  background: transparent;
+  border: 1px solid var(--border-soft);
+}
+html[data-theme="dark"] .viewtab.active {
+  background: rgba(255,255,255,0.08);
+  color: #F1F5F9;
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18);
+}
+/* Drop the soft blue glow on the canvas so it stays pure black */
+html[data-theme="dark"] .canvas { background: var(--bg-app); }
+
+/* =========================================================
+   DARK MODE — Cephalometric (Perfil · Angle) viewport
+   The SVG hardcodes a light gradient background, white label
+   pills and deep-blue label text. Flip them via attribute
+   overrides so the viewport reads on black.
+   ========================================================= */
+html[data-theme="dark"] .ceph-svg #bgGrid stop:nth-of-type(1) { stop-color: #141418; }
+html[data-theme="dark"] .ceph-svg #bgGrid stop:nth-of-type(2) { stop-color: #050507; }
+
+/* Grid lines — the JSX strokes them with rgba(220,225,233,0.5).
+   Repaint every <line> at the top SVG depth (grid lines only). */
+html[data-theme="dark"] .ceph-svg > line { stroke: rgba(148,163,184,0.18) !important; }
+
+/* Label pill backgrounds (white in light) */
+html[data-theme="dark"] .ceph-svg rect[fill^="rgba(255,255,255"] {
+  fill: rgba(20,20,24,0.92);
+  stroke: rgba(255,255,255,0.30);
+}
+
+/* Landmark central circle "halo" (white in light) */
+html[data-theme="dark"] .ceph-svg circle[fill="#FFFFFF"] {
+  fill: #141418;
+  stroke: #9CA3AF;
+}
+html[data-theme="dark"] .ceph-svg circle[fill="#0080B0"] {
+  fill: #D1D5DB;
+}
+
+/* Landmark labels (S, N, A, B, Pog, …) — neutralized to light gray */
+html[data-theme="dark"] .ceph-svg text[fill="#00638A"] {
+  fill: #D1D5DB;
+}
+
+/* Skin profile silhouette — keep tone but darken / desaturate so it
+   doesn't burn against a black canvas */
+html[data-theme="dark"] .ceph-svg #skinV2 stop:nth-of-type(1) { stop-color: #2A2018; }
+html[data-theme="dark"] .ceph-svg #skinV2 stop:nth-of-type(2) { stop-color: #1A130D; }
+
+/* Plane labels printed directly as text in the SVG (S-N, P. MAND., etc.)
+   live as <text> with no fill attribute — they inherit currentColor.
+   Force them readable on dark. */
+html[data-theme="dark"] .ceph-svg text { fill: #CBD5E1; }
+/* Re-apply the override for known coloured labels (keeps priority) */
+html[data-theme="dark"] .ceph-svg text[fill="#00638A"] { fill: #D1D5DB; }
+
+/* "Avance estimado" card on the Evolución detail panel — neutralized */
+html[data-theme="dark"] .evo-progress-card { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.18) !important; }
+html[data-theme="dark"] .evo-progress-card .evo-progress-value,
+html[data-theme="dark"] .evo-progress-card .evo-progress-value span { color: #F9FAFB !important; }
+html[data-theme="dark"] .evo-progress-card .evo-progress-label { color: #D1D5DB !important; }
+
+/* =========================================================
+   RESPONSIVE — collapse the 3-column layout on narrow viewports
+   ========================================================= */
+
+/* Below 1280px: shrink the right detail panel slightly */
+@media (max-width: 1280px) {
+  .main { grid-template-columns: 240px 1fr 300px; }
+}
+
+/* Below 1100px: drop the detail panel under the canvas */
+@media (max-width: 1100px) {
+  html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
+  .shell {
+    /* let the content dictate its height; iframe auto-resizes to fit */
+    height: auto;
+    min-height: 0;
+  }
+  .main {
+    grid-template-columns: 220px 1fr;
+    grid-template-areas: "palette canvas" "palette detail";
+    overflow: visible;
+  }
+  .palette  { grid-area: palette;  overflow-y: visible; max-height: none; }
+  .canvas   { grid-area: canvas; }
+  /* Hide the canvas's always-on scrollbar on mobile (visual noise) */
+  .canvas { scrollbar-width: none; -ms-overflow-style: none; }
+  .canvas::-webkit-scrollbar { width: 0; height: 0; display: none; }
+  .detail   {
+    grid-area: detail;
+    border-left: none;
+    border-top: 1px solid var(--border-default);
+    max-height: none;
+    overflow-y: visible;
+  }
+  .viewtabs { overflow-x: auto; max-width: 100%; }
+  .viewtabs::-webkit-scrollbar { height: 0; }
+}
+
+/* Below 820px: single-column stack — canvas on top, then palette, then detail */
+@media (max-width: 820px) {
+  .shell { grid-template-rows: auto auto; height: auto; }
+  .topbar {
+    grid-template-columns: 1fr !important;
+    padding: 8px 12px;
+    gap: 8px;
+    height: auto;
+    min-height: 56px;
+  }
+  .topbar-right { display: none; }
+  .viewtabs {
+    width: 100%; margin: 0;
+    justify-content: flex-start;
+    overflow-x: auto; flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .viewtab { flex: 0 0 auto; padding: 8px 12px; }
+  .main {
+    grid-template-columns: 1fr;
+    grid-template-areas: "canvas" "palette" "detail";
+    overflow: visible;
+  }
+  .palette {
+    border-right: none;
+    border-top: 1px solid var(--border-default);
+    max-height: none;
+    overflow-y: visible;
+  }
+  /* Mode selector becomes a horizontal scroller of 4 tools */
+  .palette-section .tool-grid {
+    grid-template-columns: repeat(4, minmax(80px, 1fr));
+    overflow-x: auto;
+  }
+  .canvas { min-height: 360px; }
+  .canvas-inner { padding: 12px; }
+  .canvas-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .canvas-title { font-size: var(--t-16); }
+  .detail { border-left: none; border-top: 1px solid var(--border-default); }
+  .detail-body { padding: 12px; gap: 12px; }
+  /* Fotos & Rx: stack the two sections and use 3 wider slot cells per row */
+  .media-wrap { grid-template-columns: 1fr !important; }
+  .media-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .media-section-title { font-size: var(--t-16); flex-wrap: nowrap; }
+  .angle-wrap { grid-template-columns: 1fr !important; }
+  .evo-months { overflow-x: auto; }
+}
+
+/* Below 520px: even tighter — palette tools wrap to 2 cols, detail chips tighter */
+@media (max-width: 520px) {
+  .palette-section { padding: 0 12px 12px; }
+  .palette-section .tool-grid { grid-template-columns: repeat(2, 1fr); }
+  .detail-section { gap: 6px; }
+  .chip-row { gap: 4px; }
+  .chip { padding: 6px 10px; font-size: var(--t-12); }
+  .movement-grid { grid-template-columns: 1fr 1fr; }
+  .swatch-row { flex-wrap: wrap; }
+}
