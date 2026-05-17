@@ -954,9 +954,11 @@
   }
 
   function downloadTemplate(id){
-    const token = localStorage.getItem('token');
+    // Cookie HttpOnly se envía automáticamente; Bearer header como fallback legacy.
+    const legacy = localStorage.getItem('sd_token') || localStorage.getItem('token');
     const url = `/api/consents/templates/${id}/download`;
-    fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
+    const headers = legacy ? { 'Authorization': 'Bearer ' + legacy } : {};
+    fetch(url, { headers, credentials: 'same-origin' })
       .then(r => {
         if (!r.ok) throw new Error('Error al descargar');
         return r.blob();

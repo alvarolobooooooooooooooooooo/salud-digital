@@ -175,34 +175,68 @@
     document.title = `SaludDigital — ${patientData.name}`;
 
     const initials = patientData.name.split(' ').map(n => n[0]).join('').toUpperCase();
-    document.getElementById('patientAvatar').innerHTML = initials;
-    document.getElementById('patientName').innerHTML = patientData.name;
-    document.getElementById('patientIdDisplay').innerHTML = `ID: ${patientData.identity_number}`;
-    document.getElementById('registerDate').innerHTML = patientData.created_at ? new Date(patientData.created_at).toLocaleDateString('es-ES') : '--';
+    document.getElementById('patientAvatar').textContent = initials;
+    document.getElementById('patientName').textContent = patientData.name || '';
+    document.getElementById('patientIdDisplay').textContent = 'ID: ' + (patientData.identity_number || '');
+    document.getElementById('registerDate').textContent = patientData.created_at ? new Date(patientData.created_at).toLocaleDateString('es-ES') : '--';
 
-    document.getElementById('infoGender').innerHTML = patientData.gender || '--';
-    document.getElementById('infoBirthDate').innerHTML = patientData.birth_date ? new Date(patientData.birth_date).toLocaleDateString('es-ES') : '--';
-    document.getElementById('infoAge').innerHTML = patientData.age ? `${patientData.age} años` : '--';
-    document.getElementById('infoPhone').innerHTML = patientData.phone || '--';
+    // textContent en todos los PHI para evitar XSS almacenada.
+    document.getElementById('infoGender').textContent = patientData.gender || '--';
+    document.getElementById('infoBirthDate').textContent = patientData.birth_date ? new Date(patientData.birth_date).toLocaleDateString('es-ES') : '--';
+    document.getElementById('infoAge').textContent = patientData.age ? `${patientData.age} años` : '--';
+    document.getElementById('infoPhone').textContent = patientData.phone || '--';
 
-    const appointmentsHtml = patientData.appointments && patientData.appointments.length > 0
-      ? patientData.appointments.slice(0, 3).map(a => `
-        <div style="padding: .75rem; background: #f0f9ff; border-radius: 8px; margin-bottom: .75rem; border-left: 3px solid #0891b2;">
-          <div style="font-size: .85rem; font-weight: 600; color: #0891b2;">${new Date(a.appointment_date).toLocaleDateString('es-ES')}</div>
-          <div style="font-size: .9rem; font-weight: 600; color: #0f172a;">${a.treatment || 'Cita'}</div>
-          <div style="font-size: .8rem; color: #64748b;">Dr. ${a.doctor_name || 'Sin asignar'}</div>
-        </div>`).join('')
-      : '<p style="color: #94a3b8; font-size: .9rem;">Sin citas programadas</p>';
-    document.getElementById('appointmentsList').innerHTML = appointmentsHtml;
+    const apptList = document.getElementById('appointmentsList');
+    apptList.replaceChildren();
+    if (patientData.appointments && patientData.appointments.length > 0) {
+      patientData.appointments.slice(0, 3).forEach(a => {
+        const box = document.createElement('div');
+        box.style.cssText = 'padding: .75rem; background: #f0f9ff; border-radius: 8px; margin-bottom: .75rem; border-left: 3px solid #0891b2;';
+        const dt = document.createElement('div');
+        dt.style.cssText = 'font-size: .85rem; font-weight: 600; color: #0891b2;';
+        dt.textContent = new Date(a.appointment_date).toLocaleDateString('es-ES');
+        const tt = document.createElement('div');
+        tt.style.cssText = 'font-size: .9rem; font-weight: 600; color: #0f172a;';
+        tt.textContent = a.treatment || 'Cita';
+        const dr = document.createElement('div');
+        dr.style.cssText = 'font-size: .8rem; color: #64748b;';
+        dr.textContent = 'Dr. ' + (a.doctor_name || 'Sin asignar');
+        box.appendChild(dt); box.appendChild(tt); box.appendChild(dr);
+        apptList.appendChild(box);
+      });
+    } else {
+      const p = document.createElement('p');
+      p.style.cssText = 'color: #94a3b8; font-size: .9rem;';
+      p.textContent = 'Sin citas programadas';
+      apptList.appendChild(p);
+    }
 
-    const recentHtml = patientData.consultations && patientData.consultations.length > 0
-      ? patientData.consultations.slice(0, 3).map(c => `
-        <div style="padding: .75rem; background: #f9fafb; border-radius: 8px; margin-bottom: .75rem; border-left: 3px solid #0891b2;">
-          <div style="font-size: .85rem; font-weight: 600; color: #0891b2;">${new Date(c.created_at).toLocaleDateString('es-ES')}</div>
-          ${c.diagnosis ? `<div style="font-size: .85rem; color: #475569;"><strong>Diagnóstico:</strong> ${c.diagnosis}</div>` : ''}
-        </div>`).join('')
-      : '<p style="color: #94a3b8; font-size: .9rem;">Sin consultas registradas</p>';
-    document.getElementById('recentConsultations').innerHTML = recentHtml;
+    const rc = document.getElementById('recentConsultations');
+    rc.replaceChildren();
+    if (patientData.consultations && patientData.consultations.length > 0) {
+      patientData.consultations.slice(0, 3).forEach(c => {
+        const box = document.createElement('div');
+        box.style.cssText = 'padding: .75rem; background: #f9fafb; border-radius: 8px; margin-bottom: .75rem; border-left: 3px solid #0891b2;';
+        const dt = document.createElement('div');
+        dt.style.cssText = 'font-size: .85rem; font-weight: 600; color: #0891b2;';
+        dt.textContent = new Date(c.created_at).toLocaleDateString('es-ES');
+        box.appendChild(dt);
+        if (c.diagnosis) {
+          const dg = document.createElement('div');
+          dg.style.cssText = 'font-size: .85rem; color: #475569;';
+          const strong = document.createElement('strong'); strong.textContent = 'Diagnóstico: ';
+          dg.appendChild(strong);
+          dg.appendChild(document.createTextNode(c.diagnosis));
+          box.appendChild(dg);
+        }
+        rc.appendChild(box);
+      });
+    } else {
+      const p = document.createElement('p');
+      p.style.cssText = 'color: #94a3b8; font-size: .9rem;';
+      p.textContent = 'Sin consultas registradas';
+      rc.appendChild(p);
+    }
 
     renderPodiatryHistory(patientData.consultations);
   }

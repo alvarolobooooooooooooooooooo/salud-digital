@@ -15,12 +15,9 @@ function getLocalDateString() {
 // Solo doctores autenticados; devuelve citas propias de hoy con spoken_response
 router.get('/today-appointments', authenticate, requireRole('doctor'), async (req, res) => {
   try {
-    console.log('[assistant] Request received. User:', req.user);
     const today = getLocalDateString();
     const doctorId  = req.user.id;
     const clinicId  = req.user.clinic_id;
-
-    console.log('[assistant] Querying appointments for doctor:', doctorId, 'clinic:', clinicId, 'date:', today);
 
     // Consulta segura: siempre filtra por doctor_id y clinic_id del token (imposible consultar otro doctor)
     const result = await query(`
@@ -37,8 +34,6 @@ router.get('/today-appointments', authenticate, requireRole('doctor'), async (re
         AND a.status != 'cancelled'
       ORDER BY a.scheduled_at ASC
     `, [doctorId, clinicId, today]);
-
-    console.log('[assistant] Database query result:', result.rows.length, 'appointments found');
 
     const appointments = result.rows.map(row => ({
       appointment_id: row.appointment_id,
@@ -72,7 +67,7 @@ router.get('/today-appointments', authenticate, requireRole('doctor'), async (re
     });
   } catch (err) {
     console.error('[assistant] Error:', err.message, err.stack);
-    res.status(500).json({ success: false, error: 'Error al consultar las citas.', debug: err.message });
+    res.status(500).json({ success: false, error: 'Error al consultar las citas.' });
   }
 });
 
@@ -87,8 +82,6 @@ router.get('/last-appointment', authenticate, requireRole('doctor'), async (req,
 
     const doctorId = req.user.id;
     const clinicId = req.user.clinic_id;
-
-    console.log('[assistant] Searching last appointment for patient:', patient_name, 'doctor:', doctorId);
 
     // Buscar citas del paciente (case-insensitive)
     const result = await query(`
@@ -150,7 +143,7 @@ router.get('/last-appointment', authenticate, requireRole('doctor'), async (req,
     });
   } catch (err) {
     console.error('[assistant] Error in last-appointment:', err.message, err.stack);
-    res.status(500).json({ success: false, error: 'Error al consultar la cita.', debug: err.message });
+    res.status(500).json({ success: false, error: 'Error al consultar la cita.' });
   }
 });
 
@@ -212,8 +205,6 @@ router.get('/availability', authenticate, requireRole('doctor'), async (req, res
 router.post('/schedule', authenticate, requireRole('doctor'), async (req, res) => {
   try {
     const { patient_name, date, time } = req.body;
-    console.log(`[assistant/schedule] CALLED doctor=${req.user.id} patient="${patient_name}" date=${date} time=${time}`);
-
     if (!patient_name || !date || !time) {
       return res.status(400).json({ success: false, error: 'Nombre del paciente, fecha y hora son requeridos' });
     }
@@ -258,8 +249,6 @@ router.post('/schedule', authenticate, requireRole('doctor'), async (req, res) =
       INSERT INTO appointments (doctor_id, patient_id, clinic_id, scheduled_at, status)
       VALUES ($1, $2, $3, $4, 'scheduled') RETURNING id
     `, [req.user.id, patient.id, req.user.clinic_id, scheduledAt]);
-
-    console.log(`[assistant/schedule] SUCCESS appointment_id=${result.rows[0].id}`);
 
     res.json({
       success: true, intent: 'schedule_appointment',

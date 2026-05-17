@@ -361,9 +361,13 @@ const initDb = async () => {
     } catch (e) {}
 
     const existingPatients = await query('SELECT COUNT(*) as count FROM patients');
-    const shouldInsertTestData = parseInt(existingPatients.rows[0].count) === 0;
+    const dbEmpty = parseInt(existingPatients.rows[0].count) === 0;
+    // Seeding solo si la BD está vacía Y el operador opta explícitamente con SEED_DEMO_DATA=true.
+    // Evita que un deploy productivo recree cuentas demo con contraseñas débiles.
+    const shouldInsertTestData = dbEmpty && process.env.SEED_DEMO_DATA === 'true';
 
     if (shouldInsertTestData) {
+      console.warn('[DB] SEED_DEMO_DATA=true → insertando datos demo. NO usar en producción.');
       const adminHash = bcrypt.hashSync('admin123', 10);
       await query(
         'INSERT INTO users (email, password, role, name, clinic_id) VALUES ($1, $2, $3, $4, $5)',

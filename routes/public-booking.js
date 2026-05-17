@@ -85,26 +85,47 @@ router.get('/clinic/:clinicId/doctors/:doctorId/slots', async (req, res) => {
 });
 
 router.post('/clinic/:clinicId/booking', async (req, res) => {
-  const { doctor_id, scheduled_at, patient_name, patient_identity, patient_phone, reason } = req.body;
+  const { doctor_id, scheduled_at, patient_name, patient_identity, patient_phone, reason } = req.body || {};
 
   if (!doctor_id || !scheduled_at || !patient_name || !patient_identity || !patient_phone) {
     return res.status(400).json({ error: 'Faltan campos requeridos' });
   }
 
-  const clinicId = parseInt(req.params.clinicId);
+  // Validación estricta de inputs públicos para reducir abuso/bots
+  const name = String(patient_name).trim().slice(0, 120);
+  const identity = String(patient_identity).trim().slice(0, 40);
+  const phoneDigits = String(patient_phone).replace(/\D/g, '').slice(0, 20);
+  const reasonText = String(reason || '').trim().slice(0, 500);
+  if (name.length < 3) return res.status(400).json({ error: 'Nombre inválido' });
+  if (!/^\d{4}-\d{4}-\d{5}$|^[A-Z0-9-]{4,30}$/i.test(identity)) {
+    return res.status(400).json({ error: 'Número de identidad inválido' });
+  }
+  if (phoneDigits.length < 8) return res.status(400).json({ error: 'Teléfono inválido' });
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?/.test(String(scheduled_at))) {
+    return res.status(400).json({ error: 'Fecha/hora inválida' });
+  }
+  const apptDate = new Date(scheduled_at);
+  if (isNaN(apptDate.getTime()) || apptDate.getTime() < Date.now() - 5 * 60 * 1000) {
+    return res.status(400).json({ error: 'La fecha de la cita debe ser futura' });
+  }
+
+  const clinicId = parseInt(req.params.clinicId, 10);
+  if (!clinicId) return res.status(400).json({ error: 'Clínica inválida' });
+  const doctorId = parseInt(doctor_id, 10);
+  if (!doctorId) return res.status(400).json({ error: 'Doctor inválido' });
 
   const clinicCheck = await query('SELECT id FROM clinics WHERE id = $1', [clinicId]);
   if (clinicCheck.rows.length === 0) return res.status(404).json({ error: 'Clínica no encontrada' });
 
   const doctorCheck = await query(
     `SELECT id, specialty FROM users WHERE id = $1 AND clinic_id = $2 AND role = 'doctor'`,
-    [doctor_id, clinicId]
+    [doctorId, clinicId]
   );
   if (doctorCheck.rows.length === 0) return res.status(404).json({ error: 'Doctor no encontrado' });
 
   const conflictCheck = await query(
     `SELECT id FROM appointments WHERE doctor_id = $1 AND scheduled_at = $2 AND status != 'cancelled'`,
-    [doctor_id, scheduled_at]
+    [doctorId, scheduled_at]
   );
   if (conflictCheck.rows.length > 0) {
     return res.status(409).json({ error: 'Este horario ya no está disponible' });
@@ -118,19 +139,21 @@ router.post('/clinic/:clinicId/booking', async (req, res) => {
     });
   }
 
+  // IMPORTANTE: nunca sobrescribir nombre/teléfono de un paciente existente desde el endpoint
+  // público — permitiría que un atacante con un DNI conocido secuestre PII del paciente real.
+  // Si el DNI ya existe, asociamos la cita al registro existente sin tocar sus campos.
   let patientId;
   const existingPatient = await query(
     `SELECT id FROM patients WHERE identity_number = $1 AND clinic_id = $2`,
-    [patient_identity, clinicId]
+    [identity, clinicId]
   );
 
   if (existingPatient.rows.length > 0) {
     patientId = existingPatient.rows[0].id;
-    await query(`UPDATE patients SET name = $1, phone = $2 WHERE id = $3`, [patient_name, patient_phone, patientId]);
   } else {
     const newPatient = await query(
       `INSERT INTO patients (name, identity_number, phone, clinic_id, age) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [patient_name, patient_identity, patient_phone, clinicId, 0]
+      [name, identity, phoneDigits, clinicId, 0]
     );
     patientId = newPatient.rows[0].id;
   }
@@ -138,7 +161,7 @@ router.post('/clinic/:clinicId/booking', async (req, res) => {
   const result = await query(
     `INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status, source, reason)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-    [patientId, doctor_id, clinicId, doctorCheck.rows[0].specialty || '', scheduled_at, 'pending', 'public_link', reason || '']
+    [patientId, doctorId, clinicId, doctorCheck.rows[0].specialty || '', scheduled_at, 'pending', 'public_link', reasonText]
   );
 
   res.json({ appointment_id: result.rows[0].id, success: true });

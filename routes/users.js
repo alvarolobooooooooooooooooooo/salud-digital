@@ -92,6 +92,15 @@ router.put('/me', authenticate, async (req, res) => {
   const u = current.rows[0];
   if (!u) return res.status(404).json({ error: 'Usuario no encontrado' });
 
+  // Cambiar email = riesgo de account takeover si un JWT se filtra. Exigir contraseña actual.
+  if (b.email !== undefined && String(b.email).trim().toLowerCase() !== String(u.email).toLowerCase()) {
+    if (!b.current_password || typeof b.current_password !== 'string') {
+      return res.status(400).json({ error: 'Para cambiar el correo debes confirmar tu contraseña actual.' });
+    }
+    const ok = await bcrypt.compare(b.current_password, u.password);
+    if (!ok) return res.status(401).json({ error: 'Contraseña incorrecta.' });
+  }
+
   const next = {
     name: b.name !== undefined ? String(b.name).trim() : u.name,
     email: b.email !== undefined ? String(b.email).trim().toLowerCase() : u.email,
@@ -232,26 +241,35 @@ router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async
   const clinicResult = await query('SELECT id FROM clinics WHERE id = $1', [assignedClinicId]);
   if (clinicResult.rows.length === 0) return res.status(400).json({ error: 'Clinic not found' });
 
-  const hashed = bcrypt.hashSync(password, 10);
+  // Normalización + política mínima de password
+  const normEmail = String(email).trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normEmail)) {
+    return res.status(400).json({ error: 'Email inválido' });
+  }
+  if (typeof password !== 'string' || password.length < 8) {
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+  }
+
+  const hashed = await bcrypt.hash(password, 10);
   try {
     const result = await query(
       'INSERT INTO users (email, password, role, clinic_id, name, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-      [email, hashed, role, assignedClinicId, name || '', specialty || '', phone || '']
+      [normEmail, hashed, role, assignedClinicId, name || '', specialty || '', phone || '']
     );
 
     if (role === 'doctor') {
       const clinicResult = await query('SELECT name FROM clinics WHERE id = $1', [assignedClinicId]);
       const clinic = clinicResult.rows[0];
       sendDoctorInvitation({
-        to: email,
-        doctorName: name || email,
+        to: normEmail,
+        doctorName: name || normEmail,
         clinicName: clinic ? clinic.name : 'la clínica',
       }).catch(err => console.error('SendGrid error:', err.message));
     }
 
     res.json({
       id: result.rows[0].id,
-      email,
+      email: normEmail,
       role,
       clinic_id: assignedClinicId,
       name: name || '',
@@ -278,6 +296,11 @@ router.delete('/:id', authenticate, requireRole('super_admin', 'clinic_admin'), 
   }
 
   await query('UPDATE users SET clinic_id = NULL WHERE id = $1', [userId]);
+  // Revocar todas las sesiones activas: el JWT del usuario eliminado no debe seguir funcionando.
+  await query(
+    'UPDATE user_sessions SET revoked_at = CURRENT_TIMESTAMP WHERE user_id = $1 AND revoked_at IS NULL',
+    [userId]
+  );
   res.json({ success: true });
 });
 

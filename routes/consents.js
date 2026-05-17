@@ -114,8 +114,13 @@ router.get('/templates/:id/download', authenticate, async (req, res) => {
   const template = result.rows[0];
   const doc = new PDFDocument({ margin: 50 });
 
+  // Sanitizar el filename para evitar CRLF/header injection y caracteres conflictivos.
+  const safeFilename = String(template.title || 'consentimiento')
+    .replace(/[\r\n"\\\/]/g, '')
+    .replace(/[^\w\s().,-]/g, '_')
+    .slice(0, 120) || 'consentimiento';
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="${template.title}.pdf"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}.pdf"`);
 
   doc.pipe(res);
 
@@ -194,18 +199,17 @@ router.put('/:id', authenticate, async (req, res) => {
     [req.params.id, req.user.clinic_id]);
   if (result.rows.length === 0) return res.status(404).json({ error: 'Consent not found' });
 
-  let updateQuery = 'UPDATE patient_consents SET status = $1, signed_by = $2';
-  const params = [status, signed_by, req.params.id];
-
   if (signature_data) {
-    updateQuery += ', signature_data = $3 WHERE id = $4';
-    params[2] = signature_data;
-    params[3] = req.params.id;
+    await query(
+      'UPDATE patient_consents SET status = $1, signed_by = $2, signature_data = $3 WHERE id = $4 AND clinic_id = $5',
+      [status, signed_by, signature_data, req.params.id, req.user.clinic_id]
+    );
   } else {
-    updateQuery += ' WHERE id = $3';
+    await query(
+      'UPDATE patient_consents SET status = $1, signed_by = $2 WHERE id = $3 AND clinic_id = $4',
+      [status, signed_by, req.params.id, req.user.clinic_id]
+    );
   }
-
-  await query(updateQuery, params);
   res.json({ success: true });
 });
 
@@ -214,7 +218,7 @@ router.delete('/:id', authenticate, async (req, res) => {
     [req.params.id, req.user.clinic_id]);
   if (result.rows.length === 0) return res.status(404).json({ error: 'Consent not found' });
 
-  await query('DELETE FROM patient_consents WHERE id = $1', [req.params.id]);
+  await query('DELETE FROM patient_consents WHERE id = $1 AND clinic_id = $2', [req.params.id, req.user.clinic_id]);
   res.json({ success: true });
 });
 

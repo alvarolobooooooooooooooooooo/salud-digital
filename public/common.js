@@ -1,17 +1,18 @@
+// Auth = cookie HttpOnly. localStorage se mantiene solo para metadata no sensible
+// (sd_role, sd_clinic_id) que las páginas usan para decidir UI. El token también
+// queda en localStorage como fallback para sesiones que existieran antes del cambio.
 function getToken() { return localStorage.getItem('sd_token'); }
 function getRole()  { return localStorage.getItem('sd_role'); }
 
 function logout() {
-  const token = getToken();
-  if (token) {
-    try {
-      fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token },
-        keepalive: true
-      }).catch(() => {});
-    } catch (_) {}
-  }
+  try {
+    fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true
+    }).catch(() => {});
+  } catch (_) {}
   localStorage.clear();
   window.location.href = '/';
 }
@@ -33,9 +34,17 @@ async function api(url, options = {}) {
   const timeoutMs = options.timeoutMs || 45000;
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
+  const headers = { 'Content-Type': 'application/json' };
+  // Bearer header solo como fallback para sesiones legacy (pre-cookie). El servidor
+  // prefiere la cookie HttpOnly cuando existe, así que esto es redundante en sesiones
+  // nuevas pero no rompe nada.
+  const legacyToken = getToken();
+  if (legacyToken) headers['Authorization'] = `Bearer ${legacyToken}`;
+
   const config = {
     method: options.method || 'GET',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+    headers,
+    credentials: 'same-origin', // envía la cookie sd_token en peticiones a este origen
     signal: controller.signal
   };
   if (options.body) config.body = JSON.stringify(options.body);
@@ -79,10 +88,18 @@ async function api(url, options = {}) {
   return data;
 }
 
+// Escape estricto: además de < > &, escapa " ' / ` para que el resultado sea seguro
+// usado en atributos HTML (onclick="...('${esc(x)}')"), no solo en text nodes.
 function esc(str) {
-  const d = document.createElement('div');
-  d.appendChild(document.createTextNode(str ?? ''));
-  return d.innerHTML;
+  return String(str ?? '').replace(/[&<>"'`\/]/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+    '`': '&#96;',
+    '/': '&#47;'
+  }[ch]));
 }
 
 function msg(id, text, isErr) {

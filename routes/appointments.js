@@ -41,6 +41,15 @@ router.put('/:id', authenticate, async (req, res) => {
     [req.params.id, req.user.clinic_id]);
   const appt = apptResult.rows[0];
   if (!appt) return res.status(404).json({ error: 'Cita no encontrada' });
+  // Un doctor solo puede modificar citas que le pertenecen, y no puede reasignarlas a otros doctores.
+  if (req.user.role === 'doctor') {
+    if (appt.current_doctor_id !== req.user.id) {
+      return res.status(403).json({ error: 'No puedes modificar citas de otro doctor' });
+    }
+    if (doctor_id !== undefined && Number(doctor_id) !== req.user.id) {
+      return res.status(403).json({ error: 'No puedes reasignar la cita a otro doctor' });
+    }
+  }
 
   const fields = [];
   const vals   = [];
@@ -215,9 +224,12 @@ router.put('/:id/status', authenticate, async (req, res) => {
   if (!['pending', 'waiting', 'completed', 'cancelled'].includes(status)) {
     return res.status(400).json({ error: 'Estado inválido' });
   }
-  const apptResult = await query('SELECT id FROM appointments WHERE id = $1 AND clinic_id = $2',
+  const apptResult = await query('SELECT id, doctor_id FROM appointments WHERE id = $1 AND clinic_id = $2',
     [req.params.id, req.user.clinic_id]);
   if (apptResult.rows.length === 0) return res.status(404).json({ error: 'Cita no encontrada' });
+  if (req.user.role === 'doctor' && apptResult.rows[0].doctor_id !== req.user.id) {
+    return res.status(403).json({ error: 'No puedes modificar citas de otro doctor' });
+  }
 
   await query('UPDATE appointments SET status = $1 WHERE id = $2 AND clinic_id = $3',
     [status, req.params.id, req.user.clinic_id]);
@@ -225,11 +237,14 @@ router.put('/:id/status', authenticate, async (req, res) => {
 });
 
 router.delete('/:id', authenticate, async (req, res) => {
-  const apptResult = await query('SELECT id FROM appointments WHERE id = $1 AND clinic_id = $2',
+  const apptResult = await query('SELECT id, doctor_id FROM appointments WHERE id = $1 AND clinic_id = $2',
     [req.params.id, req.user.clinic_id]);
   if (apptResult.rows.length === 0) return res.status(404).json({ error: 'Cita no encontrada' });
+  if (req.user.role === 'doctor' && apptResult.rows[0].doctor_id !== req.user.id) {
+    return res.status(403).json({ error: 'No puedes borrar citas de otro doctor' });
+  }
 
-  await query('DELETE FROM appointments WHERE id = $1', [req.params.id]);
+  await query('DELETE FROM appointments WHERE id = $1 AND clinic_id = $2', [req.params.id, req.user.clinic_id]);
   res.json({ success: true });
 });
 

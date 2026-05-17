@@ -1619,7 +1619,14 @@
           }
           // Use only first name + last name (max 2 parts after prefix) to keep it short
           const firstName = displayName.split(/\s+/).slice(0, 2).join(' ');
-          document.getElementById('welcomeTitle').innerHTML = `Bienvenido, <span class="greeting-accent">${firstName}</span>`;
+          // textContent en el nombre — el primer nombre proviene del perfil del usuario y podría contener HTML.
+          const wt = document.getElementById('welcomeTitle');
+          wt.replaceChildren();
+          wt.appendChild(document.createTextNode('Bienvenido, '));
+          const span = document.createElement('span');
+          span.className = 'greeting-accent';
+          span.textContent = firstName;
+          wt.appendChild(span);
         }
 
         // Welcome banner - date badge

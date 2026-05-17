@@ -1,10 +1,37 @@
 const jwt = require('jsonwebtoken');
 const { query } = require('../db');
 
-const SECRET = process.env.JWT_SECRET || 'salud-digital-jwt-secret-2024';
+const SECRET = process.env.JWT_SECRET;
+if (!SECRET || SECRET.length < 32) {
+  throw new Error('JWT_SECRET no configurado o demasiado corto (mínimo 32 caracteres).');
+}
+
+const COOKIE_NAME = 'sd_token';
+// Configuración de la cookie: HttpOnly cierra el robo desde JS (mitiga XSS),
+// Secure obliga HTTPS en prod, SameSite=Lax basta como CSRF protection moderno
+// para POSTs JSON (lax bloquea cross-site form posts pero deja pasar navegaciones
+// desde links de invitación por email — necesario en este flujo).
+function authCookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000,
+    path: '/',
+  };
+}
+
+function tokenFromRequest(req) {
+  // Preferimos cookie (HttpOnly, no robable por XSS). Bearer header se mantiene
+  // como fallback durante la migración para no desloguear a quien tiene sesiones viejas.
+  if (req.cookies && req.cookies[COOKIE_NAME]) return req.cookies[COOKIE_NAME];
+  const h = req.headers.authorization;
+  if (h && h.startsWith('Bearer ')) return h.slice(7);
+  return null;
+}
 
 async function authenticate(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = tokenFromRequest(req);
   if (!token) return res.status(401).json({ error: 'No token provided' });
   let payload;
   try {
@@ -43,4 +70,4 @@ function requireRole(...roles) {
   };
 }
 
-module.exports = { authenticate, requireRole, SECRET };
+module.exports = { authenticate, requireRole, SECRET, COOKIE_NAME, authCookieOptions };

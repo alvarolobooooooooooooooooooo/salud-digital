@@ -94,7 +94,7 @@ router.post('/parse-intent', authenticate, requireRole('doctor'), async (req, re
     const usage = completion.usage || {};
     const parsed = normalize(safeParse(raw));
 
-    console.log(`[parse-intent] "${trimmed.substring(0, 60)}" → ${parsed ? parsed.intent : 'PARSE_FAIL'} | tokens in=${usage.prompt_tokens} out=${usage.completion_tokens} total=${usage.total_tokens}`);
+    console.log(`[parse-intent] intent=${parsed ? parsed.intent : 'PARSE_FAIL'} tokens=${usage.total_tokens}`);
 
     if (!parsed) {
       return res.json({

@@ -1,3 +1,11 @@
 node_modules/
 .env
+.env.*
 *.db
+*.db-shm
+*.db-wal
+*.log
+*.bak
+*.backup
+.DS_Store
+uploads/

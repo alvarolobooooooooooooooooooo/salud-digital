@@ -887,12 +887,24 @@
       window.location.href = '/#contacto';
     });
 
-    if (localStorage.getItem('sd_token')) {
-      const r = localStorage.getItem('sd_role');
-      if (r === 'super_admin') window.location.href = '/admin.html';
-      else if (r === 'receptionist') window.location.href = '/recepcion-inicio.html';
-      else window.location.href = '/dashboard.html';
-    }
+    // Si ya hay una sesión válida (cookie HttpOnly o token legacy), redirige al área correspondiente.
+    (async () => {
+      try {
+        const res = await fetch('/api/auth/me', {
+          credentials: 'same-origin',
+          headers: localStorage.getItem('sd_token')
+            ? { 'Authorization': 'Bearer ' + localStorage.getItem('sd_token') }
+            : {}
+        });
+        if (!res.ok) return;
+        const me = await res.json();
+        localStorage.setItem('sd_role', me.role);
+        if (me.clinic_id != null) localStorage.setItem('sd_clinic_id', me.clinic_id);
+        if (me.role === 'super_admin') window.location.href = '/admin.html';
+        else if (me.role === 'receptionist') window.location.href = '/recepcion-inicio.html';
+        else window.location.href = '/dashboard.html';
+      } catch (_) { /* sin sesión, queda en login */ }
+    })();
 
     let twoFaActive = false;
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -917,6 +929,7 @@
 
         const res = await fetch('/api/auth/login', {
           method: 'POST',
+          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         });
@@ -937,7 +950,9 @@
           return;
         }
 
-        localStorage.setItem('sd_token', data.token);
+        // El servidor ya fijó la cookie HttpOnly. localStorage solo conserva metadata
+        // de UI; sd_token queda solo como fallback de compatibilidad.
+        if (data.token) localStorage.setItem('sd_token', data.token);
         localStorage.setItem('sd_role', data.role);
         localStorage.setItem('sd_clinic_id', data.clinic_id);
 

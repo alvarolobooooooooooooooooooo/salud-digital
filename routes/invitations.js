@@ -7,8 +7,12 @@ const { authenticate, requireRole } = require('../middleware/auth');
 const { sendDoctorInvitation } = require('../utils/mailer');
 
 router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async (req, res) => {
-  const { email, name, specialty, phone, clinic_id, role } = req.body;
+  let { email, name, specialty, phone, clinic_id, role } = req.body;
   if (!email || !name) return res.status(400).json({ error: 'Email y nombre son requeridos' });
+  email = String(email).trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Email inválido' });
+  }
 
   const inviteRole = role === 'clinic_admin' ? 'clinic_admin' : 'doctor';
 
@@ -80,7 +84,9 @@ router.get('/:token', async (req, res) => {
 
 router.post('/:token/accept', async (req, res) => {
   const { password, clinic } = req.body;
-  if (!password || password.length < 6) return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
+  if (!password || typeof password !== 'string' || password.length < 8) {
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+  }
 
   const invResult = await query('SELECT * FROM invitations WHERE token = $1', [req.params.token]);
   const inv = invResult.rows[0];
@@ -90,8 +96,8 @@ router.post('/:token/accept', async (req, res) => {
     return res.status(410).json({ error: 'Esta invitación ha expirado' });
   }
 
-  const existingResult = await query('SELECT id, clinic_id FROM users WHERE email = $1', [inv.email]);
-  const hashed = bcrypt.hashSync(password, 10);
+  const existingResult = await query('SELECT id, clinic_id FROM users WHERE LOWER(email) = LOWER($1)', [inv.email]);
+  const hashed = await bcrypt.hash(password, 10);
   const isClinicAdmin = (inv.role || 'doctor') === 'clinic_admin';
 
   try {

@@ -480,7 +480,14 @@
         await refreshPatient();
       } catch (e) {
         console.error('Error loading patient data:', e);
-        document.body.innerHTML = `<div style="color:#dc2626;padding:2rem;"><h2>Error al cargar</h2><p>${e.message || e}</p><p>${e.stack || ''}</p></div>`;
+        // No interpolar e.message/e.stack en innerHTML — XSS reflejada vía respuestas controlables.
+        document.body.replaceChildren();
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'color:#dc2626;padding:2rem;';
+        const h = document.createElement('h2'); h.textContent = 'Error al cargar';
+        const p = document.createElement('p'); p.textContent = String(e && e.message ? e.message : e);
+        wrap.appendChild(h); wrap.appendChild(p);
+        document.body.appendChild(wrap);
       }
     })();
 
@@ -490,25 +497,38 @@
       document.title = `SaludDigital — Expediente Clínico ${patientData.name}`;
 
       const initials = patientData.name.split(' ').map(n => n[0]).join('').toUpperCase();
-      document.getElementById('patientAvatar').innerHTML = initials;
-      document.getElementById('patientName').innerHTML = esc(patientData.name);
-      document.getElementById('patientIdDisplay').innerHTML = `ID: ${esc(patientData.identity_number)}`;
-      document.getElementById('registerDate').innerHTML = patientData.created_at ? new Date(patientData.created_at).toLocaleDateString('es-ES') : '--';
+      document.getElementById('patientAvatar').textContent = initials;
+      document.getElementById('patientName').textContent = patientData.name || '';
+      document.getElementById('patientIdDisplay').textContent = 'ID: ' + (patientData.identity_number || '');
+      document.getElementById('registerDate').textContent = patientData.created_at ? new Date(patientData.created_at).toLocaleDateString('es-ES') : '--';
 
-      document.getElementById('infoGender').innerHTML = patientData.gender || '--';
-      document.getElementById('infoBirthDate').innerHTML = patientData.birth_date ? new Date(patientData.birth_date).toLocaleDateString('es-ES') : '--';
-      document.getElementById('infoAge').innerHTML = patientData.age ? `${patientData.age} años` : '--';
-      document.getElementById('infoPhone').innerHTML = patientData.phone || '--';
+      // textContent en todos los campos de PHI; un teléfono/género malicioso ya no ejecuta JS.
+      document.getElementById('infoGender').textContent = patientData.gender || '--';
+      document.getElementById('infoBirthDate').textContent = patientData.birth_date ? new Date(patientData.birth_date).toLocaleDateString('es-ES') : '--';
+      document.getElementById('infoAge').textContent = patientData.age ? `${patientData.age} años` : '--';
+      document.getElementById('infoPhone').textContent = patientData.phone || '--';
 
-      const appointmentsHtml = patientData.appointments && patientData.appointments.length > 0
-        ? patientData.appointments.slice(0, 3).map(a => `
-          <div class="appointment-item">
-            <div class="appointment-date">${new Date(a.appointment_date).toLocaleDateString('es-ES')}</div>
-            <div class="appointment-title">${esc(a.treatment || 'Cita')}</div>
-            <div class="appointment-doctor">Dr. ${esc(a.doctor_name || 'Sin asignar')}</div>
-          </div>`).join('')
-        : '<p style="color: #94a3b8; font-size: .9rem;">Sin citas programadas</p>';
-      document.getElementById('appointmentsList').innerHTML = appointmentsHtml;
+      const list = document.getElementById('appointmentsList');
+      list.replaceChildren();
+      if (patientData.appointments && patientData.appointments.length > 0) {
+        patientData.appointments.slice(0, 3).forEach(a => {
+          const item = document.createElement('div');
+          item.className = 'appointment-item';
+          const d = document.createElement('div'); d.className = 'appointment-date';
+          d.textContent = new Date(a.appointment_date).toLocaleDateString('es-ES');
+          const t = document.createElement('div'); t.className = 'appointment-title';
+          t.textContent = a.treatment || 'Cita';
+          const dr = document.createElement('div'); dr.className = 'appointment-doctor';
+          dr.textContent = 'Dr. ' + (a.doctor_name || 'Sin asignar');
+          item.appendChild(d); item.appendChild(t); item.appendChild(dr);
+          list.appendChild(item);
+        });
+      } else {
+        const p = document.createElement('p');
+        p.style.cssText = 'color: #94a3b8; font-size: .9rem;';
+        p.textContent = 'Sin citas programadas';
+        list.appendChild(p);
+      }
 
       const isPodiatry = (currentUserSpecialty || '').toLowerCase().includes('podol');
 

@@ -145,13 +145,24 @@ router.post('/', authenticate, async (req, res) => {
   const patientResult = await query('SELECT * FROM patients WHERE id = $1 AND clinic_id = $2', [patient_id, req.user.clinic_id]);
   if (patientResult.rows.length === 0) return res.status(404).json({ error: 'Patient not found' });
 
+  // Un doctor solo puede registrar la consulta a su propio nombre. Para clinic_admin/receptionist
+  // sí dejamos pasar un doctor_id explícito, pero debe pertenecer a la clínica.
+  let effectiveDoctorId = req.user.role === 'doctor' ? req.user.id : (doctor_id || null);
+  if (req.user.role !== 'doctor' && effectiveDoctorId) {
+    const docCheck = await query(
+      `SELECT id FROM users WHERE id = $1 AND clinic_id = $2 AND role = 'doctor'`,
+      [effectiveDoctorId, req.user.clinic_id]
+    );
+    if (docCheck.rows.length === 0) return res.status(400).json({ error: 'doctor_id inválido' });
+  }
+
   const odontoStr = typeof odontogram_state === 'string' ? odontogram_state : JSON.stringify(odontogram_state || {});
   const lifestyleStr = typeof lifestyle === 'string' ? lifestyle : JSON.stringify(lifestyle || {});
   const costNum = Number(cost) || 0;
 
   const result = await query(
     'INSERT INTO consultations (patient_id, notes, diagnosis, treatment, specialty, odontogram_state, cost, payment_status, lifestyle, procedures, radiography_notes, observations, doctor_id, visit_reason, clinic_id, appointment_id, payment_notes, consent_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) RETURNING id',
-    [patient_id, notes || '', diagnosis || '', treatment || '', specialty || '', odontoStr, costNum, payment_status || 'pending', lifestyleStr, procedures || '', radiography_notes || '', observations || '', doctor_id || null, visit_reason || '', req.user.clinic_id, appointment_id || null, payment_notes || '', consent_id || null]
+    [patient_id, notes || '', diagnosis || '', treatment || '', specialty || '', odontoStr, costNum, payment_status || 'pending', lifestyleStr, procedures || '', radiography_notes || '', observations || '', effectiveDoctorId, visit_reason || '', req.user.clinic_id, appointment_id || null, payment_notes || '', consent_id || null]
   );
 
   if (appointment_id) {
@@ -246,6 +257,15 @@ router.put('/:id', authenticate, async (req, res) => {
   const consultationResult = await query('SELECT * FROM consultations WHERE id = $1 AND clinic_id = $2', [id, req.user.clinic_id]);
   const consultation = consultationResult.rows[0];
   if (!consultation) return res.status(404).json({ error: 'Consultation not found' });
+  // Un doctor solo puede modificar consultas propias; clinic_admin/receptionist pueden editar
+  // cualquier consulta de la clínica (necesario para corregir pagos / cerrar atrás).
+  if (req.user.role === 'doctor' && consultation.doctor_id && consultation.doctor_id !== req.user.id) {
+    return res.status(403).json({ error: 'No puedes modificar consultas de otro doctor' });
+  }
+  // No permitir que un doctor cambie el doctor_id (apropiarse o reasignar)
+  if (req.user.role === 'doctor' && 'doctor_id' in req.body && req.body.doctor_id !== consultation.doctor_id) {
+    return res.status(403).json({ error: 'No puedes reasignar la consulta a otro doctor' });
+  }
 
   let notes = consultation.notes;
   let diagnosis = consultation.diagnosis;
@@ -327,6 +347,10 @@ router.post('/:id/images', authenticate, imageUpload.array('images', 10), async 
   if (consultationResult.rows.length === 0) {
     return res.status(404).json({ error: 'Consultation not found' });
   }
+  const cons = consultationResult.rows[0];
+  if (req.user.role === 'doctor' && cons.doctor_id && cons.doctor_id !== req.user.id) {
+    return res.status(403).json({ error: 'No puedes subir imágenes a consultas de otro doctor' });
+  }
 
   try {
     const savedImages = [];
@@ -360,9 +384,19 @@ router.get('/:id/images', authenticate, async (req, res) => {
 
 router.delete('/images/:imageId', authenticate, async (req, res) => {
   const { imageId } = req.params;
-  const imageResult = await query('SELECT * FROM consultation_images WHERE id = $1 AND clinic_id = $2', [imageId, req.user.clinic_id]);
+  const imageResult = await query(
+    `SELECT ci.*, c.doctor_id AS owner_doctor_id
+     FROM consultation_images ci
+     JOIN consultations c ON c.id = ci.consultation_id
+     WHERE ci.id = $1 AND ci.clinic_id = $2`,
+    [imageId, req.user.clinic_id]
+  );
   if (imageResult.rows.length === 0) {
     return res.status(404).json({ error: 'Image not found' });
+  }
+  if (req.user.role === 'doctor' && imageResult.rows[0].owner_doctor_id
+      && imageResult.rows[0].owner_doctor_id !== req.user.id) {
+    return res.status(403).json({ error: 'No puedes borrar imágenes de consultas de otro doctor' });
   }
 
   try {

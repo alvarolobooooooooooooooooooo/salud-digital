@@ -17,7 +17,9 @@ router.get('/whatsapp-config', authenticate, async (req, res) => {
 // PUT /api/reminders/whatsapp-config
 // Update the clinic's WhatsApp config (clinic_admin only)
 router.put('/whatsapp-config', authenticate, async (req, res) => {
-  if (req.user.role !== 'clinic_admin' && req.user.role !== 'doctor') {
+  // Solo clinic_admin puede modificar la configuración de WhatsApp de la clínica;
+  // antes cualquier doctor podía sobrescribirla y secuestrar comunicaciones a pacientes.
+  if (req.user.role !== 'clinic_admin') {
     return res.status(403).json({ error: 'No autorizado' });
   }
 

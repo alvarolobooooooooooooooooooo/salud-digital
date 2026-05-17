@@ -32,7 +32,6 @@ router.post('/test/echo', authenticate, async (req, res) => {
 // Create a new conversation session
 router.post('/session', authenticate, async (req, res) => {
   try {
-    console.log('[conversation] Creating session for user:', req.user?.id);
     const userRole = req.user.role || 'doctor';
     const session = await conversationService.createSession(
       req.user.id,
@@ -40,17 +39,15 @@ router.post('/session', authenticate, async (req, res) => {
       userRole
     );
 
-    console.log('[conversation] Session created:', session.session_id);
     res.json({
       success: true,
       session
     });
   } catch (err) {
-    console.error('[conversation] Error creating session:', err.message, err.stack);
+    console.error('[conversation] Error creating session');
     res.status(500).json({
       success: false,
       error: 'Error creating conversation session',
-      debug: err.message
     });
   }
 });
@@ -68,7 +65,6 @@ router.post('/:sessionId/message', authenticate, async (req, res) => {
       });
     }
 
-    console.log('[conversation] Processing message for session:', req.params.sessionId, 'user:', req.user.id);
     const userRole = req.user.role || 'doctor';
     const result = await conversationService.processUserInput(
       req.params.sessionId,
@@ -78,18 +74,15 @@ router.post('/:sessionId/message', authenticate, async (req, res) => {
       userRole
     );
 
-    console.log('[conversation] Message processed successfully');
     res.json({
       success: true,
       result
     });
   } catch (err) {
-    console.error('[conversation] Error processing message:', err.message);
-    console.error('[conversation] Stack:', err.stack);
+    console.error('[conversation] Error processing message');
     res.status(500).json({
       success: false,
       error: 'Error processing message',
-      debug: err.message
     });
   }
 });
@@ -113,7 +106,6 @@ router.get('/:sessionId/history', authenticate, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Error fetching conversation history',
-      debug: err.message
     });
   }
 });
@@ -133,7 +125,6 @@ router.post('/:sessionId/close', authenticate, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Error closing session',
-      debug: err.message
     });
   }
 });
