@@ -1740,6 +1740,7 @@
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
 <script src="/consultation-inventory.js"></script>
+<script src="/consultation-draft.js"></script>
 <script src="/podogram-container.js"></script>
 <script>
 requireAuth(['clinic_admin', 'doctor']);
@@ -1792,6 +1793,36 @@ async function loadAppointment() {
 
     // Load medical info
     await loadMedicalAlert();
+
+    // Draft autosave
+    if (window.ConsultationDraft) {
+      ConsultationDraft.init({
+        key: 'podiatry',
+        formId: 'consultForm',
+        widgets: [
+          {
+            name: 'podogram',
+            get: () => podogram1 ? podogram1.getState() : null,
+            set: (s) => { if (s) podogram1 = new PodogramContainer('podogram1', s, false); }
+          },
+          {
+            name: 'thermo',
+            get: () => ({ type: thermoSelectedType, measurements: thermoMeasurements.slice() }),
+            set: (s) => {
+              if (!s) return;
+              thermoSelectedType = s.type || null;
+              thermoMeasurements = Array.isArray(s.measurements) ? s.measurements.slice() : [];
+              try {
+                if (typeof thermoRenderMeasurements === 'function') thermoRenderMeasurements();
+                if (typeof updateSVGColors === 'function') updateSVGColors();
+              } catch (e) { console.warn('thermo restore', e); }
+            }
+          }
+        ]
+      });
+      ConsultationDraft.bind(appointmentId);
+      ConsultationDraft.maybeRestore();
+    }
   } catch (e) {
     console.error(e);
     alert('Error al cargar la cita');
@@ -2044,6 +2075,7 @@ async function submitConsult(e) {
       msgEl.textContent = 'Consulta guardada correctamente';
       msgEl.className = 'form-msg ok';
     }
+    if (window.ConsultationDraft) ConsultationDraft.clear();
     setTimeout(() => window.location.href = '/citas.html', 1800);
   } catch (err) {
     msgEl.style.display = 'block';

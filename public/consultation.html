@@ -866,6 +866,7 @@
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
 <script src="/consultation-inventory.js"></script>
+<script src="/consultation-draft.js"></script>
 <script src="/odontogram.types.js"></script>
 <script src="/odontogram.data.js"></script>
 <script src="/odontogram.utils.js"></script>
@@ -939,6 +940,21 @@ async function loadAppointment() {
 
     // Load medical info
     await loadMedicalAlert();
+
+    // Draft autosave (después de montar widgets)
+    if (window.ConsultationDraft) {
+      ConsultationDraft.init({
+        key: 'odontology',
+        formId: 'consultForm',
+        widgets: [{
+          name: 'odontogram',
+          get: () => odontogram1 ? odontogram1.getState() : null,
+          set: (s) => { if (odontogram1 && s) odontogram1.setState(s); }
+        }]
+      });
+      ConsultationDraft.bind(appointmentId);
+      ConsultationDraft.maybeRestore();
+    }
   } catch (e) {
     console.error(e);
     alert('Error al cargar la cita');
@@ -1174,6 +1190,7 @@ async function submitConsult(e) {
       msgEl.textContent = 'Consulta guardada correctamente';
       msgEl.className = 'form-msg ok';
     }
+    if (window.ConsultationDraft) ConsultationDraft.clear();
     setTimeout(() => window.location.href = '/citas.html', 1800);
   } catch (err) {
     msgEl.style.display = 'block';
