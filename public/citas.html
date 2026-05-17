@@ -3357,6 +3357,7 @@ async function submitCita(e) {
   } catch(err) {
     msgEl.textContent = err.message;
     msgEl.className = 'form-msg err';
+  } finally {
     btnSubmit.disabled = false;
     btnSubmit.textContent = originalText;
   }

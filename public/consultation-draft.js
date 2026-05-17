@@ -263,6 +263,84 @@
     });
   }
 
+  function hasUnsavedWork() {
+    if (dirty) return true;
+    try { return !!localStorage.getItem(storageKey()); } catch { return false; }
+  }
+
+  function showExitModal(onExit) {
+    const existing = document.getElementById('cdraft-exit-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'cdraft-exit-overlay';
+    overlay.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:10000',
+      'background:rgba(15,23,42,.55)', 'backdrop-filter:blur(4px)',
+      'display:flex', 'align-items:center', 'justify-content:center',
+      'padding:20px', 'animation:cdraftFadeIn .2s ease'
+    ].join(';');
+
+    const modal = document.createElement('div');
+    modal.style.cssText = [
+      'background:#fff', 'border-radius:16px',
+      'padding:24px 24px 20px', 'max-width:440px', 'width:100%',
+      'box-shadow:0 24px 48px -12px rgba(15,23,42,.35)',
+      'font:14px -apple-system,BlinkMacSystemFont,Segoe UI,system-ui,sans-serif',
+      'color:#1e293b'
+    ].join(';');
+    modal.innerHTML = `
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+        <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#0e7490,#06b6d4); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:16px; font-weight:700; color:#0f172a;">¿Salir de la consulta?</div>
+          <div style="font-size:13px; color:#64748b; margin-top:2px;">Tienes cambios sin enviar al servidor.</div>
+        </div>
+      </div>
+      <p style="font-size:13.5px; color:#475569; line-height:1.5; margin:0 0 18px;">
+        Podés <b>guardar un borrador local</b> para retomarlo cuando vuelvas a abrir la consulta, o <b>eliminarlo</b> para empezar de cero la próxima vez.
+      </p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button type="button" id="cdraft-exit-save" style="background:linear-gradient(135deg,#0e7490,#06b6d4); color:#fff; border:0; padding:11px 16px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:8px; justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
+          Guardar borrador y salir
+        </button>
+        <button type="button" id="cdraft-exit-discard" style="background:#fff; color:#dc2626; border:1.5px solid #fecaca; padding:11px 16px; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:8px; justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1.5 14a2 2 0 0 1-2 1.8h-7a2 2 0 0 1-2-1.8L5 6"/></svg>
+          Eliminar borrador y salir
+        </button>
+        <button type="button" id="cdraft-exit-cancel" style="background:#f1f5f9; color:#475569; border:0; padding:10px 16px; border-radius:10px; font-weight:600; font-size:13.5px; cursor:pointer; margin-top:4px;">
+          Seguir editando
+        </button>
+      </div>
+    `;
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    if (!document.getElementById('cdraft-anim-style')) {
+      const s = document.createElement('style');
+      s.id = 'cdraft-anim-style';
+      s.textContent = '@keyframes cdraftFadeIn{from{opacity:0}to{opacity:1}}';
+      document.head.appendChild(s);
+    }
+
+    const close = () => { overlay.remove(); };
+    const run = (fn) => { close(); try { fn(); } catch (e) { console.warn(e); } setTimeout(() => onExit && onExit(), 60); };
+
+    document.getElementById('cdraft-exit-save').addEventListener('click', () => run(() => save({ source: 'exit' })));
+    document.getElementById('cdraft-exit-discard').addEventListener('click', () => run(() => clear()));
+    document.getElementById('cdraft-exit-cancel').addEventListener('click', () => close());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  }
+
+  function exit(navigateFn) {
+    const go = typeof navigateFn === 'function' ? navigateFn : () => history.back();
+    if (!hasUnsavedWork()) { go(); return; }
+    showExitModal(go);
+  }
+
   const ConsultationDraft = {
     init(config) {
       cfg = Object.assign({ widgets: [] }, config || {});
@@ -292,6 +370,8 @@
     },
     save() { save({ source: 'manual' }); },
     clear,
+    exit,
+    hasUnsavedWork,
     isDirty() { return dirty; }
   };
 

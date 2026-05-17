@@ -29,14 +29,41 @@ function requireAuth(allowedRoles) {
 }
 
 async function api(url, options = {}) {
+  const controller = new AbortController();
+  const timeoutMs = options.timeoutMs || 45000;
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
   const config = {
     method: options.method || 'GET',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+    signal: controller.signal
   };
   if (options.body) config.body = JSON.stringify(options.body);
 
-  const res = await fetch(url, config);
-  if (res.status === 401) { logout(); return; }
+  let res;
+  try {
+    res = await fetch(url, config);
+  } catch (e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') {
+      const err = new Error('La solicitud tardó demasiado. Revisa tu conexión e intenta de nuevo.');
+      err.code = 'TIMEOUT';
+      throw err;
+    }
+    const err = new Error('No hay conexión con el servidor. Verifica tu internet e intenta de nuevo.');
+    err.code = 'NETWORK';
+    throw err;
+  }
+  clearTimeout(timer);
+
+  if (res.status === 401) {
+    // Sesión expirada: no redirigir silenciosamente — tirar error para que el caller
+    // resetee el estado de "Guardando…" y muestre mensaje, luego logout en 1.5s
+    setTimeout(() => logout(), 1500);
+    const err = new Error('Tu sesión ha expirado. Serás redirigido al login.');
+    err.status = 401;
+    throw err;
+  }
 
   let data = null;
   const text = await res.text();
