@@ -268,63 +268,103 @@
     try { return !!localStorage.getItem(storageKey()); } catch { return false; }
   }
 
+  function ensureExitStyles() {
+    if (document.getElementById('cdraft-exit-style')) return;
+    const s = document.createElement('style');
+    s.id = 'cdraft-exit-style';
+    s.textContent = `
+      @keyframes cdraftFadeIn { from { opacity: 0 } to { opacity: 1 } }
+      #cdraft-exit-overlay {
+        position: fixed; inset: 0; z-index: 10000;
+        background: rgba(15,23,42,.55);
+        backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px; animation: cdraftFadeIn .2s ease;
+      }
+      .cdraft-exit-modal {
+        background: #fff; color: #1e293b;
+        border-radius: 16px; padding: 24px 24px 20px;
+        max-width: 440px; width: 100%;
+        box-shadow: 0 24px 48px -12px rgba(15,23,42,.35);
+        font: 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      }
+      .cdraft-exit-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+      .cdraft-exit-icon {
+        width: 40px; height: 40px; border-radius: 50%;
+        background: linear-gradient(135deg, #0e7490, #06b6d4);
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      }
+      .cdraft-exit-title { font-size: 16px; font-weight: 700; color: #0f172a; }
+      .cdraft-exit-sub   { font-size: 13px; color: #64748b; margin-top: 2px; }
+      .cdraft-exit-body  { font-size: 13.5px; color: #475569; line-height: 1.5; margin: 0 0 18px; }
+      .cdraft-exit-body b { color: #1e293b; }
+      .cdraft-exit-actions { display: flex; flex-direction: column; gap: 8px; }
+      .cdraft-exit-btn { display: flex; align-items: center; gap: 8px; justify-content: center;
+        padding: 11px 16px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; border: 0; font-family: inherit; }
+      .cdraft-exit-btn--save    { background: linear-gradient(135deg, #0e7490, #06b6d4); color: #fff; }
+      .cdraft-exit-btn--discard { background: #fff; color: #dc2626; border: 1.5px solid #fecaca; font-weight: 600; }
+      .cdraft-exit-btn--cancel  { background: #f1f5f9; color: #475569; font-weight: 600; font-size: 13.5px; padding: 10px 16px; margin-top: 4px; }
+
+      /* Dark mode */
+      [data-theme="dark"] #cdraft-exit-overlay { background: rgba(0,0,0,.72); }
+      [data-theme="dark"] .cdraft-exit-modal {
+        background: #0b0f17; color: #e2e8f0;
+        border: 1px solid rgba(255,255,255,.06);
+        box-shadow: 0 24px 48px -12px rgba(0,0,0,.7);
+      }
+      [data-theme="dark"] .cdraft-exit-title { color: #f1f5f9; }
+      [data-theme="dark"] .cdraft-exit-sub   { color: #94a3b8; }
+      [data-theme="dark"] .cdraft-exit-body  { color: #cbd5e1; }
+      [data-theme="dark"] .cdraft-exit-body b { color: #f1f5f9; }
+      [data-theme="dark"] .cdraft-exit-btn--discard {
+        background: rgba(239,68,68,.08); color: #fca5a5; border-color: rgba(239,68,68,.3);
+      }
+      [data-theme="dark"] .cdraft-exit-btn--cancel {
+        background: rgba(255,255,255,.05); color: #cbd5e1;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
   function showExitModal(onExit) {
+    ensureExitStyles();
     const existing = document.getElementById('cdraft-exit-overlay');
     if (existing) existing.remove();
 
     const overlay = document.createElement('div');
     overlay.id = 'cdraft-exit-overlay';
-    overlay.style.cssText = [
-      'position:fixed', 'inset:0', 'z-index:10000',
-      'background:rgba(15,23,42,.55)', 'backdrop-filter:blur(4px)',
-      'display:flex', 'align-items:center', 'justify-content:center',
-      'padding:20px', 'animation:cdraftFadeIn .2s ease'
-    ].join(';');
 
     const modal = document.createElement('div');
-    modal.style.cssText = [
-      'background:#fff', 'border-radius:16px',
-      'padding:24px 24px 20px', 'max-width:440px', 'width:100%',
-      'box-shadow:0 24px 48px -12px rgba(15,23,42,.35)',
-      'font:14px -apple-system,BlinkMacSystemFont,Segoe UI,system-ui,sans-serif',
-      'color:#1e293b'
-    ].join(';');
+    modal.className = 'cdraft-exit-modal';
     modal.innerHTML = `
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
-        <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#0e7490,#06b6d4); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+      <div class="cdraft-exit-head">
+        <div class="cdraft-exit-icon">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         </div>
         <div style="flex:1;">
-          <div style="font-size:16px; font-weight:700; color:#0f172a;">¿Salir de la consulta?</div>
-          <div style="font-size:13px; color:#64748b; margin-top:2px;">Tienes cambios sin enviar al servidor.</div>
+          <div class="cdraft-exit-title">¿Salir de la consulta?</div>
+          <div class="cdraft-exit-sub">Tienes cambios sin enviar al servidor.</div>
         </div>
       </div>
-      <p style="font-size:13.5px; color:#475569; line-height:1.5; margin:0 0 18px;">
+      <p class="cdraft-exit-body">
         Podés <b>guardar un borrador local</b> para retomarlo cuando vuelvas a abrir la consulta, o <b>eliminarlo</b> para empezar de cero la próxima vez.
       </p>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-        <button type="button" id="cdraft-exit-save" style="background:linear-gradient(135deg,#0e7490,#06b6d4); color:#fff; border:0; padding:11px 16px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:8px; justify-content:center;">
+      <div class="cdraft-exit-actions">
+        <button type="button" id="cdraft-exit-save" class="cdraft-exit-btn cdraft-exit-btn--save">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
           Guardar borrador y salir
         </button>
-        <button type="button" id="cdraft-exit-discard" style="background:#fff; color:#dc2626; border:1.5px solid #fecaca; padding:11px 16px; border-radius:10px; font-weight:600; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:8px; justify-content:center;">
+        <button type="button" id="cdraft-exit-discard" class="cdraft-exit-btn cdraft-exit-btn--discard">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1.5 14a2 2 0 0 1-2 1.8h-7a2 2 0 0 1-2-1.8L5 6"/></svg>
           Eliminar borrador y salir
         </button>
-        <button type="button" id="cdraft-exit-cancel" style="background:#f1f5f9; color:#475569; border:0; padding:10px 16px; border-radius:10px; font-weight:600; font-size:13.5px; cursor:pointer; margin-top:4px;">
+        <button type="button" id="cdraft-exit-cancel" class="cdraft-exit-btn cdraft-exit-btn--cancel">
           Seguir editando
         </button>
       </div>
     `;
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
-
-    if (!document.getElementById('cdraft-anim-style')) {
-      const s = document.createElement('style');
-      s.id = 'cdraft-anim-style';
-      s.textContent = '@keyframes cdraftFadeIn{from{opacity:0}to{opacity:1}}';
-      document.head.appendChild(s);
-    }
 
     const close = () => { overlay.remove(); };
     const run = (fn) => { close(); try { fn(); } catch (e) { console.warn(e); } setTimeout(() => onExit && onExit(), 60); };
