@@ -233,7 +233,10 @@
 .perio-root .perio-teeth-row {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 60px;
+  /* Mín 60px (preserva la densidad y permite scroll horizontal en pantallas
+     angostas); 1fr para que cada diente crezca y rellene el card en pantallas
+     anchas — antes la fila dejaba un hueco vacío a la derecha. */
+  grid-auto-columns: minmax(60px, 1fr);
   align-items: center;
   padding-left: var(--p-sp-2);
 }
