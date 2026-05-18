@@ -45,6 +45,7 @@
   const isSuperAdmin = role === 'super_admin';
   const isClinicAdmin = role === 'clinic_admin';
   const isReceptionist = role === 'receptionist';
+  const isDoctor = role === 'doctor';
 
   function buildSidebarHTML() {
     let sections = [];
@@ -199,6 +200,23 @@
             </div>
           </div>
 
+          ${isDoctor ? `<div class="sidebar-section sidebar-section--notif">
+            <button type="button" class="sb-notif-card" id="sdNotifBellSidebar" aria-label="Notificaciones">
+              <span class="sb-notif-icon-wrap">
+                <span class="sb-notif-icon" id="sdNotifBellIconSidebar"></span>
+                <span class="sb-notif-icon-pulse" aria-hidden="true"></span>
+              </span>
+              <span class="sb-notif-content">
+                <span class="sb-notif-title">Notificaciones</span>
+                <span class="sb-notif-status" id="sdNotifStatusSidebar">Sin novedades</span>
+              </span>
+              <span class="sb-notif-trail">
+                <span class="sb-notif-badge" id="sdNotifBadgeSidebar" hidden>0</span>
+                <span class="sb-notif-chevron" id="sdNotifChevronSidebar"></span>
+              </span>
+            </button>
+          </div>` : ''}
+
           ${isReceptionist ? `<div class="sidebar-section">
             <a href="/configuracion.html" class="sidebar-menu-link">
               <span id="configMenuIcon"></span>
@@ -249,12 +267,52 @@
         </div>
       </aside>`;
 
-    return `
-      <aside id="sidebar">
+    const desktopBell = isDoctor ? `
+      <button type="button" class="sd-notif-bell" id="sdNotifBellDesktop" aria-label="Notificaciones" title="Notificaciones">
+        <span class="sd-notif-bell-icon" id="sdNotifBellIconDesktop"></span>
+        <span class="sd-notif-badge" id="sdNotifBadgeDesktop" hidden>0</span>
+      </button>` : '';
+
+    const mobileBell = isDoctor ? `
+      <button type="button" class="sd-notif-bell sd-notif-bell--mobile" id="sdNotifBellMobile" aria-label="Notificaciones" title="Notificaciones">
+        <span class="sd-notif-bell-icon" id="sdNotifBellIconMobile"></span>
+        <span class="sd-notif-badge" id="sdNotifBadgeMobile" hidden>0</span>
+      </button>` : '';
+
+    const notifPanel = isDoctor ? `
+      <div class="sd-notif-panel" id="sdNotifPanel" role="dialog" aria-label="Notificaciones" hidden>
+        <div class="sd-notif-panel-header">
+          <div class="sd-notif-panel-title">
+            <span class="sd-notif-panel-title-icon" id="sdNotifPanelTitleIcon"></span>
+            <span>Notificaciones</span>
+          </div>
+          <button type="button" class="sd-notif-panel-close" id="sdNotifPanelClose" aria-label="Cerrar">
+            <span id="sdNotifPanelCloseIcon"></span>
+          </button>
+        </div>
+        <div class="sd-notif-panel-body" id="sdNotifPanelBody"></div>
+        <div class="sd-notif-panel-footer" id="sdNotifPanelFooter" hidden>
+          <button type="button" class="sd-notif-clear" id="sdNotifClear">Marcar todas como leídas</button>
+        </div>
+      </div>
+      <div class="sd-notif-toast-stack" id="sdNotifToastStack" aria-live="polite"></div>` : '';
+
+    const sidebarLogoBlock = isDoctor ? `
+        <div class="sb-logo-row">
+          <div class="sb-logo" id="sbLogoIcon">
+            <span></span>
+            <span>SaludDigital</span>
+          </div>
+          ${desktopBell}
+        </div>` : `
         <div class="sb-logo" id="sbLogoIcon">
           <span></span>
           <span>SaludDigital</span>
-        </div>
+        </div>`;
+
+    return `
+      <aside id="sidebar">
+        ${sidebarLogoBlock}
 
         <div class="sb-profile">
           <div class="sb-profile-row">
@@ -294,6 +352,7 @@
         ${hamburgerMenu}
       </nav>
       ${mobileSidebar}
+      ${notifPanel}
     `;
   }
 
@@ -372,6 +431,20 @@
     // Configuración menu icon
     const configMenuIcon = document.querySelector('#configMenuIcon');
     if (configMenuIcon && !configMenuIcon.innerHTML.trim()) configMenuIcon.innerHTML = Icons.render('settings', 16);
+
+    // Doctor notification bell icons
+    const bellDesktop = document.querySelector('#sdNotifBellIconDesktop');
+    if (bellDesktop && !bellDesktop.innerHTML.trim()) bellDesktop.innerHTML = Icons.render('bell', 18);
+    const bellMobile = document.querySelector('#sdNotifBellIconMobile');
+    if (bellMobile && !bellMobile.innerHTML.trim()) bellMobile.innerHTML = Icons.render('bell', 22);
+    const bellSidebar = document.querySelector('#sdNotifBellIconSidebar');
+    if (bellSidebar && !bellSidebar.innerHTML.trim()) bellSidebar.innerHTML = Icons.render('bell', 18);
+    const notifChevSidebar = document.querySelector('#sdNotifChevronSidebar');
+    if (notifChevSidebar && !notifChevSidebar.innerHTML.trim()) notifChevSidebar.innerHTML = Icons.render('chevronRight', 16);
+    const notifTitleIcon = document.querySelector('#sdNotifPanelTitleIcon');
+    if (notifTitleIcon && !notifTitleIcon.innerHTML.trim()) notifTitleIcon.innerHTML = Icons.render('bell', 18);
+    const notifCloseIcon = document.querySelector('#sdNotifPanelCloseIcon');
+    if (notifCloseIcon && !notifCloseIcon.innerHTML.trim()) notifCloseIcon.innerHTML = Icons.render('x', 16);
   }
 
   function injectSidebar() {
@@ -393,11 +466,13 @@
     const wrapper = document.createElement('div');
     wrapper.innerHTML = buildSidebarHTML();
 
-    // Get all elements (desktop sidebar, mobile nav, mobile overlay, mobile sidebar)
+    // Get all elements (desktop sidebar, mobile nav, mobile overlay, mobile sidebar, notif panel, toast stack)
     const sidebarEl = wrapper.querySelector('aside#sidebar');
     const mobileNavEl = wrapper.querySelector('nav#mobileNav');
     const mobileOverlayEl = wrapper.querySelector('.mobile-sidebar-overlay');
     const mobileSidebarEl = wrapper.querySelector('aside.mobile-sidebar');
+    const notifPanelEl = wrapper.querySelector('#sdNotifPanel');
+    const notifToastStackEl = wrapper.querySelector('#sdNotifToastStack');
 
     console.log('[layout.js] Sidebar element:', sidebarEl);
 
@@ -416,6 +491,12 @@
     if (mobileSidebarEl) {
       document.body.insertBefore(mobileSidebarEl, document.body.firstChild);
       console.log('[layout.js] Mobile sidebar injected');
+    }
+    if (notifPanelEl) {
+      document.body.appendChild(notifPanelEl);
+    }
+    if (notifToastStackEl) {
+      document.body.appendChild(notifToastStackEl);
     }
 
     // Render icons immediately if available, or after Icons loads
@@ -668,6 +749,357 @@
   }
 
   tryInitToggle();
+
+  // ── Doctor notification bell (citas confirmadas por paciente) ──
+  if (isDoctor) {
+    initDoctorNotifications();
+  }
+
+  function initDoctorNotifications() {
+    const POLL_MS = 20000;
+    const STORAGE_KEY = 'sd_seen_confirmations';
+    const PERM_PROMPTED_KEY = 'sd_notif_permission_prompted';
+
+    let cached = [];
+    let firstLoad = true;
+    let panelOpen = false;
+    let pollTimer = null;
+    let audioCtx = null;
+
+    function getSeenSet() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return new Set();
+        return new Set(JSON.parse(raw));
+      } catch (_) { return new Set(); }
+    }
+    function persistSeenSet(set) {
+      try {
+        // Cap at 200 IDs to prevent unbounded growth
+        const arr = Array.from(set).slice(-200);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+      } catch (_) {}
+    }
+
+    function relativeTime(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      const diff = Math.max(0, (Date.now() - d.getTime()) / 1000);
+      if (diff < 60) return 'hace unos segundos';
+      if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
+      if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
+      const day = d.toLocaleDateString('es-HN', { day: 'numeric', month: 'short' });
+      return day;
+    }
+
+    function formatScheduled(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      const date = d.toLocaleDateString('es-HN', { weekday: 'short', day: 'numeric', month: 'short' });
+      const time = d.toLocaleTimeString('es-HN', { hour: '2-digit', minute: '2-digit', hour12: true });
+      return `${date} · ${time}`;
+    }
+
+    // Premium two-tone chime via WebAudio — no asset needed
+    function playChime() {
+      try {
+        if (!audioCtx) {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!Ctx) return;
+          audioCtx = new Ctx();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
+        const now = audioCtx.currentTime;
+        const tones = [
+          { f: 880, t: 0,    d: 0.18 },
+          { f: 1318.5, t: 0.12, d: 0.32 }
+        ];
+        tones.forEach(({ f, t, d }) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = f;
+          gain.gain.setValueAtTime(0, now + t);
+          gain.gain.linearRampToValueAtTime(0.18, now + t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + t + d);
+          osc.connect(gain).connect(audioCtx.destination);
+          osc.start(now + t);
+          osc.stop(now + t + d + 0.02);
+        });
+      } catch (_) {}
+    }
+
+    function ensureNotifPermission() {
+      if (!('Notification' in window)) return;
+      if (Notification.permission === 'default' && !sessionStorage.getItem(PERM_PROMPTED_KEY)) {
+        sessionStorage.setItem(PERM_PROMPTED_KEY, '1');
+        // Lazy request on first user gesture (browser requirement)
+        const requestOnce = () => {
+          try { Notification.requestPermission().catch(() => {}); } catch (_) {}
+          window.removeEventListener('click', requestOnce);
+          window.removeEventListener('keydown', requestOnce);
+        };
+        window.addEventListener('click', requestOnce, { once: true });
+        window.addEventListener('keydown', requestOnce, { once: true });
+      }
+    }
+
+    function fireBrowserNotification(item) {
+      try {
+        if (!('Notification' in window)) return;
+        if (Notification.permission !== 'granted') return;
+        const title = item.status === 'confirmed'
+          ? 'Cita confirmada'
+          : 'Cita cancelada por el paciente';
+        const body = `${item.patient_name} · ${formatScheduled(item.scheduled_at)}`;
+        const n = new Notification(title, {
+          body,
+          tag: `sd-conf-${item.id}`,
+          silent: false
+        });
+        n.onclick = () => {
+          window.focus();
+          window.location.href = '/confirmaciones.html';
+          n.close();
+        };
+      } catch (_) {}
+    }
+
+    function showToast(item) {
+      const stack = document.getElementById('sdNotifToastStack');
+      if (!stack) return;
+      const isConfirm = item.status === 'confirmed';
+      const toast = document.createElement('div');
+      toast.className = 'sd-notif-toast ' + (isConfirm ? 'sd-notif-toast--confirm' : 'sd-notif-toast--decline');
+      toast.innerHTML = `
+        <div class="sd-notif-toast-icon">${
+          typeof Icons !== 'undefined' ? Icons.render(isConfirm ? 'check' : 'x', 18) : ''
+        }</div>
+        <div class="sd-notif-toast-body">
+          <div class="sd-notif-toast-title">${isConfirm ? 'Cita confirmada' : 'Cita cancelada'}</div>
+          <div class="sd-notif-toast-text">${esc(item.patient_name)}</div>
+          <div class="sd-notif-toast-meta">${esc(formatScheduled(item.scheduled_at))}</div>
+        </div>
+        <button type="button" class="sd-notif-toast-close" aria-label="Cerrar">${
+          typeof Icons !== 'undefined' ? Icons.render('x', 14) : '×'
+        }</button>
+      `;
+      stack.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add('show'));
+      const remove = () => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 320);
+      };
+      toast.querySelector('.sd-notif-toast-close').addEventListener('click', remove);
+      toast.addEventListener('click', (e) => {
+        if (e.target.closest('.sd-notif-toast-close')) return;
+        window.location.href = '/confirmaciones.html';
+      });
+      setTimeout(remove, 7000);
+    }
+
+    function renderPanel() {
+      const body = document.getElementById('sdNotifPanelBody');
+      const footer = document.getElementById('sdNotifPanelFooter');
+      if (!body) return;
+
+      if (!cached.length) {
+        body.innerHTML = `
+          <div class="sd-notif-empty">
+            <div class="sd-notif-empty-icon">${typeof Icons !== 'undefined' ? Icons.render('bell', 28) : ''}</div>
+            <div class="sd-notif-empty-title">Sin novedades</div>
+            <div class="sd-notif-empty-text">Aquí verás cuando un paciente confirme su cita.</div>
+          </div>`;
+        if (footer) footer.hidden = true;
+        return;
+      }
+      const seen = getSeenSet();
+      const html = cached.map(item => {
+        const isConfirm = item.status === 'confirmed';
+        const unread = !seen.has(item.id);
+        return `
+          <div class="sd-notif-item ${unread ? 'unread' : ''} ${isConfirm ? 'is-confirm' : 'is-decline'}">
+            <div class="sd-notif-item-dot"></div>
+            <div class="sd-notif-item-icon">${typeof Icons !== 'undefined' ? Icons.render(isConfirm ? 'check' : 'x', 16) : ''}</div>
+            <div class="sd-notif-item-body">
+              <div class="sd-notif-item-title">${isConfirm ? 'Confirmó su cita' : 'Canceló su cita'}</div>
+              <div class="sd-notif-item-name">${esc(item.patient_name)}</div>
+              <div class="sd-notif-item-meta">
+                <span>${esc(formatScheduled(item.scheduled_at))}</span>
+                <span class="sd-notif-item-sep">·</span>
+                <span>${esc(relativeTime(item.responded_at))}</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+      body.innerHTML = html;
+      if (footer) footer.hidden = !cached.some(i => !seen.has(i.id));
+    }
+
+    function updateBadges() {
+      const seen = getSeenSet();
+      const unread = cached.filter(i => !seen.has(i.id)).length;
+      ['sdNotifBadgeDesktop', 'sdNotifBadgeMobile', 'sdNotifBadgeSidebar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (unread === 0) {
+          el.hidden = true;
+        } else {
+          el.hidden = false;
+          el.textContent = unread > 9 ? '9+' : String(unread);
+        }
+      });
+      ['sdNotifBellDesktop', 'sdNotifBellMobile', 'sdNotifBellSidebar'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.toggle('has-unread', unread > 0);
+      });
+      const statusEl = document.getElementById('sdNotifStatusSidebar');
+      if (statusEl) {
+        if (unread === 0) {
+          statusEl.textContent = 'Sin novedades';
+        } else if (unread === 1) {
+          statusEl.textContent = '1 sin leer';
+        } else {
+          statusEl.textContent = (unread > 99 ? '99+' : unread) + ' sin leer';
+        }
+      }
+    }
+
+    function openPanel() {
+      const panel = document.getElementById('sdNotifPanel');
+      if (!panel) return;
+      panel.hidden = false;
+      requestAnimationFrame(() => panel.classList.add('open'));
+      panelOpen = true;
+      renderPanel();
+      // Anchor to the bell that triggered (desktop vs mobile)
+      const isMobile = window.matchMedia('(max-width: 860px)').matches;
+      panel.classList.toggle('sd-notif-panel--mobile', isMobile);
+    }
+    function closePanel() {
+      const panel = document.getElementById('sdNotifPanel');
+      if (!panel) return;
+      panel.classList.remove('open');
+      panelOpen = false;
+      setTimeout(() => { if (!panelOpen) panel.hidden = true; }, 220);
+    }
+    function togglePanel() { panelOpen ? closePanel() : openPanel(); }
+
+    function markAllAsRead() {
+      const seen = getSeenSet();
+      cached.forEach(i => seen.add(i.id));
+      persistSeenSet(seen);
+      renderPanel();
+      updateBadges();
+    }
+
+    async function poll() {
+      try {
+        const list = await api('/api/confirmations/notifications');
+        const items = Array.isArray(list) ? list : [];
+        const prevIds = new Set(cached.map(i => i.id));
+        cached = items;
+
+        if (firstLoad) {
+          // On first load: don't fire sound/popup for pre-existing items —
+          // mark them as seen so the user doesn't get a flood.
+          const seen = getSeenSet();
+          items.forEach(i => seen.add(i.id));
+          persistSeenSet(seen);
+          firstLoad = false;
+        } else {
+          const newOnes = items.filter(i => !prevIds.has(i.id));
+          if (newOnes.length) {
+            playChime();
+            newOnes.forEach(item => {
+              fireBrowserNotification(item);
+              showToast(item);
+            });
+          }
+        }
+        renderPanel();
+        updateBadges();
+      } catch (e) {
+        // Silent — keep polling; show no error UI to avoid noise
+        console.warn('[notif] poll failed', e && e.message);
+      }
+    }
+
+    function wireBellHandlers() {
+      const desk = document.getElementById('sdNotifBellDesktop');
+      const mob = document.getElementById('sdNotifBellMobile');
+      const side = document.getElementById('sdNotifBellSidebar');
+      const closeBtn = document.getElementById('sdNotifPanelClose');
+      const clearBtn = document.getElementById('sdNotifClear');
+      const panel = document.getElementById('sdNotifPanel');
+
+      [desk, mob].forEach(btn => {
+        if (!btn) return;
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          ensureNotifPermission();
+          // Resume audio context on user gesture (autoplay policy)
+          if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+          togglePanel();
+        });
+      });
+      // Sidebar entry: close the hamburger drawer first, then open the panel
+      if (side) {
+        side.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          ensureNotifPermission();
+          if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+          const mobSidebar = document.getElementById('mobileSidebar');
+          const mobOverlay = document.getElementById('mobileSidebarOverlay');
+          const hamb = document.getElementById('mobileMenuToggle');
+          if (mobSidebar) mobSidebar.classList.remove('active');
+          if (mobOverlay) mobOverlay.classList.remove('active');
+          document.body.style.overflow = '';
+          if (hamb) {
+            const hi = hamb.querySelector('.hamburger-icon');
+            const ci = hamb.querySelector('.close-icon');
+            if (hi) hi.style.display = 'block';
+            if (ci) ci.style.display = 'none';
+          }
+          setTimeout(openPanel, 200);
+        });
+      }
+      if (closeBtn) closeBtn.addEventListener('click', closePanel);
+      if (clearBtn) clearBtn.addEventListener('click', markAllAsRead);
+
+      // Close on outside click
+      document.addEventListener('click', (e) => {
+        if (!panelOpen) return;
+        if (panel && (panel.contains(e.target))) return;
+        if (e.target.closest('#sdNotifBellDesktop, #sdNotifBellMobile, #sdNotifBellSidebar')) return;
+        closePanel();
+      });
+      // Close on Esc
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && panelOpen) closePanel();
+      });
+    }
+
+    function start() {
+      const ready = document.getElementById('sdNotifPanel');
+      if (!ready) { setTimeout(start, 100); return; }
+      wireBellHandlers();
+      ensureNotifPermission();
+      poll();
+      pollTimer = setInterval(poll, POLL_MS);
+      // Re-poll when tab regains focus
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') poll();
+      });
+    }
+
+    start();
+  }
 
   // Page transition animations
   document.addEventListener('click', function(e) {

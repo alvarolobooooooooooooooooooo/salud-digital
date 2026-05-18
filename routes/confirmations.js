@@ -167,15 +167,15 @@ router.post('/manual', authenticate, async (req, res) => {
   if (existing.rows.length > 0) {
     await query(
       `UPDATE appointment_confirmations
-       SET status = $1, responded_at = CURRENT_TIMESTAMP
+       SET status = $1, responded_at = CURRENT_TIMESTAMP, confirmed_via = 'manual'
        WHERE id = $2`,
       [newStatus, existing.rows[0].id]
     );
   } else {
     await query(
       `INSERT INTO appointment_confirmations
-         (appointment_id, patient_id, clinic_id, token, status, sent_at, sent_by, responded_at)
-       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6, CURRENT_TIMESTAMP)`,
+         (appointment_id, patient_id, clinic_id, token, status, sent_at, sent_by, responded_at, confirmed_via)
+       VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6, CURRENT_TIMESTAMP, 'manual')`,
       [appointment_id, appt.patient_id, appt.clinic_id, newToken(), newStatus, req.user.id]
     );
   }
@@ -273,7 +273,7 @@ router.post('/public/:token', async (req, res) => {
 
   await query(
     `UPDATE appointment_confirmations
-     SET status = $1, responded_at = CURRENT_TIMESTAMP
+     SET status = $1, responded_at = CURRENT_TIMESTAMP, confirmed_via = 'patient_link'
      WHERE id = $2`,
     [newStatus, row.id]
   );
@@ -283,6 +283,37 @@ router.post('/public/:token', async (req, res) => {
   );
 
   res.json({ success: true, status: newStatus });
+});
+
+// ───────────────────────── Notificaciones para el doctor ─────────────────────────
+// GET /api/confirmations/notifications  → confirmaciones del paciente (link público)
+// para citas del doctor autenticado, de las últimas 48h. El frontend hace polling
+// y compara contra IDs vistos en localStorage para sonar/disparar notificación nativa.
+router.get('/notifications', authenticate, async (req, res) => {
+  if (req.user.role !== 'doctor') {
+    return res.json([]);
+  }
+  const result = await query(
+    `SELECT
+       c.id,
+       c.status,
+       c.responded_at,
+       a.id AS appointment_id,
+       a.scheduled_at,
+       p.name AS patient_name
+     FROM appointment_confirmations c
+     JOIN appointments a ON c.appointment_id = a.id
+     JOIN patients p ON c.patient_id = p.id
+     WHERE a.clinic_id = $1
+       AND a.doctor_id = $2
+       AND c.confirmed_via = 'patient_link'
+       AND c.responded_at IS NOT NULL
+       AND c.responded_at >= (CURRENT_TIMESTAMP - INTERVAL '48 hours')
+     ORDER BY c.responded_at DESC
+     LIMIT 30`,
+    [req.user.clinic_id, req.user.id]
+  );
+  res.json(result.rows);
 });
 
 module.exports = router;

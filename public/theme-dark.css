@@ -121,6 +121,50 @@ html[data-theme="dark"] body::after {
   border: 1px solid rgba(8, 145, 178, .35) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05) !important;
 }
+
+/* ── Notifications companion card (mobile drawer) ── */
+[data-theme="dark"] .sb-notif-card {
+  background:
+    linear-gradient(135deg, rgba(8, 145, 178, .12), rgba(14, 165, 233, .04)) !important;
+  border: 1px solid rgba(8, 145, 178, .2) !important;
+  color: var(--sd-text) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .04),
+    0 6px 18px -6px rgba(0, 0, 0, .5) !important;
+}
+[data-theme="dark"] .sb-notif-card:hover {
+  border-color: rgba(8, 145, 178, .35) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .05),
+    0 8px 22px -6px rgba(8, 145, 178, .28) !important;
+}
+[data-theme="dark"] .sb-notif-icon {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .22), rgba(8, 145, 178, .12)) !important;
+  color: #22d3ee !important;
+  border: 1px solid rgba(6, 182, 212, .32) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .06),
+    0 6px 14px -6px rgba(6, 182, 212, .35) !important;
+}
+[data-theme="dark"] .sb-notif-title { color: var(--sd-text) !important; }
+[data-theme="dark"] .sb-notif-status { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .sb-notif-chevron { color: #475569 !important; }
+[data-theme="dark"] .sb-notif-card:hover .sb-notif-chevron { color: #22d3ee !important; }
+
+[data-theme="dark"] .sb-notif-card.has-unread {
+  background:
+    linear-gradient(135deg, rgba(244, 63, 94, .18), rgba(251, 113, 133, .06)) !important;
+  border-color: rgba(244, 63, 94, .38) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .04),
+    0 8px 24px -8px rgba(244, 63, 94, .32) !important;
+}
+[data-theme="dark"] .sb-notif-card.has-unread .sb-notif-icon {
+  background: linear-gradient(135deg, rgba(244, 63, 94, .28), rgba(251, 113, 133, .14)) !important;
+  color: #fda4af !important;
+  border-color: rgba(244, 63, 94, .45) !important;
+}
+[data-theme="dark"] .sb-notif-card.has-unread .sb-notif-status { color: #fda4af !important; }
 [data-theme="dark"] .sb-section-label {
   color: #64748b !important;
 }
@@ -231,6 +275,107 @@ html[data-theme="dark"] body::after {
 }
 [data-theme="dark"] .notification-item-title { color: var(--sd-text) !important; }
 [data-theme="dark"] .notification-item-text  { color: var(--sd-text-muted) !important; }
+
+/* ── Doctor notification bell + panel + toast (dark) ── */
+[data-theme="dark"] .sd-notif-bell {
+  background:
+    linear-gradient(135deg, rgba(6, 182, 212, .14) 0%, rgba(14, 165, 233, .06) 100%),
+    rgba(255, 255, 255, .02) !important;
+  border: 1px solid rgba(6, 182, 212, .28) !important;
+  color: #67e8f9 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 4px 14px -4px rgba(6, 182, 212, .25) !important;
+}
+[data-theme="dark"] .sd-notif-bell:hover {
+  border-color: rgba(6, 182, 212, .5) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 8px 22px -6px rgba(6, 182, 212, .4) !important;
+}
+[data-theme="dark"] .sd-notif-bell.has-unread {
+  color: #fca5a5 !important;
+  border-color: rgba(244, 63, 94, .4) !important;
+}
+[data-theme="dark"] .sd-notif-badge {
+  box-shadow:
+    0 0 0 2px #0c0c0e,
+    0 6px 14px -4px rgba(225, 29, 72, .6) !important;
+}
+[data-theme="dark"] .sd-notif-panel {
+  background: linear-gradient(180deg, #0c0c0e 0%, #07070a 100%) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.03),
+    0 24px 60px -16px rgba(0,0,0,.65),
+    0 8px 24px -8px rgba(6, 182, 212, .25) !important;
+}
+[data-theme="dark"] .sd-notif-panel-header {
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgba(6, 182, 212, .12), transparent 55%),
+    transparent !important;
+  border-bottom: 1px solid var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .sd-notif-panel-title { color: var(--sd-text) !important; }
+[data-theme="dark"] .sd-notif-panel-title-icon { color: #22d3ee !important; }
+[data-theme="dark"] .sd-notif-panel-close { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .sd-notif-panel-close:hover {
+  background: rgba(255,255,255,.05) !important;
+  color: var(--sd-text) !important;
+}
+[data-theme="dark"] .sd-notif-empty-icon {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .14), rgba(14, 165, 233, .06)) !important;
+  border: 1px solid rgba(6, 182, 212, .25) !important;
+  color: #22d3ee !important;
+}
+[data-theme="dark"] .sd-notif-empty-title { color: var(--sd-text) !important; }
+[data-theme="dark"] .sd-notif-empty-text { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .sd-notif-item:hover { background: rgba(6, 182, 212, .06) !important; }
+[data-theme="dark"] .sd-notif-item-name { color: var(--sd-text) !important; }
+[data-theme="dark"] .sd-notif-item-meta { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .sd-notif-item.is-confirm .sd-notif-item-icon {
+  background: linear-gradient(135deg, rgba(16, 185, 129, .22), rgba(5, 150, 105, .15)) !important;
+  color: #6ee7b7 !important;
+  border: 1px solid rgba(16, 185, 129, .35) !important;
+}
+[data-theme="dark"] .sd-notif-item.is-decline .sd-notif-item-icon {
+  background: linear-gradient(135deg, rgba(244, 63, 94, .22), rgba(190, 18, 60, .15)) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(244, 63, 94, .35) !important;
+}
+[data-theme="dark"] .sd-notif-item.is-confirm .sd-notif-item-title { color: #6ee7b7 !important; }
+[data-theme="dark"] .sd-notif-item.is-decline .sd-notif-item-title { color: #fca5a5 !important; }
+[data-theme="dark"] .sd-notif-panel-footer {
+  background: rgba(255,255,255,.02) !important;
+  border-top: 1px solid var(--sd-border-soft) !important;
+}
+[data-theme="dark"] .sd-notif-clear { color: #22d3ee !important; }
+[data-theme="dark"] .sd-notif-clear:hover { background: rgba(6, 182, 212, .12) !important; }
+
+[data-theme="dark"] .sd-notif-toast {
+  background: linear-gradient(180deg, #14141a 0%, #0c0c10 100%) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.03),
+    0 18px 36px -12px rgba(0,0,0,.6),
+    0 4px 14px -4px rgba(6, 182, 212, .22) !important;
+}
+[data-theme="dark"] .sd-notif-toast-title { color: var(--sd-text) !important; }
+[data-theme="dark"] .sd-notif-toast-text { color: var(--sd-text) !important; }
+[data-theme="dark"] .sd-notif-toast-meta { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .sd-notif-toast--confirm .sd-notif-toast-icon {
+  background: linear-gradient(135deg, rgba(16, 185, 129, .22), rgba(5, 150, 105, .15)) !important;
+  color: #6ee7b7 !important;
+}
+[data-theme="dark"] .sd-notif-toast--decline .sd-notif-toast-icon {
+  background: linear-gradient(135deg, rgba(244, 63, 94, .22), rgba(190, 18, 60, .15)) !important;
+  color: #fca5a5 !important;
+}
+[data-theme="dark"] .sd-notif-toast-close { color: var(--sd-text-muted) !important; }
+[data-theme="dark"] .sd-notif-toast-close:hover {
+  background: rgba(255,255,255,.06) !important;
+  color: var(--sd-text) !important;
+}
 
 /* ───────────────────────────────────────────────────────────────
    PAGE HEADERS (used in inventario, configuracion, finanzas…)

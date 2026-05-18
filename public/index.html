@@ -64,22 +64,24 @@
     .mockup:hover { transform: none !important; }
 
     /* 7) Replace transparent + blur backgrounds with opaque equivalents
-       so panels still look "frosted" without the GPU cost. */
-    .workflow-visual {
+       so panels still look "frosted" without the GPU cost.
+       Scoped to dark theme — light theme's base rgba backgrounds are
+       already ~98% opaque, so they don't need the override. */
+    html[data-theme="dark"] .workflow-visual {
       background: linear-gradient(135deg, rgba(20, 20, 24, 0.96) 0%, rgba(15, 15, 17, 0.96) 100%) !important;
     }
-    .hero-preview {
+    html[data-theme="dark"] .hero-preview {
       background: linear-gradient(135deg, rgba(20, 20, 24, 0.96) 0%, rgba(15, 15, 17, 0.96) 100%) !important;
     }
-    .mockup,
-    .float-card,
-    .hero-notif,
-    .preview-stat {
+    html[data-theme="dark"] .mockup,
+    html[data-theme="dark"] .float-card,
+    html[data-theme="dark"] .hero-notif,
+    html[data-theme="dark"] .preview-stat {
       background: rgba(22, 22, 26, 0.98) !important;
     }
-    .persona-panel,
-    .pipeline-stage,
-    .feature-card {
+    html[data-theme="dark"] .persona-panel,
+    html[data-theme="dark"] .pipeline-stage,
+    html[data-theme="dark"] .feature-card {
       background: linear-gradient(135deg, rgba(20, 20, 22, 0.97) 0%, rgba(15, 15, 17, 0.97) 100%) !important;
     }
 

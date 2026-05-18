@@ -361,7 +361,11 @@ const initDb = async () => {
       'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS is_sale BOOLEAN NOT NULL DEFAULT FALSE',
       'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS unit_sale_price NUMERIC',
       'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS unit_cost_at_sale NUMERIC',
-      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_confirmation_template TEXT DEFAULT \'Hola {{patientName}}, le escribimos desde {{clinicName}} para confirmar su cita del {{appointmentDate}} a las {{appointmentTime}} con {{doctorName}}.\\n\\nPor favor confirme aquí: {{confirmLink}}\\n\\n¡Gracias!\''
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_confirmation_template TEXT DEFAULT \'Hola {{patientName}}, le escribimos desde {{clinicName}} para confirmar su cita del {{appointmentDate}} a las {{appointmentTime}} con {{doctorName}}.\\n\\nPor favor confirme aquí: {{confirmLink}}\\n\\n¡Gracias!\'',
+      // 'patient_link' cuando el paciente responde desde el link público, 'manual'
+      // cuando el staff marca la confirmación a mano. Usado por la campanita del doctor
+      // para mostrar solo confirmaciones reales del paciente.
+      'ALTER TABLE appointment_confirmations ADD COLUMN IF NOT EXISTS confirmed_via TEXT'
     ];
 
     for (const cmd of alterCommands) {
