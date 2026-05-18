@@ -1482,6 +1482,7 @@ nav.old-nav {
   opacity: 1;
   transform: translateY(0) scale(1);
 }
+.sd-notif-panel[hidden] { display: none !important; }
 @media (min-width: 861px) {
   .sd-notif-panel {
     top: 12px;
@@ -1701,7 +1702,15 @@ nav.old-nav {
   max-width: min(360px, calc(100vw - 32px));
 }
 @media (max-width: 860px) {
-  .sd-notif-toast-stack { top: 72px; right: 12px; left: 12px; max-width: none; }
+  /* Bottom-anchored en móvil: el top (72px) chocaba con el hero y los toasts
+     (pointer-events:auto) tapaban "Nueva Cita" / "Nuevo paciente". */
+  .sd-notif-toast-stack {
+    top: auto;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    right: 12px;
+    left: 12px;
+    max-width: none;
+  }
 }
 
 .sd-notif-toast {
