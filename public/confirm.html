@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Confirmación de cita · SaludDigital</title>
+<meta name="theme-color" content="#0891b2">
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --teal-500:#06b6d4; --teal-600:#0891b2; --teal-700:#0e7490;
+    --green-500:#22c55e; --green-600:#16a34a; --green-700:#15803d;
+    --rose-500:#f43f5e; --rose-600:#e11d48; --rose-700:#be123c;
+    --bg:#f8fafc;
+    --surface:#ffffff;
+    --surface-2:#f1f5f9;
+    --ink:#0f172a;
+    --ink-2:#334155;
+    --ink-3:#64748b;
+    --ink-4:#94a3b8;
+    --line:#e2e8f0;
+    --line-strong:#cbd5e1;
+    --shadow-lg:0 24px 60px -16px rgba(15,23,42,.18), 0 8px 24px -8px rgba(15,23,42,.08);
+    --r-lg:18px; --r-md:12px;
+  }
+  *{ box-sizing:border-box }
+  html, body{ margin:0; padding:0; min-height:100vh }
+  body{
+    font-family:ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background:linear-gradient(180deg, #ecfeff 0%, var(--bg) 60%);
+    color:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px 16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .card{
+    width:100%; max-width:480px;
+    background:var(--surface);
+    border-radius:var(--r-lg);
+    border:1px solid var(--line);
+    box-shadow:var(--shadow-lg);
+    overflow:hidden;
+  }
+  .head{
+    padding:28px 28px 18px;
+    background:linear-gradient(135deg, var(--teal-600), var(--teal-700));
+    color:#fff;
+    text-align:center;
+  }
+  .head h1{
+    margin:8px 0 4px;
+    font-size:22px; font-weight:700; letter-spacing:-0.01em;
+  }
+  .head .sub{
+    margin:0; font-size:13.5px; opacity:.92;
+  }
+  .head .logo{
+    width:48px; height:48px; border-radius:14px;
+    background:rgba(255,255,255,.18);
+    display:inline-flex; align-items:center; justify-content:center;
+    border:1px solid rgba(255,255,255,.25);
+  }
+  .body{ padding:26px 28px }
+  .info-block{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:var(--r-md);
+    padding:16px 18px;
+    margin-bottom:20px;
+  }
+  .info-row{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    padding:6px 0; gap:12px; font-size:14px;
+  }
+  .info-row + .info-row{ border-top:1px dashed var(--line) }
+  .info-row .k{
+    color:var(--ink-3); font-size:12px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.06em;
+    flex-shrink:0;
+  }
+  .info-row .v{
+    color:var(--ink); font-weight:600; text-align:right;
+    font-size:14px; line-height:1.4;
+  }
+  .actions{ display:flex; flex-direction:column; gap:10px; margin-top:6px }
+  .btn{
+    width:100%; padding:14px 18px;
+    border-radius:14px; border:none; cursor:pointer;
+    font-family:inherit; font-size:15px; font-weight:600;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    transition:transform .15s, box-shadow .15s, background .15s;
+  }
+  .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none !important }
+  .btn-primary{
+    background:linear-gradient(180deg, var(--green-500), var(--green-600));
+    color:#fff;
+    box-shadow:0 8px 18px -8px rgba(22,163,74,.55);
+  }
+  .btn-primary:hover:not(:disabled){
+    transform:translateY(-1px);
+    background:linear-gradient(180deg, var(--green-600), var(--green-700));
+  }
+  .btn-secondary{
+    background:#fff; color:var(--rose-700);
+    border:1.5px solid var(--rose-500);
+  }
+  .btn-secondary:hover:not(:disabled){
+    background:#fff5f7; border-color:var(--rose-600);
+  }
+  .clinic-foot{
+    text-align:center; padding:16px 28px 22px;
+    border-top:1px solid var(--line);
+    background:var(--surface-2);
+    color:var(--ink-3);
+    font-size:12.5px;
+  }
+  .clinic-foot b{ color:var(--ink-2); font-weight:600 }
+  .clinic-foot a{ color:var(--teal-700); text-decoration:none; font-weight:600 }
+  .state-icon{
+    width:64px; height:64px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center;
+    margin:0 auto 12px; flex-shrink:0;
+  }
+  .state-icon.ok{ background:#dcfce7; color:var(--green-700) }
+  .state-icon.bad{ background:#ffe4e6; color:var(--rose-700) }
+  .state-icon.warn{ background:#fef9c3; color:#854d0e }
+  .center{ text-align:center }
+  .center h2{
+    font-size:20px; font-weight:700; letter-spacing:-0.01em;
+    margin:0 0 8px;
+  }
+  .center p{
+    margin:0; color:var(--ink-2); font-size:14px; line-height:1.55;
+  }
+  .spinner{
+    width:32px; height:32px; border-radius:50%;
+    border:3px solid var(--line);
+    border-top-color:var(--teal-600);
+    animation:sp 0.8s linear infinite;
+    margin:24px auto;
+  }
+  @keyframes sp{ to{ transform:rotate(360deg) } }
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:5px 10px; border-radius:999px;
+    font-size:12px; font-weight:600;
+  }
+  .pill.confirmed{ background:#dcfce7; color:var(--green-700) }
+  .pill.declined{ background:#ffe4e6; color:var(--rose-700) }
+  .pill.sent{ background:#fef9c3; color:#854d0e }
+  .change-link{
+    display:inline-block; margin-top:14px;
+    color:var(--teal-700); font-weight:600; font-size:13px;
+    cursor:pointer; background:none; border:none;
+    text-decoration:underline; text-underline-offset:3px;
+  }
+  @media (max-width: 420px){
+    .head{ padding:22px 22px 16px }
+    .body{ padding:22px }
+    .head h1{ font-size:20px }
+  }
+</style>
+</head>
+<body>
+  <div class="card" role="region" aria-labelledby="hdrTitle">
+    <div id="state">
+      <div class="head">
+        <div class="logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+        </div>
+        <h1 id="hdrTitle">Cargando…</h1>
+        <p class="sub" id="hdrSub">Un momento</p>
+      </div>
+      <div class="body">
+        <div class="spinner" aria-label="Cargando"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  // El token viene en la URL: /confirmar/<token>
+  const m = location.pathname.match(/\/confirmar\/([a-f0-9]{32})/i);
+  const token = m ? m[1] : null;
+  // Modo preview: render con datos de ejemplo, sin tocar la API.
+  // Usado desde /confirmaciones.html para que el staff vea cómo se ve.
+  const isPreview = new URLSearchParams(location.search).get('preview') === '1';
+
+  const stateEl = document.getElementById('state');
+
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function fmtDateTime(iso){
+    try{
+      const d = new Date(iso);
+      const weekdays = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+      const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+      const wd = weekdays[d.getDay()];
+      const day = d.getDate();
+      const mon = months[d.getMonth()];
+      const yr = d.getFullYear();
+      const h = d.getHours();
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      const ampm = h >= 12 ? 'p.m.' : 'a.m.';
+      const h12 = ((h + 11) % 12) + 1;
+      return {
+        full: `${wd}, ${day} de ${mon} de ${yr}`,
+        time: `${h12}:${mm} ${ampm}`
+      };
+    } catch(e) {
+      return { full: '—', time: '—' };
+    }
+  }
+
+  function renderError(title, msg){
+    stateEl.innerHTML = `
+      <div class="body">
+        <div class="state-icon bad" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg>
+        </div>
+        <div class="center">
+          <h2>${esc(title)}</h2>
+          <p>${esc(msg)}</p>
+        </div>
+      </div>`;
+  }
+
+  function renderResult(action, data){
+    const f = fmtDateTime(data.scheduled_at);
+    if (action === 'confirm') {
+      stateEl.innerHTML = `
+        <div class="body">
+          <div class="state-icon ok" aria-hidden="true">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+          </div>
+          <div class="center">
+            <h2>¡Cita confirmada!</h2>
+            <p>${esc(data.clinic_name)} te espera el <b>${esc(f.full)}</b> a las <b>${esc(f.time)}</b>.</p>
+            <button type="button" class="change-link" id="changeBtn">Necesito cambiarla</button>
+          </div>
+        </div>
+        <div class="clinic-foot">
+          ¿Tienes una duda? Contacta a <b>${esc(data.clinic_name)}</b>${data.clinic_phone ? ` al <a href="tel:${esc(data.clinic_phone)}">${esc(data.clinic_phone)}</a>` : ''}.
+        </div>`;
+      const change = document.getElementById('changeBtn');
+      if (change) change.addEventListener('click', () => render(data, true));
+    } else {
+      stateEl.innerHTML = `
+        <div class="body">
+          <div class="state-icon warn" aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          </div>
+          <div class="center">
+            <h2>Gracias por avisar</h2>
+            <p>Marcamos tu cita como cancelada. Si quieres reagendar, contacta a <b>${esc(data.clinic_name)}</b>${data.clinic_phone ? ` al <a href="tel:${esc(data.clinic_phone)}">${esc(data.clinic_phone)}</a>` : ''}.</p>
+            <button type="button" class="change-link" id="changeBtn">Volví a cambiar de opinión</button>
+          </div>
+        </div>
+        <div class="clinic-foot">
+          ${esc(data.clinic_name)}
+        </div>`;
+      const change = document.getElementById('changeBtn');
+      if (change) change.addEventListener('click', () => render(data, true));
+    }
+  }
+
+  function render(data, force){
+    // Si ya respondió, mostramos el estado salvo que pida cambiarlo (force).
+    if (!force && (data.status === 'confirmed' || data.status === 'declined')) {
+      return renderResult(data.status === 'confirmed' ? 'confirm' : 'decline', data);
+    }
+
+    const f = fmtDateTime(data.scheduled_at);
+    const past = new Date(data.scheduled_at) < new Date();
+
+    stateEl.innerHTML = `
+      <div class="head" style="${data.brand_color ? `background:linear-gradient(135deg, ${esc(data.brand_color)}, color-mix(in oklch, ${esc(data.brand_color)} 75%, #0f172a))` : ''}">
+        <div class="logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+        </div>
+        <h1>Confirmación de cita</h1>
+        <p class="sub">${esc(data.clinic_name || 'Clínica')}</p>
+      </div>
+      <div class="body">
+        <p style="margin:0 0 16px; color:var(--ink-2); font-size:14.5px; line-height:1.55; text-align:center">
+          Hola <b>${esc(data.patient_name)}</b>, ¿podrás asistir a esta cita?
+        </p>
+        <div class="info-block">
+          <div class="info-row">
+            <span class="k">Fecha</span>
+            <span class="v">${esc(f.full)}</span>
+          </div>
+          <div class="info-row">
+            <span class="k">Hora</span>
+            <span class="v">${esc(f.time)}</span>
+          </div>
+          <div class="info-row">
+            <span class="k">Doctor</span>
+            <span class="v">${esc(data.doctor_name || '—')}</span>
+          </div>
+        </div>
+        ${past ? `
+          <div class="center" style="padding:8px 0 4px">
+            <p style="color:var(--ink-3)">Esta cita ya pasó y no se puede actualizar desde aquí.</p>
+          </div>
+        ` : `
+          <div class="actions">
+            <button class="btn btn-primary" data-act="confirm">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+              Sí, asistiré
+            </button>
+            <button class="btn btn-secondary" data-act="decline">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              No podré asistir
+            </button>
+          </div>
+        `}
+      </div>
+      <div class="clinic-foot">
+        ${esc(data.clinic_name || 'Clínica')}${data.clinic_phone ? ` · <a href="tel:${esc(data.clinic_phone)}">${esc(data.clinic_phone)}</a>` : ''}
+      </div>`;
+
+    if (past) return;
+
+    stateEl.querySelectorAll('button[data-act]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const action = btn.getAttribute('data-act');
+        // Deshabilitamos ambos para evitar doble-clic; respond() reactiva si hay error.
+        stateEl.querySelectorAll('button[data-act]').forEach(b => b.disabled = true);
+        try {
+          const res = await fetch(`/api/confirmations/public/${token}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action })
+          });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.error || 'Error');
+          data.status = json.status;
+          data.responded_at = new Date().toISOString();
+          renderResult(action, data);
+        } catch (e) {
+          stateEl.querySelectorAll('button[data-act]').forEach(b => b.disabled = false);
+          alert('No se pudo guardar tu respuesta: ' + (e.message || 'error desconocido'));
+        }
+      });
+    });
+  }
+
+  function renderPreview(){
+    // Mañana a las 10:00 — futuro, evita el caso "cita pasada".
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(10, 0, 0, 0);
+    const data = {
+      patient_name: 'María González',
+      doctor_name: 'Dr. Álvaro Lobo',
+      clinic_name: 'Clínica Demostración',
+      clinic_phone: '+504 2222-3333',
+      brand_color: '#0891b2',
+      scheduled_at: tomorrow.toISOString(),
+      status: 'sent'
+    };
+    // Banner sutil indicando que es preview
+    const banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed; top:0; left:0; right:0; padding:8px 16px; background:#fffbeb; color:#854d0e; font-size:12.5px; font-weight:600; text-align:center; border-bottom:1px solid #fde68a; z-index:10; letter-spacing:.02em';
+    banner.textContent = 'Vista previa · Los botones no envían nada real';
+    document.body.prepend(banner);
+    document.body.style.paddingTop = '32px';
+    render(data, false);
+    // Intercepta clics en los botones y solo muestra el resultado simulado.
+    setTimeout(() => {
+      stateEl.querySelectorAll('button[data-act]').forEach(btn => {
+        const newBtn = btn.cloneNode(true);
+        btn.replaceWith(newBtn);
+        newBtn.addEventListener('click', () => {
+          const act = newBtn.getAttribute('data-act');
+          data.status = act === 'confirm' ? 'confirmed' : 'declined';
+          data.responded_at = new Date().toISOString();
+          renderResult(act, data);
+        });
+      });
+    }, 0);
+  }
+
+  async function init(){
+    if (isPreview) { renderPreview(); return; }
+    if (!token) {
+      renderError('Link inválido', 'El enlace que recibiste no es válido. Por favor contacta a tu clínica.');
+      return;
+    }
+    try {
+      const res = await fetch(`/api/confirmations/public/${token}`);
+      if (res.status === 404) {
+        renderError('Confirmación no encontrada', 'Es posible que el link haya expirado o se haya eliminado. Contacta a tu clínica si necesitas reconfirmar.');
+        return;
+      }
+      const data = await res.json();
+      if (!res.ok) {
+        renderError('No se pudo cargar', data.error || 'Inténtalo de nuevo en un momento.');
+        return;
+      }
+      render(data, false);
+    } catch (e) {
+      renderError('Sin conexión', 'No pudimos contactar al servidor. Verifica tu conexión a internet y recarga la página.');
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

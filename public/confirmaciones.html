@@ -4,7 +4,7 @@
   <script src="/theme.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SaludDigital — Recordatorios</title>
+  <title>SaludDigital — Confirmaciones</title>
   <link rel="stylesheet" href="/layout.css">
   <style>
     /* ───────────── Design tokens (premium redesign) ───────────── */
@@ -209,6 +209,24 @@
       margin-left:auto; align-self:flex-start;
       background:transparent; border:none; color:var(--ink-3); cursor:pointer; padding:2px;
     }
+    /* Botón "Ver vista previa" en el banner — no se encoge, queda alineado a la derecha. */
+    .note .preview-btn{
+      margin-left:auto; align-self:center; flex-shrink:0; white-space:nowrap;
+      padding:8px 14px; font-size:13px;
+    }
+
+    /* Wizard de envío en lote: layout 2×2 con CTA principal a ancho completo. */
+    .modal-foot.bulk-foot{
+      display:grid; grid-template-columns:1fr 1fr; gap:8px;
+      justify-content:initial;
+    }
+    .modal-foot.bulk-foot .btn{ justify-content:center; padding:10px 12px; white-space:nowrap }
+    /* "Marcar enviado y siguiente" — fila 2 a ancho completo, máxima jerarquía. */
+    .modal-foot.bulk-foot #bulkMarkBtn{ grid-column:1 / -1 }
+    @media (max-width: 480px){
+      .modal-foot.bulk-foot{ grid-template-columns:1fr }
+      .modal-foot.bulk-foot #bulkMarkBtn{ grid-column:auto }
+    }
     .note.warn{
       background:linear-gradient(135deg, color-mix(in oklch, var(--amber-100) 70%, #fff), color-mix(in oklch, var(--amber-50) 80%, #fff));
       border-color:color-mix(in oklch, var(--amber-500) 30%, transparent);
@@ -366,7 +384,9 @@
     }
     .badge .dot{width:5px; height:5px; border-radius:50%; background:currentColor; opacity:.7}
     .badge.pending{background:var(--amber-100); color:var(--amber-700)}
-    .badge.sent{background:var(--green-50); color:var(--green-700)}
+    .badge.sent{background:var(--teal-100); color:var(--teal-800)}
+    .badge.confirmed{background:var(--green-50); color:var(--green-700)}
+    .badge.declined{background:var(--rose-50); color:var(--rose-700)}
     .badge.nowhats{background:var(--indigo-100); color:var(--indigo-700)}
     .badge.disabled{background:var(--rose-50); color:var(--rose-700)}
 
@@ -663,18 +683,6 @@
       color:#e2e8f0;
     }
 
-    /* Wizard de envío en lote: layout 2×2 con CTA principal a ancho completo. */
-    .modal-foot.bulk-foot{
-      display:grid; grid-template-columns:1fr 1fr; gap:8px;
-      justify-content:initial;
-    }
-    .modal-foot.bulk-foot .btn{ justify-content:center; padding:10px 12px; white-space:nowrap }
-    .modal-foot.bulk-foot #bulkMarkBtn{ grid-column:1 / -1 }
-    @media (max-width: 480px){
-      .modal-foot.bulk-foot{ grid-template-columns:1fr }
-      .modal-foot.bulk-foot #bulkMarkBtn{ grid-column:auto }
-    }
-
     /* Responsive */
     @media (max-width: 980px){
       .hero{grid-template-columns:1fr}
@@ -764,7 +772,12 @@
       .table tr.date-group td{padding:12px 14px 6px}
       .table tbody tr:not(.date-group){padding:12px 14px; column-gap:10px}
       .crumbs-row{font-size:12px}
-      .note{padding:12px 14px; font-size:13px}
+      .note{padding:12px 14px; font-size:13px; flex-wrap:wrap}
+      /* Botón "Ver vista previa": en móvil baja debajo del texto, ancho completo. */
+      .note .preview-btn{
+        margin-left:0 !important; width:100%; justify-content:center;
+        order:99; /* siempre al final, evita que se cuele entre icono y texto */
+      }
       .kpi{padding:14px; min-height:auto}
       .kpi .v{font-size:30px}
     }
@@ -781,8 +794,8 @@
           <span class="dot"></span>
           <span id="syncStatus">Sistema activo · Sincronizando…</span>
         </div>
-        <h1>Recordatorios <em>de citas</em></h1>
-        <p>Envía mensajes manuales por WhatsApp Web con un solo clic. Esta vista te muestra todas las citas próximas y su estado de notificación.</p>
+        <h1>Confirmaciones <em>de citas</em></h1>
+        <p>Envía un link de confirmación por WhatsApp. Cuando el paciente da clic y confirma, la cita se marca <b>confirmada</b> en el calendario automáticamente.</p>
         <div class="hero-actions">
           <button class="btn btn-primary" id="sendPendingBtn">
             <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></span>
@@ -807,14 +820,14 @@
           <div class="v" id="kpiTotal">0<span class="unit">en 14 días</span></div>
           <div class="trend">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-9 9-4-4L2 19"/><path d="M16 7h6v6"/></svg>
-            <span id="kpiTotalTrend">Total recordatorios</span>
+            <span id="kpiTotalTrend">Total a confirmar</span>
           </div>
           <svg class="spark" width="120" height="36" viewBox="0 0 120 36"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0891b2" stop-opacity="0.4"/><stop offset="100%" stop-color="#0891b2" stop-opacity="0"/></linearGradient></defs><path d="M0,28 L10.9,18 L21.8,23 L32.7,14 L43.6,16 L54.5,7 L65.4,11 L76.3,4 L87.2,9 L98.1,6 L109,0 L120,2 L120,36 L0,36 Z" fill="url(#sg)"/><path d="M0,28 L10.9,18 L21.8,23 L32.7,14 L43.6,16 L54.5,7 L65.4,11 L76.3,4 L87.2,9 L98.1,6 L109,0 L120,2" fill="none" stroke="#0891b2" stroke-width="1.5" stroke-linecap="round"/></svg>
         </div>
         <div class="kpi warn">
           <div class="label">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-            Pendientes de envío
+            Sin enviar
           </div>
           <div class="v" id="kpiPending">0</div>
           <div class="trend" id="kpiPendingTrend">
@@ -822,26 +835,26 @@
             <span id="kpiPendingTodayLabel">0 para hoy</span>
           </div>
         </div>
-        <div class="kpi">
+        <div class="kpi ok">
           <div class="label">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
-            Enviados
+            Confirmadas
           </div>
-          <div class="v" id="kpiSent">0<span class="unit" id="kpiSentUnit">/ 0</span></div>
+          <div class="v" id="kpiConfirmed">0<span class="unit" id="kpiConfirmedUnit">/ 0</span></div>
           <div class="trend">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-9 9-4-4L2 19"/><path d="M16 7h6v6"/></svg>
-            <span id="kpiSentRate">tasa 0%</span>
+            <span id="kpiConfirmedRate">tasa 0%</span>
           </div>
         </div>
-        <div class="kpi flag">
+        <div class="kpi">
           <div class="label">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            Sin WhatsApp
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M3 12h18"/></svg>
+            Esperando respuesta
           </div>
-          <div class="v" id="kpiNoWhats">0</div>
+          <div class="v" id="kpiWaiting">0</div>
           <div class="trend">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>Requieren actualización</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span id="kpiDeclined">0 rechazadas</span>
           </div>
         </div>
       </div>
@@ -853,7 +866,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
       </div>
       <div>
-        <b>WhatsApp desactivado.</b> Activa los recordatorios manuales por WhatsApp en la configuración para poder enviar mensajes.
+        <b>WhatsApp desactivado.</b> Activa WhatsApp en la configuración para poder enviar solicitudes de confirmación.
       </div>
     </div>
 
@@ -863,8 +876,12 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
       </div>
       <div>
-        <b>Antes de enviar:</b> asegúrate de tener abierto WhatsApp Web con el número oficial de la clínica. Esta función no envía mensajes automáticamente — solo abre WhatsApp con el mensaje preparado.
+        <b>Cómo funciona:</b> el mensaje incluye un link único. Al hacer clic, el paciente ve una página donde confirma o cancela. La cita se marca <b>confirmada</b> automáticamente en el calendario.
       </div>
+      <a class="btn btn-ghost-light preview-btn" href="/confirm.html?preview=1" target="_blank" rel="noopener">
+        <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        Ver vista previa
+      </a>
       <button class="close" id="closeNoteBtn" title="Cerrar">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
@@ -874,8 +891,10 @@
     <div class="toolbar">
       <div class="seg" id="tabs" role="tablist">
         <button class="on" data-tab="all">Todas <span class="pill" data-count="all">0</span></button>
-        <button data-tab="pending">Pendientes <span class="pill" data-count="pending">0</span></button>
-        <button data-tab="manual_sent">Enviados <span class="pill" data-count="manual_sent">0</span></button>
+        <button data-tab="pending">Sin enviar <span class="pill" data-count="pending">0</span></button>
+        <button data-tab="sent">Esperando <span class="pill" data-count="sent">0</span></button>
+        <button data-tab="confirmed">Confirmadas <span class="pill" data-count="confirmed">0</span></button>
+        <button data-tab="declined">Canceladas <span class="pill" data-count="declined">0</span></button>
         <button data-tab="no_whatsapp_number">Sin WhatsApp <span class="pill" data-count="no_whatsapp_number">0</span></button>
         <button data-tab="today">Hoy <span class="pill" data-count="today">0</span></button>
       </div>
@@ -889,7 +908,7 @@
     <!-- Card with table -->
     <div class="card">
       <div class="card-head">
-        <h3>Recordatorios próximos</h3>
+        <h3>Confirmaciones próximas</h3>
         <span class="meta" id="resultMeta">Cargando…</span>
         <div class="actions">
           <button class="btn btn-ghost" id="openConfigBtn2">
@@ -915,7 +934,7 @@
             </tr>
           </thead>
           <tbody id="remindersBody">
-            <tr><td colspan="6" class="empty"><h4>Cargando recordatorios…</h4></td></tr>
+            <tr><td colspan="6" class="empty"><h4>Cargando confirmaciones…</h4></td></tr>
           </tbody>
         </table>
       </div>
@@ -956,27 +975,13 @@
         <div class="ic-wrap">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
         </div>
-        <div>Esta configuración es referencial. Los mensajes se envían desde la sesión de WhatsApp Web abierta en tu navegador.</div>
-      </div>
-
-      <div class="toggle-row">
-        <div>
-          <strong>Recordatorios manuales por WhatsApp</strong>
-          <span>Habilitar el botón "Enviar WhatsApp" en las citas</span>
-        </div>
-        <div class="toggle-switch" id="waEnabledToggle" onclick="toggleEnabled()" role="switch" aria-checked="false"></div>
+        <div>El número de WhatsApp y el switch on/off se configuran en <b>Recordatorios → Configuración WhatsApp</b>. Aquí solo editas la plantilla del mensaje de confirmación.</div>
       </div>
 
       <div class="form-group">
-        <label for="waNumber">Número oficial de la clínica</label>
-        <input type="text" id="waNumber" placeholder="Ej: 50488888888" inputmode="numeric">
-        <small>Formato internacional sin +, espacios, guiones ni paréntesis. Ejemplo Honduras: 50488888888</small>
-      </div>
-
-      <div class="form-group">
-        <label for="waTemplate">Plantilla del mensaje</label>
+        <label for="waTemplate">Plantilla del mensaje de confirmación</label>
         <textarea id="waTemplate" placeholder="Mensaje a enviar…"></textarea>
-        <small>Variables disponibles: {{patientName}}, {{clinicName}}, {{doctorName}}, {{appointmentDate}}, {{appointmentTime}}</small>
+        <small>Variables: {{patientName}}, {{clinicName}}, {{doctorName}}, {{appointmentDate}}, {{appointmentTime}}, <b>{{confirmLink}}</b> (link único de confirmación)</small>
       </div>
 
       <div class="form-group">
@@ -991,21 +996,22 @@
   </div>
 </div>
 
-<!-- Confirm Sent Modal -->
+<!-- Sent verification modal -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal" role="dialog" aria-labelledby="confirmTitle">
     <div class="modal-head">
-      <h2 id="confirmTitle">¿Marcar como enviado?</h2>
+      <h2 id="confirmTitle">Solicitud enviada</h2>
       <button class="modal-close" onclick="closeConfirmModal()" aria-label="Cerrar">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
     </div>
     <div class="modal-body">
       <p style="margin:0; color:var(--ink-2); font-size:14px; line-height:1.55">
-        Se abrió WhatsApp con el mensaje preparado. ¿Deseas marcar este recordatorio como enviado manualmente?
+        Se abrió WhatsApp con el link de confirmación. Cuando el paciente le dé clic y confirme,
+        la cita se marcará <b>confirmada</b> automáticamente en el calendario.
       </p>
       <div class="form-group">
-        <label>Mensaje enviado</label>
+        <label>Mensaje preparado</label>
         <div class="preview-box" id="confirmPreview" style="max-height:200px; overflow-y:auto"></div>
       </div>
       <button class="btn btn-ghost" onclick="copyCurrentMessage()" id="copyMsgBtn" style="align-self:flex-start">
@@ -1014,8 +1020,7 @@
       </button>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeConfirmModal()">Cancelar</button>
-      <button class="btn btn-success" onclick="confirmSent()">Sí, marcar como enviado</button>
+      <button class="btn btn-success" onclick="confirmSent()">Cerrar</button>
     </div>
   </div>
 </div>
@@ -1095,12 +1100,12 @@
   ];
   const DOCTOR_PALETTE = ['#0891B2','#6366F1','#F59E0B','#EC4899','#10B981','#A855F7','#F43F5E'];
 
-  let allReminders = [];
-  let waConfig = { whatsapp_enabled: false, whatsapp_number: '', whatsapp_template: '', name: '' };
+  let allRows = [];
+  let waConfig = { whatsapp_enabled: false, whatsapp_number: '', whatsapp_confirmation_template: '', name: '' };
   let currentTab = 'all';
   let selected = new Set();
   let openRowId = null;
-  let pendingConfirm = null;
+  let pendingSend = null;
   let doctorColors = {};
 
   // ───────────── Helpers ─────────────
@@ -1173,27 +1178,45 @@
     return `${String(p.d).padStart(2,'0')}/${String(p.m).padStart(2,'0')} ${String(p.hh).padStart(2,'0')}:${String(p.mm).padStart(2,'0')}`;
   }
 
+  // ───────────── State machine ─────────────
+  // whatsapp_disabled | no_whatsapp_number | pending | sent | confirmed | declined
   function getState(r){
-    return WhatsApp.getReminderState({
-      whatsappEnabled: waConfig.whatsapp_enabled,
-      patientWhatsapp: r.phone,
-      reminderStatus: r.reminder_status
-    });
+    if (!waConfig.whatsapp_enabled) return 'whatsapp_disabled';
+    const phone = WhatsApp.normalizePhone(r.phone);
+    if (!WhatsApp.isValidPhone(phone)) return 'no_whatsapp_number';
+    if (r.confirmation_status === 'confirmed') return 'confirmed';
+    if (r.confirmation_status === 'declined')  return 'declined';
+    if (r.confirmation_status === 'sent')      return 'sent';
+    return 'pending';
   }
   function statusInfo(state){
-    if (state === 'whatsapp_disabled') return { label:'WhatsApp desactivado', cls:'disabled' };
-    if (state === 'no_whatsapp_number') return { label:'Sin nº WhatsApp', cls:'nowhats' };
-    if (state === 'manual_sent') return { label:'Enviado', cls:'sent' };
-    return { label:'Pendiente', cls:'pending' };
+    switch (state) {
+      case 'whatsapp_disabled':  return { label:'WhatsApp desactivado', cls:'disabled' };
+      case 'no_whatsapp_number': return { label:'Sin nº WhatsApp',      cls:'nowhats' };
+      case 'sent':               return { label:'Esperando respuesta',  cls:'sent' };
+      case 'confirmed':          return { label:'Confirmada',           cls:'confirmed' };
+      case 'declined':           return { label:'Cancelada',            cls:'declined' };
+      default:                   return { label:'Sin enviar',           cls:'pending' };
+    }
+  }
+
+  function confirmUrl(token){
+    return `${location.protocol}//${location.host}/confirmar/${token}`;
   }
 
   function buildMessage(r){
-    return WhatsApp.buildReminderMessage({
-      template: waConfig.whatsapp_template || '',
-      patientName: r.patient_name,
-      clinicName: waConfig.name,
-      doctorName: r.doctor_name,
-      scheduledAt: r.scheduled_at
+    // Si todavía no hay token, usamos un placeholder para que la preview se vea
+    // — el mensaje real con link se genera en sendConfirmation/startBulkSend
+    // luego de pedirle el token al backend.
+    const token = r.token || '________________________________';
+    const f = WhatsApp.formatAppointmentDateTime(r.scheduled_at);
+    return WhatsApp.renderTemplate(waConfig.whatsapp_confirmation_template || '', {
+      patientName: r.patient_name || '',
+      clinicName: waConfig.name || '',
+      doctorName: r.doctor_name || '',
+      appointmentDate: f.date,
+      appointmentTime: f.time,
+      confirmLink: confirmUrl(token)
     });
   }
 
@@ -1211,35 +1234,32 @@
   // ───────────── Data fetching ─────────────
   async function loadConfig(){
     try {
-      waConfig = await api('/api/reminders/whatsapp-config');
+      waConfig = await api('/api/confirmations/whatsapp-config');
       document.getElementById('configBanner').style.display = waConfig.whatsapp_enabled ? 'none' : 'flex';
     } catch (e) {
       console.error('Error loading WhatsApp config:', e);
     }
   }
 
-  async function loadReminders(){
+  async function loadConfirmations(){
     document.getElementById('syncStatus').textContent = 'Sistema activo · Sincronizando…';
     try {
-      const data = await api('/api/reminders');
-      allReminders = (data || []).slice().sort((a,b) => {
-        return new Date(b.scheduled_at) - new Date(a.scheduled_at);
-      });
+      const data = await api('/api/confirmations');
+      allRows = (data || []).slice().sort((a,b) => new Date(b.scheduled_at) - new Date(a.scheduled_at));
       render();
-      const now = new Date();
-      const tt = now.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+      const tt = new Date().toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
       document.getElementById('syncStatus').textContent = `Sistema activo · Sincronizado ${tt}`;
     } catch (e) {
       console.error(e);
       document.getElementById('remindersBody').innerHTML =
-        '<tr><td colspan="6" class="empty"><h4>Error al cargar recordatorios</h4><p>'+esc(e.message || '')+'</p></td></tr>';
+        `<tr><td colspan="6" class="empty"><h4>Error al cargar confirmaciones</h4><p>${esc(e.message || '')}</p></td></tr>`;
       document.getElementById('syncStatus').textContent = 'Error de sincronización';
     }
   }
 
-  // ───────────── Filtering / rendering ─────────────
+  // ───────────── Filtering / KPIs ─────────────
   function filteredRows(){
-    let rows = allReminders.slice();
+    let rows = allRows.slice();
     if (currentTab === 'today') {
       rows = rows.filter(r => relativeDay(r.scheduled_at) === 'Hoy');
     } else if (currentTab !== 'all') {
@@ -1249,30 +1269,26 @@
   }
 
   function updateKpis(){
-    const total = allReminders.length;
-    const pending = allReminders.filter(r => getState(r) === 'pending').length;
-    const sent = allReminders.filter(r => getState(r) === 'manual_sent').length;
-    const noWhats = allReminders.filter(r => getState(r) === 'no_whatsapp_number').length;
-    const today = allReminders.filter(r => relativeDay(r.scheduled_at) === 'Hoy').length;
-    const pendingToday = allReminders.filter(r =>
+    const total = allRows.length;
+    const pending   = allRows.filter(r => getState(r) === 'pending').length;
+    const sent      = allRows.filter(r => getState(r) === 'sent').length;
+    const confirmed = allRows.filter(r => getState(r) === 'confirmed').length;
+    const declined  = allRows.filter(r => getState(r) === 'declined').length;
+    const noWhats   = allRows.filter(r => getState(r) === 'no_whatsapp_number').length;
+    const today     = allRows.filter(r => relativeDay(r.scheduled_at) === 'Hoy').length;
+    const pendingToday = allRows.filter(r =>
       getState(r) === 'pending' && relativeDay(r.scheduled_at) === 'Hoy'
     ).length;
 
-    document.getElementById('kpiTotal').innerHTML = `${total}<span class="unit">recordatorios</span>`;
+    document.getElementById('kpiTotal').innerHTML = `${total}<span class="unit">a confirmar</span>`;
     document.getElementById('kpiPending').textContent = pending;
     document.getElementById('kpiPendingTodayLabel').textContent = `${pendingToday} para hoy`;
-    document.getElementById('kpiSent').innerHTML = `${sent}<span class="unit" id="kpiSentUnit">/ ${total}</span>`;
-    document.getElementById('kpiSentRate').textContent = `tasa ${Math.round((sent / Math.max(total,1)) * 100)}%`;
-    document.getElementById('kpiNoWhats').textContent = noWhats;
+    document.getElementById('kpiConfirmed').innerHTML = `${confirmed}<span class="unit" id="kpiConfirmedUnit">/ ${total}</span>`;
+    document.getElementById('kpiConfirmedRate').textContent = `tasa ${Math.round((confirmed / Math.max(total,1)) * 100)}%`;
+    document.getElementById('kpiWaiting').textContent = sent;
+    document.getElementById('kpiDeclined').textContent = `${declined} rechazada${declined !== 1 ? 's' : ''}`;
 
-    // tab counts
-    const counts = {
-      all: total,
-      pending,
-      manual_sent: sent,
-      no_whatsapp_number: noWhats,
-      today
-    };
+    const counts = { all: total, pending, sent, confirmed, declined, no_whatsapp_number: noWhats, today };
     document.querySelectorAll('[data-count]').forEach(el => {
       const k = el.getAttribute('data-count');
       el.textContent = counts[k] ?? 0;
@@ -1287,7 +1303,7 @@
     const grad = gradPair(r.patient_name || '');
     const docCol = doctorColor(r.doctor_name);
     const f = fmtDate(r.scheduled_at);
-    const canSelect = state === 'pending' || state === 'manual_sent';
+    const canSelect = state === 'pending' || state === 'sent';
 
     let actions;
     if (state === 'whatsapp_disabled') {
@@ -1300,7 +1316,9 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         Agregar nº
       </a>`;
-    } else if (state === 'manual_sent') {
+    } else if (state === 'confirmed' || state === 'declined') {
+      actions = '';
+    } else if (state === 'sent') {
       actions = `<button class="btn-add" data-act="send">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
         Reenviar
@@ -1312,9 +1330,12 @@
       </button>`;
     }
 
-    const sentMeta = (state === 'manual_sent' && r.sent_at)
-      ? `<div class="sent-meta">${esc(fmtSentAt(r.sent_at))}${r.sent_by_name ? ' · ' + esc(r.sent_by_name) : ''}</div>`
-      : '';
+    const sentMeta =
+      (state === 'sent' && r.sent_at)
+        ? `<div class="sent-meta">Enviado ${esc(fmtSentAt(r.sent_at))}${r.sent_by_name ? ' · ' + esc(r.sent_by_name) : ''}</div>`
+      : ((state === 'confirmed' || state === 'declined') && r.responded_at)
+        ? `<div class="sent-meta">${state === 'confirmed' ? 'Confirmada' : 'Cancelada'} ${esc(fmtSentAt(r.responded_at))}</div>`
+        : '';
 
     return `
       <tr data-id="${esc(String(r.appointment_id))}" class="${isSel?'selected':''} ${isUrgent?'urgent':''}">
@@ -1362,16 +1383,16 @@
     updateKpis();
     const rows = filteredRows();
     document.getElementById('resultMeta').textContent =
-      `Mostrando ${rows.length} de ${allReminders.length} citas`;
+      `Mostrando ${rows.length} de ${allRows.length} citas`;
 
     const tbody = document.getElementById('remindersBody');
     if (rows.length === 0) {
       tbody.innerHTML = `
         <tr><td colspan="6" class="empty">
           <div class="ic-wrap">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/></svg>
           </div>
-          <h4>No hay recordatorios que coincidan</h4>
+          <h4>No hay confirmaciones que coincidan</h4>
           <p>Prueba con otro filtro o ajusta el rango de fechas.</p>
         </td></tr>`;
       updateBulk();
@@ -1411,7 +1432,7 @@
   function updateCbAll(){
     const selectable = filteredRows().filter(r => {
       const s = getState(r);
-      return s === 'pending' || s === 'manual_sent';
+      return s === 'pending' || s === 'sent';
     });
     const ids = selectable.map(r => r.appointment_id);
     const all = ids.length > 0 && ids.every(id => selected.has(id));
@@ -1439,7 +1460,7 @@
   function toggleSelectAll(){
     const selectable = filteredRows().filter(r => {
       const s = getState(r);
-      return s === 'pending' || s === 'manual_sent';
+      return s === 'pending' || s === 'sent';
     });
     const ids = selectable.map(r => r.appointment_id);
     const all = ids.length > 0 && ids.every(id => selected.has(id));
@@ -1448,57 +1469,55 @@
     render();
   }
 
-  // ───────────── Send / confirm ─────────────
-  function sendReminder(appointmentId){
-    const r = allReminders.find(x => x.appointment_id === appointmentId);
+  // ───────────── Send confirmation (individual) ─────────────
+  // Flujo:
+  //   1) POST /api/confirmations → crea token, marca confirmación como 'sent'.
+  //   2) Construye mensaje final con el link real.
+  //   3) Re-POST con message_content actualizado para historial.
+  //   4) Abre WhatsApp.
+  //   5) Muestra modal informativo + refresca lista al cerrar.
+  async function sendConfirmation(appointmentId){
+    const r = allRows.find(x => x.appointment_id === appointmentId);
     if (!r) return;
-
     const state = getState(r);
-    if (state === 'whatsapp_disabled') {
-      showToast('WhatsApp está desactivado. Actívalo en la configuración.');
-      return;
-    }
-    if (state === 'no_whatsapp_number') {
-      showToast('Este paciente no tiene número de WhatsApp.');
-      return;
-    }
-
-    const message = buildMessage(r);
+    if (state === 'whatsapp_disabled') { showToast('WhatsApp está desactivado.'); return; }
+    if (state === 'no_whatsapp_number') { showToast('Este paciente no tiene número de WhatsApp.'); return; }
     const phone = WhatsApp.normalizePhone(r.phone);
-    if (!WhatsApp.isValidPhone(phone)) {
-      showToast('Número de teléfono inválido.');
-      return;
-    }
-    WhatsApp.openWhatsApp(phone, message);
+    if (!WhatsApp.isValidPhone(phone)) { showToast('Número de teléfono inválido.'); return; }
 
-    pendingConfirm = { appointmentId, message };
-    document.getElementById('confirmPreview').textContent = message;
-    document.getElementById('confirmModal').classList.add('active');
-  }
-
-  async function confirmSent(){
-    if (!pendingConfirm) return;
     try {
-      await api('/api/reminders', {
+      const resp = await api('/api/confirmations', {
         method: 'POST',
-        body: { appointment_id: pendingConfirm.appointmentId, message_content: pendingConfirm.message }
+        body: { appointment_id: appointmentId, message_content: '' }
       });
-      closeConfirmModal();
-      showToast('Recordatorio marcado como enviado');
-      await loadReminders();
+      const message = buildMessage({ ...r, token: resp.token });
+      await api('/api/confirmations', {
+        method: 'POST',
+        body: { appointment_id: appointmentId, message_content: message }
+      });
+      WhatsApp.openWhatsApp(phone, message);
+      pendingSend = { appointmentId, message, token: resp.token };
+      document.getElementById('confirmPreview').textContent = message;
+      document.getElementById('confirmModal').classList.add('active');
     } catch (e) {
       showToast('Error: ' + (e.message || 'desconocido'));
     }
   }
 
+  // Cierra el modal "Solicitud enviada" y refresca la lista.
+  async function confirmSent(){
+    closeConfirmModal();
+    await loadConfirmations();
+  }
+
   function closeConfirmModal(){
-    pendingConfirm = null;
+    pendingSend = null;
     document.getElementById('confirmModal').classList.remove('active');
   }
 
   async function copyCurrentMessage(){
-    if (!pendingConfirm) return;
-    const ok = await WhatsApp.copyMessage(pendingConfirm.message);
+    if (!pendingSend) return;
+    const ok = await WhatsApp.copyMessage(pendingSend.message);
     if (ok) {
       const btn = document.getElementById('copyMsgBtn');
       const orig = btn.innerHTML;
@@ -1507,9 +1526,24 @@
     }
   }
 
+  // ───────────── Marcar manual (staff) ─────────────
+  async function markManual(appointmentId, action){
+    try {
+      await api('/api/confirmations/manual', {
+        method: 'POST',
+        body: { appointment_id: appointmentId, action }
+      });
+      showToast(action === 'confirm' ? 'Marcada como confirmada' : 'Marcada como cancelada');
+      closeDrawer();
+      await loadConfirmations();
+    } catch (e) {
+      showToast('Error: ' + (e.message || 'desconocido'));
+    }
+  }
+
   // ───────────── Drawer ─────────────
   function openDrawer(id){
-    const r = allReminders.find(x => x.appointment_id === id);
+    const r = allRows.find(x => x.appointment_id === id);
     if (!r) return;
     openRowId = id;
 
@@ -1520,7 +1554,8 @@
     const grad = gradPair(r.patient_name || '');
     const docCol = doctorColor(r.doctor_name);
     const message = buildMessage(r);
-    const messageEditable = state === 'pending' || state === 'manual_sent';
+    const canSend = state === 'pending' || state === 'sent';
+    const canMarkManual = canSend; // ya respondidas: read-only
 
     const drawer = document.getElementById('drawer');
     drawer.innerHTML = `
@@ -1528,9 +1563,7 @@
         <div class="pat-avatar" style="--c1:${grad[0]}; --c2:${grad[1]}; width:48px; height:48px; font-size:16px; flex:0 0 48px">${esc(initials(r.patient_name))}</div>
         <div>
           <h4>${esc(r.patient_name || '—')}</h4>
-          <div class="sub">
-            <span class="badge ${stat.cls}" style="margin-left:0">${esc(stat.label)}</span>
-          </div>
+          <div class="sub"><span class="badge ${stat.cls}" style="margin-left:0">${esc(stat.label)}</span></div>
         </div>
         <button class="close" id="drawerCloseBtn" aria-label="Cerrar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -1541,52 +1574,26 @@
         <div>
           <div class="section-title">Información de la cita <span class="line"></span></div>
           <div class="info-grid">
-            <div class="row">
-              <span class="k">Fecha</span>
-              <span class="v">${esc(f.weekday)}, ${esc(f.full)}${rel ? ` <small style="color:var(--teal-700); margin-left:6px; font-weight:600">· ${esc(rel)}</small>` : ''}</span>
-            </div>
-            <div class="row">
-              <span class="k">Hora</span>
-              <span class="v">${esc(fmtTime(r.scheduled_at))}</span>
-            </div>
-            <div class="row">
-              <span class="k">Doctor</span>
-              <span class="v"><span class="doctor"><span class="dot" style="--dot:${docCol}"></span>${esc(r.doctor_name || '—')}</span></span>
-            </div>
-            <div class="row">
-              <span class="k">Teléfono</span>
-              <span class="v" style="font-family:var(--font-mono); font-size:13px">${esc(r.phone || '—')}</span>
-            </div>
-            ${r.sent_at ? `
-              <div class="row">
-                <span class="k">Enviado</span>
-                <span class="v">${esc(fmtSentAt(r.sent_at))}${r.sent_by_name ? ' por ' + esc(r.sent_by_name) : ''}</span>
-              </div>` : ''}
-            ${r.appointment_status ? `
-              <div class="row">
-                <span class="k">Estado cita</span>
-                <span class="v">${esc(r.appointment_status)}</span>
-              </div>` : ''}
+            <div class="row"><span class="k">Fecha</span><span class="v">${esc(f.weekday)}, ${esc(f.full)}${rel ? ` <small style="color:var(--teal-700); margin-left:6px; font-weight:600">· ${esc(rel)}</small>` : ''}</span></div>
+            <div class="row"><span class="k">Hora</span><span class="v">${esc(fmtTime(r.scheduled_at))}</span></div>
+            <div class="row"><span class="k">Doctor</span><span class="v"><span class="doctor"><span class="dot" style="--dot:${docCol}"></span>${esc(r.doctor_name || '—')}</span></span></div>
+            <div class="row"><span class="k">Teléfono</span><span class="v" style="font-family:var(--font-mono); font-size:13px">${esc(r.phone || '—')}</span></div>
+            ${r.sent_at ? `<div class="row"><span class="k">Solicitud enviada</span><span class="v">${esc(fmtSentAt(r.sent_at))}${r.sent_by_name ? ' por ' + esc(r.sent_by_name) : ''}</span></div>` : ''}
+            ${r.responded_at ? `<div class="row"><span class="k">Paciente respondió</span><span class="v">${esc(fmtSentAt(r.responded_at))}</span></div>` : ''}
+            ${r.token ? `<div class="row" style="grid-column:1/-1"><span class="k">Link de confirmación</span><span class="v"><a href="${esc(confirmUrl(r.token))}" target="_blank" rel="noopener" style="color:var(--teal-700); font-size:12.5px; word-break:break-all">${esc(confirmUrl(r.token))}</a></span></div>` : ''}
           </div>
         </div>
 
-        ${messageEditable ? `
+        ${canSend ? `
           <div>
             <div class="section-title">Mensaje preparado <span class="line"></span></div>
             <div class="message">
               <div class="message-head">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                Plantilla: Recordatorio de cita
+                Plantilla: Confirmación de cita
               </div>
-              <textarea id="drawerMessage">${esc(message)}</textarea>
-              <div class="message-vars">
-                <span style="font-size:11px; color:var(--ink-3); text-transform:uppercase; letter-spacing:.08em; margin-right:4px; align-self:center">Variables:</span>
-                <span class="var">{{patientName}}</span>
-                <span class="var">{{clinicName}}</span>
-                <span class="var">{{doctorName}}</span>
-                <span class="var">{{appointmentDate}}</span>
-                <span class="var">{{appointmentTime}}</span>
-              </div>
+              <textarea id="drawerMessage" readonly>${esc(message)}</textarea>
+              <p style="margin:8px 0 0; font-size:11.5px; color:var(--ink-4)">El link real se genera al enviar. Para editar la plantilla usa el botón <b>Plantilla</b> en el header.</p>
             </div>
           </div>` : ''}
 
@@ -1596,12 +1603,10 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
               Sin número de WhatsApp
             </div>
-            <p style="margin:0; font-size:13.5px; color:var(--ink-2); line-height:1.55">
-              Este paciente no tiene un número registrado. Agrega su contacto para poder enviarle recordatorios.
-            </p>
+            <p style="margin:0; font-size:13.5px; color:var(--ink-2); line-height:1.55">Este paciente no tiene un número registrado.</p>
             <a class="btn-add" style="margin-top:12px; display:inline-flex" href="/patient.html?id=${encodeURIComponent(r.patient_id)}">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-              Agregar número de teléfono
+              Agregar número
             </a>
           </div>` : ''}
 
@@ -1611,45 +1616,53 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
               WhatsApp desactivado
             </div>
-            <p style="margin:0; font-size:13.5px; color:var(--ink-2); line-height:1.55">
-              Activa los recordatorios manuales por WhatsApp en la configuración para poder enviar mensajes.
-            </p>
+            <p style="margin:0; font-size:13.5px; color:var(--ink-2); line-height:1.55">Activa WhatsApp en <b>Recordatorios → Configuración</b> para poder enviar.</p>
           </div>` : ''}
 
         <div>
           <div class="section-title">Historial <span class="line"></span></div>
           <div class="timeline">
-            ${state === 'manual_sent' && r.sent_at ? `
+            ${state === 'confirmed' && r.responded_at ? `
               <div class="tl-item">
-                <div class="tl-dot green">
-                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
-                </div>
-                <div class="tl-body">
-                  <b>Mensaje enviado vía WhatsApp Web</b>
-                  <small>${esc(fmtSentAt(r.sent_at))}${r.sent_by_name ? ' · por ' + esc(r.sent_by_name) : ''}</small>
-                </div>
+                <div class="tl-dot green"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg></div>
+                <div class="tl-body"><b>Paciente confirmó</b><small>${esc(fmtSentAt(r.responded_at))}</small></div>
+              </div>` : ''}
+            ${state === 'declined' && r.responded_at ? `
+              <div class="tl-item">
+                <div class="tl-dot" style="border-color:var(--rose-500); background:var(--rose-50); color:var(--rose-700)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>
+                <div class="tl-body"><b>Paciente canceló</b><small>${esc(fmtSentAt(r.responded_at))}</small></div>
+              </div>` : ''}
+            ${r.sent_at ? `
+              <div class="tl-item">
+                <div class="tl-dot teal"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg></div>
+                <div class="tl-body"><b>Solicitud enviada</b><small>${esc(fmtSentAt(r.sent_at))}${r.sent_by_name ? ' · por ' + esc(r.sent_by_name) : ''}</small></div>
               </div>` : ''}
             <div class="tl-item">
-              <div class="tl-dot teal">
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
-              </div>
-              <div class="tl-body">
-                <b>Cita agendada</b>
-                <small>${esc(f.weekday)}, ${esc(f.full)} · ${esc(fmtTime(r.scheduled_at))}</small>
-              </div>
+              <div class="tl-dot amber"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/></svg></div>
+              <div class="tl-body"><b>Cita agendada</b><small>${esc(f.weekday)}, ${esc(f.full)} · ${esc(fmtTime(r.scheduled_at))}</small></div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="drawer-foot">
-        <div class="left"></div>
+        <div class="left">
+          ${canMarkManual ? `
+            <button class="btn btn-ghost" id="drawerMarkConfirmBtn" title="Marcar manualmente (p.ej. confirmó por llamada)">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg></span>
+              Marcar confirmada
+            </button>
+            <button class="btn btn-ghost" id="drawerMarkDeclineBtn" style="color:var(--rose-700); border-color:color-mix(in oklch, var(--rose-500) 25%, transparent)">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+              Marcar cancelada
+            </button>` : ''}
+        </div>
         <div class="right">
           <button class="btn btn-ghost" id="drawerCancelBtn">Cerrar</button>
-          ${messageEditable ? `
+          ${canSend ? `
             <button class="btn btn-success" id="drawerSendBtn">
-              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/><path d="M22 2 11 13"/></svg></span>
-              Abrir WhatsApp Web
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg></span>
+              ${state === 'sent' ? 'Reenviar' : 'Enviar por WhatsApp'}
             </button>` : ''}
         </div>
       </div>
@@ -1662,19 +1675,14 @@
     document.getElementById('drawerCloseBtn').onclick = closeDrawer;
     document.getElementById('drawerCancelBtn').onclick = closeDrawer;
     const sendBtn = document.getElementById('drawerSendBtn');
-    if (sendBtn) sendBtn.onclick = () => sendFromDrawer(r);
-  }
-
-  function sendFromDrawer(r){
-    const msgEl = document.getElementById('drawerMessage');
-    const message = msgEl ? msgEl.value : buildMessage(r);
-    const phone = WhatsApp.normalizePhone(r.phone);
-    if (!WhatsApp.isValidPhone(phone)) { showToast('Número de teléfono inválido.'); return; }
-    WhatsApp.openWhatsApp(phone, message);
-    pendingConfirm = { appointmentId: r.appointment_id, message };
-    document.getElementById('confirmPreview').textContent = message;
-    document.getElementById('confirmModal').classList.add('active');
-    closeDrawer();
+    if (sendBtn) sendBtn.onclick = async () => { closeDrawer(); await sendConfirmation(r.appointment_id); };
+    const okBtn = document.getElementById('drawerMarkConfirmBtn');
+    if (okBtn) okBtn.onclick = () => markManual(r.appointment_id, 'confirm');
+    const badBtn = document.getElementById('drawerMarkDeclineBtn');
+    if (badBtn) badBtn.onclick = () => {
+      if (confirm('¿Marcar esta cita como cancelada? Esto también la cancelará en el calendario.'))
+        markManual(r.appointment_id, 'decline');
+    };
   }
 
   function closeDrawer(){
@@ -1685,49 +1693,37 @@
     document.getElementById('drawerBackdrop').classList.remove('show');
   }
 
-  // ───────────── Config modal ─────────────
+  // ───────────── Config modal (solo plantilla) ─────────────
   function openConfigModal(){
-    document.getElementById('waEnabledToggle').classList.toggle('active', !!waConfig.whatsapp_enabled);
-    document.getElementById('waEnabledToggle').setAttribute('aria-checked', String(!!waConfig.whatsapp_enabled));
-    document.getElementById('waNumber').value = waConfig.whatsapp_number || '';
-    document.getElementById('waTemplate').value = waConfig.whatsapp_template || '';
+    document.getElementById('waTemplate').value = waConfig.whatsapp_confirmation_template || '';
     updatePreview();
     document.getElementById('configModal').classList.add('active');
   }
   function closeConfigModal(){ document.getElementById('configModal').classList.remove('active'); }
-  function toggleEnabled(){
-    const t = document.getElementById('waEnabledToggle');
-    t.classList.toggle('active');
-    t.setAttribute('aria-checked', String(t.classList.contains('active')));
-  }
   function updatePreview(){
     const tpl = document.getElementById('waTemplate').value;
-    const sample = WhatsApp.buildReminderMessage({
-      template: tpl,
+    const f = WhatsApp.formatAppointmentDateTime(new Date(Date.now() + 86400000).toISOString());
+    const sample = WhatsApp.renderTemplate(tpl, {
       patientName: 'María González',
       clinicName: waConfig.name || 'Clínica',
       doctorName: 'Dr. Álvaro Lobo',
-      scheduledAt: new Date(Date.now() + 86400000).toISOString()
+      appointmentDate: f.date,
+      appointmentTime: f.time,
+      confirmLink: `${location.protocol}//${location.host}/confirmar/abc123ejemplo`
     });
     document.getElementById('templatePreview').textContent = sample || '(sin contenido)';
   }
   document.getElementById('waTemplate').addEventListener('input', updatePreview);
 
   async function saveConfig(){
-    const enabled = document.getElementById('waEnabledToggle').classList.contains('active');
-    const number = WhatsApp.normalizePhone(document.getElementById('waNumber').value);
     const template = document.getElementById('waTemplate').value;
-    if (enabled && number && !WhatsApp.isValidPhone(number)) {
-      showToast('Número de WhatsApp inválido. Use solo dígitos (ej: 50488888888).');
-      return;
-    }
     try {
-      await api('/api/reminders/whatsapp-config', {
+      await api('/api/confirmations/whatsapp-config', {
         method: 'PUT',
-        body: { whatsapp_enabled: enabled, whatsapp_number: number, whatsapp_template: template }
+        body: { whatsapp_confirmation_template: template }
       });
       closeConfigModal();
-      showToast('Configuración guardada');
+      showToast('Plantilla guardada');
       await loadConfig();
       render();
     } catch (e) {
@@ -1738,11 +1734,11 @@
   // expose to inline handlers
   window.openConfigModal = openConfigModal;
   window.closeConfigModal = closeConfigModal;
-  window.toggleEnabled = toggleEnabled;
   window.saveConfig = saveConfig;
   window.confirmSent = confirmSent;
   window.closeConfirmModal = closeConfirmModal;
   window.copyCurrentMessage = copyCurrentMessage;
+  window.toggleEnabled = () => {}; // no usado en esta página
 
   // ───────────── Events ─────────────
   document.getElementById('tabs').addEventListener('click', (e) => {
@@ -1759,23 +1755,17 @@
     const tr = e.target.closest('tr[data-id]');
     if (!tr) return;
     const id = Number(tr.getAttribute('data-id'));
-    const r = allReminders.find(x => x.appointment_id === id);
+    const r = allRows.find(x => x.appointment_id === id);
     if (!r) return;
 
     if (cell && cell.getAttribute('data-act') === 'cb') {
       const state = getState(r);
-      if (state === 'pending' || state === 'manual_sent') toggleSelect(id);
+      if (state === 'pending' || state === 'sent') toggleSelect(id);
       return;
     }
-    if (cell && cell.getAttribute('data-act') === 'send') {
-      sendReminder(id); return;
-    }
-    if (cell && cell.getAttribute('data-act') === 'config') {
-      openConfigModal(); return;
-    }
-    if (cell && cell.getAttribute('data-act') === 'open') {
-      openDrawer(id); return;
-    }
+    if (cell && cell.getAttribute('data-act') === 'send')   { sendConfirmation(id); return; }
+    if (cell && cell.getAttribute('data-act') === 'config') { openConfigModal();    return; }
+    if (cell && cell.getAttribute('data-act') === 'open')   { openDrawer(id);       return; }
   });
 
   document.getElementById('cbAll').addEventListener('click', toggleSelectAll);
@@ -1785,7 +1775,7 @@
   document.getElementById('openConfigBtn').addEventListener('click', openConfigModal);
   document.getElementById('openConfigBtn2').addEventListener('click', openConfigModal);
   document.getElementById('sendPendingBtn').addEventListener('click', openConfigModal);
-  document.getElementById('refreshBtn').addEventListener('click', () => loadReminders());
+  document.getElementById('refreshBtn').addEventListener('click', () => loadConfirmations());
   document.getElementById('closeNoteBtn').addEventListener('click', () => {
     document.getElementById('infoNote').style.display = 'none';
   });
@@ -1796,21 +1786,37 @@
   document.getElementById('bulkSendBtn').addEventListener('click', startBulkSend);
 
   // ───────────── Bulk Send Wizard ─────────────
-  // El navegador bloquea window.open() en serie dentro de un mismo gesto;
-  // el wizard requiere un clic real del usuario para cada apertura.
+  // Pre-crea los tokens antes de mostrar el wizard, así cada step ya muestra
+  // el mensaje real (con link) y al abrir WhatsApp se envía lo correcto.
   let bulkState = null;
 
-  function startBulkSend(){
+  async function startBulkSend(){
+    const ids = Array.from(selected);
+    if (ids.length === 0) return;
+    showToast('Preparando ' + ids.length + ' mensajes…');
     const queue = [];
     let invalid = 0;
-    for (const id of selected) {
-      const r = allReminders.find(x => x.appointment_id === id);
+    for (const id of ids) {
+      const r = allRows.find(x => x.appointment_id === id);
       if (!r) continue;
       const state = getState(r);
-      if (state !== 'pending' && state !== 'manual_sent') { invalid++; continue; }
+      if (state !== 'pending' && state !== 'sent') { invalid++; continue; }
       const phone = WhatsApp.normalizePhone(r.phone);
       if (!WhatsApp.isValidPhone(phone)) { invalid++; continue; }
-      queue.push({ id, r, message: buildMessage(r), phone });
+      try {
+        const resp = await api('/api/confirmations', {
+          method: 'POST',
+          body: { appointment_id: id, message_content: '' }
+        });
+        const message = buildMessage({ ...r, token: resp.token });
+        await api('/api/confirmations', {
+          method: 'POST',
+          body: { appointment_id: id, message_content: message }
+        });
+        queue.push({ id, r: { ...r, token: resp.token }, message, phone });
+      } catch (e) {
+        invalid++;
+      }
     }
     if (queue.length === 0) {
       showToast('Ninguno de los seleccionados se puede enviar por WhatsApp.');
@@ -1832,8 +1838,7 @@
 
     document.getElementById('bulkCurrentN').textContent = String(index + 1);
     document.getElementById('bulkTotalN').textContent = String(queue.length);
-    const pct = Math.round((index / queue.length) * 100);
-    document.getElementById('bulkProgressBar').style.width = pct + '%';
+    document.getElementById('bulkProgressBar').style.width = Math.round((index / queue.length) * 100) + '%';
 
     const stats = [];
     if (sent) stats.push(`${sent} enviado${sent>1?'s':''}`);
@@ -1859,26 +1864,16 @@
     WhatsApp.openWhatsApp(item.phone, item.message);
   }
 
-  async function bulkMarkAndNext(){
+  // El backend ya marcó la confirmación como 'sent' durante startBulkSend;
+  // aquí solo avanzamos al siguiente paso.
+  function bulkMarkAndNext(){
     if (!bulkState) return;
     const item = bulkState.queue[bulkState.index];
     if (!item) return;
-    const btn = document.getElementById('bulkMarkBtn');
-    btn.disabled = true;
-    try {
-      await api('/api/reminders', {
-        method: 'POST',
-        body: { appointment_id: item.id, message_content: item.message }
-      });
-      bulkState.sent++;
-      selected.delete(item.id);
-      bulkState.index++;
-      renderBulkStep();
-    } catch (e) {
-      showToast('Error al marcar: ' + (e.message || 'desconocido'));
-    } finally {
-      btn.disabled = false;
-    }
+    bulkState.sent++;
+    selected.delete(item.id);
+    bulkState.index++;
+    renderBulkStep();
   }
 
   function bulkSkip(){
@@ -1897,7 +1892,7 @@
     if (skipped) parts.push(`${skipped} saltado${skipped>1?'s':''}`);
     if (invalid) parts.push(`${invalid} sin WhatsApp`);
     showToast('Envío en lote: ' + (parts.join(', ') || 'sin cambios'));
-    await loadReminders();
+    await loadConfirmations();
   }
 
   function closeBulkModal(){
@@ -1927,7 +1922,7 @@
   // ───────────── Init ─────────────
   (async () => {
     await loadConfig();
-    await loadReminders();
+    await loadConfirmations();
   })();
 </script>
 </body>

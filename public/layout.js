@@ -23,6 +23,7 @@
     '/doctors.html': 'doctors',
     '/consentimientos.html': 'consentimientos',
     '/recordatorios.html': 'recordatorios',
+    '/confirmaciones.html': 'confirmaciones',
     '/agendar-online.html': 'agendar-online',
     '/plan.html': 'plan',
     '/consultation.html': '',
@@ -95,6 +96,7 @@
             { href: '/doctors.html', key: 'doctors', iconName: 'staff', label: 'Personal' },
             { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
             { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
+            { href: '/confirmaciones.html', key: 'confirmaciones', iconName: 'check', label: 'Confirmaciones' },
             { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' }
           ]
         },
@@ -130,6 +132,7 @@
           items: [
             { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
             { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
+            { href: '/confirmaciones.html', key: 'confirmaciones', iconName: 'check', label: 'Confirmaciones' },
             { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' }
           ]
         },
@@ -162,7 +165,7 @@
     }).join('');
 
     // Mobile menu items (exclude Consentimientos, Recordatorios, Citas Online, Mi Plan from mobile sticky menu)
-    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'calendario-compartido').map(item => {
+    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'calendario-compartido').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
@@ -225,6 +228,10 @@
             <a href="/recordatorios.html" class="sidebar-menu-link">
               <span id="remindersIcon"></span>
               <span>Recordatorios</span>
+            </a>
+            <a href="/confirmaciones.html" class="sidebar-menu-link">
+              <span id="confirmsIcon"></span>
+              <span>Confirmaciones</span>
             </a>
             <a href="/configuracion.html" class="sidebar-menu-link">
               <span id="configMenuIcon"></span>
@@ -353,6 +360,10 @@
     // Reminders menu icon
     const remindersIcon = document.querySelector('#remindersIcon');
     if (remindersIcon && !remindersIcon.innerHTML.trim()) remindersIcon.innerHTML = Icons.render('bell', 16);
+
+    // Confirmations menu icon
+    const confirmsIcon = document.querySelector('#confirmsIcon');
+    if (confirmsIcon && !confirmsIcon.innerHTML.trim()) confirmsIcon.innerHTML = Icons.render('check', 16);
 
     // Inventario menu icon
     const inventarioMenuIcon = document.querySelector('#inventarioMenuIcon');

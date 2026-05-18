@@ -665,6 +665,8 @@
     /* status-tinted apt blocks */
     .apt-block.s-pending { background: #fff7e0; border: 1px solid #fcd34d; border-left: 3px solid var(--warn-500); }
     .apt-block.s-pending .apt-time { color: #92400e; }
+    .apt-block.s-confirmed { background: #ecfdf5; border: 1px solid #a7f3d0; border-left: 3px solid #10b981; }
+    .apt-block.s-confirmed .apt-time { color: #065f46; }
     .apt-block.s-waiting { background: #eaf2ff; border: 1px solid #93c5fd; border-left: 3px solid var(--info-500); }
     .apt-block.s-waiting .apt-time { color: #1e40af; }
     .apt-block.s-completed { background: #e6f7ee; border: 1px solid #86efac; border-left: 3px solid var(--ok-500); }
@@ -861,6 +863,8 @@
     .status-badge .dot { width: 6px; height: 6px; border-radius: 999px; }
     .status-badge.s-pending { background: var(--warn-50); color: var(--warn-700); border: 1px solid var(--warn-100); }
     .status-badge.s-pending .dot { background: var(--warn-500); }
+    .status-badge.s-confirmed { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .status-badge.s-confirmed .dot { background: #10b981; }
     .status-badge.s-waiting { background: var(--info-50); color: var(--info-700); border: 1px solid var(--info-100); }
     .status-badge.s-waiting .dot { background: var(--info-500); }
     .status-badge.s-completed { background: var(--ok-50); color: var(--ok-700); border: 1px solid var(--ok-100); }
@@ -1704,6 +1708,7 @@
           <label>Estado</label>
           <select id="fStatus">
             <option value="pending">Pendiente</option>
+            <option value="confirmed">Confirmada</option>
             <option value="waiting">Esperando</option>
             <option value="completed">Atendido</option>
             <option value="cancelled">Cancelado</option>
@@ -1775,10 +1780,11 @@ function esc(s) {
 
 /* ─────────── Status mapping ─────────── */
 const STATUS_META = {
-  pending:   { key: 'pending',   label: 'Pendiente',  cls: 's-pending' },
-  waiting:   { key: 'waiting',   label: 'Esperando',  cls: 's-waiting' },
-  completed: { key: 'completed', label: 'Atendido',   cls: 's-completed' },
-  cancelled: { key: 'cancelled', label: 'Cancelado',  cls: 's-cancelled' },
+  pending:   { key: 'pending',   label: 'Pendiente',   cls: 's-pending' },
+  confirmed: { key: 'confirmed', label: 'Confirmada',  cls: 's-confirmed' },
+  waiting:   { key: 'waiting',   label: 'Esperando',   cls: 's-waiting' },
+  completed: { key: 'completed', label: 'Atendido',    cls: 's-completed' },
+  cancelled: { key: 'cancelled', label: 'Cancelado',   cls: 's-cancelled' },
 };
 
 function statusOf(s) { return STATUS_META[s] || STATUS_META.pending; }
@@ -2098,10 +2104,10 @@ function renderFilters() {
   const apptsForCounts = allAppts;
 
   // Status
-  const statusOpts = ['pending','waiting','completed','cancelled'].map(s => ({
+  const statusOpts = ['pending','confirmed','waiting','completed','cancelled'].map(s => ({
     value: s,
     label: STATUS_META[s].label,
-    dot: ({pending:'#f59e0b', waiting:'#3b82f6', completed:'#10b981', cancelled:'#ef4444'})[s],
+    dot: ({pending:'#f59e0b', confirmed:'#10b981', waiting:'#3b82f6', completed:'#10b981', cancelled:'#ef4444'})[s],
     count: apptsForCounts.filter(a => (a.status||'pending') === s).length,
   }));
   row.appendChild(buildDropdownTrigger({
@@ -2615,10 +2621,10 @@ function renderDayView(filtered) {
   }
 
   const totalDur = dayApts.reduce((s, a) => s + aptDuration(a), 0);
-  const counts = ['pending','waiting','completed','cancelled'].map(k => ({
+  const counts = ['pending','confirmed','waiting','completed','cancelled'].map(k => ({
     k, n: dayApts.filter(a => (a.status||'pending') === k).length
   })).filter(x => x.n > 0);
-  const dotColors = { pending:'var(--warn-500)', waiting:'var(--info-500)', completed:'var(--ok-500)', cancelled:'var(--bad-500)' };
+  const dotColors = { pending:'var(--warn-500)', confirmed:'#10b981', waiting:'var(--info-500)', completed:'var(--ok-500)', cancelled:'var(--bad-500)' };
 
   const hours = [];
   for (let i = 0; i < endHr - startHr; i++) {

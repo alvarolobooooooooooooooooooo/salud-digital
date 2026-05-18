@@ -128,6 +128,24 @@ const initDb = async () => {
         FOREIGN KEY (sent_by) REFERENCES users(id)
       );
 
+      CREATE TABLE IF NOT EXISTS appointment_confirmations (
+        id SERIAL PRIMARY KEY,
+        appointment_id INTEGER NOT NULL UNIQUE,
+        patient_id INTEGER NOT NULL,
+        clinic_id INTEGER NOT NULL,
+        token TEXT NOT NULL UNIQUE,
+        status TEXT NOT NULL DEFAULT 'sent' CHECK(status IN ('sent', 'confirmed', 'declined')),
+        sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        sent_by INTEGER,
+        responded_at TIMESTAMP,
+        message_content TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
+        FOREIGN KEY (patient_id) REFERENCES patients(id),
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id),
+        FOREIGN KEY (sent_by) REFERENCES users(id)
+      );
+
       CREATE TABLE IF NOT EXISTS consultation_images (
         id SERIAL PRIMARY KEY,
         consultation_id INTEGER NOT NULL,
@@ -342,7 +360,8 @@ const initDb = async () => {
       'ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS sale_price NUMERIC NOT NULL DEFAULT 0',
       'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS is_sale BOOLEAN NOT NULL DEFAULT FALSE',
       'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS unit_sale_price NUMERIC',
-      'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS unit_cost_at_sale NUMERIC'
+      'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS unit_cost_at_sale NUMERIC',
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_confirmation_template TEXT DEFAULT \'Hola {{patientName}}, le escribimos desde {{clinicName}} para confirmar su cita del {{appointmentDate}} a las {{appointmentTime}} con {{doctorName}}.\\n\\nPor favor confirme aquí: {{confirmLink}}\\n\\n¡Gracias!\''
     ];
 
     for (const cmd of alterCommands) {
