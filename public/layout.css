@@ -993,6 +993,13 @@ nav.old-nav {
   height: 18px;
 }
 
+/* Anula el stroke gradient global (línea ~650) — adentro de la cajita
+   teal queda lavado. currentColor sigue el color del bloque del icono. */
+.sidebar-menu-link > span:first-child svg,
+.sidebar-menu-link > span:first-child svg * {
+  stroke: currentColor;
+}
+
 .sidebar-menu-link > span:last-child {
   flex: 1;
   min-width: 0;
