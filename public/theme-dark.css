@@ -251,15 +251,38 @@ html[data-theme="dark"] body::after {
   color: var(--sd-text-soft) !important;
 }
 [data-theme="dark"] .sidebar-label { color: #64748b !important; }
+/* Mini-tarjeta del drawer móvil en dark: espeja .sb-notif-card pero más sobria
+   para que el notif card siga ganando jerarquía visual. */
 [data-theme="dark"] .sidebar-menu-link {
-  background: rgba(255, 255, 255, .02) !important;
-  border: 1px solid var(--sd-border-soft) !important;
-  color: var(--sd-text-soft) !important;
+  background:
+    linear-gradient(135deg, rgba(8, 145, 178, .10), rgba(14, 165, 233, .03)) !important;
+  border: 1px solid rgba(8, 145, 178, .18) !important;
+  color: var(--sd-text) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .03),
+    0 4px 12px -6px rgba(0, 0, 0, .45) !important;
+}
+[data-theme="dark"] .sidebar-menu-link > span:first-child {
+  background: linear-gradient(135deg, rgba(6, 182, 212, .20), rgba(8, 145, 178, .10)) !important;
+  color: #22d3ee !important;
+  border: 1px solid rgba(6, 182, 212, .28) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .05),
+    0 4px 10px -5px rgba(6, 182, 212, .28) !important;
+}
+[data-theme="dark"] .sidebar-menu-link::after {
+  border-right-color: #475569 !important;
+  border-top-color: #475569 !important;
 }
 [data-theme="dark"] .sidebar-menu-link:hover {
-  background: rgba(6, 182, 212, .1) !important;
-  border-color: rgba(6, 182, 212, .25) !important;
-  color: #67e8f9 !important;
+  border-color: rgba(6, 182, 212, .32) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .05),
+    0 8px 22px -8px rgba(6, 182, 212, .28) !important;
+}
+[data-theme="dark"] .sidebar-menu-link:hover::after {
+  border-right-color: #22d3ee !important;
+  border-top-color: #22d3ee !important;
 }
 [data-theme="dark"] .sidebar-logout-btn {
   background: rgba(239, 68, 68, .08) !important;
@@ -2031,7 +2054,7 @@ html[data-theme="dark"] .patient-stat--without .patient-stat-bar-fill {
 
 /* Appointment rows (Citas de Hoy list) */
 html[data-theme="dark"] .appt-row {
-  background-color: rgba(255, 255, 255, .02) !important;
+  background-color: transparent !important;
   border-color: var(--sd-border-soft);
 }
 html[data-theme="dark"] .appt-row:hover {
@@ -2050,11 +2073,8 @@ html[data-theme="dark"] .appt-time-badge {
   border: 1px solid rgba(8, 145, 178, .25);
 }
 
-/* Next patient block */
-html[data-theme="dark"] .next-patient {
-  background-image: linear-gradient(135deg, rgba(8, 145, 178, .1), rgba(6, 182, 212, .08)) !important;
-  border-color: rgba(8, 145, 178, .2) !important;
-}
+/* Next patient block — sin fondo propio: la tarjeta padre ya da la superficie.
+   El gradiente teal duplicaba la tarjeta y leía como "card dentro de card". */
 html[data-theme="dark"] .next-avatar {
   background-image: linear-gradient(135deg, #06b6d4, #0891b2) !important;
   color: white !important;
@@ -2115,7 +2135,31 @@ html[data-theme="dark"] .cal-day.has-event {
 html[data-theme="dark"] .greeting-accent { color: #67e8f9 !important; }
 html[data-theme="dark"] .status-badge {
   background-color: rgba(8, 145, 178, .14) !important;
+  background-image: none !important;
   color: #67e8f9 !important;
+  border-color: rgba(8, 145, 178, .25) !important;
+  box-shadow: none !important;
+}
+/* Variantes del dashboard (status-pending/waiting/completed). Naming distinto
+   al de citas (s-pending/etc.), así que necesita sus propios overrides
+   o se ve el ámbar oscuro y el texto #9a3412 ilegible sobre dark. */
+html[data-theme="dark"] .status-badge.status-pending {
+  background-color: rgba(245, 158, 11, .15) !important;
+  background-image: none !important;
+  color: #fcd34d !important;
+  border-color: rgba(245, 158, 11, .3) !important;
+}
+html[data-theme="dark"] .status-badge.status-waiting {
+  background-color: rgba(34, 197, 94, .15) !important;
+  background-image: none !important;
+  color: #86efac !important;
+  border-color: rgba(34, 197, 94, .3) !important;
+}
+html[data-theme="dark"] .status-badge.status-completed {
+  background-color: rgba(148, 163, 184, .15) !important;
+  background-image: none !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(148, 163, 184, .3) !important;
 }
 
 /* "Ver consulta" / consult button */
