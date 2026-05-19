@@ -15,10 +15,25 @@ function minutesToTime(mins) {
 }
 
 router.get('/clinic/:clinicId', async (req, res) => {
-  const result = await query('SELECT id, name, address, phone FROM clinics WHERE id = $1',
-    [req.params.clinicId]);
+  const result = await query(
+    'SELECT id, name, address, phone, brand_color, logo_url, landing_data FROM clinics WHERE id = $1',
+    [req.params.clinicId]
+  );
   if (result.rows.length === 0) return res.status(404).json({ error: 'Clínica no encontrada' });
-  res.json(result.rows[0]);
+  const row = result.rows[0];
+  const landingData = row.landing_data || {};
+  const theme = (landingData && landingData.theme && typeof landingData.theme === 'object')
+    ? { primary: landingData.theme.primary || null, accent: landingData.theme.accent || null }
+    : null;
+  res.json({
+    id: row.id,
+    name: row.name,
+    address: row.address,
+    phone: row.phone,
+    brand_color: row.brand_color || null,
+    logo_url: row.logo_url || null,
+    theme,
+  });
 });
 
 router.get('/clinic/:clinicId/doctors', async (req, res) => {
@@ -165,6 +180,87 @@ router.post('/clinic/:clinicId/booking', async (req, res) => {
   );
 
   res.json({ appointment_id: result.rows[0].id, success: true });
+});
+
+// ── Landing pública por clínica ──────────────────────────────────────────────
+// Resolución por slug (la URL pública /c/<slug> y este endpoint son los puntos
+// públicos; nada aquí requiere autenticación). Solo se devuelve si está publicado.
+router.get('/landing/:slug', async (req, res) => {
+  const slug = String(req.params.slug || '').toLowerCase();
+  if (!/^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/.test(slug)) {
+    return res.status(404).json({ error: 'Sitio no encontrado' });
+  }
+  const r = await query(
+    `SELECT id, name, address, phone, email, city, brand_color, logo_url, website,
+            landing_data, landing_template, landing_published
+       FROM clinics WHERE slug = $1 AND landing_published = TRUE`,
+    [slug]
+  );
+  if (r.rows.length === 0) return res.status(404).json({ error: 'Sitio no encontrado' });
+  const c = r.rows[0];
+
+  // Mostramos doctores activos solo si la clínica decidió que se vean
+  const data = c.landing_data || {};
+  let doctors = [];
+  if (data.show_doctors !== false) {
+    const docs = await query(
+      `SELECT id, name, specialty, photo_url, bio
+         FROM users WHERE clinic_id = $1 AND role = 'doctor'
+         ORDER BY name`,
+      [c.id]
+    );
+    doctors = docs.rows;
+  }
+
+  res.json({
+    clinic: {
+      id: c.id,
+      name: c.name,
+      address: c.address || '',
+      city: c.city || '',
+      phone: c.phone || '',
+      email: c.email || '',
+      brand_color: c.brand_color || '#0891b2',
+      logo_url: c.logo_url || '',
+      website: c.website || '',
+    },
+    template: c.landing_template || 'aurora',
+    data,
+    doctors,
+  });
+});
+
+// Lead público (formulario de contacto de la landing). Rate-limit en server.js.
+router.post('/landing/:slug/lead', async (req, res) => {
+  const slug = String(req.params.slug || '').toLowerCase();
+  const { name, phone, email, message } = req.body || {};
+  if (!name || !String(name).trim()) return res.status(400).json({ error: 'Nombre requerido' });
+
+  const r = await query(
+    `SELECT id FROM clinics WHERE slug = $1 AND landing_published = TRUE`,
+    [slug]
+  );
+  if (r.rows.length === 0) return res.status(404).json({ error: 'Sitio no encontrado' });
+
+  const clean = {
+    name: String(name).trim().slice(0, 120),
+    phone: String(phone || '').replace(/[^\d+\-\s()]/g, '').slice(0, 30),
+    email: String(email || '').trim().slice(0, 120),
+    message: String(message || '').trim().slice(0, 1000),
+  };
+  if (clean.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean.email)) {
+    return res.status(400).json({ error: 'Email inválido' });
+  }
+  if (!clean.phone && !clean.email) {
+    return res.status(400).json({ error: 'Necesitamos un teléfono o email para contactarte.' });
+  }
+
+  await query(
+    `INSERT INTO clinic_landing_leads (clinic_id, name, phone, email, message)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [r.rows[0].id, clean.name, clean.phone, clean.email, clean.message]
+  );
+  res.json({ success: true });
 });
 
 module.exports = router;

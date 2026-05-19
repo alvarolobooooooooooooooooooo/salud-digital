@@ -25,6 +25,7 @@
     '/recordatorios.html': 'recordatorios',
     '/confirmaciones.html': 'confirmaciones',
     '/agendar-online.html': 'agendar-online',
+    '/mi-sitio.html': 'mi-sitio',
     '/plan.html': 'plan',
     '/consultation.html': '',
     '/consultation-nutrition.html': '',
@@ -98,7 +99,8 @@
             { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
             { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
             { href: '/confirmaciones.html', key: 'confirmaciones', iconName: 'check', label: 'Confirmaciones' },
-            { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' }
+            { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' },
+            { href: '/mi-sitio.html', key: 'mi-sitio', iconName: 'globe', label: 'Mi Sitio Web' }
           ]
         },
         {
@@ -166,7 +168,7 @@
     }).join('');
 
     // Mobile menu items (exclude Consentimientos, Recordatorios, Citas Online, Mi Plan from mobile sticky menu)
-    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'calendario-compartido').map(item => {
+    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
@@ -238,6 +240,10 @@
             ${isClinicAdmin ? `<a href="/inventario.html" class="sidebar-menu-link">
               <span id="inventarioMenuIcon"></span>
               <span>Inventario</span>
+            </a>
+            <a href="/mi-sitio.html" class="sidebar-menu-link">
+              <span id="miSitioMenuIcon"></span>
+              <span>Mi Sitio Web</span>
             </a>` : ''}
             <a href="/consentimientos.html" class="sidebar-menu-link">
               <span id="consentsIcon"></span>
@@ -427,6 +433,10 @@
     // Inventario menu icon
     const inventarioMenuIcon = document.querySelector('#inventarioMenuIcon');
     if (inventarioMenuIcon && !inventarioMenuIcon.innerHTML.trim()) inventarioMenuIcon.innerHTML = Icons.render('package', 16);
+
+    // Mi Sitio Web menu icon (drawer móvil)
+    const miSitioMenuIcon = document.querySelector('#miSitioMenuIcon');
+    if (miSitioMenuIcon && !miSitioMenuIcon.innerHTML.trim()) miSitioMenuIcon.innerHTML = Icons.render('globe', 16);
 
     // Configuración menu icon
     const configMenuIcon = document.querySelector('#configMenuIcon');

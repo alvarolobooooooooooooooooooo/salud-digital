@@ -365,8 +365,38 @@ const initDb = async () => {
       // 'patient_link' cuando el paciente responde desde el link público, 'manual'
       // cuando el staff marca la confirmación a mano. Usado por la campanita del doctor
       // para mostrar solo confirmaciones reales del paciente.
-      'ALTER TABLE appointment_confirmations ADD COLUMN IF NOT EXISTS confirmed_via TEXT'
+      'ALTER TABLE appointment_confirmations ADD COLUMN IF NOT EXISTS confirmed_via TEXT',
+      // ── Landing pública por clínica ──
+      // slug: identificador URL-safe único (lowercase, alfanum + guiones). Se usa para
+      // servir /c/<slug>. Nullable porque cada clínica lo configura cuando le interesa.
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS slug TEXT',
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_clinics_slug ON clinics(slug) WHERE slug IS NOT NULL',
+      // landing_data: blob JSON con todas las secciones editables (hero, servicios,
+      // galería, testimonios, FAQ, horarios, social, etc.). Mantenerlo en una sola
+      // columna evita decenas de migraciones a medida que evolucione el template.
+      "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS landing_data JSONB DEFAULT '{}'::jsonb",
+      "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS landing_template TEXT DEFAULT 'aurora'",
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS landing_published BOOLEAN DEFAULT FALSE'
     ];
+
+    // Leads (formulario de contacto público de la landing). Se modelan como tabla aparte
+    // para indexar por clínica y permitir CRM básico desde el panel.
+    await query(`
+      CREATE TABLE IF NOT EXISTS clinic_landing_leads (
+        id SERIAL PRIMARY KEY,
+        clinic_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        phone TEXT DEFAULT '',
+        email TEXT DEFAULT '',
+        message TEXT DEFAULT '',
+        source TEXT DEFAULT 'landing',
+        status TEXT DEFAULT 'new',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE
+      );
+      CREATE INDEX IF NOT EXISTS idx_landing_leads_clinic ON clinic_landing_leads(clinic_id);
+      CREATE INDEX IF NOT EXISTS idx_landing_leads_created ON clinic_landing_leads(created_at DESC);
+    `);
 
     for (const cmd of alterCommands) {
       try {

@@ -65,6 +65,9 @@ app.use(helmet({
       // /ortodoncia-design/index.html en un iframe same-origin. Sigue
       // bloqueando que terceros embeban la app → defensa de clickjacking.
       frameAncestors: ["'self'"],
+      // Qué iframes puede embeber NUESTRA app. Sin esto, las landings de las
+      // clínicas no podrían mostrar el mapa de Google Maps en /c/<slug>.
+      frameSrc: ["'self'", "https://www.google.com", "https://maps.google.com"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
@@ -113,6 +116,14 @@ function serveHtmlWithVersion(filePath, res) {
 // token de location.pathname y llama a /api/confirmations/public/:token).
 app.get(/^\/confirmar\/[a-f0-9]{32}$/i, (req, res) => {
   serveHtmlWithVersion(path.join(PUBLIC_DIR, 'confirm.html'), res);
+});
+
+// Landing pública por clínica: /c/<slug> sirve siempre el mismo template HTML,
+// que luego pide /api/public/landing/<slug> para hidratar los datos. El slug se
+// valida en el endpoint API; aquí solo verificamos shape para no servir el HTML
+// ante rutas raras.
+app.get(/^\/c\/[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/i, (req, res) => {
+  serveHtmlWithVersion(path.join(PUBLIC_DIR, 'clinic-landing.html'), res);
 });
 
 // Intercept *.html requests before express.static so we can inject ?v=… into asset URLs
@@ -183,6 +194,17 @@ const publicConfirmLimiter = rateLimit({
   message: { error: 'Demasiadas solicitudes. Intenta más tarde.' },
 });
 app.use('/api/confirmations/public', publicConfirmLimiter);
+
+// Landing pública: GET es generoso (la página carga vía fetch), POST de leads
+// más estricto para frenar spam de formulario.
+const publicLandingLeadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiados envíos. Intenta más tarde.' },
+});
+app.use('/api/public/landing/:slug/lead', publicLandingLeadLimiter);
 
 // Static files: hint browsers to cache JS/CSS for a day, HTML always revalidated
 const ONE_DAY = 24 * 60 * 60;

@@ -1,0 +1,2648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="/theme.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Sitio Web — SaludDigital</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    /* layout.js inyecta el sidebar como <aside id="sidebar"> y añade .layout-main
+       al primer <main>. .layout-main aplica padding 2rem y animaciones que rompen
+       nuestro grid interno (filas auto + 1fr) y la altura completa. Neutralizamos
+       todo eso aquí y manejamos el margen del sidebar nosotros mismos para no
+       depender de qué clase logra agregar layout.js a tiempo. */
+    main.ms-page,
+    main.ms-page.layout-main {
+      margin: 0 0 0 var(--sidebar-w, 240px) !important;
+      padding: 0 !important;
+      width: calc(100% - var(--sidebar-w, 240px)) !important;
+      max-width: none !important;
+      animation: none !important;
+      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* En anchos ≤ 1400px el sidebar colapsa a 70px (ver layout.css) salvo que esté
+       expandido. Replicamos las dos variantes para mantener nuestro contenido alineado. */
+    @media (max-width: 1400px) {
+      main.ms-page,
+      main.ms-page.layout-main {
+        margin-left: 70px !important;
+        width: calc(100% - 70px) !important;
+      }
+      #sidebar.expanded ~ main.ms-page,
+      #sidebar.expanded ~ main.ms-page.layout-main {
+        margin-left: var(--sidebar-w, 240px) !important;
+        width: calc(100% - var(--sidebar-w, 240px)) !important;
+      }
+    }
+    /* En móvil el sidebar desktop se oculta y aparece nav bottom. Liberamos margen. */
+    @media (max-width: 860px) {
+      main.ms-page,
+      main.ms-page.layout-main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        height: auto;
+        min-height: 100vh;
+      }
+    }
+    .ms-page {
+      --ms-primary: #0891b2;
+      --ms-primary-strong: #0e7490;
+      --ms-primary-soft: #ecfeff;
+      --ms-line: #e5e7eb;
+      --ms-paper: #ffffff;
+      --ms-paper-2: #f9fafb;
+      --ms-ink: #0b1220;
+      --ms-ink-2: #1f2937;
+      --ms-muted: #6b7280;
+      --ms-radius: 12px;
+      --ms-radius-lg: 18px;
+
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: calc(100vh - 0px);
+      background: #f4f7fa;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, system-ui, sans-serif;
+      color: var(--ms-ink);
+    }
+
+    /* ── Topbar de la herramienta ── */
+    .ms-topbar {
+      background: white;
+      border-bottom: 1px solid var(--ms-line);
+      padding: 18px 24px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .ms-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--ms-ink);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .ms-title-ic {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0891b2, #14b8a6);
+      color: white;
+      display: grid; place-items: center;
+    }
+    .ms-spacer { flex: 1; }
+    .ms-pub-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .ms-pub-pill.published {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .ms-pub-pill.draft {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .ms-pub-pill .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .ms-pub-pill.published .dot { background: #16a34a; }
+    .ms-pub-pill.draft .dot { background: #f59e0b; }
+
+    .ms-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all .15s ease;
+      text-decoration: none;
+      color: var(--ms-ink);
+      background: white;
+    }
+    .ms-btn:hover { background: var(--ms-paper-2); }
+    .ms-btn.primary {
+      background: linear-gradient(135deg, var(--ms-primary), var(--ms-primary-strong));
+      color: white;
+      box-shadow: 0 6px 18px -8px rgba(8, 145, 178, 0.5);
+    }
+    .ms-btn.primary:hover { transform: translateY(-1px); }
+    .ms-btn.primary:disabled { opacity: 0.6; cursor: wait; transform: none; }
+    .ms-btn.outline {
+      border-color: var(--ms-line);
+      background: white;
+    }
+    .ms-btn.outline:hover { border-color: var(--ms-primary); color: var(--ms-primary-strong); }
+    .ms-btn.danger {
+      color: #b91c1c;
+      background: #fee2e2;
+    }
+    .ms-btn.danger:hover { background: #fecaca; }
+    .ms-btn.ghost {
+      background: transparent;
+    }
+
+    .ms-save-status {
+      font-size: 0.82rem;
+      color: var(--ms-muted);
+      min-width: 110px;
+      text-align: right;
+    }
+    .ms-save-status.saved { color: #16a34a; }
+    .ms-save-status.error { color: #b91c1c; }
+
+    /* ── Layout principal ── */
+    .ms-main {
+      display: grid;
+      grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
+      gap: 0;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .ms-editor {
+      background: white;
+      border-right: 1px solid var(--ms-line);
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0;
+      min-width: 0;
+    }
+    .ms-preview {
+      background: #e8edf2;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    /* ── Tabs ── */
+    .ms-tabs {
+      position: sticky; top: 0; z-index: 5;
+      background: white;
+      border-bottom: 1px solid var(--ms-line);
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 0 12px;
+    }
+    .ms-tabs::-webkit-scrollbar { display: none; }
+    /* IMPORTANTE: style.css define `button { background: #2563eb }` global y
+       `button:hover { background: #1d4ed8 }`. Eso pisaba los tabs y dejaba
+       un bloque navy al pasar el mouse o al activar. Forzamos transparent
+       en todos los estados con !important para neutralizar la regla global. */
+    .ms-tab {
+      padding: 14px 14px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--ms-muted) !important;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color .12s ease, border-color .12s ease;
+      background: transparent !important;
+      border-left: none; border-right: none; border-top: none;
+      font-family: inherit;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+    .ms-tab:hover {
+      color: var(--ms-ink-2) !important;
+      background: transparent !important;
+    }
+    .ms-tab:focus { outline: none; background: transparent !important; }
+    .ms-tab:focus-visible {
+      outline: 2px solid var(--ms-primary);
+      outline-offset: -4px;
+      border-radius: 4px;
+    }
+    .ms-tab.active {
+      color: var(--ms-primary-strong) !important;
+      border-bottom-color: var(--ms-primary);
+      background: transparent !important;
+    }
+    .ms-tab.active:hover {
+      color: var(--ms-primary-strong) !important;
+      background: transparent !important;
+    }
+
+    .ms-tab-body {
+      padding: 24px 26px 80px;
+    }
+
+    .ms-section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin: 0 0 6px;
+    }
+    .ms-section-desc {
+      font-size: 0.86rem;
+      color: var(--ms-muted);
+      margin: 0 0 22px;
+      line-height: 1.5;
+    }
+
+    .ms-field { display: grid; gap: 6px; margin-bottom: 18px; }
+    .ms-field label {
+      font-size: 0.82rem; font-weight: 600;
+      color: var(--ms-ink-2);
+    }
+    .ms-field .hint {
+      font-size: 0.76rem; color: var(--ms-muted); font-weight: 400;
+    }
+    .ms-field input[type="text"],
+    .ms-field input[type="email"],
+    .ms-field input[type="url"],
+    .ms-field input[type="tel"],
+    .ms-field input[type="time"],
+    .ms-field textarea,
+    .ms-field select {
+      padding: 10px 12px;
+      border: 1px solid var(--ms-line);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      color: var(--ms-ink);
+      background: white;
+      transition: border .12s ease;
+    }
+    .ms-field input:focus,
+    .ms-field textarea:focus,
+    .ms-field select:focus {
+      outline: none;
+      border-color: var(--ms-primary);
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12);
+    }
+    .ms-field textarea {
+      resize: vertical;
+      min-height: 90px;
+      line-height: 1.5;
+    }
+    .ms-field input[type="color"] {
+      width: 60px; height: 40px;
+      padding: 4px;
+      border: 1px solid var(--ms-line);
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .ms-field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .ms-checkbox-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: var(--ms-paper-2);
+      margin-bottom: 14px;
+      cursor: pointer;
+    }
+    .ms-checkbox-row input { margin-top: 2px; }
+    .ms-checkbox-row .lbl { font-weight: 600; font-size: 0.9rem; }
+    .ms-checkbox-row .sub { font-size: 0.8rem; color: var(--ms-muted); margin-top: 2px; }
+
+    /* ── Apariencia / Color picker ── */
+    .ms-presets {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .ms-preset {
+      display: flex; align-items: center; gap: 10px;
+      min-width: 0;
+      padding: 10px 12px;
+      background: white;
+      border: 1.5px solid var(--ms-line);
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .15s ease;
+      text-align: left;
+      color: var(--ms-ink);
+    }
+    .ms-preset:hover {
+      border-color: var(--ms-primary);
+      transform: translateY(-1px);
+    }
+    .ms-preset.active {
+      border-color: var(--ms-primary-strong);
+      background: var(--ms-paper-2);
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.10);
+    }
+    .ms-preset-swatch {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px -2px rgba(15, 23, 42, .25), 0 0 0 1px rgba(15, 23, 42, .05) inset;
+    }
+    .ms-preset-label {
+      font-size: 0.86rem;
+      font-weight: 600;
+      min-width: 0;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ms-custom-theme {
+      background: white;
+      border: 1px solid var(--ms-line);
+      border-radius: 14px;
+      padding: 18px 18px 8px;
+    }
+    .ms-custom-head {
+      display: flex; align-items: flex-start; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .ms-custom-head > div:first-child { flex: 1; min-width: 0; }
+    .ms-custom-title { font-weight: 700; font-size: 0.95rem; color: var(--ms-ink); }
+    .ms-custom-sub { font-size: 0.78rem; color: var(--ms-muted); margin-top: 2px; }
+    .ms-btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+
+    .ms-color-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .ms-color-cell { min-width: 0; }
+    .ms-color-cell label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--ms-ink-2, #334155);
+      margin-bottom: 6px;
+    }
+    .ms-color-input {
+      display: flex; align-items: center; gap: 8px;
+      min-width: 0;
+      padding: 6px 10px;
+      background: var(--ms-paper-2);
+      border: 1px solid var(--ms-line);
+      border-radius: 10px;
+    }
+    .ms-color-input input[type="color"] {
+      width: 36px; height: 36px;
+      padding: 0;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .ms-color-input input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    .ms-color-input input[type="color"]::-webkit-color-swatch {
+      border: 1px solid rgba(15, 23, 42, .12);
+      border-radius: 8px;
+    }
+    .ms-color-input input[type="text"] {
+      flex: 1; min-width: 0;
+      border: none; background: transparent; outline: none;
+      font-family: 'SF Mono', Menlo, Consolas, monospace;
+      font-size: 0.86rem;
+      color: var(--ms-ink);
+      text-transform: lowercase;
+    }
+    .ms-color-hint {
+      display: block;
+      font-size: 0.74rem;
+      color: var(--ms-muted);
+      margin-top: 4px;
+    }
+
+    .ms-theme-preview {
+      --tp-primary: #0891b2;
+      --tp-accent:  #14b8a6;
+      margin: 6px 0 12px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--ms-line);
+      background:
+        radial-gradient(60% 80% at 100% 0%, color-mix(in oklch, var(--tp-accent) 14%, transparent), transparent 65%),
+        radial-gradient(50% 80% at 0% 100%, color-mix(in oklch, var(--tp-primary) 16%, transparent), transparent 70%),
+        white;
+    }
+    .ms-tp-bar {
+      height: 4px;
+      background: linear-gradient(90deg, var(--tp-primary), var(--tp-accent));
+    }
+    .ms-tp-card {
+      padding: 18px 18px 20px;
+    }
+    .ms-tp-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: color-mix(in oklch, var(--tp-primary) 10%, white);
+      color: var(--tp-primary);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid color-mix(in oklch, var(--tp-primary) 25%, white);
+    }
+    .ms-tp-pill .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--tp-primary);
+    }
+    .ms-tp-title {
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: -0.01em;
+      margin: 10px 0 12px;
+      color: var(--ms-ink);
+    }
+    .ms-tp-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ms-tp-btn {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .ms-tp-btn.primary {
+      background: linear-gradient(135deg, var(--tp-primary), color-mix(in oklch, var(--tp-primary) 70%, black));
+      color: white;
+      box-shadow: 0 8px 18px -8px color-mix(in oklch, var(--tp-primary) 55%, transparent);
+    }
+    .ms-tp-btn.ghost {
+      background: white;
+      color: var(--ms-ink);
+      border: 1px solid var(--ms-line);
+    }
+
+    /* ── Lista repetible (highlights, services, etc.) ── */
+    .ms-list-item {
+      border: 1px solid var(--ms-line);
+      border-radius: 12px;
+      padding: 14px;
+      background: var(--ms-paper-2);
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .ms-list-item .ms-item-handle {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 8px;
+    }
+    .ms-list-item .ms-item-num {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      background: white;
+      border: 1px solid var(--ms-line);
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 0.74rem; color: var(--ms-muted);
+    }
+    .ms-list-item .ms-item-title {
+      font-weight: 600; font-size: 0.88rem;
+      flex: 1;
+    }
+    .ms-list-item .ms-item-actions {
+      display: flex; gap: 4px;
+    }
+    .ms-icon-btn {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: white;
+      border: 1px solid var(--ms-line);
+      display: grid; place-items: center;
+      cursor: pointer;
+      color: var(--ms-muted);
+      transition: all .12s ease;
+      padding: 0;
+    }
+    .ms-icon-btn:hover { color: var(--ms-ink); border-color: var(--ms-ink-2); }
+    .ms-icon-btn.danger:hover { color: #b91c1c; border-color: #fca5a5; background: #fef2f2; }
+    .ms-icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .ms-list-add {
+      width: 100%;
+      padding: 12px;
+      border: 1px dashed var(--ms-line);
+      border-radius: 10px;
+      background: transparent;
+      color: var(--ms-muted);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all .12s ease;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: inherit;
+    }
+    .ms-list-add:hover {
+      border-color: var(--ms-primary);
+      color: var(--ms-primary-strong);
+      background: var(--ms-primary-soft);
+    }
+
+    /* ── Image picker ── */
+    .ms-image-picker {
+      border: 2px dashed var(--ms-line);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .15s ease;
+      position: relative;
+      background: var(--ms-paper-2);
+    }
+    .ms-image-picker:hover {
+      border-color: var(--ms-primary);
+      background: var(--ms-primary-soft);
+    }
+    .ms-image-picker.has-image {
+      padding: 0;
+      border-style: solid;
+      overflow: hidden;
+    }
+    .ms-image-picker img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+    }
+    .ms-image-picker .ip-empty {
+      color: var(--ms-muted);
+      font-size: 0.88rem;
+    }
+    .ms-image-picker .ip-empty b { color: var(--ms-primary-strong); }
+    .ms-image-picker .ip-actions {
+      display: flex; gap: 6px;
+      padding: 8px;
+      background: white;
+      border-top: 1px solid var(--ms-line);
+      justify-content: flex-end;
+    }
+    .ms-image-picker input[type="file"] { display: none; }
+
+    /* ── Gallery thumbnails ── */
+    .ms-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .ms-gallery-thumb {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      background: var(--ms-paper-2);
+    }
+    .ms-gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .ms-gallery-thumb .rm {
+      position: absolute; top: 4px; right: 4px;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: grid; place-items: center;
+      font-size: 0.9rem;
+    }
+    .ms-gallery-thumb .rm:hover { background: rgba(220, 38, 38, 0.9); }
+
+    .ms-upload-input { display: none; }
+
+    /* ── Slug field ── */
+    .ms-slug-row {
+      display: flex; align-items: center; gap: 0;
+      border: 1px solid var(--ms-line);
+      border-radius: 10px;
+      overflow: hidden;
+      background: white;
+      min-width: 0;
+    }
+    .ms-slug-prefix {
+      padding: 10px 10px;
+      background: var(--ms-paper-2);
+      color: var(--ms-muted);
+      font-family: ui-monospace, monospace;
+      font-size: 0.78rem;
+      border-right: 1px solid var(--ms-line);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 1;
+      min-width: 0;
+      max-width: 50%;
+    }
+    .ms-slug-row input {
+      flex: 1 1 60px;
+      min-width: 0;
+      border: none !important;
+      padding: 10px 12px !important;
+      font-family: ui-monospace, monospace !important;
+      font-size: 0.92rem;
+    }
+    .ms-slug-row input:focus { box-shadow: none !important; }
+    .ms-slug-save {
+      padding: 10px 14px;
+      background: var(--ms-primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .ms-slug-save:hover { background: var(--ms-primary-strong); }
+    .ms-slug-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Preview pane ── */
+    .ms-preview-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 18px;
+      background: white;
+      border-bottom: 1px solid var(--ms-line);
+    }
+    .ms-device-toggle {
+      display: inline-flex;
+      background: var(--ms-paper-2);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 0;
+    }
+    .ms-device-toggle button {
+      padding: 6px 14px;
+      border: none;
+      background: transparent !important;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--ms-muted) !important;
+      cursor: pointer;
+      border-radius: 7px;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: inherit;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
+    .ms-device-toggle button:hover {
+      background: rgba(15, 23, 42, 0.04) !important;
+      color: var(--ms-ink-2) !important;
+    }
+    .ms-device-toggle button.active,
+    .ms-device-toggle button.active:hover {
+      background: white !important;
+      color: var(--ms-primary-strong) !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .ms-preview-frame-wrap {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      overflow: auto;
+    }
+    /* Shell genérico que envuelve al iframe. En modo escritorio es transparente
+       y deja al iframe expandirse; en modo móvil se transforma en chasis de
+       iPhone 16 Pro Max con Dynamic Island. */
+    .ms-device-shell {
+      position: relative;
+      width: 100%;
+      max-width: 1280px;
+      height: 100%;
+      max-height: 100%;
+      transition: max-width .3s ease, max-height .3s ease, padding .3s ease, border-radius .3s ease, background .3s ease, box-shadow .3s ease;
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 20px 60px -20px rgba(15, 23, 42, 0.2);
+      padding: 0;
+    }
+    .ms-preview-frame {
+      width: 100%;
+      height: 100%;
+      background: white;
+      border: none;
+      border-radius: inherit;
+      display: block;
+    }
+    /* iPhone 16 Pro Max — proporciones 430×932 escaladas a ~400×868.
+       Bisel negro 12px y radios redondeados según el diseño real del device. */
+    .ms-device-shell.mobile {
+      max-width: 400px;
+      max-height: 868px;
+      width: 400px;
+      height: 868px;
+      background: #0a0a0a;
+      border-radius: 52px;
+      padding: 12px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 30px 80px -30px rgba(0,0,0,0.5),
+        0 8px 20px -10px rgba(0,0,0,0.4);
+    }
+    .ms-device-shell.mobile .ms-preview-frame {
+      border-radius: 42px;
+      box-shadow: none;
+      background: white;
+    }
+    /* Dynamic Island — pill negra centrada en la parte superior de la pantalla. */
+    .ms-device-island {
+      display: none;
+    }
+    .ms-device-shell.mobile .ms-device-island {
+      display: block;
+      position: absolute;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 112px;
+      height: 32px;
+      background: #000;
+      border-radius: 999px;
+      z-index: 3;
+      pointer-events: none;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
+    }
+    /* Botón lateral derecho (acción/encendido) decorativo. */
+    .ms-device-shell.mobile::before {
+      content: "";
+      position: absolute;
+      right: -3px;
+      top: 230px;
+      width: 4px;
+      height: 90px;
+      background: #1a1a1a;
+      border-radius: 0 2px 2px 0;
+    }
+    /* Botones de volumen izquierdos decorativos. */
+    .ms-device-shell.mobile::after {
+      content: "";
+      position: absolute;
+      left: -3px;
+      top: 170px;
+      width: 4px;
+      height: 130px;
+      background: #1a1a1a;
+      border-radius: 2px 0 0 2px;
+      box-shadow: 0 60px 0 #1a1a1a;
+    }
+
+    /* ── Share modal ── */
+    .ms-modal-backdrop {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .ms-modal-backdrop.active { display: flex; }
+    .ms-modal {
+      background: white;
+      border-radius: 18px;
+      max-width: 460px;
+      width: 100%;
+      box-shadow: 0 30px 80px -20px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+    .ms-modal-head {
+      padding: 22px 24px 0;
+    }
+    .ms-modal-head h3 { margin: 0 0 6px; font-size: 1.1rem; }
+    .ms-modal-head p { margin: 0 0 18px; color: var(--ms-muted); font-size: 0.88rem; }
+    .ms-modal-body { padding: 0 24px 22px; }
+    .ms-modal-foot {
+      padding: 14px 24px;
+      background: var(--ms-paper-2);
+      display: flex; gap: 8px; justify-content: flex-end;
+    }
+    .ms-qr-box {
+      background: white;
+      border: 1px solid var(--ms-line);
+      border-radius: 14px;
+      padding: 18px;
+      display: grid; place-items: center;
+      margin-bottom: 14px;
+    }
+    .ms-qr-box img, .ms-qr-box canvas {
+      width: 200px; height: 200px;
+      image-rendering: pixelated;
+    }
+    .ms-link-box {
+      display: flex; gap: 6px;
+      padding: 10px 12px;
+      background: var(--ms-paper-2);
+      border: 1px solid var(--ms-line);
+      border-radius: 10px;
+      align-items: center;
+      font-family: ui-monospace, monospace;
+      font-size: 0.85rem;
+    }
+    .ms-link-box input {
+      flex: 1; border: none; background: transparent;
+      font: inherit; outline: none;
+    }
+
+    /* ── Leads modal ── */
+    .ms-leads-list {
+      max-height: 60vh;
+      overflow-y: auto;
+      margin: 0 -8px;
+    }
+    .ms-lead {
+      padding: 14px;
+      border-radius: 10px;
+      background: var(--ms-paper-2);
+      margin-bottom: 8px;
+    }
+    .ms-lead-head {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 4px;
+    }
+    .ms-lead-name { font-weight: 700; font-size: 0.95rem; }
+    .ms-lead-time { font-size: 0.78rem; color: var(--ms-muted); margin-left: auto; }
+    .ms-lead-meta {
+      display: flex; gap: 14px;
+      font-size: 0.84rem; color: var(--ms-muted);
+      margin-bottom: 6px;
+    }
+    .ms-lead-msg {
+      font-size: 0.9rem;
+      color: var(--ms-ink-2);
+      line-height: 1.5;
+    }
+    .ms-empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--ms-muted);
+      font-size: 0.9rem;
+    }
+
+    .ms-msg {
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .ms-msg.show { display: block; }
+    .ms-msg.ok { background: #dcfce7; color: #166534; }
+    .ms-msg.err { background: #fee2e2; color: #991b1b; }
+
+    /* Responsive */
+    @media (max-width: 980px) {
+      .ms-main { grid-template-columns: 1fr; }
+      .ms-editor { border-right: none; border-bottom: 1px solid var(--ms-line); }
+      .ms-preview { display: none; }
+      .ms-preview.active-mobile { display: flex; height: 80vh; }
+      .ms-mobile-tab-toggle { display: inline-flex !important; }
+    }
+    .ms-mobile-tab-toggle { display: none; }
+
+    /* ── Dark mode ─────────────────────────────────────────────
+       Aplica a todo el editor (topbar, tabs, formularios, modales).
+       El iframe del preview NO se toca: muestra el sitio público tal
+       como lo ve un paciente, en su propia paleta clara. */
+    [data-theme="dark"] .ms-page {
+      --ms-primary-strong: #22d3ee;
+      --ms-primary-soft: rgba(34, 211, 238, 0.10);
+      --ms-line: #1f2937;
+      --ms-paper: #15161a;
+      --ms-paper-2: #1c1d22;
+      --ms-ink: #e2e8f0;
+      --ms-ink-2: #cbd5e1;
+      --ms-muted: #94a3b8;
+      background: #0c0c0e;
+    }
+    [data-theme="dark"] .ms-topbar {
+      background: #15161a;
+      border-bottom: 1px solid #1f2937;
+    }
+    [data-theme="dark"] .ms-title { color: #e2e8f0; }
+    [data-theme="dark"] .ms-save-status { color: #94a3b8; }
+    [data-theme="dark"] .ms-save-status.saved { color: #4ade80; }
+    [data-theme="dark"] .ms-save-status.error { color: #fca5a5; }
+    [data-theme="dark"] .ms-pub-pill.draft {
+      background: rgba(251, 191, 36, 0.14);
+      color: #fcd34d;
+    }
+    [data-theme="dark"] .ms-pub-pill.published {
+      background: rgba(34, 197, 94, 0.14);
+      color: #86efac;
+    }
+
+    /* Botones genéricos */
+    [data-theme="dark"] .ms-btn {
+      background: #1c1d22;
+      color: #e2e8f0;
+      border-color: transparent;
+    }
+    [data-theme="dark"] .ms-btn:hover { background: #24252b; }
+    [data-theme="dark"] .ms-btn.outline {
+      background: #15161a;
+      border-color: #1f2937;
+    }
+    [data-theme="dark"] .ms-btn.outline:hover {
+      border-color: var(--ms-primary-strong);
+      color: var(--ms-primary-strong);
+    }
+    [data-theme="dark"] .ms-btn.danger {
+      background: rgba(239, 68, 68, 0.14);
+      color: #fca5a5;
+    }
+    [data-theme="dark"] .ms-btn.danger:hover { background: rgba(239, 68, 68, 0.22); }
+    /* .ms-btn.primary mantiene su gradient teal */
+
+    /* Editor pane y tabs */
+    [data-theme="dark"] .ms-editor {
+      background: #15161a;
+      border-right: 1px solid #1f2937;
+    }
+    [data-theme="dark"] .ms-tabs {
+      background: #15161a;
+      border-bottom: 1px solid #1f2937;
+    }
+    [data-theme="dark"] .ms-section-title { color: #e2e8f0; }
+    [data-theme="dark"] .ms-section-desc { color: #94a3b8; }
+
+    /* Inputs / textareas / selects */
+    [data-theme="dark"] .ms-field label { color: #cbd5e1; }
+    [data-theme="dark"] .ms-field .hint { color: #94a3b8; }
+    [data-theme="dark"] .ms-field input[type="text"],
+    [data-theme="dark"] .ms-field input[type="email"],
+    [data-theme="dark"] .ms-field input[type="url"],
+    [data-theme="dark"] .ms-field input[type="tel"],
+    [data-theme="dark"] .ms-field input[type="time"],
+    [data-theme="dark"] .ms-field textarea,
+    [data-theme="dark"] .ms-field select {
+      background: #0c0c0e;
+      border-color: #1f2937;
+      color: #e2e8f0;
+    }
+    [data-theme="dark"] .ms-field input::placeholder,
+    [data-theme="dark"] .ms-field textarea::placeholder { color: #475569; }
+    [data-theme="dark"] .ms-field input:focus,
+    [data-theme="dark"] .ms-field textarea:focus,
+    [data-theme="dark"] .ms-field select:focus {
+      border-color: var(--ms-primary-strong);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.14);
+    }
+
+    /* Slug row */
+    [data-theme="dark"] .ms-slug-row {
+      background: #0c0c0e;
+      border-color: #1f2937;
+    }
+    [data-theme="dark"] .ms-slug-prefix {
+      background: #15161a;
+      color: #94a3b8;
+      border-right-color: #1f2937;
+    }
+    [data-theme="dark"] .ms-slug-row input {
+      background: transparent;
+      color: #e2e8f0;
+    }
+    [data-theme="dark"] .ms-slug-save { background: var(--ms-primary-strong); color: #0c0c0e; }
+    [data-theme="dark"] .ms-slug-save:hover { background: #67e8f9; }
+
+    /* Checkbox rows */
+    [data-theme="dark"] .ms-checkbox-row { background: #1c1d22; }
+    [data-theme="dark"] .ms-checkbox-row .sub { color: #94a3b8; }
+
+    /* Apariencia (dark) */
+    [data-theme="dark"] .ms-preset {
+      background: #1c1d22;
+      border-color: #2a2c33;
+      color: #e2e8f0;
+    }
+    [data-theme="dark"] .ms-preset:hover { border-color: var(--ms-primary-strong); }
+    [data-theme="dark"] .ms-preset.active {
+      background: #15161a;
+      border-color: var(--ms-primary-strong);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.16);
+    }
+    [data-theme="dark"] .ms-preset-swatch {
+      box-shadow: 0 2px 6px -2px rgba(0,0,0, .55), 0 0 0 1px rgba(255,255,255, .06) inset;
+    }
+    [data-theme="dark"] .ms-custom-theme {
+      background: #15161a;
+      border-color: #1f2937;
+    }
+    [data-theme="dark"] .ms-custom-title { color: #e2e8f0; }
+    [data-theme="dark"] .ms-custom-sub { color: #94a3b8; }
+    [data-theme="dark"] .ms-color-cell label { color: #cbd5e1; }
+    [data-theme="dark"] .ms-color-input {
+      background: #0c0c0e;
+      border-color: #1f2937;
+    }
+    [data-theme="dark"] .ms-color-input input[type="text"] { color: #e2e8f0; }
+    [data-theme="dark"] .ms-color-input input[type="color"]::-webkit-color-swatch {
+      border-color: rgba(255,255,255,.12);
+    }
+    [data-theme="dark"] .ms-color-hint { color: #94a3b8; }
+    [data-theme="dark"] .ms-theme-preview {
+      border-color: #1f2937;
+      background:
+        radial-gradient(60% 80% at 100% 0%, color-mix(in oklch, var(--tp-accent) 22%, transparent), transparent 65%),
+        radial-gradient(50% 80% at 0% 100%, color-mix(in oklch, var(--tp-primary) 26%, transparent), transparent 70%),
+        #15161a;
+    }
+    [data-theme="dark"] .ms-tp-title { color: #e2e8f0; }
+    [data-theme="dark"] .ms-tp-pill {
+      background: color-mix(in oklch, var(--tp-primary) 22%, #15161a);
+      color: color-mix(in oklch, var(--tp-primary) 70%, white);
+      border-color: color-mix(in oklch, var(--tp-primary) 35%, #1f2937);
+    }
+    [data-theme="dark"] .ms-tp-btn.ghost {
+      background: #1c1d22;
+      color: #e2e8f0;
+      border-color: #2a2c33;
+    }
+
+    /* Listas repetibles e items */
+    [data-theme="dark"] .ms-list-item {
+      background: #1c1d22;
+      border-color: #1f2937;
+    }
+    [data-theme="dark"] .ms-list-item .ms-item-num {
+      background: #15161a;
+      border-color: #1f2937;
+      color: #94a3b8;
+    }
+    [data-theme="dark"] .ms-icon-btn {
+      background: #15161a;
+      border-color: #1f2937;
+      color: #94a3b8;
+    }
+    [data-theme="dark"] .ms-icon-btn:hover {
+      color: #e2e8f0;
+      border-color: #475569;
+    }
+    [data-theme="dark"] .ms-list-add {
+      border-color: #1f2937;
+      color: #94a3b8;
+    }
+    [data-theme="dark"] .ms-list-add:hover {
+      border-color: var(--ms-primary-strong);
+      color: var(--ms-primary-strong);
+      background: rgba(34, 211, 238, 0.06);
+    }
+
+    /* Image picker y galería */
+    [data-theme="dark"] .ms-image-picker {
+      background: #1c1d22;
+      border-color: #1f2937;
+    }
+    [data-theme="dark"] .ms-image-picker:hover {
+      border-color: var(--ms-primary-strong);
+      background: rgba(34, 211, 238, 0.06);
+    }
+    [data-theme="dark"] .ms-image-picker .ip-empty { color: #94a3b8; }
+    [data-theme="dark"] .ms-image-picker .ip-empty b { color: var(--ms-primary-strong); }
+    [data-theme="dark"] .ms-image-picker .ip-actions {
+      background: #15161a;
+      border-top-color: #1f2937;
+    }
+    [data-theme="dark"] .ms-gallery-thumb { background: #15161a; }
+
+    /* Preview pane — el área alrededor del iframe */
+    [data-theme="dark"] .ms-preview-bar {
+      background: #15161a;
+      border-bottom: 1px solid #1f2937;
+    }
+    [data-theme="dark"] .ms-preview { background: #0c0c0e; }
+    [data-theme="dark"] .ms-device-toggle { background: #1c1d22; }
+    [data-theme="dark"] .ms-device-toggle button { color: #94a3b8 !important; }
+    [data-theme="dark"] .ms-device-toggle button:hover {
+      background: rgba(255, 255, 255, 0.04) !important;
+      color: #e2e8f0 !important;
+    }
+    [data-theme="dark"] .ms-device-toggle button.active,
+    [data-theme="dark"] .ms-device-toggle button.active:hover {
+      background: #0c0c0e !important;
+      color: var(--ms-primary-strong) !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    /* El shell en escritorio (no mobile) sigue con fondo blanco para que el
+       iframe del sitio público —que se muestra en LUZ— no pierda contraste. */
+
+    /* Modales */
+    [data-theme="dark"] .ms-modal-backdrop { background: rgba(0, 0, 0, 0.65); }
+    [data-theme="dark"] .ms-modal { background: #15161a; }
+    [data-theme="dark"] .ms-modal-head h3 { color: #e2e8f0; }
+    [data-theme="dark"] .ms-modal-head p { color: #94a3b8; }
+    [data-theme="dark"] .ms-modal-foot { background: #1c1d22; }
+    [data-theme="dark"] .ms-qr-box {
+      background: white;  /* el QR como imagen necesita fondo blanco para que escanee bien */
+      border-color: #1f2937;
+    }
+    [data-theme="dark"] .ms-link-box {
+      background: #1c1d22;
+      border-color: #1f2937;
+    }
+    [data-theme="dark"] .ms-link-box input { color: #e2e8f0; }
+    [data-theme="dark"] .ms-lead { background: #1c1d22; }
+    [data-theme="dark"] .ms-lead-name { color: #e2e8f0; }
+    [data-theme="dark"] .ms-lead-meta { color: #94a3b8; }
+    [data-theme="dark"] .ms-lead-msg { color: #cbd5e1; }
+    [data-theme="dark"] .ms-empty { color: #94a3b8; }
+
+    /* Mensajes inline */
+    [data-theme="dark"] .ms-msg.ok {
+      background: rgba(34, 197, 94, 0.14);
+      color: #86efac;
+    }
+    [data-theme="dark"] .ms-msg.err {
+      background: rgba(239, 68, 68, 0.14);
+      color: #fca5a5;
+    }
+  </style>
+</head>
+<body>
+  <main class="ms-page" style="display:none;" id="ms-root">
+    <!-- Topbar -->
+    <div class="ms-topbar">
+      <div class="ms-title">
+        <div class="ms-title-ic">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <line x1="2" y1="7" x2="22" y2="7"/>
+            <circle cx="6" cy="5" r="0.5" fill="currentColor"/>
+            <circle cx="8" cy="5" r="0.5" fill="currentColor"/>
+            <circle cx="10" cy="5" r="0.5" fill="currentColor"/>
+          </svg>
+        </div>
+        <span>Mi Sitio Web</span>
+      </div>
+      <div class="ms-pub-pill draft" id="msPubPill">
+        <span class="dot"></span>
+        <span id="msPubText">Borrador</span>
+      </div>
+      <div class="ms-spacer"></div>
+
+      <div class="ms-save-status" id="msSaveStatus"></div>
+      <button class="ms-btn outline ms-mobile-tab-toggle" id="msToggleView">Vista previa</button>
+      <button class="ms-btn outline" id="msLeadsBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span>Mensajes <span id="msLeadsBadge" style="display:none; background:#ef4444; color:white; border-radius:999px; padding:0 6px; font-size:.72rem;">0</span></span>
+      </button>
+      <button class="ms-btn outline" id="msShareBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Compartir
+      </button>
+      <button class="ms-btn primary" id="msPublishBtn">Publicar</button>
+    </div>
+
+    <div class="ms-main">
+      <!-- ── Editor ── -->
+      <div class="ms-editor">
+        <div class="ms-tabs" id="msTabs">
+          <button class="ms-tab active" data-tab="general">General</button>
+          <button class="ms-tab" data-tab="appearance">Apariencia</button>
+          <button class="ms-tab" data-tab="hero">Portada</button>
+          <button class="ms-tab" data-tab="about">Sobre</button>
+          <button class="ms-tab" data-tab="services">Servicios</button>
+          <button class="ms-tab" data-tab="gallery">Galería</button>
+          <button class="ms-tab" data-tab="testimonials">Testimonios</button>
+          <button class="ms-tab" data-tab="hours">Horarios</button>
+          <button class="ms-tab" data-tab="location">Ubicación</button>
+          <button class="ms-tab" data-tab="faq">FAQ</button>
+          <button class="ms-tab" data-tab="contact">Contacto</button>
+          <button class="ms-tab" data-tab="seo">SEO</button>
+        </div>
+        <div class="ms-tab-body" id="msTabBody"></div>
+      </div>
+
+      <!-- ── Preview ── -->
+      <div class="ms-preview" id="msPreviewPane">
+        <div class="ms-preview-bar">
+          <div class="ms-device-toggle">
+            <button class="active" data-device="desktop">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              Escritorio
+            </button>
+            <button data-device="mobile">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+              Móvil
+            </button>
+          </div>
+          <div class="ms-spacer"></div>
+          <button class="ms-btn outline ms-mobile-tab-toggle" id="msBackToEdit">Editar</button>
+          <button class="ms-btn outline" id="msOpenLive">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Abrir
+          </button>
+        </div>
+        <div class="ms-preview-frame-wrap">
+          <div class="ms-device-shell" id="msDeviceShell">
+            <div class="ms-device-island"></div>
+            <iframe class="ms-preview-frame" id="msPreviewFrame" src="/clinic-landing.html?preview=1" title="Vista previa"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Share modal ── -->
+  <div class="ms-modal-backdrop" id="msShareModal">
+    <div class="ms-modal">
+      <div class="ms-modal-head">
+        <h3>Comparte tu sitio</h3>
+        <p>Envía el enlace o muestra el QR a tus pacientes.</p>
+      </div>
+      <div class="ms-modal-body">
+        <div class="ms-qr-box" id="msQrBox"></div>
+        <div class="ms-link-box">
+          <input type="text" id="msLinkInput" readonly>
+          <button class="ms-icon-btn" id="msCopyLink" title="Copiar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="ms-btn outline" id="msShareWA" style="flex:1;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M.5 24l1.7-6.1C1.1 16 .5 13.8.5 11.4.5 5.1 5.6 0 12 0c3.1 0 5.9 1.2 8.1 3.4 2.1 2.2 3.3 5 3.3 8 0 6.3-5.1 11.4-11.4 11.4-1.9 0-3.8-.5-5.5-1.4L.5 24zm6.3-3.7c1.6.9 3.4 1.4 5.2 1.4 5.3 0 9.6-4.3 9.6-9.6 0-2.5-1-4.9-2.8-6.7C17 3.6 14.6 2.6 12 2.6c-5.3 0-9.6 4.3-9.6 9.6 0 2 .6 3.9 1.7 5.6L3.4 20l2.7-.7z"/></svg>
+            WhatsApp
+          </button>
+          <button class="ms-btn outline" id="msDownloadQR" style="flex:1;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            QR
+          </button>
+        </div>
+      </div>
+      <div class="ms-modal-foot">
+        <button class="ms-btn" id="msCloseShare">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Leads modal ── -->
+  <div class="ms-modal-backdrop" id="msLeadsModal">
+    <div class="ms-modal" style="max-width:560px;">
+      <div class="ms-modal-head">
+        <h3>Mensajes recibidos</h3>
+        <p>Personas que llenaron tu formulario de contacto.</p>
+      </div>
+      <div class="ms-modal-body">
+        <div class="ms-leads-list" id="msLeadsList"></div>
+      </div>
+      <div class="ms-modal-foot">
+        <button class="ms-btn" id="msCloseLeads">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/common.js"></script>
+  <script src="/icons.js"></script>
+  <script src="/layout.js"></script>
+
+  <script>
+    requireAuth(['clinic_admin']);
+
+    // ── Estado global ──
+    let state = null;            // payload completo (clinic + data + doctors + template + slug + published)
+    let initialState = null;     // copia profunda para detectar dirty
+    let saveTimer = null;
+    let isSaving = false;
+    let previewReady = false;
+    let pendingPreview = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function deepClone(x) { return JSON.parse(JSON.stringify(x)); }
+
+    function debounce(fn, ms) {
+      let t; return function(...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), ms);
+      };
+    }
+
+    // ── Iframe preview ──
+    function sendPreviewUpdate() {
+      const frame = $('msPreviewFrame');
+      if (!frame || !frame.contentWindow) return;
+      // El payload tiene la misma forma que el endpoint público
+      const payload = {
+        clinic: state.clinic,
+        template: state.template || 'aurora',
+        data: state.data,
+        doctors: state.doctors || [],
+      };
+      if (!previewReady) {
+        pendingPreview = payload;
+        return;
+      }
+      frame.contentWindow.postMessage({ type: 'landing:preview', payload }, '*');
+    }
+
+    window.addEventListener('message', (ev) => {
+      if (ev.data && ev.data.type === 'landing:ready') {
+        previewReady = true;
+        pendingPreview = null;
+        // Reenviar siempre el estado actual: cubre tanto el primer ready como
+        // recargas del iframe (p. ej. el usuario navega a "Agendar" y vuelve
+        // con el botón atrás del navegador — el iframe se reinicia y necesita
+        // que le reinyectemos los datos para no quedarse en el placeholder).
+        if (state && state.clinic) sendPreviewUpdate();
+      }
+    });
+
+    const schedulePreview = debounce(sendPreviewUpdate, 180);
+
+    // ── Save (debounced auto-save) ──
+    async function saveNow() {
+      if (isSaving) return;
+      isSaving = true;
+      $('msSaveStatus').textContent = 'Guardando…';
+      $('msSaveStatus').className = 'ms-save-status';
+      try {
+        await api('/api/clinics/me/landing', {
+          method: 'PUT',
+          body: { template: state.template, data: state.data }
+        });
+        $('msSaveStatus').textContent = 'Guardado';
+        $('msSaveStatus').className = 'ms-save-status saved';
+        setTimeout(() => {
+          if ($('msSaveStatus').textContent === 'Guardado') {
+            $('msSaveStatus').textContent = '';
+            $('msSaveStatus').className = 'ms-save-status';
+          }
+        }, 2500);
+      } catch (e) {
+        $('msSaveStatus').textContent = 'Error al guardar';
+        $('msSaveStatus').className = 'ms-save-status error';
+      } finally {
+        isSaving = false;
+      }
+    }
+    const scheduleSave = debounce(saveNow, 900);
+
+    function markDirty() {
+      schedulePreview();
+      scheduleSave();
+    }
+
+    // ── Tabs ──
+    const tabRenderers = {};
+
+    // Auto-scroll horizontal del toolbar: al clicar una tab, la posicionamos
+    // hacia la izquierda del contenedor visible para que se vean las tabs que
+    // siguen (ej. al tocar "Galería", quedan a la vista Testimonios, Horarios…).
+    function scrollTabIntoView(tab) {
+      const container = $('msTabs');
+      if (!container) return;
+      const cw = container.clientWidth;
+      const cl = container.scrollLeft;
+      const tl = tab.offsetLeft;
+      const tw = tab.offsetWidth;
+      const visibleStart = cl;
+      const visibleEnd = cl + cw;
+      // Si la tab está fully visible y cómoda (su mitad derecha NO toca el borde
+      // derecho), no movemos nada para evitar saltos innecesarios.
+      const isFullyVisible = tl >= visibleStart && tl + tw <= visibleEnd;
+      const isNearRightEdge = tl + tw > visibleEnd - tw * 0.6;
+      if (isFullyVisible && !isNearRightEdge) return;
+      // Objetivo: dejar la tab al ~20% del ancho visible — el 80% restante a la
+      // derecha muestra lo que viene después.
+      const target = tl - cw * 0.2;
+      container.scrollTo({
+        left: Math.max(0, target),
+        behavior: 'smooth',
+      });
+    }
+
+    $('msTabs').addEventListener('click', (e) => {
+      const t = e.target.closest('.ms-tab');
+      if (!t) return;
+      document.querySelectorAll('.ms-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      scrollTabIntoView(t);
+      renderTab(t.dataset.tab);
+    });
+
+    function renderTab(name) {
+      const body = $('msTabBody');
+      body.innerHTML = '';
+      const renderer = tabRenderers[name];
+      if (renderer) renderer(body);
+    }
+
+    // ── Helpers para construir UI ──
+    function field({ label, hint, value, type = 'text', placeholder = '', maxLength = 200, onChange, rows }) {
+      const wrap = document.createElement('div');
+      wrap.className = 'ms-field';
+      const lbl = document.createElement('label');
+      lbl.textContent = label;
+      if (hint) {
+        const hintSpan = document.createElement('span');
+        hintSpan.className = 'hint';
+        hintSpan.textContent = ' — ' + hint;
+        lbl.appendChild(hintSpan);
+      }
+      wrap.appendChild(lbl);
+
+      let input;
+      if (type === 'textarea') {
+        input = document.createElement('textarea');
+        if (rows) input.rows = rows;
+      } else {
+        input = document.createElement('input');
+        input.type = type;
+      }
+      input.value = value ?? '';
+      if (placeholder) input.placeholder = placeholder;
+      if (maxLength) input.maxLength = maxLength;
+      input.addEventListener('input', () => onChange(input.value));
+      wrap.appendChild(input);
+      return wrap;
+    }
+
+    function fieldRow(...fields) {
+      const row = document.createElement('div');
+      row.className = 'ms-field-row';
+      fields.forEach(f => row.appendChild(f));
+      return row;
+    }
+
+    function checkbox({ label, sub, checked, onChange }) {
+      const wrap = document.createElement('label');
+      wrap.className = 'ms-checkbox-row';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!checked;
+      cb.addEventListener('change', () => onChange(cb.checked));
+      const txt = document.createElement('div');
+      const l = document.createElement('div');
+      l.className = 'lbl'; l.textContent = label;
+      const s = document.createElement('div');
+      s.className = 'sub'; s.textContent = sub || '';
+      txt.appendChild(l);
+      if (sub) txt.appendChild(s);
+      wrap.appendChild(cb);
+      wrap.appendChild(txt);
+      return wrap;
+    }
+
+    function sectionTitle(t, desc) {
+      const out = document.createDocumentFragment();
+      const h = document.createElement('h3');
+      h.className = 'ms-section-title';
+      h.textContent = t;
+      out.appendChild(h);
+      if (desc) {
+        const p = document.createElement('p');
+        p.className = 'ms-section-desc';
+        p.textContent = desc;
+        out.appendChild(p);
+      }
+      return out;
+    }
+
+    // Lista repetible reutilizable
+    function repeatable({ items, titleOf, itemFields, onMove, onDelete, onAdd, addLabel, container }) {
+      container.innerHTML = '';
+      items.forEach((item, i) => {
+        const box = document.createElement('div');
+        box.className = 'ms-list-item';
+        const head = document.createElement('div');
+        head.className = 'ms-item-handle';
+        head.innerHTML = `
+          <div class="ms-item-num">${i + 1}</div>
+          <div class="ms-item-title">${esc(titleOf(item, i) || 'Elemento ' + (i + 1))}</div>
+          <div class="ms-item-actions">
+            <button class="ms-icon-btn" data-act="up" ${i === 0 ? 'disabled' : ''} title="Subir">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+            </button>
+            <button class="ms-icon-btn" data-act="down" ${i === items.length - 1 ? 'disabled' : ''} title="Bajar">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <button class="ms-icon-btn danger" data-act="rm" title="Eliminar">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+            </button>
+          </div>
+        `;
+        head.querySelector('[data-act="up"]').addEventListener('click', () => { onMove(i, -1); });
+        head.querySelector('[data-act="down"]').addEventListener('click', () => { onMove(i, 1); });
+        head.querySelector('[data-act="rm"]').addEventListener('click', () => { onDelete(i); });
+        box.appendChild(head);
+        const fieldsWrap = document.createElement('div');
+        const titleEl = head.querySelector('.ms-item-title');
+        const setTitle = (txt) => { titleEl.textContent = txt || ('Elemento ' + (i + 1)); };
+        itemFields(item, i, fieldsWrap, { setTitle });
+        box.appendChild(fieldsWrap);
+        container.appendChild(box);
+      });
+      const add = document.createElement('button');
+      add.className = 'ms-list-add';
+      add.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        ${esc(addLabel || 'Agregar')}
+      `;
+      add.addEventListener('click', onAdd);
+      container.appendChild(add);
+    }
+
+    // ── Upload imagen al servidor ──
+    async function uploadImage(file, slot) {
+      const fd = new FormData();
+      fd.append('image', file);
+      fd.append('slot', slot || 'gallery');
+      const res = await fetch('/api/clinics/me/landing/image', {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: fd,
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'No se pudo subir la imagen');
+      }
+      return res.json();
+    }
+
+    // Image picker reutilizable
+    function imagePicker({ value, onChange, slot }) {
+      const wrap = document.createElement('div');
+      wrap.className = 'ms-image-picker' + (value ? ' has-image' : '');
+      const renderInner = () => {
+        if (value) {
+          wrap.innerHTML = `
+            <img src="${esc(value)}" alt="">
+            <div class="ip-actions">
+              <button class="ms-btn outline ms-btn-replace">Cambiar</button>
+              <button class="ms-btn danger ms-btn-remove">Quitar</button>
+            </div>
+          `;
+          wrap.classList.add('has-image');
+        } else {
+          wrap.innerHTML = `
+            <input type="file" accept="image/*">
+            <div class="ip-empty">
+              <div style="margin-bottom:6px;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </div>
+              <b>Haz clic para subir</b><br>
+              <span style="font-size:0.76rem;">JPG, PNG, WebP — máx. 2MB</span>
+            </div>
+          `;
+          wrap.classList.remove('has-image');
+        }
+      };
+      renderInner();
+
+      async function pickFile() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.addEventListener('change', async () => {
+          const f = input.files[0];
+          if (!f) return;
+          wrap.innerHTML = `<div style="padding:30px; color:var(--ms-muted);">Subiendo…</div>`;
+          try {
+            const { url } = await uploadImage(f, slot);
+            value = url;
+            onChange(url);
+            renderInner();
+          } catch (e) {
+            alert(e.message || 'No se pudo subir');
+            renderInner();
+          }
+        });
+        input.click();
+      }
+
+      wrap.addEventListener('click', async (e) => {
+        if (e.target.closest('.ms-btn-remove')) {
+          e.stopPropagation();
+          value = '';
+          onChange('');
+          renderInner();
+          return;
+        }
+        if (e.target.closest('.ms-btn-replace') || wrap.querySelector('.ip-empty')) {
+          if (e.target.tagName === 'INPUT' && e.target.type === 'file') return;
+          pickFile();
+        }
+      });
+      return wrap;
+    }
+
+    // ─────────────────────────────────────────────────────
+    // TABS
+    // ─────────────────────────────────────────────────────
+
+    // ── General (slug, template, publicar) ──
+    tabRenderers.general = (body) => {
+      body.appendChild(sectionTitle('Dirección pública de tu sitio',
+        'Esta es la URL que compartes con tus pacientes. Solo minúsculas, números y guiones.'));
+
+      const slugWrap = document.createElement('div');
+      slugWrap.className = 'ms-field';
+      slugWrap.innerHTML = `
+        <label>URL de tu sitio</label>
+        <div class="ms-slug-row">
+          <span class="ms-slug-prefix">${esc(location.origin.replace(/^https?:\/\//, ''))}/c/</span>
+          <input type="text" id="msSlugInput" maxlength="40" value="${esc(state.slug || '')}" placeholder="mi-clinica">
+          <button class="ms-slug-save" id="msSlugSave">Guardar</button>
+        </div>
+        <div id="msSlugMsg" class="ms-msg" style="margin-top:8px;"></div>
+      `;
+      body.appendChild(slugWrap);
+
+      $('msSlugInput').addEventListener('input', (e) => {
+        e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+      });
+      $('msSlugSave').addEventListener('click', async () => {
+        const slug = $('msSlugInput').value.trim();
+        const msg = $('msSlugMsg');
+        msg.className = 'ms-msg';
+        if (slug.length < 3) {
+          msg.className = 'ms-msg err show';
+          msg.textContent = 'El slug debe tener al menos 3 caracteres.';
+          return;
+        }
+        try {
+          $('msSlugSave').disabled = true;
+          $('msSlugSave').textContent = '...';
+          const res = await api('/api/clinics/me/landing/slug', {
+            method: 'PUT',
+            body: { slug }
+          });
+          state.slug = res.slug;
+          msg.className = 'ms-msg ok show';
+          msg.textContent = 'URL guardada.';
+          setTimeout(() => msg.classList.remove('show'), 2500);
+          updateShareUI();
+        } catch (e) {
+          msg.className = 'ms-msg err show';
+          msg.textContent = e.message;
+        } finally {
+          $('msSlugSave').disabled = false;
+          $('msSlugSave').textContent = 'Guardar';
+        }
+      });
+
+      // Opciones de visibilidad
+      const optsTitle = document.createElement('div');
+      optsTitle.style.marginTop = '32px';
+      optsTitle.appendChild(sectionTitle('Qué mostrar', 'Activa o desactiva secciones completas del sitio.'));
+      body.appendChild(optsTitle);
+
+      body.appendChild(checkbox({
+        label: 'Mostrar a los doctores de la clínica',
+        sub: 'Se incluyen automáticamente del personal registrado.',
+        checked: state.data.show_doctors !== false,
+        onChange: (v) => { state.data.show_doctors = v; markDirty(); }
+      }));
+      body.appendChild(checkbox({
+        label: 'Botón "Agendar" lleva a citas online',
+        sub: 'Si está apagado, los CTAs llevan al formulario de contacto.',
+        checked: state.data.show_online_booking !== false,
+        onChange: (v) => { state.data.show_online_booking = v; markDirty(); }
+      }));
+    };
+
+    // ── Apariencia ──
+    // Presets curados (primary, accent). El "auto" deriva el accent de primary.
+    const APPEARANCE_PRESETS = [
+      { id: 'teal',    label: 'Aqua',    primary: '#0891b2', accent: '#14b8a6' },
+      { id: 'azure',   label: 'Azul',    primary: '#2563eb', accent: '#0ea5e9' },
+      { id: 'indigo',  label: 'Índigo',  primary: '#4f46e5', accent: '#8b5cf6' },
+      { id: 'violet',  label: 'Violeta', primary: '#7c3aed', accent: '#ec4899' },
+      { id: 'rose',    label: 'Rosa',    primary: '#e11d48', accent: '#f43f5e' },
+      { id: 'amber',   label: 'Ámbar',   primary: '#d97706', accent: '#f59e0b' },
+      { id: 'emerald', label: 'Esmeralda', primary: '#059669', accent: '#10b981' },
+      { id: 'slate',   label: 'Pizarra', primary: '#475569', accent: '#64748b' },
+    ];
+
+    function currentTheme() {
+      const t = (state.data.theme && typeof state.data.theme === 'object') ? state.data.theme : {};
+      const primary = t.primary || state.clinic.brand_color || '#0891b2';
+      const accent  = t.accent  || null;
+      const preset  = t.preset  || null;
+      return { primary, accent, preset };
+    }
+
+    function setTheme(next) {
+      state.data.theme = {
+        preset:  next.preset  || null,
+        primary: next.primary || '#0891b2',
+        accent:  next.accent  || null,
+      };
+      markDirty();
+    }
+
+    tabRenderers.appearance = (body) => {
+      body.appendChild(sectionTitle('Apariencia del sitio',
+        'Elige un color principal o crea tu propia paleta. Los gradientes, botones y acentos del sitio se ajustan al instante.'));
+
+      const theme = currentTheme();
+
+      // Presets
+      const presetsWrap = document.createElement('div');
+      presetsWrap.className = 'ms-presets';
+      APPEARANCE_PRESETS.forEach(p => {
+        const isActive = theme.preset === p.id ||
+          (!theme.preset && theme.primary.toLowerCase() === p.primary.toLowerCase() && (theme.accent || '').toLowerCase() === p.accent.toLowerCase());
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ms-preset' + (isActive ? ' active' : '');
+        btn.dataset.preset = p.id;
+        btn.innerHTML = `
+          <span class="ms-preset-swatch" style="background: linear-gradient(135deg, ${p.primary} 0%, ${p.accent} 100%);"></span>
+          <span class="ms-preset-label">${esc(p.label)}</span>
+        `;
+        btn.addEventListener('click', () => {
+          setTheme({ preset: p.id, primary: p.primary, accent: p.accent });
+          renderTab('appearance');
+        });
+        presetsWrap.appendChild(btn);
+      });
+      body.appendChild(presetsWrap);
+
+      // Personalizado
+      const customWrap = document.createElement('div');
+      customWrap.className = 'ms-custom-theme';
+      customWrap.innerHTML = `
+        <div class="ms-custom-head">
+          <div>
+            <div class="ms-custom-title">Personalizado</div>
+            <div class="ms-custom-sub">Define tu paleta con la precisión de la marca de tu clínica.</div>
+          </div>
+          <button type="button" class="ms-btn outline ms-btn-sm" id="msThemeReset">Restablecer</button>
+        </div>
+        <div class="ms-color-row">
+          <div class="ms-color-cell" data-role="primary">
+            <label>Color principal</label>
+            <div class="ms-color-input">
+              <input type="color" id="msPrimaryColor" value="${theme.primary}">
+              <input type="text" id="msPrimaryHex" value="${theme.primary}" maxlength="7" spellcheck="false">
+            </div>
+            <span class="ms-color-hint">Botones, enlaces, badges.</span>
+          </div>
+          <div class="ms-color-cell" data-role="accent">
+            <label>Color de acento</label>
+            <div class="ms-color-input">
+              <input type="color" id="msAccentColor" value="${theme.accent || derivedAccent(theme.primary)}">
+              <input type="text" id="msAccentHex" value="${theme.accent || derivedAccent(theme.primary)}" maxlength="7" spellcheck="false">
+            </div>
+            <span class="ms-color-hint">Para gradientes y detalles.</span>
+          </div>
+        </div>
+        <div class="ms-theme-preview" id="msThemePreview">
+          <div class="ms-tp-bar"></div>
+          <div class="ms-tp-card">
+            <div class="ms-tp-pill"><span class="dot"></span><span>Vista previa de tu marca</span></div>
+            <div class="ms-tp-title">Sonrisas que cambian vidas</div>
+            <div class="ms-tp-btns">
+              <span class="ms-tp-btn primary">Agendar cita</span>
+              <span class="ms-tp-btn ghost">Conocer más</span>
+            </div>
+          </div>
+        </div>
+      `;
+      body.appendChild(customWrap);
+
+      // Wire color inputs
+      const primaryColor = $('msPrimaryColor');
+      const primaryHex   = $('msPrimaryHex');
+      const accentColor  = $('msAccentColor');
+      const accentHex    = $('msAccentHex');
+
+      function applyFromCustom() {
+        const p = normalizeHex(primaryHex.value) || theme.primary;
+        const a = normalizeHex(accentHex.value)  || derivedAccent(p);
+        primaryColor.value = p;
+        accentColor.value  = a;
+        updateThemePreviewVars(p, a);
+        setTheme({ preset: null, primary: p, accent: a });
+      }
+      function syncHex(textInput, colorInput) {
+        const v = normalizeHex(textInput.value);
+        if (v) colorInput.value = v;
+      }
+      primaryColor.addEventListener('input', () => {
+        primaryHex.value = primaryColor.value;
+        // Si el accent está derivado del primary anterior, recalcúlalo
+        const t2 = currentTheme();
+        if (!t2.accent || t2.accent === derivedAccent(t2.primary)) {
+          accentHex.value = derivedAccent(primaryColor.value);
+        }
+        applyFromCustom();
+      });
+      accentColor.addEventListener('input', () => {
+        accentHex.value = accentColor.value;
+        applyFromCustom();
+      });
+      primaryHex.addEventListener('input', () => { syncHex(primaryHex, primaryColor); applyFromCustom(); });
+      accentHex.addEventListener('input',  () => { syncHex(accentHex,  accentColor);  applyFromCustom(); });
+
+      $('msThemeReset').addEventListener('click', () => {
+        setTheme({ preset: null, primary: state.clinic.brand_color || '#0891b2', accent: null });
+        renderTab('appearance');
+      });
+
+      // Inicializa la vista previa interna
+      updateThemePreviewVars(primaryColor.value, accentColor.value);
+    };
+
+    function normalizeHex(s) {
+      if (!s) return null;
+      const m = String(s).trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+      if (!m) return null;
+      const h = m[1].length === 3 ? m[1].split('').map(x => x + x).join('') : m[1];
+      return '#' + h.toLowerCase();
+    }
+
+    function derivedAccent(primaryHex) {
+      const rgb = hexToRgb(primaryHex);
+      if (!rgb) return '#14b8a6';
+      const hsl = rgbToHsl(rgb);
+      hsl.h = ((hsl.h + 28) % 360);
+      hsl.s = Math.min(1, hsl.s * 0.92);
+      const out = hslToRgb(hsl);
+      return rgbToHex(out);
+    }
+
+    function updateThemePreviewVars(primary, accent) {
+      const prev = document.getElementById('msThemePreview');
+      if (!prev) return;
+      prev.style.setProperty('--tp-primary', primary);
+      prev.style.setProperty('--tp-accent',  accent);
+    }
+
+    // Color helpers locales (mismas matemáticas que el landing)
+    function hexToRgb(h) {
+      const m = String(h || '').trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+      if (!m) return null;
+      const x = m[1].length === 3 ? m[1].split('').map(c => c + c).join('') : m[1];
+      return { r: parseInt(x.slice(0,2),16), g: parseInt(x.slice(2,4),16), b: parseInt(x.slice(4,6),16) };
+    }
+    function rgbToHex({ r, g, b }) {
+      const h = n => Math.max(0, Math.min(255, n|0)).toString(16).padStart(2, '0');
+      return '#' + h(r) + h(g) + h(b);
+    }
+    function rgbToHsl({ r, g, b }) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r,g,b), min = Math.min(r,g,b);
+      let h, s, l = (max + min) / 2;
+      if (max === min) { h = s = 0; }
+      else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          default: h = (r - g) / d + 4;
+        }
+        h *= 60;
+      }
+      return { h, s, l };
+    }
+    function hslToRgb({ h, s, l }) {
+      h = ((h % 360) + 360) % 360;
+      const c = (1 - Math.abs(2*l - 1)) * s;
+      const x = c * (1 - Math.abs(((h/60) % 2) - 1));
+      const m = l - c/2;
+      let r1, g1, b1;
+      if (h < 60)      [r1,g1,b1] = [c,x,0];
+      else if (h<120)  [r1,g1,b1] = [x,c,0];
+      else if (h<180)  [r1,g1,b1] = [0,c,x];
+      else if (h<240)  [r1,g1,b1] = [0,x,c];
+      else if (h<300)  [r1,g1,b1] = [x,0,c];
+      else             [r1,g1,b1] = [c,0,x];
+      return { r: Math.round((r1+m)*255), g: Math.round((g1+m)*255), b: Math.round((b1+m)*255) };
+    }
+
+    // ── Hero ──
+    tabRenderers.hero = (body) => {
+      body.appendChild(sectionTitle('Portada de tu sitio',
+        'Lo primero que ven tus pacientes. Mantén el título claro y directo.'));
+
+      const h = state.data.hero || (state.data.hero = {});
+
+      body.appendChild(field({
+        label: 'Etiqueta corta', hint: 'aparece arriba del título',
+        value: h.eyebrow, maxLength: 80, placeholder: 'Clínica dental en Tegucigalpa',
+        onChange: v => { h.eyebrow = v; markDirty(); }
+      }));
+      body.appendChild(field({
+        label: 'Título principal',
+        value: h.title, maxLength: 140, placeholder: 'Sonrisas que cambian vidas',
+        onChange: v => { h.title = v; markDirty(); }
+      }));
+      body.appendChild(field({
+        label: 'Subtítulo', type: 'textarea',
+        value: h.subtitle, maxLength: 400, placeholder: 'Cuidado dental moderno…',
+        onChange: v => { h.subtitle = v; markDirty(); }
+      }));
+
+      body.appendChild(fieldRow(
+        field({
+          label: 'Botón primario',
+          value: h.cta_label, maxLength: 40, placeholder: 'Agendar cita',
+          onChange: v => { h.cta_label = v; markDirty(); }
+        }),
+        field({
+          label: 'Botón secundario',
+          value: h.cta_secondary_label, maxLength: 40, placeholder: 'Conocer más',
+          onChange: v => { h.cta_secondary_label = v; markDirty(); }
+        })
+      ));
+
+      const ipLabel = document.createElement('label');
+      ipLabel.style.fontSize = '0.82rem';
+      ipLabel.style.fontWeight = '600';
+      ipLabel.style.color = 'var(--ms-ink-2)';
+      ipLabel.style.marginBottom = '8px';
+      ipLabel.style.display = 'block';
+      ipLabel.textContent = 'Imagen de portada';
+      body.appendChild(ipLabel);
+      body.appendChild(imagePicker({
+        value: h.image_url,
+        slot: 'hero',
+        onChange: (url) => { h.image_url = url; markDirty(); }
+      }));
+    };
+
+    // ── About ──
+    tabRenderers.about = (body) => {
+      body.appendChild(sectionTitle('Sobre tu clínica',
+        'Cuenta a tus pacientes quiénes son, qué los hace diferentes.'));
+
+      const a = state.data.about || (state.data.about = { highlights: [] });
+
+      body.appendChild(field({
+        label: 'Título', value: a.title, maxLength: 80, placeholder: 'Sobre nosotros',
+        onChange: v => { a.title = v; markDirty(); }
+      }));
+      body.appendChild(field({
+        label: 'Texto', type: 'textarea', rows: 5,
+        value: a.body, maxLength: 2000,
+        placeholder: 'Somos una clínica dedicada a…',
+        onChange: v => { a.body = v; markDirty(); }
+      }));
+
+      const hlTitle = document.createElement('div');
+      hlTitle.style.marginTop = '24px';
+      hlTitle.appendChild(sectionTitle('Puntos destacados',
+        'Hasta 6 fortalezas con ícono, título y texto corto.'));
+      body.appendChild(hlTitle);
+
+      const hlContainer = document.createElement('div');
+      body.appendChild(hlContainer);
+      a.highlights = a.highlights || [];
+
+      const ICONS_LIST = ['sparkles', 'shield', 'heart', 'award', 'clock', 'users', 'checkCircle', 'stethoscope', 'tooth', 'smile', 'activity'];
+
+      function renderHighlights() {
+        repeatable({
+          items: a.highlights,
+          titleOf: (h) => h.title || 'Punto destacado',
+          itemFields: (h, i, wrap, ctx) => {
+            const selWrap = document.createElement('div');
+            selWrap.className = 'ms-field';
+            selWrap.innerHTML = `<label>Ícono</label>`;
+            const sel = document.createElement('select');
+            ICONS_LIST.forEach(name => {
+              const o = document.createElement('option');
+              o.value = name; o.textContent = name;
+              if (h.icon === name) o.selected = true;
+              sel.appendChild(o);
+            });
+            sel.addEventListener('change', () => { h.icon = sel.value; markDirty(); });
+            selWrap.appendChild(sel);
+            wrap.appendChild(selWrap);
+            wrap.appendChild(field({
+              label: 'Título', value: h.title, maxLength: 60,
+              onChange: v => { h.title = v; markDirty(); ctx.setTitle(v || 'Punto destacado'); }
+            }));
+            wrap.appendChild(field({
+              label: 'Texto', type: 'textarea', value: h.text, maxLength: 200,
+              onChange: v => { h.text = v; markDirty(); }
+            }));
+          },
+          onMove: (i, dir) => {
+            const j = i + dir;
+            [a.highlights[i], a.highlights[j]] = [a.highlights[j], a.highlights[i]];
+            renderHighlights(); markDirty();
+          },
+          onDelete: (i) => { a.highlights.splice(i, 1); renderHighlights(); markDirty(); },
+          onAdd: () => {
+            if (a.highlights.length >= 6) return;
+            a.highlights.push({ icon: 'sparkles', title: 'Nueva característica', text: '' });
+            renderHighlights(); markDirty();
+          },
+          addLabel: 'Agregar punto destacado',
+          container: hlContainer,
+        });
+      }
+      renderHighlights();
+    };
+
+    // ── Services ──
+    tabRenderers.services = (body) => {
+      body.appendChild(sectionTitle('Servicios y tratamientos',
+        'Lista los servicios que ofreces con precio (opcional).'));
+
+      state.data.services = state.data.services || [];
+      const svc = state.data.services;
+      const container = document.createElement('div');
+      body.appendChild(container);
+
+      const ICONS_LIST = ['stethoscope', 'tooth', 'smile', 'heart', 'sparkles', 'shield', 'activity', 'award'];
+
+      function renderServices() {
+        repeatable({
+          items: svc,
+          titleOf: (s) => s.name || 'Servicio',
+          itemFields: (s, i, wrap, ctx) => {
+            const selWrap = document.createElement('div');
+            selWrap.className = 'ms-field';
+            selWrap.innerHTML = `<label>Ícono</label>`;
+            const sel = document.createElement('select');
+            ICONS_LIST.forEach(name => {
+              const o = document.createElement('option');
+              o.value = name; o.textContent = name;
+              if (s.icon === name) o.selected = true;
+              sel.appendChild(o);
+            });
+            sel.addEventListener('change', () => { s.icon = sel.value; markDirty(); });
+            selWrap.appendChild(sel);
+            wrap.appendChild(selWrap);
+            wrap.appendChild(field({
+              label: 'Nombre', value: s.name, maxLength: 80,
+              onChange: v => { s.name = v; markDirty(); ctx.setTitle(v || 'Servicio'); }
+            }));
+            wrap.appendChild(field({
+              label: 'Descripción', type: 'textarea', value: s.description, maxLength: 280,
+              onChange: v => { s.description = v; markDirty(); }
+            }));
+            wrap.appendChild(fieldRow(
+              field({
+                label: 'Duración', value: s.duration, maxLength: 30, placeholder: '30 min',
+                onChange: v => { s.duration = v; markDirty(); }
+              }),
+              field({
+                label: 'Precio', value: s.price, maxLength: 30, placeholder: 'L. 500',
+                onChange: v => { s.price = v; markDirty(); }
+              })
+            ));
+          },
+          onMove: (i, dir) => {
+            const j = i + dir;
+            [svc[i], svc[j]] = [svc[j], svc[i]];
+            renderServices(); markDirty();
+          },
+          onDelete: (i) => { svc.splice(i, 1); renderServices(); markDirty(); },
+          onAdd: () => {
+            if (svc.length >= 30) return;
+            svc.push({ icon: 'stethoscope', name: 'Nuevo servicio', description: '', duration: '', price: '' });
+            renderServices(); markDirty();
+          },
+          addLabel: 'Agregar servicio',
+          container,
+        });
+      }
+      renderServices();
+    };
+
+    // ── Gallery ──
+    tabRenderers.gallery = (body) => {
+      body.appendChild(sectionTitle('Galería de fotos',
+        'Muestra tus instalaciones, equipo y resultados. Las imágenes se cargan al instante.'));
+
+      state.data.gallery = state.data.gallery || [];
+      const gal = state.data.gallery;
+
+      const grid = document.createElement('div');
+      grid.className = 'ms-gallery-grid';
+      function renderThumbs() {
+        grid.innerHTML = '';
+        gal.forEach((g, i) => {
+          const t = document.createElement('div');
+          t.className = 'ms-gallery-thumb';
+          t.innerHTML = `<img src="${esc(g.url)}" alt=""><button class="rm">×</button>`;
+          t.querySelector('.rm').addEventListener('click', () => {
+            gal.splice(i, 1);
+            renderThumbs();
+            markDirty();
+          });
+          grid.appendChild(t);
+        });
+      }
+      renderThumbs();
+      body.appendChild(grid);
+
+      const uploadBtn = document.createElement('label');
+      uploadBtn.className = 'ms-list-add';
+      uploadBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Subir imágenes
+        <input type="file" accept="image/*" multiple style="display:none;">
+      `;
+      uploadBtn.querySelector('input').addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files || []);
+        for (const f of files) {
+          if (gal.length >= 30) break;
+          uploadBtn.style.pointerEvents = 'none';
+          uploadBtn.querySelector('input').disabled = true;
+          try {
+            const { url } = await uploadImage(f, 'gallery');
+            gal.push({ url, alt: '' });
+            renderThumbs();
+            markDirty();
+          } catch (err) {
+            alert(err.message);
+          }
+        }
+        uploadBtn.style.pointerEvents = '';
+        uploadBtn.querySelector('input').disabled = false;
+        uploadBtn.querySelector('input').value = '';
+      });
+      body.appendChild(uploadBtn);
+    };
+
+    // ── Testimonials ──
+    tabRenderers.testimonials = (body) => {
+      body.appendChild(sectionTitle('Testimonios de pacientes',
+        'Genera confianza con reseñas reales.'));
+
+      state.data.testimonials = state.data.testimonials || [];
+      const t = state.data.testimonials;
+      const container = document.createElement('div');
+      body.appendChild(container);
+
+      function renderT() {
+        repeatable({
+          items: t,
+          titleOf: (x) => x.name || 'Testimonio',
+          itemFields: (x, i, wrap, ctx) => {
+            wrap.appendChild(field({
+              label: 'Nombre del paciente', value: x.name, maxLength: 60,
+              onChange: v => { x.name = v; markDirty(); ctx.setTitle(v || 'Testimonio'); }
+            }));
+            wrap.appendChild(field({
+              label: 'Testimonio', type: 'textarea', value: x.text, maxLength: 400,
+              onChange: v => { x.text = v; markDirty(); }
+            }));
+            const rWrap = document.createElement('div');
+            rWrap.className = 'ms-field';
+            rWrap.innerHTML = `<label>Estrellas</label>`;
+            const sel = document.createElement('select');
+            [5,4,3,2,1].forEach(n => {
+              const o = document.createElement('option');
+              o.value = n; o.textContent = '★'.repeat(n) + '☆'.repeat(5 - n);
+              if ((x.rating || 5) === n) o.selected = true;
+              sel.appendChild(o);
+            });
+            sel.addEventListener('change', () => { x.rating = +sel.value; markDirty(); });
+            rWrap.appendChild(sel);
+            wrap.appendChild(rWrap);
+          },
+          onMove: (i, dir) => {
+            const j = i + dir;
+            [t[i], t[j]] = [t[j], t[i]];
+            renderT(); markDirty();
+          },
+          onDelete: (i) => { t.splice(i, 1); renderT(); markDirty(); },
+          onAdd: () => {
+            if (t.length >= 20) return;
+            t.push({ name: 'Nombre', text: '', rating: 5 });
+            renderT(); markDirty();
+          },
+          addLabel: 'Agregar testimonio',
+          container,
+        });
+      }
+      renderT();
+    };
+
+    // ── Hours ──
+    tabRenderers.hours = (body) => {
+      body.appendChild(sectionTitle('Horarios de atención',
+        'Define en qué horas atienden. Marca cerrado los días libres.'));
+
+      const DAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+      let h = state.data.hours || [];
+      if (h.length === 0) {
+        // semilla
+        h = DAY_NAMES.map(d => ({ day: d, open: '08:00', close: '17:00', closed: d === 'Domingo' }));
+        state.data.hours = h;
+        markDirty();
+      }
+
+      const wrap = document.createElement('div');
+      body.appendChild(wrap);
+
+      function renderH() {
+        wrap.innerHTML = '';
+        h.forEach((row, i) => {
+          const item = document.createElement('div');
+          item.className = 'ms-list-item';
+          item.innerHTML = `
+            <div class="ms-item-handle" style="margin-bottom:10px;">
+              <div class="ms-item-title">${esc(row.day)}</div>
+              <label style="display:flex; align-items:center; gap:6px; font-size:0.82rem;">
+                <input type="checkbox" ${row.closed ? 'checked' : ''} data-closed>
+                Cerrado
+              </label>
+            </div>
+          `;
+          if (!row.closed) {
+            const r = document.createElement('div');
+            r.className = 'ms-field-row';
+            r.innerHTML = `
+              <div class="ms-field"><label>Abre</label><input type="time" value="${esc(row.open || '08:00')}" data-open></div>
+              <div class="ms-field"><label>Cierra</label><input type="time" value="${esc(row.close || '17:00')}" data-close></div>
+            `;
+            item.appendChild(r);
+            r.querySelector('[data-open]').addEventListener('change', e => { row.open = e.target.value; markDirty(); });
+            r.querySelector('[data-close]').addEventListener('change', e => { row.close = e.target.value; markDirty(); });
+          }
+          item.querySelector('[data-closed]').addEventListener('change', e => {
+            row.closed = e.target.checked;
+            renderH();
+            markDirty();
+          });
+          wrap.appendChild(item);
+        });
+      }
+      renderH();
+    };
+
+    // ── Location ──
+    tabRenderers.location = (body) => {
+      body.appendChild(sectionTitle('Ubicación',
+        'Pega un enlace de Google Maps para mostrar un mapa interactivo.'));
+      const loc = state.data.location || (state.data.location = {});
+      body.appendChild(field({
+        label: 'Dirección', value: loc.address, maxLength: 200,
+        placeholder: 'Boulevard Morazán, Edificio Plaza 5to piso',
+        onChange: v => { loc.address = v; markDirty(); }
+      }));
+      body.appendChild(fieldRow(
+        field({
+          label: 'Ciudad', value: loc.city, maxLength: 80, placeholder: 'Tegucigalpa',
+          onChange: v => { loc.city = v; markDirty(); }
+        }),
+        field({
+          label: 'Cómo llegar', value: loc.directions, maxLength: 400,
+          placeholder: 'Frente a…',
+          onChange: v => { loc.directions = v; markDirty(); }
+        })
+      ));
+      body.appendChild(field({
+        label: 'Enlace Google Maps', hint: 'pega cualquier URL de Maps',
+        value: loc.maps_url, maxLength: 600, type: 'url',
+        placeholder: 'https://maps.google.com/?q=…',
+        onChange: v => { loc.maps_url = v; markDirty(); }
+      }));
+    };
+
+    // ── FAQ ──
+    tabRenderers.faq = (body) => {
+      body.appendChild(sectionTitle('Preguntas frecuentes',
+        'Responde dudas comunes para que tus pacientes lleguen mejor informados.'));
+      state.data.faq = state.data.faq || [];
+      const f = state.data.faq;
+      const container = document.createElement('div');
+      body.appendChild(container);
+
+      function renderF() {
+        repeatable({
+          items: f,
+          titleOf: (x) => x.q || 'Pregunta',
+          itemFields: (x, i, wrap, ctx) => {
+            wrap.appendChild(field({
+              label: 'Pregunta', value: x.q, maxLength: 140,
+              onChange: v => { x.q = v; markDirty(); ctx.setTitle(v || 'Pregunta'); }
+            }));
+            wrap.appendChild(field({
+              label: 'Respuesta', type: 'textarea', value: x.a, maxLength: 800,
+              onChange: v => { x.a = v; markDirty(); }
+            }));
+          },
+          onMove: (i, dir) => {
+            const j = i + dir;
+            [f[i], f[j]] = [f[j], f[i]];
+            renderF(); markDirty();
+          },
+          onDelete: (i) => { f.splice(i, 1); renderF(); markDirty(); },
+          onAdd: () => {
+            if (f.length >= 30) return;
+            f.push({ q: '¿Nueva pregunta?', a: '' });
+            renderF(); markDirty();
+          },
+          addLabel: 'Agregar pregunta',
+          container,
+        });
+      }
+      renderF();
+    };
+
+    // ── Contact ──
+    tabRenderers.contact = (body) => {
+      body.appendChild(sectionTitle('Contacto y redes',
+        'Estos datos aparecen en el footer y en los botones de contacto.'));
+
+      const c = state.data.contact || (state.data.contact = {});
+      const s = state.data.social || (state.data.social = {});
+
+      body.appendChild(field({
+        label: 'Teléfono', value: c.phone, maxLength: 30, placeholder: '9999-9999',
+        onChange: v => { c.phone = v; markDirty(); }
+      }));
+      body.appendChild(field({
+        label: 'WhatsApp', hint: 'con código de país, sin +', value: c.whatsapp, maxLength: 30, placeholder: '50499999999',
+        onChange: v => { c.whatsapp = v; markDirty(); }
+      }));
+      body.appendChild(field({
+        label: 'Email', value: c.email, type: 'email', maxLength: 120,
+        onChange: v => { c.email = v; markDirty(); }
+      }));
+      body.appendChild(checkbox({
+        label: 'Mostrar formulario de contacto',
+        sub: 'Los mensajes llegan a tu bandeja de "Mensajes".',
+        checked: c.show_contact_form !== false,
+        onChange: v => { c.show_contact_form = v; markDirty(); }
+      }));
+
+      const socialTitle = document.createElement('div');
+      socialTitle.style.marginTop = '24px';
+      socialTitle.appendChild(sectionTitle('Redes sociales', 'Aparecen como iconos en el footer.'));
+      body.appendChild(socialTitle);
+
+      ['facebook', 'instagram', 'tiktok', 'youtube'].forEach(net => {
+        body.appendChild(field({
+          label: net.charAt(0).toUpperCase() + net.slice(1),
+          value: s[net], maxLength: 200, type: 'url',
+          placeholder: `https://${net}.com/tuclinica`,
+          onChange: v => { s[net] = v; markDirty(); }
+        }));
+      });
+    };
+
+    // ── SEO ──
+    tabRenderers.seo = (body) => {
+      body.appendChild(sectionTitle('SEO básico',
+        'Cómo se ve tu sitio cuando se comparte en Google o WhatsApp.'));
+      const s = state.data.seo || (state.data.seo = {});
+      body.appendChild(field({
+        label: 'Título para Google', hint: 'máx. 70 caracteres',
+        value: s.meta_title, maxLength: 80,
+        placeholder: state.clinic.name,
+        onChange: v => { s.meta_title = v; markDirty(); }
+      }));
+      body.appendChild(field({
+        label: 'Descripción', hint: 'máx. 160 caracteres', type: 'textarea',
+        value: s.meta_description, maxLength: 200,
+        placeholder: 'Una breve descripción de tu clínica…',
+        onChange: v => { s.meta_description = v; markDirty(); }
+      }));
+    };
+
+    // ─────────────────────────────────────────────────────
+    // PUBLICAR / SHARE / LEADS
+    // ─────────────────────────────────────────────────────
+
+    function updatePubPill() {
+      const pill = $('msPubPill');
+      if (state.published) {
+        pill.className = 'ms-pub-pill published';
+        $('msPubText').textContent = 'Publicado';
+        $('msPublishBtn').textContent = 'Despublicar';
+      } else {
+        pill.className = 'ms-pub-pill draft';
+        $('msPubText').textContent = 'Borrador';
+        $('msPublishBtn').textContent = 'Publicar';
+      }
+    }
+
+    $('msPublishBtn').addEventListener('click', async () => {
+      const desired = !state.published;
+      if (desired && !state.slug) {
+        alert('Primero configura una URL en la pestaña "General".');
+        document.querySelector('.ms-tab[data-tab="general"]').click();
+        return;
+      }
+      // Guardar pendiente primero para no publicar versión desactualizada
+      await saveNow();
+      $('msPublishBtn').disabled = true;
+      try {
+        const res = await api('/api/clinics/me/landing/publish', {
+          method: 'POST', body: { published: desired }
+        });
+        state.published = res.published;
+        updatePubPill();
+      } catch (e) {
+        alert(e.message);
+      } finally {
+        $('msPublishBtn').disabled = false;
+      }
+    });
+
+    function publicUrl() {
+      if (!state.slug) return null;
+      return `${location.origin}/c/${state.slug}`;
+    }
+
+    function updateShareUI() {
+      const u = publicUrl();
+      if (u) {
+        $('msLinkInput').value = u;
+      } else {
+        $('msLinkInput').value = '(configura una URL primero)';
+      }
+    }
+
+    $('msShareBtn').addEventListener('click', () => {
+      if (!state.slug) {
+        alert('Primero configura tu URL en "General".');
+        document.querySelector('.ms-tab[data-tab="general"]').click();
+        return;
+      }
+      updateShareUI();
+      renderQR();
+      $('msShareModal').classList.add('active');
+    });
+    $('msCloseShare').addEventListener('click', () => $('msShareModal').classList.remove('active'));
+    $('msShareModal').addEventListener('click', (e) => {
+      if (e.target === $('msShareModal')) $('msShareModal').classList.remove('active');
+    });
+
+    $('msCopyLink').addEventListener('click', async () => {
+      const u = publicUrl();
+      if (!u) return;
+      try {
+        await navigator.clipboard.writeText(u);
+        $('msCopyLink').style.color = '#16a34a';
+        setTimeout(() => $('msCopyLink').style.color = '', 1500);
+      } catch (_) { alert(u); }
+    });
+
+    $('msShareWA').addEventListener('click', () => {
+      const u = publicUrl();
+      if (!u) return;
+      const text = encodeURIComponent(`Conoce nuestra clínica: ${u}`);
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    });
+
+    $('msDownloadQR').addEventListener('click', () => {
+      const img = $('msQrBox').querySelector('img');
+      if (!img) return;
+      const a = document.createElement('a');
+      a.href = img.src;
+      a.download = `qr-${state.slug || 'sitio'}.png`;
+      a.click();
+    });
+
+    function renderQR() {
+      const u = publicUrl();
+      const box = $('msQrBox');
+      if (!u) { box.innerHTML = ''; return; }
+      // Usamos un servicio público de QR para evitar cargar libs grandes.
+      const src = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(u)}`;
+      box.innerHTML = `<img src="${src}" alt="QR del sitio">`;
+    }
+
+    $('msOpenLive').addEventListener('click', () => {
+      const u = publicUrl();
+      if (!u) { alert('Configura tu URL primero.'); return; }
+      window.open(u, '_blank');
+    });
+
+    // ── Leads ──
+    $('msLeadsBtn').addEventListener('click', async () => {
+      $('msLeadsModal').classList.add('active');
+      const list = $('msLeadsList');
+      list.innerHTML = `<div class="ms-empty">Cargando…</div>`;
+      try {
+        const leads = await api('/api/clinics/me/landing/leads');
+        if (!leads || leads.length === 0) {
+          list.innerHTML = `<div class="ms-empty">Aún no has recibido mensajes.</div>`;
+          return;
+        }
+        list.innerHTML = leads.map(l => {
+          const d = new Date(l.created_at);
+          const time = d.toLocaleDateString('es-HN', { day: '2-digit', month: 'short' }) + ' · ' +
+                       d.toLocaleTimeString('es-HN', { hour: '2-digit', minute: '2-digit', hour12: true });
+          return `
+            <div class="ms-lead">
+              <div class="ms-lead-head">
+                <div class="ms-lead-name">${esc(l.name)}</div>
+                <div class="ms-lead-time">${esc(time)}</div>
+              </div>
+              <div class="ms-lead-meta">
+                ${l.phone ? `<span>📞 ${esc(l.phone)}</span>` : ''}
+                ${l.email ? `<span>✉️ ${esc(l.email)}</span>` : ''}
+              </div>
+              ${l.message ? `<div class="ms-lead-msg">${esc(l.message)}</div>` : ''}
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        list.innerHTML = `<div class="ms-empty">Error al cargar: ${esc(e.message)}</div>`;
+      }
+    });
+    $('msCloseLeads').addEventListener('click', () => $('msLeadsModal').classList.remove('active'));
+
+    // ── Device toggle ──
+    // La clase .mobile va sobre el shell (no sobre el iframe), porque el shell
+    // simula el chasis del dispositivo y el iframe vive dentro.
+    document.querySelectorAll('.ms-device-toggle button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.ms-device-toggle button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const shell = $('msDeviceShell');
+        if (btn.dataset.device === 'mobile') {
+          shell.classList.add('mobile');
+        } else {
+          shell.classList.remove('mobile');
+        }
+      });
+    });
+
+    // ── Mobile tab/preview toggle ──
+    $('msToggleView')?.addEventListener('click', () => {
+      $('msPreviewPane').classList.add('active-mobile');
+      document.querySelector('.ms-editor').style.display = 'none';
+    });
+    $('msBackToEdit')?.addEventListener('click', () => {
+      $('msPreviewPane').classList.remove('active-mobile');
+      document.querySelector('.ms-editor').style.display = '';
+    });
+
+    // Cerrar modales con Esc
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        $('msShareModal').classList.remove('active');
+        $('msLeadsModal').classList.remove('active');
+      }
+    });
+
+    // ─────────────────────────────────────────────────────
+    // BOOT
+    // ─────────────────────────────────────────────────────
+    (async function init() {
+      try {
+        // 1) Cargar landing actual
+        const landing = await api('/api/clinics/me/landing');
+        // 2) Cargar info de clínica + doctores para preview
+        const previewData = await api('/api/clinics/me/landing/preview');
+        state = {
+          slug: landing.slug,
+          published: landing.published,
+          template: landing.template,
+          data: landing.data,
+          clinic: previewData.clinic,
+          doctors: previewData.doctors,
+        };
+        initialState = deepClone(state);
+
+        updatePubPill();
+        updateShareUI();
+        renderTab('general');
+
+        // Listo
+        $('ms-root').style.display = 'grid';
+        // Primer push al iframe
+        schedulePreview();
+      } catch (e) {
+        document.body.innerHTML = `
+          <div style="padding:40px; text-align:center;">
+            <h2>No se pudo cargar tu sitio</h2>
+            <p style="color:#6b7280">${esc(e.message)}</p>
+            <a href="/dashboard.html" style="color:#0891b2;">Volver al panel</a>
+          </div>`;
+      }
+    })();
+
+    // Aviso al salir con cambios sin guardar
+    window.addEventListener('beforeunload', (e) => {
+      if (isSaving || saveTimer) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+  </script>
+</body>
+</html>

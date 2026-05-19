@@ -178,6 +178,308 @@ router.put('/me', authenticate, requireRole('clinic_admin'), async (req, res) =>
   }
 });
 
+// ── Landing pública por clínica ──────────────────────────────────────────────
+// Esquema permitido en landing_data. Mantengo una lista cerrada para que un POST
+// malicioso no inyecte campos arbitrarios al JSONB.
+const LANDING_DEFAULTS = {
+  hero: {
+    eyebrow: '',
+    title: '',
+    subtitle: '',
+    cta_label: 'Agendar cita',
+    cta_secondary_label: 'Conocer más',
+    image_url: '',
+  },
+  about: {
+    title: 'Sobre nosotros',
+    body: '',
+    highlights: [], // [{ icon, title, text }]
+  },
+  services: [], // [{ name, description, price, duration, icon }]
+  gallery: [],  // [{ url, alt }]
+  testimonials: [], // [{ name, text, rating }]
+  faq: [], // [{ q, a }]
+  hours: [], // [{ day, open, close, closed }]
+  location: {
+    address: '',
+    city: '',
+    maps_url: '',
+    directions: '',
+  },
+  contact: {
+    phone: '',
+    whatsapp: '',
+    email: '',
+    show_contact_form: true,
+  },
+  social: {
+    facebook: '',
+    instagram: '',
+    tiktok: '',
+    youtube: '',
+  },
+  seo: {
+    meta_title: '',
+    meta_description: '',
+  },
+  theme: {
+    primary: '',     // override de brand_color para landing si la clínica quiere
+    accent: '#0ea5e9',
+    font: 'inter',
+  },
+  show_doctors: true,
+  show_online_booking: true,
+};
+
+const TEMPLATE_WHITELIST = ['aurora', 'serenity', 'clinical'];
+
+// Deep merge defensivo: respeta el shape de LANDING_DEFAULTS, descarta keys que no
+// estén en el esquema esperado. Esto es la barrera real contra basura en el JSONB.
+function sanitizeLanding(input) {
+  const result = JSON.parse(JSON.stringify(LANDING_DEFAULTS));
+  if (!input || typeof input !== 'object') return result;
+
+  function setStr(target, key, val, max = 500) {
+    if (typeof val === 'string') target[key] = val.slice(0, max);
+  }
+  function setBool(target, key, val) {
+    if (typeof val === 'boolean') target[key] = val;
+  }
+
+  if (input.hero && typeof input.hero === 'object') {
+    setStr(result.hero, 'eyebrow', input.hero.eyebrow, 80);
+    setStr(result.hero, 'title', input.hero.title, 140);
+    setStr(result.hero, 'subtitle', input.hero.subtitle, 400);
+    setStr(result.hero, 'cta_label', input.hero.cta_label, 40);
+    setStr(result.hero, 'cta_secondary_label', input.hero.cta_secondary_label, 40);
+    setStr(result.hero, 'image_url', input.hero.image_url, 600);
+  }
+  if (input.about && typeof input.about === 'object') {
+    setStr(result.about, 'title', input.about.title, 80);
+    setStr(result.about, 'body', input.about.body, 2000);
+    if (Array.isArray(input.about.highlights)) {
+      result.about.highlights = input.about.highlights.slice(0, 8).map(h => ({
+        icon: typeof h?.icon === 'string' ? h.icon.slice(0, 30) : 'sparkles',
+        title: typeof h?.title === 'string' ? h.title.slice(0, 60) : '',
+        text: typeof h?.text === 'string' ? h.text.slice(0, 200) : '',
+      })).filter(h => h.title || h.text);
+    }
+  }
+  if (Array.isArray(input.services)) {
+    result.services = input.services.slice(0, 30).map(s => ({
+      name: typeof s?.name === 'string' ? s.name.slice(0, 80) : '',
+      description: typeof s?.description === 'string' ? s.description.slice(0, 280) : '',
+      price: typeof s?.price === 'string' ? s.price.slice(0, 30) : '',
+      duration: typeof s?.duration === 'string' ? s.duration.slice(0, 30) : '',
+      icon: typeof s?.icon === 'string' ? s.icon.slice(0, 30) : 'stethoscope',
+    })).filter(s => s.name);
+  }
+  if (Array.isArray(input.gallery)) {
+    result.gallery = input.gallery.slice(0, 30).map(g => ({
+      url: typeof g?.url === 'string' ? g.url.slice(0, 600) : '',
+      alt: typeof g?.alt === 'string' ? g.alt.slice(0, 120) : '',
+    })).filter(g => g.url);
+  }
+  if (Array.isArray(input.testimonials)) {
+    result.testimonials = input.testimonials.slice(0, 20).map(t => ({
+      name: typeof t?.name === 'string' ? t.name.slice(0, 60) : '',
+      text: typeof t?.text === 'string' ? t.text.slice(0, 400) : '',
+      rating: Number.isFinite(Number(t?.rating)) ? Math.max(1, Math.min(5, Math.round(Number(t.rating)))) : 5,
+    })).filter(t => t.name && t.text);
+  }
+  if (Array.isArray(input.faq)) {
+    result.faq = input.faq.slice(0, 30).map(f => ({
+      q: typeof f?.q === 'string' ? f.q.slice(0, 140) : '',
+      a: typeof f?.a === 'string' ? f.a.slice(0, 800) : '',
+    })).filter(f => f.q && f.a);
+  }
+  if (Array.isArray(input.hours)) {
+    result.hours = input.hours.slice(0, 7).map(h => ({
+      day: typeof h?.day === 'string' ? h.day.slice(0, 20) : '',
+      open: typeof h?.open === 'string' ? h.open.slice(0, 10) : '',
+      close: typeof h?.close === 'string' ? h.close.slice(0, 10) : '',
+      closed: !!h?.closed,
+    })).filter(h => h.day);
+  }
+  if (input.location && typeof input.location === 'object') {
+    setStr(result.location, 'address', input.location.address, 200);
+    setStr(result.location, 'city', input.location.city, 80);
+    setStr(result.location, 'maps_url', input.location.maps_url, 600);
+    setStr(result.location, 'directions', input.location.directions, 400);
+  }
+  if (input.contact && typeof input.contact === 'object') {
+    setStr(result.contact, 'phone', input.contact.phone, 30);
+    setStr(result.contact, 'whatsapp', input.contact.whatsapp, 30);
+    setStr(result.contact, 'email', input.contact.email, 120);
+    setBool(result.contact, 'show_contact_form', input.contact.show_contact_form);
+  }
+  if (input.social && typeof input.social === 'object') {
+    setStr(result.social, 'facebook', input.social.facebook, 200);
+    setStr(result.social, 'instagram', input.social.instagram, 200);
+    setStr(result.social, 'tiktok', input.social.tiktok, 200);
+    setStr(result.social, 'youtube', input.social.youtube, 200);
+  }
+  if (input.seo && typeof input.seo === 'object') {
+    setStr(result.seo, 'meta_title', input.seo.meta_title, 80);
+    setStr(result.seo, 'meta_description', input.seo.meta_description, 200);
+  }
+  if (input.theme && typeof input.theme === 'object') {
+    setStr(result.theme, 'primary', input.theme.primary, 24);
+    setStr(result.theme, 'accent', input.theme.accent, 24);
+    setStr(result.theme, 'font', input.theme.font, 24);
+  }
+  setBool(result, 'show_doctors', input.show_doctors);
+  setBool(result, 'show_online_booking', input.show_online_booking);
+
+  return result;
+}
+
+function isValidSlug(s) {
+  return typeof s === 'string' && /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/.test(s);
+}
+
+// GET /api/clinics/me/landing — devuelve toda la config para que la edite el admin
+router.get('/me/landing', authenticate, async (req, res) => {
+  if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
+  const r = await query(
+    `SELECT id, name, slug, brand_color, logo_url, landing_data, landing_template, landing_published
+       FROM clinics WHERE id = $1`,
+    [req.user.clinic_id]
+  );
+  if (r.rows.length === 0) return res.status(404).json({ error: 'Clínica no encontrada' });
+  const row = r.rows[0];
+  res.json({
+    clinic_id: row.id,
+    clinic_name: row.name,
+    slug: row.slug || '',
+    brand_color: row.brand_color || '#0891b2',
+    logo_url: row.logo_url || '',
+    template: TEMPLATE_WHITELIST.includes(row.landing_template) ? row.landing_template : 'aurora',
+    published: !!row.landing_published,
+    data: sanitizeLanding(row.landing_data || {}),
+  });
+});
+
+// PUT /api/clinics/me/landing — persiste cambios (clinic_admin)
+router.put('/me/landing', authenticate, requireRole('clinic_admin'), async (req, res) => {
+  if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
+  const body = req.body || {};
+  const clean = sanitizeLanding(body.data || {});
+  const template = TEMPLATE_WHITELIST.includes(body.template) ? body.template : 'aurora';
+
+  await query(
+    `UPDATE clinics SET landing_data = $1, landing_template = $2 WHERE id = $3`,
+    [JSON.stringify(clean), template, req.user.clinic_id]
+  );
+  res.json({ success: true, data: clean, template });
+});
+
+// PUT /api/clinics/me/landing/slug — establece o cambia el slug público.
+// Validamos formato y unicidad antes de escribir.
+router.put('/me/landing/slug', authenticate, requireRole('clinic_admin'), async (req, res) => {
+  if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
+  const raw = String((req.body && req.body.slug) || '').trim().toLowerCase();
+  if (!isValidSlug(raw)) {
+    return res.status(400).json({
+      error: 'Slug inválido. Usa 3-40 caracteres: minúsculas, números y guiones (sin espacios).',
+    });
+  }
+  // Reservados por colisión con rutas estáticas del app
+  const RESERVED = new Set([
+    'admin', 'api', 'login', 'dashboard', 'agendar', 'confirmar', 'app', 'uploads',
+    'index', 'landing', 'public', 'static', 'assets', 'mi-sitio', 'plan', 'help'
+  ]);
+  if (RESERVED.has(raw)) return res.status(400).json({ error: 'Ese slug está reservado, elige otro.' });
+
+  const dup = await query('SELECT id FROM clinics WHERE slug = $1 AND id <> $2', [raw, req.user.clinic_id]);
+  if (dup.rows.length > 0) return res.status(409).json({ error: 'Ese slug ya está en uso por otra clínica.' });
+
+  await query('UPDATE clinics SET slug = $1 WHERE id = $2', [raw, req.user.clinic_id]);
+  res.json({ success: true, slug: raw });
+});
+
+// POST /api/clinics/me/landing/publish — toggle de publicado. Requiere slug.
+router.post('/me/landing/publish', authenticate, requireRole('clinic_admin'), async (req, res) => {
+  if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
+  const desired = !!(req.body && req.body.published);
+  if (desired) {
+    const r = await query('SELECT slug FROM clinics WHERE id = $1', [req.user.clinic_id]);
+    if (!r.rows[0]?.slug) {
+      return res.status(400).json({ error: 'Configura un slug antes de publicar tu sitio.' });
+    }
+  }
+  await query('UPDATE clinics SET landing_published = $1 WHERE id = $2', [desired, req.user.clinic_id]);
+  res.json({ success: true, published: desired });
+});
+
+// POST /api/clinics/me/landing/image — subida de imágenes (hero, galería).
+// Devuelve url de Cloudinary. Llamamos múltiples veces para galería.
+router.post('/me/landing/image', authenticate, requireRole('clinic_admin'), logoUpload.single('image'), async (req, res) => {
+  if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
+  if (!req.file) return res.status(400).json({ error: 'No se envió ningún archivo' });
+  try {
+    const slot = (req.body && req.body.slot) || 'gallery';
+    const publicId = `${slot}-${Date.now()}-${uuid().slice(0, 8)}`;
+    const result = await uploadBufferToCloudinary(req.file.buffer, publicId, `clinics/${req.user.clinic_id}/landing`);
+    res.json({ url: result.secure_url });
+  } catch (err) {
+    console.error('Error uploading landing image:', err);
+    res.status(500).json({ error: 'No se pudo subir la imagen' });
+  }
+});
+
+// GET /api/clinics/me/landing/preview — payload con la misma forma que el endpoint
+// público, pero sin requerir landing_published. Usado por el iframe del editor.
+router.get('/me/landing/preview', authenticate, async (req, res) => {
+  if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
+  const r = await query(
+    `SELECT id, name, address, phone, email, city, brand_color, logo_url, website,
+            landing_data, landing_template
+       FROM clinics WHERE id = $1`,
+    [req.user.clinic_id]
+  );
+  if (r.rows.length === 0) return res.status(404).json({ error: 'Clínica no encontrada' });
+  const c = r.rows[0];
+  const data = sanitizeLanding(c.landing_data || {});
+  let doctors = [];
+  if (data.show_doctors !== false) {
+    const docs = await query(
+      `SELECT id, name, specialty, photo_url, bio FROM users
+        WHERE clinic_id = $1 AND role = 'doctor' ORDER BY name`,
+      [c.id]
+    );
+    doctors = docs.rows;
+  }
+  res.json({
+    clinic: {
+      id: c.id,
+      name: c.name,
+      address: c.address || '',
+      city: c.city || '',
+      phone: c.phone || '',
+      email: c.email || '',
+      brand_color: c.brand_color || '#0891b2',
+      logo_url: c.logo_url || '',
+      website: c.website || '',
+    },
+    template: c.landing_template || 'aurora',
+    data,
+    doctors,
+  });
+});
+
+// GET /api/clinics/me/landing/leads — bandeja de leads del formulario público
+router.get('/me/landing/leads', authenticate, requireRole('clinic_admin'), async (req, res) => {
+  if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
+  const r = await query(
+    `SELECT id, name, phone, email, message, status, created_at
+       FROM clinic_landing_leads WHERE clinic_id = $1
+       ORDER BY created_at DESC LIMIT 200`,
+    [req.user.clinic_id]
+  );
+  res.json(r.rows);
+});
+
 router.get('/plan/info', authenticate, async (req, res) => {
   if (!req.user.clinic_id) return res.status(403).json({ error: 'No clinic access' });
 

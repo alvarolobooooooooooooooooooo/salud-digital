@@ -9,3 +9,12 @@ node_modules/
 *.backup
 .DS_Store
 uploads/
+
+# Local tooling (Claude Code, etc.)
+.agents/
+.claude/
+skills-lock.json
+
+# Ad-hoc test scripts
+test-confirmations.js
+test-confirmations-auth.js

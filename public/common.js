@@ -18,7 +18,11 @@ function logout() {
 }
 
 function requireAuth(allowedRoles) {
-  if (!getToken()) { window.location.href = '/'; return; }
+  // La sesión vive en la cookie HttpOnly (fuente de verdad). El token en localStorage
+  // es un fallback legacy; algunos navegadores limpian el storage manteniendo cookies.
+  // Si tenemos cualquiera de los dos, asumimos sesión y dejamos que las llamadas a la
+  // API confirmen: un 401 dispara logout() en api() y limpia ambos.
+  if (!getToken() && !getRole()) { window.location.href = '/'; return; }
   if (allowedRoles && !allowedRoles.includes(getRole())) {
     const role = getRole();
     const redirects = {

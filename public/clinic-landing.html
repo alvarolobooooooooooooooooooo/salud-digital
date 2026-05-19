@@ -1,0 +1,2086 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cargando…</title>
+  <meta name="description" content="">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="">
+  <meta property="og:description" content="">
+  <meta property="og:image" content="">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0891b2;
+      --primary-strong: #0e7490;
+      --primary-soft: #ecfeff;
+      --primary-tint: #cffafe;
+      --accent: #0ea5e9;
+
+      --ink: #0b1220;
+      --ink-2: #1f2937;
+      --muted: #4b5563;
+      --muted-2: #6b7280;
+      --line: #e5e7eb;
+      --line-2: #d1d5db;
+      --paper: #ffffff;
+      --paper-2: #f8fafc;
+      --bg: #f4f7fa;
+
+      --shadow-sm: 0 1px 2px rgba(15,23,42,.06), 0 2px 4px rgba(15,23,42,.04);
+      --shadow-md: 0 8px 24px -12px rgba(15,23,42,.18), 0 4px 12px -8px rgba(15,23,42,.10);
+      --shadow-lg: 0 30px 60px -30px rgba(15,23,42,.32), 0 12px 28px -20px rgba(15,23,42,.16);
+
+      --radius-sm: 10px;
+      --radius: 14px;
+      --radius-md: 18px;
+      --radius-lg: 24px;
+      --radius-xl: 32px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      line-height: 1.55;
+      font-size: 15.5px;
+      letter-spacing: -0.005em;
+    }
+    h1, h2, h3, h4 {
+      font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      color: var(--ink);
+      margin: 0;
+    }
+    h1 { font-size: clamp(2.2rem, 5.5vw, 3.6rem); }
+    h2 { font-size: clamp(1.6rem, 3.2vw, 2.4rem); }
+    h3 { font-size: 1.15rem; font-weight: 700; }
+    p { margin: 0; color: var(--muted); }
+    a { color: inherit; }
+    img { max-width: 100%; display: block; }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    /* ── Estado: loading & 404 ────────────────────────────────────── */
+    #boot {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    #boot .spinner {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 3px solid color-mix(in oklch, var(--primary) 18%, white);
+      border-top-color: var(--primary);
+      animation: spin .9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #notfound {
+      min-height: 100vh;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 24px;
+    }
+    #notfound .nf-card {
+      max-width: 480px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 36px 28px;
+      box-shadow: var(--shadow-md);
+    }
+    #notfound h1 { font-size: 1.4rem; margin-bottom: 8px; }
+
+    /* ── Topbar (sticky) ────────────────────────────────────── */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: saturate(180%) blur(14px);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      border-bottom: 1px solid rgba(15,23,42,0.06);
+      transition: box-shadow .25s ease;
+      /* En iPhones con notch / Dynamic Island, env() agrega safe area top
+         para que el logo no quede debajo del recorte de la cámara. */
+      padding-top: env(safe-area-inset-top, 0);
+    }
+    /* Modo preview embebido (mi-sitio.html) en viewport mobile: simulamos la
+       safe area que el Dynamic Island del shell ocuparía. */
+    body.is-preview .topbar { padding-top: 0; }
+    @media (max-width: 480px) {
+      body.is-preview .topbar { padding-top: 40px; }
+    }
+    .topbar.scrolled { box-shadow: 0 4px 18px -10px rgba(15,23,42,.18); }
+    .topbar-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      /* Importante: NO usar shorthand `padding: 14px 0` — sobrescribiría el
+         padding horizontal del .container (28px) y dejaría logo y CTA pegados
+         a los bordes del iframe. Solo seteamos vertical. */
+      padding-top: 22px;
+      padding-bottom: 28px;
+      min-height: 88px;
+      gap: 16px;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      text-decoration: none; color: var(--ink);
+    }
+    .brand-logo {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), color-mix(in oklch, var(--primary) 65%, white));
+      display: grid; place-items: center;
+      color: white; font-weight: 800; font-size: 1.1rem;
+      box-shadow: 0 4px 14px -6px color-mix(in oklch, var(--primary) 60%, transparent);
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .brand-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .brand-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
+    }
+    .brand-city {
+      font-size: 0.78rem;
+      color: var(--muted-2);
+      letter-spacing: 0.02em;
+    }
+    .topbar-nav {
+      display: flex; align-items: center; gap: 4px;
+    }
+    .topbar-nav a {
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 0.92rem;
+      color: var(--ink-2);
+      text-decoration: none;
+      transition: all .15s ease;
+    }
+    .topbar-nav a:hover { background: var(--paper-2); color: var(--primary-strong); }
+    .topbar-cta {
+      display: flex; align-items: center; gap: 10px;
+    }
+    @media (max-width: 880px) {
+      .topbar-nav { display: none; }
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      font-family: inherit;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all .18s ease;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+      color: white;
+      box-shadow: 0 10px 26px -10px color-mix(in oklch, var(--primary) 55%, transparent);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px -14px color-mix(in oklch, var(--primary) 55%, transparent);
+    }
+    .btn-ghost {
+      background: white;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+    .btn-ghost:hover { border-color: var(--primary); color: var(--primary-strong); }
+    .btn-sm { padding: 9px 16px; font-size: 0.88rem; }
+
+    /* ── Hero ────────────────────────────────────── */
+    .hero {
+      position: relative;
+      padding: 96px 0 124px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    /* Capa 1: orbes suaves de marca */
+    .hero::before {
+      content: ""; position: absolute; inset: -140px -60px;
+      background:
+        radial-gradient(46% 40% at 6% 4%, color-mix(in oklch, var(--primary) 24%, transparent), transparent 65%),
+        radial-gradient(40% 44% at 98% 2%, color-mix(in oklch, var(--accent) 18%, transparent), transparent 68%),
+        radial-gradient(60% 50% at 50% 110%, color-mix(in oklch, var(--primary) 8%, transparent), transparent 72%);
+      pointer-events: none;
+      z-index: -2;
+    }
+    /* Capa 2: grid vertical sutil — toque editorial premium */
+    .hero::after {
+      content: ""; position: absolute; inset: 0;
+      background-image:
+        linear-gradient(to right, color-mix(in oklch, var(--ink) 5%, transparent) 1px, transparent 1px);
+      background-size: 88px 100%;
+      mask-image: linear-gradient(180deg, black 0%, black 70%, transparent 100%),
+                  linear-gradient(90deg, transparent 0%, black 8%, black 92%, transparent 100%);
+      -webkit-mask-image: linear-gradient(180deg, black 0%, black 70%, transparent 100%),
+                          linear-gradient(90deg, transparent 0%, black 8%, black 92%, transparent 100%);
+      mask-composite: intersect;
+      -webkit-mask-composite: source-in;
+      opacity: .6;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .hero-inner {
+      position: relative; z-index: 1;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 64px;
+      align-items: center;
+    }
+    /* Sin imagen de portada: hero centrado a una columna, sin bloque vacío. */
+    .hero-inner.no-image {
+      grid-template-columns: minmax(0, 820px);
+      justify-content: center;
+      text-align: center;
+      padding-top: 8px;
+    }
+    .hero-inner.no-image .hero-subtitle { margin-left: auto; margin-right: auto; }
+    .hero-inner.no-image .hero-ctas { justify-content: center; }
+    .hero-inner.no-image .hero-trust { justify-content: center; }
+    .hero-inner.no-image .hero-visual { display: none; }
+    .hero-inner.no-image .hero-mark { justify-content: center; }
+    .hero-inner.no-image .hero-mark::before { display: none; }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 7px 16px 7px 12px;
+      background: rgba(255,255,255,.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--primary-tint);
+      color: var(--primary-strong);
+      font-weight: 700;
+      font-size: 0.78rem;
+      border-radius: 999px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 6px 18px -10px color-mix(in oklch, var(--primary) 45%, transparent);
+    }
+    .hero-eyebrow .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 22%, transparent);
+      animation: dotPulse 2.4s ease-in-out infinite;
+    }
+    @keyframes dotPulse {
+      0%, 100% { box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 22%, transparent); }
+      50%      { box-shadow: 0 0 0 6px color-mix(in oklch, var(--primary) 10%, transparent); }
+    }
+
+    /* Mark editorial sobre el título: línea + texto small caps */
+    .hero-mark {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 18px;
+      color: var(--muted-2);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .hero-mark::before {
+      content: "";
+      width: 38px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), color-mix(in oklch, var(--primary) 30%, transparent));
+    }
+    .hero-mark .hero-mark-num {
+      font-family: 'Fraunces', 'Plus Jakarta Sans', serif;
+      font-style: italic;
+      font-weight: 500;
+      color: var(--primary-strong);
+      font-size: 0.95rem;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .hero h1 {
+      margin: 14px 0 22px;
+      font-size: clamp(2.6rem, 6.2vw, 4.8rem);
+      letter-spacing: -0.035em;
+      line-height: 1.02;
+      background: linear-gradient(120deg,
+        var(--ink) 0%,
+        var(--ink-2) 22%,
+        var(--primary-strong) 55%,
+        var(--primary) 78%,
+        var(--accent) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+    /* Acento serif del título: italic en color marca (cuando hay 3+ palabras) */
+    .hero-title-accent {
+      font-family: 'Fraunces', 'Plus Jakarta Sans', serif;
+      font-style: italic;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      -webkit-text-fill-color: var(--primary-strong);
+      color: var(--primary-strong);
+    }
+    .hero-subtitle {
+      font-size: 1.22rem;
+      color: var(--muted);
+      max-width: 540px;
+      line-height: 1.55;
+      font-weight: 400;
+    }
+    .hero-subtitle .hero-sub-em {
+      font-family: 'Fraunces', 'Plus Jakarta Sans', serif;
+      font-style: italic;
+      color: var(--ink-2);
+      font-weight: 500;
+    }
+    .hero-ctas {
+      display: flex; flex-wrap: wrap; gap: 14px;
+      margin-top: 32px;
+    }
+    .hero-ctas .btn-primary {
+      padding: 14px 26px;
+      font-size: 1rem;
+    }
+    .hero-trust {
+      display: flex; align-items: stretch; gap: 0;
+      margin-top: 56px;
+      flex-wrap: wrap;
+      padding: 0;
+      width: fit-content;
+      position: relative;
+    }
+    .hero-trust::before {
+      content: ""; position: absolute;
+      left: 0; top: -18px; width: 28px; height: 1px;
+      background: var(--line-2);
+    }
+    .hero-inner.no-image .hero-trust { margin-left: auto; margin-right: auto; }
+    .hero-inner.no-image .hero-trust::before { left: 50%; transform: translateX(-50%); }
+    .trust-stat {
+      padding: 0 26px;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .trust-stat:first-child { padding-left: 0; }
+    .trust-stat:last-child  { padding-right: 0; }
+    .trust-stat .v {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 1.7rem;
+      color: var(--ink);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .trust-stat .l {
+      font-size: 0.74rem;
+      color: var(--muted-2);
+      margin-top: 8px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .trust-divider {
+      width: 1px; align-self: stretch; height: auto;
+      background: var(--line);
+      margin: 4px 0;
+    }
+
+    /* Scroll cue: detalle editorial al fondo del hero */
+    .hero-scroll-cue {
+      position: absolute;
+      left: 28px; bottom: 32px;
+      display: flex; align-items: center; gap: 14px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted-2);
+      z-index: 2;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+    .hero-scroll-cue::after {
+      content: "";
+      width: 1px; height: 56px;
+      background: linear-gradient(180deg, var(--line-2), transparent);
+      animation: scrollLine 2.4s ease-in-out infinite;
+    }
+    @keyframes scrollLine {
+      0%, 100% { transform: scaleY(.6); transform-origin: top; opacity: .5; }
+      50%      { transform: scaleY(1);  transform-origin: top; opacity: 1; }
+    }
+    @media (max-width: 1080px) { .hero-scroll-cue { display: none; } }
+
+    /* ── Visual derecho ── */
+    .hero-visual {
+      position: relative;
+      aspect-ratio: 4 / 5;
+      max-height: 600px;
+      border-radius: var(--radius-xl);
+      overflow: visible; /* permitimos que la card y el bloque de fondo salgan */
+    }
+    /* Bloque de color detrás de la imagen, desplazado: capa de diseño */
+    .hero-visual::before {
+      content: ""; position: absolute;
+      inset: 18px -18px -18px 18px;
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      opacity: .22;
+      filter: blur(2px);
+      z-index: 0;
+    }
+    /* Halo difuso adicional */
+    .hero-visual::after {
+      content: ""; position: absolute;
+      inset: -30px;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, color-mix(in oklch, var(--primary) 22%, transparent), transparent 70%);
+      filter: blur(40px);
+      z-index: -1;
+      pointer-events: none;
+    }
+    /* La imagen va dentro de su propio frame */
+    .hero-visual img {
+      position: relative;
+      z-index: 2;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      border-radius: var(--radius-xl);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,.9) inset,
+        0 40px 80px -30px rgba(15,23,42,.35),
+        0 18px 36px -22px rgba(15,23,42,.18);
+      border: 1px solid rgba(255,255,255,.7);
+    }
+
+    .hero-card {
+      position: absolute;
+      left: -32px; bottom: 32px;
+      z-index: 3;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,.7);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow:
+        0 30px 60px -30px rgba(15,23,42,.4),
+        0 0 0 1px color-mix(in oklch, var(--line) 50%, transparent);
+      animation: floatY 5.5s ease-in-out infinite;
+    }
+    @keyframes floatY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    .hero-card-ic {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, color-mix(in oklch, var(--primary) 18%, white), color-mix(in oklch, var(--accent) 14%, white));
+      color: var(--primary-strong);
+      box-shadow: 0 6px 14px -8px color-mix(in oklch, var(--primary) 50%, transparent);
+    }
+    .hero-card-l {
+      font-size: 0.68rem; color: var(--muted-2);
+      letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600;
+    }
+    .hero-card-v { font-weight: 700; font-size: 0.94rem; color: var(--ink); margin-top: 2px; }
+
+    @media (max-width: 1080px) {
+      .hero { padding: 64px 0 88px; }
+      .hero-inner { gap: 44px; }
+    }
+    @media (max-width: 820px) {
+      .hero { padding: 48px 0 64px; }
+      .hero-inner:not(.no-image) { grid-template-columns: 1fr; gap: 40px; text-align: left; }
+      .hero-visual { max-height: 380px; aspect-ratio: 4 / 3; order: -1; }
+      .hero-visual::before { inset: 12px -12px -12px 12px; }
+      .hero-card { left: 12px; bottom: 12px; }
+      .hero-trust { padding: 12px 14px; }
+      .trust-stat { padding: 4px 14px; }
+    }
+    @media (max-width: 480px) {
+      .hero-trust { width: auto; }
+    }
+
+    /* ── Sections (base) ────────────────────────────────────── */
+    section { padding: 72px 0; }
+    .section-head {
+      max-width: 720px;
+      margin: 0 auto 48px;
+      text-align: center;
+    }
+    .section-eyebrow {
+      display: inline-block;
+      color: var(--primary-strong);
+      font-weight: 700;
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .section-subtitle {
+      font-size: 1.05rem;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+
+    /* ── Sobre / Highlights ────────────────────────────────────── */
+    .about {
+      background: white;
+    }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .about-text h2 { margin-bottom: 20px; }
+    .about-text p { font-size: 1.02rem; line-height: 1.7; }
+    .about-highlights {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .highlight {
+      padding: 22px 20px;
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      transition: all .2s ease;
+    }
+    .highlight:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary-tint);
+      box-shadow: var(--shadow-md);
+    }
+    .highlight-ic {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      display: grid; place-items: center;
+      background: white;
+      color: var(--primary-strong);
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+    .highlight h4 { font-size: 1rem; margin-bottom: 4px; font-weight: 700; }
+    .highlight p { font-size: 0.92rem; }
+    @media (max-width: 880px) {
+      .about-grid { grid-template-columns: 1fr; gap: 36px; }
+    }
+
+    /* ── Servicios ────────────────────────────────────── */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .service-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 28px 26px;
+      transition: all .25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .service-card::before {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(135deg, color-mix(in oklch, var(--primary) 8%, transparent), transparent 60%);
+      opacity: 0; transition: opacity .25s ease;
+    }
+    .service-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--primary-tint);
+      box-shadow: var(--shadow-lg);
+    }
+    .service-card:hover::before { opacity: 1; }
+    .service-card > * { position: relative; }
+    .service-ic {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, color-mix(in oklch, var(--primary) 18%, white), color-mix(in oklch, var(--accent) 16%, white));
+      color: var(--primary-strong);
+      margin-bottom: 18px;
+    }
+    .service-card h3 { font-size: 1.1rem; margin-bottom: 8px; }
+    .service-card p { font-size: 0.94rem; margin-bottom: 14px; }
+    .service-meta {
+      display: flex; align-items: center; gap: 12px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--line);
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .service-meta b { color: var(--primary-strong); font-weight: 700; }
+
+    /* ── Doctores ────────────────────────────────────── */
+    .doctors {
+      background: linear-gradient(180deg, white 0%, var(--paper-2) 100%);
+    }
+    .doctors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .doctor-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 24px 22px;
+      text-align: center;
+      transition: all .25s ease;
+    }
+    .doctor-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary-tint); }
+    .doctor-avatar {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, color-mix(in oklch, var(--primary) 18%, white), color-mix(in oklch, var(--accent) 18%, white));
+      display: grid; place-items: center;
+      color: var(--primary-strong);
+      font-weight: 700; font-size: 1.6rem;
+      overflow: hidden;
+      box-shadow: 0 8px 20px -10px color-mix(in oklch, var(--primary) 30%, transparent);
+    }
+    .doctor-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .doctor-name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+    .doctor-spec {
+      font-size: 0.82rem;
+      color: var(--primary-strong);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .doctor-bio { font-size: 0.88rem; margin-top: 12px; color: var(--muted); }
+
+    /* ── Galería ────────────────────────────────────── */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .gallery-item {
+      aspect-ratio: 4 / 3;
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--paper-2);
+      position: relative;
+      transition: transform .25s ease;
+    }
+    .gallery-item:hover { transform: scale(1.02); }
+    .gallery-item img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform .4s ease;
+    }
+    .gallery-item:hover img { transform: scale(1.05); }
+
+    /* Lightbox simple */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(8,12,20,.92);
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 32px;
+      backdrop-filter: blur(8px);
+    }
+    .lightbox.active { display: flex; }
+    .lightbox img {
+      max-width: 92vw; max-height: 88vh;
+      border-radius: 12px;
+      box-shadow: 0 30px 80px -20px rgba(0,0,0,.5);
+    }
+    .lightbox-close {
+      position: absolute; top: 24px; right: 24px;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,.12); color: white;
+      border: 1px solid rgba(255,255,255,.2);
+      display: grid; place-items: center;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+    }
+    .lightbox-close:hover { background: rgba(255,255,255,.2); }
+
+    /* ── Testimonios ────────────────────────────────────── */
+    .testimonials {
+      background: white;
+    }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .testimonial {
+      background: linear-gradient(180deg, white, var(--paper-2));
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 28px 26px;
+      position: relative;
+    }
+    .testimonial::before {
+      content: "“";
+      position: absolute;
+      top: -8px; left: 22px;
+      font-family: 'Plus Jakarta Sans';
+      font-size: 5rem;
+      line-height: 1;
+      color: var(--primary-tint);
+    }
+    .testimonial p {
+      font-size: 1rem;
+      color: var(--ink-2);
+      line-height: 1.65;
+      margin-bottom: 18px;
+      position: relative;
+    }
+    .testimonial-author {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .testimonial-avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: linear-gradient(135deg, color-mix(in oklch, var(--primary) 22%, white), color-mix(in oklch, var(--accent) 22%, white));
+      color: var(--primary-strong);
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 0.95rem;
+    }
+    .testimonial-name { font-weight: 700; font-size: 0.95rem; }
+    .testimonial-stars { color: #f59e0b; font-size: 0.85rem; margin-top: 2px; letter-spacing: 0.05em; }
+
+    /* ── FAQ ────────────────────────────────────── */
+    .faq {
+      background: var(--bg);
+    }
+    .faq-list {
+      max-width: 780px;
+      margin: 0 auto;
+      display: grid;
+      gap: 12px;
+    }
+    .faq-item {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .faq-q {
+      padding: 20px 24px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      user-select: none;
+    }
+    .faq-q::after {
+      content: "+";
+      font-size: 1.5rem;
+      color: var(--primary-strong);
+      font-weight: 300;
+      transition: transform .2s ease;
+    }
+    .faq-item.open .faq-q::after { transform: rotate(45deg); }
+    .faq-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .25s ease;
+    }
+    .faq-a-inner {
+      padding: 0 24px 22px;
+      color: var(--muted);
+      font-size: 0.96rem;
+      line-height: 1.65;
+    }
+    .faq-item.open .faq-a { max-height: 600px; }
+
+    /* ── Horarios + Ubicación ────────────────────────────────────── */
+    .visit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 32px;
+      align-items: start;
+    }
+    .visit-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 28px 26px;
+      box-shadow: var(--shadow-sm);
+    }
+    .hours-list { display: grid; gap: 10px; margin-top: 8px; }
+    .hours-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--line);
+    }
+    .hours-row:last-child { border-bottom: none; }
+    .hours-day { font-weight: 600; color: var(--ink-2); }
+    .hours-time { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .hours-time.closed { color: #ef4444; font-weight: 600; }
+    .hours-row.today {
+      background: var(--primary-soft);
+      margin: 0 -14px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border-bottom-color: transparent;
+    }
+    .hours-row.today .hours-day::after {
+      content: "Hoy"; margin-left: 10px;
+      padding: 2px 8px;
+      background: var(--primary);
+      color: white;
+      font-size: 0.7rem;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .location-map {
+      aspect-ratio: 16 / 10;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--paper-2);
+      margin-top: 16px;
+      border: 1px solid var(--line);
+    }
+    .location-map iframe { width: 100%; height: 100%; border: 0; }
+    .location-address {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px;
+      border-radius: 12px;
+      background: var(--paper-2);
+      margin-top: 14px;
+    }
+    .location-address .ic {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: white; color: var(--primary-strong);
+      display: grid; place-items: center; flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+    .location-address-text { font-size: 0.95rem; line-height: 1.5; }
+    .location-address-text b { color: var(--ink); display: block; margin-bottom: 2px; }
+
+    @media (max-width: 880px) {
+      .visit-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Contacto / CTA final ────────────────────────────────────── */
+    .cta-final {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-final::before {
+      content: ""; position: absolute; inset: 0;
+      background:
+        radial-gradient(40% 60% at 80% 20%, rgba(255,255,255,.16), transparent 60%),
+        radial-gradient(40% 50% at 10% 90%, rgba(255,255,255,.12), transparent 65%);
+      pointer-events: none;
+    }
+    .cta-inner {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 56px;
+      align-items: center;
+    }
+    .cta-inner h2 { color: white; }
+    .cta-inner .section-eyebrow { color: color-mix(in oklch, white 90%, var(--primary-tint)); }
+    .cta-inner p { color: rgba(255,255,255,.86); font-size: 1.05rem; margin-top: 14px; }
+    .cta-list {
+      list-style: none; padding: 0; margin: 24px 0 0;
+      display: grid; gap: 12px;
+    }
+    .cta-list li {
+      display: flex; align-items: center; gap: 12px;
+      color: rgba(255,255,255,.94);
+    }
+    .cta-list .check {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: rgba(255,255,255,.18);
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+
+    .contact-form {
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      backdrop-filter: blur(10px);
+    }
+    .contact-form h3 { color: white; font-size: 1.15rem; margin-bottom: 6px; }
+    .contact-form .form-sub { color: rgba(255,255,255,.72); font-size: 0.92rem; margin-bottom: 20px; }
+    .field { display: grid; gap: 6px; margin-bottom: 14px; }
+    .field label {
+      font-size: 0.82rem; font-weight: 600;
+      color: rgba(255,255,255,.88);
+      letter-spacing: 0.02em;
+    }
+    .field input, .field textarea {
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.10);
+      color: white;
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: all .15s ease;
+    }
+    .field input:focus, .field textarea:focus {
+      outline: none;
+      border-color: rgba(255,255,255,.5);
+      background: rgba(255,255,255,.16);
+    }
+    .field input::placeholder, .field textarea::placeholder { color: rgba(255,255,255,.5); }
+    .field textarea { resize: vertical; min-height: 90px; }
+    .contact-form .btn-primary {
+      background: white;
+      color: var(--primary-strong);
+      width: 100%;
+      margin-top: 6px;
+      box-shadow: 0 10px 26px -10px rgba(0,0,0,.3);
+    }
+    .contact-form .btn-primary:hover { color: var(--primary); }
+    .contact-msg {
+      margin-top: 12px; min-height: 18px;
+      font-size: 0.88rem; text-align: center;
+    }
+    .contact-msg.ok { color: #6ee7b7; }
+    .contact-msg.err { color: #fda4af; }
+
+    @media (max-width: 980px) {
+      .cta-inner { grid-template-columns: 1fr; gap: 32px; }
+    }
+
+    /* ── Footer ────────────────────────────────────── */
+    footer {
+      background: #0b1220;
+      color: rgba(255,255,255,.66);
+      padding: 56px 0 32px;
+      font-size: 0.9rem;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 36px;
+    }
+    .footer-brand .brand-name { color: white; }
+    .footer-brand p { color: rgba(255,255,255,.6); max-width: 360px; margin-top: 14px; line-height: 1.6; }
+    .footer-col h5 {
+      color: white; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase;
+      margin: 0 0 14px;
+    }
+    .footer-col a {
+      display: block; padding: 6px 0;
+      color: rgba(255,255,255,.6); text-decoration: none;
+      font-size: 0.92rem;
+      transition: color .15s ease;
+    }
+    .footer-col a:hover { color: white; }
+    .footer-social {
+      display: flex; gap: 10px; margin-top: 16px;
+    }
+    .footer-social a {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: rgba(255,255,255,.08);
+      display: grid; place-items: center;
+      color: white;
+      transition: all .15s ease;
+    }
+    .footer-social a:hover { background: var(--primary); transform: translateY(-2px); }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding-top: 22px;
+      display: flex; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,.5);
+    }
+    .footer-bottom a { color: inherit; text-decoration: none; }
+    .footer-bottom a:hover { color: white; }
+
+    @media (max-width: 720px) {
+      .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+    }
+
+    /* ── Floating WhatsApp / sticky CTA ────────────────────────────────────── */
+    .float-wa {
+      position: fixed;
+      bottom: 22px; right: 22px;
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      background: #25D366;
+      color: white;
+      display: grid; place-items: center;
+      box-shadow: 0 14px 30px -10px rgba(37, 211, 102, .6);
+      text-decoration: none;
+      z-index: 60;
+      transition: transform .2s ease;
+    }
+    .float-wa:hover { transform: scale(1.08); }
+    .float-wa svg { width: 30px; height: 30px; }
+
+    /* ── Animaciones de entrada ────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 560px) {
+      .container { padding: 0 20px; }
+      section { padding: 56px 0; }
+      .hero { padding: 32px 0 48px; }
+      h1 { font-size: 2.05rem; }
+      h2 { font-size: 1.6rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* ── Depth & gradient polish (themable) ──────────────────────────
+       Capas suaves para que las secciones no se sientan planas. Todo se
+       deriva de --primary / --accent vía rgba derivados que ya seteamos
+       en setupTheme(), de modo que cambia con la Apariencia que elige
+       el doctor. */
+    section { position: relative; }
+
+    /* Sobre nosotros — glow lateral de primario */
+    .about {
+      background:
+        radial-gradient(48% 60% at 0% 50%, var(--primary-soft), transparent 70%),
+        radial-gradient(40% 50% at 100% 100%, var(--accent-soft), transparent 70%),
+        white;
+    }
+    .highlight {
+      background: linear-gradient(180deg, white, var(--paper-2));
+      box-shadow: 0 1px 0 var(--line) inset;
+    }
+
+    /* Servicios — fondo con halo tenue + tarjetas con borde superior teñido */
+    #servicios {
+      background:
+        radial-gradient(60% 50% at 100% 0%, var(--primary-soft), transparent 65%),
+        radial-gradient(50% 50% at 0% 100%, var(--accent-soft), transparent 70%);
+    }
+    .service-card {
+      background:
+        linear-gradient(180deg, white 0%, color-mix(in oklch, var(--primary) 3%, white) 100%);
+    }
+    .service-card::after {
+      content: ""; position: absolute; left: 0; right: 0; top: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      opacity: 0; transition: opacity .25s ease;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+    .service-card:hover::after { opacity: 1; }
+
+    /* Doctores — degradado vertical más rico */
+    .doctors {
+      background:
+        radial-gradient(40% 60% at 50% 0%, var(--primary-soft), transparent 70%),
+        linear-gradient(180deg, white 0%, var(--paper-2) 100%);
+    }
+    .doctor-card {
+      background:
+        linear-gradient(180deg, white, color-mix(in oklch, var(--primary) 3%, white));
+    }
+
+    /* Testimonios — wash sutil con accent */
+    .testimonials {
+      background:
+        radial-gradient(50% 60% at 100% 0%, var(--accent-soft), transparent 65%),
+        radial-gradient(45% 60% at 0% 100%, var(--primary-soft), transparent 70%),
+        white;
+    }
+
+    /* Horarios + Ubicación — tinte suave para no quedar plano */
+    #visitar {
+      background:
+        radial-gradient(40% 55% at 0% 0%, var(--primary-soft), transparent 70%);
+    }
+    .visit-card {
+      background:
+        linear-gradient(180deg, white, color-mix(in oklch, var(--primary) 2%, white));
+    }
+
+    /* FAQ — refinar */
+    .faq-item {
+      background: linear-gradient(180deg, white, color-mix(in oklch, var(--primary) 2%, white));
+    }
+    .faq-item:hover { border-color: var(--primary-tint); }
+    .faq-item.open {
+      border-color: var(--primary-tint);
+      box-shadow: 0 10px 30px -18px var(--primary-glow);
+    }
+
+    /* Glow detrás del botón primario, ahora atado al theme */
+    .btn-primary {
+      box-shadow:
+        0 10px 26px -10px var(--primary-glow),
+        0 1px 0 rgba(255,255,255,.4) inset;
+    }
+    .btn-primary:hover {
+      box-shadow:
+        0 18px 36px -14px var(--primary-glow),
+        0 1px 0 rgba(255,255,255,.4) inset;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="boot"><div class="spinner"></div></div>
+
+  <div id="notfound">
+    <div class="nf-card">
+      <h1>Este sitio no existe o no está publicado</h1>
+      <p>Si crees que es un error, contacta a la clínica directamente.</p>
+      <a href="/" class="btn btn-primary" style="margin-top:18px;">Volver al inicio</a>
+    </div>
+  </div>
+
+  <div id="app" hidden>
+    <!-- Topbar -->
+    <header class="topbar" id="topbar">
+      <div class="container topbar-inner">
+        <a href="#top" class="brand">
+          <div class="brand-logo" id="brandLogo"></div>
+          <div>
+            <div class="brand-name" id="brandName">—</div>
+            <div class="brand-city" id="brandCity"></div>
+          </div>
+        </a>
+
+        <nav class="topbar-nav">
+          <a href="#servicios">Servicios</a>
+          <a href="#doctores" id="navDoctors">Doctores</a>
+          <a href="#galeria" id="navGallery">Galería</a>
+          <a href="#visitar">Visítanos</a>
+          <a href="#contacto">Contacto</a>
+        </nav>
+
+        <div class="topbar-cta">
+          <a href="#" id="ctaTopBook" class="btn btn-primary btn-sm">Agendar</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero" id="top">
+      <div class="container hero-inner">
+        <div>
+          <div class="hero-mark" id="heroMark" hidden>
+            <span class="hero-mark-num">01</span>
+            <span id="heroMarkText">Bienvenida</span>
+          </div>
+          <span class="hero-eyebrow"><span class="dot"></span><span id="heroEyebrow">Clínica</span></span>
+          <h1 id="heroTitle">—</h1>
+          <p class="hero-subtitle" id="heroSubtitle"></p>
+          <div class="hero-ctas">
+            <a href="#" id="heroCta1" class="btn btn-primary">Agendar cita</a>
+            <a href="#servicios" id="heroCta2" class="btn btn-ghost">Conocer más</a>
+          </div>
+          <div class="hero-trust" id="heroTrust"></div>
+        </div>
+        <div class="hero-visual" id="heroVisual">
+          <img id="heroImage" alt="" hidden>
+          <div class="hero-card">
+            <div class="hero-card-ic">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            </div>
+            <div>
+              <div class="hero-card-l">Atención certificada</div>
+              <div class="hero-card-v">Profesionales colegiados</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <a href="#sobre" class="hero-scroll-cue" aria-label="Bajar a contenido">Scroll</a>
+    </section>
+
+    <!-- Sobre nosotros -->
+    <section class="about" id="sobre" hidden>
+      <div class="container about-grid">
+        <div class="about-text">
+          <div class="section-eyebrow" id="aboutEyebrow">Sobre nosotros</div>
+          <h2 id="aboutTitle">—</h2>
+          <p id="aboutBody"></p>
+        </div>
+        <div class="about-highlights" id="aboutHighlights"></div>
+      </div>
+    </section>
+
+    <!-- Servicios -->
+    <section id="servicios" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div class="section-eyebrow">Nuestros servicios</div>
+          <h2>Atención completa y personalizada</h2>
+          <p class="section-subtitle">Cada tratamiento es diseñado pensando en tu comodidad, tu tiempo y tu bienestar.</p>
+        </div>
+        <div class="services-grid" id="servicesGrid"></div>
+      </div>
+    </section>
+
+    <!-- Doctores -->
+    <section class="doctors" id="doctores" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div class="section-eyebrow">Nuestro equipo</div>
+          <h2>Profesionales que cuidan de ti</h2>
+          <p class="section-subtitle">Un equipo multidisciplinario con años de experiencia clínica.</p>
+        </div>
+        <div class="doctors-grid" id="doctorsGrid"></div>
+      </div>
+    </section>
+
+    <!-- Galería -->
+    <section id="galeria" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div class="section-eyebrow">Galería</div>
+          <h2>Conoce nuestras instalaciones</h2>
+          <p class="section-subtitle">Espacios diseñados para que te sientas cómodo desde el momento que entras.</p>
+        </div>
+        <div class="gallery-grid" id="galleryGrid"></div>
+      </div>
+    </section>
+
+    <!-- Testimonios -->
+    <section class="testimonials" id="testimonios" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div class="section-eyebrow">Pacientes felices</div>
+          <h2>Lo que dicen de nosotros</h2>
+        </div>
+        <div class="testimonials-grid" id="testimonialsGrid"></div>
+      </div>
+    </section>
+
+    <!-- Horarios + Ubicación -->
+    <section id="visitar">
+      <div class="container">
+        <div class="section-head">
+          <div class="section-eyebrow">Visítanos</div>
+          <h2>Estamos aquí para ti</h2>
+        </div>
+        <div class="visit-grid">
+          <div class="visit-card" id="hoursCard" hidden>
+            <h3>Horario de atención</h3>
+            <div class="hours-list" id="hoursList"></div>
+          </div>
+          <div class="visit-card" id="locationCard">
+            <h3>Cómo llegar</h3>
+            <div class="location-address" id="locationAddress" hidden></div>
+            <div class="location-map" id="locationMap" hidden></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq" id="faq" hidden>
+      <div class="container">
+        <div class="section-head">
+          <div class="section-eyebrow">Preguntas frecuentes</div>
+          <h2>Resolvemos tus dudas</h2>
+        </div>
+        <div class="faq-list" id="faqList"></div>
+      </div>
+    </section>
+
+    <!-- CTA final + Contacto -->
+    <section class="cta-final" id="contacto">
+      <div class="container cta-inner">
+        <div>
+          <div class="section-eyebrow">Da el primer paso</div>
+          <h2 id="ctaTitle">Tu salud merece atención de primer nivel.</h2>
+          <p id="ctaSubtitle">Agenda tu cita en menos de un minuto. Te esperamos.</p>
+          <ul class="cta-list">
+            <li>
+              <span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></span>
+              <span>Atención profesional certificada</span>
+            </li>
+            <li>
+              <span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></span>
+              <span>Confirmaciones automáticas por WhatsApp</span>
+            </li>
+            <li>
+              <span class="check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></span>
+              <span>Historial clínico digital seguro</span>
+            </li>
+          </ul>
+        </div>
+        <form class="contact-form" id="contactForm" novalidate>
+          <h3>Déjanos tus datos</h3>
+          <div class="form-sub">Te contactamos en menos de 24 horas.</div>
+          <div class="field">
+            <label for="cf-name">Nombre completo</label>
+            <input id="cf-name" type="text" required maxlength="120" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="cf-phone">Teléfono / WhatsApp</label>
+            <input id="cf-phone" type="tel" maxlength="30" autocomplete="tel" placeholder="9999-9999">
+          </div>
+          <div class="field">
+            <label for="cf-email">Correo (opcional)</label>
+            <input id="cf-email" type="email" maxlength="120" autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="cf-message">¿En qué te podemos ayudar?</label>
+            <textarea id="cf-message" maxlength="1000" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Enviar solicitud</button>
+          <div class="contact-msg" id="contactMsg"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <a href="#top" class="brand">
+              <div class="brand-logo" id="brandLogoFooter" style="background: rgba(255,255,255,.1);"></div>
+              <div>
+                <div class="brand-name" id="brandNameFooter">—</div>
+              </div>
+            </a>
+            <p id="footerTagline">Salud, cuidado y tecnología en cada visita.</p>
+            <div class="footer-social" id="footerSocial"></div>
+          </div>
+          <div class="footer-col">
+            <h5>Navegación</h5>
+            <a href="#servicios">Servicios</a>
+            <a href="#visitar">Horarios y ubicación</a>
+            <a href="#contacto">Contacto</a>
+          </div>
+          <div class="footer-col">
+            <h5>Contacto directo</h5>
+            <a id="footerPhone" href="#" hidden></a>
+            <a id="footerEmail" href="#" hidden></a>
+            <a id="footerAddress" href="#" hidden></a>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div>© <span id="footerYear"></span> <span id="footerCopyName"></span>. Todos los derechos reservados.</div>
+          <div>Hecho con <a href="https://saluddigital.hn" target="_blank" rel="noopener">SaludDigital</a></div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <a class="float-wa" id="floatWA" href="#contacto" aria-label="WhatsApp" hidden>
+    <svg viewBox="0 0 32 32" fill="currentColor"><path d="M16 .4C7.4.4.4 7.4.4 16c0 2.8.7 5.5 2.1 7.9L0 32l8.4-2.2c2.3 1.3 4.9 2 7.6 2C24.6 31.8 31.6 24.8 31.6 16.2 31.6 7.6 24.6.6 16 .4zm9.5 22.4c-.4 1.1-2 2.1-3.2 2.3-.8.1-1.9.2-5.6-1.2-4.7-1.8-7.7-6.4-7.9-6.7-.2-.3-1.9-2.5-1.9-4.8s1.2-3.4 1.6-3.9c.4-.4.9-.6 1.2-.6h.9c.3 0 .7-.1 1.1.9.4 1.1 1.4 3.7 1.5 4 .1.3.2.5 0 .8-.1.3-.2.5-.4.7-.2.2-.4.5-.6.7-.2.2-.4.4-.2.8.2.4 1 1.6 2.1 2.6 1.5 1.3 2.7 1.7 3.1 1.9.4.2.6.2.8-.1.2-.3.9-1.1 1.2-1.5.2-.4.5-.3.8-.2.4.1 2.4 1.1 2.8 1.3.4.2.7.3.8.5.1.2.1 1.1-.3 2.2z"/></svg>
+  </a>
+
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <img id="lightboxImg" alt="">
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────────────────────────────
+    // Carga de la landing pública. El slug viene de la URL: /c/<slug>
+    // ─────────────────────────────────────────────────────────────────────
+    const slug = (location.pathname.split('/c/')[1] || '').replace(/\/$/, '').toLowerCase();
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+    }
+
+    const ICONS = {
+      stethoscope: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v6a4 4 0 0 0 8 0V4M8 4v0M6 4h4M16 14a3 3 0 1 1-6 0M19 14v3a3 3 0 0 1-3 3"/></svg>',
+      tooth: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5c-2.5-2-6-1-7 1.5-1 3 0 7 1 11 .5 2 2 3 3 1l1-3a2 2 0 0 1 4 0l1 3c1 2 2.5 1 3-1 1-4 2-8 1-11-1-2.5-4.5-3.5-7-1.5z"/></svg>',
+      smile: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+      heart: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+      shield: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+      sparkles: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8L20 10l-5.8 1.9L12 18l-2.2-6.1L4 10l5.8-1.9z"/><path d="M5 3v4M19 17v4M3 5h4M17 19h4"/></svg>',
+      clock: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+      award: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>',
+      users: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+      mapPin: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+      phone: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.33 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+      home: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+      activity: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+      checkCircle: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+      facebook: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.87v-6.99H7.9V12h2.5V9.8c0-2.46 1.46-3.82 3.7-3.82 1.07 0 2.2.19 2.2.19v2.42h-1.24c-1.22 0-1.6.76-1.6 1.54V12h2.72l-.43 2.88H13.5v6.99A10 10 0 0 0 22 12z"/></svg>',
+      instagram: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
+      tiktok: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.5a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.43z"/></svg>',
+      youtube: '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.58 7.19c-.23-.86-.91-1.53-1.77-1.76C18.25 5 12 5 12 5s-6.25 0-7.81.42c-.86.23-1.54.9-1.77 1.76C2 8.75 2 12 2 12s0 3.25.42 4.81c.23.86.91 1.53 1.77 1.76C5.75 19 12 19 12 19s6.25 0 7.81-.42c.86-.23 1.54-.9 1.77-1.76C22 15.25 22 12 22 12s0-3.25-.42-4.81zM10 15V9l5.2 3z"/></svg>',
+    };
+
+    function ic(name) {
+      return ICONS[name] || ICONS.sparkles;
+    }
+
+    // ─── Color theme ──────────────────────────────────────
+    // Acepta:
+    //   - string hex (legacy: solo brand_color → accent se deriva del primary)
+    //   - { primary, accent } (nuevo modelo de Apariencia)
+    function setupTheme(input) {
+      let primary, accent;
+      if (input && typeof input === 'object') {
+        primary = input.primary || '#0891b2';
+        accent  = input.accent  || null;
+      } else {
+        primary = input || '#0891b2';
+        accent  = null;
+      }
+
+      const pRGB = parseColor(primary) || { r: 8, g: 145, b: 178 };
+      // Si no hay accent, lo derivamos: rotamos el hue ~28° y suavemente bajamos saturación
+      const aRGB = (accent && parseColor(accent)) || hueShiftRGB(pRGB, 28, 0.92);
+      const accentHex = accent || rgbToHex(aRGB);
+
+      const root = document.documentElement.style;
+      root.setProperty('--primary', primary);
+      root.setProperty('--accent', accentHex);
+
+      const strong = `rgb(${Math.max(0, pRGB.r-28)}, ${Math.max(0, pRGB.g-28)}, ${Math.max(0, pRGB.b-28)})`;
+      const soft   = `rgba(${pRGB.r},${pRGB.g},${pRGB.b},0.08)`;
+      const tint   = `rgba(${pRGB.r},${pRGB.g},${pRGB.b},0.20)`;
+      const glow   = `rgba(${pRGB.r},${pRGB.g},${pRGB.b},0.35)`;
+      root.setProperty('--primary-strong', strong);
+      root.setProperty('--primary-soft', soft);
+      root.setProperty('--primary-tint', tint);
+      root.setProperty('--primary-glow', glow);
+
+      const accentSoft = `rgba(${aRGB.r},${aRGB.g},${aRGB.b},0.10)`;
+      const accentTint = `rgba(${aRGB.r},${aRGB.g},${aRGB.b},0.22)`;
+      root.setProperty('--accent-soft', accentSoft);
+      root.setProperty('--accent-tint', accentTint);
+    }
+
+    // Helpers de color (independientes de color-mix por seguridad cross-browser)
+    function parseColor(c) {
+      if (!c) return null;
+      const s = String(c).trim();
+      // hex #rgb / #rrggbb
+      const m = s.match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+      if (m) {
+        const h = m[1].length === 3 ? m[1].split('').map(x => x + x).join('') : m[1];
+        return { r: parseInt(h.slice(0,2),16), g: parseInt(h.slice(2,4),16), b: parseInt(h.slice(4,6),16) };
+      }
+      // rgb(...) fallback via the DOM
+      try {
+        const tmp = document.createElement('div');
+        tmp.style.color = s;
+        document.body.appendChild(tmp);
+        const rgb = getComputedStyle(tmp).color.match(/\d+/g);
+        document.body.removeChild(tmp);
+        if (rgb) return { r: +rgb[0], g: +rgb[1], b: +rgb[2] };
+      } catch (_) {}
+      return null;
+    }
+    function rgbToHex({ r, g, b }) {
+      const h = n => n.toString(16).padStart(2, '0');
+      return `#${h(r)}${h(g)}${h(b)}`;
+    }
+    function rgbToHsl({ r, g, b }) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r,g,b), min = Math.min(r,g,b);
+      let h, s, l = (max + min) / 2;
+      if (max === min) { h = s = 0; }
+      else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          default: h = (r - g) / d + 4;
+        }
+        h *= 60;
+      }
+      return { h, s, l };
+    }
+    function hslToRgb({ h, s, l }) {
+      h = ((h % 360) + 360) % 360;
+      const c = (1 - Math.abs(2*l - 1)) * s;
+      const x = c * (1 - Math.abs(((h/60) % 2) - 1));
+      const m = l - c/2;
+      let r1, g1, b1;
+      if (h < 60)      [r1,g1,b1] = [c,x,0];
+      else if (h<120)  [r1,g1,b1] = [x,c,0];
+      else if (h<180)  [r1,g1,b1] = [0,c,x];
+      else if (h<240)  [r1,g1,b1] = [0,x,c];
+      else if (h<300)  [r1,g1,b1] = [x,0,c];
+      else             [r1,g1,b1] = [c,0,x];
+      return { r: Math.round((r1+m)*255), g: Math.round((g1+m)*255), b: Math.round((b1+m)*255) };
+    }
+    function hueShiftRGB(rgb, degrees, satMul = 1) {
+      const hsl = rgbToHsl(rgb);
+      hsl.h += degrees;
+      hsl.s = Math.min(1, Math.max(0, hsl.s * satMul));
+      return hslToRgb(hsl);
+    }
+
+    // ─── Reveal-on-scroll ──────────────────────────────────────
+    // En el sitio público usamos IntersectionObserver para que las secciones
+    // entren con fade-up. En modo preview (iframe del editor) saltamos la
+    // animación y marcamos todo visible al instante: el observer se confunde
+    // con los re-renders por postMessage y dejaba doctores/servicios en
+    // opacity:0 indefinidamente.
+    function setupReveal() {
+      const els = document.querySelectorAll('.reveal');
+      if (window.__landingIsPreview) {
+        els.forEach(el => el.classList.add('visible'));
+        return;
+      }
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      els.forEach(el => io.observe(el));
+    }
+
+    // ─── Render ──────────────────────────────────────
+    function render(payload) {
+      const { clinic, template, data, doctors } = payload;
+      // Prioridad: data.theme (Apariencia del editor) → clinic.brand_color (legacy)
+      const themeInput = (data && data.theme && data.theme.primary)
+        ? { primary: data.theme.primary, accent: data.theme.accent }
+        : clinic.brand_color;
+      setupTheme(themeInput);
+
+      // Document meta
+      const metaTitle = (data.seo && data.seo.meta_title) || `${clinic.name} | ${(data.hero && data.hero.title) || 'Tu clínica'}`;
+      const metaDesc = (data.seo && data.seo.meta_description) || (data.hero && data.hero.subtitle) || '';
+      document.title = metaTitle;
+      document.querySelector('meta[name="description"]').content = metaDesc;
+      document.querySelector('meta[property="og:title"]').content = metaTitle;
+      document.querySelector('meta[property="og:description"]').content = metaDesc;
+      if (data.hero && data.hero.image_url) {
+        document.querySelector('meta[property="og:image"]').content = data.hero.image_url;
+      } else if (clinic.logo_url) {
+        document.querySelector('meta[property="og:image"]').content = clinic.logo_url;
+      }
+
+      // Topbar / brand
+      const logo = document.getElementById('brandLogo');
+      const logoF = document.getElementById('brandLogoFooter');
+      if (clinic.logo_url) {
+        logo.innerHTML = `<img src="${esc(clinic.logo_url)}" alt="">`;
+        logoF.innerHTML = `<img src="${esc(clinic.logo_url)}" alt="">`;
+      } else {
+        const init = (clinic.name || '?').trim().charAt(0).toUpperCase();
+        logo.textContent = init;
+        logoF.textContent = init;
+      }
+      document.getElementById('brandName').textContent = clinic.name;
+      document.getElementById('brandNameFooter').textContent = clinic.name;
+      document.getElementById('brandCity').textContent = clinic.city || '';
+      document.getElementById('footerCopyName').textContent = clinic.name;
+
+      // Hero
+      const heroEyebrowText = (data.hero && data.hero.eyebrow) || '';
+      const eyebrowWrap = document.querySelector('.hero-eyebrow');
+      if (heroEyebrowText) {
+        document.getElementById('heroEyebrow').textContent = heroEyebrowText;
+        if (eyebrowWrap) eyebrowWrap.hidden = false;
+      } else if (eyebrowWrap) {
+        eyebrowWrap.hidden = true;
+      }
+
+      // Mark editorial: usamos la ciudad si está, si no, una palabra suave.
+      const heroMark = document.getElementById('heroMark');
+      const heroMarkText = document.getElementById('heroMarkText');
+      const markVal = (clinic.city || '').trim();
+      if (markVal) {
+        heroMarkText.textContent = markVal;
+        heroMark.hidden = false;
+      } else {
+        heroMark.hidden = true;
+      }
+
+      const heroTitleText = ((data.hero && data.hero.title) || clinic.name || '').trim();
+      const heroTitleEl = document.getElementById('heroTitle');
+      const parts = heroTitleText.split(/\s+/);
+      if (parts.length >= 3) {
+        const tail = parts.slice(-2).join(' ');
+        const head = parts.slice(0, -2).join(' ');
+        heroTitleEl.innerHTML = `${esc(head)} <span class="hero-title-accent">${esc(tail)}</span>`;
+      } else {
+        heroTitleEl.textContent = heroTitleText;
+      }
+
+      // Subtítulo: italic serif en la última palabra (toque editorial)
+      const sub = document.getElementById('heroSubtitle');
+      const subText = ((data.hero && data.hero.subtitle) || '').trim();
+      if (subText) {
+        const subParts = subText.split(/\s+/);
+        if (subParts.length >= 2) {
+          const t = subParts.pop();
+          sub.innerHTML = `${esc(subParts.join(' '))} <span class="hero-sub-em">${esc(t)}</span>`;
+        } else {
+          sub.textContent = subText;
+        }
+        sub.hidden = false;
+      } else {
+        sub.textContent = '';
+        sub.hidden = true;
+      }
+
+      const heroCta1 = document.getElementById('heroCta1');
+      const heroCta2 = document.getElementById('heroCta2');
+      const ctaTopBook = document.getElementById('ctaTopBook');
+      if (data.hero && data.hero.cta_label) heroCta1.textContent = data.hero.cta_label;
+      if (data.hero && data.hero.cta_secondary_label) heroCta2.textContent = data.hero.cta_secondary_label;
+      ctaTopBook.textContent = (data.hero && data.hero.cta_label) || 'Agendar';
+
+      // Booking URL — si la clínica tiene citas online, mandamos a /agendar.html?clinic=ID,
+      // si no, al formulario de contacto.
+      const bookHref = data.show_online_booking !== false
+        ? `/agendar.html?clinic=${clinic.id}`
+        : '#contacto';
+      heroCta1.href = bookHref;
+      ctaTopBook.href = bookHref;
+
+      // Hero image / visual + clase no-image para colapsar el bloque si no hay foto
+      const heroImg = document.getElementById('heroImage');
+      const heroInner = document.querySelector('.hero-inner');
+      const heroCard = document.querySelector('.hero-card');
+      if (data.hero && data.hero.image_url) {
+        heroImg.src = data.hero.image_url;
+        heroImg.hidden = false;
+        if (heroInner) heroInner.classList.remove('no-image');
+        if (heroCard) heroCard.style.display = '';
+      } else {
+        heroImg.removeAttribute('src');
+        heroImg.hidden = true;
+        if (heroInner) heroInner.classList.add('no-image');
+        // El "Profesionales colegiados" flota dentro del bloque visual,
+        // sin imagen queda huérfano: lo ocultamos también.
+        if (heroCard) heroCard.style.display = 'none';
+      }
+
+      // Trust stats — solo cifras reales (doctores, servicios, testimonios).
+      // Si nada hay todavía, escondemos el bloque entero para no rellenar con humo.
+      const trust = document.getElementById('heroTrust');
+      const stats = [];
+      if (doctors && doctors.length > 0) stats.push({ v: `${doctors.length}+`, l: doctors.length === 1 ? 'Profesional' : 'Profesionales' });
+      if (data.services && data.services.length > 0) stats.push({ v: `${data.services.length}+`, l: data.services.length === 1 ? 'Servicio' : 'Servicios' });
+      if (data.testimonials && data.testimonials.length > 0) stats.push({ v: '★ 5.0', l: 'Pacientes felices' });
+      if (stats.length > 0) {
+        trust.hidden = false;
+        trust.innerHTML = stats.map((s, i) => `
+          ${i > 0 ? '<div class="trust-divider"></div>' : ''}
+          <div class="trust-stat"><div class="v">${esc(s.v)}</div><div class="l">${esc(s.l)}</div></div>
+        `).join('');
+      } else {
+        trust.hidden = true;
+        trust.innerHTML = '';
+      }
+
+      // Sobre nosotros
+      if ((data.about && data.about.body) || (data.about && data.about.highlights && data.about.highlights.length)) {
+        document.getElementById('sobre').hidden = false;
+        document.getElementById('aboutTitle').textContent = (data.about && data.about.title) || 'Sobre nosotros';
+        document.getElementById('aboutBody').textContent = (data.about && data.about.body) || '';
+        const hl = document.getElementById('aboutHighlights');
+        const items = (data.about && data.about.highlights) || [];
+        hl.innerHTML = items.map(h => `
+          <div class="highlight reveal">
+            <div class="highlight-ic">${ic(h.icon || 'sparkles')}</div>
+            <h4>${esc(h.title)}</h4>
+            <p>${esc(h.text)}</p>
+          </div>
+        `).join('');
+      }
+
+      // Servicios
+      const services = (data.services || []).filter(s => s.name);
+      if (services.length > 0) {
+        document.getElementById('servicios').hidden = false;
+        const grid = document.getElementById('servicesGrid');
+        grid.innerHTML = services.map(s => `
+          <div class="service-card reveal">
+            <div class="service-ic">${ic(s.icon || 'stethoscope')}</div>
+            <h3>${esc(s.name)}</h3>
+            <p>${esc(s.description)}</p>
+            ${(s.price || s.duration) ? `
+              <div class="service-meta">
+                ${s.duration ? `<span>${ic('clock')}<b style="margin-left:6px;">${esc(s.duration)}</b></span>` : ''}
+                ${s.price ? `<span style="margin-left:auto;"><b>${esc(s.price)}</b></span>` : ''}
+              </div>
+            ` : ''}
+          </div>
+        `).join('');
+      }
+
+      // Doctores
+      const navDocs = document.getElementById('navDoctors');
+      if (data.show_doctors !== false && doctors && doctors.length > 0) {
+        document.getElementById('doctores').hidden = false;
+        const grid = document.getElementById('doctorsGrid');
+        grid.innerHTML = doctors.map(d => {
+          const initials = (d.name || '?').split(' ').filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('');
+          return `
+            <div class="doctor-card reveal">
+              <div class="doctor-avatar">
+                ${d.photo_url ? `<img src="${esc(d.photo_url)}" alt="">` : esc(initials)}
+              </div>
+              <div class="doctor-name">Dr. ${esc(d.name)}</div>
+              <div class="doctor-spec">${esc(d.specialty || 'Medicina General')}</div>
+              ${d.bio ? `<p class="doctor-bio">${esc(d.bio)}</p>` : ''}
+            </div>
+          `;
+        }).join('');
+      } else if (navDocs) {
+        navDocs.style.display = 'none';
+      }
+
+      // Galería
+      const navGal = document.getElementById('navGallery');
+      const gallery = (data.gallery || []).filter(g => g.url);
+      if (gallery.length > 0) {
+        document.getElementById('galeria').hidden = false;
+        const grid = document.getElementById('galleryGrid');
+        grid.innerHTML = gallery.map((g, i) => `
+          <div class="gallery-item reveal" data-gallery-idx="${i}">
+            <img src="${esc(g.url)}" alt="${esc(g.alt || '')}" loading="lazy">
+          </div>
+        `).join('');
+        // lightbox
+        const lb = document.getElementById('lightbox');
+        const lbImg = document.getElementById('lightboxImg');
+        grid.addEventListener('click', (e) => {
+          const item = e.target.closest('.gallery-item');
+          if (!item) return;
+          lbImg.src = gallery[+item.dataset.galleryIdx].url;
+          lb.classList.add('active');
+        });
+        document.getElementById('lightboxClose').addEventListener('click', () => lb.classList.remove('active'));
+        lb.addEventListener('click', (e) => { if (e.target === lb) lb.classList.remove('active'); });
+      } else if (navGal) {
+        navGal.style.display = 'none';
+      }
+
+      // Testimonios
+      const testimonials = (data.testimonials || []).filter(t => t.name && t.text);
+      if (testimonials.length > 0) {
+        document.getElementById('testimonios').hidden = false;
+        const grid = document.getElementById('testimonialsGrid');
+        grid.innerHTML = testimonials.map(t => {
+          const init = t.name.split(' ').filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('');
+          const stars = '★'.repeat(t.rating || 5) + '☆'.repeat(5 - (t.rating || 5));
+          return `
+            <div class="testimonial reveal">
+              <p>${esc(t.text)}</p>
+              <div class="testimonial-author">
+                <div class="testimonial-avatar">${esc(init)}</div>
+                <div>
+                  <div class="testimonial-name">${esc(t.name)}</div>
+                  <div class="testimonial-stars">${stars}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Horarios
+      const hours = (data.hours || []).filter(h => h.day);
+      if (hours.length > 0) {
+        document.getElementById('hoursCard').hidden = false;
+        const today = new Date().getDay(); // 0 dom
+        const DAYS_ES = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+        const list = document.getElementById('hoursList');
+        list.innerHTML = hours.map(h => {
+          const isToday = h.day.toLowerCase().includes(DAYS_ES[today]);
+          return `
+            <div class="hours-row ${isToday ? 'today' : ''}">
+              <div class="hours-day">${esc(h.day)}</div>
+              <div class="hours-time ${h.closed ? 'closed' : ''}">${
+                h.closed ? 'Cerrado' : `${esc(h.open || '')} – ${esc(h.close || '')}`
+              }</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Ubicación
+      // Estrategia:
+      //   - El iframe del mapa siempre usa la DIRECCIÓN para geolocalizar (los
+      //     links cortos tipo maps.app.goo.gl no son embebibles directamente).
+      //   - El link "Cómo llegar" (footer y card) prefiere maps_url si la clínica
+      //     pegó uno (lleva al lugar exacto), si no, autogenera con la dirección.
+      const loc = data.location || {};
+      const fullAddr = [loc.address, loc.city].filter(Boolean).join(', ') || clinic.address;
+      const openMapsHref = loc.maps_url
+        || (fullAddr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddr)}` : '');
+
+      if (fullAddr) {
+        const addrEl = document.getElementById('locationAddress');
+        addrEl.hidden = false;
+        addrEl.innerHTML = `
+          <div class="ic">${ic('mapPin')}</div>
+          <div class="location-address-text">
+            <b>${esc(fullAddr)}</b>
+            ${loc.directions ? `<div style="color:var(--muted); margin-top:4px;">${esc(loc.directions)}</div>` : ''}
+            ${openMapsHref ? `<a href="${esc(openMapsHref)}" target="_blank" rel="noopener"
+              style="display:inline-block; margin-top:8px; font-size:0.86rem; color:var(--primary-strong); font-weight:600; text-decoration:none;">
+              Abrir en Google Maps →
+            </a>` : ''}
+          </div>
+        `;
+        const fa = document.getElementById('footerAddress');
+        fa.hidden = false;
+        fa.textContent = fullAddr;
+        fa.href = openMapsHref;
+        fa.target = '_blank';
+        fa.rel = 'noopener';
+
+        const map = document.getElementById('locationMap');
+        map.hidden = false;
+        map.innerHTML = `<iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+          src="https://www.google.com/maps?q=${encodeURIComponent(fullAddr)}&output=embed"></iframe>`;
+      }
+
+      // FAQ
+      const faq = (data.faq || []).filter(f => f.q && f.a);
+      if (faq.length > 0) {
+        document.getElementById('faq').hidden = false;
+        const list = document.getElementById('faqList');
+        list.innerHTML = faq.map((f, i) => `
+          <div class="faq-item reveal">
+            <div class="faq-q" data-faq="${i}">${esc(f.q)}</div>
+            <div class="faq-a"><div class="faq-a-inner">${esc(f.a)}</div></div>
+          </div>
+        `).join('');
+        list.addEventListener('click', (e) => {
+          const q = e.target.closest('.faq-q');
+          if (!q) return;
+          q.parentElement.classList.toggle('open');
+        });
+      }
+
+      // Contacto
+      const contact = data.contact || {};
+      const phone = contact.phone || clinic.phone;
+      const wa = contact.whatsapp || phone;
+      const email = contact.email || clinic.email;
+      if (phone) {
+        const fp = document.getElementById('footerPhone');
+        fp.hidden = false; fp.textContent = phone;
+        fp.href = `tel:${phone.replace(/[^\d+]/g, '')}`;
+      }
+      if (email) {
+        const fe = document.getElementById('footerEmail');
+        fe.hidden = false; fe.textContent = email;
+        fe.href = `mailto:${email}`;
+      }
+      if (wa) {
+        const flt = document.getElementById('floatWA');
+        const digits = wa.replace(/\D/g, '');
+        flt.href = `https://wa.me/${digits}`;
+        flt.target = '_blank';
+        flt.rel = 'noopener';
+        flt.hidden = false;
+      }
+
+      // Social en footer
+      const social = data.social || {};
+      const socialBlock = document.getElementById('footerSocial');
+      const links = [
+        { url: social.facebook, name: 'facebook' },
+        { url: social.instagram, name: 'instagram' },
+        { url: social.tiktok, name: 'tiktok' },
+        { url: social.youtube, name: 'youtube' },
+      ].filter(s => s.url);
+      socialBlock.innerHTML = links.map(s => `
+        <a href="${esc(s.url)}" target="_blank" rel="noopener" aria-label="${s.name}">${ic(s.name)}</a>
+      `).join('');
+
+      // Footer tagline default
+      document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+      // Hide form if disabled
+      if (contact.show_contact_form === false) {
+        document.getElementById('contactForm').style.display = 'none';
+      }
+
+      // Show app & reveal. En modo preview re-rendereamos por postMessage; en el
+      // segundo render boot ya no existe — chequeamos antes de remover para no
+      // lanzar TypeError, que el catch de applyPreview tragaba en silencio y
+      // dejaba al setupReveal sin correr (= cards con opacity:0 invisibles).
+      const bootEl = document.getElementById('boot');
+      if (bootEl) bootEl.remove();
+      document.getElementById('app').hidden = false;
+      requestAnimationFrame(setupReveal);
+    }
+
+    // ─── Topbar shadow on scroll ──────────────────────────────────────
+    document.addEventListener('scroll', () => {
+      const tb = document.getElementById('topbar');
+      if (!tb) return;
+      tb.classList.toggle('scrolled', window.scrollY > 8);
+    });
+
+    // ─── Contact form submit ──────────────────────────────────────
+    function setupContactForm() {
+      const form = document.getElementById('contactForm');
+      const msg = document.getElementById('contactMsg');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        msg.className = 'contact-msg';
+        msg.textContent = '';
+
+        const payload = {
+          name: document.getElementById('cf-name').value.trim(),
+          phone: document.getElementById('cf-phone').value.trim(),
+          email: document.getElementById('cf-email').value.trim(),
+          message: document.getElementById('cf-message').value.trim(),
+        };
+        if (!payload.name) { msg.className = 'contact-msg err'; msg.textContent = 'Tu nombre es necesario.'; return; }
+        if (!payload.phone && !payload.email) {
+          msg.className = 'contact-msg err';
+          msg.textContent = 'Necesitamos un teléfono o email para contactarte.';
+          return;
+        }
+
+        const btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        const originalLabel = btn.textContent;
+        btn.textContent = 'Enviando…';
+        try {
+          const res = await fetch(`/api/public/landing/${encodeURIComponent(slug)}/lead`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || 'No se pudo enviar.');
+          msg.className = 'contact-msg ok';
+          msg.textContent = '¡Gracias! Te contactaremos muy pronto.';
+          form.reset();
+        } catch (err) {
+          msg.className = 'contact-msg err';
+          msg.textContent = err.message || 'Ocurrió un error. Intenta de nuevo.';
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalLabel;
+        }
+      });
+    }
+
+    // ─── Boot ──────────────────────────────────────
+    // Modo preview: el editor (mi-sitio.html) embebe esta página en un iframe
+    // y envía la configuración por postMessage. No hacemos fetch en ese caso.
+    const isPreview = new URLSearchParams(location.search).get('preview') === '1';
+    window.__landingIsPreview = isPreview;
+    if (isPreview) {
+      document.body.classList.add('is-preview');
+      // El editor (mi-sitio.html) puede estar en dark mode, pero el preview
+      // siempre muestra el sitio como lo ve un paciente real: en claro.
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+
+    if (isPreview) {
+      // Avisamos al editor que estamos listos para recibir datos
+      function applyPreview(payload) {
+        try {
+          // Limpiar el "app" antes de re-renderizar si ya hubo un render previo
+          const app = document.getElementById('app');
+          if (!app.hidden) {
+            // Re-rendering: el método más simple es recargar la sección a sección,
+            // pero como render() ya pone todos los hidden y reescribe contenidos,
+            // basta con ocultar todo lo opcional primero.
+            ['sobre','servicios','doctores','galeria','testimonios','faq'].forEach(id => {
+              const el = document.getElementById(id);
+              if (el) el.hidden = true;
+            });
+            document.getElementById('hoursCard').hidden = true;
+            document.getElementById('locationAddress').hidden = true;
+            document.getElementById('locationMap').hidden = true;
+            document.getElementById('floatWA').hidden = true;
+          }
+          render(payload);
+        } catch (e) {
+          // Loguear con stack completo: tragar el error con un warn cortito
+          // ya causó horas perdidas debuggeando cards invisibles.
+          console.error('[preview] render error', e, e && e.stack);
+        }
+      }
+
+      window.addEventListener('message', (ev) => {
+        if (!ev.data || ev.data.type !== 'landing:preview') return;
+        applyPreview(ev.data.payload);
+      });
+      // Decir al padre que estamos listos
+      try { window.parent.postMessage({ type: 'landing:ready' }, '*'); } catch (_) {}
+      // Render inmediato de placeholder para que se vea algo mientras llega data.
+      // Cuando el padre envíe `landing:preview`, applyPreview() limpiará y re-renderizará.
+      render({
+        clinic: { id: 0, name: 'Vista previa', brand_color: '#0891b2', logo_url: '', city: '', address: '', phone: '', email: '', website: '' },
+        template: 'aurora',
+        data: { hero: { eyebrow: 'Vista previa', title: 'Configura tu sitio', subtitle: 'Empieza a editar para ver los cambios.' } },
+        doctors: [],
+      });
+    } else {
+      (async function boot() {
+        if (!slug) {
+          document.getElementById('boot').remove();
+          document.getElementById('notfound').style.display = 'flex';
+          return;
+        }
+        try {
+          const res = await fetch(`/api/public/landing/${encodeURIComponent(slug)}`);
+          if (!res.ok) throw new Error('404');
+          const payload = await res.json();
+          render(payload);
+          setupContactForm();
+        } catch (e) {
+          document.getElementById('boot').remove();
+          document.getElementById('notfound').style.display = 'flex';
+        }
+      })();
+    }
+  </script>
+</body>
+</html>

@@ -8,6 +8,68 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Theme pre-paint: aplica el color cacheado de la clínica ANTES del
+       primer paint para evitar el flash de azul al recargar. La fuente de
+       verdad sigue siendo el endpoint /api/public/clinic/:id que se llama
+       en init() y refresca el cache. -->
+  <script>
+  (function () {
+    try {
+      var qs = new URLSearchParams(location.search);
+      var clinicId = qs.get('clinic') || qs.get('clinicId');
+      if (!clinicId) return;
+      var raw = localStorage.getItem('clinic-theme-' + clinicId);
+      if (!raw) return;
+      var theme = JSON.parse(raw);
+      if (!theme || !theme.primary) return;
+
+      function parseHex(s) {
+        var m = String(s || '').trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+        if (!m) return null;
+        var h = m[1].length === 3 ? m[1].split('').map(function(c){return c+c;}).join('') : m[1];
+        return { r: parseInt(h.slice(0,2),16), g: parseInt(h.slice(2,4),16), b: parseInt(h.slice(4,6),16) };
+      }
+      function toHex(rgb) {
+        var h = function(n){ return Math.max(0,Math.min(255,n|0)).toString(16).padStart(2,'0'); };
+        return '#' + h(rgb.r) + h(rgb.g) + h(rgb.b);
+      }
+      function rgbToHsl(rgb){
+        var r=rgb.r/255,g=rgb.g/255,b=rgb.b/255,max=Math.max(r,g,b),min=Math.min(r,g,b);
+        var h,s,l=(max+min)/2;
+        if(max===min){h=s=0;}else{var d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);
+          switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;}h*=60;}
+        return {h:h,s:s,l:l};
+      }
+      function hslToRgb(hsl){
+        var h=((hsl.h%360)+360)%360,s=hsl.s,l=hsl.l;
+        var c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs(((h/60)%2)-1)),m=l-c/2;
+        var r,g,b;
+        if(h<60){r=c;g=x;b=0;}else if(h<120){r=x;g=c;b=0;}
+        else if(h<180){r=0;g=c;b=x;}else if(h<240){r=0;g=x;b=c;}
+        else if(h<300){r=x;g=0;b=c;}else{r=c;g=0;b=x;}
+        return {r:Math.round((r+m)*255),g:Math.round((g+m)*255),b:Math.round((b+m)*255)};
+      }
+
+      var pRGB = parseHex(theme.primary);
+      if (!pRGB) return;
+      var pHSL = rgbToHsl(pRGB);
+      var stops = [
+        ['50',  0.965, 0.55], ['100', 0.93, 0.70], ['200', 0.84, 0.85],
+        ['300', 0.72,  0.92], ['400', 0.58, 1.00], ['500', 0.46, 1.00],
+        ['600', 0.38,  1.00], ['700', 0.30, 1.00], ['800', 0.22, 0.95],
+        ['900', 0.15,  0.90],
+      ];
+      var root = document.documentElement.style;
+      stops.forEach(function (s) {
+        root.setProperty('--teal-' + s[0],
+          toHex(hslToRgb({ h: pHSL.h, s: Math.min(1, pHSL.s * s[2]), l: s[1] })));
+      });
+      root.setProperty('--bg',
+        toHex(hslToRgb({ h: pHSL.h, s: Math.min(0.55, pHSL.s * 0.55), l: 0.92 })));
+    } catch (_) { /* silencio */ }
+  })();
+  </script>
   <style>
     :root {
       --teal-50:  #ecfbff;
@@ -1394,6 +1456,82 @@ document.getElementById('calPrev').addEventListener('click', () => navMonth(-1))
 document.getElementById('calNext').addEventListener('click', () => navMonth(1));
 
 /* ============================================================
+   THEME — re-derivar la escala teal a partir del color elegido
+   por la clínica en Mi Sitio Web → Apariencia.
+============================================================ */
+function applyClinicTheme(input) {
+  if (!input || !input.primary) return;
+  const pRGB = parseHex(input.primary);
+  if (!pRGB) return;
+  const pHSL = rgbToHsl(pRGB);
+  // Stops de --teal-50..--teal-900 con lightness fija y la saturación/hue
+  // del color elegido. Suavizamos saturación en los extremos para que las
+  // versiones muy claras o muy oscuras no salgan estridentes.
+  const stops = [
+    { name:  '50', l: 0.965, satMul: 0.55 },
+    { name: '100', l: 0.93,  satMul: 0.70 },
+    { name: '200', l: 0.84,  satMul: 0.85 },
+    { name: '300', l: 0.72,  satMul: 0.92 },
+    { name: '400', l: 0.58,  satMul: 1.00 },
+    { name: '500', l: 0.46,  satMul: 1.00 },
+    { name: '600', l: 0.38,  satMul: 1.00 },
+    { name: '700', l: 0.30,  satMul: 1.00 },
+    { name: '800', l: 0.22,  satMul: 0.95 },
+    { name: '900', l: 0.15,  satMul: 0.90 },
+  ];
+  const root = document.documentElement.style;
+  stops.forEach(s => {
+    const rgb = hslToRgb({ h: pHSL.h, s: Math.min(1, pHSL.s * s.satMul), l: s.l });
+    root.setProperty(`--teal-${s.name}`, rgbToHex(rgb));
+  });
+  // Fondo general — tinte muy pálido del primary
+  const bg = hslToRgb({ h: pHSL.h, s: Math.min(0.55, pHSL.s * 0.55), l: 0.92 });
+  root.setProperty('--bg', rgbToHex(bg));
+}
+
+function parseHex(s) {
+  const m = String(s || '').trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (!m) return null;
+  const h = m[1].length === 3 ? m[1].split('').map(c => c + c).join('') : m[1];
+  return { r: parseInt(h.slice(0,2),16), g: parseInt(h.slice(2,4),16), b: parseInt(h.slice(4,6),16) };
+}
+function rgbToHex({ r, g, b }) {
+  const h = n => Math.max(0, Math.min(255, n|0)).toString(16).padStart(2, '0');
+  return '#' + h(r) + h(g) + h(b);
+}
+function rgbToHsl({ r, g, b }) {
+  r/=255; g/=255; b/=255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h, s, l = (max + min) / 2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      default: h = (r - g) / d + 4;
+    }
+    h *= 60;
+  }
+  return { h, s, l };
+}
+function hslToRgb({ h, s, l }) {
+  h = ((h % 360) + 360) % 360;
+  const c = (1 - Math.abs(2*l - 1)) * s;
+  const x = c * (1 - Math.abs(((h/60) % 2) - 1));
+  const m = l - c/2;
+  let r1, g1, b1;
+  if (h < 60)      [r1,g1,b1] = [c,x,0];
+  else if (h<120)  [r1,g1,b1] = [x,c,0];
+  else if (h<180)  [r1,g1,b1] = [0,c,x];
+  else if (h<240)  [r1,g1,b1] = [0,x,c];
+  else if (h<300)  [r1,g1,b1] = [x,0,c];
+  else             [r1,g1,b1] = [c,0,x];
+  return { r: Math.round((r1+m)*255), g: Math.round((g1+m)*255), b: Math.round((b1+m)*255) };
+}
+
+/* ============================================================
    INIT
 ============================================================ */
 async function init() {
@@ -1408,6 +1546,18 @@ async function init() {
   try {
     const clinic = await api(`/api/public/clinic/${clinicId}`);
     state.clinic = clinic;
+    // Apariencia de la clínica: prioriza data.theme guardado en el editor,
+    // cae al brand_color legacy.
+    const effectiveTheme = clinic.theme && clinic.theme.primary
+      ? clinic.theme
+      : (clinic.brand_color ? { primary: clinic.brand_color } : null);
+    applyClinicTheme(effectiveTheme);
+    // Cache para que el próximo reload no flashe en teal antes del fetch.
+    try {
+      if (effectiveTheme) {
+        localStorage.setItem('clinic-theme-' + clinicId, JSON.stringify(effectiveTheme));
+      }
+    } catch (_) {}
     document.title = `${clinic.name} · Agendar cita`;
     document.getElementById('sumClinicName').textContent = clinic.name;
     document.getElementById('sumClinicLocText').textContent = clinic.address || 'Dirección disponible al confirmar';
