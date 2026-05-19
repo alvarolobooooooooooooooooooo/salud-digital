@@ -1149,8 +1149,11 @@ function renderImageGrid() {
   uploadedImages.forEach(img => {
     const div = document.createElement('div');
     div.className = 'pod-image-card';
+    const url = String(img.filename).startsWith('http')
+      ? img.filename
+      : `/uploads/consultations/${img.filename}`;
     div.innerHTML = `
-      <img src="/uploads/consultations/${img.filename}">
+      <img src="${url}">
       <button type="button" class="pod-image-remove" onclick="removeUploadedImage(${img.id})">×</button>
       <div class="pod-image-status" style="color: #86efac;">✓ Guardada</div>
     `;
