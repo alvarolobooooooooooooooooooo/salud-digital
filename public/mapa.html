@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+  <title>Mapa de clínicas — Salud Digital</title>
+  <meta name="description" content="Encuentra clínicas registradas en Salud Digital. Mapa interactivo con ubicación, teléfono y enlace al sitio de cada clínica." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <style>
+    :root {
+      --brand: #0891b2;
+      --ink: #0f172a;
+      --ink-muted: #475569;
+      --line: #e2e8f0;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --radius: 14px;
+      --shadow: 0 10px 30px rgba(15, 23, 42, .12), 0 2px 8px rgba(15, 23, 42, .06);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); }
+    body {
+      font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+    #map { position: fixed; inset: 0; z-index: 1; background: #dde4ec; }
+
+    .topbar {
+      position: fixed;
+      top: 12px; left: 12px; right: 12px;
+      z-index: 1000;
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, .96);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .topbar .brand {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: -.01em;
+      color: var(--ink);
+      text-decoration: none;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .topbar .brand .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--brand);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 22%, transparent);
+    }
+    .topbar .title {
+      font-weight: 600;
+      color: var(--ink-muted);
+      font-size: 14px;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .topbar .counter {
+      font-size: 12px;
+      color: var(--ink-muted);
+      padding: 4px 10px;
+      background: color-mix(in srgb, var(--brand) 10%, white);
+      border-radius: 999px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    @media (max-width: 480px) {
+      .topbar { gap: 8px; padding: 8px 12px; }
+      .topbar .title { display: none; }
+    }
+
+    .locate-btn {
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      color: var(--ink);
+      transition: background .15s, transform .1s;
+    }
+    .locate-btn:hover { background: var(--bg); }
+    .locate-btn:active { transform: scale(.96); }
+    .locate-btn.loading svg { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .leaflet-popup-content-wrapper { border-radius: 14px; padding: 0; }
+    .leaflet-popup-content { margin: 0; min-width: 220px; }
+    .leaflet-popup-tip { box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+
+    .pop {
+      padding: 14px 16px 12px;
+      font-family: 'Poppins', sans-serif;
+    }
+    .pop .clinic-name {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--ink);
+      margin: 0 0 4px;
+      line-height: 1.3;
+    }
+    .pop .meta {
+      font-size: 13px;
+      color: var(--ink-muted);
+      margin: 2px 0;
+      line-height: 1.4;
+    }
+    .pop .meta a {
+      color: var(--ink-muted);
+      text-decoration: none;
+    }
+    .pop .meta a:hover { text-decoration: underline; }
+    .pop .actions {
+      margin-top: 10px;
+      display: flex; gap: 8px;
+    }
+    .pop .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity .15s;
+    }
+    .pop .btn.primary { background: var(--brand); color: white; }
+    .pop .btn.secondary { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
+    .pop .btn:hover { opacity: .9; }
+
+    .empty-state {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 500;
+      background: white;
+      padding: 24px 28px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+      max-width: 320px;
+    }
+    .empty-state h2 {
+      margin: 0 0 6px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 17px;
+      color: var(--ink);
+    }
+    .empty-state p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--ink-muted);
+      line-height: 1.5;
+    }
+
+    /* Marker custom-coloreable */
+    .clinic-marker {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      background: var(--brand);
+      box-shadow: 0 3px 8px rgba(0,0,0,.25);
+      border: 2px solid white;
+    }
+    .clinic-marker::after {
+      content: '';
+      width: 10px; height: 10px;
+      background: white;
+      border-radius: 50%;
+      transform: rotate(45deg);
+    }
+  </style>
+</head>
+<body>
+  <div id="map" role="application" aria-label="Mapa de clínicas registradas"></div>
+
+  <header class="topbar" role="banner">
+    <a class="brand" href="/" aria-label="Volver a Salud Digital">
+      <span class="dot" aria-hidden="true"></span>
+      <span>Salud Digital</span>
+    </a>
+    <span class="title">Mapa de clínicas</span>
+    <span class="counter" id="counter" aria-live="polite">…</span>
+  </header>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    (function () {
+      var HONDURAS_CENTER = [14.65, -86.5];
+      var DEFAULT_ZOOM = 7;
+
+      var map = L.map('map', { zoomControl: false }).setView(HONDURAS_CENTER, DEFAULT_ZOOM);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+
+      // Botón "Ubicarme" como control custom de Leaflet.
+      var LocateControl = L.Control.extend({
+        options: { position: 'bottomright' },
+        onAdd: function () {
+          var btn = L.DomUtil.create('button', 'locate-btn');
+          btn.type = 'button';
+          btn.title = 'Ubicarme';
+          btn.setAttribute('aria-label', 'Ubicarme');
+          btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>';
+          L.DomEvent.disableClickPropagation(btn);
+          L.DomEvent.on(btn, 'click', function () {
+            if (!('geolocation' in navigator)) {
+              alert('Tu navegador no soporta geolocalización.');
+              return;
+            }
+            btn.classList.add('loading');
+            navigator.geolocation.getCurrentPosition(function (pos) {
+              btn.classList.remove('loading');
+              map.flyTo([pos.coords.latitude, pos.coords.longitude], 14, { duration: 1.2 });
+            }, function () {
+              btn.classList.remove('loading');
+              alert('No pudimos obtener tu ubicación.');
+            }, { enableHighAccuracy: true, timeout: 8000 });
+          });
+          return btn;
+        },
+      });
+      map.addControl(new LocateControl());
+
+      function escapeHtml(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      function safeColor(c) {
+        // Solo permite #rgb / #rrggbb para evitar inyectar valores raros en el style.
+        return (typeof c === 'string' && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(c)) ? c : '#0891b2';
+      }
+
+      function buildPopup(c) {
+        var addr = [c.address, c.city].filter(Boolean).join(', ');
+        var html = '<div class="pop">' +
+          '<div class="clinic-name" style="color:' + safeColor(c.brand_color) + '">' + escapeHtml(c.name) + '</div>';
+        if (addr) html += '<div class="meta">' + escapeHtml(addr) + '</div>';
+        if (c.phone) {
+          html += '<div class="meta">' +
+            '<a href="tel:' + escapeHtml(String(c.phone).replace(/[^\d+]/g, '')) + '">' + escapeHtml(c.phone) + '</a>' +
+            '</div>';
+        }
+        var actions = [];
+        if (c.landing_url) {
+          actions.push('<a class="btn primary" href="' + escapeHtml(c.landing_url) + '">Ver sitio</a>');
+        }
+        actions.push('<a class="btn secondary" target="_blank" rel="noopener" ' +
+          'href="https://www.openstreetmap.org/?mlat=' + c.lat + '&mlon=' + c.lng + '#map=16/' + c.lat + '/' + c.lng + '">Cómo llegar</a>');
+        html += '<div class="actions">' + actions.join('') + '</div></div>';
+        return html;
+      }
+
+      function buildIcon(brandColor) {
+        return L.divIcon({
+          className: '',
+          html: '<div class="clinic-marker" style="background:' + safeColor(brandColor) + '"></div>',
+          iconSize: [32, 32],
+          iconAnchor: [16, 30],
+          popupAnchor: [0, -28],
+        });
+      }
+
+      var counterEl = document.getElementById('counter');
+
+      fetch('/api/public/clinics/map', { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)); })
+        .then(function (data) {
+          var clinics = (data && Array.isArray(data.clinics)) ? data.clinics : [];
+          counterEl.textContent = clinics.length + (clinics.length === 1 ? ' clínica' : ' clínicas');
+          if (clinics.length === 0) {
+            var empty = document.createElement('div');
+            empty.className = 'empty-state';
+            empty.innerHTML = '<h2>Aún no hay clínicas en el mapa</h2>' +
+              '<p>Las clínicas aparecen aquí en cuanto cargan su dirección.</p>';
+            document.body.appendChild(empty);
+            return;
+          }
+          var bounds = [];
+          clinics.forEach(function (c) {
+            if (!Number.isFinite(c.lat) || !Number.isFinite(c.lng)) return;
+            var marker = L.marker([c.lat, c.lng], { icon: buildIcon(c.brand_color), title: c.name });
+            marker.bindPopup(buildPopup(c));
+            marker.addTo(map);
+            bounds.push([c.lat, c.lng]);
+          });
+          if (bounds.length > 1) {
+            map.fitBounds(bounds, { padding: [60, 60], maxZoom: 13 });
+          } else if (bounds.length === 1) {
+            map.setView(bounds[0], 13);
+          }
+        })
+        .catch(function (err) {
+          console.error('[mapa] fetch failed', err);
+          counterEl.textContent = 'Error al cargar';
+        });
+    })();
+  </script>
+</body>
+</html>

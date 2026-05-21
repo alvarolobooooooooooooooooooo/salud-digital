@@ -5,6 +5,7 @@ const cloudinary = require('cloudinary').v2;
 const { v4: uuid } = require('uuid');
 const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
+const { geocodeAndStore } = require('../lib/geocoding');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -84,7 +85,8 @@ router.get('/me', authenticate, async (req, res) => {
   if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
   const result = await query(
     `SELECT id, name, type, tax_id, address, city, phone, email, info,
-            brand_color, currency, website, logo_url
+            brand_color, currency, website, logo_url,
+            latitude, longitude, show_on_public_map
        FROM clinics WHERE id = $1`,
     [req.user.clinic_id]
   );
@@ -132,7 +134,7 @@ router.delete('/me/logo', authenticate, requireRole('clinic_admin'), async (req,
 router.put('/me', authenticate, requireRole('clinic_admin'), async (req, res) => {
   if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
 
-  const { name, type, tax_id, address, city, phone, email, info, brand_color, currency, website } = req.body || {};
+  const { name, type, tax_id, address, city, phone, email, info, brand_color, currency, website, show_on_public_map } = req.body || {};
 
   if (!name || !String(name).trim()) {
     return res.status(400).json({ error: 'El nombre de la clínica es requerido' });
@@ -147,28 +149,53 @@ router.put('/me', authenticate, requireRole('clinic_admin'), async (req, res) =>
     return res.status(400).json({ error: 'El sitio web debe comenzar con http:// o https://' });
   }
 
+  const newAddress = address || '';
+  const newCity = city || '';
+
+  // Si la dirección o ciudad cambió, invalidamos lat/lng para que el geocoding
+  // se re-dispare (el helper respeta el rate limit de Nominatim).
+  let addressChanged = false;
   try {
+    const prev = await query('SELECT address, city FROM clinics WHERE id = $1', [req.user.clinic_id]);
+    const p = prev.rows[0] || {};
+    addressChanged = (p.address || '') !== newAddress || (p.city || '') !== newCity;
+  } catch (e) {}
+
+  try {
+    const showFlagSql = (typeof show_on_public_map === 'boolean')
+      ? ', show_on_public_map = $13' : '';
+    const invalidateGeoSql = addressChanged
+      ? ', latitude = NULL, longitude = NULL, geocoded_at = NULL' : '';
+    const params = [
+      String(name).trim(),
+      type || '',
+      tax_id || '',
+      newAddress,
+      newCity,
+      phone || '',
+      email || '',
+      info || '',
+      brand_color || '#0891b2',
+      currency || 'HNL',
+      website || '',
+      req.user.clinic_id,
+    ];
+    if (typeof show_on_public_map === 'boolean') params.push(show_on_public_map);
     await query(
       `UPDATE clinics SET
          name = $1, type = $2, tax_id = $3, address = $4, city = $5,
          phone = $6, email = $7, info = $8, brand_color = $9,
-         currency = $10, website = $11
+         currency = $10, website = $11${showFlagSql}${invalidateGeoSql}
        WHERE id = $12`,
-      [
-        String(name).trim(),
-        type || '',
-        tax_id || '',
-        address || '',
-        city || '',
-        phone || '',
-        email || '',
-        info || '',
-        brand_color || '#0891b2',
-        currency || 'HNL',
-        website || '',
-        req.user.clinic_id,
-      ]
+      params
     );
+    if (addressChanged && (newAddress || newCity)) {
+      // Fire-and-forget: no bloqueamos el response esperando a Nominatim.
+      setImmediate(() => {
+        geocodeAndStore(req.user.clinic_id, { address: newAddress, city: newCity })
+          .catch(err => console.warn('[geocode] failed for clinic', req.user.clinic_id, err.message));
+      });
+    }
     res.json({ success: true });
   } catch (err) {
     if (err.code === '23505') {

@@ -286,7 +286,7 @@
         border-radius: 16px; padding: 24px 24px 20px;
         max-width: 440px; width: 100%;
         box-shadow: 0 24px 48px -12px rgba(15,23,42,.35);
-        font: 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        font: 14px 'Poppins', sans-serif;
       }
       .cdraft-exit-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
       .cdraft-exit-icon {

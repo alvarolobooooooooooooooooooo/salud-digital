@@ -263,4 +263,33 @@ router.post('/landing/:slug/lead', async (req, res) => {
   res.json({ success: true });
 });
 
+// GET /api/public/clinics/map — listado de pines para la página /mapa.
+// Pública (sin auth). Incluye solo clínicas con coordenadas válidas y con el
+// opt-out desactivado. landing_url se emite solo si la landing está publicada.
+router.get('/clinics/map', async (req, res) => {
+  const r = await query(
+    `SELECT id, name, slug, address, city, phone, latitude, longitude,
+            logo_url, brand_color, landing_published
+       FROM clinics
+      WHERE latitude IS NOT NULL
+        AND longitude IS NOT NULL
+        AND show_on_public_map = TRUE`
+  );
+  const clinics = r.rows.map(row => ({
+    id: row.id,
+    name: row.name,
+    slug: row.slug || null,
+    address: row.address || '',
+    city: row.city || '',
+    phone: row.phone || '',
+    lat: parseFloat(row.latitude),
+    lng: parseFloat(row.longitude),
+    logo_url: row.logo_url || null,
+    brand_color: row.brand_color || '#0891b2',
+    landing_url: (row.landing_published && row.slug) ? `/c/${row.slug}` : null,
+  }));
+  res.set('Cache-Control', 'public, max-age=300');
+  res.json({ clinics });
+});
+
 module.exports = router;

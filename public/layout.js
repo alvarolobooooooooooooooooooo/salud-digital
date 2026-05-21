@@ -26,6 +26,7 @@
     '/confirmaciones.html': 'confirmaciones',
     '/agendar-online.html': 'agendar-online',
     '/mi-sitio.html': 'mi-sitio',
+    '/crecimiento.html': 'crecimiento',
     '/plan.html': 'plan',
     '/consultation.html': '',
     '/consultation-nutrition.html': '',
@@ -93,6 +94,12 @@
           ]
         },
         {
+          label: 'CRECIMIENTO',
+          items: [
+            { href: '/crecimiento.html', key: 'crecimiento', iconName: 'trendingUp', label: 'Pulso Clínico' }
+          ]
+        },
+        {
           label: 'CLÍNICA',
           items: [
             { href: '/doctors.html', key: 'doctors', iconName: 'staff', label: 'Personal' },
@@ -128,6 +135,12 @@
             { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
             { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
+          ]
+        },
+        {
+          label: 'CRECIMIENTO',
+          items: [
+            { href: '/crecimiento.html', key: 'crecimiento', iconName: 'trendingUp', label: 'Pulso Clínico' }
           ]
         },
         {
@@ -168,7 +181,7 @@
     }).join('');
 
     // Mobile menu items (exclude Consentimientos, Recordatorios, Citas Online, Mi Plan from mobile sticky menu)
-    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio').map(item => {
+    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio' && item.key !== 'crecimiento').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
@@ -225,6 +238,10 @@
               <span>Configuración</span>
             </a>
           </div>` : `<div class="sidebar-section">
+            <a href="/crecimiento.html" class="sidebar-menu-link">
+              <span id="crecimientoMenuIcon"></span>
+              <span>Pulso Clínico</span>
+            </a>
             <a href="/calendario-compartido.html" class="sidebar-menu-link">
               <span id="calCompartidoIcon"></span>
               <span>Calendario Compartido</span>
@@ -406,6 +423,10 @@
     const notificationIcon = document.querySelector('#notificationIcon');
     if (notificationIcon && !notificationIcon.innerHTML.trim()) notificationIcon.innerHTML = Icons.render('bell', 24);
 
+    // Pulso Clínico (drawer móvil)
+    const crecimientoMenuIcon = document.querySelector('#crecimientoMenuIcon');
+    if (crecimientoMenuIcon && !crecimientoMenuIcon.innerHTML.trim()) crecimientoMenuIcon.innerHTML = Icons.render('trendingUp', 16);
+
     // Calendario Compartido menu icon
     const calCompartidoIcon = document.querySelector('#calCompartidoIcon');
     if (calCompartidoIcon && !calCompartidoIcon.innerHTML.trim()) calCompartidoIcon.innerHTML = Icons.render('calendar', 16);
@@ -576,15 +597,22 @@
 
     avatarEls.forEach(el => {
       if (!el) return;
+      // Default: gradient del CSS + iniciales como fallback siempre.
+      el.style.backgroundImage = '';
+      el.textContent = initials;
+      // Si hay photo_url, intentamos cargarla. Solo si carga, la pintamos
+      // encima del gradiente y limpiamos las iniciales. Si falla (404, CORS,
+      // URL rota), nos quedamos con iniciales + gradiente — sin círculo vacío.
       if (user.photo_url) {
-        el.innerHTML = '';
-        el.style.backgroundImage = `url("${user.photo_url}")`;
-        el.style.backgroundSize = 'cover';
-        el.style.backgroundPosition = 'center';
-        el.textContent = '';
-      } else {
-        el.style.backgroundImage = '';
-        el.textContent = initials;
+        const img = new Image();
+        img.onload = () => {
+          el.style.backgroundImage = `url("${user.photo_url}")`;
+          el.style.backgroundSize = 'cover';
+          el.style.backgroundPosition = 'center';
+          el.textContent = '';
+        };
+        img.onerror = () => { /* dejamos iniciales + gradiente */ };
+        img.src = user.photo_url;
       }
     });
     nameEls.forEach(el => { if (el) el.textContent = displayName; });

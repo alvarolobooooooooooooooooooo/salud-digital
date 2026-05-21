@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="/theme.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SaludDigital — Crecimiento</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50%      { transform: scale(1.35); opacity: 0.6; }
+    }
+
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      letter-spacing: -0.005em;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    body::before {
+      content:''; position:fixed; width:1000px; height:1000px;
+      background: radial-gradient(circle, rgba(8,145,178,.12) 0%, transparent 70%);
+      top:-200px; right:-300px; border-radius:50%; z-index:-2; filter:blur(60px);
+      pointer-events:none;
+    }
+    body::after {
+      content:''; position:fixed; width:800px; height:800px;
+      background: radial-gradient(circle, rgba(6,182,212,.10) 0%, transparent 70%);
+      bottom:-200px; left:-200px; border-radius:50%; z-index:-2; filter:blur(60px);
+      pointer-events:none;
+    }
+
+    main {
+      width: 100%;
+      padding: 2rem 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    @media (min-width: 768px) { main { padding: 2.5rem 2rem; } }
+
+    .page-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap;
+    }
+    .header-content h1 {
+      font-size: clamp(26px, 3.4vw, 40px); font-weight: 700;
+      background: linear-gradient(120deg, #155e75 0%, #0891b2 50%, #0ea5e9 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; line-height: 1.05; letter-spacing: -0.025em;
+      margin-bottom: 0.4rem;
+    }
+    .header-content p {
+      color: #64748b; font-size: 14px; line-height: 1.5; max-width: 640px;
+    }
+    .header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.65rem 1rem; border-radius: 12px; border: 1px solid rgba(8,145,178,.12);
+      background: white; color: #0f172a; font-weight: 500; font-size: 13px;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(8,145,178,.12); }
+    .btn-primary {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white; border-color: transparent;
+      box-shadow: 0 8px 24px rgba(8,145,178,.25);
+    }
+    .btn-primary:hover { box-shadow: 0 12px 32px rgba(8,145,178,.35); }
+    .btn svg { flex-shrink: 0; }
+
+    .card {
+      background: linear-gradient(135deg, rgba(255,255,255,.98) 0%, rgba(240,249,255,.95) 100%);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px; padding: 1.5rem;
+      border: 1px solid rgba(255,255,255,.5);
+      box-shadow:
+        0 0 80px rgba(8,145,178,.06),
+        0 14px 40px rgba(0,0,0,.06),
+        inset 0 1px 0 rgba(255,255,255,.8);
+      animation: fadeSlideUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+    .card h3 {
+      font-size: 16px; font-weight: 600; margin-bottom: 1rem;
+      color: #0f172a; letter-spacing: -0.015em;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .card h3 .h-ico {
+      display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center;
+      border-radius: 8px; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+    }
+
+    /* ── KPI cards ── */
+    .kpi-grid {
+      display: grid; gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-bottom: 1.5rem;
+    }
+    .kpi {
+      padding: 1.25rem 1.5rem; border-radius: 18px;
+      background: white;
+      border: 1px solid rgba(8,145,178,.08);
+      box-shadow: 0 6px 20px rgba(8,145,178,.06);
+      position: relative; overflow: hidden;
+      animation: fadeSlideUp 0.5s ease forwards;
+    }
+    .kpi.kpi-primary {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      box-shadow: 0 16px 40px rgba(8,145,178,.30);
+    }
+    .kpi.kpi-primary::after {
+      content:''; position:absolute; right:-30px; bottom:-30px; width:140px; height:140px;
+      background: rgba(255,255,255,.12); border-radius: 50%;
+    }
+    .kpi .kpi-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.12em; opacity: 0.7; margin-bottom: 0.5rem;
+    }
+    .kpi.kpi-primary .kpi-label { opacity: 0.9; color: rgba(255,255,255,.95); }
+    .kpi .kpi-value {
+      font-size: clamp(22px, 2.4vw, 30px); font-weight: 700;
+      line-height: 1.1; letter-spacing: -0.02em;
+      color: #0f172a;
+    }
+    .kpi.kpi-primary .kpi-value { color: white; }
+    .kpi .kpi-sub {
+      font-size: 12px; color: #64748b; margin-top: 0.35rem;
+    }
+    .kpi.kpi-primary .kpi-sub { color: rgba(255,255,255,.85); }
+
+    /* ── Two-column layout ── */
+    .two-col {
+      display: grid; gap: 1.25rem; margin-bottom: 1.5rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 1024px) {
+      .two-col { grid-template-columns: 1.5fr 1fr; }
+    }
+
+    /* ── Recommendations ── */
+    .rec-item {
+      display: flex; gap: 0.85rem; padding: 1rem;
+      border-radius: 14px; border: 1px solid rgba(8,145,178,.08);
+      background: white; margin-bottom: 0.65rem; transition: all .2s;
+    }
+    .rec-item:hover {
+      box-shadow: 0 8px 24px rgba(8,145,178,.10);
+      transform: translateY(-1px);
+    }
+    .rec-icon {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, rgba(14,165,233,.15), rgba(6,182,212,.15));
+      color: #0891b2;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .rec-body { flex: 1; min-width: 0; }
+    .rec-title {
+      font-weight: 600; font-size: 14px; color: #0f172a;
+      display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;
+    }
+    .rec-text { font-size: 13px; color: #475569; line-height: 1.5; margin-top: 0.25rem; }
+    .rec-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+    .rec-actions .btn { padding: 0.4rem 0.75rem; font-size: 12px; }
+
+    .pill {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.2rem 0.55rem; border-radius: 99px;
+      font-size: 11px; font-weight: 600;
+      border: 1px solid;
+    }
+    .pill.green  { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+    .pill.amber  { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+    .pill.red    { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .pill.sky    { background: #f0f9ff; color: #0369a1; border-color: #bae6fd; }
+    .pill.slate  { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+
+    /* ── Alerts ── */
+    .alert {
+      display: flex; gap: 0.6rem; align-items: flex-start;
+      padding: 0.85rem 0.95rem; border-radius: 12px; margin-bottom: 0.55rem;
+      border: 1px solid; font-size: 13px; line-height: 1.45;
+    }
+    .alert.red   { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+    .alert.amber { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+    .alert.sky   { background: #f0f9ff; border-color: #bae6fd; color: #0369a1; }
+    .alert .alert-ico { flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Funnel ── */
+    .funnel { display: flex; flex-direction: column; gap: 0.5rem; }
+    .funnel-row { display: flex; align-items: center; gap: 0.75rem; }
+    .funnel-label { width: 110px; font-size: 13px; color: #475569; flex-shrink: 0; }
+    .funnel-bar {
+      flex: 1; height: 36px; background: #f1f5f9; border-radius: 10px; overflow: hidden;
+      position: relative;
+    }
+    .funnel-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0891b2 0%, #06b6d4 100%);
+      border-radius: 10px;
+      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .funnel-text {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 0.85rem; font-size: 13px; font-weight: 600;
+    }
+    .funnel-text .v { color: #0f172a; }
+    .funnel-text .p { color: #475569; }
+
+    /* ── Occupancy ── */
+    .occ-row { margin-bottom: 0.85rem; }
+    .occ-head {
+      display: flex; justify-content: space-between; font-size: 13px;
+      color: #0f172a; font-weight: 500; margin-bottom: 0.3rem;
+    }
+    .occ-head .occ-pct { color: #64748b; font-variant-numeric: tabular-nums; }
+    .occ-bar {
+      height: 8px; background: #f1f5f9; border-radius: 99px; overflow: hidden;
+    }
+    .occ-fill { height: 100%; border-radius: 99px; transition: width 0.6s; }
+    .occ-fill.green  { background: linear-gradient(90deg, #10b981, #34d399); }
+    .occ-fill.amber  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .occ-fill.red    { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+    /* ── Campaigns table ── */
+    .campaigns-card { overflow: hidden; }
+    .table-wrap { overflow-x: auto; margin: 0 -0.5rem; padding: 0 0.5rem; }
+    .table {
+      width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px;
+    }
+    .table thead th {
+      text-align: left; font-size: 11px; font-weight: 600; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 0.6rem 0.75rem; border-bottom: 1px solid #e2e8f0;
+    }
+    .table thead th.right { text-align: right; }
+    .table td {
+      padding: 0.85rem 0.75rem; border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    .table td.right { text-align: right; font-variant-numeric: tabular-nums; }
+    .table tr:last-child td { border-bottom: none; }
+    .dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+    .dot.green { background: #10b981; }
+    .dot.amber { background: #f59e0b; }
+    .dot.red   { background: #ef4444; }
+
+    /* ── Opportunities ── */
+    .opp-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.75rem 0.85rem; border-radius: 12px;
+      border: 1px solid rgba(8,145,178,.08); margin-bottom: 0.5rem;
+      background: white; font-size: 13px;
+    }
+    .opp-item:hover { background: #f8fafc; }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 13px;
+    }
+
+    /* ── Modal (generador de anuncios) ── */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(15,23,42,.6);
+      backdrop-filter: blur(4px); z-index: 1000;
+      display: none; align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: white; border-radius: 20px; max-width: 580px; width: 100%;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 30px 80px rgba(0,0,0,.30);
+      animation: fadeSlideUp 0.35s ease;
+    }
+    .modal-head {
+      padding: 1.25rem 1.5rem 0.75rem;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #f1f5f9; margin-bottom: 0.5rem;
+    }
+    .modal-head h3 { margin: 0; }
+    .modal-close {
+      background: none; border: none; cursor: pointer; color: #64748b;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0.4rem; border-radius: 8px;
+    }
+    .modal-close:hover { background: #f1f5f9; color: #0f172a; }
+    .modal-body { padding: 1rem 1.5rem 1.5rem; }
+    .modal-body label {
+      display: block; font-size: 12px; font-weight: 600; color: #475569;
+      text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.85rem;
+      margin-bottom: 0.3rem;
+    }
+    .modal-body select, .modal-body input, .modal-body textarea {
+      width: 100%; padding: 0.6rem 0.8rem; border-radius: 10px;
+      border: 1px solid #e2e8f0; background: white; font-size: 14px;
+      font-family: inherit; color: #0f172a;
+    }
+    .modal-body textarea { min-height: 70px; resize: vertical; }
+    .ad-section { background: #f8fafc; padding: 0.85rem 1rem; border-radius: 12px; margin-top: 0.75rem; font-size: 13px; line-height: 1.55; }
+    .ad-section .label { font-size: 11px; font-weight: 700; color: #0891b2; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.25rem; }
+    .ad-section .copy-btn {
+      float: right; background: none; border: none; color: #0891b2; cursor: pointer;
+      font-size: 11px; font-weight: 600;
+    }
+    .modal-foot {
+      padding: 1rem 1.5rem; border-top: 1px solid #f1f5f9;
+      display: flex; justify-content: flex-end; gap: 0.5rem;
+    }
+
+    .toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      background: #0f172a; color: white; padding: 0.7rem 1.2rem;
+      border-radius: 12px; font-size: 13px; box-shadow: 0 10px 30px rgba(0,0,0,.20);
+      z-index: 2000; display: none;
+    }
+    .toast.show { display: block; animation: fadeSlideUp 0.3s ease; }
+
+    /* ── Dark theme override ── */
+    html[data-theme="dark"] body {
+      background: linear-gradient(135deg, #0b1220 0%, #0f172a 60%, #0a1a24 100%);
+    }
+    html[data-theme="dark"] .card,
+    html[data-theme="dark"] .kpi,
+    html[data-theme="dark"] .rec-item,
+    html[data-theme="dark"] .opp-item,
+    html[data-theme="dark"] .modal {
+      background: #111827; border-color: rgba(255,255,255,.06); color: #e2e8f0;
+    }
+    html[data-theme="dark"] .card h3,
+    html[data-theme="dark"] .kpi .kpi-value,
+    html[data-theme="dark"] .rec-title { color: #e2e8f0; }
+    html[data-theme="dark"] .rec-text,
+    html[data-theme="dark"] .funnel-label,
+    html[data-theme="dark"] .kpi .kpi-sub { color: #94a3b8; }
+    html[data-theme="dark"] .table thead th { color: #94a3b8; border-color: #1f2937; }
+    html[data-theme="dark"] .table td { border-color: #1f2937; }
+    html[data-theme="dark"] .funnel-bar,
+    html[data-theme="dark"] .occ-bar { background: #1f2937; }
+    html[data-theme="dark"] .btn { background: #1f2937; color: #e2e8f0; border-color: #374151; }
+    html[data-theme="dark"] .modal-body input,
+    html[data-theme="dark"] .modal-body select,
+    html[data-theme="dark"] .modal-body textarea {
+      background: #0f172a; border-color: #374151; color: #e2e8f0;
+    }
+    html[data-theme="dark"] .ad-section { background: #0f172a; }
+
+    /* Mobile spacing for sticky mobile nav at bottom */
+    @media (max-width: 860px) {
+      main { padding-bottom: 7rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-loader" id="pageLoader">
+    <div class="page-loader-content">
+      <div class="page-loader-spinner"></div>
+      <div class="page-loader-text">Cargando…</div>
+    </div>
+  </div>
+
+<main class="layout-main">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Pulso Clínico</h1>
+      <p>Tu copiloto de crecimiento. Conecta campañas, agenda y pacientes — y te dice qué hacer mañana para llenar consulta.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="btnRefresh" title="Actualizar"><span id="icoRefresh"></span><span>Actualizar</span></button>
+      <button class="btn btn-primary" id="btnGenerateAd"><span id="icoSparkles"></span><span>Generar anuncio</span></button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi kpi-primary">
+      <div class="kpi-label">ROI global</div>
+      <div class="kpi-value" id="kpiRoi">—</div>
+      <div class="kpi-sub" id="kpiRoiSub">Mes actual</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Invertido (mes)</div>
+      <div class="kpi-value" id="kpiInvested">L. 0</div>
+      <div class="kpi-sub">Estimado por canales activos</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Ingreso atribuido</div>
+      <div class="kpi-value" id="kpiRevenue">L. 0</div>
+      <div class="kpi-sub" id="kpiRevenueSub">Estimación + cobrado</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Pacientes asistidos</div>
+      <div class="kpi-value" id="kpiPatients">0</div>
+      <div class="kpi-sub" id="kpiPatientsSub">Mes actual</div>
+    </div>
+  </div>
+
+  <!-- Recommendations + Alerts -->
+  <div class="two-col">
+    <div class="card">
+      <h3><span class="h-ico" id="icoSparkles2"></span>Recomendaciones de Pulso AI</h3>
+      <div id="recList"><div class="empty">Cargando recomendaciones…</div></div>
+    </div>
+    <div class="card">
+      <h3><span class="h-ico" id="icoAlert"></span>Alertas inteligentes</h3>
+      <div id="alertList"><div class="empty">Cargando alertas…</div></div>
+    </div>
+  </div>
+
+  <!-- Funnel + Occupancy -->
+  <div class="two-col">
+    <div class="card">
+      <h3><span class="h-ico" id="icoFunnel"></span>Embudo de pacientes (30 días)</h3>
+      <div class="funnel" id="funnel"><div class="empty">Cargando…</div></div>
+    </div>
+    <div class="card">
+      <h3><span class="h-ico" id="icoCalendar"></span>Ocupación de agenda (próx. 7 días)</h3>
+      <div id="occupancy"><div class="empty">Cargando…</div></div>
+    </div>
+  </div>
+
+  <!-- Campaigns table -->
+  <div class="card campaigns-card" style="margin-bottom: 1.5rem;">
+    <h3><span class="h-ico" id="icoWallet"></span>Semáforo de campañas (30 días)</h3>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Campaña</th>
+            <th>Canal</th>
+            <th class="right">Invertido</th>
+            <th class="right">Citas</th>
+            <th class="right">Asistidos</th>
+            <th class="right">CPPA</th>
+            <th class="right">ROI</th>
+          </tr>
+        </thead>
+        <tbody id="campaignsTbody">
+          <tr><td colspan="7" class="empty">Cargando campañas…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Opportunities + How to grow -->
+  <div class="two-col">
+    <div class="card">
+      <h3><span class="h-ico" id="icoTrending"></span>Próximas oportunidades</h3>
+      <div id="oppList"><div class="empty">Cargando…</div></div>
+    </div>
+    <div class="card">
+      <h3><span class="h-ico" id="icoGrow"></span>Cómo crece tu clínica</h3>
+      <div style="font-size: 13px; color: #475569; line-height: 1.65;">
+        <p style="margin-bottom: 0.65rem;">Pulso AI conecta lo que invertís en publicidad con los pacientes que efectivamente llegaron, pagaron y volvieron.</p>
+        <p style="margin-bottom: 0.65rem;"><strong>¿Cómo lo hace?</strong> Cruza fuentes de leads (landing, WhatsApp, manual), agenda médica y estado de citas para calcular costo por paciente asistido y ROI por especialidad.</p>
+        <p>Cuanto más completas las citas (especialidad + fuente + costo), más precisas las recomendaciones.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ── Modal: Generador de anuncios ── -->
+<div class="modal-bg" id="adModal" role="dialog" aria-label="Generador de anuncios">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Generador de anuncios por especialidad</h3>
+      <button class="modal-close" id="adClose"><span id="icoClose"></span></button>
+    </div>
+    <div class="modal-body">
+      <label for="adSpecialty">Especialidad</label>
+      <select id="adSpecialty">
+        <option value="dermatología">Dermatología</option>
+        <option value="odontología">Odontología</option>
+        <option value="ginecología">Ginecología</option>
+        <option value="pediatría">Pediatría</option>
+        <option value="cardiología">Cardiología</option>
+        <option value="medicina general">Medicina general</option>
+        <option value="nutrición">Nutrición</option>
+        <option value="psicología">Psicología</option>
+        <option value="estética médica">Estética médica</option>
+      </select>
+      <div id="adPreview" style="margin-top: 0.5rem;">
+        <div class="empty">Selecciona una especialidad…</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="adCloseFooter">Cerrar</button>
+      <button class="btn btn-primary" id="adCopyAll"><span>Copiar todo</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/icons.js"></script>
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script>
+  requireAuth(['clinic_admin', 'doctor']);
+
+  const fmtHnl = n => 'L. ' + Number(n || 0).toLocaleString('es-HN', { maximumFractionDigits: 0 });
+  const $ = id => document.getElementById(id);
+
+  function showToast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function renderIcons() {
+    if (typeof Icons === 'undefined') return;
+    $('icoRefresh').innerHTML = Icons.render('refresh', 16);
+    $('icoSparkles').innerHTML = Icons.render('sparkles', 16);
+    $('icoSparkles2').innerHTML = Icons.render('sparkles', 16);
+    $('icoAlert').innerHTML = Icons.render('alert', 16);
+    $('icoFunnel').innerHTML = Icons.render('filter', 16);
+    $('icoCalendar').innerHTML = Icons.render('calendar', 16);
+    $('icoWallet').innerHTML = Icons.render('wallet', 16);
+    $('icoTrending').innerHTML = Icons.render('trendingUp', 16);
+    $('icoGrow').innerHTML = Icons.render('heart', 16);
+    $('icoClose').innerHTML = Icons.render('x', 18);
+  }
+
+  function setKpi(summary) {
+    $('kpiRoi').textContent = (Number(summary.roi || 0)).toFixed(1) + 'x';
+    $('kpiInvested').textContent = fmtHnl(summary.invested_month);
+    const totalRev = Number(summary.revenue_month || 0) + Number(summary.revenue_estimated || 0);
+    $('kpiRevenue').textContent = fmtHnl(totalRev);
+    $('kpiRevenueSub').textContent = `Cobrado: ${fmtHnl(summary.revenue_month)}`;
+    $('kpiPatients').textContent = summary.patients_attended || 0;
+    $('kpiPatientsSub').textContent =
+      `Asistencia ${summary.attendance_rate || 0}% · CPPA ${summary.cppa ? fmtHnl(summary.cppa) : '—'}`;
+    $('kpiRoiSub').textContent = summary.invested_month > 0
+      ? (summary.spend_source === 'estimated'
+          ? 'Estimado — conectá Meta/Google para datos reales'
+          : 'Invertido / Ingreso atribuido (datos reales)')
+      : 'Aún sin inversión registrada';
+  }
+
+  function renderRecs(recs) {
+    const el = $('recList');
+    if (!recs || !recs.length) {
+      el.innerHTML = '<div class="empty">Sin recomendaciones por ahora. Pulso seguirá analizando tu agenda.</div>';
+      return;
+    }
+    el.innerHTML = recs.map(r => `
+      <div class="rec-item">
+        <div class="rec-icon">${Icons.render('sparkles', 16)}</div>
+        <div class="rec-body">
+          <div class="rec-title">
+            <span>${esc(r.title)}</span>
+            ${r.impact_hnl > 0 ? `<span class="pill sky">+${fmtHnl(r.impact_hnl)} estimados</span>` : ''}
+          </div>
+          <div class="rec-text">${esc(r.detail)}</div>
+          <div class="rec-actions">
+            ${r.action === 'generate_ad'
+              ? `<button class="btn btn-primary" data-action="generate_ad" data-specialty="${esc(r.payload?.specialty || '')}">Generar anuncio</button>`
+              : `<button class="btn btn-primary" data-action="${esc(r.action || 'apply')}">Aplicar</button>`}
+            <button class="btn" data-action="dismiss">Descartar</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    el.querySelectorAll('[data-action="generate_ad"]').forEach(b => {
+      b.addEventListener('click', () => openAdModal(b.dataset.specialty));
+    });
+    el.querySelectorAll('[data-action]').forEach(b => {
+      if (b.dataset.action === 'generate_ad') return;
+      b.addEventListener('click', () => {
+        if (b.dataset.action === 'dismiss') {
+          b.closest('.rec-item').style.opacity = '0.4';
+          showToast('Recomendación descartada');
+        } else {
+          showToast('Acción registrada — Pulso ajustará el siguiente análisis');
+        }
+      });
+    });
+  }
+
+  function renderAlerts(alerts) {
+    const el = $('alertList');
+    if (!alerts || !alerts.length) {
+      el.innerHTML = '<div class="empty">Sin alertas. Todo bajo control.</div>';
+      return;
+    }
+    el.innerHTML = alerts.map(a => `
+      <div class="alert ${esc(a.tone || 'sky')}">
+        <span class="alert-ico">${Icons.render('alert', 14)}</span>
+        <span>${esc(a.text)}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderFunnel(steps) {
+    const el = $('funnel');
+    if (!steps || !steps.length) {
+      el.innerHTML = '<div class="empty">Aún no hay suficientes datos.</div>';
+      return;
+    }
+    const maxP = Math.max(...steps.map(s => s.pct || 0), 100);
+    el.innerHTML = steps.map(s => {
+      const width = Math.max(1, Math.round((s.pct || 0) / maxP * 100));
+      return `
+        <div class="funnel-row">
+          <div class="funnel-label">${esc(s.stage)}</div>
+          <div class="funnel-bar">
+            <div class="funnel-fill" style="width: ${width}%"></div>
+            <div class="funnel-text">
+              <span class="v">${s.value}</span>
+              <span class="p">${s.pct}%</span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderOccupancy(rows) {
+    const el = $('occupancy');
+    if (!rows || !rows.length) {
+      el.innerHTML = '<div class="empty">Aún no hay especialidades configuradas.</div>';
+      return;
+    }
+    el.innerHTML = rows.map(o => {
+      const tone = o.occupancy >= 80 ? 'green' : o.occupancy >= 50 ? 'amber' : 'red';
+      return `
+        <div class="occ-row">
+          <div class="occ-head">
+            <span>${esc(capitalize(o.specialty))} <span style="color:#94a3b8; font-size:12px;">· ${o.free} cupos libres</span></span>
+            <span class="occ-pct">${o.occupancy}%</span>
+          </div>
+          <div class="occ-bar"><div class="occ-fill ${tone}" style="width: ${o.occupancy}%"></div></div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderCampaigns(rows) {
+    const tb = $('campaignsTbody');
+    if (!rows || !rows.length) {
+      tb.innerHTML = '<tr><td colspan="7" class="empty">No hay campañas detectadas. Las citas con `source` distinto a "manual" se cuentan aquí.</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map(c => `
+      <tr>
+        <td><span class="dot ${esc(c.status)}"></span>${esc(c.name)}</td>
+        <td><span class="pill slate">${esc(c.channel)}</span></td>
+        <td class="right">${fmtHnl(c.spent)}</td>
+        <td class="right">${c.appointments}</td>
+        <td class="right">${c.attended}</td>
+        <td class="right">${c.cppa ? fmtHnl(c.cppa) : '—'}</td>
+        <td class="right"><strong>${c.roi}x</strong></td>
+      </tr>
+    `).join('');
+  }
+
+  function renderOpportunities(rows) {
+    const el = $('oppList');
+    if (!rows || !rows.length) {
+      el.innerHTML = '<div class="empty">Sin oportunidades nuevas detectadas hoy.</div>';
+      return;
+    }
+    el.innerHTML = rows.map(o => `
+      <div class="opp-item">
+        <span>${esc(o.title)}</span>
+        <span class="pill ${esc(o.tone || 'sky')}">+${fmtHnl(o.impact_hnl)}</span>
+      </div>
+    `).join('');
+  }
+
+  function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // ── Modal: generador de anuncios ──
+  function openAdModal(preselect) {
+    $('adModal').classList.add('open');
+    if (preselect) {
+      const sel = $('adSpecialty');
+      [...sel.options].forEach(o => { if (o.value === preselect) sel.value = preselect; });
+    }
+    loadAdTemplate($('adSpecialty').value);
+  }
+  function closeAdModal() { $('adModal').classList.remove('open'); }
+
+  async function loadAdTemplate(specialty) {
+    const target = $('adPreview');
+    target.innerHTML = '<div class="empty">Generando…</div>';
+    try {
+      const tpl = await api('/api/growth/ad-templates/' + encodeURIComponent(specialty));
+      target.innerHTML = `
+        <div class="ad-section"><div class="label">Ángulo</div>${esc(tpl.angle)}</div>
+        <div class="ad-section"><button class="copy-btn" data-copy="title">Copiar</button><div class="label">Título</div><span id="t-title">${esc(tpl.title)}</span></div>
+        <div class="ad-section"><button class="copy-btn" data-copy="body">Copiar</button><div class="label">Texto principal</div><span id="t-body">${esc(tpl.body)}</span></div>
+        <div class="ad-section"><div class="label">CTA</div>${esc(tpl.cta)}</div>
+        <div class="ad-section"><button class="copy-btn" data-copy="whatsapp">Copiar</button><div class="label">Mensaje inicial WhatsApp</div><span id="t-whatsapp">${esc(tpl.whatsapp)}</span></div>
+        <div class="ad-section"><div class="label">Público sugerido</div>${esc(tpl.audience)}</div>
+        <div class="ad-section"><div class="label">⚠️ Advertencia legal/médica</div>${esc(tpl.disclaimer)}</div>
+      `;
+      target.querySelectorAll('.copy-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          const id = 't-' + b.dataset.copy;
+          const text = target.querySelector('#' + id)?.textContent || '';
+          navigator.clipboard?.writeText(text).then(() => showToast('Copiado al portapapeles'));
+        });
+      });
+      target.dataset.tpl = JSON.stringify(tpl);
+    } catch (e) {
+      target.innerHTML = '<div class="empty">No se pudo cargar la plantilla.</div>';
+    }
+  }
+
+  $('btnGenerateAd').addEventListener('click', () => openAdModal());
+  $('adClose').addEventListener('click', closeAdModal);
+  $('adCloseFooter').addEventListener('click', closeAdModal);
+  $('adModal').addEventListener('click', e => { if (e.target === $('adModal')) closeAdModal(); });
+  $('adSpecialty').addEventListener('change', e => loadAdTemplate(e.target.value));
+  $('adCopyAll').addEventListener('click', () => {
+    try {
+      const tpl = JSON.parse($('adPreview').dataset.tpl || '{}');
+      const text = `Ángulo: ${tpl.angle}\n\nTítulo: ${tpl.title}\nTexto: ${tpl.body}\nCTA: ${tpl.cta}\n\nWhatsApp inicial: ${tpl.whatsapp}\n\nPúblico: ${tpl.audience}\n\nAdvertencia: ${tpl.disclaimer}`;
+      navigator.clipboard.writeText(text).then(() => showToast('Anuncio copiado'));
+    } catch (_) {}
+  });
+
+  // ── Carga de datos ──
+  async function loadAll() {
+    const pageLoader = $('pageLoader');
+    try {
+      const [summary, recs, alerts, funnel, occupancy, campaigns, opps] = await Promise.all([
+        api('/api/growth/summary').catch(() => ({})),
+        api('/api/growth/recommendations').catch(() => []),
+        api('/api/growth/alerts').catch(() => []),
+        api('/api/growth/funnel').catch(() => []),
+        api('/api/growth/occupancy').catch(() => []),
+        api('/api/growth/campaigns').catch(() => []),
+        api('/api/growth/opportunities').catch(() => []),
+      ]);
+      setKpi(summary);
+      renderRecs(recs);
+      renderAlerts(alerts);
+      renderFunnel(funnel);
+      renderOccupancy(occupancy);
+      renderCampaigns(campaigns);
+      renderOpportunities(opps);
+    } catch (e) {
+      console.error('[crecimiento] load failed', e);
+    } finally {
+      if (pageLoader) pageLoader.classList.add('hidden');
+    }
+  }
+
+  $('btnRefresh').addEventListener('click', () => {
+    showToast('Actualizando datos…');
+    loadAll();
+  });
+
+  // boot
+  (function boot() {
+    if (typeof Icons === 'undefined') {
+      setTimeout(boot, 50); return;
+    }
+    renderIcons();
+    loadAll();
+  })();
+</script>
+</body>
+</html>

@@ -6,6 +6,14 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
+// El free tier de Render Postgres corta conexiones idle. Si pg detecta una
+// conexión muerta y nadie escucha 'error', Node tira el proceso. Con este
+// handler la log queda visible pero el server sigue corriendo; la próxima
+// query simplemente abre una conexión nueva del pool.
+pool.on('error', (err) => {
+  console.error('[pg] idle connection error (ignored):', err.message);
+});
+
 const query = (text, params) => pool.query(text, params);
 
 const initDb = async () => {
@@ -376,12 +384,65 @@ const initDb = async () => {
       // columna evita decenas de migraciones a medida que evolucione el template.
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS landing_data JSONB DEFAULT '{}'::jsonb",
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS landing_template TEXT DEFAULT 'aurora'",
-      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS landing_published BOOLEAN DEFAULT FALSE'
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS landing_published BOOLEAN DEFAULT FALSE',
+      // Coordenadas geocodificadas desde address/city via Nominatim (OSM). NULL = sin geocodear
+      // o falló. geocoded_at evita reintentar en cada PUT. show_on_public_map permite opt-out
+      // del mapa público /mapa por parte del admin de la clínica.
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION',
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION',
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS geocoded_at TIMESTAMP',
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS show_on_public_map BOOLEAN DEFAULT TRUE',
+      'CREATE INDEX IF NOT EXISTS idx_clinics_geo ON clinics(latitude, longitude) WHERE latitude IS NOT NULL'
     ];
 
     // Leads (formulario de contacto público de la landing). Se modelan como tabla aparte
     // para indexar por clínica y permitir CRM básico desde el panel.
     await query(`
+      CREATE TABLE IF NOT EXISTS clinic_integrations (
+        id SERIAL PRIMARY KEY,
+        clinic_id INTEGER NOT NULL,
+        provider TEXT NOT NULL,
+        external_account_id TEXT DEFAULT '',
+        external_account_name TEXT DEFAULT '',
+        access_token_encrypted TEXT DEFAULT '',
+        refresh_token_encrypted TEXT DEFAULT '',
+        token_expires_at TIMESTAMP,
+        scopes TEXT DEFAULT '',
+        meta TEXT DEFAULT '{}',
+        status TEXT DEFAULT 'active' CHECK (status IN ('active','expired','revoked','error')),
+        last_error TEXT DEFAULT '',
+        connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        connected_by INTEGER,
+        last_sync_at TIMESTAMP,
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
+        FOREIGN KEY (connected_by) REFERENCES users(id),
+        UNIQUE (clinic_id, provider, external_account_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_clinic_integrations_clinic ON clinic_integrations(clinic_id);
+      CREATE INDEX IF NOT EXISTS idx_clinic_integrations_status ON clinic_integrations(status);
+
+      CREATE TABLE IF NOT EXISTS growth_campaigns (
+        id SERIAL PRIMARY KEY,
+        clinic_id INTEGER NOT NULL,
+        integration_id INTEGER,
+        provider TEXT NOT NULL,
+        external_campaign_id TEXT DEFAULT '',
+        name TEXT DEFAULT '',
+        specialty TEXT DEFAULT '',
+        status TEXT DEFAULT 'unknown',
+        spent_hnl NUMERIC DEFAULT 0,
+        leads_count INTEGER DEFAULT 0,
+        period_start DATE,
+        period_end DATE,
+        raw TEXT DEFAULT '{}',
+        synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
+        FOREIGN KEY (integration_id) REFERENCES clinic_integrations(id) ON DELETE CASCADE,
+        UNIQUE (provider, external_campaign_id, period_start)
+      );
+      CREATE INDEX IF NOT EXISTS idx_growth_campaigns_clinic ON growth_campaigns(clinic_id);
+      CREATE INDEX IF NOT EXISTS idx_growth_campaigns_period ON growth_campaigns(clinic_id, period_start DESC);
+
       CREATE TABLE IF NOT EXISTS clinic_landing_leads (
         id SERIAL PRIMARY KEY,
         clinic_id INTEGER NOT NULL,

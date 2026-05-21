@@ -57,9 +57,9 @@
   --p-border-default: var(--sd-ink-200);
   --p-border-strong:  var(--sd-ink-300);
 
-  --p-font-display: 'Manrope', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --p-font-body:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --p-font-mono:    'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  --p-font-display: 'Poppins', sans-serif;
+  --p-font-body:    'Poppins', sans-serif;
+  --p-font-mono:    'Poppins', Menlo, monospace;
 
   --p-t-12: 0.75rem;
   --p-t-13: 0.8125rem;
