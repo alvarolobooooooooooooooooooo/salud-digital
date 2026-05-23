@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Historia Clínica Nutricional · Salud Digital</title>
+<link rel="icon" href="assets/logomark.svg"/>
+
+<!-- Bootstrap theme antes del primer paint. Lee ?theme=dark|light de la URL
+     (igual que ortodoncia-design). Soporta postMessage para cambios en vivo
+     desde el wrapper de la plataforma.
+
+     {type:'nutri:theme', theme:'dark'|'light'} → cambia el tema
+     -->
+<script>
+  // Bootstrap theme + embed-mode antes del primer paint.
+  //   ?theme=dark|light  → tema (live update via postMessage {type:'nutri:theme'})
+  //   ?embed=1           → modo embebido (esconde topbar + sidebar del diseño;
+  //                        usado cuando esta página se mete en iframe dentro de
+  //                        consultation-nutrition.html que ya tiene la sidebar
+  //                        de la plataforma).
+  (function () {
+    try {
+      var p = new URLSearchParams(window.location.search);
+      var t = p.get('theme');
+      if (t !== 'dark' && t !== 'light') t = 'light';
+      document.documentElement.setAttribute('data-theme', t);
+      if (p.get('embed') === '1') {
+        document.documentElement.setAttribute('data-embed', '1');
+      }
+    } catch (_) {}
+    window.addEventListener('message', function (e) {
+      var d = e.data || {};
+      if (d.type === 'nutri:theme' && (d.theme === 'dark' || d.theme === 'light')) {
+        document.documentElement.setAttribute('data-theme', d.theme);
+      }
+    });
+  })();
+</script>
+<style>
+  /* Embed mode — esconde el shell propio del diseño (topbar 56px + sidebar 248px,
+     más el patient-header) y colapsa el grid del app-shell a una sola columna/fila
+     para que el contenido ocupe todo el espacio del iframe.
+     Se usa cuando esta página vive dentro de consultation-nutrition.html que ya
+     tiene la sidebar de la plataforma + su propio header con datos del paciente. */
+  html[data-embed="1"] .topbar { display: none !important; }
+  html[data-embed="1"] .sidebar { display: none !important; }
+  html[data-embed="1"] .patient-header { display: none !important; }
+  html[data-embed="1"] .app-shell {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 1fr !important;
+  }
+  /* El .main del diseño tiene su propio padding/scroll — en embed lo dejamos
+     ocupar 100% del iframe y que sea scrollable internamente. */
+  html[data-embed="1"], html[data-embed="1"] body, html[data-embed="1"] #root {
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+  html[data-embed="1"] .main { height: 100% !important; }
+</style>
+
+<link rel="stylesheet" href="colors_and_type.css"/>
+<link rel="stylesheet" href="app.css"/>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- React 18 + Babel standalone (mismo CDN que ortodoncia-design). El CSP del
+     server.js (scriptSrc) ya incluye unpkg.com. -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- Orden: data → icons → components → tabs → app entry. El export del
+     diseño cargaba food-icons.jsx 3 veces (bug en el handoff bundle), lo
+     dejamos una sola vez. -->
+<script src="foods-data.js"></script>
+<script type="text/babel" src="food-icons.jsx"></script>
+<script type="text/babel" src="components.jsx"></script>
+<script type="text/babel" src="tab-resumen.jsx"></script>
+<script type="text/babel" src="tab-historia.jsx"></script>
+<script type="text/babel" src="tab-antropometria.jsx"></script>
+<script type="text/babel" src="tab-estilo-vida.jsx"></script>
+<script type="text/babel" src="tab-dieta.jsx"></script>
+<script type="text/babel" src="tab-plan.jsx"></script>
+<script type="text/babel" src="tab-seguimiento.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

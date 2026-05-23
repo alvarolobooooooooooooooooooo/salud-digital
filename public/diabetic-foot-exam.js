@@ -32,6 +32,7 @@
       id: 'fuerza', num: 2, title: 'Fuerza muscular', eyebrow: 'Neurológico · 2 de 7',
       subtitle: 'Escala MRC (0-5). Comparar siempre con el lado contralateral. Hallazgo de alarma: debilidad.',
       alarm: 'Debilidad muscular focal o difusa',
+      scale: { values: ['0', '1', '2', '3', '4', '5'], normalValue: '5', unit: '/5', short: 'MRC' },
       reference: {
         eye: 'Escala MRC',
         title: 'Fuerza muscular 0 – 5',
@@ -56,23 +57,12 @@
     },
     {
       id: 'sens-prof', num: 4, title: 'Sensibilidad profunda', eyebrow: 'Neurológico · 4 de 7',
-      subtitle: 'Vibración, propiocepción y discriminación de 2 puntos. Hallazgos de alarma: compromiso de fibras largas en neuropatía diabética.',
+      subtitle: 'Vibración con diapasón 128 Hz y monofilamento 5.07 (10 g). Hallazgos de alarma: compromiso de fibras largas en neuropatía diabética.',
       alarm: 'Compromiso de fibras largas',
-      substeps: [
-        { id: 'A', name: 'Vibración', hint: 'Diapasón 128 Hz sobre maléolo medial y dorso del 1er dedo.' },
-        { id: 'B', name: 'Propiocepción', hint: 'Movilización pasiva del hallux — el paciente identifica dirección con ojos cerrados.' },
-        { id: 'C', name: 'Discriminación de 2 puntos', hint: 'Distancia mínima percibida — comparar con contralateral.' }
-      ]
+      interactive: ['vib', 'mono']
     },
     {
-      id: 'monofilamento', num: 5, title: 'Test de Semmes-Weinstein 5.07 (10 g)',
-      eyebrow: 'Tamizaje · Neuropatía',
-      subtitle: 'Aplicar el monofilamento hasta doblarse — sin deslizar — 2 segundos por punto. El paciente, con ojos cerrados, indica si percibe la presión y dónde. Falla en ≥4 puntos por pie = neuropatía probable de fibras largas.',
-      alarm: 'Falla en ≥4 puntos por pie',
-      interactive: 'mono'
-    },
-    {
-      id: 'trofismo', num: 6, title: 'Trofismo muscular', eyebrow: 'Neurológico · 5 de 7',
+      id: 'trofismo', num: 5, title: 'Trofismo muscular', eyebrow: 'Neurológico · 5 de 7',
       subtitle: 'Palpar las masas musculares y compararlas con el lado contralateral. Hallazgo de alarma: hipotrofia, atrofia o hipertrofia.',
       alarm: 'Hipotrofia / atrofia / hipertrofia',
       substeps: [
@@ -80,7 +70,7 @@
       ]
     },
     {
-      id: 'reflejos', num: 7, title: 'Reflejos osteotendinosos', eyebrow: 'Neurológico · 6 de 7',
+      id: 'reflejos', num: 6, title: 'Reflejos osteotendinosos', eyebrow: 'Neurológico · 6 de 7',
       subtitle: 'Escala 0-4+. Comparar derecha-izquierda. La arreflexia aquilea es un signo temprano de neuropatía diabética.',
       reference: {
         eye: 'Escala de reflejos 0 – 4+',
@@ -93,7 +83,7 @@
       ]
     },
     {
-      id: 'plantar', num: 8, title: 'Respuesta plantar', eyebrow: 'Neurológico · 7 de 7',
+      id: 'plantar', num: 7, title: 'Respuesta plantar', eyebrow: 'Neurológico · 7 de 7',
       subtitle: 'Estimular el borde lateral de la planta. Respuesta normal: flexión. Signo de Babinski (extensión del 1er dedo) = vía piramidal afectada.',
       alarm: 'Babinski positivo — extensión del 1er dedo',
       abnormalLabel: 'Babinski +',
@@ -103,11 +93,17 @@
       ]
     },
     {
-      id: 'itb', num: 9, title: 'Índice Tobillo-Brazo', eyebrow: 'Tamizaje · Vascular',
+      id: 'itb', num: 8, title: 'Índice Tobillo-Brazo', eyebrow: 'Tamizaje · Vascular',
       subtitle: 'Medir presión sistólica en ambos brazos y en ambos tobillos (DP y TP) con Doppler portátil. ITB = presión tobillo ÷ presión brazo de referencia (la más alta de los dos brazos).',
       alarm: 'ITB < 0.91 o > 1.30',
       interactive: 'itb'
     }
+  ];
+
+  // ─── Puntos del diapasón (vibración 128 Hz) ────────────────────────────
+  const VIB_POINTS = [
+    { id: 'v1', name: 'Hallux — falange distal',  L: { x: 456, y: 110 }, R: { x: 824, y: 110 } },
+    { id: 'v2', name: '1ª cabeza metatarsiana',   L: { x: 500, y: 400 }, R: { x: 780, y: 400 } }
   ];
 
   // ─── 10 puntos del monofilamento (coords sobre viewBox 1280×1190) ──────
@@ -175,7 +171,7 @@
   let mounted = false;
 
   function blankState() {
-    return { sub: {}, mono: {}, itb: { vR: 'DP', vL: 'DP' } };
+    return { sub: {}, mono: {}, vib: {}, itb: { vR: 'DP', vL: 'DP' } };
   }
 
   function svgIcon(name, size) {
@@ -206,6 +202,12 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  function hasInteractive(step, type) {
+    if (!step.interactive) return false;
+    if (Array.isArray(step.interactive)) return step.interactive.indexOf(type) !== -1;
+    return step.interactive === type;
+  }
+
   // ─── Step status computation ───────────────────────────────────────────
   function stepStatus(step) {
     let touched = false;
@@ -217,14 +219,21 @@
         if (v && v.status === 'abnormal') alarm = true;
       });
     }
-    if (step.interactive === 'mono') {
+    if (hasInteractive(step, 'vib')) {
+      const any = Object.values(state.vib).some(v => v && v !== 'untested');
+      if (any) touched = true;
+      const missR = VIB_POINTS.filter(p => state.vib['R-' + p.id] === 'miss').length;
+      const missL = VIB_POINTS.filter(p => state.vib['L-' + p.id] === 'miss').length;
+      if (missR > 0 || missL > 0) alarm = true;
+    }
+    if (hasInteractive(step, 'mono')) {
       const any = Object.values(state.mono).some(v => v && v !== 'untested');
       if (any) touched = true;
       const missR = FOOT_POINTS.filter(p => state.mono['R-' + p.id] === 'miss').length;
       const missL = FOOT_POINTS.filter(p => state.mono['L-' + p.id] === 'miss').length;
       if (missR >= 4 || missL >= 4) alarm = true;
     }
-    if (step.interactive === 'itb') {
+    if (hasInteractive(step, 'itb')) {
       const itb = state.itb || {};
       if (itb.armR != null && itb.armL != null) touched = true;
       const armRef = Math.max(itb.armR || 0, itb.armL || 0);
@@ -248,7 +257,17 @@
           if (v && v.status && v.status !== 'untested') filled += 1;
           if (v && v.status === 'abnormal') alarms += 1;
         });
-      } else if (s.interactive === 'mono') {
+      }
+      if (hasInteractive(s, 'vib')) {
+        total += 1;
+        const tested = Object.values(state.vib).some(v => v && v !== 'untested');
+        if (tested) filled += 1;
+        const missR = VIB_POINTS.filter(p => state.vib['R-' + p.id] === 'miss').length;
+        const missL = VIB_POINTS.filter(p => state.vib['L-' + p.id] === 'miss').length;
+        if (missR > 0) alarms += 1;
+        if (missL > 0) alarms += 1;
+      }
+      if (hasInteractive(s, 'mono')) {
         total += 1;
         const tested = Object.values(state.mono).some(v => v && v !== 'untested');
         if (tested) filled += 1;
@@ -256,7 +275,8 @@
         const missL = FOOT_POINTS.filter(p => state.mono['L-' + p.id] === 'miss').length;
         if (missR >= 4) alarms += 1;
         if (missL >= 4) alarms += 1;
-      } else if (s.interactive === 'itb') {
+      }
+      if (hasInteractive(s, 'itb')) {
         total += 1;
         const itb = state.itb || {};
         const ok = itb.armR != null && itb.armL != null &&
@@ -283,6 +303,28 @@
       const note = v.note || '';
       const noteVisible = status === 'abnormal' || (note && note.length > 0);
       const abnormalLabel = step.abnormalLabel || 'Anormal';
+      let controlHTML;
+      if (step.scale) {
+        const score = v.score != null ? String(v.score) : null;
+        const normalVal = step.scale.normalValue;
+        const scaleBtns = step.scale.values.map(val => {
+          const isOn = score === val;
+          const cls = isOn ? (val === normalVal ? 'on-normal' : 'on-abnormal') : '';
+          return '<button type="button" data-action="scale" data-value="' + val + '" class="' + cls + '">' + val + '</button>';
+        }).join('');
+        controlHTML =
+          '<div class="dfe-tri is-scale">' +
+            scaleBtns +
+            '<button type="button" data-action="status" data-value="skip" class="' + (status === 'skip' ? 'on-skip' : '') + '">No realizada</button>' +
+          '</div>';
+      } else {
+        controlHTML =
+          '<div class="dfe-tri">' +
+            '<button type="button" data-action="status" data-value="normal"   class="' + (status === 'normal' ? 'on-normal' : '') + '"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Normal</button>' +
+            '<button type="button" data-action="status" data-value="abnormal" class="' + (status === 'abnormal' ? 'on-abnormal' : '') + '"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' + esc(abnormalLabel) + '</button>' +
+            '<button type="button" data-action="status" data-value="skip"     class="' + (status === 'skip' ? 'on-skip' : '') + '">No realizada</button>' +
+          '</div>';
+      }
       return (
         '<div class="dfe-sub" data-key="' + step.id + '.' + sub.id + '">' +
           '<div>' +
@@ -302,20 +344,118 @@
               '</div>'
             ) : '') +
           '</div>' +
-          '<div class="dfe-tri">' +
-            '<button type="button" data-action="status" data-value="normal"   class="' + (status === 'normal' ? 'on-normal' : '') + '"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Normal</button>' +
-            '<button type="button" data-action="status" data-value="abnormal" class="' + (status === 'abnormal' ? 'on-abnormal' : '') + '"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' + esc(abnormalLabel) + '</button>' +
-            '<button type="button" data-action="status" data-value="skip"     class="' + (status === 'skip' ? 'on-skip' : '') + '">No realizada</button>' +
-          '</div>' +
+          controlHTML +
         '</div>'
       );
     }).join('');
   }
 
+  function renderVibFootSVG() {
+    const labels =
+      '<text x="320" y="-50" text-anchor="middle" font-family="Manrope, sans-serif" font-size="40" font-weight="700" fill="#606A7C" letter-spacing="4">PIE IZQUIERDO</text>' +
+      '<text x="960" y="-50" text-anchor="middle" font-family="Manrope, sans-serif" font-size="40" font-weight="700" fill="#606A7C" letter-spacing="4">PIE DERECHO</text>';
+
+    const paths = FOOT_PATHS.map(d => '<path d="' + d + '" fill="url(#dfe-foot-skin)" stroke="#9E6B3E" stroke-width="40"/>').join('');
+
+    let points = '';
+    ['L', 'R'].forEach(side => {
+      VIB_POINTS.forEach((p, i) => {
+        const pt = p[side];
+        const key = side + '-' + p.id;
+        const s = state.vib[key] || 'untested';
+        let fill = '#FFFFFF', stroke = '#002A60', textFill = '#002A60';
+        if (s === 'ok')   { fill = '#16a34a'; stroke = '#15803d'; textFill = '#fff'; }
+        if (s === 'miss') { fill = '#dc2626'; stroke = '#b91c1c'; textFill = '#fff'; }
+        const r = s === 'untested' ? 36 : 40;
+        points +=
+          '<g class="dfe-vib-pt" data-key="' + key + '" style="cursor:pointer">' +
+            '<circle cx="' + pt.x + '" cy="' + pt.y + '" r="' + (r + 5) + '" fill="white" opacity="0.85"/>' +
+            '<circle cx="' + pt.x + '" cy="' + pt.y + '" r="' + r + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="5"/>' +
+            '<text x="' + pt.x + '" y="' + (pt.y + 11) + '" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="32" font-weight="700" fill="' + textFill + '" pointer-events="none">' + (i + 1) + '</text>' +
+          '</g>';
+      });
+    });
+
+    return (
+      '<svg viewBox="0 -140 1280 1330" preserveAspectRatio="xMidYMid meet">' +
+        '<defs>' +
+          '<linearGradient id="dfe-foot-skin-vib" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0" stop-color="#FFE7CF"/>' +
+            '<stop offset="0.65" stop-color="#F4CFA8"/>' +
+            '<stop offset="1" stop-color="#E2B284"/>' +
+          '</linearGradient>' +
+        '</defs>' +
+        labels +
+        '<g transform="translate(0,1190) scale(0.1,-0.1)">' + paths + '</g>' +
+        points +
+      '</svg>'
+    );
+  }
+
+  function renderVibHTML() {
+    const missR = VIB_POINTS.filter(p => state.vib['R-' + p.id] === 'miss').length;
+    const missL = VIB_POINTS.filter(p => state.vib['L-' + p.id] === 'miss').length;
+    const alarmR = missR > 0;
+    const alarmL = missL > 0;
+    const totalPts = VIB_POINTS.length;
+
+    const rows = VIB_POINTS.map((p, i) => {
+      const sR = state.vib['R-' + p.id] || 'untested';
+      const sL = state.vib['L-' + p.id] || 'untested';
+      const rowCls = (sR === 'miss' || sL === 'miss') ? 'miss' : '';
+      return (
+        '<div class="dfe-mp-row ' + rowCls + '">' +
+          '<span class="dfe-mp-ix">' + (i + 1) + '</span>' +
+          '<span class="dfe-mp-name">' + esc(p.name) + '</span>' +
+          '<span class="dfe-mp-side">' +
+            '<button type="button" data-vib-key="R-' + p.id + '" data-vib-value="ok"   class="' + (sR === 'ok'   ? 'on-y' : '') + '" title="Pie derecho — percibido">D✓</button>' +
+            '<button type="button" data-vib-key="R-' + p.id + '" data-vib-value="miss" class="' + (sR === 'miss' ? 'on-n' : '') + '" title="Pie derecho — no percibido">D✗</button>' +
+            '<button type="button" data-vib-key="L-' + p.id + '" data-vib-value="ok"   class="' + (sL === 'ok'   ? 'on-y' : '') + '" title="Pie izquierdo — percibido">I✓</button>' +
+            '<button type="button" data-vib-key="L-' + p.id + '" data-vib-value="miss" class="' + (sL === 'miss' ? 'on-n' : '') + '" title="Pie izquierdo — no percibido">I✗</button>' +
+          '</span>' +
+        '</div>'
+      );
+    }).join('');
+
+    return (
+      '<div class="dfe-mono">' +
+        '<div class="dfe-mono-foot">' +
+          renderVibFootSVG() +
+          '<div class="dfe-mono-legend">' +
+            '<span><i style="background:#fff; color:#002A60;"></i> Sin probar</span>' +
+            '<span><i style="background:#16a34a; color:#16a34a;"></i> Percibido</span>' +
+            '<span><i style="background:#dc2626; color:#dc2626;"></i> No percibido</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="dfe-mono-side">' +
+          '<div class="dfe-mono-side-head">' +
+            '<div>' +
+              '<div class="lbl">Pie derecho · ' + missR + '/' + totalPts + ' no percibidos</div>' +
+              '<div class="v ' + (alarmR ? 'danger' : '') + '">' + (totalPts - missR) + '<em>/' + totalPts + '</em></div>' +
+            '</div>' +
+            '<div class="right">' +
+              '<div class="lbl">Pie izquierdo · ' + missL + '/' + totalPts + ' no percibidos</div>' +
+              '<div class="v ' + (alarmL ? 'danger' : '') + '">' + (totalPts - missL) + '<em>/' + totalPts + '</em></div>' +
+            '</div>' +
+          '</div>' +
+          rows +
+        '</div>' +
+      '</div>' +
+      '<div class="dfe-ref">' +
+        '<div class="dfe-ref-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>' +
+        '<div>' +
+          '<div class="dfe-ref-eye">Técnica · Diapasón 128 Hz</div>' +
+          '<h4>Vibración con diapasón sobre prominencias óseas</h4>' +
+          '<p>Hacer vibrar el diapasón y apoyarlo sobre la falange distal del hallux y la 1ª cabeza metatarsiana. El paciente, con ojos cerrados, indica cuándo siente y cuándo deja de sentir la vibración. La ausencia de percepción en cualquier punto sugiere compromiso de fibras largas.</p>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
   function renderMonoFootSVG() {
     const labels =
-      '<text x="320" y="40" text-anchor="middle" font-family="Manrope, sans-serif" font-size="32" font-weight="700" fill="#606A7C" letter-spacing="4">PIE IZQUIERDO</text>' +
-      '<text x="960" y="40" text-anchor="middle" font-family="Manrope, sans-serif" font-size="32" font-weight="700" fill="#606A7C" letter-spacing="4">PIE DERECHO</text>';
+      '<text x="320" y="-50" text-anchor="middle" font-family="Manrope, sans-serif" font-size="40" font-weight="700" fill="#606A7C" letter-spacing="4">PIE IZQUIERDO</text>' +
+      '<text x="960" y="-50" text-anchor="middle" font-family="Manrope, sans-serif" font-size="40" font-weight="700" fill="#606A7C" letter-spacing="4">PIE DERECHO</text>';
 
     const paths = FOOT_PATHS.map(d => '<path d="' + d + '" fill="url(#dfe-foot-skin)" stroke="#9E6B3E" stroke-width="40"/>').join('');
 
@@ -339,7 +479,7 @@
     });
 
     return (
-      '<svg viewBox="0 0 1280 1190" preserveAspectRatio="xMidYMid meet">' +
+      '<svg viewBox="0 -140 1280 1330" preserveAspectRatio="xMidYMid meet">' +
         '<defs>' +
           '<linearGradient id="dfe-foot-skin" x1="0" y1="0" x2="0" y2="1">' +
             '<stop offset="0" stop-color="#FFE7CF"/>' +
@@ -424,7 +564,7 @@
       '<div class="dfe-ref">' +
         '<div class="dfe-ref-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>' +
         '<div>' +
-          '<div class="dfe-ref-eye">Técnica · Semmes-Weinstein 5.07 (10 g)</div>' +
+          '<div class="dfe-ref-eye">Técnica · Monofilamento 5.07 (10 g)</div>' +
           '<h4>Aplicar el monofilamento hasta doblarse — no deslizar</h4>' +
           '<p>Contacto durante 2 segundos por punto. Preguntar al paciente si siente la presión y en qué parte (con los ojos cerrados). La incapacidad de percibir 4 o más puntos por pie se asocia significativamente a neuropatía con compromiso de fibras largas.</p>' +
         '</div>' +
@@ -566,19 +706,23 @@
   }
 
   function renderStepBody(step) {
-    if (step.interactive === 'mono') return renderMonoHTML(step);
-    if (step.interactive === 'itb') return renderITBHTML();
-    const refHTML = step.reference ? (
-      '<div class="dfe-ref">' +
-        '<div class="dfe-ref-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>' +
-        '<div>' +
-          '<div class="dfe-ref-eye">' + esc(step.reference.eye) + '</div>' +
-          '<h4>' + esc(step.reference.title) + '</h4>' +
-          '<p>' + esc(step.reference.body) + '</p>' +
-        '</div>' +
-      '</div>'
-    ) : '';
-    return renderSubstepsHTML(step) + refHTML;
+    if (hasInteractive(step, 'itb')) return renderITBHTML();
+    let html = '';
+    if (step.substeps) html += renderSubstepsHTML(step);
+    if (hasInteractive(step, 'vib')) html += renderVibHTML();
+    if (hasInteractive(step, 'mono')) html += renderMonoHTML(step);
+    if (step.reference) {
+      html +=
+        '<div class="dfe-ref">' +
+          '<div class="dfe-ref-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>' +
+          '<div>' +
+            '<div class="dfe-ref-eye">' + esc(step.reference.eye) + '</div>' +
+            '<h4>' + esc(step.reference.title) + '</h4>' +
+            '<p>' + esc(step.reference.body) + '</p>' +
+          '</div>' +
+        '</div>';
+    }
+    return html;
   }
 
   function renderStepHTML(step) {
@@ -619,14 +763,22 @@
       step.substeps.forEach(sub => {
         const v = state.sub[step.id + '.' + sub.id];
         if (v && v.status === 'abnormal') {
+          const scoreTxt = (step.scale && v.score != null)
+            ? ' — ' + (step.scale.short ? step.scale.short + ' ' : '') + v.score + (step.scale.unit || '')
+            : '';
           out.push({
             src: step.title.replace(/^Reflejos.*/, 'Reflejos'),
-            txt: sub.id + '. ' + sub.name + (v.note ? ' — ' + v.note : ''),
+            txt: sub.id + '. ' + sub.name + scoreTxt + (v.note ? ' — ' + v.note : ''),
             severity: step.id === 'plantar' ? 'crit' : 'alarm'
           });
         }
       });
     });
+    const vibMissR = VIB_POINTS.filter(p => state.vib['R-' + p.id] === 'miss').length;
+    const vibMissL = VIB_POINTS.filter(p => state.vib['L-' + p.id] === 'miss').length;
+    if (vibMissR > 0) out.push({ src: 'Vibración', txt: 'Falla en ' + vibMissR + '/' + VIB_POINTS.length + ' puntos del pie derecho — disminución de sensibilidad vibratoria.', severity: 'alarm' });
+    if (vibMissL > 0) out.push({ src: 'Vibración', txt: 'Falla en ' + vibMissL + '/' + VIB_POINTS.length + ' puntos del pie izquierdo — disminución de sensibilidad vibratoria.', severity: 'alarm' });
+
     const missR = FOOT_POINTS.filter(p => state.mono['R-' + p.id] === 'miss').length;
     const missL = FOOT_POINTS.filter(p => state.mono['L-' + p.id] === 'miss').length;
     if (missR >= 4) out.push({ src: 'Monofilamento', txt: 'Falla en ' + missR + '/10 puntos del pie derecho — neuropatía probable de fibras largas.', severity: 'alarm', action: 'Educación en autocuidado podológico. Considerar electromiografía.' });
@@ -652,23 +804,41 @@
   }
 
   // ─── Summary tiles ─────────────────────────────────────────────────────
+  function buildVibTile() {
+    const total = VIB_POINTS.length;
+    const missR = VIB_POINTS.filter(p => state.vib['R-' + p.id] === 'miss').length;
+    const missL = VIB_POINTS.filter(p => state.vib['L-' + p.id] === 'miss').length;
+    const testedR = VIB_POINTS.filter(p => state.vib['R-' + p.id]).length;
+    const testedL = VIB_POINTS.filter(p => state.vib['L-' + p.id]).length;
+    const alarm = missR > 0 || missL > 0;
+    const tested = testedR > 0 || testedL > 0;
+    return {
+      title: 'Vibración (diapasón 128 Hz)',
+      det: tested ? ('Pie der: ' + (total - missR) + '/' + total + ' percibidos · Pie izq: ' + (total - missL) + '/' + total + ' percibidos') : 'Sin realizar.',
+      pill: alarm ? 'alarm' : (tested ? 'ok' : ''),
+      pillTxt: alarm ? 'Hipopalestesia' : (tested ? 'Normal' : 'Pendiente')
+    };
+  }
+
+  function buildMonoTile() {
+    const missR = FOOT_POINTS.filter(p => state.mono['R-' + p.id] === 'miss').length;
+    const missL = FOOT_POINTS.filter(p => state.mono['L-' + p.id] === 'miss').length;
+    const testedR = FOOT_POINTS.filter(p => state.mono['R-' + p.id]).length;
+    const testedL = FOOT_POINTS.filter(p => state.mono['L-' + p.id]).length;
+    const alarm = missR >= 4 || missL >= 4;
+    const tested = testedR > 0 || testedL > 0;
+    return {
+      title: 'Monofilamento',
+      det: tested ? ('Pie der: ' + (10 - missR) + '/10 percibidos · Pie izq: ' + (10 - missL) + '/10 percibidos') : 'Sin realizar.',
+      pill: alarm ? 'alarm' : (tested ? 'ok' : ''),
+      pillTxt: alarm ? 'Neuropatía probable' : (tested ? 'Normal' : 'Pendiente')
+    };
+  }
+
   function renderSummary() {
-    const tiles = STEPS.map(s => {
-      if (s.interactive === 'mono') {
-        const missR = FOOT_POINTS.filter(p => state.mono['R-' + p.id] === 'miss').length;
-        const missL = FOOT_POINTS.filter(p => state.mono['L-' + p.id] === 'miss').length;
-        const testedR = FOOT_POINTS.filter(p => state.mono['R-' + p.id]).length;
-        const testedL = FOOT_POINTS.filter(p => state.mono['L-' + p.id]).length;
-        const alarm = missR >= 4 || missL >= 4;
-        const tested = testedR > 0 || testedL > 0;
-        return {
-          title: 'Monofilamento',
-          det: tested ? ('Pie der: ' + (10 - missR) + '/10 percibidos · Pie izq: ' + (10 - missL) + '/10 percibidos') : 'Sin realizar.',
-          pill: alarm ? 'alarm' : (tested ? 'ok' : ''),
-          pillTxt: alarm ? 'Neuropatía probable' : (tested ? 'Normal' : 'Pendiente')
-        };
-      }
-      if (s.interactive === 'itb') {
+    const tiles = [];
+    STEPS.forEach(s => {
+      if (hasInteractive(s, 'itb')) {
         const itb = state.itb || {};
         const armRef = Math.max(itb.armR || 0, itb.armL || 0);
         const ankleR = Math.max(itb.dpR || 0, itb.tpR || 0);
@@ -679,29 +849,34 @@
         const iL = interpret(itbL);
         const alarm = iR.cls === 'crit' || iL.cls === 'crit';
         const warn = iR.cls === 'warn' || iL.cls === 'warn';
-        return {
+        tiles.push({
           title: 'ITB',
           det: itbR != null && itbL != null
             ? ('ITB der ' + itbR.toFixed(2) + ' (' + iR.label + ') · ITB izq ' + itbL.toFixed(2) + ' (' + iL.label + ')')
             : 'Sin calcular.',
           pill: alarm ? 'alarm' : (warn ? 'warn' : (itbR != null ? 'ok' : '')),
           pillTxt: alarm ? 'EAOC probable' : (warn ? 'Vigilar' : (itbR != null ? 'Normal' : 'Pendiente'))
-        };
+        });
+        return;
       }
-      const subs = s.substeps || [];
-      const abnormal = subs.filter(sub => (state.sub[s.id + '.' + sub.id] || {}).status === 'abnormal').map(sub => sub.name);
-      const normalCount = subs.filter(sub => (state.sub[s.id + '.' + sub.id] || {}).status === 'normal').length;
-      const tested = abnormal.length + normalCount;
-      return {
-        title: s.title.length > 28 ? s.title.slice(0, 28) + '…' : s.title,
-        det: abnormal.length
-          ? ('Hallazgo en: ' + abnormal.join(', '))
-          : (tested ? (tested + '/' + subs.length + ' maniobras: todas normales') : 'Sin realizar.'),
-        pill: abnormal.length ? 'alarm' : (tested ? 'ok' : ''),
-        pillTxt: abnormal.length
-          ? (abnormal.length + ' hallazgo' + (abnormal.length === 1 ? '' : 's'))
-          : (tested ? 'Normal' : 'Pendiente')
-      };
+      if (s.substeps) {
+        const subs = s.substeps;
+        const abnormal = subs.filter(sub => (state.sub[s.id + '.' + sub.id] || {}).status === 'abnormal').map(sub => sub.name);
+        const normalCount = subs.filter(sub => (state.sub[s.id + '.' + sub.id] || {}).status === 'normal').length;
+        const tested = abnormal.length + normalCount;
+        tiles.push({
+          title: s.title.length > 28 ? s.title.slice(0, 28) + '…' : s.title,
+          det: abnormal.length
+            ? ('Hallazgo en: ' + abnormal.join(', '))
+            : (tested ? (tested + '/' + subs.length + ' maniobras: todas normales') : 'Sin realizar.'),
+          pill: abnormal.length ? 'alarm' : (tested ? 'ok' : ''),
+          pillTxt: abnormal.length
+            ? (abnormal.length + ' hallazgo' + (abnormal.length === 1 ? '' : 's'))
+            : (tested ? 'Normal' : 'Pendiente')
+        });
+      }
+      if (hasInteractive(s, 'vib')) tiles.push(buildVibTile());
+      if (hasInteractive(s, 'mono')) tiles.push(buildMonoTile());
     });
 
     const html = tiles.map(t => (
@@ -818,7 +993,52 @@
         const want = triBtn.getAttribute('data-value');
         const cur = (state.sub[key] && state.sub[key].status) || 'untested';
         const next = cur === want ? 'untested' : want;
-        state.sub[key] = Object.assign({}, state.sub[key], { status: next });
+        const patch = { status: next };
+        if (want === 'skip') patch.score = null;
+        state.sub[key] = Object.assign({}, state.sub[key], patch);
+        refresh();
+        return;
+      }
+      // Scale (e.g., MRC 0-5) — sets score + derived status
+      const scaleBtn = e.target.closest('[data-action="scale"]');
+      if (scaleBtn) {
+        const sub = scaleBtn.closest('.dfe-sub');
+        const key = sub && sub.getAttribute('data-key');
+        if (!key) return;
+        const stepId = key.split('.')[0];
+        const step = STEPS.find(s => s.id === stepId);
+        if (!step || !step.scale) return;
+        const want = scaleBtn.getAttribute('data-value');
+        const curScore = state.sub[key] && state.sub[key].score;
+        if (String(curScore) === String(want)) {
+          state.sub[key] = Object.assign({}, state.sub[key], { score: null, status: 'untested' });
+        } else {
+          const isNormal = want === step.scale.normalValue;
+          state.sub[key] = Object.assign({}, state.sub[key], {
+            score: want,
+            status: isNormal ? 'normal' : 'abnormal'
+          });
+        }
+        refresh();
+        return;
+      }
+      // Vibration cycle (svg)
+      const vibPt = e.target.closest('.dfe-vib-pt');
+      if (vibPt) {
+        const key = vibPt.getAttribute('data-key');
+        const cur = state.vib[key] || 'untested';
+        const next = cur === 'untested' ? 'ok' : (cur === 'ok' ? 'miss' : 'untested');
+        state.vib[key] = next;
+        refresh();
+        return;
+      }
+      // Vibration side mini-buttons
+      const vibBtn = e.target.closest('[data-vib-key]');
+      if (vibBtn) {
+        const key = vibBtn.getAttribute('data-vib-key');
+        const val = vibBtn.getAttribute('data-vib-value');
+        const cur = state.vib[key] || 'untested';
+        state.vib[key] = cur === val ? 'untested' : val;
         refresh();
         return;
       }
@@ -898,6 +1118,7 @@
     state = {
       sub:  (s.sub && typeof s.sub === 'object') ? s.sub : {},
       mono: (s.mono && typeof s.mono === 'object') ? s.mono : {},
+      vib:  (s.vib && typeof s.vib === 'object') ? s.vib : {},
       itb:  Object.assign({ vR: 'DP', vL: 'DP' }, (s.itb && typeof s.itb === 'object') ? s.itb : {})
     };
     refresh();

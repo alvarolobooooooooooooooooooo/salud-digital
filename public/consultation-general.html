@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="/theme.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta de Medicina General</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; margin: 0; padding: 0; overflow-x: visible; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      color: #1e293b;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    @keyframes floatBg {
+      0%, 100% { transform: translateY(0px) translateX(0px); }
+      50% { transform: translateY(50px) translateX(30px); }
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      width: 1000px; height: 1000px;
+      background: radial-gradient(circle, rgba(8, 145, 178, 0.10) 0%, transparent 70%);
+      top: -200px; right: -300px;
+      border-radius: 50%;
+      z-index: 0;
+      animation: floatBg 20s ease-in-out infinite;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
+      bottom: -200px; left: -200px;
+      border-radius: 50%;
+      z-index: 0;
+      animation: floatBg 25s ease-in-out infinite reverse;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+
+    main { width: 100%; margin: 0; padding: 1.5rem 1rem; overflow-x: visible; }
+
+    @keyframes floatSlow { from { transform: translateY(0px); } to { transform: translateY(20px); } }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      gap: 2rem;
+      background: linear-gradient(135deg, #0891b2 0%, #0369a1 50%, #06b6d4 100%);
+      padding: 2.25rem 2.5rem;
+      border-radius: 24px;
+      box-shadow: 0 30px 80px rgba(8, 145, 178, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      position: relative;
+      overflow: hidden;
+      min-height: 150px;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -60%; right: -25%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(255,255,255,0.12), transparent);
+      border-radius: 50%;
+      animation: floatSlow 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -40%; left: -15%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.15), transparent);
+      border-radius: 50%;
+      animation: floatSlow 10s ease-in-out infinite reverse;
+      pointer-events: none;
+    }
+    .header-content { position: relative; z-index: 1; flex: 1; }
+    .header-content h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: white;
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .header-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.25rem;
+      color: rgba(255,255,255,0.95);
+      font-size: 0.92rem;
+      font-weight: 500;
+      margin-top: 0.5rem;
+    }
+    .header-meta span strong { color: white; font-weight: 700; }
+    .header-actions { position: relative; z-index: 2; display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .status-badge {
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      background: rgba(255,255,255,0.18);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.35);
+      backdrop-filter: blur(10px);
+    }
+    .status-badge.ready { background: rgba(250, 204, 21, 0.25); border-color: rgba(250, 204, 21, 0.55); }
+    .status-badge.saved { background: rgba(34, 197, 94, 0.3); border-color: rgba(34, 197, 94, 0.6); }
+    .btn-back, .btn-draft, .btn-save-final, .btn-cancel-top {
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      backdrop-filter: blur(10px);
+    }
+    .btn-back, .btn-cancel-top {
+      border: 1.5px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+    .btn-back:hover, .btn-cancel-top:hover { background: rgba(255,255,255,0.2); }
+    .btn-draft {
+      background: rgba(255,255,255,0.18);
+      color: white;
+      border: 1.5px solid rgba(255,255,255,0.4);
+    }
+    .btn-draft:hover { background: rgba(255,255,255,0.28); }
+    .btn-save-final {
+      background: white;
+      color: #0369a1;
+      border: 1.5px solid white;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    }
+    .btn-save-final:hover { background: #ecf9fc; }
+
+    /* ── Layout ── */
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 1.5rem;
+      align-items: flex-start;
+      position: relative;
+    }
+    .form-col { min-width: 0; }
+    .summary-col { position: sticky; top: 0; }
+
+    /* ── Sections / Cards ── */
+    .form-section {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+      border: 1px solid #f1f5f9;
+    }
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #f1f5f9;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity .2s;
+    }
+    .section-head:hover,
+    html[data-theme="dark"] .section-head:hover { background: transparent !important; opacity: 1; }
+    .section-chev {
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      color: #0891b2;
+      transition: transform .25s ease;
+      flex-shrink: 0;
+    }
+    .section-chev svg { width: 18px; height: 18px; }
+    .form-section.is-collapsed .section-chev { transform: rotate(-90deg); }
+    .form-section.is-collapsed .section-head {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .form-section.is-collapsed > *:not(.section-head) { display: none !important; }
+    .section-num {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #cffafe, #a5f3fc);
+      color: #0369a1;
+      font-weight: 800;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-head h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+      flex: 1;
+    }
+    .section-help {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: 0.25rem;
+      font-weight: 500;
+    }
+
+    /* ── Form ── */
+    .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem 1.25rem; margin-bottom: 1rem; }
+    .form-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+    .form-grid.full { grid-template-columns: 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+    .form-group.span-2 { grid-column: span 2; }
+    .form-group.span-3 { grid-column: span 3; }
+    .form-group label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .form-group input, .form-group textarea, .form-group select {
+      padding: 0.7rem 0.85rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      transition: all 0.15s;
+      background: white;
+      color: #0f172a;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      outline: 2px solid #0891b2;
+      outline-offset: -1px;
+      border-color: transparent;
+    }
+    .form-group textarea { resize: vertical; min-height: 90px; }
+    .form-group select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      padding-right: 2.25rem;
+      cursor: pointer;
+    }
+    .field-hint { font-size: 0.72rem; color: #64748b; margin-top: 0.15rem; }
+
+    /* ── Chips / radios ── */
+    .chip-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.85rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #475569;
+      background: white;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .chip:hover { border-color: #0891b2; color: #0891b2; }
+    .chip.active { border-color: #0891b2; color: #0369a1; background: #cffafe; }
+
+    .pill-segments {
+      display: inline-flex;
+      gap: 0;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 10px;
+      flex-wrap: wrap;
+    }
+    .pill-segments label {
+      padding: 0.45rem 0.9rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      border-radius: 7px;
+      transition: all 0.15s;
+    }
+    .pill-segments label:hover { color: #0891b2; }
+    .pill-segments input[type="radio"] { display: none; }
+    .pill-segments input[type="radio"]:checked + label { background: white; color: #0891b2; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+    /* ── Checkbox grid (exploración física) ── */
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.5rem 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 0.85rem;
+      color: #334155;
+    }
+    .checkbox-item:hover { border-color: #06b6d4; background: #ecf9fc; }
+    .checkbox-item input[type="checkbox"] { accent-color: #0891b2; width: 16px; height: 16px; cursor: pointer; }
+    /* Suprimimos el focus ring nativo al hacer click — solo lo mantenemos si la
+       navegación viene por teclado (a11y). */
+    .checkbox-item input[type="checkbox"]:focus { outline: none; box-shadow: none; }
+    .checkbox-item input[type="checkbox"]:focus:not(:focus-visible) { outline: none; box-shadow: none; }
+    .checkbox-item.checked { border-color: #06b6d4; background: #ecf9fc; color: #0e7490; font-weight: 600; }
+
+    /* ── Exploración física: bloque por región ── */
+    .exam-block {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+      background: #fafbfc;
+    }
+    .exam-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1.1rem;
+      background: white;
+      border-bottom: 1px solid #f1f5f9;
+      flex-wrap: wrap;
+    }
+    .exam-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .exam-icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      background: #cffafe;
+      color: #0369a1;
+    }
+    .exam-status { font-size: 0.78rem; font-weight: 600; color: #64748b; }
+    .exam-status.normal { color: #16a34a; }
+    .exam-status.alt    { color: #b45309; }
+    .exam-body { padding: 1rem 1.1rem; }
+    .exam-body textarea {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.88rem;
+      background: white;
+      color: #0f172a;
+      min-height: 70px;
+      resize: vertical;
+      margin-top: 0.5rem;
+    }
+    .exam-body textarea:focus { outline: 2px solid #0891b2; outline-offset: -1px; border-color: transparent; }
+
+    /* ── Filas dinámicas (síntomas / medicamentos) ── */
+    .dyn-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .dyn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 0.6rem;
+      align-items: center;
+    }
+    .dyn-row.med { grid-template-columns: 1.4fr 1fr 1fr auto; }
+    .dyn-row input {
+      padding: 0.55rem 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      background: white;
+      color: #0f172a;
+    }
+    .dyn-row input:focus { outline: 2px solid #0891b2; outline-offset: -1px; border-color: transparent; }
+    .dyn-del, .dyn-add {
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 0.55rem 0.85rem;
+      transition: all 0.15s;
+    }
+    .dyn-del {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+    .dyn-del:hover { background: #fee2e2; }
+    .dyn-add {
+      align-self: flex-start;
+      margin-top: 0.5rem;
+      background: linear-gradient(135deg, #ecf9fc, #cffafe);
+      color: #0e7490;
+      border: 1px solid #a5f3fc;
+    }
+    .dyn-add:hover { background: #cffafe; }
+
+    /* ── Signos vitales: tarjetitas ── */
+    .vitals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 0.75rem;
+    }
+    .vital-card {
+      background: #fafbfc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    /* Reserva 2 líneas para que TODOS los labels (1 o 2 palabras) ocupen
+       el mismo alto y los inputs de cada card queden alineados al mismo nivel. */
+    .vital-card label {
+      display: flex;
+      align-items: flex-start;
+      min-height: 2.2em;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #0e7490;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+      margin: 0;
+    }
+    .vital-card .vital-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: auto;
+    }
+    .vital-card input {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 7px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #0f172a;
+      background: white;
+      font-family: inherit;
+      text-overflow: ellipsis;
+    }
+    .vital-card input:focus { outline: 2px solid #0891b2; outline-offset: -1px; border-color: transparent; }
+    .vital-unit { font-size: 0.72rem; color: #64748b; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+
+    /* ── Summary sidebar ── */
+    .summary {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid #f1f5f9;
+      overflow: hidden;
+    }
+    .summary-head {
+      padding: 1rem 1.25rem;
+      background: linear-gradient(135deg, #ecf9fc, #cffafe);
+      border-bottom: 1px solid #a5f3fc;
+    }
+    .summary-head h4 {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #0369a1;
+      letter-spacing: -0.01em;
+    }
+    .summary-head p { font-size: 0.74rem; color: #0e7490; margin-top: 0.15rem; }
+    .summary-body { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.9rem; }
+    .sum-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.5rem;
+      font-size: 0.86rem;
+    }
+    .sum-row .label { color: #64748b; font-weight: 600; }
+    .sum-row .val { color: #0f172a; font-weight: 700; text-align: right; }
+    .summary-save-btn {
+      width: 100%;
+      padding: 0.85rem;
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      box-shadow: 0 4px 14px rgba(8, 145, 178, 0.25);
+      transition: all 0.15s;
+    }
+    .summary-save-btn:hover { filter: brightness(1.05); }
+
+    /* ── Consent bar ── */
+    .consent-bar {
+      display: none;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+      margin-top: 0.85rem;
+      padding: 0.85rem 1rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+    }
+    .consent-bar.show { display: flex; }
+    .consent-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 0.95rem;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: white;
+      color: #0369a1;
+      border: 1px solid #a5f3fc;
+    }
+    .consent-btn:hover { background: #ecf9fc; }
+    .consent-btn.primary {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(8,145,178,.25);
+    }
+    .consent-btn.primary:hover { filter: brightness(1.05); }
+    .consent-btn svg { width: 16px; height: 16px; }
+    .consent-signed {
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      margin-left: auto;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #15803d;
+      background: #f0fdf4;
+      padding: 0.4rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid #bbf7d0;
+    }
+    .consent-signed.show { display: inline-flex; }
+
+    /* ── Medical alert (alergias/medicación/condiciones) ── */
+    .medical-alert {
+      display: none;
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      border: 1px solid #fcd34d;
+      border-radius: 14px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      gap: 0.85rem;
+    }
+    .medical-alert.show { display: flex; }
+    .medical-alert-icon {
+      flex-shrink: 0;
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.55);
+      display: flex; align-items: center; justify-content: center;
+      color: #b45309;
+    }
+    .medical-alert-content { flex: 1; min-width: 0; }
+    .medical-alert-title { font-size: .8rem; font-weight: 800; color: #92400e; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .25rem; }
+    .medical-alert-item { font-size: .85rem; color: #78350f; line-height: 1.5; }
+    .medical-alert-item-label { font-weight: 700; margin-right: 0.35rem; }
+
+    /* ── Form message inline ── */
+    .form-msg { padding: .85rem 1rem; border-radius: 10px; font-size: .9rem; font-weight: 600; margin-bottom: 1rem; }
+    .form-msg.ok { background: #ecfdf5; color: #15803d; border: 1px solid #bbf7d0; }
+    .form-msg.err { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+    /* ── Mobile ── */
+    @media (max-width: 1100px) {
+      .layout-grid { grid-template-columns: 1fr; }
+      .summary-col { position: static; }
+    }
+    @media (max-width: 860px) {
+      .form-grid, .form-grid.cols-2 { grid-template-columns: 1fr; }
+      .form-group.span-2, .form-group.span-3 { grid-column: span 1; }
+      .header { padding: 1.5rem 1.25rem; }
+      .header-content h1 { font-size: 1.6rem; }
+      .dyn-row, .dyn-row.med { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      main { padding: 1rem 0.75rem; }
+      .form-section { padding: 1.25rem; }
+    }
+
+    /* ═════════════════════════════════════════════════════════════
+       DARK MODE — overrides para que la página respete el tema
+       (necesario porque los colores arriba están hardcoded para light)
+       ═════════════════════════════════════════════════════════════ */
+    html[data-theme="dark"] body {
+      background: #050507 !important;
+      color: #e2e8f0 !important;
+    }
+    html[data-theme="dark"] body::before,
+    html[data-theme="dark"] body::after { opacity: .25; }
+
+    /* Cards / secciones */
+    html[data-theme="dark"] .form-section {
+      background: #141416 !important;
+      border-color: rgba(255,255,255,.06) !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,.4) !important;
+    }
+    html[data-theme="dark"] .section-head { border-bottom-color: rgba(255,255,255,.06) !important; }
+    html[data-theme="dark"] .section-head h3 { color: #f1f5f9 !important; }
+    html[data-theme="dark"] .section-help { color: #94a3b8 !important; }
+    html[data-theme="dark"] .section-num {
+      background: linear-gradient(135deg, rgba(6,182,212,.18), rgba(8,145,178,.14)) !important;
+      color: #67e8f9 !important;
+    }
+    html[data-theme="dark"] .section-chev { color: #06b6d4 !important; }
+
+    /* Inputs */
+    html[data-theme="dark"] .form-group label {
+      color: #94a3b8 !important;
+    }
+    html[data-theme="dark"] .form-group input,
+    html[data-theme="dark"] .form-group textarea,
+    html[data-theme="dark"] .form-group select {
+      background: #0a0a0c !important;
+      border-color: rgba(255,255,255,.10) !important;
+      color: #f1f5f9 !important;
+    }
+    html[data-theme="dark"] .form-group input::placeholder,
+    html[data-theme="dark"] .form-group textarea::placeholder {
+      color: #475569 !important;
+    }
+    html[data-theme="dark"] .form-group select {
+      /* IMPORTANTE: re-declarar repeat/size/position con !important.
+         theme-dark.css del SaaS aplica reglas a `select` que reinician estos
+         valores y hacen que el chevron se tilee si no los forzamos acá. */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+      background-repeat: no-repeat !important;
+      background-position: right 0.85rem center !important;
+      background-size: 14px 14px !important;
+    }
+    html[data-theme="dark"] .field-hint { color: #64748b !important; }
+
+    /* Pill segments / chips */
+    html[data-theme="dark"] .pill-segments { background: rgba(255,255,255,.04) !important; }
+    html[data-theme="dark"] .pill-segments label { color: #94a3b8 !important; }
+    html[data-theme="dark"] .pill-segments input[type="radio"]:checked + label {
+      background: rgba(6,182,212,.20) !important;
+      color: #67e8f9 !important;
+    }
+    html[data-theme="dark"] .chip {
+      background: rgba(255,255,255,.04) !important;
+      border-color: rgba(255,255,255,.10) !important;
+      color: #94a3b8 !important;
+    }
+    html[data-theme="dark"] .chip:hover { color: #67e8f9 !important; border-color: rgba(6,182,212,.35) !important; }
+    html[data-theme="dark"] .chip.active {
+      background: rgba(6,182,212,.20) !important;
+      border-color: rgba(6,182,212,.55) !important;
+      color: #67e8f9 !important;
+    }
+
+    /* Checkbox grid */
+    html[data-theme="dark"] .checkbox-item {
+      background: rgba(255,255,255,.03) !important;
+      border-color: rgba(255,255,255,.08) !important;
+      color: #cbd5e1 !important;
+    }
+    html[data-theme="dark"] .checkbox-item:hover {
+      background: rgba(6,182,212,.08) !important;
+      border-color: rgba(6,182,212,.35) !important;
+    }
+    html[data-theme="dark"] .checkbox-item.checked {
+      background: rgba(6,182,212,.15) !important;
+      border-color: rgba(6,182,212,.50) !important;
+      color: #67e8f9 !important;
+    }
+
+    /* Exam blocks (regiones del examen físico) */
+    html[data-theme="dark"] .exam-block {
+      background: rgba(255,255,255,.02) !important;
+      border-color: rgba(255,255,255,.08) !important;
+    }
+    html[data-theme="dark"] .exam-head {
+      background: #1a1a1c !important;
+      border-bottom-color: rgba(255,255,255,.06) !important;
+    }
+    html[data-theme="dark"] .exam-title { color: #f1f5f9 !important; }
+    html[data-theme="dark"] .exam-icon {
+      background: rgba(6,182,212,.18) !important;
+      color: #67e8f9 !important;
+    }
+    html[data-theme="dark"] .exam-status { color: #94a3b8 !important; }
+    html[data-theme="dark"] .exam-status.normal { color: #22c55e !important; }
+    html[data-theme="dark"] .exam-status.alt { color: #f59e0b !important; }
+    html[data-theme="dark"] .exam-body textarea {
+      background: #0a0a0c !important;
+      border-color: rgba(255,255,255,.10) !important;
+      color: #f1f5f9 !important;
+    }
+
+    /* Vital cards (signos vitales) */
+    html[data-theme="dark"] .vital-card {
+      background: rgba(255,255,255,.03) !important;
+      border-color: rgba(255,255,255,.08) !important;
+    }
+    html[data-theme="dark"] .vital-card label { color: #67e8f9 !important; }
+    html[data-theme="dark"] .vital-card input {
+      background: #0a0a0c !important;
+      border-color: rgba(255,255,255,.10) !important;
+      color: #f1f5f9 !important;
+    }
+    html[data-theme="dark"] .vital-unit { color: #64748b !important; }
+
+    /* Filas dinámicas */
+    html[data-theme="dark"] .dyn-row input {
+      background: #0a0a0c !important;
+      border-color: rgba(255,255,255,.10) !important;
+      color: #f1f5f9 !important;
+    }
+    html[data-theme="dark"] .dyn-row input::placeholder { color: #475569 !important; }
+    html[data-theme="dark"] .dyn-del {
+      background: rgba(239,68,68,.10) !important;
+      border-color: rgba(239,68,68,.30) !important;
+      color: #f87171 !important;
+    }
+    html[data-theme="dark"] .dyn-add {
+      background: rgba(6,182,212,.10) !important;
+      border-color: rgba(6,182,212,.30) !important;
+      color: #67e8f9 !important;
+    }
+
+    /* Sidebar resumen */
+    html[data-theme="dark"] .summary {
+      background: #141416 !important;
+      border-color: rgba(255,255,255,.06) !important;
+    }
+    html[data-theme="dark"] .summary-head {
+      background: linear-gradient(135deg, rgba(6,182,212,.18), rgba(8,145,178,.12)) !important;
+      border-bottom-color: rgba(6,182,212,.20) !important;
+    }
+    html[data-theme="dark"] .summary-head h4 { color: #67e8f9 !important; }
+    html[data-theme="dark"] .summary-head p { color: #7dd3fc !important; }
+    html[data-theme="dark"] .sum-row .label { color: #94a3b8 !important; }
+    html[data-theme="dark"] .sum-row .val { color: #f1f5f9 !important; }
+
+    /* Consent bar dark */
+    html[data-theme="dark"] .consent-bar {
+      background: rgba(255,255,255,.03) !important;
+      border-color: rgba(255,255,255,.08) !important;
+    }
+    html[data-theme="dark"] .consent-btn {
+      background: rgba(255,255,255,.04) !important;
+      color: #67e8f9 !important;
+      border-color: rgba(6,182,212,.30) !important;
+    }
+    html[data-theme="dark"] .consent-btn:hover { background: rgba(6,182,212,.10) !important; }
+    html[data-theme="dark"] .consent-btn.primary {
+      background: linear-gradient(135deg, #0891b2, #06b6d4) !important;
+      color: #052e36 !important;
+      border-color: transparent !important;
+    }
+    html[data-theme="dark"] .consent-signed {
+      background: rgba(34,197,94,.12) !important;
+      border-color: rgba(34,197,94,.30) !important;
+      color: #4ade80 !important;
+    }
+
+    /* Medical alert dark */
+    html[data-theme="dark"] .medical-alert {
+      background: rgba(245,158,11,.10) !important;
+      border-color: rgba(245,158,11,.30) !important;
+    }
+    html[data-theme="dark"] .medical-alert-icon { background: rgba(255,255,255,.06) !important; color: #fbbf24 !important; }
+    html[data-theme="dark"] .medical-alert-title { color: #fbbf24 !important; }
+    html[data-theme="dark"] .medical-alert-item { color: #fde68a !important; }
+    html[data-theme="dark"] .medical-alert-item-label { color: #fcd34d !important; }
+
+    /* Form msg dark */
+    html[data-theme="dark"] .form-msg.ok {
+      background: rgba(34,197,94,.10) !important;
+      border-color: rgba(34,197,94,.30) !important;
+      color: #4ade80 !important;
+    }
+    html[data-theme="dark"] .form-msg.err {
+      background: rgba(239,68,68,.10) !important;
+      border-color: rgba(239,68,68,.30) !important;
+      color: #f87171 !important;
+    }
+  </style>
+</head>
+<body>
+
+<main class="layout-main">
+
+  <!-- ── Header ── -->
+  <div class="header">
+    <div class="header-content">
+      <h1>Consulta de Medicina General</h1>
+      <div class="header-meta">
+        <span><strong id="patientName">Cargando…</strong></span>
+        <span id="patientAgeWrap" style="display:none;">Edad: <strong id="patientAge">—</strong></span>
+        <span id="patientSexWrap" style="display:none;">Sexo: <strong id="patientSex">—</strong></span>
+        <span>Fecha: <strong id="consultDateLabel">—</strong></span>
+        <span id="professionalWrap" style="display:none;">Profesional: <strong id="professionalName">—</strong></span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="status-badge" id="statusBadge">Borrador</span>
+      <button type="button" class="btn-back" onclick="safeBack()">← Volver</button>
+      <button type="button" class="btn-draft" id="topBtnDraft" onclick="saveDraft(true)">Guardar borrador</button>
+      <button type="button" class="btn-save-final" id="topBtnFinal" onclick="saveFinal()">Guardar consulta</button>
+    </div>
+  </div>
+
+  <div class="layout-grid">
+
+    <!-- ── Main Form Column ── -->
+    <div class="form-col">
+
+      <!-- Alergias / medicación / condiciones del paciente -->
+      <div class="medical-alert" id="medicalAlert">
+        <div class="medical-alert-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="medical-alert-content">
+          <div class="medical-alert-title">Alertas médicas del paciente</div>
+          <div id="medicalAlertText"></div>
+        </div>
+      </div>
+
+      <form id="generalForm" autocomplete="off">
+
+        <!-- ── 1. Datos del paciente ── -->
+        <div class="form-section">
+          <div class="section-head" onclick="toggleSection(this)">
+            <span class="section-num">1</span>
+            <div style="flex:1;">
+              <h3>Datos del Paciente</h3>
+              <div class="section-help">Identificación, antecedentes y contacto.</div>
+            </div>
+            <span class="section-chev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group span-2">
+              <label for="p_name">Nombre completo *</label>
+              <input type="text" id="p_name" placeholder="Ej: María Elena Rodríguez">
+            </div>
+            <div class="form-group">
+              <label for="p_birth">Fecha de nacimiento</label>
+              <input type="date" id="p_birth">
+            </div>
+
+            <div class="form-group">
+              <label>Sexo</label>
+              <div class="pill-segments">
+                <input type="radio" name="sex" id="sx_f" value="femenino">
+                <label for="sx_f">Femenino</label>
+                <input type="radio" name="sex" id="sx_m" value="masculino">
+                <label for="sx_m">Masculino</label>
+                <input type="radio" name="sex" id="sx_o" value="otro">
+                <label for="sx_o">Otro</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="p_phone">Teléfono</label>
+              <input type="tel" id="p_phone" placeholder="Ej: 9999-9999">
+            </div>
+            <div class="form-group">
+              <label for="p_email">Correo electrónico</label>
+              <input type="email" id="p_email" placeholder="paciente@correo.com">
+            </div>
+
+            <div class="form-group span-3">
+              <label for="p_chronic">Condiciones crónicas conocidas</label>
+              <textarea id="p_chronic" placeholder="Ej: Hipertensión arterial controlada, diabetes tipo 2 desde 2019"></textarea>
+            </div>
+            <div class="form-group span-3">
+              <label for="p_allergies">Alergias</label>
+              <textarea id="p_allergies" placeholder="Ej: Penicilina (rash), polen estacional. Negar si no presenta."></textarea>
+            </div>
+            <div class="form-group span-3">
+              <label for="p_meds">Medicación actual</label>
+              <textarea id="p_meds" placeholder="Ej: Losartán 50mg c/24h, Metformina 850mg c/12h"></textarea>
+            </div>
+            <div class="form-group span-3">
+              <label for="p_family">Antecedentes familiares relevantes</label>
+              <textarea id="p_family" placeholder="Ej: Madre con diabetes tipo 2, padre con cardiopatía isquémica"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 2. Motivo de consulta ── -->
+        <div class="form-section">
+          <div class="section-head" onclick="toggleSection(this)">
+            <span class="section-num">2</span>
+            <div style="flex:1;">
+              <h3>Motivo de Consulta</h3>
+              <div class="section-help">Queja principal, evolución y factores asociados.</div>
+            </div>
+            <span class="section-chev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group span-3">
+              <label for="mc_chief">Queja principal *</label>
+              <input type="text" id="mc_chief" placeholder="Ej: Dolor de cabeza intenso desde hace 3 días">
+            </div>
+
+            <div class="form-group">
+              <label for="mc_duration">Duración</label>
+              <input type="text" id="mc_duration" placeholder="Ej: 3 días, intermitente">
+            </div>
+            <div class="form-group">
+              <label for="mc_onset">Inicio</label>
+              <select id="mc_onset">
+                <option value="">Seleccione…</option>
+                <option value="subito">Súbito</option>
+                <option value="gradual">Gradual</option>
+                <option value="progresivo">Progresivo</option>
+                <option value="recurrente">Recurrente</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="mc_intensity">Intensidad (0-10)</label>
+              <input type="number" id="mc_intensity" min="0" max="10" placeholder="Ej: 6">
+            </div>
+
+            <div class="form-group span-3">
+              <label>Factores desencadenantes / agravantes</label>
+              <div class="chip-group" id="mc_triggers"></div>
+            </div>
+
+            <div class="form-group span-3">
+              <label>Síntomas asociados (agregar los necesarios)</label>
+              <div class="dyn-list" id="symptomList">
+                <div class="dyn-row">
+                  <input type="text" placeholder="Síntoma (Ej: náusea)" data-field="name">
+                  <input type="text" placeholder="Detalle / frecuencia" data-field="detail">
+                  <button type="button" class="dyn-del" onclick="removeRow(this)">Eliminar</button>
+                </div>
+              </div>
+              <button type="button" class="dyn-add" onclick="addSymptom()">+ Añadir síntoma</button>
+            </div>
+
+            <div class="form-group span-3">
+              <label for="mc_history">Historia de la enfermedad actual</label>
+              <textarea id="mc_history" placeholder="Relato cronológico del cuadro, evolución, tratamientos previos, respuesta…"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 3. Signos vitales ── -->
+        <div class="form-section">
+          <div class="section-head" onclick="toggleSection(this)">
+            <span class="section-num">3</span>
+            <div style="flex:1;">
+              <h3>Signos Vitales</h3>
+              <div class="section-help">Tomar valores al inicio de la consulta.</div>
+            </div>
+            <span class="section-chev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+
+          <div class="vitals-grid">
+            <div class="vital-card">
+              <label>Presión arterial</label>
+              <div class="vital-input-wrap">
+                <input type="text" id="v_bp" placeholder="120/80" oninput="updateSummary()">
+                <span class="vital-unit">mmHg</span>
+              </div>
+            </div>
+            <div class="vital-card">
+              <label>Frecuencia cardíaca</label>
+              <div class="vital-input-wrap">
+                <input type="number" id="v_hr" placeholder="72" oninput="updateSummary()">
+                <span class="vital-unit">lpm</span>
+              </div>
+            </div>
+            <div class="vital-card">
+              <label>Temperatura</label>
+              <div class="vital-input-wrap">
+                <input type="number" id="v_temp" step="0.1" placeholder="36.7" oninput="updateSummary()">
+                <span class="vital-unit">°C</span>
+              </div>
+            </div>
+            <div class="vital-card">
+              <label>Frec. respiratoria</label>
+              <div class="vital-input-wrap">
+                <input type="number" id="v_rr" placeholder="16" oninput="updateSummary()">
+                <span class="vital-unit">rpm</span>
+              </div>
+            </div>
+            <div class="vital-card">
+              <label>Saturación O₂</label>
+              <div class="vital-input-wrap">
+                <input type="number" id="v_spo2" min="0" max="100" placeholder="98" oninput="updateSummary()">
+                <span class="vital-unit">%</span>
+              </div>
+            </div>
+            <div class="vital-card">
+              <label>Peso / Talla</label>
+              <div class="vital-input-wrap">
+                <input type="text" id="v_wh" placeholder="70 kg / 1.68 m">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 4. Exploración física ── -->
+        <div class="form-section">
+          <div class="section-head" onclick="toggleSection(this)">
+            <span class="section-num">4</span>
+            <div style="flex:1;">
+              <h3>Exploración Física</h3>
+              <div class="section-help">Marcar hallazgos por región. Agregar nota libre si aplica.</div>
+            </div>
+            <span class="section-chev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+
+          <!-- General -->
+          <div class="exam-block">
+            <div class="exam-head">
+              <div class="exam-title">Estado general</div>
+              <span class="exam-status" data-status></span>
+            </div>
+            <div class="exam-body">
+              <div class="checkbox-grid">
+                <label class="checkbox-item"><input type="checkbox" value="alerta"> Alerta y orientado</label>
+                <label class="checkbox-item"><input type="checkbox" value="buen_estado"> Buen estado general</label>
+                <label class="checkbox-item"><input type="checkbox" value="hidratado"> Hidratado</label>
+                <label class="checkbox-item"><input type="checkbox" value="afebril"> Afebril al tacto</label>
+                <label class="checkbox-item"><input type="checkbox" value="palidez"> Palidez</label>
+                <label class="checkbox-item"><input type="checkbox" value="ictericia"> Ictericia</label>
+                <label class="checkbox-item"><input type="checkbox" value="cianosis"> Cianosis</label>
+                <label class="checkbox-item"><input type="checkbox" value="diaforesis"> Diaforesis</label>
+              </div>
+              <textarea placeholder="Notas adicionales sobre estado general"></textarea>
+            </div>
+          </div>
+
+          <!-- Cabeza y cuello -->
+          <div class="exam-block">
+            <div class="exam-head">
+              <div class="exam-title">Cabeza y cuello</div>
+              <span class="exam-status" data-status></span>
+            </div>
+            <div class="exam-body">
+              <div class="checkbox-grid">
+                <label class="checkbox-item"><input type="checkbox"> Pupilas isocóricas reactivas</label>
+                <label class="checkbox-item"><input type="checkbox"> Conjuntivas normales</label>
+                <label class="checkbox-item"><input type="checkbox"> Faringe sin eritema</label>
+                <label class="checkbox-item"><input type="checkbox"> Adenopatías cervicales</label>
+                <label class="checkbox-item"><input type="checkbox"> Tiroides palpable</label>
+                <label class="checkbox-item"><input type="checkbox"> Rigidez de nuca</label>
+                <label class="checkbox-item"><input type="checkbox"> Otoscopia normal</label>
+                <label class="checkbox-item"><input type="checkbox"> Mucosa nasal normal</label>
+              </div>
+              <textarea placeholder="Notas adicionales sobre cabeza y cuello"></textarea>
+            </div>
+          </div>
+
+          <!-- Tórax -->
+          <div class="exam-block">
+            <div class="exam-head">
+              <div class="exam-title">Tórax (cardiopulmonar)</div>
+              <span class="exam-status" data-status></span>
+            </div>
+            <div class="exam-body">
+              <div class="checkbox-grid">
+                <label class="checkbox-item"><input type="checkbox"> Murmullo vesicular conservado</label>
+                <label class="checkbox-item"><input type="checkbox"> Sibilancias</label>
+                <label class="checkbox-item"><input type="checkbox"> Crepitantes</label>
+                <label class="checkbox-item"><input type="checkbox"> Roncus</label>
+                <label class="checkbox-item"><input type="checkbox"> Ruidos cardíacos rítmicos</label>
+                <label class="checkbox-item"><input type="checkbox"> Soplo cardíaco</label>
+                <label class="checkbox-item"><input type="checkbox"> Tirajes</label>
+                <label class="checkbox-item"><input type="checkbox"> Tos al examen</label>
+              </div>
+              <textarea placeholder="Notas adicionales sobre tórax"></textarea>
+            </div>
+          </div>
+
+          <!-- Abdomen -->
+          <div class="exam-block">
+            <div class="exam-head">
+              <div class="exam-title">Abdomen</div>
+              <span class="exam-status" data-status></span>
+            </div>
+            <div class="exam-body">
+              <div class="checkbox-grid">
+                <label class="checkbox-item"><input type="checkbox"> Blando y depresible</label>
+                <label class="checkbox-item"><input type="checkbox"> Ruidos hidroaéreos normales</label>
+                <label class="checkbox-item"><input type="checkbox"> Dolor a la palpación</label>
+                <label class="checkbox-item"><input type="checkbox"> Defensa muscular</label>
+                <label class="checkbox-item"><input type="checkbox"> Masa palpable</label>
+                <label class="checkbox-item"><input type="checkbox"> Hepatomegalia</label>
+                <label class="checkbox-item"><input type="checkbox"> Esplenomegalia</label>
+                <label class="checkbox-item"><input type="checkbox"> Signo de Murphy</label>
+                <label class="checkbox-item"><input type="checkbox"> Signo de McBurney</label>
+                <label class="checkbox-item"><input type="checkbox"> Puño percusión renal positiva</label>
+              </div>
+              <textarea placeholder="Notas adicionales sobre abdomen"></textarea>
+            </div>
+          </div>
+
+          <!-- Extremidades -->
+          <div class="exam-block">
+            <div class="exam-head">
+              <div class="exam-title">Extremidades</div>
+              <span class="exam-status" data-status></span>
+            </div>
+            <div class="exam-body">
+              <div class="checkbox-grid">
+                <label class="checkbox-item"><input type="checkbox"> Pulsos periféricos presentes y simétricos</label>
+                <label class="checkbox-item"><input type="checkbox"> Sin edema</label>
+                <label class="checkbox-item"><input type="checkbox"> Edema en miembros inferiores</label>
+                <label class="checkbox-item"><input type="checkbox"> Llenado capilar &lt; 2 seg</label>
+                <label class="checkbox-item"><input type="checkbox"> Cianosis distal</label>
+                <label class="checkbox-item"><input type="checkbox"> Limitación de movimiento</label>
+                <label class="checkbox-item"><input type="checkbox"> Várices visibles</label>
+                <label class="checkbox-item"><input type="checkbox"> Dolor articular a la palpación</label>
+              </div>
+              <textarea placeholder="Notas adicionales sobre extremidades"></textarea>
+            </div>
+          </div>
+
+          <!-- Neurológico -->
+          <div class="exam-block">
+            <div class="exam-head">
+              <div class="exam-title">Neurológico básico</div>
+              <span class="exam-status" data-status></span>
+            </div>
+            <div class="exam-body">
+              <div class="checkbox-grid">
+                <label class="checkbox-item"><input type="checkbox"> Glasgow 15/15</label>
+                <label class="checkbox-item"><input type="checkbox"> Marcha normal</label>
+                <label class="checkbox-item"><input type="checkbox"> Fuerza 5/5 en 4 extremidades</label>
+                <label class="checkbox-item"><input type="checkbox"> Reflejos osteotendinosos normales</label>
+                <label class="checkbox-item"><input type="checkbox"> Sensibilidad conservada</label>
+                <label class="checkbox-item"><input type="checkbox"> Pares craneales sin alteración</label>
+                <label class="checkbox-item"><input type="checkbox"> Babinski negativo</label>
+                <label class="checkbox-item"><input type="checkbox"> Romberg negativo</label>
+              </div>
+              <textarea placeholder="Notas adicionales sobre exploración neurológica"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 5. Diagnóstico ── -->
+        <div class="form-section">
+          <div class="section-head" onclick="toggleSection(this)">
+            <span class="section-num">5</span>
+            <div style="flex:1;">
+              <h3>Diagnóstico</h3>
+              <div class="section-help">Impresión clínica y diferenciales.</div>
+            </div>
+            <span class="section-chev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+
+          <div class="form-grid full">
+            <div class="form-group">
+              <label for="dx_main">Impresión diagnóstica principal *</label>
+              <textarea id="dx_main" placeholder="Ej: Faringoamigdalitis aguda probablemente viral"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="dx_diff">Diagnósticos diferenciales</label>
+              <textarea id="dx_diff" placeholder="Ej: Mononucleosis, faringitis bacteriana por estreptococo"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="dx_cie">Código CIE-10 (opcional)</label>
+              <input type="text" id="dx_cie" placeholder="Ej: J02.9">
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 6. Plan y recomendaciones ── -->
+        <div class="form-section">
+          <div class="section-head" onclick="toggleSection(this)">
+            <span class="section-num">6</span>
+            <div style="flex:1;">
+              <h3>Plan y Recomendaciones</h3>
+              <div class="section-help">Tratamiento, indicaciones, estudios y seguimiento.</div>
+            </div>
+            <span class="section-chev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+
+          <div class="form-grid full">
+            <div class="form-group">
+              <label>Medicamentos recetados</label>
+              <div class="dyn-list" id="medList">
+                <div class="dyn-row med">
+                  <input type="text" placeholder="Nombre (Ej: Ibuprofeno 400mg)">
+                  <input type="text" placeholder="Dosis / vía (Ej: 1 tab VO)">
+                  <input type="text" placeholder="Frecuencia / duración (Ej: c/8h × 5 días)">
+                  <button type="button" class="dyn-del" onclick="removeRow(this)">Eliminar</button>
+                </div>
+              </div>
+              <button type="button" class="dyn-add" onclick="addMed()">+ Añadir medicamento</button>
+            </div>
+
+            <div class="form-group">
+              <label for="plan_indications">Indicaciones generales</label>
+              <textarea id="plan_indications" placeholder="Ej: Reposo relativo, hidratación abundante, dieta blanda 48h"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Pruebas complementarias solicitadas</label>
+              <div class="checkbox-grid">
+                <label class="checkbox-item"><input type="checkbox"> Hemograma completo</label>
+                <label class="checkbox-item"><input type="checkbox"> Química sanguínea</label>
+                <label class="checkbox-item"><input type="checkbox"> Examen general de orina</label>
+                <label class="checkbox-item"><input type="checkbox"> PCR / VES</label>
+                <label class="checkbox-item"><input type="checkbox"> Glicemia en ayunas</label>
+                <label class="checkbox-item"><input type="checkbox"> Perfil lipídico</label>
+                <label class="checkbox-item"><input type="checkbox"> Rx tórax</label>
+                <label class="checkbox-item"><input type="checkbox"> Ecografía</label>
+                <label class="checkbox-item"><input type="checkbox"> Electrocardiograma</label>
+                <label class="checkbox-item"><input type="checkbox"> Hisopado faríngeo</label>
+              </div>
+              <textarea id="plan_tests_other" placeholder="Otras pruebas solicitadas o detalles"></textarea>
+            </div>
+
+            <div class="form-grid cols-2" style="margin-bottom:0;">
+              <div class="form-group">
+                <label for="plan_followup">Seguimiento</label>
+                <select id="plan_followup">
+                  <option value="">Seleccione…</option>
+                  <option value="prn">A demanda (si no mejora)</option>
+                  <option value="48h">En 48 horas</option>
+                  <option value="1sem">En 1 semana</option>
+                  <option value="2sem">En 2 semanas</option>
+                  <option value="1mes">En 1 mes</option>
+                  <option value="3mes">En 3 meses</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="plan_referral">Referencia a especialista</label>
+                <input type="text" id="plan_referral" placeholder="Ej: Cardiología — control de PA">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="plan_warnings">Signos de alarma para regresar de inmediato</label>
+              <textarea id="plan_warnings" placeholder="Ej: Fiebre &gt; 39°C persistente, dificultad respiratoria, vómitos incoercibles"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 7. Observaciones adicionales ── -->
+        <div class="form-section">
+          <div class="section-head" onclick="toggleSection(this)">
+            <span class="section-num">7</span>
+            <div style="flex:1;">
+              <h3>Observaciones Adicionales</h3>
+              <div class="section-help">Espacio libre para notas del doctor.</div>
+            </div>
+            <span class="section-chev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+
+          <div class="form-grid full">
+            <div class="form-group">
+              <label for="notes_extra">Notas del profesional</label>
+              <textarea id="notes_extra" placeholder="Cualquier observación adicional relevante, conversación con la familia, decisiones compartidas, etc." style="min-height: 140px;"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 8. Consentimiento informado ── -->
+        <div class="form-section">
+          <div class="section-head" onclick="toggleSection(this)">
+            <span class="section-num">8</span>
+            <div style="flex:1;">
+              <h3>Consentimiento Informado</h3>
+              <div class="section-help">Seleccionar plantilla y firmar antes de cerrar la consulta.</div>
+            </div>
+            <span class="section-chev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+
+          <div class="form-grid full">
+            <div class="form-group">
+              <label for="consTemplateSelect">Plantilla de consentimiento</label>
+              <select id="consTemplateSelect" onchange="updateConsentInfo()">
+                <option value="">— Seleccione un consentimiento —</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="consConsentInfo" class="consent-bar">
+            <button type="button" class="consent-btn primary" onclick="openSignatureModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17.5c2-2 6-4 9-2s4 4 9 0"/><path d="M3 21h18"/></svg>
+              Ver y firmar
+            </button>
+            <button type="button" class="consent-btn" onclick="downloadConsentPDF()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Descargar PDF
+            </button>
+            <span id="consSignedIndicator" class="consent-signed">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Consentimiento firmado
+            </span>
+          </div>
+        </div>
+
+        <!-- ── 9. Inventario utilizado ── -->
+        <div class="form-section">
+          <div class="section-head" onclick="toggleSection(this)">
+            <span class="section-num">9</span>
+            <div style="flex:1;">
+              <h3>Inventario Utilizado</h3>
+              <div class="section-help">Artículos consumidos durante la consulta. Descuentan stock al guardar.</div>
+            </div>
+            <span class="section-chev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+
+          <div id="inventoryUsageSection"></div>
+        </div>
+
+        <!-- ── 10. Información de pago ── -->
+        <div class="form-section">
+          <div class="section-head" onclick="toggleSection(this)">
+            <span class="section-num">10</span>
+            <div style="flex:1;">
+              <h3>Información de Pago</h3>
+              <div class="section-help">Costo y estado de cobro de la consulta.</div>
+            </div>
+            <span class="section-chev">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+
+          <div class="form-grid cols-2">
+            <div class="form-group">
+              <label for="consCost">Costo de la consulta (L.)</label>
+              <input type="text" id="consCost" placeholder="0.00" inputmode="decimal">
+            </div>
+            <div class="form-group">
+              <label for="consPayment">Estado de pago</label>
+              <select id="consPayment">
+                <option value="pending">Pendiente</option>
+                <option value="paid">Pagado</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid full">
+            <div class="form-group">
+              <label for="consPaymentNotes">Notas de pago (descuentos, paquetes, etc.)</label>
+              <textarea id="consPaymentNotes" placeholder="Ej: Descuento 10%, paga 50% hoy y 50% en próxima visita"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div id="consultMsg" class="form-msg" style="display:none;"></div>
+
+      </form>
+    </div>
+
+    <!-- ── Sidebar Summary ── -->
+    <aside class="summary-col">
+      <div class="summary">
+        <div class="summary-head">
+          <h4>Resumen de la Consulta</h4>
+          <p>Actualizado en tiempo real</p>
+        </div>
+        <div class="summary-body">
+          <div class="sum-row"><span class="label">PA</span><span class="val" id="sumBp">—</span></div>
+          <div class="sum-row"><span class="label">FC</span><span class="val" id="sumHr">—</span></div>
+          <div class="sum-row"><span class="label">Temperatura</span><span class="val" id="sumTemp">—</span></div>
+          <div class="sum-row"><span class="label">FR</span><span class="val" id="sumRr">—</span></div>
+          <div class="sum-row"><span class="label">SpO₂</span><span class="val" id="sumSpo2">—</span></div>
+          <div class="sum-row"><span class="label">Hallazgos +</span><span class="val" id="sumFindings">0</span></div>
+          <div class="sum-row"><span class="label">Medicamentos</span><span class="val" id="sumMeds">0</span></div>
+
+          <button class="summary-save-btn" onclick="saveFinal()">Guardar consulta</button>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<script src="/common.js"></script>
+<script src="/icons.js"></script>
+<script src="/layout.js"></script>
+<script src="/consultation-inventory.js"></script>
+<script>
+  requireAuth(['clinic_admin', 'doctor']);
+
+  // ─────────────────────────────────────────────
+  // State + carga inicial (mismo patrón que consultation-nutrition.html)
+  // ─────────────────────────────────────────────
+  const STATE = {
+    appointmentId: Number((new URLSearchParams(location.search)).get('id')) || null,
+    patientId: null,
+    patient: null,
+    professional: null,
+    submitting: false,
+  };
+
+  let consentTemplates = [];
+  let currentConsentTemplate = null;
+  let currentConsentId = null;
+
+  function escHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  async function bootstrap() {
+    try {
+      const me = await api('/api/auth/me');
+      STATE.professional = me;
+
+      // Si el doctor tiene una especialidad distinta, mandarlo de vuelta a citas.
+      if (me.role === 'doctor' && me.specialty && me.specialty !== 'Medicina General') {
+        window.location.href = '/citas.html';
+        return;
+      }
+
+      const nm = me.name || me.email || '';
+      const hasPrefix = /^(dr\.?|dra\.?)\s/i.test(nm);
+      document.getElementById('professionalName').textContent =
+        (me.role === 'doctor' && !hasPrefix) ? `Dr. ${nm}` : nm;
+      document.getElementById('professionalWrap').style.display = '';
+
+      // Cargar consent templates en paralelo (no bloquea)
+      loadConsentTemplates();
+
+      if (!STATE.appointmentId) {
+        document.getElementById('patientName').textContent = 'Sin cita asignada';
+        return;
+      }
+
+      // Cargar cita + paciente
+      const appts = await api('/api/appointments');
+      const appt = appts.find(a => a.id === STATE.appointmentId);
+      if (!appt) {
+        document.getElementById('patientName').textContent = 'Cita no encontrada';
+        return;
+      }
+      STATE.patientId = appt.patient_id;
+      document.getElementById('patientName').textContent = appt.patient_name || 'Paciente';
+
+      try {
+        const p = await api(`/api/patients/${STATE.patientId}`);
+        STATE.patient = p;
+        document.getElementById('p_name').value  = p.name || '';
+        document.getElementById('p_birth').value = p.birth_date || '';
+        document.getElementById('p_phone').value = p.phone || '';
+        if (p.age != null) {
+          document.getElementById('patientAge').textContent = p.age + ' años';
+          document.getElementById('patientAgeWrap').style.display = '';
+        }
+        if (p.gender) {
+          document.getElementById('patientSex').textContent = p.gender;
+          document.getElementById('patientSexWrap').style.display = '';
+          const g = String(p.gender).toLowerCase();
+          if (g.startsWith('f')) document.getElementById('sx_f').checked = true;
+          else if (g.startsWith('m')) document.getElementById('sx_m').checked = true;
+          else document.getElementById('sx_o').checked = true;
+        }
+      } catch (e) {
+        console.warn('No se pudo cargar paciente:', e);
+      }
+
+      // Cargar alertas médicas (alergias / medicación / condiciones crónicas)
+      loadMedicalAlert();
+
+      // Montar la sección de inventario
+      if (window.ConsultationInventory) {
+        ConsultationInventory.mount({
+          containerId: 'inventoryUsageSection',
+          consultationId: null,
+          consultationType: 'general',
+          readonly: false,
+        });
+      }
+    } catch (e) {
+      console.error('Error al cargar la consulta:', e);
+      document.getElementById('patientName').textContent = 'Error al cargar';
+    }
+  }
+
+  // ── Alertas médicas (alergias/medicación/condiciones) ──
+  async function loadMedicalAlert() {
+    if (!STATE.patientId) return;
+    try {
+      const r = await api(`/api/patients/${STATE.patientId}/critical-info`);
+      const { allergies, medications, conditions } = r || {};
+      if (!allergies && !medications && !conditions) return;
+      let html = '';
+      if (allergies)   html += `<div class="medical-alert-item"><span class="medical-alert-item-label">Alergias:</span>${escHtml(allergies)}</div>`;
+      if (medications) html += `<div class="medical-alert-item"><span class="medical-alert-item-label">Medicación:</span>${escHtml(medications)}</div>`;
+      if (conditions)  html += `<div class="medical-alert-item"><span class="medical-alert-item-label">Condiciones:</span>${escHtml(conditions)}</div>`;
+      document.getElementById('medicalAlertText').innerHTML = html;
+      document.getElementById('medicalAlert').classList.add('show');
+
+      // Pre-llenar los campos correspondientes en la sección 1.
+      if (allergies   && !document.getElementById('p_allergies').value) document.getElementById('p_allergies').value = allergies;
+      if (medications && !document.getElementById('p_meds').value)      document.getElementById('p_meds').value      = medications;
+      if (conditions  && !document.getElementById('p_chronic').value)   document.getElementById('p_chronic').value   = conditions;
+    } catch (e) {
+      console.warn('No se pudo cargar critical-info:', e);
+    }
+  }
+
+  // ── Consentimientos ──
+  async function loadConsentTemplates() {
+    try {
+      const list = await api('/api/consents/templates');
+      consentTemplates = Array.isArray(list) ? list : [];
+      const sel = document.getElementById('consTemplateSelect');
+      sel.innerHTML = '<option value="">— Seleccione un consentimiento —</option>';
+      consentTemplates.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = t.title;
+        sel.appendChild(opt);
+      });
+    } catch (e) {
+      console.warn('No se pudieron cargar plantillas de consentimiento:', e);
+    }
+  }
+
+  function updateConsentInfo() {
+    const sel = document.getElementById('consTemplateSelect');
+    const bar = document.getElementById('consConsentInfo');
+    const signed = document.getElementById('consSignedIndicator');
+    if (!sel.value) {
+      bar.classList.remove('show');
+      currentConsentTemplate = null;
+      return;
+    }
+    currentConsentTemplate = consentTemplates.find(t => String(t.id) === String(sel.value));
+    bar.classList.add('show');
+    signed.classList.toggle('show', !!currentConsentId);
+  }
+
+  function openSignatureModal() {
+    if (!currentConsentTemplate) { alert('Seleccione un consentimiento primero'); return; }
+    const modal = document.createElement('div');
+    modal.id = 'signatureModal';
+    modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; z-index:10000; padding:1rem;';
+    modal.innerHTML = `
+      <div style="background:#fff; border-radius:18px; width:100%; max-width:700px; max-height:90vh; overflow-y:auto; display:flex; flex-direction:column;">
+        <div style="padding:1.25rem 1.5rem; border-bottom:1px solid #e2e8f0;">
+          <h2 style="font-size:1.15rem; font-weight:800; color:#0891b2; margin:0;">${escHtml(currentConsentTemplate.title)}</h2>
+        </div>
+        <div style="padding:1.25rem 1.5rem; overflow-y:auto; flex:1; border-bottom:1px solid #e2e8f0; font-size:.9rem; line-height:1.55; color:#475569;">
+          ${currentConsentTemplate.description || ''}
+        </div>
+        <div style="padding:1.25rem 1.5rem; border-bottom:1px solid #e2e8f0;">
+          <label style="display:block; font-size:.82rem; font-weight:700; margin-bottom:.6rem; color:#0891b2;">Firme aquí:</label>
+          <canvas id="signatureCanvas" width="600" height="240" style="border:2px solid #e2e8f0; border-radius:10px; background:#fff; cursor:crosshair; display:block; width:100%;"></canvas>
+          <button type="button" onclick="clearSignatureCanvas()" style="margin-top:.6rem; padding:.45rem .9rem; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; cursor:pointer; font-weight:600; font-family:inherit;">Limpiar firma</button>
+        </div>
+        <div style="padding:1rem 1.5rem; display:flex; justify-content:flex-end; gap:.6rem;">
+          <button type="button" onclick="closeSignatureModal()" style="padding:.7rem 1.2rem; background:#f1f5f9; border:1.5px solid #e2e8f0; border-radius:10px; cursor:pointer; font-weight:700; color:#64748b; font-family:inherit;">Cancelar</button>
+          <button type="button" onclick="confirmSignature()" style="padding:.7rem 1.2rem; background:linear-gradient(135deg,#0891b2,#06b6d4); color:#fff; border:none; border-radius:10px; cursor:pointer; font-weight:700; font-family:inherit;">Confirmar firma</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+
+    const canvas = document.getElementById('signatureCanvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    const rect = () => canvas.getBoundingClientRect();
+    const sx = () => canvas.width / rect().width;
+    const sy = () => canvas.height / rect().height;
+    const pos = (clientX, clientY) => {
+      const r = rect();
+      return [(clientX - r.left) * sx(), (clientY - r.top) * sy()];
+    };
+    const start = (x, y) => { drawing = true; ctx.beginPath(); ctx.moveTo(x, y); };
+    const move = (x, y) => {
+      if (!drawing) return;
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+      ctx.stroke();
+    };
+    canvas.addEventListener('mousedown', e => start(...pos(e.clientX, e.clientY)));
+    canvas.addEventListener('mousemove', e => move(...pos(e.clientX, e.clientY)));
+    canvas.addEventListener('mouseup',   () => { drawing = false; });
+    canvas.addEventListener('mouseout',  () => { drawing = false; });
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); const t = e.touches[0]; start(...pos(t.clientX, t.clientY)); });
+    canvas.addEventListener('touchmove',  e => { e.preventDefault(); const t = e.touches[0]; move(...pos(t.clientX, t.clientY)); });
+    canvas.addEventListener('touchend',   e => { e.preventDefault(); drawing = false; });
+  }
+  function clearSignatureCanvas() {
+    const c = document.getElementById('signatureCanvas');
+    if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  }
+  function closeSignatureModal() {
+    document.getElementById('signatureModal')?.remove();
+  }
+  async function confirmSignature() {
+    if (!STATE.patientId) { alert('La consulta no está vinculada a un paciente'); return; }
+    const canvas = document.getElementById('signatureCanvas');
+    const imageData = canvas.toDataURL('image/png');
+    if (imageData.length < 200) { alert('Debe firmar antes de confirmar'); return; }
+    try {
+      const me = STATE.professional || (await api('/api/auth/me'));
+      const cRes = await api('/api/consents', {
+        method: 'POST',
+        body: { patient_id: STATE.patientId, template_id: currentConsentTemplate.id, signed_by: me.name }
+      });
+      await api(`/api/consents/${cRes.id}`, {
+        method: 'PUT',
+        body: { signature_data: imageData, status: 'signed', signed_by: me.name }
+      });
+      currentConsentId = cRes.id;
+      document.getElementById('consSignedIndicator').classList.add('show');
+      closeSignatureModal();
+    } catch (e) {
+      alert('Error al guardar la firma: ' + (e.message || e));
+    }
+  }
+  async function downloadConsentPDF() {
+    if (!currentConsentTemplate) { alert('Seleccione un consentimiento primero'); return; }
+    try {
+      const res = await fetch(`/api/consents/templates/${currentConsentTemplate.id}/download`, {
+        credentials: 'same-origin',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('sd_token') || ''}` }
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `consentimiento-${currentConsentTemplate.title.replace(/[^\w]+/g, '-').toLowerCase()}.pdf`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      alert('No se pudo descargar el PDF: ' + (e.message || e));
+    }
+  }
+
+  // ── Formato del costo (igual a consultation.html) ──
+  function formatCostBlur(el) {
+    if (!el.value) return;
+    const clean = el.value.replace(/[^\d.]/g, '');
+    const num = parseFloat(clean);
+    if (!isNaN(num) && num >= 0) {
+      const fixed = Math.floor(num * 100) / 100;
+      const [intPart, decPart] = fixed.toFixed(2).split('.');
+      el.value = 'L. ' + intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + decPart;
+    } else {
+      el.value = '';
+    }
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    const cost = document.getElementById('consCost');
+    if (cost) {
+      cost.addEventListener('input', e => {
+        let v = e.target.value.replace(/[^\d.]/g, '');
+        if ((v.match(/\./g) || []).length > 1) v = v.replace(/\.(?=.*\.)/, '');
+        e.target.value = v;
+      });
+      cost.addEventListener('blur', e => formatCostBlur(e.target));
+    }
+  });
+
+  // ── Helpers de recolección del formulario ──
+  function collectExamFindings() {
+    const blocks = document.querySelectorAll('.exam-block');
+    const out = {};
+    blocks.forEach(b => {
+      const title = b.querySelector('.exam-title')?.textContent.trim() || 'sin_titulo';
+      const items = [...b.querySelectorAll('.checkbox-item input[type="checkbox"]:checked')]
+        .map(i => i.parentElement?.textContent.trim()).filter(Boolean);
+      const note = b.querySelector('.exam-body textarea')?.value.trim() || '';
+      out[title] = { items, note };
+    });
+    return out;
+  }
+  function collectSymptoms() {
+    return [...document.querySelectorAll('#symptomList .dyn-row')].map(row => ({
+      name:   row.querySelector('[data-field="name"]')?.value.trim() || '',
+      detail: row.querySelector('[data-field="detail"]')?.value.trim() || '',
+    })).filter(s => s.name);
+  }
+  function collectMedications() {
+    return [...document.querySelectorAll('#medList .dyn-row')].map(row => {
+      const ins = row.querySelectorAll('input');
+      return { name: ins[0]?.value.trim() || '', dose: ins[1]?.value.trim() || '', schedule: ins[2]?.value.trim() || '' };
+    }).filter(m => m.name);
+  }
+  function collectTriggers() {
+    return [...document.querySelectorAll('#mc_triggers .chip.active')].map(c => c.textContent.trim());
+  }
+  function collectTestsRequested() {
+    // Está en la sección 6 — solo las checkbox-grid de pruebas complementarias
+    const sec = [...document.querySelectorAll('.form-section')].find(s =>
+      s.querySelector('.section-num')?.textContent.trim() === '6');
+    if (!sec) return [];
+    return [...sec.querySelectorAll('.checkbox-item input[type="checkbox"]:checked')]
+      .map(i => i.parentElement?.textContent.trim()).filter(Boolean);
+  }
+  function buildConsultationPayload() {
+    const v = id => document.getElementById(id)?.value.trim() || '';
+    const num = id => {
+      const x = parseFloat(v(id));
+      return Number.isFinite(x) ? x : null;
+    };
+
+    const vitalsLine = [
+      v('v_bp')   ? `PA ${v('v_bp')} mmHg` : null,
+      v('v_hr')   ? `FC ${v('v_hr')} lpm`  : null,
+      v('v_temp') ? `T° ${v('v_temp')} °C` : null,
+      v('v_rr')   ? `FR ${v('v_rr')} rpm`  : null,
+      v('v_spo2') ? `SpO₂ ${v('v_spo2')}%` : null,
+      v('v_wh')   ? `P/T ${v('v_wh')}`     : null,
+    ].filter(Boolean).join(' · ');
+
+    // Notas: armamos un bloque legible (la consulta no tiene columnas por cada campo)
+    const notes = [
+      vitalsLine ? `[Signos vitales] ${vitalsLine}` : '',
+      v('mc_chief')    ? `[Queja principal] ${v('mc_chief')}` : '',
+      v('mc_duration') ? `[Duración] ${v('mc_duration')}`     : '',
+      v('mc_onset')    ? `[Inicio] ${v('mc_onset')}`          : '',
+      v('mc_intensity')? `[Intensidad] ${v('mc_intensity')}/10` : '',
+      collectTriggers().length    ? `[Factores] ${collectTriggers().join(', ')}` : '',
+      collectSymptoms().length    ? `[Síntomas asociados] ${collectSymptoms().map(s => s.name + (s.detail ? ' ('+s.detail+')' : '')).join('; ')}` : '',
+      v('mc_history')  ? `[Historia] ${v('mc_history')}` : '',
+      v('notes_extra') ? `[Observaciones] ${v('notes_extra')}` : '',
+    ].filter(Boolean).join('\n\n');
+
+    // Tratamiento + indicaciones + seguimiento
+    const meds = collectMedications();
+    const tests = collectTestsRequested();
+    const treatment = [
+      meds.length ? `Medicamentos:\n${meds.map(m => ` - ${m.name} ${m.dose ? '— ' + m.dose : ''} ${m.schedule ? '· ' + m.schedule : ''}`).join('\n')}` : '',
+      v('plan_indications') ? `Indicaciones: ${v('plan_indications')}` : '',
+      tests.length ? `Pruebas solicitadas: ${tests.join(', ')}` : '',
+      v('plan_tests_other') ? `Otras pruebas: ${v('plan_tests_other')}` : '',
+      v('plan_followup')   ? `Seguimiento: ${v('plan_followup')}` : '',
+      v('plan_referral')   ? `Referencia: ${v('plan_referral')}` : '',
+      v('plan_warnings')   ? `Signos de alarma: ${v('plan_warnings')}` : '',
+    ].filter(Boolean).join('\n\n');
+
+    // Costo limpiado del prefijo L.
+    let costClean = v('consCost').replace(/^L\.\s*/, '').replace(/,/g, '');
+    const cost = parseFloat(costClean) || 0;
+
+    return {
+      patient_id: STATE.patientId,
+      appointment_id: STATE.appointmentId,
+      doctor_id: STATE.professional?.id,
+      specialty: 'Medicina General',
+      notes,
+      diagnosis: [v('dx_main'), v('dx_diff') && `DDx: ${v('dx_diff')}`, v('dx_cie') && `CIE-10: ${v('dx_cie')}`].filter(Boolean).join(' · '),
+      treatment,
+      cost,
+      payment_status: v('consPayment') || 'pending',
+      payment_notes: v('consPaymentNotes') || '',
+      consent_id: currentConsentId || null,
+      observations: v('notes_extra') || null,
+      visit_reason: v('mc_chief') || '',
+      // Para que la consulta abierta de nuevo pueda hidratarse:
+      structured: {
+        patient: { name: v('p_name'), birth: v('p_birth'), sex: document.querySelector('input[name="sex"]:checked')?.value, phone: v('p_phone'), email: v('p_email') },
+        history: { chronic: v('p_chronic'), allergies: v('p_allergies'), meds: v('p_meds'), family: v('p_family') },
+        chief:   { complaint: v('mc_chief'), duration: v('mc_duration'), onset: v('mc_onset'), intensity: num('mc_intensity'), triggers: collectTriggers(), symptoms: collectSymptoms(), history: v('mc_history') },
+        vitals:  { bp: v('v_bp'), hr: num('v_hr'), temp: num('v_temp'), rr: num('v_rr'), spo2: num('v_spo2'), weight_height: v('v_wh') },
+        exam:    collectExamFindings(),
+        plan:    { meds, tests, tests_other: v('plan_tests_other'), indications: v('plan_indications'), followup: v('plan_followup'), referral: v('plan_referral'), warnings: v('plan_warnings') },
+      },
+    };
+  }
+
+  function setStatus(text, cls) {
+    const b = document.getElementById('statusBadge');
+    b.textContent = text;
+    b.className = 'status-badge ' + (cls || '');
+  }
+  function showMsg(text, kind) {
+    const m = document.getElementById('consultMsg');
+    if (!m) return;
+    m.style.display = 'block';
+    m.textContent = text;
+    m.className = 'form-msg ' + (kind === 'err' ? 'err' : 'ok');
+  }
+
+  // ── Save (final). Borrador queda como simple feedback visual por ahora. ──
+  async function saveDraft() {
+    setStatus('Borrador guardado', 'ready');
+  }
+
+  async function saveFinal() {
+    if (STATE.submitting) return;
+    if (!STATE.appointmentId) { showMsg('Esta consulta no está vinculada a una cita. Abrila desde el listado de citas.', 'err'); return; }
+    if (!STATE.patientId)     { showMsg('Falta el paciente.', 'err'); return; }
+    if (!document.getElementById('dx_main').value.trim()) { showMsg('Ingresá una impresión diagnóstica principal.', 'err'); return; }
+
+    STATE.submitting = true;
+    const topBtn  = document.getElementById('topBtnFinal');
+    const sideBtn = document.querySelector('.summary-save-btn');
+    if (topBtn)  topBtn.disabled = true;
+    if (sideBtn) sideBtn.disabled = true;
+
+    try {
+      showMsg('Guardando consulta…', 'ok');
+      const payload = buildConsultationPayload();
+      const consult = await api('/api/consultations', { method: 'POST', body: payload });
+
+      // Marcar la cita como completada
+      try {
+        await api(`/api/appointments/${STATE.appointmentId}/status`, { method: 'PUT', body: { status: 'completed' } });
+      } catch (e) { console.warn('No se pudo cambiar status de cita:', e); }
+
+      // Commit inventario si hay items pendientes
+      if (window.ConsultationInventory && ConsultationInventory.hasPending()) {
+        showMsg('Registrando inventario utilizado…', 'ok');
+        try {
+          const ci = await ConsultationInventory.commit(consult.id);
+          if (ci.errors && ci.errors.length) {
+            showMsg(`Consulta guardada. ${ci.errors.length} artículo(s) de inventario no se pudieron registrar.`, 'err');
+          }
+        } catch (ciErr) {
+          console.error('Inventory commit failed:', ciErr);
+        }
+      }
+
+      setStatus('Guardada', 'saved');
+      if (!document.getElementById('consultMsg').classList.contains('err')) {
+        showMsg('Consulta guardada correctamente. Redirigiendo…', 'ok');
+      }
+      setTimeout(() => { window.location.href = '/citas.html'; }, 1500);
+    } catch (e) {
+      console.error('saveFinal failed:', e);
+      showMsg('No se pudo guardar la consulta: ' + (e.message || e), 'err');
+      STATE.submitting = false;
+      if (topBtn)  topBtn.disabled = false;
+      if (sideBtn) sideBtn.disabled = false;
+    }
+  }
+
+  // ── Toggle de secciones colapsables ──
+  function toggleSection(head) {
+    head.parentElement.classList.toggle('is-collapsed');
+  }
+
+  // ── Chip group: factores desencadenantes ──
+  const TRIGGERS = ['Esfuerzo físico', 'Estrés', 'Frío', 'Calor', 'Alimentos', 'Medicamentos', 'Posición', 'Sueño', 'Movimiento', 'Tos'];
+  (function renderTriggers() {
+    const wrap = document.getElementById('mc_triggers');
+    wrap.innerHTML = TRIGGERS.map(t =>
+      `<label class="chip" onclick="this.classList.toggle('active')">${t}</label>`
+    ).join('');
+  })();
+
+  // ── Filas dinámicas: síntomas y medicamentos ──
+  function addSymptom() {
+    const list = document.getElementById('symptomList');
+    const row = document.createElement('div');
+    row.className = 'dyn-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Síntoma" data-field="name">
+      <input type="text" placeholder="Detalle / frecuencia" data-field="detail">
+      <button type="button" class="dyn-del" onclick="removeRow(this)">Eliminar</button>`;
+    list.appendChild(row);
+  }
+  function addMed() {
+    const list = document.getElementById('medList');
+    const row = document.createElement('div');
+    row.className = 'dyn-row med';
+    row.innerHTML = `
+      <input type="text" placeholder="Nombre">
+      <input type="text" placeholder="Dosis / vía">
+      <input type="text" placeholder="Frecuencia / duración">
+      <button type="button" class="dyn-del" onclick="removeRow(this)">Eliminar</button>`;
+    list.appendChild(row);
+    updateSummary();
+  }
+  function removeRow(btn) {
+    btn.closest('.dyn-row').remove();
+    updateSummary();
+  }
+
+  // ── Checklist "checked" toggle visual ──
+  document.addEventListener('change', (e) => {
+    const cb = e.target.closest('.checkbox-item input[type="checkbox"]');
+    if (cb) {
+      cb.parentElement.classList.toggle('checked', cb.checked);
+      updateExamStatus(cb.closest('.exam-block'));
+      updateSummary();
+    }
+  });
+
+  // ── Estado por bloque de exploración (Normal / Hallazgos) ──
+  function updateExamStatus(block) {
+    if (!block) return;
+    const checks = block.querySelectorAll('input[type="checkbox"]:checked').length;
+    const txt = block.querySelector('.exam-status');
+    if (!txt) return;
+    if (checks === 0) { txt.textContent = ''; txt.className = 'exam-status'; }
+    else if (checks <= 2) { txt.textContent = `${checks} hallazgo${checks > 1 ? 's' : ''}`; txt.className = 'exam-status normal'; }
+    else { txt.textContent = `${checks} hallazgos`; txt.className = 'exam-status alt'; }
+  }
+
+  // ── Sidebar resumen en tiempo real ──
+  function updateSummary() {
+    const v = id => document.getElementById(id)?.value.trim() || '';
+    document.getElementById('sumBp').textContent   = v('v_bp')   ? `${v('v_bp')} mmHg` : '—';
+    document.getElementById('sumHr').textContent   = v('v_hr')   ? `${v('v_hr')} lpm`  : '—';
+    document.getElementById('sumTemp').textContent = v('v_temp') ? `${v('v_temp')} °C` : '—';
+    document.getElementById('sumRr').textContent   = v('v_rr')   ? `${v('v_rr')} rpm`  : '—';
+    document.getElementById('sumSpo2').textContent = v('v_spo2') ? `${v('v_spo2')} %`  : '—';
+    document.getElementById('sumFindings').textContent =
+      document.querySelectorAll('.checkbox-item input[type="checkbox"]:checked').length;
+    document.getElementById('sumMeds').textContent =
+      document.querySelectorAll('#medList .dyn-row').length;
+  }
+
+  function safeBack() { history.back(); }
+
+  // ── Boot ──
+  (function initDate() {
+    const today = new Date().toLocaleDateString('es-HN', { day: '2-digit', month: 'short', year: 'numeric' });
+    document.getElementById('consultDateLabel').textContent = today;
+    updateSummary();
+  })();
+
+  bootstrap();
+</script>
+</body>
+</html>

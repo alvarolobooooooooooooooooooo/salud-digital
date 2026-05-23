@@ -272,10 +272,15 @@ function replaceWithCalendarDatetimePicker(input, options = {}) {
         const isOccupied = occupiedTimes.some(t => t.h === h && t.m === m);
 
         if (isOccupied) {
-          btn.style.background = '#f1f5f9';
-          btn.style.color = '#cbd5e1';
+          btn.style.backgroundColor = 'rgba(220, 38, 38, .07)';
+          btn.style.backgroundImage = 'repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(220, 38, 38, .09) 6px, rgba(220, 38, 38, .09) 12px)';
+          btn.style.border = '1px solid rgba(220, 38, 38, .35)';
+          btn.style.color = 'rgba(185, 28, 28, .85)';
           btn.style.cursor = 'not-allowed';
-          btn.style.border = '1px solid #e2e8f0';
+          btn.style.textDecoration = 'line-through';
+          btn.style.textDecorationColor = 'rgba(185, 28, 28, .9)';
+          btn.style.textDecorationThickness = '1.5px';
+          btn.style.fontWeight = '600';
           btn.disabled = true;
         }
 

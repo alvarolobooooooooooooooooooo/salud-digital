@@ -3127,6 +3127,21 @@ html[data-theme="dark"] .chart-container {
   flex-basis: 220px !important;
 }
 
+/* Chart range filter (7d / 30d / 12m) */
+html[data-theme="dark"] .chart-filter {
+  background: rgba(255, 255, 255, .04) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .chart-filter-btn {
+  color: var(--sd-text-muted) !important;
+}
+html[data-theme="dark"] .chart-filter-btn:hover:not(.is-active) {
+  color: #22d3ee !important;
+}
+html[data-theme="dark"] .chart-filter-btn.is-active {
+  color: white !important;
+}
+
 /* Inventario — "Registrar como venta" labels inside adjustSaleBlock (inline-styled #0f172a / #475569 in HTML) */
 html[data-theme="dark"] .adjust-sale-label { color: var(--sd-text) !important; }
 html[data-theme="dark"] .adjust-sale-sublabel { color: var(--sd-text-muted) !important; }

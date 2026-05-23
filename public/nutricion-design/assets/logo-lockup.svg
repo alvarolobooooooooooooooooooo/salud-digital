@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 200" role="img" aria-label="Salud Digital — Tecnología que conecta salud y personas">
+  <title>Salud Digital</title>
+  
+  <g transform="translate(0,0)">
+    <rect x="78" y="6" width="64" height="92" rx="28" fill="#0080B0"></rect>
+    <rect x="102" y="78" width="92" height="64" rx="28" fill="#0080B0"></rect>
+    <rect x="78" y="102" width="64" height="92" rx="28" fill="#0080B0"></rect>
+    <rect x="6" y="78" width="92" height="64" rx="28" fill="#002A60"></rect>
+    <rect x="86" y="86" width="28" height="28" fill="#FFFFFF"></rect>
+  </g>
+  
+  <g transform="translate(228,0)" font-family="Manrope, &#39;Nunito Sans&#39;, system-ui, sans-serif" font-weight="800" fill="#002A60" letter-spacing="-1.2">
+    <text x="0" y="86" font-size="74">Salud</text>
+    <text x="0" y="168" font-size="74">Digital</text>
+  </g>
+  
+  <rect x="498" y="34" width="2" height="132" fill="#002A60"></rect>
+  
+  <g transform="translate(522,0)" font-family="Plus Jakarta Sans, system-ui, sans-serif" font-weight="400" fill="#606A7C" font-size="22">
+    <text x="0" y="74">Tecnología que</text>
+    <text x="0" y="106">conecta salud</text>
+    <text x="0" y="138">y personas</text>
+  </g>
+</svg>

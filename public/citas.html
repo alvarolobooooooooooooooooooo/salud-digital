@@ -17,7 +17,7 @@
       --ok-50:#ecfdf5; --ok-100:#d1fae5; --ok-500:#10b981; --ok-600:#059669; --ok-700:#047857;
       --warn-50:#fffbeb; --warn-100:#fef3c7; --warn-500:#f59e0b; --warn-600:#d97706; --warn-700:#b45309;
       --info-50:#eff6ff; --info-100:#dbeafe; --info-500:#3b82f6; --info-600:#2563eb; --info-700:#1d4ed8;
-      --bad-50:#fef2f2; --bad-100:#fee2e2; --bad-500:#ef4444; --bad-600:#dc2626; --bad-700:#b91c1c;
+      --bad-50:#fef2f2; --bad-100:#fee2e2; --bad-500:#ef  4444; --bad-600:#dc2626; --bad-700:#b91c1c;
       --violet-50:#f5f3ff; --violet-500:#8b5cf6; --violet-600:#7c3aed; --violet-700:#6d28d9;
       --shadow-xs: 0 1px 2px rgba(15,23,42,.04);
       --shadow-sm: 0 1px 2px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.04);
@@ -1796,6 +1796,7 @@ function statusBadgeHtml(s) {
 
 /* ─────────── Data ─────────── */
 let allAppts   = [];
+let allClinicAppts = []; // todas las citas de la clínica (todos los doctores) — usado para mostrar horas ocupadas en el picker
 let allDoctors = [];
 let allPatients = [];
 let editingId  = null;
@@ -1892,6 +1893,7 @@ function consultationPathForSpecialty(specialty) {
   if (specialty === 'Nutrición') return '/consultation-nutrition.html';
   if (specialty === 'Periodoncia') return '/consultation-periodontology.html';
   if (specialty === 'Ortodoncia') return '/consultation-orthodontics.html';
+  if (specialty === 'Medicina General') return '/consultation-general.html';
   return '/consultation.html';
 }
 function colorForSpecialty(specialty) {
@@ -1924,8 +1926,9 @@ async function refreshReminders() {
 (async () => {
   const pageLoader = document.getElementById('pageLoader');
   try {
-    const [appts, patients, doctors, user, waCfg] = await Promise.all([
+    const [appts, clinicAppts, patients, doctors, user, waCfg] = await Promise.all([
       api('/api/appointments'),
+      api('/api/appointments/calendar').catch(() => []),
       api('/api/patients'),
       api('/api/users/doctors'),
       api('/api/auth/me'),
@@ -1933,6 +1936,7 @@ async function refreshReminders() {
     ]);
     currentUser = user;
     allAppts   = appts;
+    allClinicAppts = clinicAppts || [];
     allDoctors = doctors;
     allPatients = patients;
     if (waCfg) waConfig = waCfg;
@@ -1952,6 +1956,11 @@ async function refreshReminders() {
         specialtyField.value = doctor.specialty || 'Medicina General';
       } else if (specialtyField) {
         specialtyField.value = '';
+      }
+      // Re-renderizar las horas ocupadas del picker para el doctor seleccionado
+      const dtInput = document.getElementById('fDatetime');
+      if (dtInput && dtInput._calendarDatetimePicker) {
+        dtInput._calendarDatetimePicker.renderTimeGrid();
       }
     });
 
@@ -3254,8 +3263,10 @@ function initializeDatePicker() {
   const dtInput = document.getElementById('fDatetime');
   if (!dtInput._calendarDatetimePicker) {
     const getOccupiedHours = (dateStr) => {
-      return allAppts
-        .filter(a => a.scheduled_at.startsWith(dateStr) && a.id !== editingId)
+      const selectedDoctorId = parseInt(document.getElementById('fDoctor').value, 10);
+      if (!selectedDoctorId) return [];
+      return allClinicAppts
+        .filter(a => a.doctor_id === selectedDoctorId && a.scheduled_at.startsWith(dateStr) && a.id !== editingId)
         .map(a => {
           const d = new Date(a.scheduled_at);
           return { h: d.getHours(), m: d.getMinutes() };
@@ -3320,7 +3331,10 @@ async function deleteCita() {
   if (!confirm('¿Eliminar esta cita? Esta acción no se puede deshacer.')) return;
   try {
     await api(`/api/appointments/${editingId}`, { method: 'DELETE' });
-    allAppts = await api('/api/appointments');
+    [allAppts, allClinicAppts] = await Promise.all([
+      api('/api/appointments'),
+      api('/api/appointments/calendar').catch(() => allClinicAppts)
+    ]);
     renderEverything();
     closeModal();
   } catch(err) {
@@ -3357,7 +3371,10 @@ async function submitCita(e) {
       }});
       msgEl.textContent = 'Cita creada'; msgEl.className = 'form-msg ok';
     }
-    allAppts = await api('/api/appointments');
+    [allAppts, allClinicAppts] = await Promise.all([
+      api('/api/appointments'),
+      api('/api/appointments/calendar').catch(() => allClinicAppts)
+    ]);
     renderEverything();
     closeModal();
   } catch(err) {

@@ -366,6 +366,14 @@ const initDb = async () => {
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_pending_secret TEXT DEFAULT NULL',
       'ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS sale_price NUMERIC NOT NULL DEFAULT 0',
+      // Configuración avanzada del artículo (drawer "Editar artículo" → sección 6).
+      // CREATE TABLE IF NOT EXISTS no agrega columnas a tablas preexistentes, así que
+      // estos ALTER garantizan que las instancias antiguas también los tengan.
+      'ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE',
+      'ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS requires_expiration_control BOOLEAN DEFAULT FALSE',
+      'ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS requires_authorization_for_use BOOLEAN DEFAULT FALSE',
+      'ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS allow_use_in_appointments BOOLEAN DEFAULT TRUE',
+      "ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS internal_notes TEXT DEFAULT ''",
       'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS is_sale BOOLEAN NOT NULL DEFAULT FALSE',
       'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS unit_sale_price NUMERIC',
       'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS unit_cost_at_sale NUMERIC',
