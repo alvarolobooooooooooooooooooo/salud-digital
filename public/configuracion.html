@@ -1633,11 +1633,38 @@
       } catch (_) {}
     }
 
+    let stalePhotoCleared = false;
+    async function clearStalePhotoOnServer() {
+      if (stalePhotoCleared) return;
+      stalePhotoCleared = true;
+      try {
+        await fetch('/api/users/me/photo', {
+          method: 'DELETE',
+          credentials: 'include',
+          headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('sd_token') || '') }
+        });
+        try {
+          const cached = JSON.parse(localStorage.getItem('sd_user_profile') || '{}');
+          cached.photo_url = '';
+          localStorage.setItem('sd_user_profile', JSON.stringify(cached));
+        } catch (_) {}
+      } catch (_) {}
+    }
+
     function renderAvatar() {
       const box = document.getElementById('avatarBox');
       const initials = getInitials(state.profile.name);
       if (state.profile.photoUrl) {
-        box.innerHTML = `<img src="${esc(state.profile.photoUrl)}" alt="Foto de perfil">`;
+        const img = new Image();
+        img.alt = '';
+        img.onerror = () => {
+          state.profile.photoUrl = null;
+          box.innerHTML = `<span id="avatarInitials">${esc(initials)}</span>`;
+          clearStalePhotoOnServer();
+        };
+        img.onload = () => { box.innerHTML = ''; box.appendChild(img); };
+        img.src = state.profile.photoUrl;
+        box.innerHTML = `<span id="avatarInitials">${esc(initials)}</span>`;
       } else {
         box.innerHTML = `<span id="avatarInitials">${esc(initials)}</span>`;
       }
@@ -1676,8 +1703,16 @@
       // Public preview card (only renders if doctor — elements may not exist otherwise)
       const pvAv = document.getElementById('pvAvatar');
       if (pvAv) {
-        if (state.profile.photoUrl) pvAv.innerHTML = `<img src="${esc(state.profile.photoUrl)}" alt="">`;
-        else pvAv.innerHTML = `<span>${esc(initials)}</span>`;
+        if (state.profile.photoUrl) {
+          pvAv.innerHTML = `<span>${esc(initials)}</span>`;
+          const pvImg = new Image();
+          pvImg.alt = '';
+          pvImg.onload = () => { pvAv.innerHTML = ''; pvAv.appendChild(pvImg); };
+          pvImg.onerror = () => { state.profile.photoUrl = null; clearStalePhotoOnServer(); };
+          pvImg.src = state.profile.photoUrl;
+        } else {
+          pvAv.innerHTML = `<span>${esc(initials)}</span>`;
+        }
       }
       setText('pvName', name);
       setText('pvSpecialty', state.profile.specialty ? specialty : 'Especialidad médica');
