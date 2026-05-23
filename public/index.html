@@ -18,6 +18,21 @@
 <title>Salud Digital — Plataforma Sanitaria Profesional</title>
 <!-- Resource hints: warm cache for scripts needed mid-page -->
 <link rel="preload" as="script" href="/icons.js" />
+<!-- Prefetch login page so navigating to "Acceder" is instant -->
+<link rel="prefetch" href="/login.html" as="document" />
+<script type="speculationrules">
+{
+  "prerender": [{
+    "source": "list",
+    "urls": ["/login.html"],
+    "eagerness": "moderate"
+  }]
+}
+</script>
+<!-- Poppins (UI font) + Playfair Display (Podoestetica partner brand only) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@500;700&display=swap">
 <!-- Render-skipping hints: browsers skip layout/paint for off-screen sections
      until they're near the viewport. Uses contain-intrinsic-size so the
      scrollbar height stays stable (no layout shift). -->
@@ -1486,6 +1501,141 @@
   }
 
   /* ═══════════════════════════════════════════════════════
+     FOUNDING PARTNER — featured single-client showcase
+     ═══════════════════════════════════════════════════════ */
+  .partner {
+    padding: 2.5rem 0 4.5rem;
+    --podo-gold: #a89765;
+    --podo-gold-light: #c2b385;
+    --podo-gold-deep: #8a7a4f;
+  }
+  .partner-card {
+    position: relative;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 3.5rem 2.5rem 3rem;
+    background: linear-gradient(180deg, #fdfaf3 0%, #f8f1e0 100%);
+    border: 1px solid #ece3d0;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 30px 60px rgba(168, 151, 101, 0.12);
+    overflow: hidden;
+  }
+  .partner-card::before,
+  .partner-card::after {
+    content: '';
+    position: absolute;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(168, 151, 101, 0.18) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .partner-card::before { top: -120px; left: -80px; }
+  .partner-card::after  { bottom: -130px; right: -90px; }
+  .partner-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: rgba(168, 151, 101, 0.12);
+    border: 1px solid rgba(168, 151, 101, 0.3);
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--podo-gold-deep);
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+  .partner-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--podo-gold);
+    box-shadow: 0 0 0 4px rgba(168, 151, 101, 0.18);
+  }
+  .partner-logo {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1.25rem;
+  }
+  .partner-logo-name {
+    font-family: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(3rem, 6vw, 4.5rem);
+    letter-spacing: 0.01em;
+    color: var(--podo-gold);
+    line-height: 1;
+    display: block;
+  }
+  .partner-logo-sub {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(0.85rem, 1.4vw, 1.05rem);
+    letter-spacing: 0.5em;
+    color: var(--podo-gold);
+    text-indent: 0.5em;
+    margin-top: 0.5rem;
+    display: block;
+  }
+  .partner-divider {
+    width: 60px;
+    height: 1px;
+    background: var(--podo-gold);
+    opacity: 0.45;
+    margin: 1.5rem auto;
+    position: relative;
+    z-index: 1;
+  }
+  .partner-tagline {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--podo-gold-deep);
+    margin: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .partner-meta {
+    margin-top: 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    position: relative;
+    z-index: 1;
+  }
+  @media (max-width: 640px) {
+    .partner { padding: 1.5rem 0 3rem; }
+    .partner-card { padding: 2.5rem 1.5rem; border-radius: 18px; }
+    .partner-card::before, .partner-card::after { width: 180px; height: 180px; }
+  }
+  html[data-theme="dark"] .partner-card {
+    background: linear-gradient(180deg, rgba(28, 26, 22, 0.92) 0%, rgba(22, 20, 16, 0.95) 100%);
+    border: 1px solid rgba(168, 151, 101, 0.28);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+  }
+  html[data-theme="dark"] .partner-card::before,
+  html[data-theme="dark"] .partner-card::after {
+    background: radial-gradient(circle, rgba(194, 179, 133, 0.18) 0%, transparent 65%);
+  }
+  html[data-theme="dark"] .partner-badge {
+    background: rgba(194, 179, 133, 0.10);
+    border-color: rgba(194, 179, 133, 0.32);
+    color: var(--podo-gold-light);
+  }
+  html[data-theme="dark"] .partner-badge::before { background: var(--podo-gold-light); }
+  html[data-theme="dark"] .partner-logo-name,
+  html[data-theme="dark"] .partner-logo-sub { color: var(--podo-gold-light); }
+  html[data-theme="dark"] .partner-divider { background: var(--podo-gold-light); }
+  html[data-theme="dark"] .partner-tagline { color: rgba(194, 179, 133, 0.85); }
+
+  /* ═══════════════════════════════════════════════════════
      FEATURES with magnetic hover & 3D depth
      ═══════════════════════════════════════════════════════ */
   .features {
@@ -1609,6 +1759,37 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
+  /* ── Differentiator variant (replaces fake numeric KPIs) ── */
+  .stat-block.is-feature .stat-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 0.85rem;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(8, 145, 178, 0.12) 0%, rgba(6, 182, 212, 0.12) 100%);
+    color: var(--primary);
+  }
+  .stat-block.is-feature .stat-icon svg { width: 24px; height: 24px; }
+  .stat-block.is-feature .stat-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.2px;
+  }
+  .stat-block.is-feature .stat-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+    font-weight: 500;
+  }
+  html[data-theme="dark"] .stat-block.is-feature .stat-icon {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.18) 0%, rgba(8, 145, 178, 0.12) 100%);
+    color: #22d3ee;
+  }
+  html[data-theme="dark"] .stat-block.is-feature .stat-title { color: var(--text); }
+  html[data-theme="dark"] .stat-block.is-feature .stat-sub { color: var(--muted); }
 
   /* ═══════════════════════════════════════════════════════
      PERSONAS — interactive role switcher (tabs)
@@ -4402,26 +4583,18 @@
   </div>
 </section>
 
-<!-- ── STATS ── -->
-<section style="padding-top: 0;">
+<!-- ── FOUNDING PARTNER ── -->
+<section class="partner" aria-label="Aliado fundador">
   <div class="container">
-    <div class="stats-row">
-      <div class="stat-block reveal">
-        <div class="v" id="statClinicas">120+</div>
-        <div class="l">Clínicas activas</div>
+    <div class="partner-card reveal">
+      <span class="partner-badge">Aliado fundador</span>
+      <div class="partner-logo">
+        <span class="partner-logo-name">PoDO</span>
+        <span class="partner-logo-sub">ESTÉTICA</span>
       </div>
-      <div class="stat-block reveal" data-d="1">
-        <div class="v" id="statDisponibilidad">99.9%</div>
-        <div class="l">Disponibilidad</div>
-      </div>
-      <div class="stat-block reveal" data-d="2">
-        <div class="v" id="statNoShows">40%</div>
-        <div class="l">Menos no-shows</div>
-      </div>
-      <div class="stat-block reveal" data-d="3">
-        <div class="v" id="statImplementacion">15min</div>
-        <div class="l">Implementación</div>
-      </div>
+      <div class="partner-divider"></div>
+      <p class="partner-tagline">"pies sanos, cuerpo en armonía"</p>
+      <p class="partner-meta">Confianza desde 2026</p>
     </div>
   </div>
 </section>
@@ -5150,21 +5323,6 @@
       animateCounter('counterProductividad', 38, 2000, 'productividad');
     }, 300);
 
-    // Animate stats on scroll
-    let statsAnimated = false;
-    const statsIo = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting && !statsAnimated) {
-          statsAnimated = true;
-          animateCounter('statClinicas', 120, 2000, 'clinicas');
-          animateCounter('statDisponibilidad', 99, 2000, 'disponibilidad');
-          animateCounter('statNoShows', 40, 2000, 'noshows');
-          animateCounter('statImplementacion', 15, 2000, 'implementacion');
-        }
-      });
-    }, { threshold: 0.3 });
-    const statsEl = document.querySelector('.stats-row');
-    if (statsEl) statsIo.observe(statsEl);
   });
 
   // ═══════════════════════════════════════════════════════
