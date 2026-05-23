@@ -353,6 +353,8 @@
       align-items: flex-end;
       justify-content: space-around;
       height: 220px;
+      min-height: 220px;
+      flex-basis: 220px;
       gap: 0.8rem;
       padding-top: 28px;
     }
@@ -1021,8 +1023,8 @@
         <h3 id="chartTitle">Ingresos Últimos 7 Días</h3>
         <div class="chart-filter" id="chartFilter" role="tablist">
           <button type="button" class="chart-filter-btn is-active" data-range="7d">7 días</button>
-          <button type="button" class="chart-filter-btn" data-range="30d">30 días</button>
           <button type="button" class="chart-filter-btn" data-range="12m">12 meses</button>
+          <button type="button" class="chart-filter-btn" data-range="5y">Años</button>
         </div>
       </div>
       <div class="chart-container" id="chartContainer">
@@ -1235,8 +1237,13 @@
       const fmtNum = n => Number(n || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       const todayKey = new Date().toISOString().split('T')[0];
       const currentMonthKey = todayKey.slice(0, 7);
+      const currentYearKey = String(new Date().getFullYear());
       const MONTH_ABBR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
       const renderChartDay = (key, granularity) => {
+        if (granularity === 'year') {
+          const isCurrent = key === currentYearKey;
+          return `<div class="chart-day${isCurrent ? ' is-today' : ''}">Año<span class="chart-day-num">${key}</span></div>`;
+        }
         if (granularity === 'month') {
           const [y, m] = key.split('-').map(Number);
           const isCurrent = key === currentMonthKey;
@@ -1248,8 +1255,8 @@
         const isToday = key === todayKey;
         return `<div class="chart-day${isToday ? ' is-today' : ''}">${wdCap}<span class="chart-day-num">${d.getDate()}</span></div>`;
       };
-      const CHART_TITLES = { '7d': 'Ingresos Últimos 7 Días', '30d': 'Ingresos Últimos 30 Días', '12m': 'Ingresos Últimos 12 Meses' };
-      const CHART_EMPTY = { '7d': 'Sin ingresos en los últimos 7 días', '30d': 'Sin ingresos en los últimos 30 días', '12m': 'Sin ingresos en los últimos 12 meses' };
+      const CHART_TITLES = { '7d': 'Ingresos Últimos 7 Días', '12m': 'Ingresos Últimos 12 Meses', '5y': 'Ingresos por Año' };
+      const CHART_EMPTY = { '7d': 'Sin ingresos en los últimos 7 días', '12m': 'Sin ingresos en los últimos 12 meses', '5y': 'Sin ingresos registrados en los últimos años' };
       const renderChart = (payload) => {
         const granularity = payload.granularity || 'day';
         const range = payload.range || '7d';

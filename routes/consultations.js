@@ -48,18 +48,29 @@ router.get('/finances/summary', authenticate, async (req, res) => {
 
 router.get('/finances/weekly', authenticate, async (req, res) => {
   const range = (req.query.range || '7d').toString();
-  const validRanges = ['7d', '30d', '12m'];
+  const validRanges = ['7d', '12m', '5y'];
   const r = validRanges.includes(range) ? range : '7d';
 
   const now = new Date();
-  const isMonthly = r === '12m';
-  const numDays = r === '7d' ? 7 : (r === '30d' ? 30 : 0);
+  const granularity = r === '7d' ? 'day' : (r === '12m' ? 'month' : 'year');
 
   let queryStr;
   let params;
   let paramIndex;
 
-  if (isMonthly) {
+  if (granularity === 'year') {
+    const firstYear = now.getFullYear() - 4;
+    const start = new Date(firstYear, 0, 1);
+    queryStr = `SELECT to_char(created_at, 'YYYY') as bucket, COALESCE(SUM(cost), 0) as total FROM consultations WHERE clinic_id = $1 AND payment_status = 'paid' AND created_at >= $2`;
+    params = [req.user.clinic_id, start.toISOString()];
+    paramIndex = 3;
+    if (req.user.role === 'doctor') {
+      queryStr += ` AND doctor_id = $${paramIndex}`;
+      params.push(req.user.id);
+      paramIndex++;
+    }
+    queryStr += ` GROUP BY bucket ORDER BY bucket ASC`;
+  } else if (granularity === 'month') {
     const firstMonth = new Date(now.getFullYear(), now.getMonth() - 11, 1);
     queryStr = `SELECT to_char(created_at, 'YYYY-MM') as bucket, COALESCE(SUM(cost), 0) as total FROM consultations WHERE clinic_id = $1 AND payment_status = 'paid' AND created_at >= $2`;
     params = [req.user.clinic_id, firstMonth.toISOString()];
@@ -71,7 +82,7 @@ router.get('/finances/weekly', authenticate, async (req, res) => {
     }
     queryStr += ` GROUP BY bucket ORDER BY bucket ASC`;
   } else {
-    const startDate = new Date(now.getTime() - (numDays - 1) * 24 * 60 * 60 * 1000);
+    const startDate = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
     queryStr = `SELECT created_at::date as date, COALESCE(SUM(cost), 0) as total FROM consultations WHERE clinic_id = $1 AND payment_status = 'paid' AND created_at::date >= $2`;
     params = [req.user.clinic_id, getLocalDateString(startDate)];
     paramIndex = 3;
@@ -86,7 +97,15 @@ router.get('/finances/weekly', authenticate, async (req, res) => {
   const results = await query(queryStr, params);
 
   const data = {};
-  if (isMonthly) {
+  if (granularity === 'year') {
+    for (let i = 4; i >= 0; i--) {
+      const key = String(now.getFullYear() - i);
+      data[key] = 0;
+    }
+    results.rows.forEach(row => {
+      if (data[row.bucket] !== undefined) data[row.bucket] = parseFloat(row.total || 0);
+    });
+  } else if (granularity === 'month') {
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -96,7 +115,7 @@ router.get('/finances/weekly', authenticate, async (req, res) => {
       if (data[row.bucket] !== undefined) data[row.bucket] = parseFloat(row.total || 0);
     });
   } else {
-    for (let i = numDays - 1; i >= 0; i--) {
+    for (let i = 6; i >= 0; i--) {
       const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
       const key = d.toISOString().split('T')[0];
       data[key] = 0;
@@ -110,7 +129,7 @@ router.get('/finances/weekly', authenticate, async (req, res) => {
   const days = Object.keys(data);
   const values = days.map(k => data[k]);
 
-  res.json({ days, values, range: r, granularity: isMonthly ? 'month' : 'day' });
+  res.json({ days, values, range: r, granularity });
 });
 
 router.get('/finances/pending', authenticate, async (req, res) => {
