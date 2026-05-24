@@ -1681,6 +1681,16 @@
       0 30px 70px rgba(8, 145, 178, 0.12),
       inset 0 1px 0 rgba(255, 255, 255, 0.8);
   }
+  /* Touch devices: no hover, so add permanent depth via radial glow */
+  @media (hover: none) {
+    .feature-card::after {
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(circle at 30% 0%, rgba(8, 145, 178, 0.12) 0%, transparent 55%);
+      transform: none;
+      opacity: 1;
+    }
+  }
   .feature-icon {
     width: 56px; height: 56px;
     border-radius: 14px;
@@ -3649,6 +3659,22 @@
   }
   html[data-theme="dark"] .feature-card::after {
     background: radial-gradient(circle, rgba(6, 182, 212, 0.22) 0%, transparent 60%);
+  }
+  /* Touch devices in dark mode: permanent ambient cyan glow */
+  @media (hover: none) {
+    html[data-theme="dark"] .feature-card {
+      background:
+        radial-gradient(circle at 30% 0%, rgba(6, 182, 212, 0.10) 0%, transparent 55%),
+        linear-gradient(135deg, rgba(20, 20, 22, 0.85) 0%, rgba(15, 15, 17, 0.85) 100%);
+      border: 1px solid rgba(6, 182, 212, 0.15);
+      box-shadow:
+        0 0 80px rgba(6, 182, 212, 0.08),
+        0 20px 50px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    html[data-theme="dark"] .feature-card::after {
+      background: radial-gradient(circle at 30% 0%, rgba(6, 182, 212, 0.18) 0%, transparent 55%);
+    }
   }
   html[data-theme="dark"] .feature-icon {
     background: linear-gradient(135deg, rgba(6, 182, 212, 0.22) 0%, rgba(8, 145, 178, 0.15) 100%);
