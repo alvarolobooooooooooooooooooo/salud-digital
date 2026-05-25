@@ -2599,6 +2599,25 @@ html[data-theme="dark"] .list-day-pill.today {
 html[data-theme="dark"] .list-day-line { background-color: var(--sd-border-soft) !important; }
 html[data-theme="dark"] .list-day-count { color: var(--sd-text-muted) !important; }
 
+/* Mobile week-view day pills (calendario-compartido) */
+html[data-theme="dark"] .week-day-strip {
+  background-color: rgba(18, 18, 20, .55) !important;
+  border-bottom-color: var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .day-pill {
+  background-color: var(--sd-surface-solid) !important;
+  border-color: var(--sd-border) !important;
+  color: var(--sd-text-muted) !important;
+}
+html[data-theme="dark"] .day-pill .dp-num { color: var(--sd-text) !important; }
+html[data-theme="dark"] .day-pill.today { border-color: #0e7490 !important; }
+html[data-theme="dark"] .day-pill.active {
+  background-color: #0e7490 !important;
+  border-color: transparent !important;
+  color: white !important;
+}
+html[data-theme="dark"] .day-pill.active .dp-num { color: white !important; }
+
 /* Empty card (no citas) */
 html[data-theme="dark"] .empty-card {
   background-color: var(--sd-surface) !important;

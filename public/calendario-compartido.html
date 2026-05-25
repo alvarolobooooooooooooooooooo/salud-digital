@@ -608,7 +608,7 @@
     .list-avatar {
       width: 38px; height: 38px; flex-shrink: 0;
       border-radius: 999px;
-      background: linear-gradient(135deg, var(--dc), color-mix(in srgb, var(--dc) 65%, #000));
+      background: linear-gradient(135deg, var(--c1, var(--teal-500)), var(--c2, var(--teal-700)));
       color: white;
       display: flex; align-items: center; justify-content: center;
       font-size: 13px; font-weight: 600;
@@ -705,7 +705,7 @@
     .drawer-pat-avatar {
       width: 50px; height: 50px;
       border-radius: 999px;
-      background: linear-gradient(135deg, var(--dc), color-mix(in srgb, var(--dc) 65%, #000));
+      background: linear-gradient(135deg, var(--c1, var(--teal-500)), var(--c2, var(--teal-700)));
       color: white;
       display: flex; align-items: center; justify-content: center;
       font-size: 17px; font-weight: 600;
@@ -1009,6 +1009,14 @@ function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); retu
 function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
 function dateStr(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function nameInitials(name) { return String(name || '?').split(' ').filter(Boolean).slice(0,2).map(s => s[0]).join('').toUpperCase(); }
+
+const AVATAR_GRADIENTS = [
+  ['#14b8a6','#6366f1'], ['#0891b2','#22d3ee'], ['#6366f1','#a855f7'],
+  ['#f59e0b','#f43f5e'], ['#10b981','#0891b2'], ['#ec4899','#f43f5e'],
+  ['#8b5cf6','#0891b2']
+];
+function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
+function avatarGradient(seed) { return AVATAR_GRADIENTS[hashStr(seed || '') % AVATAR_GRADIENTS.length]; }
 
 function aptDate(a) { return new Date(a.scheduled_at); }
 function aptDuration(a) { return a.duration || 30; }
@@ -1735,6 +1743,7 @@ function listRowHtml(a) {
   const c = colorForDoctorId(a.doctor_id);
   const pname = a.patient_name || '?';
   const init = nameInitials(pname);
+  const [c1, c2] = avatarGradient(pname);
   const docDisplay = doctorNameFromAppt(a);
   return `
     <div class="list-row" data-apt-id="${a.id}" style="--dc:${c}">
@@ -1743,7 +1752,7 @@ function listRowHtml(a) {
         <div class="list-time-small">${dur} min</div>
       </div>
       <div class="list-pat">
-        <div class="list-avatar" style="--dc:${c}">${init}</div>
+        <div class="list-avatar" style="--c1:${c1}; --c2:${c2}">${init}</div>
         <div class="list-pat-info">
           <div class="list-pat-name-row">
             <div class="list-pat-name">${esc(pname)}</div>
@@ -1773,6 +1782,7 @@ function openDrawer(id) {
   const c = colorForDoctorId(a.doctor_id);
   const pname = a.patient_name || '?';
   const init = nameInitials(pname);
+  const [c1, c2] = avatarGradient(pname);
   const phone = a.patient_phone || a.phone || '';
 
   drawer.innerHTML = `
@@ -1788,7 +1798,7 @@ function openDrawer(id) {
       <div class="drawer-section">
         <div class="drawer-label">Paciente</div>
         <div class="drawer-pat-row">
-          <div class="drawer-pat-avatar" style="--dc:${c}">${init}</div>
+          <div class="drawer-pat-avatar" style="--c1:${c1}; --c2:${c2}">${init}</div>
           <div>
             <div class="drawer-pat-name">${esc(pname)}</div>
             <div class="drawer-pat-sub">${phone ? esc(phone) : 'Sin teléfono registrado'}</div>
