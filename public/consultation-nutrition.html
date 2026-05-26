@@ -329,7 +329,7 @@
     </div>
     <div class="header-actions">
       <span class="status-badge" id="statusBadge">Borrador</span>
-      <button type="button" class="btn-back" onclick="history.back()">← Volver</button>
+      <button type="button" class="btn-back" onclick="window.ConsultationDraft ? ConsultationDraft.exit(()=>history.back()) : history.back()">← Volver</button>
       <button type="button" class="btn-draft" onclick="saveDraft()">Guardar borrador</button>
       <button type="button" class="btn-save-final" onclick="saveFinal()">Guardar consulta</button>
     </div>
@@ -345,7 +345,7 @@
   </div>
 
   <!-- ── Secciones adicionales (no son parte del diseño de tabs) ── -->
-  <div class="extras">
+  <div class="extras" id="nutritionForm">
 
     <!-- ── 1. Consentimiento ── -->
     <div class="form-section">
@@ -441,6 +441,7 @@
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
 <script src="/consultation-inventory.js"></script>
+<script src="/consultation-draft.js"></script>
 
 <script>
   // ─────────────────────────────────────────────────────────────
@@ -765,6 +766,7 @@
       }
 
       setStatus('Guardada');
+      if (window.ConsultationDraft) ConsultationDraft.clear();
       showToast('Consulta guardada correctamente. Redirigiendo…', 'ok');
       setTimeout(() => { window.location.href = '/citas.html'; }, 1200);
     } catch (e) {
@@ -782,6 +784,17 @@
   bootstrap().then(() => {
     loadConsentTemplates();
     mountInventory();
+
+    // Draft autosave (sólo cubre los campos fuera del iframe: costo, pago, consentimiento)
+    if (window.ConsultationDraft) {
+      ConsultationDraft.init({
+        key: 'nutrition',
+        formId: 'nutritionForm',
+        widgets: []
+      });
+      ConsultationDraft.bind(STATE.appointmentId);
+      ConsultationDraft.maybeRestore();
+    }
   });
 </script>
 

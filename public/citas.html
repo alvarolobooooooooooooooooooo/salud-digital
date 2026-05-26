@@ -1911,6 +1911,8 @@ function dotForSpecialty(specialty) {
 function viewConsultationPathForSpecialty(specialty, id) {
   if (specialty === 'Podología') return `/view-consultation-podiatry.html?id=${id}`;
   if (specialty === 'Nutrición') return `/view-consultation.html?id=${id}&kind=nutrition`;
+  if (specialty === 'Periodoncia') return `/consultation-periodontology.html?view=${id}`;
+  if (specialty === 'Ortodoncia') return `/consultation-orthodontics.html?view=${id}`;
   return `/view-consultation.html?id=${id}`;
 }
 

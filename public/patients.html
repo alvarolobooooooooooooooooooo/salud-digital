@@ -1182,9 +1182,13 @@
                 const cDate = new Date(c.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' });
                 const diagnosis = c.diagnosis || c.visit_reason || 'Consulta';
                 const doctor = c.doctor_name || '—';
-                const consultationUrl = (c.specialty || '').toLowerCase().includes('podol')
-                  ? `/view-consultation-podiatry.html?id=${c.id}`
-                  : `/view-consultation.html?id=${c.id}`;
+                const consultationUrl = (() => {
+                  const s = c.specialty || '';
+                  if (s.toLowerCase().includes('podol')) return `/view-consultation-podiatry.html?id=${c.id}`;
+                  if (s === 'Periodoncia') return `/consultation-periodontology.html?view=${c.id}`;
+                  if (s === 'Ortodoncia') return `/consultation-orthodontics.html?view=${c.id}`;
+                  return `/view-consultation.html?id=${c.id}`;
+                })();
                 return `
                   <tr>
                     <td>${cDate}</td>

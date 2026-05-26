@@ -1441,6 +1441,7 @@
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
 <script src="/consultation-inventory.js"></script>
+<script src="/consultation-draft.js"></script>
 <script>
   requireAuth(['clinic_admin', 'doctor']);
 
@@ -1533,6 +1534,17 @@
           consultationType: 'general',
           readonly: false,
         });
+      }
+
+      // Draft autosave
+      if (window.ConsultationDraft) {
+        ConsultationDraft.init({
+          key: 'general',
+          formId: 'generalForm',
+          widgets: []
+        });
+        ConsultationDraft.bind(STATE.appointmentId);
+        ConsultationDraft.maybeRestore();
       }
     } catch (e) {
       console.error('Error al cargar la consulta:', e);
@@ -1881,6 +1893,7 @@
       }
 
       setStatus('Guardada', 'saved');
+      if (window.ConsultationDraft) ConsultationDraft.clear();
       if (!document.getElementById('consultMsg').classList.contains('err')) {
         showMsg('Consulta guardada correctamente. Redirigiendo…', 'ok');
       }
@@ -1971,7 +1984,10 @@
       document.querySelectorAll('#medList .dyn-row').length;
   }
 
-  function safeBack() { history.back(); }
+  function safeBack() {
+    if (window.ConsultationDraft) ConsultationDraft.exit(() => history.back());
+    else history.back();
+  }
 
   // ── Boot ──
   (function initDate() {

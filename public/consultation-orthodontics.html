@@ -646,6 +646,31 @@
       .pod-drop-icon { width: 48px; height: 48px; }
       .odontogram-container { padding: 1rem 0.5rem; }
     }
+
+    /* ── Viewer mode (read-only) ── */
+    body.viewer-mode #consultForm input,
+    body.viewer-mode #consultForm textarea,
+    body.viewer-mode #consultForm select {
+      pointer-events: none;
+      background: var(--pod-bg);
+      color: var(--pod-text-2);
+    }
+    body.viewer-mode #consultForm input[type="radio"] {
+      opacity: 0.85;
+    }
+    body.viewer-mode .footer .btn-save,
+    body.viewer-mode .pod-drop,
+    body.viewer-mode .pod-image-remove,
+    body.viewer-mode .form-section[data-icon="signature"],
+    body.viewer-mode #imgFileInput {
+      display: none !important;
+    }
+    body.viewer-mode .footer .btn-cancel {
+      background: linear-gradient(135deg, var(--pod-primary) 0%, var(--pod-primary-light) 100%);
+      color: white;
+      border-color: transparent;
+    }
+    body.viewer-mode .footer-spacer { visibility: hidden; }
   </style>
 </head>
 <body>
@@ -1589,7 +1614,114 @@ async function downloadConsentPDF() {
   });
 })();
 
-Promise.allSettled([loadConsentTemplates(), loadAppointment()]).finally(() => {
+/* ────────── Viewer mode ────────── */
+const VIEW_CONSULTATION_ID = parseInt(new URLSearchParams(window.location.search).get('view'), 10) || null;
+const IS_VIEW_MODE = !!VIEW_CONSULTATION_ID;
+if (IS_VIEW_MODE) document.body.classList.add('viewer-mode');
+
+async function loadConsultationView() {
+  try {
+    const me = await api('/api/auth/me');
+    if (me.role === 'doctor' && me.specialty !== 'Ortodoncia') {
+      window.location.href = '/citas.html';
+      return;
+    }
+
+    const consultation = await api(`/api/consultations/${VIEW_CONSULTATION_ID}`);
+    if (!consultation) {
+      alert('Consulta no encontrada');
+      history.back();
+      return;
+    }
+
+    patientId = consultation.patient_id;
+    document.getElementById('patientName').textContent = consultation.patient_name || 'Paciente';
+
+    // Hábitos
+    const lifestyle = consultation.lifestyle || {};
+    ['drugs', 'alcohol', 'smoking'].forEach(name => {
+      const val = lifestyle[name];
+      if (val) {
+        const radio = document.querySelector(`input[name="${name}"][value="${val}"]`);
+        if (radio) radio.checked = true;
+      }
+    });
+
+    // Parse composite state ({ type: 'orthodontics', state: {...} })
+    let rawState = consultation.odontogram_state;
+    if (typeof rawState === 'string') {
+      try { rawState = JSON.parse(rawState || '{}'); } catch { rawState = {}; }
+    }
+    rawState = rawState || {};
+    const ortoState = rawState.state || (rawState.type ? {} : rawState);
+
+    // Inject state into the ortho iframe — wait for its 'orto:ready' announcement
+    function pushOrtoState() {
+      const frame = document.getElementById('ortoFrame');
+      if (!frame || !frame.contentWindow) return;
+      frame.contentWindow.postMessage({ type: 'orto:setState', state: ortoState }, '*');
+      ortoLastState = ortoState;
+    }
+    let pushed = false;
+    function onReady(e) {
+      if (e && e.data && e.data.type === 'orto:ready' && !pushed) {
+        pushed = true;
+        pushOrtoState();
+        window.removeEventListener('message', onReady);
+      }
+    }
+    window.addEventListener('message', onReady);
+    // Fallback: if 'ready' never arrives, try anyway after a moment
+    setTimeout(() => { if (!pushed) { pushed = true; pushOrtoState(); window.removeEventListener('message', onReady); } }, 2500);
+
+    // Textareas
+    document.getElementById('consRadNotes').value = consultation.radiography_notes || consultation.notes || '';
+    document.getElementById('consProcedures').value = consultation.procedures || consultation.treatment || '';
+    document.getElementById('consObservations').value = consultation.observations || '';
+    document.getElementById('consPaymentNotes').value = consultation.payment_notes || '';
+
+    // Costo y pago
+    if (consultation.cost != null) {
+      document.getElementById('consCost').value = `L. ${parseFloat(consultation.cost).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    if (consultation.payment_status) {
+      document.getElementById('consPayment').value = consultation.payment_status;
+    }
+
+    // Inventario readonly
+    if (window.ConsultationInventory) {
+      ConsultationInventory.mount({
+        containerId: 'inventoryUsageSection',
+        consultationId: VIEW_CONSULTATION_ID,
+        consultationType: 'odontology',
+        readonly: true
+      });
+    }
+
+    // Imágenes guardadas
+    try {
+      uploadedImages = await api(`/api/consultations/${VIEW_CONSULTATION_ID}/images`) || [];
+      renderImageGrid();
+    } catch (_) {}
+
+    const cancelBtn = document.querySelector('.footer .btn-cancel');
+    if (cancelBtn) cancelBtn.textContent = 'Volver';
+
+    document.querySelectorAll('#consultForm input, #consultForm textarea').forEach(el => { el.readOnly = true; });
+    document.querySelectorAll('#consultForm select').forEach(el => { el.disabled = true; });
+    document.querySelectorAll('#consultForm input[type="radio"]').forEach(el => { el.disabled = true; });
+    const form = document.getElementById('consultForm');
+    if (form) form.addEventListener('submit', e => e.preventDefault());
+  } catch (e) {
+    console.error(e);
+    alert('Error al cargar la consulta');
+  }
+}
+
+Promise.allSettled([
+  IS_VIEW_MODE ? Promise.resolve() : loadConsentTemplates(),
+  IS_VIEW_MODE ? loadConsultationView() : loadAppointment()
+]).finally(() => {
   const pl = document.getElementById('pageLoader');
   if (pl) pl.classList.add('hidden');
 });
