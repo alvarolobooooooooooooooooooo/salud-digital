@@ -716,12 +716,22 @@ async function loadConsultation() {
   try {
     const me = await api('/api/auth/me');
 
-    if (me.role === 'doctor' && me.specialty !== 'Odontología') {
+    const consultation = await api(`/api/consultations/${consultationId}`);
+
+    // Defensa contra cachés viejos de citas.html: rutear a la página correcta
+    // según la especialidad de la consulta. Este archivo es sólo para Odontología.
+    const spec = consultation && consultation.specialty;
+    const kind = new URLSearchParams(window.location.search).get('kind');
+    if (spec === 'Periodoncia') { window.location.replace(`/consultation-periodontology.html?view=${consultation.id}`); return; }
+    if (spec === 'Ortodoncia')  { window.location.replace(`/consultation-orthodontics.html?view=${consultation.id}`); return; }
+    if (spec === 'Medicina General') { window.location.replace(`/consultation-general.html?view=${consultation.id}`); return; }
+    if (spec === 'Podología')   { window.location.replace(`/view-consultation-podiatry.html?id=${consultation.id}`); return; }
+
+    // Para Odontología (y Nutrición vía kind=nutrition), exigir rol con acceso dental.
+    if (me.role === 'doctor' && me.specialty !== 'Odontología' && kind !== 'nutrition') {
       window.location.href = '/citas.html';
       return;
     }
-
-    const consultation = await api(`/api/consultations/${consultationId}`);
 
     document.getElementById('patientName').textContent = consultation.patient_name || 'Paciente';
 

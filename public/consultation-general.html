@@ -825,6 +825,24 @@
       border-color: rgba(239,68,68,.30) !important;
       color: #f87171 !important;
     }
+
+    /* ── Viewer mode (read-only) ── */
+    body.viewer-mode #generalForm input,
+    body.viewer-mode #generalForm textarea,
+    body.viewer-mode #generalForm select {
+      pointer-events: none;
+    }
+    body.viewer-mode #generalForm input[type="radio"],
+    body.viewer-mode #generalForm input[type="checkbox"] {
+      opacity: 0.85;
+    }
+    body.viewer-mode .btn-save-final,
+    body.viewer-mode .btn-draft,
+    body.viewer-mode .summary-save-btn,
+    body.viewer-mode .dyn-row-remove,
+    body.viewer-mode .dyn-row-add {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -1210,7 +1228,7 @@
 
           <div class="form-grid full">
             <div class="form-group">
-              <label for="dx_main">Impresión diagnóstica principal *</label>
+              <label for="dx_main">Impresión diagnóstica principal</label>
               <textarea id="dx_main" placeholder="Ej: Faringoamigdalitis aguda probablemente viral"></textarea>
             </div>
             <div class="form-group">
@@ -1455,6 +1473,11 @@
     professional: null,
     submitting: false,
   };
+
+  /* ────────── Viewer mode ────────── */
+  const VIEW_CONSULTATION_ID = parseInt(new URLSearchParams(window.location.search).get('view'), 10) || null;
+  const IS_VIEW_MODE = !!VIEW_CONSULTATION_ID;
+  if (IS_VIEW_MODE) document.body.classList.add('viewer-mode');
 
   let consentTemplates = [];
   let currentConsentTemplate = null;
@@ -1861,7 +1884,6 @@
     if (STATE.submitting) return;
     if (!STATE.appointmentId) { showMsg('Esta consulta no está vinculada a una cita. Abrila desde el listado de citas.', 'err'); return; }
     if (!STATE.patientId)     { showMsg('Falta el paciente.', 'err'); return; }
-    if (!document.getElementById('dx_main').value.trim()) { showMsg('Ingresá una impresión diagnóstica principal.', 'err'); return; }
 
     STATE.submitting = true;
     const topBtn  = document.getElementById('topBtnFinal');
@@ -1985,8 +2007,90 @@
   }
 
   function safeBack() {
+    if (IS_VIEW_MODE) { history.back(); return; }
     if (window.ConsultationDraft) ConsultationDraft.exit(() => history.back());
     else history.back();
+  }
+
+  async function loadConsultationView() {
+    try {
+      const me = await api('/api/auth/me');
+      STATE.professional = me;
+      if (me.role === 'doctor' && me.specialty && me.specialty !== 'Medicina General') {
+        window.location.href = '/citas.html';
+        return;
+      }
+      const nm = me.name || me.email || '';
+      const hasPrefix = /^(dr\.?|dra\.?)\s/i.test(nm);
+      document.getElementById('professionalName').textContent = (me.role === 'doctor' && !hasPrefix) ? `Dr. ${nm}` : nm;
+      document.getElementById('professionalWrap').style.display = '';
+
+      const consultation = await api(`/api/consultations/${VIEW_CONSULTATION_ID}`);
+      if (!consultation) {
+        alert('Consulta no encontrada');
+        history.back();
+        return;
+      }
+
+      STATE.patientId = consultation.patient_id;
+      document.getElementById('patientName').textContent = consultation.patient_name || 'Paciente';
+
+      // Datos del paciente
+      try {
+        const p = await api(`/api/patients/${STATE.patientId}`);
+        STATE.patient = p;
+        const nameInput = document.getElementById('p_name');
+        if (nameInput) nameInput.value = p.name || '';
+        const birthInput = document.getElementById('p_birth');
+        if (birthInput) birthInput.value = p.birth_date || '';
+        const phoneInput = document.getElementById('p_phone');
+        if (phoneInput) phoneInput.value = p.phone || '';
+        if (p.age != null) {
+          document.getElementById('patientAge').textContent = p.age + ' años';
+          document.getElementById('patientAgeWrap').style.display = '';
+        }
+        if (p.gender) {
+          document.getElementById('patientSex').textContent = p.gender;
+          document.getElementById('patientSexWrap').style.display = '';
+        }
+      } catch (_) {}
+
+      // Hidratar campos guardados (Medicina General persiste sólo: diagnosis, treatment,
+      // notes, observations, visit_reason, cost, payment_status, payment_notes).
+      const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+      setVal('dx_main', consultation.diagnosis);
+      setVal('notes_extra', consultation.observations);
+      setVal('mc_chief', consultation.visit_reason);
+      setVal('plan_indications', consultation.treatment || consultation.notes);
+
+      if (consultation.cost != null) {
+        setVal('consCost', `L. ${parseFloat(consultation.cost).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+      }
+      if (consultation.payment_status) {
+        setVal('consPayment', consultation.payment_status);
+      }
+      setVal('consPaymentNotes', consultation.payment_notes);
+
+      // Inventario readonly
+      if (window.ConsultationInventory) {
+        ConsultationInventory.mount({
+          containerId: 'inventoryUsageSection',
+          consultationId: VIEW_CONSULTATION_ID,
+          consultationType: 'general',
+          readonly: true
+        });
+      }
+
+      // Bloquear formulario
+      document.querySelectorAll('#generalForm input, #generalForm textarea').forEach(el => { el.readOnly = true; });
+      document.querySelectorAll('#generalForm select').forEach(el => { el.disabled = true; });
+      document.querySelectorAll('#generalForm input[type="radio"], #generalForm input[type="checkbox"]').forEach(el => { el.disabled = true; });
+
+      updateSummary();
+    } catch (e) {
+      console.error('Error al cargar la consulta:', e);
+      document.getElementById('patientName').textContent = 'Error al cargar';
+    }
   }
 
   // ── Boot ──
@@ -1996,7 +2100,8 @@
     updateSummary();
   })();
 
-  bootstrap();
+  if (IS_VIEW_MODE) loadConsultationView();
+  else bootstrap();
 </script>
 </body>
 </html>

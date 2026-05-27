@@ -1913,6 +1913,7 @@ function viewConsultationPathForSpecialty(specialty, id) {
   if (specialty === 'Nutrición') return `/view-consultation.html?id=${id}&kind=nutrition`;
   if (specialty === 'Periodoncia') return `/consultation-periodontology.html?view=${id}`;
   if (specialty === 'Ortodoncia') return `/consultation-orthodontics.html?view=${id}`;
+  if (specialty === 'Medicina General') return `/consultation-general.html?view=${id}`;
   return `/view-consultation.html?id=${id}`;
 }
 
