@@ -101,12 +101,14 @@ router.put('/me', authenticate, async (req, res) => {
     if (!ok) return res.status(401).json({ error: 'Contraseña incorrecta.' });
   }
 
+  // admin_role NO se incluye aquí a propósito: es un campo de autorización y
+  // permitir que el propio usuario lo cambie en su perfil sería auto-escalada.
+  // Solo un clinic_admin/super_admin debe poder asignarlo vía endpoint de admin.
   const next = {
     name: b.name !== undefined ? String(b.name).trim() : u.name,
     email: b.email !== undefined ? String(b.email).trim().toLowerCase() : u.email,
     specialty: b.specialty !== undefined ? (b.specialty || '') : u.specialty,
     phone: b.phone !== undefined ? (b.phone || '') : u.phone,
-    admin_role: b.admin_role !== undefined ? (b.admin_role || '') : u.admin_role,
     location: b.location !== undefined ? (b.location || '') : u.location,
     bio: b.bio !== undefined ? (b.bio || '') : u.bio,
     license: b.license !== undefined ? (b.license || '') : u.license,
@@ -120,12 +122,12 @@ router.put('/me', authenticate, async (req, res) => {
     await query(
       `UPDATE users SET
          name = $1, email = $2, specialty = $3, phone = $4,
-         admin_role = $5, location = $6, bio = $7, license = $8,
-         experience = $9, shift = $10, languages = $11, focus = $12
-       WHERE id = $13`,
+         location = $5, bio = $6, license = $7,
+         experience = $8, shift = $9, languages = $10, focus = $11
+       WHERE id = $12`,
       [
         next.name, next.email, next.specialty, next.phone,
-        next.admin_role, next.location, next.bio, next.license,
+        next.location, next.bio, next.license,
         next.experience, next.shift, next.languages, next.focus,
         req.user.id,
       ]

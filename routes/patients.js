@@ -105,6 +105,27 @@ router.put('/:id', authenticate, async (req, res) => {
   res.json({ success: true });
 });
 
+// GET de la info crítica (alergias/medicamentos/condiciones) para el banner de
+// alerta médica que muestran las pantallas de consulta. Devuelve forma plana.
+router.get('/:id/critical-info', authenticate, async (req, res) => {
+  const patientResult = await query('SELECT id FROM patients WHERE id = $1 AND clinic_id = $2',
+    [req.params.id, req.user.clinic_id]);
+  const patient = patientResult.rows[0];
+  if (!patient) return res.status(404).json({ error: 'Patient not found' });
+
+  if (req.user.role === 'doctor') {
+    const accessResult = await query(
+      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = $1 AND doctor_id = $2 AND clinic_id = $3',
+      [patient.id, req.user.id, req.user.clinic_id]
+    );
+    if (parseInt(accessResult.rows[0].count) === 0) return res.status(403).json({ error: 'Access denied' });
+  }
+
+  const r = await query('SELECT allergies, medications, conditions FROM critical_info WHERE patient_id = $1', [patient.id]);
+  const info = r.rows[0] || { allergies: '', medications: '', conditions: '' };
+  res.json(info);
+});
+
 router.put('/:id/critical-info', authenticate, async (req, res) => {
   const patientResult = await query('SELECT * FROM patients WHERE id = $1 AND clinic_id = $2',
     [req.params.id, req.user.clinic_id]);

@@ -221,27 +221,29 @@ code, kbd, samp { font-family: var(--font-mono); font-size: 0.95em; }
    construye sobre ellos así que el UI entero adapta solo.
    ========================================================= */
 :root[data-theme="dark"] {
-  /* Surfaces — navy oscuro tipo "consola clínica" */
-  --bg-app:        #0c1018;   /* canvas */
-  --bg-surface:    #131927;   /* tarjetas */
-  --bg-raised:     #1a2235;   /* tarjetas elevadas */
-  --bg-subtle:     #1e2640;   /* inputs/chips */
+  /* Surfaces — negro neutro SIN tinte azul, igual que el resto de la
+     plataforma (base #050507, superficie #131315). El cian solo se usa
+     como acento, nunca como fondo. */
+  --bg-app:        #050507;   /* canvas */
+  --bg-surface:    #141416;   /* tarjetas */
+  --bg-raised:     #1c1c1f;   /* tarjetas elevadas */
+  --bg-subtle:     #202023;   /* inputs/chips */
   --bg-inverse:    #ffffff;
-  --bg-brand-soft: rgba(0,128,176,0.16);
+  --bg-brand-soft: rgba(6,182,212,0.14);
 
   /* Foreground — texto claro pero no blanco puro */
-  --fg-default:  #e3e8f0;
+  --fg-default:  #e6e8ec;
   --fg-strong:   #ffffff;
-  --fg-muted:    #97a2b6;
-  --fg-subtle:   #6b7488;
+  --fg-muted:    #9aa0aa;
+  --fg-subtle:   #6c7079;
   --fg-link:     var(--sd-blue-400);
   --fg-brand:    #ffffff;
   --fg-on-brand: #ffffff;
 
-  /* Borders — sutiles, no negros duros */
-  --border-soft:    #1f2638;
-  --border-default: #2a3247;
-  --border-strong:  #3a4360;
+  /* Borders — grises neutros, sin tinte azul */
+  --border-soft:    #1c1c1f;
+  --border-default: #2a2a2e;
+  --border-strong:  #3a3a40;
   --border-focus:   var(--sd-blue-500);
 
   /* Brand backgrounds — keep brand visible sobre dark */
@@ -252,31 +254,29 @@ code, kbd, samp { font-family: var(--font-mono); font-size: 0.95em; }
   --sd-alert-100:    rgba(224,153,46,0.16);
   --sd-critical-100: rgba(218,69,58,0.16);
   --sd-info-100:     rgba(23,150,198,0.16);
-  --sd-blue-100:     rgba(0,128,176,0.16);
-  --sd-blue-50:      rgba(0,128,176,0.08);
+  --sd-blue-100:     rgba(6,182,212,0.16);
+  --sd-blue-50:      rgba(6,182,212,0.08);
 
-  /* Neutral scale — invertimos los grays bajos para que el dark
-     mode reuse fondos claros donde haga falta (p.ej. ink-50 que
-     se usa en topbar__search input background). */
-  --sd-ink-50:  #1e2640;
-  --sd-ink-100: #232c45;
-  --sd-ink-150: #2a3247;
-  --sd-ink-200: #2a3247;
-  --sd-ink-300: #3a4360;
-  --sd-ink-400: #6b7488;
-  --sd-ink-500: #97a2b6;
-  --sd-ink-900: #e3e8f0;
+  /* Neutral scale — grays neutros (sin navy). ink-50 se usa como fondo
+     de inputs/search, así que apunta a la superficie sutil. */
+  --sd-ink-50:  #202023;
+  --sd-ink-100: #26262a;
+  --sd-ink-150: #2a2a2e;
+  --sd-ink-200: #2e2e33;
+  --sd-ink-300: #3a3a40;
+  --sd-ink-400: #6c7079;
+  --sd-ink-500: #9aa0aa;
+  --sd-ink-900: #e6e8ec;
   --sd-ink-1000: #ffffff;
-  --sd-ink-0:   #131927;       /* "blanco" cambia a surface oscuro */
+  --sd-ink-0:   #141416;       /* "blanco" cambia a surface oscuro */
 
-  /* Sombras — sobre fondos oscuros las sombras claras no funcionan;
-     las hacemos más densas y con leve tint azul. */
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.40);
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.30);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.30);
-  --shadow-lg: 0 12px 28px rgba(0,0,0,0.50), 0 4px 10px rgba(0,0,0,0.35);
-  --shadow-xl: 0 24px 48px rgba(0,0,0,0.55), 0 8px 16px rgba(0,0,0,0.40);
-  --shadow-focus: 0 0 0 4px rgba(23,150,198,0.30);
+  /* Sombras — sobre fondos oscuros las hacemos densas y negras puras. */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.50);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.55), 0 1px 3px rgba(0,0,0,0.40);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.40);
+  --shadow-lg: 0 12px 28px rgba(0,0,0,0.60), 0 4px 10px rgba(0,0,0,0.45);
+  --shadow-xl: 0 24px 48px rgba(0,0,0,0.65), 0 8px 16px rgba(0,0,0,0.50);
+  --shadow-focus: 0 0 0 4px rgba(6,182,212,0.25);
 }
 
 /* Topbar background y otros lugares que estaban hardcoded a #fff
@@ -309,3 +309,49 @@ code, kbd, samp { font-family: var(--font-mono); font-size: 0.95em; }
 :root[data-theme="dark"] textarea::placeholder {
   color: var(--fg-subtle);
 }
+
+/* Más superficies que en app.css estaban hardcoded a #fff y no usan vars:
+   barra de pestañas, botones secundarios, tablas y el constructor de platos
+   → superficie oscura; las pills activas (segmentos / comidas) → gris
+   elevado para que se distingan del tray sin recurrir al azul. */
+:root[data-theme="dark"] .tabs,
+:root[data-theme="dark"] .table--bare,
+:root[data-theme="dark"] .plate-stage,
+:root[data-theme="dark"] .plate-side {
+  background: var(--bg-surface);
+}
+:root[data-theme="dark"] .btn-secondary,
+:root[data-theme="dark"] .btn-danger {
+  background: var(--bg-raised);
+}
+:root[data-theme="dark"] .seg button.on,
+:root[data-theme="dark"] .meal-tab.on {
+  background: var(--sd-ink-300);
+}
+
+/* Constructor de plato (tab Plan) — superficies que en app.css quedaron
+   hardcoded a #fff (tarjetas de alimentos, chips de macros, tabla semanal,
+   steppers) → superficie oscura para que no queden blancas sobre el dark. */
+:root[data-theme="dark"] .food-item,
+:root[data-theme="dark"] .macro,
+:root[data-theme="dark"] .plate-item__remove,
+:root[data-theme="dark"] .subs__chip {
+  background: var(--bg-raised);
+}
+:root[data-theme="dark"] .food-item { border-color: var(--border-soft); }
+:root[data-theme="dark"] .week-plan { background: var(--bg-surface); }
+:root[data-theme="dark"] .food-item__add { background: var(--bg-subtle); }
+:root[data-theme="dark"] .plate-row__qty button { background: transparent; }
+
+/* El canvas tenía un degradado que terminaba en blanco; en dark se va a la
+   superficie oscura. El plato en sí se deja claro a propósito (es la loza,
+   y los iconos de alimentos se leen mejor sobre blanco). */
+:root[data-theme="dark"] .plate-canvas {
+  background: radial-gradient(ellipse at center, var(--sd-blue-50) 0%, var(--bg-surface) 70%);
+}
+
+/* Textos que usaban --sd-navy-700 (un navy oscuro NO redefinido en dark) y
+   quedaban ilegibles: el título "Sugerencia de equilibrio", chips y pills. */
+:root[data-theme="dark"] .subs__title { color: var(--fg-strong); }
+:root[data-theme="dark"] .subs__chip,
+:root[data-theme="dark"] .week-plan__pill { color: var(--fg-default); }

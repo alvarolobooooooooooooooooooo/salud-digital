@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Historia Clínica Nutricional · Salud Digital</title>
-<link rel="icon" href="assets/logomark.svg"/>
+<link rel="icon" href="/nutricion-design/assets/logomark.svg"/>
 
 <!-- Bootstrap theme antes del primer paint. Lee ?theme=dark|light de la URL
      (igual que ortodoncia-design). Soporta postMessage para cambios en vivo
@@ -59,8 +59,12 @@
   html[data-embed="1"] .main { height: 100% !important; }
 </style>
 
-<link rel="stylesheet" href="colors_and_type.css"/>
-<link rel="stylesheet" href="app.css"/>
+<!-- Rutas ABSOLUTAS a propósito: el inyector de ?v= del server (cache-busting
+     por deploy) solo reescribe assets que empiezan con "/". Con rutas relativas
+     el CSS/JS se cacheaba 1 día sin versión y los cambios no se veían sin hard
+     refresh. -->
+<link rel="stylesheet" href="/nutricion-design/colors_and_type.css"/>
+<link rel="stylesheet" href="/nutricion-design/app.css"/>
 </head>
 <body>
 <div id="root"></div>
@@ -71,19 +75,24 @@
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-<!-- Orden: data → icons → components → tabs → app entry. El export del
-     diseño cargaba food-icons.jsx 3 veces (bug en el handoff bundle), lo
-     dejamos una sola vez. -->
-<script src="foods-data.js"></script>
-<script type="text/babel" src="food-icons.jsx"></script>
-<script type="text/babel" src="components.jsx"></script>
-<script type="text/babel" src="tab-resumen.jsx"></script>
-<script type="text/babel" src="tab-historia.jsx"></script>
-<script type="text/babel" src="tab-antropometria.jsx"></script>
-<script type="text/babel" src="tab-estilo-vida.jsx"></script>
-<script type="text/babel" src="tab-dieta.jsx"></script>
-<script type="text/babel" src="tab-plan.jsx"></script>
-<script type="text/babel" src="tab-seguimiento.jsx"></script>
-<script type="text/babel" src="app.jsx"></script>
+<!-- Orden: data → icons → components → tabs → app entry. La biblioteca de
+     alimentos vive en 4 archivos: food-icons.jsx crea window.FOOD_ICONS +
+     el componente FoodIcon, y food-icons-2/3/4.jsx hacen Object.assign con
+     los íconos únicos restantes (cada uno reintenta hasta que el registry
+     base exista, así el orden de carga no importa). ~269 alimentos. -->
+<script src="/nutricion-design/foods-data.js"></script>
+<script type="text/babel" src="/nutricion-design/food-icons.jsx"></script>
+<script type="text/babel" src="/nutricion-design/food-icons-2.jsx"></script>
+<script type="text/babel" src="/nutricion-design/food-icons-3.jsx"></script>
+<script type="text/babel" src="/nutricion-design/food-icons-4.jsx"></script>
+<script type="text/babel" src="/nutricion-design/components.jsx"></script>
+<script type="text/babel" src="/nutricion-design/tab-resumen.jsx"></script>
+<script type="text/babel" src="/nutricion-design/tab-historia.jsx"></script>
+<script type="text/babel" src="/nutricion-design/tab-antropometria.jsx"></script>
+<script type="text/babel" src="/nutricion-design/tab-estilo-vida.jsx"></script>
+<script type="text/babel" src="/nutricion-design/tab-dieta.jsx"></script>
+<script type="text/babel" src="/nutricion-design/tab-plan.jsx"></script>
+<script type="text/babel" src="/nutricion-design/tab-seguimiento.jsx"></script>
+<script type="text/babel" src="/nutricion-design/app.jsx"></script>
 </body>
 </html>

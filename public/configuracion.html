@@ -582,74 +582,6 @@
     [data-theme="dark"] .page-loader-spinner { border-color: rgba(6, 182, 212, 0.18); border-top-color: #06b6d4; }
     [data-theme="dark"] .page-loader-text { color: #94a3b8; }
 
-    /* ── Integraciones ── */
-    .integ-grid {
-      display: grid; gap: 1rem; margin-top: 1.25rem;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    }
-    .integ-card {
-      background: white; border: 1px solid #e2e8f0; border-radius: 16px;
-      padding: 1.1rem 1.15rem; display: flex; flex-direction: column; gap: 0.75rem;
-      transition: all .2s;
-    }
-    .integ-card:hover { border-color: rgba(8,145,178,.35); box-shadow: 0 10px 30px rgba(8,145,178,.10); }
-    .integ-card-head { display: flex; align-items: center; gap: 0.7rem; }
-    .integ-logo {
-      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      color: white; font-weight: 800; font-size: 16px;
-    }
-    .integ-name {
-      font-weight: 600; font-size: 14px; color: #0f172a; line-height: 1.2;
-    }
-    .integ-status {
-      font-size: 11px; color: #64748b; margin-top: 2px;
-      display: inline-flex; align-items: center; gap: 0.3rem;
-    }
-    .integ-status .dot {
-      width: 7px; height: 7px; border-radius: 50%; display: inline-block; background: #cbd5e1;
-    }
-    .integ-status.connected { color: #047857; }
-    .integ-status.connected .dot { background: #10b981; }
-    .integ-status.unavailable { color: #94a3b8; }
-    .integ-status.error { color: #b91c1c; }
-    .integ-status.error .dot { background: #ef4444; }
-    .integ-detail {
-      font-size: 12px; color: #475569; line-height: 1.5;
-      background: #f8fafc; padding: 0.55rem 0.75rem; border-radius: 8px;
-    }
-    .integ-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: auto; }
-    .integ-actions .btn-sm {
-      flex: 1; min-width: 100px; padding: 0.5rem 0.75rem; border-radius: 9px;
-      font-size: 12px; font-weight: 600; border: 1px solid #e2e8f0;
-      background: white; color: #0f172a; cursor: pointer;
-    }
-    .integ-actions .btn-sm:hover { background: #f8fafc; }
-    .integ-actions .btn-primary {
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      color: white; border-color: transparent;
-    }
-    .integ-actions .btn-danger { color: #b91c1c; border-color: #fecaca; }
-    .integ-actions .btn-disabled { color: #94a3b8; cursor: not-allowed; }
-    .integ-banner {
-      padding: 0.85rem 1rem; border-radius: 12px; margin-top: 1.25rem;
-      background: #fffbeb; color: #92400e; border: 1px solid #fde68a;
-      font-size: 13px; line-height: 1.5;
-    }
-    .integ-empty { padding: 1rem; color: #94a3b8; font-size: 13px; text-align: center; grid-column: 1/-1; }
-    .integ-help {
-      margin-top: 1.25rem; padding: 0.95rem 1.1rem; border-radius: 12px;
-      background: #f0f9ff; border: 1px solid #bae6fd; font-size: 13px;
-      color: #0369a1; line-height: 1.55;
-    }
-    .integ-help strong { display: block; margin-bottom: 0.3rem; }
-
-    [data-theme="dark"] .integ-card { background: #0f172a; border-color: #1f2937; }
-    [data-theme="dark"] .integ-name { color: #e2e8f0; }
-    [data-theme="dark"] .integ-detail { background: #1f2937; color: #94a3b8; }
-    [data-theme="dark"] .integ-actions .btn-sm { background: #1f2937; color: #e2e8f0; border-color: #374151; }
-    [data-theme="dark"] .integ-banner { background: #1f1407; color: #fbbf24; border-color: #78350f; }
-    [data-theme="dark"] .integ-help { background: #0c1d2c; color: #7dd3fc; border-color: #1e3a5f; }
   </style>
 </head>
 <body>
@@ -701,10 +633,6 @@
         <button class="tab-btn" data-tab="security" data-roles="doctor clinic_admin receptionist" type="button">
           <span class="tab-icon" data-icon="lock" data-size="14"></span>
           <span class="tab-label">Seguridad</span>
-        </button>
-        <button class="tab-btn" data-tab="integrations" data-roles="doctor clinic_admin" type="button">
-          <span class="tab-icon" data-icon="globe" data-size="14"></span>
-          <span class="tab-label">Integraciones</span>
         </button>
         <button class="tab-btn" data-tab="preferences" data-roles="doctor clinic_admin receptionist" type="button">
           <span class="tab-icon" data-icon="settings" data-size="14"></span>
@@ -1000,39 +928,48 @@
             </div>
           </div>
 
-          <!-- Branding extra para clinic_admin -->
+          <!-- Preferencias públicas para clinic_admin -->
           <div class="glass-card" data-roles="clinic_admin">
             <div class="card-head">
-              <div class="icon-box"><span data-icon="image" data-size="20"></span></div>
+              <div class="icon-box"><span data-icon="settings" data-size="20"></span></div>
               <div>
-                <h2>Marca y branding</h2>
-                <p>Personaliza el color y la identidad visual que ven los pacientes.</p>
+                <h2>Preferencias públicas</h2>
+                <p>Controla la visibilidad pública de tu clínica.</p>
               </div>
             </div>
             <div class="form-grid">
-              <div class="field">
-                <label>Color principal</label>
-                <input type="color" id="fldBrandColor" value="#0891b2" style="height: 44px; padding: 4px;">
-                <span class="hint">Se aplica en emails, perfiles públicos y la pasarela de reserva.</span>
-              </div>
-              <div class="field">
-                <label>Moneda predeterminada</label>
-                <select id="fldClinicCurrency">
-                  <option value="HNL" selected>Lempiras (L.)</option>
-                  <option value="USD">Dólares (US$)</option>
-                </select>
-              </div>
               <div class="field span-2">
-                <label>Sitio web</label>
-                <input type="url" id="fldClinicWebsite" placeholder="https://clinicanorte.com">
+                <div class="switch-row">
+                  <div class="switch-text">
+                    <div class="switch-title">Aparecer en el mapa público de clínicas</div>
+                    <div class="switch-desc">Tu clínica se muestra como un pin en <a href="/mapa" target="_blank" rel="noopener">/mapa</a> con nombre, dirección y teléfono. Desmarca para ocultar.</div>
+                  </div>
+                  <label class="toggle">
+                    <input type="checkbox" id="fldShowOnPublicMap" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
               </div>
-              <div class="field span-2">
-                <label class="toggle" style="display:flex;align-items:center;gap:.6rem;cursor:pointer">
-                  <input type="checkbox" id="fldShowOnPublicMap" checked>
-                  <span><strong>Aparecer en el mapa público de clínicas</strong>
-                    <span class="hint" style="display:block;margin-top:2px">Tu clínica se muestra como un pin en <a href="/mapa" target="_blank" rel="noopener">/mapa</a> con nombre, dirección y teléfono. Desmarca para ocultar.</span>
-                  </span>
-                </label>
+            </div>
+          </div>
+
+          <!-- Salas / habitaciones — clinic_admin only -->
+          <div class="glass-card" data-roles="clinic_admin">
+            <div class="card-head">
+              <div class="icon-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18V8M3 13h18v5M21 18v-5a3 3 0 0 0-3-3h-7v3"/><circle cx="7" cy="11" r="1.8"/></svg>
+              </div>
+              <div>
+                <h2>Salas de atención</h2>
+                <p>Cada sala se identifica por su nombre y estado. Gestiónalas desde Personal para que recepción pueda asignar pacientes y controlar la capacidad.</p>
+              </div>
+            </div>
+            <div class="form-grid cols-1">
+              <div class="field">
+                <a class="btn btn-secondary" href="/doctors.html?tab=rooms" style="align-self:flex-start; text-decoration:none;">
+                  <span data-icon="arrowRight" data-size="15"></span>Administrar salas en Personal
+                </a>
+                <span class="hint">Crea, renombra y elimina salas en Personal › Habitaciones. Cada sala aparece en el panel de recepción.</span>
               </div>
             </div>
           </div>
@@ -1215,32 +1152,6 @@
         <!-- ════════════════════════════════════════════════════ -->
         <!-- 7. PREFERENCIAS DE PLATAFORMA -->
         <!-- ════════════════════════════════════════════════════ -->
-        <!-- ════════════════════════════════════════════════════ -->
-        <!-- INTEGRACIONES (solo clinic_admin) -->
-        <!-- ════════════════════════════════════════════════════ -->
-        <section class="settings-panel" data-panel="integrations" data-roles="doctor clinic_admin">
-          <div class="glass-card">
-            <div class="card-head">
-              <div class="icon-box"><span data-icon="globe" data-size="20"></span></div>
-              <div>
-                <h2>Integraciones de marketing</h2>
-                <p>Conectá las cuentas de tu clínica para que Pulso Clínico mida resultados reales: gasto publicitario, leads y conversaciones — todo atribuido a pacientes que asistieron.</p>
-              </div>
-            </div>
-
-            <div class="integ-banner" id="integBanner" hidden></div>
-
-            <div class="integ-grid" id="integGrid">
-              <div class="integ-empty">Cargando integraciones…</div>
-            </div>
-
-            <div class="integ-help">
-              <strong>¿Cómo funciona?</strong>
-              <span>Cada clínica conecta su propia cuenta de Meta Business, Google Ads, etc. mediante OAuth. Nosotros nunca pedimos tu contraseña: vas al sitio del proveedor, aprobás los permisos, y regresás conectado. Podés desconectar cuando quieras desde acá.</span>
-            </div>
-          </div>
-        </section>
-
         <section class="settings-panel" data-panel="preferences" data-roles="doctor clinic_admin receptionist">
           <div class="glass-card">
             <div class="card-head">
@@ -1772,9 +1683,6 @@
     bind('fldClinicPhone', 'clinic.phone');
     bind('fldClinicEmail', 'clinic.email');
     bind('fldClinicInfo', 'clinic.info');
-    bind('fldBrandColor', 'clinic.brandColor');
-    bind('fldClinicCurrency', 'clinic.currency');
-    bind('fldClinicWebsite', 'clinic.website');
     bind('fldShowOnPublicMap', 'clinic.showOnPublicMap');
 
     bind('fldStartTime', 'agenda.startTime');
@@ -2420,9 +2328,6 @@
       setVal('fldClinicPhone', state.clinic.phone);
       setVal('fldClinicEmail', state.clinic.email);
       setVal('fldClinicInfo', state.clinic.info);
-      setVal('fldBrandColor', state.clinic.brandColor);
-      setVal('fldClinicCurrency', state.clinic.currency);
-      setVal('fldClinicWebsite', state.clinic.website);
       setChk('fldShowOnPublicMap', state.clinic.showOnPublicMap !== false);
       renderClinicLogo();
 
@@ -2472,162 +2377,6 @@
       if (pageLoader) pageLoader.classList.add('hidden');
     });
 
-    // ── Integraciones (lazy: solo se carga al abrir la tab) ──
-    const integState = { loaded: false };
-
-    async function loadIntegrations() {
-      const grid = document.getElementById('integGrid');
-      const banner = document.getElementById('integBanner');
-      if (!grid) return;
-      grid.innerHTML = '<div class="integ-empty">Cargando integraciones…</div>';
-      try {
-        const data = await api('/api/integrations');
-        renderIntegrations(grid, banner, data);
-        integState.loaded = true;
-      } catch (e) {
-        grid.innerHTML = '<div class="integ-empty">No se pudieron cargar las integraciones.</div>';
-      }
-    }
-
-    function renderIntegrations(grid, banner, data) {
-      const providers = data.providers || {};
-      const connected = data.integrations || [];
-      const connectedByProvider = {};
-      for (const c of connected) {
-        if (!connectedByProvider[c.provider]) connectedByProvider[c.provider] = [];
-        connectedByProvider[c.provider].push(c);
-      }
-
-      // Banner: aviso si ninguna está disponible
-      const anyAvailable = Object.values(providers).some(p => p.available);
-      if (!anyAvailable) {
-        banner.hidden = false;
-        banner.innerHTML = '<strong>Integraciones todavía no configuradas.</strong> Tu administrador del SaaS aún no ha registrado las credenciales de Meta/Google. Los datos de campañas en Pulso Clínico se mostrarán como estimaciones hasta que estén disponibles.';
-      } else {
-        banner.hidden = true;
-      }
-
-      const order = ['meta', 'whatsapp', 'google', 'tiktok'];
-      const colorByProvider = {
-        meta: '#0866ff', whatsapp: '#25d366',
-        google: '#4285f4', tiktok: '#000000',
-      };
-      const letterByProvider = { meta: 'M', whatsapp: 'W', google: 'G', tiktok: 'T' };
-
-      grid.innerHTML = order.map(key => {
-        const p = providers[key];
-        if (!p) return '';
-        const conns = connectedByProvider[key] || [];
-        const conn = conns[0]; // mostramos la primera; las demás se podrán ver en una pantalla detalle más adelante
-        const isConnected = !!conn;
-        const isAvailable = p.available;
-
-        let statusClass = 'integ-status';
-        let statusText = 'No conectado';
-        if (isConnected) { statusClass += ' connected'; statusText = 'Conectado'; }
-        else if (!isAvailable) { statusClass += ' unavailable'; statusText = 'No disponible'; }
-        if (conn && conn.status && conn.status !== 'active') { statusClass = 'integ-status error'; statusText = conn.status; }
-
-        let detail = '';
-        if (isConnected) {
-          detail = `<div class="integ-detail">
-            <strong>${esc(conn.external_account_name || conn.external_account_id || '—')}</strong>
-            ${conn.connected_at ? '<br>Conectado: ' + new Date(conn.connected_at).toLocaleDateString('es-HN') : ''}
-          </div>`;
-        } else if (!isAvailable) {
-          const msg = (p.missing_env && p.missing_env.length)
-            ? 'Falta configurar: <code>' + esc(p.missing_env.join(', ')) + '</code>'
-            : 'Esta integración aún no está disponible en tu cuenta.';
-          detail = `<div class="integ-detail">${msg}</div>`;
-        }
-
-        let actions = '';
-        if (isConnected) {
-          actions = `
-            <button class="btn-sm" data-action="test" data-id="${conn.id}">Probar</button>
-            <button class="btn-sm btn-danger" data-action="disconnect" data-id="${conn.id}">Desconectar</button>
-          `;
-        } else if (isAvailable) {
-          actions = `<button class="btn-sm btn-primary" data-action="connect" data-provider="${key}">Conectar con ${esc(p.label)}</button>`;
-        } else {
-          actions = `<button class="btn-sm btn-disabled" disabled>No disponible</button>`;
-        }
-
-        return `
-          <div class="integ-card">
-            <div class="integ-card-head">
-              <div class="integ-logo" style="background:${colorByProvider[key]}">${letterByProvider[key]}</div>
-              <div>
-                <div class="integ-name">${esc(p.label)}</div>
-                <div class="${statusClass}"><span class="dot"></span>${esc(statusText)}</div>
-              </div>
-            </div>
-            ${detail}
-            <div class="integ-actions">${actions}</div>
-          </div>`;
-      }).join('');
-
-      // wire actions
-      grid.querySelectorAll('[data-action]').forEach(b => {
-        b.addEventListener('click', async (e) => {
-          const action = b.dataset.action;
-          if (action === 'connect')      return connectProvider(b.dataset.provider);
-          if (action === 'disconnect')   return disconnectIntegration(b.dataset.id);
-          if (action === 'test')         return testIntegration(b.dataset.id);
-        });
-      });
-    }
-
-    async function connectProvider(provider) {
-      try {
-        const { url, error, message } = await api('/api/integrations/' + provider + '/auth-url');
-        if (error || !url) { toast(message || error || 'No se pudo iniciar la conexión', 'error'); return; }
-        const w = window.open(url, 'sd_oauth', 'width=560,height=720,popup=yes');
-        if (!w) { window.location.href = url; return; }
-      } catch (err) {
-        toast('No se pudo iniciar la conexión', 'error');
-      }
-    }
-
-    async function disconnectIntegration(id) {
-      if (!confirm('¿Desconectar esta integración? Las campañas dejarán de sincronizar.')) return;
-      try {
-        await api('/api/integrations/' + id, { method: 'DELETE' });
-        toast('Integración desconectada', 'success');
-        loadIntegrations();
-      } catch (e) {
-        toast('No se pudo desconectar', 'error');
-      }
-    }
-
-    async function testIntegration(id) {
-      try {
-        toast('Probando conexión…');
-        const r = await api('/api/integrations/' + id + '/test', { method: 'POST' });
-        if (r && r.ok) toast('Conexión OK', 'success');
-        else toast('La prueba devolvió un error', 'error');
-      } catch (e) {
-        toast('Falló la verificación', 'error');
-      }
-    }
-
-    // Cargar al abrir la tab por primera vez
-    document.getElementById('tabsNav').addEventListener('click', (e) => {
-      const btn = e.target.closest('.tab-btn');
-      if (btn && btn.dataset.tab === 'integrations' && !integState.loaded) loadIntegrations();
-    });
-    // Si la URL viene con #integrations, cargar de una
-    if ((location.hash || '').replace('#', '') === 'integrations') {
-      setTimeout(loadIntegrations, 100);
-    }
-    // Si el popup de OAuth nos avisa por postMessage, refrescar
-    window.addEventListener('message', (e) => {
-      if (e.origin !== window.location.origin) return;
-      if (e.data && e.data.type === 'sd_integration_done') {
-        toast(e.data.success ? 'Integración conectada' : 'No se completó la conexión', e.data.success ? 'success' : 'error');
-        loadIntegrations();
-      }
-    });
   </script>
 </body>
 </html>

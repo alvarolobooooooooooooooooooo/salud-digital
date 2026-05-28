@@ -31,6 +31,63 @@ router.post('/', authenticate, async (req, res) => {
   res.json(result.rows[0]);
 });
 
+// PUT /api/rooms/count — set the total number of rooms for the clinic (clinic_admin only).
+// Reconciles clinic_rooms to match the target: adds auto-named rooms when growing,
+// removes free rooms when shrinking. Never deletes a room that is in use.
+// Must be declared before '/:id' so it isn't captured as an id param.
+router.put('/count', authenticate, async (req, res) => {
+  if (req.user.role !== 'clinic_admin') return res.status(403).json({ error: 'No autorizado' });
+
+  const target = parseInt(req.body.count, 10);
+  if (!Number.isInteger(target) || target < 0 || target > 100) {
+    return res.status(400).json({ error: 'Cantidad de salas inválida (0–100).' });
+  }
+
+  const clinicId = req.user.clinic_id;
+  const existing = await query(
+    'SELECT id, name, status, current_appointment_id FROM clinic_rooms WHERE clinic_id = $1 ORDER BY id',
+    [clinicId]
+  );
+  const current = existing.rows.length;
+
+  if (target > current) {
+    const toAdd = target - current;
+    const usedNums = new Set();
+    existing.rows.forEach(r => {
+      const m = /^Sala\s+(\d+)$/i.exec((r.name || '').trim());
+      if (m) usedNums.add(parseInt(m[1], 10));
+    });
+    const values = [];
+    const params = [clinicId];
+    let n = 1;
+    for (let i = 0; i < toAdd; i++) {
+      while (usedNums.has(n)) n++;
+      usedNums.add(n);
+      params.push(`Sala ${n}`);
+      values.push(`($1, $${params.length}, 'free')`);
+    }
+    await query(`INSERT INTO clinic_rooms (clinic_id, name, status) VALUES ${values.join(', ')}`, params);
+  } else if (target < current) {
+    const toRemove = current - target;
+    const inUse = r => r.status === 'occupied' || r.current_appointment_id != null;
+    const removable = existing.rows.filter(r => !inUse(r));
+    if (removable.length < toRemove) {
+      return res.status(400).json({
+        error: 'No se pueden eliminar salas en uso. Libera las salas ocupadas antes de reducir la cantidad.',
+      });
+    }
+    // Remove the most recently created free rooms first (highest id).
+    const idsToDelete = removable.slice(-toRemove).map(r => r.id);
+    await query('DELETE FROM clinic_rooms WHERE clinic_id = $1 AND id = ANY($2::int[])', [clinicId, idsToDelete]);
+  }
+
+  const updated = await query(
+    'SELECT id, name, status FROM clinic_rooms WHERE clinic_id = $1 ORDER BY id',
+    [clinicId]
+  );
+  res.json({ count: updated.rows.length, rooms: updated.rows });
+});
+
 router.put('/:id', authenticate, async (req, res) => {
   if (req.user.role !== 'clinic_admin') return res.status(403).json({ error: 'No autorizado' });
   const id = parseInt(req.params.id, 10);

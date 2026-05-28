@@ -1091,7 +1091,7 @@ function renderDoctors() {
     const specialty = d.specialty || 'Medicina General';
     const accent = accentFor(specialty);
     const sel = state.doctor?.id === d.id;
-    const initials = initialsOf(d.name || d.email);
+    const initials = initialsOf(d.name || 'Especialista');
     return `
       <button type="button" class="doctor-card ${sel ? 'selected' : ''}" data-id="${d.id}">
         <span class="doctor-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
@@ -1100,7 +1100,7 @@ function renderDoctors() {
             ${esc(initials)}
           </div>
           <div style="min-width:0;">
-            <div class="doctor-name">${esc(d.name || d.email)}</div>
+            <div class="doctor-name">${esc(d.name || 'Especialista')}</div>
             <div class="doctor-specialty">${esc(specialty)}</div>
           </div>
         </div>
@@ -1296,7 +1296,7 @@ function setSumRow(rowId, value, sub) {
 
 function renderSummary() {
   setSumRow('sumDoctor',
-    state.doctor ? (state.doctor.name || state.doctor.email) : 'Por elegir',
+    state.doctor ? (state.doctor.name || 'Especialista') : 'Por elegir',
     state.doctor ? (state.doctor.specialty || 'Medicina General') : null);
   setSumRow('sumDate',
     state.date ? formatDateLong(state.date) : 'Por elegir');
@@ -1406,7 +1406,7 @@ document.getElementById('confirmBtn').addEventListener('click', async () => {
 function openConfirm(payload) {
   const folio = 'SD-' + Math.floor(Math.random() * 900000 + 100000);
   const miniStats = [
-    { label: 'Especialista', value: state.doctor.name || state.doctor.email },
+    { label: 'Especialista', value: state.doctor.name || 'Especialista' },
     { label: 'Fecha', value: formatDateLong(state.date) },
     { label: 'Hora', value: state.time },
     { label: 'Folio', value: folio },

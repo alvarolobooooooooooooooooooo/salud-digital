@@ -179,12 +179,69 @@
       font-size: 0.95rem;
     }
 
+    /* Agendar button */
+    .btn-schedule {
+      background: linear-gradient(135deg, #0891b2, #06b6d4);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.3rem;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(8, 145, 178, 0.25);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-schedule:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(8, 145, 178, 0.35); }
+    .header-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+
+    /* Modal (shared class names so theme-dark.css styles them automatically) */
+    .overlay { position: fixed; inset: 0; background: rgba(15,23,42,.7); backdrop-filter: blur(8px); z-index: 200; display: flex; align-items: center; justify-content: center; }
+    .modal { background: white; border-radius: 28px; width: calc(100% - 2rem); max-width: 620px; max-height: 90vh; overflow: hidden; box-shadow: 0 25px 70px rgba(0,0,0,0.2), 0 0 1px rgba(0,0,0,0.1); scrollbar-width: none; display: flex; flex-direction: column; }
+    .modal::-webkit-scrollbar { display: none; }
+    .modal-hdr { display: flex; justify-content: space-between; align-items: center; padding: 1.75rem 2rem; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); border-radius: 28px 28px 0 0; }
+    .modal-hdr h3 { font-size: 1.4rem; font-weight: 800; color: white; letter-spacing: -0.02em; margin: 0; }
+    .modal-close { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); font-size: 1.2rem; color: white; cursor: pointer; padding: .3rem .5rem; border-radius: 10px; transition: all .3s; line-height: 1; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; }
+    .modal-close:hover { background: rgba(255,255,255,0.25); transform: rotate(90deg); }
+    .modal-body { padding: 1.6rem 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; overflow-y: auto; flex: 1; min-height: 0; }
+    .field { display: flex; flex-direction: column; gap: .35rem; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: .72rem; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: .04em; }
+    .field input, .field select, .field textarea { padding: .65rem .85rem; border: 2px solid #e2e8f0; border-radius: 9px; font-size: .88rem; font-family: inherit; background: white; color: #1e293b; transition: all .2s; width: 100%; }
+    .field input::placeholder, .field textarea::placeholder { color: #cbd5e1; font-weight: 500; }
+    .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: #0891b2; box-shadow: 0 0 0 3px rgba(8,145,178,.1); background-color: #f0f9ff; }
+    .field input:hover, .field select:hover { border-color: #0891b2; }
+    .btn-add-patient-label {
+      background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; border: none;
+      width: 40px; height: 40px; border-radius: 10px; font-size: 1.4rem; font-weight: 700;
+      cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.2); transition: all 0.2s; line-height: 1;
+    }
+    .btn-add-patient-label:hover { transform: scale(1.08); box-shadow: 0 6px 18px rgba(8, 145, 178, 0.3); }
+    .modal-ftr { display: flex; justify-content: flex-end; gap: .9rem; padding: 1.5rem 2rem; border-top: 1px solid #f1f5f9; background: linear-gradient(to bottom, #ffffff, #f8fafc); flex-shrink: 0; }
+    .btn-cancel { padding: .55rem 1.2rem; border: 1.5px solid #e2e8f0; background: white; color: #64748b; border-radius: 9px; cursor: pointer; font-family: inherit; font-size: .875rem; font-weight: 600; transition: all .2s; }
+    .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .btn-save { padding: .55rem 1.5rem; background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%); color: white; border: none; border-radius: 9px; cursor: pointer; font-family: inherit; font-size: .875rem; font-weight: 700; transition: all .2s; box-shadow: 0 4px 15px rgba(8,145,178,.25); }
+    .btn-save:hover { box-shadow: 0 6px 20px rgba(8,145,178,.35); transform: translateY(-1px); }
+    .btn-save:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .form-msg { padding: 0 2rem; font-size: .85rem; font-weight: 600; }
+    .form-msg:not(:empty) { padding: .75rem 2rem; }
+    .form-msg.err { color: #dc2626; }
+    .form-msg.ok { color: #16a34a; }
+
     @media (max-width: 720px) {
       main { padding: 1rem; padding-top: 80px; }
       .appt-card { grid-template-columns: 70px 1fr; gap: 0.75rem; }
       .appt-status { grid-column: 1 / -1; justify-content: flex-start; }
       .appt-time { font-size: 1.2rem; }
       .header h1 { font-size: 1.5rem; }
+      .modal-body { grid-template-columns: 1fr; padding: 1.25rem 1.5rem; }
+      .modal-hdr { padding: 1.5rem; }
+      .modal-ftr { padding: 1.25rem 1.5rem; }
+      .form-msg:not(:empty) { padding: .75rem 1.5rem; }
     }
   </style>
 </head>
@@ -201,7 +258,13 @@
       <h1>Citas de Hoy</h1>
       <p>Gestiona check-in de pacientes y revisa el día</p>
     </div>
-    <div class="date-pill" id="datePill">—</div>
+    <div class="header-actions">
+      <button class="btn-schedule" id="btnSchedule" onclick="openApptModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Agendar Cita
+      </button>
+      <div class="date-pill" id="datePill">—</div>
+    </div>
   </div>
 
   <div class="filters">
@@ -219,11 +282,124 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Modal: Agendar Cita -->
+<div class="overlay" id="apptOverlay" style="display:none" onclick="if(event.target===this)closeApptModal()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3>Agendar Cita</h3>
+      <button class="modal-close" onclick="closeApptModal()">✕</button>
+    </div>
+    <form id="apptForm" onsubmit="submitAppt(event)" style="display:flex; flex-direction:column; flex:1; min-height:0;">
+      <div class="modal-body">
+        <div class="field full">
+          <label>Paciente *</label>
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <select id="fPatient" required style="flex:1;"><option value="">Seleccionar...</option></select>
+            <button type="button" class="btn-add-patient-label" onclick="openPatientModal()" title="Crear nuevo paciente">+</button>
+          </div>
+        </div>
+        <div class="field full">
+          <label>Doctor *</label>
+          <select id="fDoctor" required><option value="">Seleccionar...</option></select>
+        </div>
+        <div class="field full">
+          <label>Especialidad</label>
+          <input type="text" id="fSpecialty" placeholder="Selecciona un doctor" readonly style="background:#f8fafc;color:#64748b;">
+        </div>
+        <div class="field full">
+          <label>Tipo de Cita *</label>
+          <select id="fAppointmentType" required>
+            <option value="nuevo_paciente">Nuevo paciente</option>
+            <option value="seguimiento" selected>Seguimiento</option>
+            <option value="control">Control</option>
+            <option value="urgencia">Urgencia</option>
+            <option value="procedimiento">Procedimiento</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Fecha y hora *</label>
+          <input type="datetime-local" id="fDatetime" required>
+        </div>
+        <div class="field full">
+          <label>Motivo (opcional)</label>
+          <textarea id="fReason" rows="2" maxlength="500" placeholder="Ej. Dolor en pie derecho"></textarea>
+        </div>
+      </div>
+      <div class="form-msg" id="apptMsg"></div>
+      <div class="modal-ftr">
+        <button type="button" class="btn-cancel" onclick="closeApptModal()">Cancelar</button>
+        <button type="submit" class="btn-save" id="apptSubmitBtn">Crear Cita</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Nuevo Paciente -->
+<div class="overlay" id="patientOverlay" style="display:none" onclick="if(event.target===this)closePatientModal()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3>Nuevo Paciente</h3>
+      <button class="modal-close" onclick="closePatientModal()">✕</button>
+    </div>
+    <form id="createForm" onsubmit="submitPatient(event)" style="display:flex; flex-direction:column; flex:1; min-height:0;">
+      <div class="modal-body">
+        <div class="field full">
+          <label>Nombre completo *</label>
+          <input type="text" id="fName" required placeholder="Ej. María González">
+        </div>
+        <div class="field">
+          <label>Número de identidad *</label>
+          <input type="text" id="fId" required placeholder="0801-2004-20128" oninput="formatIdentityNumber(this)">
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="tel" id="fPhone" placeholder="31515887">
+        </div>
+        <div class="field">
+          <label>Sexo</label>
+          <select id="fGender">
+            <option value="">Seleccionar...</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Fecha de nacimiento</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem;">
+            <select id="fBirthDay"><option value="">Día</option></select>
+            <select id="fBirthMonth">
+              <option value="">Mes</option>
+              <option value="01">Enero</option><option value="02">Febrero</option>
+              <option value="03">Marzo</option><option value="04">Abril</option>
+              <option value="05">Mayo</option><option value="06">Junio</option>
+              <option value="07">Julio</option><option value="08">Agosto</option>
+              <option value="09">Septiembre</option><option value="10">Octubre</option>
+              <option value="11">Noviembre</option><option value="12">Diciembre</option>
+            </select>
+            <select id="fBirthYear"><option value="">Año</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="form-msg" id="patientMsg"></div>
+      <div class="modal-ftr">
+        <button type="button" class="btn-cancel" onclick="closePatientModal()">Cancelar</button>
+        <button type="submit" class="btn-save" id="patientSubmitBtn">Guardar Paciente</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script src="/icons.js"></script>
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
+<script src="/common-date-picker.js"></script>
 <script>
   requireAuth(['receptionist', 'clinic_admin']);
+
+  // Clinic admin no puede crear citas (regla de negocio compartida con citas.html):
+  // ocultamos el botón para evitar un 403 al enviar.
+  const canSchedule = getRole() !== 'clinic_admin';
 
   let appointments = [];
   let activeFilter = 'all';
@@ -297,7 +473,192 @@
   document.getElementById('datePill').textContent =
     new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
 
+  /* ─────────── Agendar Cita ─────────── */
+  let allDoctors = [];
+  let allPatients = [];
+  let allClinicAppts = [];
+  let schedulerReady = false;
+
+  async function initScheduler() {
+    try {
+      const [doctors, patients, clinicAppts] = await Promise.all([
+        api('/api/users/doctors'),
+        api('/api/patients'),
+        api('/api/appointments/calendar').catch(() => [])
+      ]);
+      allDoctors = doctors || [];
+      allPatients = patients || [];
+      allClinicAppts = clinicAppts || [];
+
+      const pd = document.getElementById('fPatient');
+      allPatients.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p.id; o.textContent = p.name;
+        pd.appendChild(o);
+      });
+
+      const dd = document.getElementById('fDoctor');
+      allDoctors.forEach(d => {
+        const o = document.createElement('option');
+        o.value = d.id;
+        o.textContent = `Dr. ${d.name || d.email.split('@')[0]}`;
+        dd.appendChild(o);
+      });
+      dd.addEventListener('change', (e) => {
+        const doctor = allDoctors.find(d => d.id === parseInt(e.target.value, 10));
+        document.getElementById('fSpecialty').value = doctor ? (doctor.specialty || 'Medicina General') : '';
+        const dt = document.getElementById('fDatetime');
+        if (dt && dt._calendarDatetimePicker) dt._calendarDatetimePicker.renderTimeGrid();
+      });
+
+      schedulerReady = true;
+    } catch (e) {
+      console.error('No se pudo cargar el agendador:', e);
+    }
+  }
+
+  function initApptDatePicker() {
+    const dt = document.getElementById('fDatetime');
+    if (dt._calendarDatetimePicker) return;
+    const getOccupiedHours = (dateStr) => {
+      const docId = parseInt(document.getElementById('fDoctor').value, 10);
+      if (!docId) return [];
+      return allClinicAppts
+        .filter(a => a.doctor_id === docId && String(a.scheduled_at).startsWith(dateStr) && a.status !== 'cancelled')
+        .map(a => { const d = new Date(a.scheduled_at); return { h: d.getHours(), m: d.getMinutes() }; });
+    };
+    replaceWithCalendarDatetimePicker(dt, { getOccupiedHours });
+  }
+
+  function openApptModal() {
+    if (!schedulerReady) { showToast('Cargando datos, intenta de nuevo en un momento'); return; }
+    document.getElementById('apptForm').reset();
+    document.getElementById('fSpecialty').value = '';
+    document.getElementById('fAppointmentType').value = 'seguimiento';
+    const now = new Date(); now.setMinutes(0, 0, 0); now.setHours(now.getHours() + 1);
+    const pad = n => String(n).padStart(2, '0');
+    document.getElementById('fDatetime').value =
+      `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    initApptDatePicker();
+    const dt = document.getElementById('fDatetime');
+    if (dt._calendarDatetimePicker) dt._calendarDatetimePicker.updateFromInput();
+    clearApptMsg();
+    document.getElementById('apptOverlay').style.display = 'flex';
+  }
+  function closeApptModal() { document.getElementById('apptOverlay').style.display = 'none'; }
+  function clearApptMsg() { const m = document.getElementById('apptMsg'); m.textContent = ''; m.className = 'form-msg'; }
+
+  async function submitAppt(e) {
+    e.preventDefault();
+    const msgEl = document.getElementById('apptMsg');
+    const btn = document.getElementById('apptSubmitBtn');
+    const patientId = parseInt(document.getElementById('fPatient').value, 10);
+    const doctorId = parseInt(document.getElementById('fDoctor').value, 10);
+    const scheduledAt = document.getElementById('fDatetime').value;
+    if (!patientId || !doctorId || !scheduledAt) {
+      msgEl.textContent = 'Completa paciente, doctor y fecha/hora.'; msgEl.className = 'form-msg err';
+      return;
+    }
+    btn.disabled = true; btn.textContent = 'Creando...';
+    try {
+      await api('/api/appointments', { method: 'POST', body: {
+        patient_id: patientId,
+        doctor_id: doctorId,
+        specialty: document.getElementById('fSpecialty').value,
+        scheduled_at: scheduledAt,
+        appointment_type: document.getElementById('fAppointmentType').value,
+        reason: document.getElementById('fReason').value
+      }});
+      allClinicAppts = await api('/api/appointments/calendar').catch(() => allClinicAppts);
+      closeApptModal();
+      showToast('Cita agendada');
+      load();
+    } catch (err) {
+      msgEl.textContent = err.message || 'No se pudo agendar la cita.';
+      msgEl.className = 'form-msg err';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Crear Cita';
+    }
+  }
+
+  /* ─────────── Nuevo Paciente ─────────── */
+  function openPatientModal() { populateBirthSelects(); document.getElementById('patientMsg').textContent = ''; document.getElementById('patientOverlay').style.display = 'flex'; }
+  function closePatientModal() { document.getElementById('patientOverlay').style.display = 'none'; document.getElementById('createForm').reset(); }
+
+  function formatIdentityNumber(el) {
+    let v = el.value.replace(/\D/g, '');
+    if (v.length > 13) v = v.slice(0, 13);
+    if (v.length > 4) v = v.slice(0, 4) + '-' + v.slice(4);
+    if (v.length > 9) v = v.slice(0, 9) + '-' + v.slice(9);
+    el.value = v;
+  }
+
+  function populateBirthSelects() {
+    const today = new Date();
+    const y = document.getElementById('fBirthYear');
+    if (y.children.length === 1) {
+      for (let i = today.getFullYear(); i >= 1900; i--) {
+        const o = document.createElement('option');
+        o.value = String(i).slice(2); o.textContent = i;
+        y.appendChild(o);
+      }
+    }
+    const d = document.getElementById('fBirthDay');
+    if (d.children.length === 1) {
+      for (let i = 1; i <= 31; i++) {
+        const o = document.createElement('option');
+        o.value = String(i).padStart(2, '0'); o.textContent = i;
+        d.appendChild(o);
+      }
+    }
+  }
+
+  async function submitPatient(e) {
+    e.preventDefault();
+    const form = document.getElementById('createForm');
+    if (form.dataset.submitting === 'true') return;
+    form.dataset.submitting = 'true';
+    const msg = document.getElementById('patientMsg');
+    const btn = document.getElementById('patientSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    try {
+      const day = document.getElementById('fBirthDay').value;
+      const month = document.getElementById('fBirthMonth').value;
+      const year = document.getElementById('fBirthYear').value;
+      let birthDate = '';
+      if (day && month && year) {
+        const fullYear = year.length === 2 ? (parseInt(year) > 30 ? 1900 + parseInt(year) : 2000 + parseInt(year)) : year;
+        birthDate = `${fullYear}-${month}-${day}`;
+      }
+      const newPatient = await api('/api/patients', { method: 'POST', body: {
+        name: document.getElementById('fName').value,
+        identity_number: document.getElementById('fId').value,
+        phone: document.getElementById('fPhone').value,
+        gender: document.getElementById('fGender').value,
+        birth_date: birthDate
+      }});
+      const pd = document.getElementById('fPatient');
+      const option = document.createElement('option');
+      option.value = newPatient.id; option.textContent = newPatient.name;
+      pd.appendChild(option);
+      pd.value = newPatient.id;
+      allPatients.push(newPatient);
+      msg.textContent = 'Paciente creado'; msg.className = 'form-msg ok';
+      setTimeout(closePatientModal, 800);
+    } catch (err) {
+      msg.textContent = err.message || 'No se pudo crear el paciente.'; msg.className = 'form-msg err';
+    } finally {
+      form.dataset.submitting = 'false';
+      btn.disabled = false; btn.textContent = 'Guardar Paciente';
+    }
+  }
+
+  if (!canSchedule) {
+    const b = document.getElementById('btnSchedule');
+    if (b) b.style.display = 'none';
+  }
   load();
+  if (canSchedule) initScheduler();
   setInterval(load, 8000);
 </script>
 </body>

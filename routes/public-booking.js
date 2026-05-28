@@ -37,8 +37,10 @@ router.get('/clinic/:clinicId', async (req, res) => {
 });
 
 router.get('/clinic/:clinicId/doctors', async (req, res) => {
+  // Endpoint público: nunca exponer el email del doctor (PII). Para reservar
+  // basta id, nombre y especialidad.
   const result = await query(
-    `SELECT DISTINCT u.id, u.name, u.email, u.specialty
+    `SELECT DISTINCT u.id, u.name, u.specialty
      FROM users u
      INNER JOIN doctor_availability da ON da.doctor_id = u.id
      WHERE u.clinic_id = $1 AND u.role = 'doctor' AND da.enabled = TRUE

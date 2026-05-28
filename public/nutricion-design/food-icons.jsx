@@ -862,9 +862,145 @@ const FOOD_ICONS = {
   ),
 };
 
-// FoodIcon component
+// ============== CATEGORY FALLBACK ICONS ==============
+// For foods without a specific SVG, render a category-themed generic illustration
+
+const CATEGORY_FALLBACKS = {
+  carbohidrato: (
+    <Bowl>
+      <ellipse cx="24" cy="24" rx="14" ry="3.2" fill={FC.tortillaDark}/>
+      <ellipse cx="24" cy="23" rx="13" ry="2.6" fill={FC.tortilla}/>
+      {[[16,22],[20,22],[24,22],[28,22],[32,22],[18,24],[26,24],[30,24]].map(([cx,cy],i) => (
+        <ellipse key={i} cx={cx} cy={cy} rx="1.5" ry="0.7" fill={FC.tortillaShadow}/>
+      ))}
+    </Bowl>
+  ),
+  proteina: (
+    <g>
+      <ellipse cx="24" cy="38" rx="14" ry="2" fill="#5A2818" opacity="0.4"/>
+      <path d="M 10 22 Q 10 14 24 12 Q 38 14 38 22 Q 38 32 24 34 Q 10 32 10 22 Z" fill={FC.meat}/>
+      <path d="M 10 22 Q 10 14 24 12 Q 38 14 38 22 Q 38 32 24 34 Q 10 32 10 22 Z" fill="none" stroke={FC.meatDark} strokeWidth="1.2"/>
+      <path d="M 16 20 Q 24 16 32 20" stroke={FC.meatDark} strokeWidth="0.8" fill="none" opacity="0.6"/>
+      <path d="M 16 26 Q 24 22 32 26" stroke={FC.meatDark} strokeWidth="0.8" fill="none" opacity="0.6"/>
+    </g>
+  ),
+  vegetal: (
+    <g>
+      {/* Generic leafy vegetable */}
+      <ellipse cx="24" cy="40" rx="12" ry="1.5" fill="#3A5028" opacity="0.3"/>
+      <path d="M 24 36 Q 14 32 12 22 Q 14 14 22 14 Q 24 18 24 24 Q 24 18 26 14 Q 34 14 36 22 Q 34 32 24 36 Z" fill={FC.leaf}/>
+      <path d="M 24 36 Q 14 32 12 22 Q 14 14 22 14 Q 24 18 24 24 Q 24 18 26 14 Q 34 14 36 22 Q 34 32 24 36 Z" fill="none" stroke={FC.leafDark} strokeWidth="1.2"/>
+      <path d="M 24 14 L 24 36" stroke={FC.leafDark} strokeWidth="1"/>
+      <path d="M 16 18 Q 20 22 24 22 M 32 18 Q 28 22 24 22 M 14 26 Q 20 28 24 28 M 34 26 Q 28 28 24 28" stroke={FC.leafDark} strokeWidth="0.6" fill="none"/>
+    </g>
+  ),
+  fruta: (
+    <g>
+      <ellipse cx="24" cy="40" rx="12" ry="1.5" fill="#7A2A20" opacity="0.3"/>
+      <circle cx="24" cy="26" r="13" fill="#E8716A"/>
+      <circle cx="24" cy="26" r="13" fill="none" stroke="#A8302A" strokeWidth="1.2"/>
+      <ellipse cx="19" cy="20" rx="3" ry="5" fill="#F08A82" opacity="0.6"/>
+      <path d="M 22 13 L 22 16 L 24 14 L 26 16 L 26 13" stroke="#3D6B2A" strokeWidth="1.5" fill="#5A8C3E"/>
+    </g>
+  ),
+  lacteo: (
+    <g>
+      <ellipse cx="24" cy="40" rx="11" ry="1.5" fill="#A89478" opacity="0.3"/>
+      <path d="M 14 14 L 16 10 L 32 10 L 34 14 L 36 38 Q 36 40 34 40 L 14 40 Q 12 40 12 38 Z" fill="#FAFAFA"/>
+      <path d="M 14 14 L 16 10 L 32 10 L 34 14 L 36 38 Q 36 40 34 40 L 14 40 Q 12 40 12 38 Z" fill="none" stroke="#B8BFC9" strokeWidth="1.2"/>
+      <rect x="14" y="14" width="20" height="4" fill={FC.milkBlue}/>
+      <rect x="16" y="22" width="16" height="10" fill="#F2F4F7" rx="1"/>
+    </g>
+  ),
+  grasa: (
+    <g>
+      {/* Generic oil droplet */}
+      <path d="M 24 8 Q 14 22 14 30 Q 14 38 24 40 Q 34 38 34 30 Q 34 22 24 8 Z" fill="#E8C56A"/>
+      <path d="M 24 8 Q 14 22 14 30 Q 14 38 24 40 Q 34 38 34 30 Q 34 22 24 8 Z" fill="none" stroke="#A88847" strokeWidth="1.2"/>
+      <ellipse cx="20" cy="22" rx="2" ry="6" fill="#FAF0C2" opacity="0.6"/>
+    </g>
+  ),
+  tipico: (
+    <Plate>
+      <ellipse cx="16" cy="22" rx="5" ry="2.5" fill={FC.rice} stroke={FC.riceDark} strokeWidth="0.6"/>
+      <ellipse cx="32" cy="22" rx="5" ry="2.5" fill={FC.beans}/>
+      <ellipse cx="24" cy="20" rx="4" ry="2" fill={FC.meat} stroke={FC.meatDark} strokeWidth="0.6"/>
+      <ellipse cx="20" cy="26" rx="3" ry="1.5" fill={FC.plantain} stroke={FC.plantainDark} strokeWidth="0.6"/>
+      <ellipse cx="28" cy="26" rx="3" ry="1.5" fill={FC.cheese} stroke={FC.cheeseRind} strokeWidth="0.6"/>
+    </Plate>
+  ),
+  bebida: (
+    <g>
+      <ellipse cx="24" cy="40" rx="11" ry="1.5" fill="#5A7A92" opacity="0.3"/>
+      {/* Glass */}
+      <path d="M 14 10 L 34 10 L 32 38 Q 32 40 30 40 L 18 40 Q 16 40 16 38 Z" fill="#D4E5F0" opacity="0.6"/>
+      <path d="M 14 10 L 34 10 L 32 38 Q 32 40 30 40 L 18 40 Q 16 40 16 38 Z" fill="none" stroke="#7AA0BC" strokeWidth="1.2"/>
+      {/* Liquid */}
+      <path d="M 16 18 L 32 18 L 31 36 Q 31 38 29 38 L 19 38 Q 17 38 17 36 Z" fill="#5588B5" opacity="0.7"/>
+      {/* Highlight */}
+      <path d="M 18 14 L 18 36" stroke="#FFFFFF" strokeWidth="2" opacity="0.4"/>
+    </g>
+  ),
+  snack: (
+    <g>
+      <ellipse cx="24" cy="40" rx="14" ry="1.5" fill="#7A5828" opacity="0.3"/>
+      {/* Cookie / chip stack */}
+      <circle cx="24" cy="26" r="12" fill="#D9A56B"/>
+      <circle cx="24" cy="26" r="12" fill="none" stroke="#8C5828" strokeWidth="1.2"/>
+      {/* Chocolate chips */}
+      <circle cx="20" cy="22" r="1.6" fill="#5A3818"/>
+      <circle cx="28" cy="24" r="1.6" fill="#5A3818"/>
+      <circle cx="22" cy="30" r="1.4" fill="#5A3818"/>
+      <circle cx="30" cy="30" r="1.4" fill="#5A3818"/>
+      <circle cx="24" cy="20" r="1.2" fill="#5A3818"/>
+      <circle cx="18" cy="28" r="1.2" fill="#5A3818"/>
+    </g>
+  ),
+  postre: (
+    <g>
+      <ellipse cx="24" cy="40" rx="14" ry="1.5" fill="#7A2A4A" opacity="0.3"/>
+      {/* Cake slice */}
+      <path d="M 10 36 L 14 16 L 34 16 L 38 36 Z" fill="#F5C2D4"/>
+      <path d="M 10 36 L 14 16 L 34 16 L 38 36 Z" fill="none" stroke="#A8487A" strokeWidth="1.2"/>
+      {/* Frosting top */}
+      <path d="M 14 16 Q 18 12 24 14 Q 30 12 34 16" fill="#FAFAFA" stroke="#C9CFD7" strokeWidth="1"/>
+      {/* Cherry */}
+      <circle cx="24" cy="11" r="2.5" fill="#C73A3A"/>
+      <path d="M 24 9 Q 26 6 28 7" stroke="#5A3E28" strokeWidth="1" fill="none"/>
+      {/* Layers */}
+      <line x1="12" y1="24" x2="36" y2="24" stroke="#A8487A" strokeWidth="0.6" opacity="0.5"/>
+      <line x1="11" y1="30" x2="37" y2="30" stroke="#A8487A" strokeWidth="0.6" opacity="0.5"/>
+    </g>
+  ),
+  condimento: (
+    <g>
+      <ellipse cx="24" cy="40" rx="10" ry="1.5" fill="#5A4828" opacity="0.3"/>
+      {/* Shaker */}
+      <path d="M 18 16 L 30 16 L 30 12 L 18 12 Z" fill="#C9B58E" stroke="#8C7028" strokeWidth="1.2"/>
+      <path d="M 16 16 L 32 16 L 30 38 Q 30 40 28 40 L 20 40 Q 18 40 18 38 Z" fill="#F0E5C2"/>
+      <path d="M 16 16 L 32 16 L 30 38 Q 30 40 28 40 L 20 40 Q 18 40 18 38 Z" fill="none" stroke="#8C7028" strokeWidth="1.2"/>
+      {/* Top holes */}
+      <circle cx="21" cy="14" r="0.8" fill="#5A4828"/>
+      <circle cx="24" cy="14" r="0.8" fill="#5A4828"/>
+      <circle cx="27" cy="14" r="0.8" fill="#5A4828"/>
+      {/* Label */}
+      <rect x="19" y="22" width="10" height="12" fill="#FAFAFA" stroke="#8C7028" strokeWidth="0.6" rx="1"/>
+    </g>
+  ),
+};
+
+// FoodIcon component — uses specific icon, falls back to category illustration
 const FoodIcon = ({ id, size = 36 }) => {
-  const icon = FOOD_ICONS[id];
+  let icon = FOOD_ICONS[id];
+
+  // Fallback: try to find food's category and use category fallback
+  if (!icon && typeof window !== 'undefined' && window.FOODS) {
+    const food = window.FOODS.find(f => f.id === id);
+    if (food && CATEGORY_FALLBACKS[food.cat]) {
+      icon = CATEGORY_FALLBACKS[food.cat];
+    }
+  }
+
   if (!icon) {
     return (
       <svg width={size} height={size} viewBox="0 0 48 48">
@@ -882,3 +1018,4 @@ const FoodIcon = ({ id, size = 36 }) => {
 
 window.FoodIcon = FoodIcon;
 window.FOOD_ICONS = FOOD_ICONS;
+window.CATEGORY_FALLBACKS = CATEGORY_FALLBACKS;

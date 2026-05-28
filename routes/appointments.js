@@ -185,15 +185,21 @@ router.post('/', authenticate, async (req, res) => {
   if (req.user.role === 'clinic_admin') {
     return res.status(403).json({ error: 'Clinic admin cannot create appointments' });
   }
-  const { patient_id, doctor_id, scheduled_at, appointment_type } = req.body;
+  const { patient_id, doctor_id, scheduled_at, appointment_type, reason } = req.body;
   if (!patient_id || !doctor_id || !scheduled_at) {
     return res.status(400).json({ error: 'patient_id, doctor_id y scheduled_at son requeridos' });
+  }
+
+  if (isNaN(new Date(scheduled_at).getTime())) {
+    return res.status(400).json({ error: 'Fecha y hora inválidas' });
   }
 
   const aptType = appointment_type || 'seguimiento';
   if (!VALID_APPOINTMENT_TYPES.includes(aptType)) {
     return res.status(400).json({ error: 'Tipo de cita inválido' });
   }
+
+  const reasonText = typeof reason === 'string' ? reason.trim().slice(0, 500) : '';
 
   const patientResult = await query('SELECT id FROM patients WHERE id = $1 AND clinic_id = $2',
     [patient_id, req.user.clinic_id]);
@@ -213,8 +219,8 @@ router.post('/', authenticate, async (req, res) => {
   }
 
   const result = await query(
-    'INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status, appointment_type) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-    [patient_id, doctor_id, req.user.clinic_id, doctorResult.rows[0].specialty || '', scheduled_at, 'pending', aptType]
+    'INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status, appointment_type, reason) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
+    [patient_id, doctor_id, req.user.clinic_id, doctorResult.rows[0].specialty || '', scheduled_at, 'pending', aptType, reasonText]
   );
   res.json({ id: result.rows[0].id });
 });

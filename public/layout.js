@@ -94,12 +94,6 @@
           ]
         },
         {
-          label: 'CRECIMIENTO',
-          items: [
-            { href: '/crecimiento.html', key: 'crecimiento', iconName: 'trendingUp', label: 'Pulso Clínico' }
-          ]
-        },
-        {
           label: 'CLÍNICA',
           items: [
             { href: '/doctors.html', key: 'doctors', iconName: 'staff', label: 'Personal' },
@@ -119,7 +113,6 @@
         {
           label: 'AJUSTES',
           items: [
-            { href: '/plan.html', key: 'plan', iconName: 'creditCard', label: 'Mi Plan' },
             { href: '/configuracion.html', key: 'configuracion', iconName: 'settings', label: 'Configuración' }
           ]
         }
@@ -135,12 +128,6 @@
             { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
             { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
-          ]
-        },
-        {
-          label: 'CRECIMIENTO',
-          items: [
-            { href: '/crecimiento.html', key: 'crecimiento', iconName: 'trendingUp', label: 'Pulso Clínico' }
           ]
         },
         {
@@ -180,8 +167,8 @@
       return sectionHTML;
     }).join('');
 
-    // Mobile menu items (exclude Consentimientos, Recordatorios, Citas Online, Mi Plan from mobile sticky menu)
-    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'plan' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio' && item.key !== 'crecimiento').map(item => {
+    // Mobile menu items (exclude items reserved for the drawer)
+    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
@@ -238,10 +225,6 @@
               <span>Configuración</span>
             </a>
           </div>` : `<div class="sidebar-section">
-            <a href="/crecimiento.html" class="sidebar-menu-link">
-              <span id="crecimientoMenuIcon"></span>
-              <span>Pulso Clínico</span>
-            </a>
             <a href="/calendario-compartido.html" class="sidebar-menu-link">
               <span id="calCompartidoIcon"></span>
               <span>Calendario Compartido</span>
@@ -249,10 +232,6 @@
             <a href="/agendar-online.html" class="sidebar-menu-link">
               <span id="citasOnlineIcon"></span>
               <span>Citas Online</span>
-            </a>
-            <a href="/plan.html" class="sidebar-menu-link">
-              <span id="planIcon"></span>
-              <span>Mi Plan</span>
             </a>
             ${isClinicAdmin ? `<a href="/inventario.html" class="sidebar-menu-link">
               <span id="inventarioMenuIcon"></span>
@@ -423,10 +402,6 @@
     const notificationIcon = document.querySelector('#notificationIcon');
     if (notificationIcon && !notificationIcon.innerHTML.trim()) notificationIcon.innerHTML = Icons.render('bell', 24);
 
-    // Pulso Clínico (drawer móvil)
-    const crecimientoMenuIcon = document.querySelector('#crecimientoMenuIcon');
-    if (crecimientoMenuIcon && !crecimientoMenuIcon.innerHTML.trim()) crecimientoMenuIcon.innerHTML = Icons.render('trendingUp', 16);
-
     // Calendario Compartido menu icon
     const calCompartidoIcon = document.querySelector('#calCompartidoIcon');
     if (calCompartidoIcon && !calCompartidoIcon.innerHTML.trim()) calCompartidoIcon.innerHTML = Icons.render('calendar', 16);
@@ -434,10 +409,6 @@
     // Citas Online menu icon
     const citasOnlineIcon = document.querySelector('#citasOnlineIcon');
     if (citasOnlineIcon && !citasOnlineIcon.innerHTML.trim()) citasOnlineIcon.innerHTML = Icons.render('calendar', 16);
-
-    // Mi Plan menu icon
-    const planIcon = document.querySelector('#planIcon');
-    if (planIcon && !planIcon.innerHTML.trim()) planIcon.innerHTML = Icons.render('creditCard', 16);
 
     // Consents menu icon
     const consentsIcon = document.querySelector('#consentsIcon');
