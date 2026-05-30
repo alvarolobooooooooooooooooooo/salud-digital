@@ -60,6 +60,62 @@ router.get('/:id', authenticate, async (req, res) => {
   res.json({ ...patient, critical_info, consultations });
 });
 
+// Índice barato de fotos: una entrada por consulta CON fotos, solo con conteos (sin bytes
+// de imagen). Alimenta el acordeón del panel; las imágenes se cargan al expandir cada grupo.
+// Funciona para clinic_admin (alcance de clínica) y para doctor (solo sus consultas + acceso).
+router.get('/:id/photo-index', authenticate, async (req, res) => {
+  const patientResult = await query('SELECT id FROM patients WHERE id = $1 AND clinic_id = $2',
+    [req.params.id, req.user.clinic_id]);
+  const patient = patientResult.rows[0];
+  if (!patient) return res.status(404).json({ error: 'Patient not found' });
+
+  if (req.user.role === 'doctor') {
+    const accessResult = await query(
+      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = $1 AND doctor_id = $2 AND clinic_id = $3',
+      [patient.id, req.user.id, req.user.clinic_id]
+    );
+    if (parseInt(accessResult.rows[0].count) === 0) return res.status(403).json({ error: 'Access denied' });
+  }
+
+  // Solo traemos odontogram_state para Ortodoncia (única especialidad con fotos base64
+  // embebidas), para no transferir blobs grandes de otras especialidades solo para contar.
+  let queryStr = `
+    SELECT c.id AS consultation_id, c.created_at, c.specialty,
+           CASE WHEN c.specialty = 'Ortodoncia' THEN c.odontogram_state END AS ortho_state,
+           u.name AS doctor_name, COUNT(ci.id)::int AS gallery_count
+    FROM consultations c
+    LEFT JOIN consultation_images ci ON ci.consultation_id = c.id AND ci.clinic_id = c.clinic_id
+    LEFT JOIN users u ON c.doctor_id = u.id
+    WHERE c.patient_id = $1 AND c.clinic_id = $2`;
+  const params = [patient.id, req.user.clinic_id];
+  if (req.user.role === 'doctor') { queryStr += ' AND c.doctor_id = $3'; params.push(req.user.id); }
+  queryStr += ' GROUP BY c.id, u.name ORDER BY c.created_at DESC';
+
+  const result = await query(queryStr, params);
+
+  const groups = result.rows.map(r => {
+    let diagram_count = 0;
+    try {
+      const parsed = JSON.parse(r.ortho_state || '{}');
+      const media = parsed && parsed.state && parsed.state.media;
+      if (media && typeof media === 'object') {
+        diagram_count = Object.values(media).filter(v => typeof v === 'string' && v.startsWith('data:')).length;
+      }
+    } catch { /* ignore malformed state */ }
+    return {
+      consultation_id: r.consultation_id,
+      created_at: r.created_at,
+      specialty: r.specialty || 'Consulta',
+      doctor_name: r.doctor_name || null,
+      gallery_count: r.gallery_count,
+      diagram_count,
+      total: r.gallery_count + diagram_count
+    };
+  }).filter(g => g.total > 0);
+
+  res.json(groups);
+});
+
 router.post('/', authenticate, async (req, res) => {
   const { name, identity_number, age, birth_date, gender, phone } = req.body;
   if (!name || !identity_number) {

@@ -175,6 +175,8 @@ const initDb = async () => {
         FOREIGN KEY (clinic_id) REFERENCES clinics(id)
       );
 
+      CREATE INDEX IF NOT EXISTS idx_consultation_images_consultation ON consultation_images(consultation_id, clinic_id);
+
       CREATE TABLE IF NOT EXISTS doctor_availability (
         id SERIAL PRIMARY KEY,
         doctor_id INTEGER NOT NULL,

@@ -53,80 +53,6 @@ const STATUS_STYLE = {
 };
 
 // =============================================================
-// Tooth positions for before/after (upper arch)
-// "Before" has random misalignment, "after" is clean
-// =============================================================
-function getEvoArchPositions(state) {
-  // state: 'before' or 'after'
-  // Reuse the flat layout from plano but with tighter spacing
-  const widths = UPPER_FDI.map(f => ({ m3: 36, m2: 42, m1: 46, p2: 36, p1: 36, c: 34, il: 30, ci: 36 })[fdiToType(f)] || 36);
-  const gap = 6;
-  const totalW = widths.reduce((a,b) => a+b, 0) + (UPPER_FDI.length - 1) * gap;
-  const positions = [];
-  let cursor = -totalW / 2;
-  for (let i = 0; i < UPPER_FDI.length; i++) {
-    const w = widths[i];
-    let yOff = 0;
-    if (state === 'before') {
-      // Random-ish offsets for visual misalignment
-      const seed = (i * 7 + 13) % 11;
-      yOff = (seed - 5) * 2.2;
-    }
-    // Gentle smile curve
-    const t = (i - 7.5) / 7.5;
-    const archCurve = Math.pow(Math.abs(t), 2.0) * 14;
-    positions.push({ x: cursor + w/2, y: -archCurve + yOff, width: w, fdi: UPPER_FDI[i] });
-    cursor += w + gap;
-  }
-  return positions;
-}
-
-// =============================================================
-// Mini tooth — simplified visual for the evolution arch (no edit)
-// =============================================================
-function EvoTooth({ fdi, x, y, width, hasBrackets, hasWire }) {
-  const type = fdiToType(fdi);
-  const isMolar = type && type.startsWith('m');
-  const crownH = isMolar ? 42 : (type === 'c' ? 40 : 36);
-  const rootH = 22;
-  const totalH = crownH + rootH;
-
-  // Upper tooth — root up, crown down
-  const rootStart  = -totalH/2;
-  const rootEnd    = -totalH/2 + rootH;
-  const crownStart = rootEnd;
-  const crownEnd   = totalH/2;
-
-  const w = width - 4;
-  return (
-    <g transform={`translate(${x}, ${y})`}>
-      {/* Decorative root */}
-      <path d={`M ${-w*0.3} ${rootEnd} L ${-w*0.4} ${rootStart + 4} Q 0 ${rootStart - 1} ${w*0.4} ${rootStart + 4} L ${w*0.3} ${rootEnd} Z`}
-        fill="rgba(229,210,184,0.4)" stroke="rgba(183,160,121,0.35)" strokeWidth="0.5" />
-      {/* Crown */}
-      <path d={`M ${-w/2 + 4} ${crownStart}
-        L ${w/2 - 4} ${crownStart} Q ${w/2} ${crownStart} ${w/2} ${crownStart + 5}
-        L ${w/2} ${crownEnd - 5} Q ${w/2} ${crownEnd} ${w/2 - 4} ${crownEnd}
-        L ${-w/2 + 4} ${crownEnd} Q ${-w/2} ${crownEnd} ${-w/2} ${crownEnd - 5}
-        L ${-w/2} ${crownStart + 5} Q ${-w/2} ${crownStart} ${-w/2 + 4} ${crownStart} Z`}
-        fill="#FFFCF4" stroke="#C9B48E" strokeWidth="0.7" strokeLinejoin="round" />
-      {/* Incisal/occlusal highlight */}
-      <line x1={-w/2 + 8} y1={crownEnd - 2} x2={w/2 - 8} y2={crownEnd - 2}
-        stroke="white" strokeWidth="1.2" opacity="0.6" strokeLinecap="round" />
-      {/* Bracket */}
-      {hasBrackets && (
-        <g>
-          <rect x="-3.5" y="-1.5" width="7" height="4" rx="0.8" fill="#9CA4B2" stroke="#4D5667" strokeWidth="0.5" />
-          <line x1="-3" y1="0.5" x2="3" y2="0.5" stroke="#1A2235" strokeWidth="0.6" />
-          {/* Ligadura azul claro */}
-          <rect x="-4.5" y="-2.5" width="9" height="6" rx="1.2" fill="none" stroke="#9BD0EA" strokeWidth="0.8" />
-        </g>
-      )}
-    </g>
-  );
-}
-
-// =============================================================
 // Compact milestone timeline
 // =============================================================
 function MilestoneTimeline({ currentMonth, onMonthChange }) {
@@ -329,47 +255,133 @@ function SummaryCard({ title, icon, items, accent }) {
 }
 
 // =============================================================
-// Main view
+// Before / after PHOTO comparison (real clinical photos)
+// Two uploaded images revealed by a draggable divider.
+// Photos live inside the shared `media` object (keys evo_before /
+// evo_after) so they persist with "Guardar Consulta" like the rest.
 // =============================================================
-function EvolucionViewV2({ month = 4, setMonth = () => {} }) {
+function PhotoDrop({ label, onClick, busy }) {
+  return (
+    <button type="button" onClick={onClick} disabled={busy}
+      style={{
+        position:'absolute', inset: 0, width:'100%', height:'100%',
+        display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap: 10,
+        border:'none', cursor: busy ? 'default' : 'pointer',
+        background:'repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 10px, rgba(255,255,255,0.09) 10px 20px)',
+        color:'rgba(255,255,255,0.88)',
+      }}>
+      {busy ? (
+        <span style={{fontSize:'var(--t-13)', fontWeight: 600}}>Procesando…</span>
+      ) : (
+        <>
+          <div style={{width: 44, height: 44, borderRadius:'50%', background:'rgba(255,255,255,0.14)', display:'grid', placeItems:'center'}}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          </div>
+          <span style={{fontSize:'var(--t-13)', fontWeight: 700}}>Subir {label}</span>
+        </>
+      )}
+    </button>
+  );
+}
+
+function PhotoChip({ title, onClick, icon }) {
+  return (
+    <button type="button" title={title}
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      style={{
+        width: 24, height: 24, borderRadius:'50%', border:'none',
+        background:'rgba(11,20,36,0.62)', color:'white', cursor:'pointer',
+        display:'grid', placeItems:'center', padding: 0,
+      }}>
+      {icon === 'x' ? (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      ) : (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7h12l-3-3M21 17H9l3 3"/></svg>
+      )}
+    </button>
+  );
+}
+
+function EvoPhotoCompare({ media = {}, setMedia = () => {} }) {
   const [slider, setSlider] = useStateE(50);
+  const [uploading, setUploading] = useStateE(null); // 'before' | 'after' | null
+  const [err, setErr] = useStateE(null);
   const frameRef = useRefE(null);
+  const beforeInput = useRefE(null);
+  const afterInput = useRefE(null);
 
-  const beforePositions = useMemoE(() => getEvoArchPositions('before'), []);
-  const afterPositions  = useMemoE(() => getEvoArchPositions('after'),  []);
+  const before = media && media.evo_before;
+  const after  = media && media.evo_after;
+  const both = !!(before && after);
+  const bothEmpty = !before && !after;
+  const revealAt = both ? slider : 50;
 
-  const progress = (month / 18) * 100;
-  const currentMilestoneIdx = TX_MILESTONES.reduce((acc, m, i) => m.month <= month ? i : acc, 0);
-  const currentMilestone = TX_MILESTONES[currentMilestoneIdx];
+  const setPhoto = (key, url) => setMedia({ ...(media || {}), [key]: url });
+  const clearPhoto = (key) => {
+    const next = { ...(media || {}) };
+    delete next[key];
+    setMedia(next);
+  };
+
+  const handleFile = async (key, file) => {
+    if (!file) return;
+    if (!file.type || !file.type.startsWith('image/')) { setErr('El archivo no es una imagen'); return; }
+    setUploading(key === 'evo_before' ? 'before' : 'after'); setErr(null);
+    try {
+      setPhoto(key, await resizeImageFile(file));
+    } catch (e) {
+      setErr((e && e.message) || 'No se pudo procesar la imagen');
+    } finally {
+      setUploading(null);
+    }
+  };
 
   const handleDrag = (e) => {
     if (!frameRef.current) return;
     const rect = frameRef.current.getBoundingClientRect();
     const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-    const pct = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    setSlider(pct);
+    setSlider(Math.max(0, Math.min(100, (x / rect.width) * 100)));
   };
 
+  const pickBefore = () => beforeInput.current && beforeInput.current.click();
+  const pickAfter  = () => afterInput.current && afterInput.current.click();
+  const imgStyle = { position:'absolute', inset: 0, width:'100%', height:'100%', objectFit:'cover', display:'block' };
+  const pillStyle = (left) => ({
+    position:'absolute', top: 12, [left ? 'left' : 'right']: 12, zIndex: 4,
+    padding:'4px 10px', borderRadius:'var(--r-pill)',
+    background:'rgba(11,20,36,0.78)', color:'white',
+    fontSize: 10, fontWeight: 800, letterSpacing:'var(--ls-wide)',
+    display:'flex', alignItems:'center', gap: 6, fontFamily:'var(--font-display)',
+  });
+
   return (
-    <div style={{display:'flex', flexDirection:'column', gap:'var(--sp-4)'}}>
-      {/* ============ Comparativa antes/después ============ */}
-      <div style={{
-        background:'var(--bg-surface)',
-        border:'1px solid var(--border-default)',
-        borderRadius:'var(--r-lg)',
-        padding:'var(--sp-5) var(--sp-6) var(--sp-4)',
-        boxShadow:'var(--shadow-xs)',
-      }}>
-        <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom: 14}}>
-          <div>
-            <div style={{fontFamily:'var(--font-display)', fontWeight: 700, fontSize:'var(--t-18)', color:'var(--fg-strong)'}}>
-              Comparativa antes / después
-            </div>
-            <div style={{display:'flex', alignItems:'center', gap: 6, fontSize:'var(--t-12)', color:'var(--fg-muted)', marginTop: 4}}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 12h8M12 8l-4 4 4 4"/></svg>
-              <span>Arrastra el divisor para comparar la transformación</span>
-            </div>
+    <div style={{
+      background:'var(--bg-surface)',
+      border:'1px solid var(--border-default)',
+      borderRadius:'var(--r-lg)',
+      padding:'var(--sp-5) var(--sp-6) var(--sp-4)',
+      boxShadow:'var(--shadow-xs)',
+    }}>
+      {/* Hidden file inputs */}
+      <input ref={beforeInput} type="file" accept="image/*" style={{display:'none'}}
+        onChange={e => { handleFile('evo_before', e.target.files && e.target.files[0]); e.target.value = ''; }} />
+      <input ref={afterInput} type="file" accept="image/*" style={{display:'none'}}
+        onChange={e => { handleFile('evo_after', e.target.files && e.target.files[0]); e.target.value = ''; }} />
+
+      {/* Header */}
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom: 14, gap: 12, flexWrap:'wrap'}}>
+        <div>
+          <div style={{fontFamily:'var(--font-display)', fontWeight: 700, fontSize:'var(--t-18)', color:'var(--fg-strong)'}}>
+            Comparativa antes / después
           </div>
+          <div style={{display:'flex', alignItems:'center', gap: 6, fontSize:'var(--t-12)', color:'var(--fg-muted)', marginTop: 4}}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 12h8M12 8l-4 4 4 4"/></svg>
+            <span>{bothEmpty ? 'Sube dos fotografías clínicas para comparar la transformación'
+                            : both ? 'Arrastra el divisor para comparar las fotografías'
+                                   : 'Sube la fotografía que falta para activar el comparador'}</span>
+          </div>
+        </div>
+        {both && (
           <div style={{display:'flex', alignItems:'center', gap: 8, fontSize:'var(--t-12)', color:'var(--fg-muted)'}}>
             <span style={{fontFamily:'var(--font-mono)'}}>0 %</span>
             <span style={{
@@ -379,114 +391,154 @@ function EvolucionViewV2({ month = 4, setMonth = () => {} }) {
             }}>{Math.round(slider)} %</span>
             <span style={{fontFamily:'var(--font-mono)'}}>100 %</span>
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* Compare frame */}
-        <div ref={frameRef}
-          onMouseMove={(e) => e.buttons === 1 && handleDrag(e)}
-          onTouchMove={handleDrag}
-          style={{
-            position:'relative', width:'100%',
-            aspectRatio: '16 / 6.5',
-            borderRadius:'var(--r-md)', overflow:'hidden',
-            background: 'linear-gradient(180deg, #FBF4EA 0%, #F1E2CE 100%)',
-          }}>
-
-          {/* ANTES / DESPUÉS labels */}
+      {bothEmpty ? (
+        /* ---- Empty state: upload both photos ---- */
+        <div style={{
+          border:'2px dashed var(--border-strong)',
+          borderRadius:'var(--r-md)',
+          padding:'40px 24px',
+          display:'flex', flexDirection:'column', alignItems:'center', gap: 16,
+          textAlign:'center', background:'var(--bg-app)',
+        }}>
           <div style={{
-            position:'absolute', top: 12, left: 12, zIndex: 4,
-            padding:'4px 10px', borderRadius:'var(--r-pill)',
-            background:'rgba(11,20,36,0.78)', color:'white',
-            fontSize: 10, fontWeight: 800, letterSpacing: 'var(--ls-wide)',
-            display:'flex', alignItems:'center', gap: 6, fontFamily:'var(--font-display)',
+            width: 52, height: 52, borderRadius:'var(--r-lg)',
+            background:'var(--sd-blue-100)', color:'var(--sd-blue-700)',
+            display:'grid', placeItems:'center',
           }}>
-            <span style={{width: 5, height: 5, borderRadius:'50%', background:'#E0992E'}}></span>
-            ANTES · Ene 2026
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6V4h8v2"/></svg>
           </div>
-          <div style={{
-            position:'absolute', top: 12, right: 12, zIndex: 4,
-            padding:'4px 10px', borderRadius:'var(--r-pill)',
-            background:'rgba(11,20,36,0.78)', color:'white',
-            fontSize: 10, fontWeight: 800, letterSpacing: 'var(--ls-wide)',
-            display:'flex', alignItems:'center', gap: 6, fontFamily:'var(--font-display)',
-          }}>
-            <span style={{width: 5, height: 5, borderRadius:'50%', background:'#2BA86A'}}></span>
-            DESPUÉS · Jul 2027
-          </div>
-
-          {/* BEFORE arch (visible always, full width) */}
-          <svg viewBox="-380 -90 760 180" style={{position:'absolute', inset: 0, width:'100%', height:'100%'}}>
-            {beforePositions.map(p => (
-              <EvoTooth key={`b-${p.fdi}`} fdi={p.fdi} x={p.x} y={p.y + 20} width={p.width} hasBrackets={false} />
-            ))}
-            {/* Subtle "before" hint — slight chaos */}
-            <text x="0" y="-58" textAnchor="middle" fontSize="8"
-              fill="rgba(11,20,36,0.4)" fontFamily="var(--font-display)" fontWeight="700" letterSpacing="2">
-              INICIO DEL TRATAMIENTO
-            </text>
-          </svg>
-
-          {/* AFTER arch — clipped reveal from right */}
-          <div style={{position:'absolute', inset: 0, clipPath: `inset(0 0 0 ${slider}%)`, overflow:'hidden'}}>
-            <svg viewBox="-380 -90 760 180" style={{position:'absolute', inset: 0, width:'100%', height:'100%'}}>
-              {afterPositions.map(p => (
-                <EvoTooth key={`a-${p.fdi}`} fdi={p.fdi} x={p.x} y={p.y + 20} width={p.width} hasBrackets={true} hasWire={true} />
-              ))}
-              {/* Continuous wire across all afters */}
-              {(function() {
-                const pts = afterPositions.map(p => `${p.x},${p.y + 20}`).join(' L ');
-                return (
-                  <>
-                    <path d={`M ${pts}`} fill="none" stroke="#1A2235" strokeWidth="3" strokeLinecap="round" opacity="0.35" />
-                    <path d={`M ${pts}`} fill="none" stroke="#9CA4B2" strokeWidth="2" strokeLinecap="round" />
-                    <path d={`M ${pts}`} fill="none" stroke="#FFFFFF" strokeWidth="0.6" strokeLinecap="round" opacity="0.5" />
-                  </>
-                );
-              })()}
-              <text x="0" y="-58" textAnchor="middle" fontSize="8"
-                fill="rgba(11,20,36,0.4)" fontFamily="var(--font-display)" fontWeight="700" letterSpacing="2">
-                META DEL TRATAMIENTO
-              </text>
-            </svg>
-          </div>
-
-          {/* Divider */}
-          <div style={{
-            position:'absolute', top: 0, bottom: 0,
-            left: `${slider}%`, width: 2,
-            background:'white', transform:'translateX(-50%)',
-            boxShadow:'0 0 16px rgba(11,20,36,0.25)',
-            zIndex: 3,
-            pointerEvents:'none',
-          }}>
-            {/* Handle */}
-            <div style={{
-              position:'absolute', top:'50%', left:'50%',
-              transform:'translate(-50%, -50%)',
-              width: 44, height: 44, borderRadius:'50%',
-              background:'white',
-              boxShadow:'var(--shadow-lg), 0 0 0 4px rgba(0,128,176,0.2)',
-              display:'grid', placeItems:'center',
-              cursor:'ew-resize',
-              pointerEvents:'auto',
-              color:'var(--sd-navy-800)',
-              border:'1px solid var(--border-default)',
-            }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M8 6l-4 6 4 6M16 6l4 6-4 6"/>
-              </svg>
+          <div style={{maxWidth: 440}}>
+            <div style={{fontFamily:'var(--font-display)', fontWeight: 700, fontSize:'var(--t-15)', color:'var(--fg-strong)', marginBottom: 4}}>
+              Comparativa con fotografías clínicas
+            </div>
+            <div style={{fontSize:'var(--t-12)', color:'var(--fg-muted)', lineHeight: 1.5}}>
+              Sube la <strong>foto inicial</strong> (antes del tratamiento) y la <strong>foto actual</strong> (después). El divisor te dejará deslizar entre ambas.
             </div>
           </div>
-
-          {/* Invisible range input for slider control */}
-          <input type="range" min="0" max="100" step="0.1" value={slider}
-            onChange={e => setSlider(+e.target.value)}
-            style={{
-              position:'absolute', inset: 0, width:'100%', height:'100%',
-              opacity: 0, cursor:'ew-resize', zIndex: 5,
-            }} />
+          <div style={{display:'flex', gap: 10, flexWrap:'wrap', justifyContent:'center'}}>
+            <button type="button" className="btn btn-primary" style={{cursor:'pointer'}} onClick={pickBefore}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+              Subir foto inicial
+            </button>
+            <button type="button" className="btn btn-ghost" style={{cursor:'pointer'}} onClick={pickAfter}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+              Subir foto actual
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        /* ---- Compare frame ---- */
+        <div ref={frameRef}
+          onMouseMove={(e) => both && e.buttons === 1 && handleDrag(e)}
+          onTouchMove={(e) => both && handleDrag(e)}
+          style={{
+            position:'relative', width:'100%',
+            aspectRatio: '16 / 10',
+            borderRadius:'var(--r-md)', overflow:'hidden',
+            background:'#0b0f17',
+          }}>
+
+          {/* BEFORE layer (full) */}
+          {before
+            ? <img src={before} alt="Antes del tratamiento" style={imgStyle} />
+            : <PhotoDrop label="foto inicial" onClick={pickBefore} busy={uploading === 'before'} />}
+
+          {/* AFTER layer (clipped reveal from the divider) */}
+          <div style={{position:'absolute', inset: 0, clipPath:`inset(0 0 0 ${revealAt}%)`, overflow:'hidden'}}>
+            {after
+              ? <img src={after} alt="Después del tratamiento" style={imgStyle} />
+              : <PhotoDrop label="foto actual" onClick={pickAfter} busy={uploading === 'after'} />}
+          </div>
+
+          {/* ANTES / DESPUÉS labels */}
+          <div style={pillStyle(true)}>
+            <span style={{width: 5, height: 5, borderRadius:'50%', background:'#E0992E'}}></span>
+            ANTES
+          </div>
+          <div style={pillStyle(false)}>
+            <span style={{width: 5, height: 5, borderRadius:'50%', background:'#2BA86A'}}></span>
+            DESPUÉS
+          </div>
+
+          {/* Per-side replace / remove controls (when that photo exists) */}
+          {before && (
+            <div style={{position:'absolute', top: 42, left: 12, zIndex: 6, display:'flex', gap: 6}}>
+              <PhotoChip title="Reemplazar foto inicial" onClick={pickBefore} icon="swap" />
+              <PhotoChip title="Quitar foto inicial" onClick={() => clearPhoto('evo_before')} icon="x" />
+            </div>
+          )}
+          {after && (
+            <div style={{position:'absolute', top: 42, right: 12, zIndex: 6, display:'flex', gap: 6}}>
+              <PhotoChip title="Reemplazar foto actual" onClick={pickAfter} icon="swap" />
+              <PhotoChip title="Quitar foto actual" onClick={() => clearPhoto('evo_after')} icon="x" />
+            </div>
+          )}
+
+          {/* Divider (draggable handle only when both photos present) */}
+          <div style={{
+            position:'absolute', top: 0, bottom: 0,
+            left: `${revealAt}%`, width: 2,
+            background:'white', transform:'translateX(-50%)',
+            boxShadow:'0 0 16px rgba(11,20,36,0.25)',
+            zIndex: 3, pointerEvents:'none',
+          }}>
+            {both && (
+              <div style={{
+                position:'absolute', top:'50%', left:'50%',
+                transform:'translate(-50%, -50%)',
+                width: 44, height: 44, borderRadius:'50%',
+                background:'white',
+                boxShadow:'var(--shadow-lg), 0 0 0 4px rgba(0,128,176,0.2)',
+                display:'grid', placeItems:'center',
+                cursor:'ew-resize', pointerEvents:'auto',
+                color:'var(--sd-navy-800)', border:'1px solid var(--border-default)',
+              }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 6l-4 6 4 6M16 6l4 6-4 6"/>
+                </svg>
+              </div>
+            )}
+          </div>
+
+          {/* Invisible range input for dragging — only when both photos present */}
+          {both && (
+            <input type="range" min="0" max="100" step="0.1" value={slider}
+              onChange={e => setSlider(+e.target.value)}
+              aria-label="Comparar antes y después"
+              style={{
+                position:'absolute', inset: 0, width:'100%', height:'100%',
+                opacity: 0, cursor:'ew-resize', zIndex: 5,
+              }} />
+          )}
+        </div>
+      )}
+
+      {err && (
+        <div style={{
+          marginTop: 10, padding:'8px 12px', borderRadius:'var(--r-md)',
+          background:'var(--sd-critical-100)', color:'var(--sd-critical-600)',
+          fontSize:'var(--t-12)', fontWeight: 600,
+        }}>{err}</div>
+      )}
+    </div>
+  );
+}
+
+// =============================================================
+// Main view
+// =============================================================
+function EvolucionViewV2({ month = 4, setMonth = () => {}, media = {}, setMedia = () => {} }) {
+  const progress = (month / 18) * 100;
+  const currentMilestoneIdx = TX_MILESTONES.reduce((acc, m, i) => m.month <= month ? i : acc, 0);
+  const currentMilestone = TX_MILESTONES[currentMilestoneIdx];
+
+  return (
+    <div style={{display:'flex', flexDirection:'column', gap:'var(--sp-4)'}}>
+      {/* ============ Comparativa antes/después (fotografías reales) ============ */}
+      <EvoPhotoCompare media={media} setMedia={setMedia} />
 
       {/* ============ Clinical metrics row ============ */}
       <div>

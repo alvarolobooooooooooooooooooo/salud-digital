@@ -134,7 +134,7 @@ function ProfileSvg({ angleClass, hoverPlane }) {
   return (
     <svg viewBox="0 0 400 430" xmlns="http://www.w3.org/2000/svg"
          className="ceph-svg"
-         style={{width:'100%', height:'auto', display:'block'}}>
+         style={{width:'100%', maxWidth: 460, height:'auto', display:'block', margin:'0 auto'}}>
       <defs>
         <linearGradient id="skinV2" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#FBF2EA" />

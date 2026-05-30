@@ -2933,6 +2933,22 @@ html[data-theme="dark"] .history-table tr:hover {
   background: rgba(8, 145, 178, .05) !important;
 }
 
+/* Fotos del Paciente (acordeón + lightbox en el panel de detalle) */
+html[data-theme="dark"] .photo-group {
+  background: rgba(255, 255, 255, .02) !important;
+  border: 1px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .photo-group.expanded { border-color: rgba(8, 145, 178, .28) !important; }
+html[data-theme="dark"] .photo-group-header:hover { background: rgba(8, 145, 178, .06) !important; }
+html[data-theme="dark"] .photo-group-title { color: var(--sd-text) !important; }
+html[data-theme="dark"] .photo-group-sub { color: var(--sd-text-muted) !important; }
+html[data-theme="dark"] .photo-count-badge { background: rgba(8, 145, 178, .15) !important; color: #22d3ee !important; }
+html[data-theme="dark"] .photo-thumb { background: var(--sd-surface-2) !important; border-color: var(--sd-border-soft) !important; }
+html[data-theme="dark"] .photo-thumb.photo-broken { background: #1c1c1e !important; }
+html[data-theme="dark"] .photo-thumb.photo-broken::after { color: var(--sd-text-faint) !important; }
+html[data-theme="dark"] .photo-loading,
+html[data-theme="dark"] .photo-empty { color: var(--sd-text-muted) !important; }
+
 /* ═══════════════════════════════════════════════════════════════════
    CONSENTIMIENTOS — Editar / Crear plantilla (consentimientos-crear.html)
    ─────────────────────────────────────────────────────────────────

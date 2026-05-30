@@ -1,4 +1,4 @@
-/* global React, Tooth, fdiToType, fdiArch, fdiName, TOOTH_NAMES, UPPER_FDI, LOWER_FDI, getArchPositions */
+/* global React, Tooth, Bracket, Movement, fdiToType, fdiArch, fdiName, TOOTH_NAMES, UPPER_FDI, LOWER_FDI, getArchPositions */
 // ============================================================
 // views.jsx — Different visualization modes
 // ============================================================
@@ -290,238 +290,275 @@ function computeWirePath(positions, teeth, archCode) {
 // =================================================================
 // VIEW 2: FRONTAL SMILE — clinical retracted intraoral view
 // =================================================================
+// =================================================================
+// Frontal "smile" view
+// Realistic illustration base (smile-base.svg) with the full
+// interactive clinical layer overlaid on top. Every tooth's centre
+// and size below is measured from the artwork's own viewBox
+// (0 0 460.99 243.429) so brackets, wires, conditions, movement
+// arrows, guides and hit-zones line up 1:1 with the drawing.
+// =================================================================
+
+// fdi -> measured bbox-centre + size in the artwork coordinate system
+const SMILE_TEETH = [
+  // Upper arch (10) — gum at top, crowns point down
+  { fdi: 15, cx: 64.7,  cy: 91.3,  w: 22, h: 48, arch: 'sup' },
+  { fdi: 14, cx: 85.1,  cy: 94.3,  w: 30, h: 54, arch: 'sup' },
+  { fdi: 13, cx: 112.3, cy: 97.3,  w: 40, h: 64, arch: 'sup' },
+  { fdi: 12, cx: 152.4, cy: 97.4,  w: 47, h: 64, arch: 'sup' },
+  { fdi: 11, cx: 202.2, cy: 99.0,  w: 57, h: 70, arch: 'sup' },
+  { fdi: 21, cx: 257.6, cy: 99.0,  w: 56, h: 70, arch: 'sup' },
+  { fdi: 22, cx: 306.9, cy: 97.4,  w: 47, h: 64, arch: 'sup' },
+  { fdi: 23, cx: 346.9, cy: 97.3,  w: 40, h: 64, arch: 'sup' },
+  { fdi: 24, cx: 374.1, cy: 94.3,  w: 30, h: 54, arch: 'sup' },
+  { fdi: 25, cx: 394.5, cy: 91.3,  w: 22, h: 48, arch: 'sup' },
+  // Lower arch (14) — gum at bottom, crowns point up
+  { fdi: 47, cx: 69.1,  cy: 112.6, w: 14, h: 28, arch: 'inf' },
+  { fdi: 46, cx: 77.2,  cy: 116.5, w: 16, h: 34, arch: 'inf' },
+  { fdi: 45, cx: 92.1,  cy: 121.9, w: 22, h: 39, arch: 'inf' },
+  { fdi: 44, cx: 111.9, cy: 127.5, w: 26, h: 47, arch: 'inf' },
+  { fdi: 43, cx: 132.8, cy: 133.7, w: 34, h: 54, arch: 'inf' },
+  { fdi: 42, cx: 166.6, cy: 137.9, w: 40, h: 60, arch: 'inf' },
+  { fdi: 41, cx: 207.3, cy: 141.9, w: 47, h: 66, arch: 'inf' },
+  { fdi: 31, cx: 252.1, cy: 141.9, w: 46, h: 66, arch: 'inf' },
+  { fdi: 32, cx: 292.6, cy: 137.9, w: 40, h: 60, arch: 'inf' },
+  { fdi: 33, cx: 326.5, cy: 133.7, w: 34, h: 54, arch: 'inf' },
+  { fdi: 34, cx: 347.4, cy: 127.5, w: 26, h: 47, arch: 'inf' },
+  { fdi: 35, cx: 367.2, cy: 121.9, w: 22, h: 39, arch: 'inf' },
+  { fdi: 36, cx: 382.0, cy: 116.5, w: 16, h: 34, arch: 'inf' },
+  { fdi: 37, cx: 390.2, cy: 112.6, w: 14, h: 28, arch: 'inf' },
+];
+
+const SMILE_MIDLINE_X = 230.5;   // facial midline (artwork centre)
+const SMILE_OCCLUSAL_Y = 127;    // plane where the arches bite
+const SMILE_FIXED_APPS = ['metal', 'ceramic', 'zafiro', 'autolig', 'lingual', 'band'];
+
+const smileClamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+// Bracket bonding point + scale for a measured tooth.
+function smileBondPoint(t) {
+  const y = t.cy + (t.arch === 'sup' ? 1 : -1) * t.h * 0.05;
+  const s = smileClamp(t.w / 34, 0.62, 1.7);
+  return { x: t.cx, y, s };
+}
+
+// Appliance bracket positioned over an artwork tooth (reuses <Bracket>).
+function SmileAppliance({ t, state }) {
+  if (!state.appliance) return null;
+  if (state.condition === 'ausente' || state.condition === 'extraido') return null;
+  const { x, y, s } = smileBondPoint(t);
+  return (
+    <g transform={`translate(${x}, ${y}) scale(${s}) translate(0, -22)`} style={{ pointerEvents: 'none' }}>
+      <Bracket kind={state.appliance} ligature={state.ligature} type={fdiToType(t.fdi)} />
+    </g>
+  );
+}
+
+// Movement arrow positioned over an artwork tooth (reuses <Movement>).
+function SmileMovement({ t, state }) {
+  if (!state.movement) return null;
+  const { x, y, s } = smileBondPoint(t);
+  return (
+    <g transform={`translate(${x}, ${y}) scale(${s}) translate(0, -22)`} style={{ pointerEvents: 'none' }}>
+      <Movement kind={state.movement.kind} amount={state.movement.amount} />
+    </g>
+  );
+}
+
+// Clinical condition overlay sized to the artwork tooth bbox (crown-only frame).
+function SmileCondition({ t, state }) {
+  const kind = state.condition;
+  if (!kind) return null;
+  const { cx, cy, w, h, arch } = t;
+  const rx = w / 2, ry = h / 2;
+  const up = arch === 'sup' ? -1 : 1;
+  const stop = { pointerEvents: 'none' };
+
+  if (kind === 'caries') {
+    return (
+      <g style={stop}>
+        <circle cx={cx - w * 0.12} cy={cy} r={Math.max(1.2, w * 0.09)} fill="#3A2920" opacity="0.85" />
+        <circle cx={cx + w * 0.14} cy={cy + h * 0.12} r={Math.max(0.9, w * 0.06)} fill="#3A2920" opacity="0.8" />
+      </g>
+    );
+  }
+  if (kind === 'restoration') {
+    return (
+      <g style={stop}>
+        <ellipse cx={cx} cy={cy} rx={w * 0.22} ry={h * 0.18} fill="#7E8895" opacity="0.7" stroke="#3F485C" strokeWidth="0.4" />
+      </g>
+    );
+  }
+  if (kind === 'endodoncia') {
+    return (
+      <g style={stop}>
+        <line x1={cx} y1={cy - ry * 0.7} x2={cx} y2={cy + ry * 0.7} stroke="#C2362C" strokeWidth="1.2" opacity="0.85" />
+      </g>
+    );
+  }
+  if (kind === 'corona') {
+    return (
+      <g style={stop}>
+        <ellipse cx={cx} cy={cy} rx={rx * 0.9} ry={ry * 0.9} fill="rgba(212,175,55,0.30)" stroke="#B89348" strokeWidth="1" strokeDasharray="2 1.6" />
+      </g>
+    );
+  }
+  if (kind === 'implante') {
+    return (
+      <g style={stop}>
+        <ellipse cx={cx} cy={cy} rx={rx * 0.88} ry={ry * 0.88} fill="rgba(176,183,194,0.30)" stroke="#5A6577" strokeWidth="1" strokeDasharray="2 1.6" />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <line key={i}
+            x1={cx - w * 0.12} x2={cx + w * 0.12}
+            y1={cy + up * (ry * 0.18 + i * 2.1)} y2={cy + up * (ry * 0.18 + i * 2.1)}
+            stroke="#5A6577" strokeWidth="0.7" />
+        ))}
+      </g>
+    );
+  }
+  if (kind === 'ausente' || kind === 'extraido') {
+    return (
+      <g style={stop}>
+        <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="var(--bg-surface)" opacity="0.62" />
+        <line x1={cx - rx * 0.7} y1={cy - ry * 0.7} x2={cx + rx * 0.7} y2={cy + ry * 0.7} stroke="#C2362C" strokeWidth="2" />
+        <line x1={cx + rx * 0.7} y1={cy - ry * 0.7} x2={cx - rx * 0.7} y2={cy + ry * 0.7} stroke="#C2362C" strokeWidth="2" />
+        <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="none" stroke="#C2362C" strokeWidth="0.7" strokeDasharray="2 1.6" opacity="0.8" />
+        {kind === 'ausente' && (
+          <text x={cx} y={cy + up * (ry + 6)} textAnchor="middle" fill="#C2362C" fontSize="5" fontWeight="700" fontFamily="var(--font-mono)">AUS</text>
+        )}
+      </g>
+    );
+  }
+  return null;
+}
+
 function FrontalView({ teeth, selected, onSelect }) {
   const [hoverFdi, setHoverFdi] = useState(null);
 
-  // Anterior + premolar visible in retracted view
-  // Centered around midline (x=0). Bracket Y will land on the archwire plane.
-  // Upper anteriors (canine→canine→premolar) with natural smile-arc tip placement
-  //   gingival baseline:  Y_gum_upper = -68 (where crown's gingival edge sits)
-  //   tooth Y = y_gum_upper + (crown_height * scale)?  We position so bracket is at archwire plane.
-  //   With our local bracket Y=22 and crown ending at Y=42, bracket-from-crown-bottom = 20.
-  //   For upper teeth (flipped 180°), bracket world Y = toothY - 22*scale.
-  //   Let's target upper bracket Y = -38 (above center). With scale 1.45, toothY = -38 + 22*1.45 = -6.
-  // ... but easier: define each tooth's screen position and compute bracket points after.
+  const upper = SMILE_TEETH.filter(t => t.arch === 'sup');
+  const lower = SMILE_TEETH.filter(t => t.arch === 'inf');
 
-  const upperTeeth = [
-    { fdi: 15, x: -210, y: -10, scale: 1.10 },   // P2
-    { fdi: 14, x: -160, y: -8,  scale: 1.20 },   // P1
-    { fdi: 13, x: -110, y: -6,  scale: 1.35 },   // canino — bajo
-    { fdi: 12, x: -62,  y: -10, scale: 1.25 },   // IL — un poco más arriba
-    { fdi: 11, x: -18,  y: -6,  scale: 1.45 },   // IC — central, baja
-    { fdi: 21, x: 18,   y: -6,  scale: 1.45 },
-    { fdi: 22, x: 62,   y: -10, scale: 1.25 },
-    { fdi: 23, x: 110,  y: -6,  scale: 1.35 },
-    { fdi: 24, x: 160,  y: -8,  scale: 1.20 },
-    { fdi: 25, x: 210,  y: -10, scale: 1.10 },
-  ];
-  const lowerTeeth = [
-    { fdi: 45, x: -200, y: 38, scale: 0.95 },
-    { fdi: 44, x: -154, y: 38, scale: 1.05 },
-    { fdi: 43, x: -108, y: 38, scale: 1.15 },
-    { fdi: 42, x: -64,  y: 36, scale: 1.00 },
-    { fdi: 41, x: -22,  y: 36, scale: 1.05 },
-    { fdi: 31, x: 22,   y: 36, scale: 1.05 },
-    { fdi: 32, x: 64,   y: 36, scale: 1.00 },
-    { fdi: 33, x: 108,  y: 38, scale: 1.15 },
-    { fdi: 34, x: 154,  y: 38, scale: 1.05 },
-    { fdi: 35, x: 200,  y: 38, scale: 0.95 },
-  ];
+  // Wire through bracket-bearing teeth (per arch), left→right.
+  const wirePts = (list) => list
+    .filter(t => {
+      const s = teeth[t.fdi];
+      return s && s.appliance && SMILE_FIXED_APPS.includes(s.appliance)
+        && s.condition !== 'ausente' && s.condition !== 'extraido';
+    })
+    .slice()
+    .sort((a, b) => a.cx - b.cx)
+    .map(t => { const b = smileBondPoint(t); return { x: b.x, y: b.y }; });
 
-  // Bracket world centers (for the wire)
-  const upperBracketCenters = upperTeeth.map(t => ({ x: t.x, y: t.y - 22 * t.scale, fdi: t.fdi }));
-  const lowerBracketCenters = lowerTeeth.map(t => ({ x: t.x, y: t.y + 22 * t.scale, fdi: t.fdi }));
+  const wireUpper = catmullRomPath(wirePts(upper));
+  const wireLower = catmullRomPath(wirePts(lower));
 
-  const wireUpper = catmullRomPath(upperBracketCenters.filter(p => {
-    const s = teeth[p.fdi];
-    return s && s.appliance && ['metal','ceramic','zafiro','autolig','lingual','band'].includes(s.appliance);
-  }));
-  const wireLower = catmullRomPath(lowerBracketCenters.filter(p => {
-    const s = teeth[p.fdi];
-    return s && s.appliance && ['metal','ceramic','zafiro','autolig','lingual','band'].includes(s.appliance);
-  }));
-
-  const allTeeth = [...upperTeeth, ...lowerTeeth];
+  const Wire = ({ d }) => d ? (
+    <g style={{ pointerEvents: 'none' }}>
+      <path d={d} fill="none" stroke="#1A2235" strokeWidth="3" strokeLinecap="round" opacity="0.4" />
+      <path d={d} fill="none" stroke="url(#wireSmile)" strokeWidth="2.1" strokeLinecap="round" />
+      <path d={d} fill="none" stroke="#FFFFFF" strokeWidth="0.6" strokeLinecap="round" opacity="0.5" />
+    </g>
+  ) : null;
 
   return (
     <div className="smile-wrap">
-      <svg viewBox="-340 -160 680 320" xmlns="http://www.w3.org/2000/svg"
-        style={{width:'100%', maxWidth: 900, height: 'auto', display: 'block', filter: 'drop-shadow(0 12px 32px rgba(11,20,36,0.08))'}}>
+      <svg className="smile-svg" viewBox="0 0 460.99 243.429" xmlns="http://www.w3.org/2000/svg"
+        style={{ maxWidth: 760, filter: 'drop-shadow(0 12px 32px rgba(11,20,36,0.10))' }}>
         <defs>
-          {/* Soft skin vignette frame */}
-          <radialGradient id="skinFrame" cx="0.5" cy="0.5" r="0.7">
-            <stop offset="0.50" stopColor="rgba(244,217,200,0)" />
-            <stop offset="0.85" stopColor="rgba(228,194,176,0.55)" />
-            <stop offset="1" stopColor="rgba(208,170,150,0.85)" />
-          </radialGradient>
-          {/* Mouth cavity */}
-          <radialGradient id="mouthCavity" cx="0.5" cy="0.5" r="0.65">
-            <stop offset="0" stopColor="#3D1B16" />
-            <stop offset="1" stopColor="#0F0606" />
-          </radialGradient>
-          {/* Gum gradient */}
-          <linearGradient id="gumUp" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#E4ACA1" />
-            <stop offset="1" stopColor="#CE8076" />
-          </linearGradient>
-          <linearGradient id="gumDown" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#CE8076" />
-            <stop offset="1" stopColor="#E4ACA1" />
-          </linearGradient>
-          {/* Wire metallic */}
           <linearGradient id="wireSmile" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="#F4F6F9" />
             <stop offset="0.45" stopColor="#BAC2CE" />
             <stop offset="0.55" stopColor="#7B8597" />
             <stop offset="1" stopColor="#4D5667" />
           </linearGradient>
-          {/* Clip for crown area only — masks anything that pokes above gum or below */}
-          <clipPath id="upperGumClip">
-            <path d="M -340 -80 Q -260 -85 -180 -82 Q -90 -78 0 -76 Q 90 -78 180 -82 Q 260 -85 340 -80 L 340 60 L -340 60 Z" />
-          </clipPath>
-          <clipPath id="lowerGumClip">
-            <path d="M -340 -60 L 340 -60 L 340 80 Q 260 85 180 82 Q 90 78 0 76 Q -90 78 -180 82 Q -260 85 -340 80 Z" />
-          </clipPath>
+          <filter id="smileSelGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="1.6" result="b" />
+            <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
         </defs>
 
-        {/* Mouth cavity dark interior */}
-        <rect x="-340" y="-160" width="680" height="320" fill="url(#mouthCavity)" />
+        {/* Realistic smile artwork — lips + gums + teeth */}
+        <image href="smile-base.svg" xlinkHref="smile-base.svg" x="0" y="0" width="460.99" height="243.429" preserveAspectRatio="xMidYMid meet" />
 
-        {/* Soft skin frame (retractor edges) */}
-        <rect x="-340" y="-160" width="680" height="320" fill="url(#skinFrame)" />
+        {/* === Reference guides (subtle, behind the interactive layer) === */}
+        <line x1={SMILE_MIDLINE_X} y1="22" x2={SMILE_MIDLINE_X} y2="224" stroke="rgba(0,128,176,0.40)" strokeWidth="0.7" strokeDasharray="3 3" />
+        <text x={SMILE_MIDLINE_X + 3} y="28" fontSize="6" fill="rgba(0,128,176,0.9)" fontFamily="var(--font-mono)" fontWeight="700">L. MEDIA FACIAL</text>
+        <line x1="46" y1={SMILE_OCCLUSAL_Y} x2="415" y2={SMILE_OCCLUSAL_Y} stroke="rgba(0,128,176,0.28)" strokeWidth="0.6" strokeDasharray="3 3" />
+        <text x="48" y={SMILE_OCCLUSAL_Y - 2.5} fontSize="6" fill="rgba(0,128,176,0.85)" fontFamily="var(--font-mono)" fontWeight="700">PLANO OCLUSAL</text>
 
-        {/* Cheek retractors — subtle clinical hint at the edges */}
-        <path d="M -340 -160 Q -330 -80 -310 -10 Q -300 60 -310 130 Q -330 160 -340 160 Z" fill="rgba(232,194,176,0.6)" />
-        <path d="M 340 -160 Q 330 -80 310 -10 Q 300 60 310 130 Q 330 160 340 160 Z" fill="rgba(232,194,176,0.6)" />
-        <path d="M -310 -120 Q -290 0 -310 120" fill="none" stroke="rgba(180,140,120,0.4)" strokeWidth="1.5" />
-        <path d="M 310 -120 Q 290 0 310 120" fill="none" stroke="rgba(180,140,120,0.4)" strokeWidth="1.5" />
-
-        {/* Upper gum (palatal) — covers above teeth, hides roots */}
-        <path d="M -340 -160 L 340 -160 L 340 -68 Q 280 -76 200 -78 Q 100 -82 0 -80 Q -100 -82 -200 -78 Q -280 -76 -340 -68 Z"
-              fill="url(#gumUp)" />
-        {/* Gum scallops — soft interdental papillae */}
-        {upperTeeth.map(t => (
-          <path key={`up-gum-${t.fdi}`}
-            d={`M ${t.x - 18} -72 Q ${t.x} -64 ${t.x + 18} -72`}
-            fill="rgba(180,120,108,0.35)" stroke="none" />
-        ))}
-
-        {/* Lower gum (lingual/mandibular) */}
-        <path d="M -340 68 Q -280 76 -200 78 Q -100 82 0 80 Q 100 82 200 78 Q 280 76 340 68 L 340 160 L -340 160 Z"
-              fill="url(#gumDown)" />
-        {lowerTeeth.map(t => (
-          <path key={`lo-gum-${t.fdi}`}
-            d={`M ${t.x - 16} 72 Q ${t.x} 64 ${t.x + 16} 72`}
-            fill="rgba(180,120,108,0.35)" stroke="none" />
-        ))}
-
-        {/* Subtle inner shadow at gum line */}
-        <path d="M -340 -68 Q -200 -78 0 -80 Q 200 -78 340 -68" fill="none" stroke="rgba(80,30,20,0.3)" strokeWidth="2" />
-        <path d="M -340 68 Q -200 78 0 80 Q 200 78 340 68" fill="none" stroke="rgba(80,30,20,0.3)" strokeWidth="2" />
-
-        {/* === Clinical guides (rendered BEHIND teeth) === */}
-        {/* Facial midline */}
-        <line x1="0" y1="-150" x2="0" y2="150" stroke="rgba(0,128,176,0.35)" strokeWidth="1" strokeDasharray="4 4" />
-        <text x="6" y="-140" fontSize="9" fill="rgba(0,128,176,0.8)" fontFamily="var(--font-mono)" fontWeight="700">L. MEDIA FACIAL</text>
-
-        {/* Occlusal plane (horizontal — where upper and lower meet) */}
-        <line x1="-280" y1="14" x2="280" y2="14" stroke="rgba(0,128,176,0.35)" strokeWidth="1" strokeDasharray="4 4" />
-        <text x="-275" y="11" fontSize="9" fill="rgba(0,128,176,0.8)" fontFamily="var(--font-mono)" fontWeight="700">PLANO OCLUSAL</text>
-
-        {/* === Teeth (crown only) — upper first, then lower === */}
-        {upperTeeth.map(t => (
-          <Tooth key={`u-${t.fdi}`} fdi={t.fdi} state={teeth[t.fdi] || {}}
-            x={t.x} y={t.y} rotate={0} scale={t.scale}
-            selected={selected === t.fdi}
-            onClick={() => onSelect(t.fdi)}
-            crownOnly={true}
-          />
-        ))}
-
-        {/* Upper wire — bold, continuous, sits at bracket Y */}
-        {wireUpper && (
-          <>
-            <path d={wireUpper} fill="none" stroke="#1A2235" strokeWidth="4.6" strokeLinecap="round" opacity="0.4" />
-            <path d={wireUpper} fill="none" stroke="url(#wireSmile)" strokeWidth="3.6" strokeLinecap="round" />
-            <path d={wireUpper} fill="none" stroke="#FFFFFF" strokeWidth="1" strokeLinecap="round" opacity="0.5" />
-          </>
-        )}
-
-        {lowerTeeth.map(t => (
-          <Tooth key={`l-${t.fdi}`} fdi={t.fdi} state={teeth[t.fdi] || {}}
-            x={t.x} y={t.y} rotate={0} scale={t.scale}
-            selected={selected === t.fdi}
-            onClick={() => onSelect(t.fdi)}
-            crownOnly={true}
-          />
-        ))}
-
-        {/* Lower wire */}
-        {wireLower && (
-          <>
-            <path d={wireLower} fill="none" stroke="#1A2235" strokeWidth="4.6" strokeLinecap="round" opacity="0.4" />
-            <path d={wireLower} fill="none" stroke="url(#wireSmile)" strokeWidth="3.6" strokeLinecap="round" />
-            <path d={wireLower} fill="none" stroke="#FFFFFF" strokeWidth="1" strokeLinecap="round" opacity="0.5" />
-          </>
-        )}
-
-        {/* === Clinical guides (rendered ON TOP of teeth) === */}
-        {/* Dental midline upper (between 11 & 21) */}
-        <line x1="0" y1="-58" x2="0" y2="14" stroke="rgba(218,69,58,0.7)" strokeWidth="1.2" strokeDasharray="2 2" />
-        <text x="3" y="-50" fontSize="8" fill="rgba(218,69,58,0.95)" fontFamily="var(--font-mono)" fontWeight="700">LMD ↑</text>
-        {/* Dental midline lower (slight deviation to the left, for the seed Class II) */}
-        <line x1="-3" y1="14" x2="-3" y2="78" stroke="rgba(218,69,58,0.7)" strokeWidth="1.2" strokeDasharray="2 2" />
-        <text x="0" y="74" fontSize="8" fill="rgba(218,69,58,0.95)" fontFamily="var(--font-mono)" fontWeight="700">LMD ↓ 0.5</text>
-
-        {/* Overbite measurement bracket on right side */}
-        <g transform="translate(240, -10)">
-          <line x1="0" y1="-32" x2="0" y2="22" stroke="rgba(0,128,176,0.9)" strokeWidth="1" />
-          <line x1="-4" y1="-32" x2="4" y2="-32" stroke="rgba(0,128,176,0.9)" strokeWidth="1" />
-          <line x1="-4" y1="22" x2="4" y2="22" stroke="rgba(0,128,176,0.9)" strokeWidth="1" />
-          <rect x="6" y="-12" width="46" height="24" rx="4" fill="rgba(255,255,255,0.95)" stroke="rgba(0,128,176,0.6)" strokeWidth="0.6" />
-          <text x="29" y="-1" fontSize="8" fill="var(--fg-muted)" textAnchor="middle" fontFamily="var(--font-display)" fontWeight="700" letterSpacing="0.5">OVERBITE</text>
-          <text x="29" y="9" fontSize="10" fill="var(--fg-strong)" textAnchor="middle" fontFamily="var(--font-mono)" fontWeight="700">4.0 mm</text>
-        </g>
-
-        {/* Sonrisa gingival measurement (left side) */}
-        <g transform="translate(-240, -70)">
-          <line x1="0" y1="0" x2="0" y2="16" stroke="rgba(224,153,46,0.95)" strokeWidth="1" />
-          <line x1="-4" y1="0" x2="4" y2="0" stroke="rgba(224,153,46,0.95)" strokeWidth="1" />
-          <line x1="-4" y1="16" x2="4" y2="16" stroke="rgba(224,153,46,0.95)" strokeWidth="1" />
-          <rect x="-58" y="0" width="50" height="24" rx="4" fill="rgba(255,255,255,0.95)" stroke="rgba(224,153,46,0.6)" strokeWidth="0.6" />
-          <text x="-33" y="11" fontSize="8" fill="var(--fg-muted)" textAnchor="middle" fontFamily="var(--font-display)" fontWeight="700" letterSpacing="0.5">SONR. GINGIVAL</text>
-          <text x="-33" y="21" fontSize="10" fill="var(--fg-strong)" textAnchor="middle" fontFamily="var(--font-mono)" fontWeight="700">2.0 mm</text>
-        </g>
-
-        {/* Buccal corridor (subtle shaded zones at sides) */}
-        <path d="M -310 -50 L -240 -50 L -240 50 L -310 50 Z" fill="rgba(11,20,36,0.18)" />
-        <path d="M 240 -50 L 310 -50 L 310 50 L 240 50 Z" fill="rgba(11,20,36,0.18)" />
-        <text x="-275" y="60" fontSize="8" fill="rgba(255,255,255,0.7)" textAnchor="middle" fontFamily="var(--font-display)" fontWeight="600" letterSpacing="1">CORREDOR BUCAL</text>
-        <text x="275" y="60" fontSize="8" fill="rgba(255,255,255,0.7)" textAnchor="middle" fontFamily="var(--font-display)" fontWeight="600" letterSpacing="1">CORREDOR BUCAL</text>
-
-        {/* FDI labels — only on selected or hover */}
-        {allTeeth.map(t => {
-          const isOn = selected === t.fdi || hoverFdi === t.fdi;
-          if (!isOn) return null;
-          const isUpper = t.fdi < 30;
-          const labelY = isUpper ? t.y + 32 * t.scale + 10 : t.y - 32 * t.scale - 4;
+        {/* Selection / hover halos */}
+        {SMILE_TEETH.map(t => {
+          const on = selected === t.fdi;
+          const hv = hoverFdi === t.fdi && !on;
+          if (!on && !hv) return null;
           return (
-            <g key={`lbl-${t.fdi}`}>
-              <rect x={t.x - 12} y={labelY - 9} width="24" height="13" rx="3" fill="rgba(11,20,36,0.85)" />
-              <text x={t.x} y={labelY} fontSize="9" textAnchor="middle" fill="white" fontFamily="var(--font-mono)" fontWeight="700">{t.fdi}</text>
+            <ellipse key={`halo-${t.fdi}`} cx={t.cx} cy={t.cy} rx={t.w * 0.47 + 1.5} ry={t.h * 0.47 + 1.5}
+              fill={on ? 'rgba(0,128,176,0.10)' : 'rgba(0,128,176,0.05)'}
+              stroke="var(--sd-blue-600)" strokeWidth={on ? 1 : 0.6}
+              strokeDasharray="2 1.6" style={{ pointerEvents: 'none' }}
+              filter={on ? 'url(#smileSelGlow)' : undefined} />
+          );
+        })}
+
+        {/* Condition overlays */}
+        {SMILE_TEETH.map(t => <SmileCondition key={`cond-${t.fdi}`} t={t} state={teeth[t.fdi] || {}} />)}
+
+        {/* Archwires */}
+        <Wire d={wireUpper} />
+        <Wire d={wireLower} />
+
+        {/* Appliances + movement arrows */}
+        {SMILE_TEETH.map(t => <SmileAppliance key={`app-${t.fdi}`} t={t} state={teeth[t.fdi] || {}} />)}
+        {SMILE_TEETH.map(t => <SmileMovement key={`mov-${t.fdi}`} t={t} state={teeth[t.fdi] || {}} />)}
+
+        {/* === Clinical guides on top === */}
+        {/* Upper dental midline */}
+        <line x1={SMILE_MIDLINE_X} y1="74" x2={SMILE_MIDLINE_X} y2={SMILE_OCCLUSAL_Y} stroke="rgba(218,69,58,0.75)" strokeWidth="0.9" strokeDasharray="2 1.6" />
+        <text x={SMILE_MIDLINE_X + 2} y="82" fontSize="5.5" fill="rgba(218,69,58,0.95)" fontFamily="var(--font-mono)" fontWeight="700">LMD ↑</text>
+        {/* Lower dental midline — 0.5 mm left deviation */}
+        <line x1={SMILE_MIDLINE_X - 3} y1={SMILE_OCCLUSAL_Y} x2={SMILE_MIDLINE_X - 3} y2="180" stroke="rgba(218,69,58,0.75)" strokeWidth="0.9" strokeDasharray="2 1.6" />
+        <text x={SMILE_MIDLINE_X - 27} y="178" fontSize="5.5" fill="rgba(218,69,58,0.95)" fontFamily="var(--font-mono)" fontWeight="700">LMD ↓ 0.5</text>
+
+        {/* Overbite bracket (right) */}
+        <g transform="translate(428, 116)">
+          <line x1="0" y1="-12" x2="0" y2="22" stroke="rgba(0,128,176,0.9)" strokeWidth="0.7" />
+          <line x1="-2.5" y1="-12" x2="2.5" y2="-12" stroke="rgba(0,128,176,0.9)" strokeWidth="0.7" />
+          <line x1="-2.5" y1="22" x2="2.5" y2="22" stroke="rgba(0,128,176,0.9)" strokeWidth="0.7" />
+          <rect x="-46" y="-3" width="42" height="16" rx="3" fill="rgba(255,255,255,0.95)" stroke="rgba(0,128,176,0.6)" strokeWidth="0.5" />
+          <text x="-25" y="3" fontSize="5" fill="#64748B" textAnchor="middle" fontFamily="var(--font-display)" fontWeight="700" letterSpacing="0.3">OVERBITE</text>
+          <text x="-25" y="10" fontSize="6" fill="#0B1424" textAnchor="middle" fontFamily="var(--font-mono)" fontWeight="700">4.0 mm</text>
+        </g>
+
+        {/* Gingival smile bracket (left) */}
+        <g transform="translate(40, 68)">
+          <line x1="0" y1="0" x2="0" y2="12" stroke="rgba(224,153,46,0.95)" strokeWidth="0.7" />
+          <line x1="-2.5" y1="0" x2="2.5" y2="0" stroke="rgba(224,153,46,0.95)" strokeWidth="0.7" />
+          <line x1="-2.5" y1="12" x2="2.5" y2="12" stroke="rgba(224,153,46,0.95)" strokeWidth="0.7" />
+          <rect x="4" y="-1" width="46" height="16" rx="3" fill="rgba(255,255,255,0.95)" stroke="rgba(224,153,46,0.6)" strokeWidth="0.5" />
+          <text x="27" y="5" fontSize="5" fill="#64748B" textAnchor="middle" fontFamily="var(--font-display)" fontWeight="700" letterSpacing="0.3">SONR. GINGIVAL</text>
+          <text x="27" y="12" fontSize="6" fill="#0B1424" textAnchor="middle" fontFamily="var(--font-mono)" fontWeight="700">2.0 mm</text>
+        </g>
+
+        {/* FDI labels on hover / selection */}
+        {SMILE_TEETH.map(t => {
+          const on = selected === t.fdi || hoverFdi === t.fdi;
+          if (!on) return null;
+          const ly = t.arch === 'sup' ? t.cy + t.h * 0.5 + 9 : t.cy - t.h * 0.5 - 4;
+          return (
+            <g key={`lbl-${t.fdi}`} style={{ pointerEvents: 'none' }}>
+              <rect x={t.cx - 8} y={ly - 6.5} width="16" height="9.5" rx="2" fill="rgba(11,20,36,0.85)" />
+              <text x={t.cx} y={ly} fontSize="6" textAnchor="middle" fill="white" fontFamily="var(--font-mono)" fontWeight="700">{t.fdi}</text>
             </g>
           );
         })}
 
-        {/* Hover handlers — overlay rects */}
-        {allTeeth.map(t => (
-          <rect key={`hit-${t.fdi}`}
-            x={t.x - 20} y={t.y - 30 * t.scale} width="40" height={60 * t.scale}
-            fill="transparent" style={{cursor: 'pointer'}}
+        {/* Pointer hit-zones (top layer) */}
+        {SMILE_TEETH.map(t => (
+          <ellipse key={`hit-${t.fdi}`} cx={t.cx} cy={t.cy} rx={t.w * 0.46} ry={t.h * 0.46}
+            fill="transparent" style={{ cursor: 'pointer' }}
             onMouseEnter={() => setHoverFdi(t.fdi)}
             onMouseLeave={() => setHoverFdi(null)}
-            onClick={() => onSelect(t.fdi)}
-          />
+            onClick={() => onSelect(t.fdi)} />
         ))}
       </svg>
 
@@ -924,10 +961,25 @@ function getOcclusalPositions(archType) {
   const N = fdis.length;
   const a = 230;   // half-width
   const b = 260;   // depth front-to-back
+  const ANG_MAX = 1.45;
+  // Mesio-distal crown widths (local units) matching the occlusal tooth shapes.
+  // Teeth are spaced proportionally to their width so neighbours sit edge-to-edge;
+  // a uniform angular step crowded the wide central incisors into each other at the midline.
+  const OCC_W = { ci: 9.2, il: 7.2, c: 7.6, p1: 7.6, p2: 7.6, m1: 11.0, m2: 10.4, m3: 9.0 };
+  const widths = fdis.map(f => OCC_W[window.fdiToType(f)] || 8);
+  // Chain the crowns edge-to-edge along the arch, then record each centre.
+  const centers = [];
+  let cursor = 0;
+  for (let i = 0; i < N; i++) {
+    if (i > 0) cursor += (widths[i - 1] + widths[i]) / 2;
+    centers.push(cursor);
+  }
+  const span = centers[N - 1] || 1;
   const positions = [];
   for (let i = 0; i < N; i++) {
-    const t = (i - 7.5) / 7.5;
-    const ang = Math.sign(t) * Math.pow(Math.abs(t), 1.18) * 1.45;
+    // normalise each crown's centre to [-1, 1] then fan it across the arch angle
+    const u = (centers[i] - span / 2) / (span / 2);
+    const ang = u * ANG_MAX;
     const x = a * Math.sin(ang);
     // Anteriors at y = +120 (bottom), posteriors at y = -100 (top)
     const y = -b * Math.cos(ang) + 140;
@@ -1096,7 +1148,7 @@ function OclusalView({ teeth, selected, onSelect }) {
         {/* === Clinical guides (rendered BEHIND teeth) === */}
         {/* Midline */}
         <line x1="0" y1="-180" x2="0" y2="230" stroke="rgba(0,128,176,0.35)" strokeWidth="1" strokeDasharray="4 4" />
-        <text x="-46" y="-175" fontSize="9" fill="rgba(0,128,176,0.85)" fontFamily="var(--font-mono)" fontWeight="700">LÍNEA MEDIA</text>
+        <text x="-46" y="-152" fontSize="9" fill="rgba(0,128,176,0.85)" fontFamily="var(--font-mono)" fontWeight="700">LÍNEA MEDIA</text>
 
         {/* Arch form curve (lays right on top of the wire path) */}
         {wirePath && (

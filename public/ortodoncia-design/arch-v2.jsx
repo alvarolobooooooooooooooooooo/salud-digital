@@ -12,6 +12,234 @@ const { useState: useStateA, useMemo: useMemoA, useRef: useRefA } = React;
 const ARCH_W = { m3: 42, m2: 48, m1: 54, p2: 42, p1: 42, c: 38, il: 32, ci: 38 };
 const ARCH_GAP = 9;
 
+// =====================================================================
+// Realistic tooth anatomy — ported from the periodontograma
+// (periodontograma-tooth.jsx). Gives each arch tooth a properly shaded
+// crown + visible root + gum collar, instead of the flat rounded boxes.
+// Geometry lives in a native 50×130 frame: crown ~y1–55, CEJ at y55,
+// root ~y55–125. PerioArchTooth scales/positions it into each slot.
+// =====================================================================
+const PA_W = 50;
+const PA_CEJ = 55;
+const PA_OCC = 4;            // native y of the incisal/occlusal (biting) edge
+// Content (crown) width per perio type — used so each tooth fills its slot.
+const PA_CONTENT_W = { incisor: 29, canine: 28, premolar: 34, molar: 44 };
+const PA_SCALE = 0.92;        // shrink a touch so neighbours don't touch
+
+const PA_EN_LIGHT = '#FDFCFA';
+const PA_EN_SHAD  = '#B8B2A0';
+const PA_EN_LINE  = '#2E3340';
+const PA_DT_LIGHT = '#F1DDB2';
+const PA_DT_MID   = '#E2C58A';
+const PA_DT_SHAD  = '#9C7E3E';
+const PA_DT_LINE  = '#5A4216';
+const PA_GROOVE   = '#7E7660';
+const PA_CUSP_SH  = '#9B8E6E';
+
+function paBuildTooth(type, upper, fdi) {
+  if (type === 'molar') return paBuildMolar(upper, fdi);
+  if (type === 'premolar') return paBuildPremolar(upper, fdi);
+  if (type === 'canine') return paBuildCanine(fdi);
+  return paBuildIncisor(fdi);
+}
+
+function paBuildIncisor() {
+  const crownD = `
+    M 12.5 55 C 11.5 44, 10.5 28, 11 21
+    C 11.5 12, 14 6, 17 4.5 C 20 4, 30 4, 33 4.5
+    C 36 6, 38.5 12, 39 21 C 39.5 28, 38.5 44, 37.5 55 Z`.replace(/\s+/g, ' ');
+  const rootD = `
+    M 14 55 C 12.5 72, 12 92, 14.5 110
+    C 16.5 118, 20 121, 22 121 L 24 122 L 26 122
+    L 28 121 C 30 121, 33.5 118, 35.5 110
+    C 38 92, 37.5 72, 36 55 Z`.replace(/\s+/g, ' ');
+  const pulpD = `
+    M 22 14 Q 22 24 22 35 L 22 50 L 28 50
+    L 28 35 Q 28 24 28 14 Z`.replace(/\s+/g, ' ');
+  return {
+    crownD, rootD, pulpD,
+    details: (
+      <g pointerEvents="none">
+        <path d="M 13 5 Q 25 3.5 37 5" fill="none" stroke={PA_EN_LINE} strokeWidth="0.4" opacity="0.5" />
+        <g opacity="0.35" stroke={PA_GROOVE} strokeWidth="0.4" strokeLinecap="round" fill="none">
+          <path d="M 18 5 L 18 11" />
+          <path d="M 25 4 L 25 12" />
+          <path d="M 32 5 L 32 11" />
+        </g>
+        <path d="M 12 53 Q 25 55 38 53" fill="none" stroke="#A39880" strokeWidth="0.5" opacity="0.6" />
+        <path d="M 38 20 C 39 28 38 44 37 54" fill="none" stroke={PA_EN_SHAD} strokeWidth="0.5" opacity="0.4" />
+      </g>
+    ),
+  };
+}
+
+function paBuildCanine() {
+  const crownD = `
+    M 12.5 55 C 11.5 42, 10.5 25, 11.5 18
+    C 12.5 14, 14 12, 16 11 L 22 7 L 24.5 2.5
+    L 26 1 L 27.5 2.5 L 30 8 L 34 11
+    C 36 12, 37.5 14, 38.5 18
+    C 39.5 25, 38.5 42, 37.5 55 Z`.replace(/\s+/g, ' ');
+  const rootD = `
+    M 13.5 55 C 11.5 74, 10 96, 13 117
+    C 15.5 126, 20 130, 23.5 130.5 L 26 131 L 28 130
+    C 32 129, 35 126, 37 117 C 40 96, 38.5 74, 36.5 55 Z`.replace(/\s+/g, ' ');
+  const pulpD = `
+    M 23 8 C 23 16, 23 32, 23 48 L 27 48
+    C 27 32, 27 16, 27 8 Z`.replace(/\s+/g, ' ');
+  return {
+    crownD, rootD, pulpD,
+    details: (
+      <g pointerEvents="none">
+        <path d="M 16 11 L 25 2 L 34 11" fill="none" stroke={PA_EN_LINE} strokeWidth="0.55" strokeLinecap="round" opacity="0.55" />
+        <path d="M 25 3 Q 25 22 25 46" fill="none" stroke={PA_GROOVE} strokeWidth="0.45" strokeDasharray="1.2 1.2" opacity="0.55" />
+        <path d="M 13 18 C 12 25 12 38 13 50" fill="none" stroke={PA_EN_SHAD} strokeWidth="0.5" opacity="0.4" />
+        <path d="M 37 18 C 38 25 38 38 37 50" fill="none" stroke={PA_EN_SHAD} strokeWidth="0.5" opacity="0.4" />
+        <path d="M 12 53 Q 25 55.5 38 53" fill="none" stroke="#A39880" strokeWidth="0.5" opacity="0.6" />
+        <ellipse cx="25" cy="3.5" rx="1.2" ry="0.6" fill={PA_CUSP_SH} opacity="0.55" />
+      </g>
+    ),
+  };
+}
+
+function paBuildPremolar(upper, fdi) {
+  const crownD = `
+    M 9 55 C 8 42, 8 25, 10 18
+    C 12 12, 15 8, 19 6.5 L 23 4.5 L 25 3.5 L 27 4.5 L 31 6.5
+    C 35 8, 38 12, 40 18 C 42 25, 42 42, 41 55 Z`.replace(/\s+/g, ' ');
+  const isUpperFirst = upper && (fdi % 10 === 4);
+  const rootD = isUpperFirst ? `
+    M 11.5 55 C 10 72, 9 95, 13 115
+    C 15.5 122, 18 123, 19.5 120 L 21 90 L 23 70 L 25 65
+    L 27 70 L 29 90 L 30.5 120
+    C 32 123, 34.5 122, 37 115 C 41 95, 40 72, 38.5 55 Z`.replace(/\s+/g, ' ') : `
+    M 12 55 C 10.5 72, 10 96, 13.5 116
+    C 16 124, 20 126, 23 126 L 25 126.5 L 27 126
+    C 30 126, 34 124, 36.5 116 C 40 96, 39.5 72, 38 55 Z`.replace(/\s+/g, ' ');
+  const pulpD = `
+    M 22 10 C 22 18, 22 35, 22 50 L 28 50
+    C 28 35, 28 18, 28 10 Z`.replace(/\s+/g, ' ');
+  return {
+    crownD, rootD, pulpD,
+    details: (
+      <g pointerEvents="none">
+        <path d="M 17 8 Q 25 2.5 33 8" fill="none" stroke={PA_EN_LINE} strokeWidth="0.5" opacity="0.5" />
+        <path d="M 20 7.5 Q 25 12 30 7.5" fill="none" stroke={PA_GROOVE} strokeWidth="0.4" opacity="0.55" />
+        <path d="M 25 4 L 25 16 Q 25 30 25 48" fill="none" stroke={PA_GROOVE} strokeWidth="0.45" strokeDasharray="1 1.2" opacity="0.5" />
+        <path d="M 17 9 Q 18 14 19 18" fill="none" stroke={PA_GROOVE} strokeWidth="0.35" opacity="0.4" />
+        <path d="M 33 9 Q 32 14 31 18" fill="none" stroke={PA_GROOVE} strokeWidth="0.35" opacity="0.4" />
+        <ellipse cx="25" cy="5.5" rx="1.4" ry="0.7" fill={PA_CUSP_SH} opacity="0.5" />
+        <path d="M 10 53 Q 25 55.5 40 53" fill="none" stroke="#A39880" strokeWidth="0.5" opacity="0.6" />
+      </g>
+    ),
+  };
+}
+
+function paBuildMolar(upper) {
+  const crownD = `
+    M 4 55 C 3 42, 3 25, 5 17
+    C 7.5 10, 12 6.5, 16 8.5
+    C 17 7, 18.5 5, 20 6 L 21 8 L 22 5.5 L 23 8.5
+    L 24 13.5 L 25 16 L 26 13.5 L 27 8.5 L 28 5.5
+    L 29 8 L 30 6 C 31.5 5, 33 7, 34 8.5
+    C 38 6.5, 42.5 10, 45 17 C 47 25, 47 42, 46 55 Z`.replace(/\s+/g, ' ');
+
+  let rootD;
+  if (upper) {
+    rootD = `
+      M 8 55 C 5 75, 3.5 95, 7 110
+      C 10 119, 14 121, 16 119
+      C 17.5 113, 18 100, 19 80 L 19.5 55
+      M 30.5 55 L 31 80
+      C 32 100, 32.5 113, 34 119
+      C 36 121, 40 119, 43 110
+      C 46.5 95, 45 75, 42 55 Z`.replace(/\s+/g, ' ');
+  } else {
+    rootD = `
+      M 8 55 C 5 76, 3 102, 7 118
+      C 11 126, 16 126, 18.5 121
+      C 20 110, 20 82, 19 55
+      M 31 55 C 30 82, 30 110, 31.5 121
+      C 34 126, 39 126, 43 118
+      C 47 102, 45 76, 42 55 Z`.replace(/\s+/g, ' ');
+  }
+
+  const palatalRootD = upper ? `
+    M 20.5 55 C 19.5 78, 19 98, 22 112
+    C 24 119, 26 119, 28 112 C 31 98, 30.5 78, 29.5 55 Z`.replace(/\s+/g, ' ') : null;
+
+  const pulpD = `
+    M 12 12 C 12 20, 12 36, 13 50 L 37 50
+    C 38 36, 38 20, 38 12 Z`.replace(/\s+/g, ' ');
+
+  return {
+    crownD, rootD, pulpD, palatalRootD,
+    details: (
+      <g pointerEvents="none">
+        <path d="M 14 11 Q 19 6 23 9" fill="none" stroke={PA_EN_LINE} strokeWidth="0.55" opacity="0.55" />
+        <path d="M 27 9 Q 31 6 36 11" fill="none" stroke={PA_EN_LINE} strokeWidth="0.55" opacity="0.55" />
+        <path d="M 25 9 Q 25 18 25 26 Q 25 38 25 50" fill="none" stroke={PA_GROOVE} strokeWidth="0.7" opacity="0.55" />
+        <ellipse cx="19" cy="7" rx="1.6" ry="0.8" fill={PA_CUSP_SH} opacity="0.5" />
+        <ellipse cx="31" cy="7" rx="1.6" ry="0.8" fill={PA_CUSP_SH} opacity="0.5" />
+        <path d="M 16 9 Q 19 12 22 9" fill="none" stroke={PA_GROOVE} strokeWidth="0.35" opacity="0.45" />
+        <path d="M 28 9 Q 31 12 34 9" fill="none" stroke={PA_GROOVE} strokeWidth="0.35" opacity="0.45" />
+        <path d="M 13 13 Q 14 22 15 30" fill="none" stroke={PA_GROOVE} strokeWidth="0.4" opacity="0.4" />
+        <path d="M 37 13 Q 36 22 35 30" fill="none" stroke={PA_GROOVE} strokeWidth="0.4" opacity="0.4" />
+        <path d="M 5 53 Q 25 56 45 53" fill="none" stroke="#A39880" strokeWidth="0.55" opacity="0.6" />
+      </g>
+    ),
+  };
+}
+
+// Map the arch's tooth-type codes to the perio anatomy families.
+function paTypeFor(t) {
+  if (t === 'm1' || t === 'm2' || t === 'm3') return 'molar';
+  if (t === 'p1' || t === 'p2') return 'premolar';
+  if (t === 'c') return 'canine';
+  return 'incisor'; // ci, il
+}
+
+// A single realistic tooth (crown + root + gum collar) sized to a slot.
+// occlusalY = local y of the biting edge; the root grows away from the mouth.
+function PerioArchTooth({ fdi, type, width, isUpper, occlusalY }) {
+  const ptype = paTypeFor(type);
+  const t = paBuildTooth(ptype, isUpper, fdi);
+  const s = (width / (PA_CONTENT_W[ptype] || 34)) * PA_SCALE;
+
+  // Native (px,py) → local. Upper flips vertically so the crown points to the mouth.
+  const transform = isUpper
+    ? `translate(0, ${(occlusalY + s * PA_OCC).toFixed(2)}) scale(${s.toFixed(4)}, ${(-s).toFixed(4)}) translate(${-PA_W / 2}, 0)`
+    : `translate(0, ${(occlusalY - s * PA_OCC).toFixed(2)}) scale(${s.toFixed(4)}) translate(${-PA_W / 2}, 0)`;
+
+  // Gum collar: scalloped margin near the CEJ, papillae higher at the proximals.
+  const gumLine = 'M 0 50 Q 8 50 12 53 Q 25 56 38 53 Q 42 50 50 50';
+  const gumFill = gumLine + ' L 50 90 L 0 90 Z';
+
+  return (
+    <g transform={transform}>
+      {/* Root */}
+      {t.palatalRootD && (
+        <path d={t.palatalRootD} fill={PA_DT_MID} stroke={PA_DT_LINE} strokeWidth="0.75" opacity="0.82" />
+      )}
+      <path d={t.rootD} fill={PA_DT_LIGHT} stroke={PA_DT_LINE} strokeWidth="0.85" />
+      <path d={t.rootD} fill="url(#paRtSh)" />
+      <path d={t.rootD} fill="url(#paRtHi)" />
+      {/* Crown */}
+      <path d={t.crownD} fill={PA_EN_LIGHT} stroke={PA_EN_LINE} strokeWidth="1.0" strokeLinejoin="round" />
+      <path d={t.crownD} fill="url(#paEnSh)" />
+      <path d={t.crownD} fill="url(#paEnCv)" />
+      <path d={t.crownD} fill="url(#paEnHi)" />
+      {t.pulpD && <path d={t.pulpD} fill="url(#paPulp)" opacity="0.7" />}
+      {t.details}
+      {/* CEJ hint */}
+      <line x1="4" y1={PA_CEJ} x2={PA_W - 4} y2={PA_CEJ} stroke="#6B4F22" strokeWidth="0.4" strokeDasharray="1.2 0.8" opacity="0.45" />
+      {/* Gum collar (faded toward the apex so the root stays visible) */}
+      <path d={gumFill} fill="url(#paGum)" />
+      <path d={gumLine} fill="none" stroke="#9A5050" strokeWidth="0.8" opacity="0.85" />
+    </g>
+  );
+}
+
 // Compute arch positions: chain of teeth with proper spacing + gentle curve
 function getArchPositionsV2(archType) {
   const fdis = archType === 'upper' ? UPPER_FDI : LOWER_FDI;
@@ -50,6 +278,43 @@ function CrownDefs() {
         <stop offset="0.45" stopColor="#BAC2CE" />
         <stop offset="0.55" stopColor="#7B8597" />
         <stop offset="1" stopColor="#4D5667" />
+      </linearGradient>
+
+      {/* Realistic-tooth gradients (shared by every PerioArchTooth) */}
+      <linearGradient id="paEnSh" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stopColor="#FFFFFF" stopOpacity="0" />
+        <stop offset="0.5" stopColor="#FFFFFF" stopOpacity="0" />
+        <stop offset="0.85" stopColor={PA_EN_SHAD} stopOpacity="0.35" />
+        <stop offset="1" stopColor={PA_EN_SHAD} stopOpacity="0.55" />
+      </linearGradient>
+      <linearGradient id="paEnHi" x1="0.3" y1="0" x2="0.7" y2="1">
+        <stop offset="0" stopColor="#FFFFFF" stopOpacity="0.95" />
+        <stop offset="0.35" stopColor="#FFFFFF" stopOpacity="0.15" />
+        <stop offset="1" stopColor="#FFFFFF" stopOpacity="0" />
+      </linearGradient>
+      <linearGradient id="paEnCv" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#FFFFFF" stopOpacity="0" />
+        <stop offset="0.7" stopColor="#FFFFFF" stopOpacity="0" />
+        <stop offset="1" stopColor="#7A6A3F" stopOpacity="0.18" />
+      </linearGradient>
+      <linearGradient id="paRtHi" x1="0.3" y1="0" x2="0.7" y2="1">
+        <stop offset="0" stopColor="#FFFFFF" stopOpacity="0.55" />
+        <stop offset="0.4" stopColor="#FFFFFF" stopOpacity="0" />
+      </linearGradient>
+      <linearGradient id="paRtSh" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stopColor="#FFFFFF" stopOpacity="0" />
+        <stop offset="0.55" stopColor="#FFFFFF" stopOpacity="0" />
+        <stop offset="1" stopColor={PA_DT_SHAD} stopOpacity="0.45" />
+      </linearGradient>
+      <radialGradient id="paPulp" cx="0.5" cy="0.3" r="0.7">
+        <stop offset="0" stopColor="#A0623A" stopOpacity="0.32" />
+        <stop offset="1" stopColor="#A0623A" stopOpacity="0" />
+      </radialGradient>
+      <linearGradient id="paGum" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#E89797" stopOpacity="0.95" />
+        <stop offset="0.3" stopColor="#E89797" stopOpacity="0.82" />
+        <stop offset="0.62" stopColor="#DB9090" stopOpacity="0.28" />
+        <stop offset="0.82" stopColor="#CC8888" stopOpacity="0" />
       </linearGradient>
     </defs>
   );
@@ -361,10 +626,10 @@ function ArchToothV2({ fdi, x, y, width, state, selected, hovered, onHover, onSe
               strokeDasharray={selected ? 'none' : '3 3'} />
       )}
 
-      {/* Tooth (root + crown) */}
+      {/* Tooth (realistic crown + root + gum, ported from the periodontograma) */}
       <g style={{ opacity: isMissing ? 0.15 : (isExtracted ? 0.35 : 1) }}>
-        <ArchRoot type={type} isUpper={isUpper} rootStart={rootStart} rootEnd={rootEnd} />
-        <ArchCrown type={type} width={width} crownStart={crownStart} crownEnd={crownEnd} isUpper={isUpper} />
+        <PerioArchTooth fdi={fdi} type={type} width={width} isUpper={isUpper}
+          occlusalY={isUpper ? crownEnd : crownStart} />
       </g>
 
       {/* "Missing" or "extracted" mark */}

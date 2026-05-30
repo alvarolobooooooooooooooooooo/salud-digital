@@ -605,7 +605,7 @@ function App() {
             {view === 'oclusal' && <OclusalView teeth={teeth} selected={selected} onSelect={handleSelectTooth} />}
             {view === 'profile' && <ProfileView teeth={teeth} angleClass={angleClass} setAngleClass={setAngleClass} cephValues={cephValues} setCephValues={setCephValues} />}
             {view === 'plano' && <PlanoView teeth={teeth} selected={selected} onSelect={handleSelectTooth} />}
-            {view === 'evolucion' && <EvolucionView teeth={teeth} selected={selected} onSelect={handleSelectTooth} month={month} setMonth={setMonth} />}
+            {view === 'evolucion' && <EvolucionView teeth={teeth} selected={selected} onSelect={handleSelectTooth} month={month} setMonth={setMonth} media={media} setMedia={setMedia} />}
             {view === 'media' && <MediaView media={media} setMedia={setMedia} />}
           </div>
         </section>

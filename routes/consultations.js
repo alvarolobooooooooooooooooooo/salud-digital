@@ -456,8 +456,55 @@ router.post('/:id/images', authenticate, imageUpload.array('images', 10), async 
 
 router.get('/:id/images', authenticate, async (req, res) => {
   const { id } = req.params;
-  const result = await query('SELECT id, filename, original_name, created_at FROM consultation_images WHERE consultation_id = $1 AND clinic_id = $2 ORDER BY created_at DESC', [id, req.user.clinic_id]);
+  let queryStr = 'SELECT id, filename, original_name, created_at FROM consultation_images WHERE consultation_id = $1 AND clinic_id = $2';
+  const params = [id, req.user.clinic_id];
+  // Un doctor solo puede ver imágenes de SUS consultas (consultation_images no tiene
+  // doctor_id, así que filtramos a través de la consulta). clinic_admin ve todas las de la clínica.
+  if (req.user.role === 'doctor') {
+    queryStr += ' AND consultation_id IN (SELECT id FROM consultations WHERE id = $1 AND doctor_id = $3)';
+    params.push(req.user.id);
+  }
+  queryStr += ' ORDER BY created_at DESC';
+  const result = await query(queryStr, params);
   res.json(result.rows);
+});
+
+// Fotos embebidas en el diagrama de ortodoncia: viven como data URLs base64 dentro de
+// consultations.odontogram_state (.state.media). Se sirven aparte y bajo demanda porque
+// son pesadas (no se incluyen en listados ni en el índice de fotos del paciente).
+const ORTHO_SLOT_LABELS = {
+  frontal_reposo: 'Frontal en reposo', frontal_sonrisa: 'Frontal sonrisa', perfil_derecho: 'Perfil derecho',
+  intraoral_frontal: 'Intraoral frontal', intraoral_derecha: 'Intraoral derecha', intraoral_izq: 'Intraoral izquierda',
+  oclusal_superior: 'Oclusal superior', oclusal_inferior: 'Oclusal inferior', sonrisa_lateral: 'Sonrisa lateral',
+  panoramica: 'Panorámica', cefalometria: 'Cefalometría lateral', periapicales: 'Periapicales',
+  aleta_der: 'Aleta de mordida der.', aleta_izq: 'Aleta de mordida izq.', manopla: 'Manopla'
+};
+
+router.get('/:id/diagram-photos', authenticate, async (req, res) => {
+  const { id } = req.params;
+  let queryStr = 'SELECT odontogram_state, doctor_id FROM consultations WHERE id = $1 AND clinic_id = $2';
+  const params = [id, req.user.clinic_id];
+  if (req.user.role === 'doctor') { queryStr += ' AND doctor_id = $3'; params.push(req.user.id); }
+
+  const result = await query(queryStr, params);
+  const cons = result.rows[0];
+  if (!cons) return res.status(404).json({ error: 'Consultation not found' });
+
+  let media = {};
+  try {
+    const parsed = JSON.parse(cons.odontogram_state || '{}');
+    if (parsed && parsed.state && parsed.state.media && typeof parsed.state.media === 'object') {
+      media = parsed.state.media;
+    }
+  } catch { media = {}; }
+
+  const photos = [];
+  for (const [slot, dataUrl] of Object.entries(media)) {
+    if (typeof dataUrl === 'string' && dataUrl.startsWith('data:')) {
+      photos.push({ slot, label: ORTHO_SLOT_LABELS[slot] || slot, dataUrl });
+    }
+  }
+  res.json(photos);
 });
 
 router.delete('/images/:imageId', authenticate, async (req, res) => {
