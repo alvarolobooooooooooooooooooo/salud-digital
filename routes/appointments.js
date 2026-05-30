@@ -22,6 +22,17 @@ router.get('/', authenticate, async (req, res) => {
     paramIndex++;
   }
 
+  // Filtro opcional por paciente. La ficha de paciente (patients.html) solo necesita
+  // las citas de UN paciente, así que evita traer todas las citas de la clínica.
+  // Retrocompatible: los demás callers no envían patient_id y reciben la lista completa.
+  if (req.query.patient_id !== undefined) {
+    const patientId = parseInt(req.query.patient_id, 10);
+    if (isNaN(patientId)) return res.status(400).json({ error: 'patient_id inválido' });
+    queryStr += ` AND a.patient_id = $${paramIndex}`;
+    params.push(patientId);
+    paramIndex++;
+  }
+
   queryStr += ' ORDER BY a.scheduled_at ASC';
   const result = await query(queryStr, params);
   res.json(result.rows);

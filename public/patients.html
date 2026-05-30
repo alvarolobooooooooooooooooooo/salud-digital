@@ -1049,18 +1049,54 @@
   async function selectPatient(patientId) {
     selectedPatientId = patientId;
     renderQueue();
+    showDetailLoading();            // feedback inmediato (en móvil el panel entra al instante)
     await loadPatientDetail(patientId);
+  }
+
+  // Skeleton de carga del panel derecho: se muestra de inmediato al seleccionar un
+  // paciente mientras llegan los datos. Reutiliza el spinner global de layout.css.
+  function showDetailLoading() {
+    const detailPanel = document.getElementById('detailPanel');
+    detailPanel.innerHTML = `
+      <button class="detail-back-btn-mobile" onclick="closeDetailPanel()">← Volver</button>
+      <div class="detail-loading" aria-busy="true" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.25rem; min-height:60vh;">
+        <div class="page-loader-spinner"></div>
+        <div class="page-loader-text">Cargando paciente…</div>
+      </div>`;
+    detailPanel.classList.add('active');
+  }
+
+  function showDetailError(patientId) {
+    const detailPanel = document.getElementById('detailPanel');
+    detailPanel.innerHTML = `
+      <button class="detail-back-btn-mobile" onclick="closeDetailPanel()">← Volver</button>
+      <div class="empty-state">
+        <h3 style="margin:0; font-size:18px; font-weight:700; color:#0e7490; letter-spacing:-0.01em;">No se pudo cargar</h3>
+        <p style="margin:0; max-width:32ch; text-align:center; line-height:1.5;">Ocurrió un error al cargar el paciente. Revisá tu conexión e intentá de nuevo.</p>
+        <button class="action-btn" onclick="selectPatient(${patientId})" style="background: linear-gradient(135deg, #0891b2, #06b6d4); color:white; border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:600; cursor:pointer;">Reintentar</button>
+      </div>`;
+    detailPanel.classList.add('active');
   }
 
   // ── Load Patient Detail ──
   async function loadPatientDetail(patientId) {
     try {
-      const patient = await api(`/api/patients/${patientId}`);
-      const appointments = await api('/api/appointments');
-      const me = await api('/api/auth/me');
+      // Las tres llamadas son independientes → en paralelo (antes eran secuenciales, 3 viajes
+      // de red encadenados). Además pedimos solo las citas de ESTE paciente, no todas las de
+      // la clínica. Sin caché entre clics: cada selección trae datos frescos (evita estados
+      // obsoletos de specialty/citas y promesas rechazadas que persistirían).
+      const [patient, appointments, me] = await Promise.all([
+        api(`/api/patients/${patientId}`),
+        api(`/api/appointments?patient_id=${patientId}`),
+        api('/api/auth/me'),
+      ]);
+      // El usuario pudo haber cambiado de paciente mientras llegaban los datos: no pisar el panel.
+      if (selectedPatientId !== patientId) return;
       renderPatientDetail(patient, appointments, me);
     } catch (e) {
       console.error(e);
+      if (selectedPatientId !== patientId) return;
+      showDetailError(patientId);
     }
   }
 
@@ -1310,8 +1346,13 @@
     detailPanel.addEventListener('touchstart', onSwipeStart, false);
     detailPanel.addEventListener('touchend', onSwipeEnd, false);
 
-    // Inicializar odontograma en modo visualización (readOnly = true)
+    // Inicializar odontograma en modo visualización (readOnly = true). Capturamos el id
+    // del paciente renderizado: si el usuario cambió de paciente antes de que dispare el
+    // timer, no inicializamos sobre el panel equivocado (evita ver el odontograma de otro).
+    const renderedPatientId = patient.id;
     setTimeout(() => {
+      if (selectedPatientId !== renderedPatientId) return;
+      if (!document.getElementById('odontogramViewer')) return;
       try {
         const odontogramState = patient.odontogram_state ? JSON.parse(patient.odontogram_state) : {};
         window.odontogramViewer = new OdontogramContainer('odontogramViewer', odontogramState, true);
@@ -1409,6 +1450,7 @@
       closeModal();
       selectedPatientId = p.id;
       renderQueue();
+      showDetailLoading();
       await loadPatientDetail(p.id);
     } catch (err) {
       msgEl.textContent = err.message;

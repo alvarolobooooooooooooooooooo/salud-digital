@@ -536,7 +536,7 @@ router.get('/sales/list', authenticate, async (req, res) => {
   try {
     const clinicId = req.user.clinic_id;
     const isDoctor = req.user.role === 'doctor';
-    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 2000);
     const params = isDoctor ? [clinicId, req.user.id, limit] : [clinicId, limit];
     const userFilter = isDoctor ? ' AND m.user_id = $2' : '';
     const limitParam = isDoctor ? '$3' : '$2';

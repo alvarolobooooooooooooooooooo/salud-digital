@@ -491,17 +491,17 @@
         inset 0 -1px 0 rgba(8, 145, 178, 0.08);
     }
     .section h3 {
-      font-size: 17px;
-      font-weight: 600;
+      font-size: 20px;
+      font-weight: 700;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      letter-spacing: -0.015em;
+      letter-spacing: -0.02em;
     }
     .section-header-action {
       font-size: 12px;
@@ -663,36 +663,47 @@
     }
 
     /* ── Table ── */
+    /* Contenedor con scroll horizontal de seguridad: si la tabla no cabe, se
+       desplaza dentro de la sección en vez de romper el layout o partir texto. */
+    .tbl-scroll {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
     .section table {
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
-      table-layout: fixed;
+      table-layout: auto;
     }
     th {
       text-align: left;
-      padding: 1rem 0.5rem;
+      padding: 0.85rem 0.9rem;
       background: transparent;
-      font-weight: 600;
-      font-size: 11px;
+      font-weight: 700;
+      font-size: 10.5px;
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       text-transform: uppercase;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.08em;
       border-bottom: 1px solid rgba(8, 145, 178, 0.08);
-      word-break: break-word;
+      white-space: nowrap;
     }
     td {
-      padding: 1rem 0.5rem;
-      border-bottom: 1px solid rgba(8, 145, 178, 0.04);
+      padding: 0.85rem 0.9rem;
+      border-bottom: 1px solid rgba(8, 145, 178, 0.06);
       font-weight: 400;
-      font-size: 13px;
+      font-size: 13.5px;
       color: #475569;
-      word-break: break-word;
-      overflow-wrap: break-word;
+      vertical-align: middle;
+      line-height: 1.45;
+      white-space: nowrap;
     }
+    /* La columna de nombre (título) puede envolver; el resto se mantiene en una
+       sola línea para que fechas, montos y números no se corten. */
+    td.fin-card-title { white-space: normal; min-width: 8rem; }
     tbody tr:last-child td { border-bottom: none; }
     tbody tr:hover td {
       background: linear-gradient(90deg, rgba(8, 145, 178, 0.04) 0%, transparent 100%);
@@ -727,25 +738,89 @@
       transform: translateX(4px);
     }
 
-    /* Mobile responsive table */
-    @media (max-width: 860px) {
-      .section {
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
+    /* ── Mobile: cada fila se convierte en una tarjeta legible ──
+       En pantallas angostas una tabla de 6-7 columnas se amontona y parte el
+       texto. En su lugar, ocultamos el encabezado y mostramos cada fila como
+       una tarjeta: la 1ª columna es el título y el resto son pares etiqueta:valor
+       (la etiqueta viene de data-label, inyectado por el motor de filtros). */
+    @media (max-width: 768px) {
+      .section { padding: 1.4rem 1.15rem; margin-bottom: 1.4rem; }
+
+      .tbl-scroll { overflow-x: visible; }
+      .section table,
+      .section thead,
+      .section tbody,
+      .section tr,
+      .section td { display: block; width: 100%; }
+
+      .section thead { display: none; }
+
+      .section tbody tr {
+        display: flex;
+        flex-direction: column;
+        background: rgba(8, 145, 178, 0.04);
+        border: 1px solid rgba(8, 145, 178, 0.16);
+        border-radius: 14px;
+        padding: 0.25rem 1.05rem 0.6rem;
+        margin-bottom: 0.85rem;
       }
-      .section table {
-        font-size: .8rem;
+      .section tbody tr:hover { transform: none; }
+
+      .section td {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1.25rem;
+        text-align: right;
+        white-space: normal;
+        font-size: 0.95rem;
+        padding: 0.5rem 0;
+        border: 0;
+        border-bottom: 1px solid rgba(8, 145, 178, 0.08);
       }
-      th {
-        font-size: .75rem;
-        padding: .5rem 0.4rem;
+      .section td:not(:first-child) { white-space: normal; }
+      .section td:last-child { border-bottom: 0; }
+      .section td::before {
+        content: attr(data-label);
+        flex: 0 0 auto;
+        text-align: left;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        white-space: nowrap;
       }
-      td {
-        padding: .5rem 0.4rem;
+
+      /* Celda título de la tarjeta (paciente/producto/doctor según la tabla):
+         se hoistea al tope con order:-1, sin etiqueta y más grande. */
+      .section td.fin-card-title {
+        order: -1;
+        justify-content: flex-start;
+        text-align: left;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #0f172a;
+        padding: 0.1rem 0 0.55rem;
+        margin-bottom: 0.3rem;
+        border-bottom: 1px solid rgba(8, 145, 178, 0.14);
       }
-      .empty-table {
+      .section td.fin-card-title::before { display: none; }
+
+      /* Fila vacía: una sola tarjeta centrada */
+      .section td.empty-table {
+        display: block;
+        text-align: center;
         padding: 1.5rem 0.5rem;
-        font-size: .9rem;
+        font-size: 0.92rem;
+        border: 0;
+      }
+      .section td.empty-table::before { display: none; }
+
+      /* Modo oscuro: tarjetas con mejor contraste sobre la superficie oscura */
+      html[data-theme="dark"] .section tbody tr {
+        background: rgba(255, 255, 255, 0.025);
+        border-color: var(--sd-border-soft);
       }
     }
 
@@ -959,6 +1034,162 @@
       .pm-head, .pm-body, .pm-foot { padding-left: 1.25rem; padding-right: 1.25rem; }
       .pm-toast { left: 1rem; right: 1rem; bottom: 90px; }
     }
+
+    /* ── Per-table filter bars ── */
+    .fin-filterbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1.25rem;
+    }
+    .fin-presets {
+      display: inline-flex;
+      background: rgba(8, 145, 178, 0.06);
+      border: 1px solid rgba(8, 145, 178, 0.14);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 2px;
+      flex-wrap: wrap;
+    }
+    .fin-preset {
+      background: transparent;
+      border: 0;
+      border-radius: 7px;
+      padding: 0.4rem 0.7rem;
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .fin-preset:hover:not(.is-active) { color: #0891b2; }
+    .fin-preset.is-active {
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(8, 145, 178, 0.25);
+    }
+    .fin-input, .fin-select {
+      padding: 0.5rem 0.7rem;
+      border: 1px solid rgba(8, 145, 178, 0.2);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      background-color: white;
+      color: #0f172a;
+      transition: all 0.2s ease;
+      max-width: 100%;
+    }
+    .fin-input:focus, .fin-select:focus {
+      outline: none;
+      border-color: #06b6d4;
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12);
+    }
+    .fin-search { min-width: 180px; flex: 1 1 180px; }
+    /* Quitamos la flecha nativa del select y ponemos una sola flecha personalizada
+       (en modo oscuro, theme-dark.css ya inyecta la suya cian con !important). */
+    .fin-select {
+      cursor: pointer;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      padding-right: 2.1rem;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 14px 14px;
+    }
+    .fin-custom { display: none; gap: 0.5rem; align-items: center; }
+    .fin-custom.show { display: inline-flex; }
+    .fin-custom span { font-size: 12px; color: #94a3b8; font-weight: 600; }
+    .fin-clear {
+      padding: 0.5rem 0.9rem;
+      background: rgba(8, 145, 178, 0.08);
+      color: #0891b2;
+      border: 1px solid rgba(8, 145, 178, 0.2);
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .fin-clear:hover { background: rgba(8, 145, 178, 0.16); }
+    .fin-total {
+      margin-left: auto;
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      white-space: nowrap;
+      text-align: right;
+    }
+    .fin-total strong {
+      color: #0891b2;
+      font-size: 13px;
+      letter-spacing: -0.01em;
+    }
+    th[data-sort] {
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    th[data-sort] .fin-caret {
+      -webkit-text-fill-color: #0891b2;
+      opacity: 0;
+      font-size: 9px;
+      margin-left: 2px;
+      transition: opacity 0.2s ease;
+    }
+    th[data-sort].is-sorted .fin-caret { opacity: 1; }
+    /* Control de orden — visible solo en móvil (en escritorio se ordena por encabezado). */
+    .fin-sortwrap { display: none; align-items: center; gap: 5px; }
+    .fin-sortlabel { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
+    .fin-sortdir {
+      padding: 0.5rem 0.65rem; border: 1px solid rgba(8, 145, 178, 0.2); border-radius: 8px;
+      background: rgba(8, 145, 178, 0.08); color: #0891b2; font-weight: 700; cursor: pointer;
+      font-family: inherit; line-height: 1; font-size: 12px;
+    }
+    .fin-sortdir:hover { background: rgba(8, 145, 178, 0.16); }
+    @media (max-width: 860px) {
+      .fin-total { margin-left: 0; width: 100%; text-align: left; }
+      .fin-search { min-width: 140px; }
+    }
+    @media (max-width: 768px) {
+      /* Filtros organizados en móvil: cada control a lo ancho completo y en su propia
+         fila, con Ordenar + Limpiar compartiendo la última fila. */
+      .fin-filterbar { gap: 0.6rem; align-items: stretch; }
+      /* Presets a lo ancho; envuelven mostrando todas las opciones, centradas. */
+      .fin-presets { width: 100%; justify-content: center; }
+      .fin-custom { width: 100%; }
+      .fin-custom .fin-input { flex: 1 1 auto; min-width: 0; }
+      .fin-search { flex: 1 1 100%; width: 100%; min-width: 0; }
+      .fin-filterbar > .fin-select[data-selkey] { flex: 1 1 100%; width: 100%; }
+      .fin-sortwrap { display: flex; flex: 1 1 auto; min-width: 0; }
+      .fin-sortsel { flex: 1 1 auto; min-width: 0; }
+      .fin-clear { flex: 0 0 auto; }
+      .fin-total { flex: 1 1 100%; width: 100%; text-align: left; margin: 0.1rem 0 0; }
+    }
+
+    /* Dark theme for filter bars */
+    [data-theme="dark"] .fin-input,
+    [data-theme="dark"] .fin-select {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: var(--sd-text, #e2e8f0);
+    }
+    [data-theme="dark"] .fin-presets { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.1); }
+    [data-theme="dark"] .fin-preset { color: var(--sd-text-muted, #94a3b8); }
+    [data-theme="dark"] .fin-total { color: var(--sd-text-muted, #94a3b8); }
+    [data-theme="dark"] .fin-custom span { color: var(--sd-text-muted, #94a3b8); }
+    [data-theme="dark"] .fin-clear,
+    [data-theme="dark"] .fin-sortdir {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: #67e8f9;
+    }
+    [data-theme="dark"] .fin-sortlabel { color: var(--sd-text-muted, #94a3b8); }
   </style>
 </head>
 <body>
@@ -1078,15 +1309,16 @@
   <!-- Breakdown by Doctor (Clinic Admin Only) -->
   <div class="section" id="byDoctorSection" style="display: none;">
     <h3>Ingresos por Doctor</h3>
+    <div class="fin-filterbar" id="byDoctorFilter"></div>
     <table>
       <thead>
         <tr>
-          <th>Doctor</th>
-          <th>Especialidad</th>
-          <th>Consultas</th>
-          <th>Pagado</th>
-          <th>Por Cobrar</th>
-          <th>Total</th>
+          <th data-sort="doctor">Doctor</th>
+          <th data-sort="specialty">Especialidad</th>
+          <th data-sort="consultas">Consultas</th>
+          <th data-sort="paid">Pagado</th>
+          <th data-sort="pending">Por Cobrar</th>
+          <th data-sort="total">Total</th>
         </tr>
       </thead>
       <tbody id="byDoctorTable">
@@ -1101,13 +1333,14 @@
       <span>Consultas por Pagar</span>
       <span class="section-header-action" onclick="document.getElementById('pendingTable').scrollIntoView({behavior:'smooth'})">Ver más</span>
     </h3>
+    <div class="fin-filterbar" id="pendingFilter"></div>
     <table>
       <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Paciente</th>
-          <th>Por Pagar</th>
-          <th>Teléfono</th>
+          <th data-sort="date">Fecha</th>
+          <th data-sort="patient">Paciente</th>
+          <th data-sort="amount">Por Pagar</th>
+          <th data-sort="phone">Teléfono</th>
         </tr>
       </thead>
       <tbody id="pendingTable">
@@ -1119,32 +1352,15 @@
   <!-- Paid Consultations -->
   <div class="section">
     <h3>Consultas Pagadas</h3>
-
-    <!-- Date Filter with Calendar -->
-    <div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: flex-end;">
-      <div style="flex: 1; min-width: 200px; position: relative;">
-        <label style="display: block; font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.14em;">Desde</label>
-        <input type="text" id="paidStartDateDisplay" placeholder="Seleccionar fecha" readonly style="width: 100%; padding: 0.75rem; border: 1px solid rgba(8, 145, 178, 0.2); border-radius: 8px; font-size: 0.9rem; background: white; color: #0f172a; font-family: inherit; cursor: pointer; transition: all 0.3s ease;">
-        <input type="hidden" id="paidStartDate">
-        <div id="paidStartCalendar" style="display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid rgba(8, 145, 178, 0.15); border-radius: 12px; padding: 1rem; box-shadow: 0 8px 32px rgba(8, 145, 178, 0.15); z-index: 100; margin-top: 0.5rem; min-width: 300px;"></div>
-      </div>
-      <div style="flex: 1; min-width: 200px; position: relative;">
-        <label style="display: block; font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.14em;">Hasta</label>
-        <input type="text" id="paidEndDateDisplay" placeholder="Seleccionar fecha" readonly style="width: 100%; padding: 0.75rem; border: 1px solid rgba(8, 145, 178, 0.2); border-radius: 8px; font-size: 0.9rem; background: white; color: #0f172a; font-family: inherit; cursor: pointer; transition: all 0.3s ease;">
-        <input type="hidden" id="paidEndDate">
-        <div id="paidEndCalendar" style="display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid rgba(8, 145, 178, 0.15); border-radius: 12px; padding: 1rem; box-shadow: 0 8px 32px rgba(8, 145, 178, 0.15); z-index: 100; margin-top: 0.5rem; min-width: 300px;"></div>
-      </div>
-      <button id="paidClearBtn" style="padding: 0.75rem 2rem; background: rgba(8, 145, 178, 0.08); color: #0891b2; border: 1px solid rgba(8, 145, 178, 0.2); border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s ease; letter-spacing: -0.005em;">Limpiar</button>
-    </div>
-
+    <div class="fin-filterbar" id="paidFilter"></div>
     <table>
       <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Paciente</th>
-          <th>Doctor</th>
-          <th>Monto Pagado</th>
-          <th>Teléfono</th>
+          <th data-sort="date">Fecha</th>
+          <th data-sort="patient">Paciente</th>
+          <th data-sort="doctor">Doctor</th>
+          <th data-sort="amount">Monto Pagado</th>
+          <th data-sort="phone">Teléfono</th>
         </tr>
       </thead>
       <tbody id="paidTable">
@@ -1156,16 +1372,17 @@
   <!-- Product Sales Table -->
   <div class="section">
     <h3>Ventas de productos</h3>
+    <div class="fin-filterbar" id="salesFilter"></div>
     <table>
       <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Producto</th>
-          <th>Cantidad</th>
-          <th>Costo unit.</th>
-          <th>Precio venta</th>
-          <th>Ganancia</th>
-          <th>Registrado por</th>
+          <th data-sort="date">Fecha</th>
+          <th data-sort="product">Producto</th>
+          <th data-sort="qty">Cantidad</th>
+          <th data-sort="cost">Costo unit.</th>
+          <th data-sort="price">Precio venta</th>
+          <th data-sort="profit">Ganancia</th>
+          <th data-sort="user">Registrado por</th>
         </tr>
       </thead>
       <tbody id="productSalesTable">
@@ -1224,15 +1441,276 @@
 <script>
   requireAuth(['clinic_admin', 'doctor']);
 
+  // ===================== Motor de filtros reutilizable por tabla =====================
+  // Cada tabla mantiene su arreglo de filas crudas y se re-renderiza al cambiar cualquier
+  // filtro (preset/fecha, búsqueda, selects), el orden, o al refrescar tras un cobro.
+  const finMoney = n => 'L. ' + Number(n || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  function finPresetRange(preset, cStart, cEnd) {
+    const now = new Date();
+    const sod = d => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const eod = d => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).getTime();
+    switch (preset) {
+      case 'today': return { start: sod(now), end: eod(now) };
+      case '7d': { const s = new Date(now); s.setDate(s.getDate() - 6); return { start: sod(s), end: eod(now) }; }
+      case 'month': return { start: new Date(now.getFullYear(), now.getMonth(), 1).getTime(), end: eod(now) };
+      case 'quarter': { const q = Math.floor(now.getMonth() / 3); return { start: new Date(now.getFullYear(), q * 3, 1).getTime(), end: eod(now) }; }
+      case 'year': return { start: new Date(now.getFullYear(), 0, 1).getTime(), end: eod(now) };
+      case 'custom': return {
+        start: cStart ? sod(new Date(cStart + 'T00:00:00')) : null,
+        end: cEnd ? eod(new Date(cEnd + 'T00:00:00')) : null
+      };
+      default: return { start: null, end: null }; // 'all'
+    }
+  }
+
+  const FIN_PRESETS = [
+    { v: 'all', l: 'Todo' }, { v: 'today', l: 'Hoy' }, { v: '7d', l: '7 días' },
+    { v: 'month', l: 'Mes' }, { v: 'quarter', l: 'Trimestre' }, { v: 'year', l: 'Año' },
+    { v: 'custom', l: 'Personalizado' }
+  ];
+
+  function createFinFilter(cfg) {
+    const bar = document.getElementById(cfg.barId);
+    const tbody = document.getElementById(cfg.bodyId);
+    const table = tbody ? tbody.closest('table') : null;
+    // Etiquetas de columna (para el modo tarjeta en móvil) y columnas ordenables
+    // (para el selector de orden en móvil, donde el thead está oculto), capturadas
+    // ANTES de agregar las flechas de orden para no contaminar el texto.
+    const headerLabels = table ? Array.from(table.querySelectorAll('thead th')).map(th => (th.textContent || '').trim()) : [];
+    const sortCols = table ? Array.from(table.querySelectorAll('thead th[data-sort]')).map(th => ({ key: th.dataset.sort, label: (th.textContent || '').trim() })) : [];
+    // Envolvemos la tabla en un contenedor con scroll horizontal de seguridad.
+    if (table && table.parentElement && !table.parentElement.classList.contains('tbl-scroll')) {
+      const wrap = document.createElement('div');
+      wrap.className = 'tbl-scroll';
+      table.parentNode.insertBefore(wrap, table);
+      wrap.appendChild(table);
+    }
+    let rows = [];
+    let truncated = false;
+    const state = {
+      preset: 'all', cStart: '', cEnd: '', search: '', sels: {},
+      sortKey: cfg.sortDefault ? cfg.sortDefault.key : null,
+      sortDir: cfg.sortDefault ? cfg.sortDefault.dir : 'desc'
+    };
+    (cfg.selects || []).forEach(s => { state.sels[s.key] = ''; });
+
+    if (bar) {
+      let html = '';
+      if (cfg.date) {
+        html += '<div class="fin-presets">' + FIN_PRESETS.map(p =>
+          `<button type="button" class="fin-preset${p.v === 'all' ? ' is-active' : ''}" data-preset="${p.v}">${p.l}</button>`
+        ).join('') + '</div>';
+        html += '<span class="fin-custom"><input type="date" class="fin-input fin-cstart"><span>a</span><input type="date" class="fin-input fin-cend"></span>';
+      }
+      html += `<input type="search" class="fin-input fin-search" placeholder="${esc(cfg.searchPlaceholder || 'Buscar…')}">`;
+      (cfg.selects || []).forEach(s => {
+        if (s.visible === false) return;
+        html += `<select class="fin-select" data-selkey="${s.key}"><option value="">${esc(s.placeholder || s.label)}</option></select>`;
+      });
+      // Selector de orden (visible solo en móvil, donde el thead está oculto).
+      if (sortCols.length) {
+        html += '<span class="fin-sortwrap"><span class="fin-sortlabel">Ordenar</span>' +
+          '<select class="fin-select fin-sortsel" aria-label="Ordenar por">' +
+          sortCols.map(c => `<option value="${esc(c.key)}">${esc(c.label)}</option>`).join('') +
+          '</select><button type="button" class="fin-sortdir" aria-label="Cambiar dirección de orden">▼</button></span>';
+      }
+      html += '<button type="button" class="fin-clear">Limpiar</button><div class="fin-total"></div>';
+      bar.innerHTML = html;
+
+      if (cfg.date) {
+        bar.querySelectorAll('.fin-preset').forEach(btn => {
+          btn.addEventListener('click', () => {
+            state.preset = btn.dataset.preset;
+            bar.querySelectorAll('.fin-preset').forEach(b => b.classList.toggle('is-active', b === btn));
+            const custom = bar.querySelector('.fin-custom');
+            if (custom) custom.classList.toggle('show', state.preset === 'custom');
+            if (cfg.onDateReload) reloadFromServer(); else apply();
+          });
+        });
+        const cs = bar.querySelector('.fin-cstart'), ce = bar.querySelector('.fin-cend');
+        if (cs) cs.addEventListener('change', () => { state.cStart = cs.value; if (cfg.onDateReload) reloadFromServer(); else apply(); });
+        if (ce) ce.addEventListener('change', () => { state.cEnd = ce.value; if (cfg.onDateReload) reloadFromServer(); else apply(); });
+      }
+      const searchEl = bar.querySelector('.fin-search');
+      searchEl.addEventListener('input', () => { state.search = searchEl.value.trim().toLowerCase(); apply(); });
+      bar.querySelectorAll('.fin-select[data-selkey]').forEach(sel => {
+        sel.addEventListener('change', () => { state.sels[sel.dataset.selkey] = sel.value; apply(); });
+      });
+      const sortSel = bar.querySelector('.fin-sortsel');
+      if (sortSel) {
+        if (state.sortKey) sortSel.value = state.sortKey;
+        sortSel.addEventListener('change', () => { state.sortKey = sortSel.value; apply(); });
+      }
+      const sortDirBtn = bar.querySelector('.fin-sortdir');
+      if (sortDirBtn) {
+        sortDirBtn.textContent = state.sortDir === 'asc' ? '▲' : '▼';
+        sortDirBtn.addEventListener('click', () => { state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc'; apply(); });
+      }
+      bar.querySelector('.fin-clear').addEventListener('click', resetFilters);
+    }
+
+    if (table && cfg.sortable) {
+      table.querySelectorAll('th[data-sort]').forEach(th => {
+        if (!th.querySelector('.fin-caret')) {
+          const c = document.createElement('span'); c.className = 'fin-caret'; th.appendChild(c);
+        }
+        th.addEventListener('click', () => {
+          const key = th.dataset.sort;
+          if (state.sortKey === key) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+          else { state.sortKey = key; state.sortDir = 'desc'; }
+          apply();
+        });
+      });
+    }
+
+    function reloadFromServer() {
+      const { start, end } = finPresetRange(state.preset, state.cStart, state.cEnd);
+      const toISO = ms => ms == null ? '' : new Date(ms).toISOString().split('T')[0];
+      Promise.resolve(cfg.onDateReload({ startDate: toISO(start), endDate: toISO(end) }))
+        .then(newRows => { rows = newRows || []; populateSelects(); apply(); })
+        .catch(e => console.error('fin reload', e));
+    }
+
+    function populateSelects() {
+      if (!bar) return;
+      (cfg.selects || []).forEach(s => {
+        if (s.visible === false) return;
+        const sel = bar.querySelector(`.fin-select[data-selkey="${s.key}"]`);
+        if (!sel) return;
+        const vals = Array.from(new Set(rows.map(r => (s.accessor(r) || '').toString().trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+        const cur = state.sels[s.key];
+        sel.innerHTML = `<option value="">${esc(s.placeholder || s.label)}</option>` +
+          vals.map(v => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(v)}</option>`).join('');
+        if (cur && !vals.includes(cur)) state.sels[s.key] = '';
+      });
+    }
+
+    function getFiltered() {
+      let out = rows.slice();
+      if (cfg.date && cfg.date.accessor && !cfg.onDateReload) {
+        const { start, end } = finPresetRange(state.preset, state.cStart, state.cEnd);
+        if (start != null || end != null) {
+          out = out.filter(r => {
+            const t = new Date(cfg.date.accessor(r)).getTime();
+            if (isNaN(t)) return false;
+            if (start != null && t < start) return false;
+            if (end != null && t > end) return false;
+            return true;
+          });
+        }
+      }
+      if (state.search && cfg.search) {
+        out = out.filter(r => (cfg.search.accessor(r) || '').toString().toLowerCase().includes(state.search));
+      }
+      (cfg.selects || []).forEach(s => {
+        const v = state.sels[s.key];
+        if (v) out = out.filter(r => (s.accessor(r) || '').toString().trim() === v);
+      });
+      if (state.sortKey) {
+        const col = (cfg.sortable || []).find(c => c.key === state.sortKey);
+        if (col) {
+          const dir = state.sortDir === 'asc' ? 1 : -1;
+          out.sort((a, b) => {
+            const va = col.accessor(a), vb = col.accessor(b);
+            if (col.type === 'text') return String(va).localeCompare(String(vb)) * dir;
+            return ((va > vb ? 1 : 0) - (va < vb ? 1 : 0)) * dir;
+          });
+        }
+      }
+      return out;
+    }
+
+    function apply() {
+      const filtered = getFiltered();
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="${cfg.colspan}" class="empty-table">${esc(cfg.emptyMsg || 'Sin resultados')}</td></tr>`;
+      } else {
+        tbody.innerHTML = filtered.map(cfg.renderRow).join('');
+        // data-label en cada celda → usado por el layout de tarjeta en móvil.
+        // La celda título (titleCol) se marca para hoistearla como encabezado de la tarjeta.
+        if (headerLabels.length) {
+          const titleCol = cfg.titleCol || 0;
+          tbody.querySelectorAll('tr').forEach(tr => {
+            const cells = tr.children;
+            for (let i = 0; i < cells.length; i++) {
+              if (cells[i].hasAttribute('colspan')) continue;
+              if (i === titleCol) cells[i].classList.add('fin-card-title');
+              else if (headerLabels[i]) cells[i].setAttribute('data-label', headerLabels[i]);
+            }
+          });
+        }
+        if (cfg.onRowsRendered) cfg.onRowsRendered(tbody, filtered);
+      }
+      if (bar) {
+        const totalEl = bar.querySelector('.fin-total');
+        if (totalEl) {
+          const parts = (cfg.totals || []).map(t => {
+            const sum = filtered.reduce((acc, r) => acc + (Number(t.accessor(r)) || 0), 0);
+            return `${esc(t.label)}: <strong>${t.money ? finMoney(sum) : sum.toLocaleString('es-HN')}</strong>`;
+          });
+          parts.push(`${filtered.length} ${filtered.length === 1 ? 'fila' : 'filas'}`);
+          if (truncated) {
+            parts.unshift(`<span style="color:#b45309;font-weight:600;" title="Se alcanzó el máximo de registros cargados. Filtrá por fecha o archivá datos antiguos para ver totales completos.">⚠ máximo ${cfg.truncateAt} cargados</span>`);
+          }
+          totalEl.innerHTML = parts.join(' · ');
+        }
+      }
+      if (table) {
+        table.querySelectorAll('th[data-sort]').forEach(th => {
+          const active = th.dataset.sort === state.sortKey;
+          th.classList.toggle('is-sorted', active);
+          const caret = th.querySelector('.fin-caret');
+          if (caret) caret.textContent = active ? (state.sortDir === 'asc' ? '▲' : '▼') : '';
+        });
+      }
+      // Mantener el selector de orden móvil en sync con el estado (p. ej. tras clic en
+      // un encabezado en escritorio o tras "Limpiar").
+      if (bar) {
+        const ss = bar.querySelector('.fin-sortsel');
+        if (ss && state.sortKey) ss.value = state.sortKey;
+        const sd = bar.querySelector('.fin-sortdir');
+        if (sd) sd.textContent = state.sortDir === 'asc' ? '▲' : '▼';
+      }
+    }
+
+    function resetFilters() {
+      state.preset = 'all'; state.cStart = ''; state.cEnd = ''; state.search = '';
+      Object.keys(state.sels).forEach(k => { state.sels[k] = ''; });
+      if (bar) {
+        bar.querySelectorAll('.fin-preset').forEach(b => b.classList.toggle('is-active', b.dataset.preset === 'all'));
+        const custom = bar.querySelector('.fin-custom'); if (custom) custom.classList.remove('show');
+        const cs = bar.querySelector('.fin-cstart'); if (cs) cs.value = '';
+        const ce = bar.querySelector('.fin-cend'); if (ce) ce.value = '';
+        const se = bar.querySelector('.fin-search'); if (se) se.value = '';
+        bar.querySelectorAll('.fin-select[data-selkey]').forEach(s => { s.value = ''; });
+      }
+      if (cfg.onDateReload) reloadFromServer(); else apply();
+    }
+
+    return {
+      setData(newRows) {
+        rows = newRows || [];
+        truncated = cfg.truncateAt ? rows.length >= cfg.truncateAt : false;
+        populateSelects();
+        apply();
+      },
+      apply,
+      reload() { if (cfg.onDateReload) reloadFromServer(); else apply(); }
+    };
+  }
+
   (async () => {
     const pageLoader = document.getElementById('pageLoader');
     try {
       const role = getRole();
+      const isAdmin = role === 'clinic_admin';
       const stats = await api('/api/consultations/finances/summary');
       const pending = await api('/api/consultations/finances/pending');
+      const paid = await api('/api/consultations/finances/paid').catch(() => []);
       const weekly = await api('/api/consultations/finances/weekly');
       const prodSummary = await api('/api/inventory/sales/summary').catch(() => null);
-      const prodSales = await api('/api/inventory/sales/list?limit=100').catch(() => []);
+      const prodSales = await api('/api/inventory/sales/list?limit=2000').catch(() => []);
 
       const fmtNum = n => Number(n || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       const todayKey = new Date().toISOString().split('T')[0];
@@ -1306,6 +1784,152 @@
       document.getElementById('totalRevenue').textContent = 'L. ' + fmtNum(stats.total_revenue);
       document.getElementById('pendingCount').textContent = stats.pending_count;
 
+      // ── Instancias de filtro por tabla ──
+      const finDate = v => new Date(v).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' });
+      const finTs = v => new Date(v).getTime();
+
+      const pendingFilter = createFinFilter({
+        barId: 'pendingFilter', bodyId: 'pendingTable', colspan: 4, truncateAt: 1000, titleCol: 1,
+        emptyMsg: 'No hay consultas pendientes de cobro',
+        searchPlaceholder: 'Buscar paciente o teléfono…',
+        date: { accessor: r => r.created_at },
+        search: { accessor: r => `${r.patient_name || ''} ${r.phone || ''} ${r.doctor_name || ''}` },
+        selects: [
+          { key: 'doctor', label: 'Doctor', placeholder: 'Todos los doctores', accessor: r => r.doctor_name || '', visible: isAdmin },
+          { key: 'specialty', label: 'Especialidad', placeholder: 'Todas las especialidades', accessor: r => r.specialty || '', visible: isAdmin },
+        ],
+        sortable: [
+          { key: 'date', accessor: r => finTs(r.created_at), type: 'num' },
+          { key: 'patient', accessor: r => (r.patient_name || '').toLowerCase(), type: 'text' },
+          { key: 'amount', accessor: r => Number(r.cost) || 0, type: 'num' },
+          { key: 'phone', accessor: r => (r.phone || '').toLowerCase(), type: 'text' },
+        ],
+        sortDefault: { key: 'date', dir: 'desc' },
+        totals: [ { label: 'Por cobrar', accessor: r => Number(r.cost) || 0, money: true } ],
+        renderRow: c => {
+          const dateStr = finDate(c.created_at);
+          return `<tr data-id="${c.id}" data-name="${esc(c.patient_name)}" data-date="${esc(dateStr)}" data-cost="${esc(finMoney(c.cost))}" title="Click para cambiar estado de pago">
+            <td>${dateStr}</td>
+            <td>${esc(c.patient_name)}</td>
+            <td><strong style="color:#0891b2;">${finMoney(c.cost)}</strong></td>
+            <td>${esc(c.phone || '—')}</td>
+          </tr>`;
+        },
+        onRowsRendered: (tb) => {
+          tb.querySelectorAll('tr[data-id]').forEach(tr => {
+            tr.addEventListener('click', () => openPaymentModal(parseInt(tr.dataset.id, 10), tr.dataset.name, tr.dataset.date, tr.dataset.cost));
+          });
+        },
+      });
+
+      const paidFilter = createFinFilter({
+        barId: 'paidFilter', bodyId: 'paidTable', colspan: 5, truncateAt: 1000, titleCol: 1,
+        emptyMsg: 'No hay consultas pagadas en este período',
+        searchPlaceholder: 'Buscar paciente o doctor…',
+        date: { accessor: r => r.created_at },
+        search: { accessor: r => `${r.patient_name || ''} ${r.doctor_name || ''} ${r.phone || ''}` },
+        selects: [
+          { key: 'doctor', label: 'Doctor', placeholder: 'Todos los doctores', accessor: r => r.doctor_name || '', visible: isAdmin },
+          { key: 'specialty', label: 'Especialidad', placeholder: 'Todas las especialidades', accessor: r => r.specialty || '', visible: isAdmin },
+        ],
+        sortable: [
+          { key: 'date', accessor: r => finTs(r.created_at), type: 'num' },
+          { key: 'patient', accessor: r => (r.patient_name || '').toLowerCase(), type: 'text' },
+          { key: 'doctor', accessor: r => (r.doctor_name || '').toLowerCase(), type: 'text' },
+          { key: 'amount', accessor: r => Number(r.cost) || 0, type: 'num' },
+          { key: 'phone', accessor: r => (r.phone || '').toLowerCase(), type: 'text' },
+        ],
+        sortDefault: { key: 'date', dir: 'desc' },
+        totals: [ { label: 'Total pagado', accessor: r => Number(r.cost) || 0, money: true } ],
+        renderRow: c => `<tr>
+            <td>${finDate(c.created_at)}</td>
+            <td>${esc(c.patient_name)}</td>
+            <td>${esc(c.doctor_name || '—')}</td>
+            <td><strong>${finMoney(c.cost)}</strong></td>
+            <td>${esc(c.phone || '—')}</td>
+          </tr>`,
+      });
+
+      const salesFilter = createFinFilter({
+        barId: 'salesFilter', bodyId: 'productSalesTable', colspan: 7, truncateAt: 2000, titleCol: 1,
+        emptyMsg: 'No hay ventas de productos registradas',
+        searchPlaceholder: 'Buscar producto…',
+        date: { accessor: r => r.created_at },
+        search: { accessor: r => `${r.item_name || ''}` },
+        selects: [
+          { key: 'user', label: 'Registrado por', placeholder: 'Todos', accessor: r => r.user_name || '' },
+        ],
+        sortable: [
+          { key: 'date', accessor: r => finTs(r.created_at), type: 'num' },
+          { key: 'product', accessor: r => (r.item_name || '').toLowerCase(), type: 'text' },
+          { key: 'qty', accessor: r => Number(r.quantity) || 0, type: 'num' },
+          { key: 'cost', accessor: r => Number(r.unit_cost_at_sale) || 0, type: 'num' },
+          { key: 'price', accessor: r => Number(r.unit_sale_price) || 0, type: 'num' },
+          { key: 'profit', accessor: r => Number(r.profit) || 0, type: 'num' },
+          { key: 'user', accessor: r => (r.user_name || '').toLowerCase(), type: 'text' },
+        ],
+        sortDefault: { key: 'date', dir: 'desc' },
+        totals: [
+          { label: 'Ganancia', accessor: r => Number(r.profit) || 0, money: true },
+          { label: 'Ingreso', accessor: r => Number(r.revenue != null ? r.revenue : (Number(r.unit_sale_price) || 0) * (Number(r.quantity) || 0)), money: true },
+        ],
+        renderRow: s => {
+          const profit = Number(s.profit || 0);
+          const profitColor = profit >= 0 ? '#15803d' : '#b91c1c';
+          return `<tr>
+            <td>${finDate(s.created_at)}</td>
+            <td><strong>${esc(s.item_name)}</strong></td>
+            <td>${Number(s.quantity).toLocaleString('es-HN')} ${esc(s.item_unit || '')}</td>
+            <td>${finMoney(s.unit_cost_at_sale || 0)}</td>
+            <td>${finMoney(s.unit_sale_price || 0)}</td>
+            <td><strong style="color:${profitColor}">${finMoney(profit)}</strong></td>
+            <td>${esc(s.user_name || '—')}</td>
+          </tr>`;
+        },
+      });
+
+      let byDoctorFilter = null;
+      if (isAdmin) {
+        byDoctorFilter = createFinFilter({
+          barId: 'byDoctorFilter', bodyId: 'byDoctorTable', colspan: 6,
+          emptyMsg: 'No hay datos de doctores',
+          searchPlaceholder: 'Buscar doctor…',
+          date: { server: true },
+          onDateReload: async ({ startDate, endDate }) => {
+            const qs = new URLSearchParams();
+            if (startDate) qs.append('startDate', startDate);
+            if (endDate) qs.append('endDate', endDate);
+            const url = '/api/consultations/finances/by-doctor' + (qs.toString() ? '?' + qs.toString() : '');
+            return await api(url);
+          },
+          search: { accessor: r => r.doctor_name || '' },
+          selects: [
+            { key: 'specialty', label: 'Especialidad', placeholder: 'Todas las especialidades', accessor: r => r.specialty || '' },
+          ],
+          sortable: [
+            { key: 'doctor', accessor: r => (r.doctor_name || '').toLowerCase(), type: 'text' },
+            { key: 'specialty', accessor: r => (r.specialty || '').toLowerCase(), type: 'text' },
+            { key: 'consultas', accessor: r => Number(r.consultation_count) || 0, type: 'num' },
+            { key: 'paid', accessor: r => Number(r.paid_amount) || 0, type: 'num' },
+            { key: 'pending', accessor: r => Number(r.pending_amount) || 0, type: 'num' },
+            { key: 'total', accessor: r => Number(r.total_amount) || 0, type: 'num' },
+          ],
+          sortDefault: { key: 'total', dir: 'desc' },
+          totals: [
+            { label: 'Pagado', accessor: r => Number(r.paid_amount) || 0, money: true },
+            { label: 'Por cobrar', accessor: r => Number(r.pending_amount) || 0, money: true },
+          ],
+          renderRow: d => `<tr>
+            <td><strong>${esc(d.doctor_name || 'Sin asignar')}</strong></td>
+            <td>${esc(d.specialty || '—')}</td>
+            <td>${d.consultation_count}</td>
+            <td>${finMoney(d.paid_amount)}</td>
+            <td>${finMoney(d.pending_amount)}</td>
+            <td><strong>${finMoney(d.total_amount)}</strong></td>
+          </tr>`,
+        });
+      }
+
       renderProductSales(prodSummary, prodSales);
 
       pageLoader.classList.add('hidden');
@@ -1315,234 +1939,22 @@
       wireChartFilter();
 
       // Load breakdown by doctor for clinic_admin
-      if (role === 'clinic_admin') {
+      if (isAdmin && byDoctorFilter) {
         try {
           const byDoctor = await api('/api/consultations/finances/by-doctor');
-          const byDoctorSection = document.getElementById('byDoctorSection');
-          const byDoctorTable = document.getElementById('byDoctorTable');
-
-          if (byDoctor.length === 0) {
-            byDoctorTable.innerHTML = '<tr><td colspan="6" class="empty-table">No hay datos de doctores</td></tr>';
-          } else {
-            byDoctorTable.innerHTML = byDoctor.map(d => {
-              return `
-                <tr>
-                  <td><strong>${esc(d.doctor_name || 'Sin asignar')}</strong></td>
-                  <td>${esc(d.specialty || '—')}</td>
-                  <td>${d.consultation_count}</td>
-                  <td>L. ${fmtNum(d.paid_amount)}</td>
-                  <td>L. ${fmtNum(d.pending_amount)}</td>
-                  <td><strong>L. ${fmtNum(d.total_amount)}</strong></td>
-                </tr>
-              `;
-            }).join('');
-          }
-          byDoctorSection.style.display = 'block';
+          document.getElementById('byDoctorSection').style.display = 'block';
+          byDoctorFilter.setData(byDoctor);
         } catch(e) {
           console.error('Error loading by-doctor data:', e);
         }
       }
 
-      const table = document.getElementById('pendingTable');
-      if (pending.length === 0) {
-        table.innerHTML = '<tr><td colspan="4" class="empty-table">No hay consultas pendientes de cobro</td></tr>';
-      } else {
-        table.innerHTML = pending.map(c => {
-          const formatted = Number(c.cost).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-          const dateStr = new Date(c.created_at).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' });
-          // Use data-* attributes; click is wired below to avoid escaping issues in inline handlers.
-          return `
-          <tr data-id="${c.id}" data-name="${esc(c.patient_name)}" data-date="${esc(dateStr)}" data-cost="L. ${formatted}" title="Click para cambiar estado de pago">
-            <td>${dateStr}</td>
-            <td>${esc(c.patient_name)}</td>
-            <td><strong style="color: #0891b2;">L. ${formatted}</strong></td>
-            <td>${esc(c.phone || '—')}</td>
-          </tr>
-        `;
-        }).join('');
+      pendingFilter.setData(pending);
+      paidFilter.setData(paid);
 
-        table.querySelectorAll('tr[data-id]').forEach(tr => {
-          tr.addEventListener('click', () => {
-            openPaymentModal(
-              parseInt(tr.dataset.id, 10),
-              tr.dataset.name,
-              tr.dataset.date,
-              tr.dataset.cost
-            );
-          });
-        });
-      }
-
-      // Load paid consultations
-      async function loadPaidConsultations(startDate, endDate) {
-        const paidTable = document.getElementById('paidTable');
-        paidTable.innerHTML = '<tr><td colspan="5" class="empty-table">Cargando...</td></tr>';
-
-        try {
-          let url = '/api/consultations/finances/paid';
-          const params = new URLSearchParams();
-          if (startDate) params.append('startDate', startDate);
-          if (endDate) params.append('endDate', endDate);
-          if (params.toString()) url += '?' + params.toString();
-
-          const paid = await api(url);
-
-          if (paid.length === 0) {
-            paidTable.innerHTML = '<tr><td colspan="5" class="empty-table">No hay consultas pagadas en este período</td></tr>';
-          } else {
-            paidTable.innerHTML = paid.map(c => {
-              const formatted = Number(c.cost).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-              return `
-              <tr>
-                <td>${new Date(c.created_at).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
-                <td>${esc(c.patient_name)}</td>
-                <td>${esc(c.doctor_name || '—')}</td>
-                <td><strong>L. ${formatted}</strong></td>
-                <td>${esc(c.phone || '—')}</td>
-              </tr>
-            `;
-            }).join('');
-          }
-        } catch(e) {
-          console.error('Error loading paid consultations:', e);
-          paidTable.innerHTML = '<tr><td colspan="5" class="empty-table">Error al cargar consultas pagadas</td></tr>';
-        }
-      }
-
-      // Calendar picker function
-      function createCalendarPicker(inputId, displayId, calendarId) {
-        let currentMonth = new Date().getMonth();
-        let currentYear = new Date().getFullYear();
-
-        const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        const DAY_SHORT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-
-        function renderCalendar() {
-          const calContainer = document.getElementById(calendarId);
-          calContainer.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <button type="button" class="cal-prev" style="background: none; border: none; color: #0891b2; cursor: pointer; font-size: 1.5rem; padding: 0.25rem 0.5rem;">‹</button>
-              <span style="font-weight: 600; color: #0f172a; font-size: 14px; letter-spacing: -0.01em;">${MONTH_NAMES[currentMonth]} ${currentYear}</span>
-              <button type="button" class="cal-next" style="background: none; border: none; color: #0891b2; cursor: pointer; font-size: 1.5rem; padding: 0.25rem 0.5rem;">›</button>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; margin-bottom: 0.5rem;">
-              ${DAY_SHORT.map(day => `<div style="text-align: center; font-weight: 600; font-size: 11px; color: #94a3b8; padding: 0.5rem 0; text-transform: uppercase; letter-spacing: 0.14em;">${day}</div>`).join('')}
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem;" id="${calendarId}-days"></div>
-          `;
-
-          const daysContainer = document.getElementById(`${calendarId}-days`);
-          const firstDay = new Date(currentYear, currentMonth, 1);
-          const lastDay = new Date(currentYear, currentMonth + 1, 0);
-          const startDate = new Date(firstDay);
-          startDate.setDate(startDate.getDate() - firstDay.getDay());
-
-          let day = new Date(startDate);
-          const selectedValue = document.getElementById(inputId).value;
-
-          for (let i = 0; i < 42; i++) {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.textContent = day.getDate();
-
-            const isCurrentMonth = day.getMonth() === currentMonth;
-            const isSelected = selectedValue && day.toISOString().split('T')[0] === selectedValue;
-
-            btn.style.cssText = `
-              padding: 0.6rem 0.5rem;
-              border: 1px solid ${isSelected ? '#0891b2' : 'rgba(8, 145, 178, 0.1)'};
-              background: ${isSelected ? '#0891b2' : isCurrentMonth ? 'white' : 'rgba(8, 145, 178, 0.04)'};
-              color: ${isSelected ? 'white' : isCurrentMonth ? '#0f172a' : '#cbd5e1'};
-              border-radius: 8px;
-              cursor: ${isCurrentMonth ? 'pointer' : 'default'};
-              font-weight: ${isSelected ? '600' : '400'};
-              transition: all 0.2s ease;
-            `;
-
-            if (isCurrentMonth) {
-              btn.addEventListener('mouseover', (e) => {
-                e.target.style.background = '#f0f9ff';
-                e.target.style.borderColor = '#06b6d4';
-              });
-              btn.addEventListener('mouseout', (e) => {
-                if (!isSelected) {
-                  e.target.style.background = 'white';
-                  e.target.style.borderColor = 'rgba(8, 145, 178, 0.1)';
-                }
-              });
-
-              btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const dateStr = day.toISOString().split('T')[0];
-                document.getElementById(inputId).value = dateStr;
-                document.getElementById(displayId).value = new Date(day).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
-                calContainer.style.display = 'none';
-                loadPaidConsultations(document.getElementById('paidStartDate').value, document.getElementById('paidEndDate').value);
-              });
-            }
-
-            daysContainer.appendChild(btn);
-            day.setDate(day.getDate() + 1);
-          }
-
-          calContainer.querySelector('.cal-prev').addEventListener('click', (e) => {
-            e.preventDefault();
-            currentMonth--;
-            if (currentMonth < 0) {
-              currentMonth = 11;
-              currentYear--;
-            }
-            renderCalendar();
-          });
-
-          calContainer.querySelector('.cal-next').addEventListener('click', (e) => {
-            e.preventDefault();
-            currentMonth++;
-            if (currentMonth > 11) {
-              currentMonth = 0;
-              currentYear++;
-            }
-            renderCalendar();
-          });
-        }
-
-        document.getElementById(displayId).addEventListener('click', (e) => {
-          e.preventDefault();
-          const isVisible = document.getElementById(calendarId).style.display !== 'none';
-          document.getElementById('paidStartCalendar').style.display = 'none';
-          document.getElementById('paidEndCalendar').style.display = 'none';
-          document.getElementById(calendarId).style.display = isVisible ? 'none' : 'block';
-          if (!isVisible) renderCalendar();
-        });
-
-        renderCalendar();
-      }
-
-      // Initialize calendars
-      createCalendarPicker('paidStartDate', 'paidStartDateDisplay', 'paidStartCalendar');
-      createCalendarPicker('paidEndDate', 'paidEndDateDisplay', 'paidEndCalendar');
-
-      // Close calendars when clicking outside
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('[id*="paidStartDate"], [id*="paidStartCalendar"]')) {
-          document.getElementById('paidStartCalendar').style.display = 'none';
-        }
-        if (!e.target.closest('[id*="paidEndDate"], [id*="paidEndCalendar"]')) {
-          document.getElementById('paidEndCalendar').style.display = 'none';
-        }
-      });
-
-      // Initial load of paid consultations
-      loadPaidConsultations();
-
-      // Clear button
-      document.getElementById('paidClearBtn').addEventListener('click', () => {
-        document.getElementById('paidStartDate').value = '';
-        document.getElementById('paidEndDate').value = '';
-        document.getElementById('paidStartDateDisplay').value = '';
-        document.getElementById('paidEndDateDisplay').value = '';
-        loadPaidConsultations();
-      });
+      // (Antes había un calendario "Desde/Hasta" a medida que pedía al servidor por
+      // rango de fechas. Ahora el filtro de fechas es parte de la barra de filtros de
+      // cada tabla y opera en el cliente, así que ese código se eliminó.)
 
       // ── Payment Modal ──
       let pmCurrentId = null;
@@ -1611,97 +2023,36 @@
           }).join('');
         }
 
-        const tbl = document.getElementById('productSalesTable');
-        if (!sales || sales.length === 0) {
-          tbl.innerHTML = '<tr><td colspan="7" class="empty-table">No hay ventas de productos registradas</td></tr>';
-        } else {
-          tbl.innerHTML = sales.map(s => {
-            const d = new Date(s.created_at).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' });
-            const profit = Number(s.profit || 0);
-            const profitColor = profit >= 0 ? '#15803d' : '#b91c1c';
-            return `
-              <tr>
-                <td>${d}</td>
-                <td><strong>${esc(s.item_name)}</strong></td>
-                <td>${Number(s.quantity).toLocaleString('es-HN')} ${esc(s.item_unit || '')}</td>
-                <td>L. ${fmtNum(s.unit_cost_at_sale || 0)}</td>
-                <td>L. ${fmtNum(s.unit_sale_price || 0)}</td>
-                <td><strong style="color:${profitColor}">L. ${fmtNum(profit)}</strong></td>
-                <td>${esc(s.user_name || '—')}</td>
-              </tr>`;
-          }).join('');
-        }
+        // La tabla de ventas se renderiza/filtra mediante salesFilter (barra de filtros).
+        salesFilter.setData(sales || []);
       }
 
       async function refreshFinances() {
         try {
-          const [stats, pending, weekly, prodSummary, prodSales] = await Promise.all([
+          const [stats, pending, paid, weekly, prodSummary, prodSales] = await Promise.all([
             api('/api/consultations/finances/summary'),
             api('/api/consultations/finances/pending'),
+            api('/api/consultations/finances/paid').catch(() => []),
             api(`/api/consultations/finances/weekly?range=${encodeURIComponent(currentRange)}`),
             api('/api/inventory/sales/summary').catch(() => null),
-            api('/api/inventory/sales/list?limit=100').catch(() => [])
+            api('/api/inventory/sales/list?limit=2000').catch(() => [])
           ]);
 
+          // Las tablas conservan los filtros activos: setData solo reemplaza los datos y
+          // re-aplica el filtro/orden actual.
           renderProductSales(prodSummary, prodSales);
 
           document.getElementById('monthRevenue').textContent = 'L. ' + fmtNum(stats.month_revenue);
           document.getElementById('totalRevenue').textContent = 'L. ' + fmtNum(stats.total_revenue);
           document.getElementById('pendingCount').textContent = stats.pending_count;
 
-          // Re-render weekly chart
           renderChart(weekly);
 
-          // Re-render pending table (with fresh row click handlers)
-          const tbl = document.getElementById('pendingTable');
-          if (pending.length === 0) {
-            tbl.innerHTML = '<tr><td colspan="4" class="empty-table">No hay consultas pendientes de cobro</td></tr>';
-          } else {
-            tbl.innerHTML = pending.map(c => {
-              const formatted = Number(c.cost).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-              const dateStr = new Date(c.created_at).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' });
-              return `
-                <tr data-id="${c.id}" data-name="${esc(c.patient_name)}" data-date="${esc(dateStr)}" data-cost="L. ${formatted}" title="Click para cambiar estado de pago">
-                  <td>${dateStr}</td>
-                  <td>${esc(c.patient_name)}</td>
-                  <td><strong style="color: #0891b2;">L. ${formatted}</strong></td>
-                  <td>${esc(c.phone || '—')}</td>
-                </tr>`;
-            }).join('');
-            tbl.querySelectorAll('tr[data-id]').forEach(tr => {
-              tr.addEventListener('click', () => {
-                openPaymentModal(parseInt(tr.dataset.id, 10), tr.dataset.name, tr.dataset.date, tr.dataset.cost);
-              });
-            });
-          }
+          pendingFilter.setData(pending);
+          paidFilter.setData(paid);
 
-          // Refresh paid table with current date filters
-          loadPaidConsultations(
-            document.getElementById('paidStartDate').value,
-            document.getElementById('paidEndDate').value
-          );
-
-          // Refresh by-doctor breakdown if visible
-          if (role === 'clinic_admin') {
-            try {
-              const byDoctor = await api('/api/consultations/finances/by-doctor');
-              const byDoctorTable = document.getElementById('byDoctorTable');
-              if (byDoctor.length === 0) {
-                byDoctorTable.innerHTML = '<tr><td colspan="6" class="empty-table">No hay datos de doctores</td></tr>';
-              } else {
-                byDoctorTable.innerHTML = byDoctor.map(d => `
-                  <tr>
-                    <td><strong>${esc(d.doctor_name || 'Sin asignar')}</strong></td>
-                    <td>${esc(d.specialty || '—')}</td>
-                    <td>${d.consultation_count}</td>
-                    <td>L. ${fmtNum(d.paid_amount)}</td>
-                    <td>L. ${fmtNum(d.pending_amount)}</td>
-                    <td><strong>L. ${fmtNum(d.total_amount)}</strong></td>
-                  </tr>
-                `).join('');
-              }
-            } catch(e) { console.error('refresh by-doctor', e); }
-          }
+          // by-doctor filtra fechas en el servidor: re-ejecuta su consulta con el rango activo.
+          if (isAdmin && byDoctorFilter) byDoctorFilter.reload();
         } catch (err) {
           console.error('refreshFinances', err);
         }

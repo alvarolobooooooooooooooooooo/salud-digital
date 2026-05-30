@@ -6,6 +6,10 @@ const multer = require('multer');
 const { v4: uuid } = require('uuid');
 const cloudinary = require('cloudinary').v2;
 
+// Filtros de fecha de Finanzas: solo aceptamos YYYY-MM-DD para evitar que un valor
+// malformado llegue al cast ::date de Postgres y dispare un 500 (devolvemos 400).
+const FINANCE_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 function getLocalDateString(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -133,7 +137,9 @@ router.get('/finances/weekly', authenticate, async (req, res) => {
 });
 
 router.get('/finances/pending', authenticate, async (req, res) => {
-  let queryStr = 'SELECT c.id, c.created_at, p.name as patient_name, p.phone, c.cost FROM consultations c JOIN patients p ON c.patient_id = p.id WHERE c.clinic_id = $1 AND c.payment_status = \'pending\'';
+  // Incluimos doctor_id/doctor_name/specialty para que Finanzas pueda filtrar la tabla
+  // por doctor y especialidad en el cliente. Límite alto: el filtrado es client-side.
+  let queryStr = 'SELECT c.id, c.created_at, p.name as patient_name, p.phone, c.cost, c.doctor_id, c.specialty, u.name as doctor_name FROM consultations c JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.clinic_id = $1 AND c.payment_status = \'pending\'';
   const params = [req.user.clinic_id];
   let paramIndex = 2;
 
@@ -143,15 +149,17 @@ router.get('/finances/pending', authenticate, async (req, res) => {
     paramIndex++;
   }
 
-  queryStr += ' ORDER BY c.created_at DESC LIMIT 50';
+  queryStr += ' ORDER BY c.created_at DESC LIMIT 1000';
   const result = await query(queryStr, params);
   res.json(result.rows);
 });
 
 router.get('/finances/paid', authenticate, async (req, res) => {
   const { startDate, endDate } = req.query;
+  if (startDate && !FINANCE_DATE_RE.test(startDate)) return res.status(400).json({ error: 'startDate inválido (use YYYY-MM-DD)' });
+  if (endDate && !FINANCE_DATE_RE.test(endDate)) return res.status(400).json({ error: 'endDate inválido (use YYYY-MM-DD)' });
 
-  let queryStr = 'SELECT c.id, c.created_at, p.name as patient_name, p.phone, c.cost, u.name as doctor_name FROM consultations c JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.clinic_id = $1 AND c.payment_status = \'paid\'';
+  let queryStr = 'SELECT c.id, c.created_at, p.name as patient_name, p.phone, c.cost, c.doctor_id, c.specialty, u.name as doctor_name FROM consultations c JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.clinic_id = $1 AND c.payment_status = \'paid\'';
   const params = [req.user.clinic_id];
   let paramIndex = 2;
 
@@ -173,7 +181,7 @@ router.get('/finances/paid', authenticate, async (req, res) => {
     paramIndex++;
   }
 
-  queryStr += ' ORDER BY c.created_at DESC LIMIT 100';
+  queryStr += ' ORDER BY c.created_at DESC LIMIT 1000';
   const result = await query(queryStr, params);
   res.json(result.rows);
 });
@@ -183,9 +191,28 @@ router.get('/finances/by-doctor', authenticate, async (req, res) => {
     return res.status(403).json({ error: 'Only clinic admin can view this' });
   }
 
-  const queryStr = `SELECT u.id as doctor_id, u.name as doctor_name, u.specialty, COUNT(DISTINCT c.id) as consultation_count, COALESCE(SUM(CASE WHEN c.payment_status = 'paid' THEN c.cost ELSE 0 END), 0) as paid_amount, COALESCE(SUM(CASE WHEN c.payment_status = 'pending' THEN c.cost ELSE 0 END), 0) as pending_amount, COALESCE(SUM(c.cost), 0) as total_amount FROM users u LEFT JOIN consultations c ON u.id = c.doctor_id AND c.clinic_id = $1 AND u.clinic_id = $2 WHERE u.clinic_id = $3 AND u.role = 'doctor' GROUP BY u.id ORDER BY total_amount DESC`;
+  // Rango de fechas opcional. Va en el ON del LEFT JOIN (no en el WHERE) para que los
+  // doctores sin consultas en el rango sigan apareciendo con totales en cero.
+  const { startDate, endDate } = req.query;
+  if (startDate && !FINANCE_DATE_RE.test(startDate)) return res.status(400).json({ error: 'startDate inválido (use YYYY-MM-DD)' });
+  if (endDate && !FINANCE_DATE_RE.test(endDate)) return res.status(400).json({ error: 'endDate inválido (use YYYY-MM-DD)' });
+  const params = [req.user.clinic_id, req.user.clinic_id, req.user.clinic_id];
+  let dateFilter = '';
+  let paramIndex = 4;
+  if (startDate) {
+    dateFilter += ` AND c.created_at::date >= $${paramIndex}`;
+    params.push(startDate);
+    paramIndex++;
+  }
+  if (endDate) {
+    dateFilter += ` AND c.created_at::date <= $${paramIndex}`;
+    params.push(endDate);
+    paramIndex++;
+  }
 
-  const result = await query(queryStr, [req.user.clinic_id, req.user.clinic_id, req.user.clinic_id]);
+  const queryStr = `SELECT u.id as doctor_id, u.name as doctor_name, u.specialty, COUNT(DISTINCT c.id) as consultation_count, COALESCE(SUM(CASE WHEN c.payment_status = 'paid' THEN c.cost ELSE 0 END), 0) as paid_amount, COALESCE(SUM(CASE WHEN c.payment_status = 'pending' THEN c.cost ELSE 0 END), 0) as pending_amount, COALESCE(SUM(c.cost), 0) as total_amount FROM users u LEFT JOIN consultations c ON u.id = c.doctor_id AND c.clinic_id = $1 AND u.clinic_id = $2${dateFilter} WHERE u.clinic_id = $3 AND u.role = 'doctor' GROUP BY u.id ORDER BY total_amount DESC`;
+
+  const result = await query(queryStr, params);
   res.json(result.rows);
 });
 

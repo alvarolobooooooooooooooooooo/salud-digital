@@ -80,6 +80,16 @@ const initDb = async () => {
         FOREIGN KEY (clinic_id) REFERENCES clinics(id)
       );
 
+      -- Índices para las tablas centrales (Postgres NO indexa columnas FK automáticamente).
+      -- Aceleran la ficha de paciente, el calendario y los listados que filtran por
+      -- clinic_id / patient_id / doctor_id. Compuestos donde la query también ordena.
+      CREATE INDEX IF NOT EXISTS idx_patients_clinic ON patients(clinic_id);
+      CREATE INDEX IF NOT EXISTS idx_appointments_clinic_scheduled ON appointments(clinic_id, scheduled_at);
+      CREATE INDEX IF NOT EXISTS idx_appointments_patient ON appointments(patient_id);
+      CREATE INDEX IF NOT EXISTS idx_appointments_doctor ON appointments(doctor_id);
+      CREATE INDEX IF NOT EXISTS idx_consultations_patient_clinic_created ON consultations(patient_id, clinic_id, created_at);
+      CREATE INDEX IF NOT EXISTS idx_consultations_doctor ON consultations(doctor_id);
+
       CREATE TABLE IF NOT EXISTS invitations (
         id SERIAL PRIMARY KEY,
         email TEXT NOT NULL UNIQUE,
