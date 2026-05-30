@@ -355,3 +355,19 @@ code, kbd, samp { font-family: var(--font-mono); font-size: 0.95em; }
 :root[data-theme="dark"] .subs__title { color: var(--fg-strong); }
 :root[data-theme="dark"] .subs__chip,
 :root[data-theme="dark"] .week-plan__pill { color: var(--fg-default); }
+
+/* Filtros de categoría del estante de alimentos (tab Plan) — en dark el chip
+   inactivo usaba --sd-ink-100 (casi igual al surface) con texto apagado y sin
+   borde, y el activo --sd-navy-700 (navy NO redefinido, invisible sobre el
+   fondo negro), así que los filtros no se leían. Subimos contraste: chip
+   elevado con borde y texto claro; el activo en azul de marca. */
+:root[data-theme="dark"] .food-shelf__cat {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-default);
+  color: var(--fg-default);
+}
+:root[data-theme="dark"] .food-shelf__cat.on {
+  background: var(--sd-blue-600);
+  border-color: var(--sd-blue-600);
+  color: #fff;
+}
