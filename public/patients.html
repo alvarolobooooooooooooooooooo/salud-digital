@@ -606,6 +606,12 @@
       background: linear-gradient(90deg, rgba(8, 145, 178, 0.04) 0%, transparent 100%);
     }
 
+    .history-total-row {
+      font-weight: 600;
+      background: #f9fafb;
+      border-top: 2px solid #e2e8f0;
+    }
+
     .status-badge {
       display: inline-block;
       padding: 0.4rem 1rem;
@@ -1318,7 +1324,7 @@
                       <td>${cost}</td>
                     </tr>`;
                 }).join('')}
-                ${consultations.length > 0 ? `<tr style="font-weight: 600; background: #f9fafb; border-top: 2px solid #e2e8f0;">
+                ${consultations.length > 0 ? `<tr class="history-total-row">
                   <td colspan="4" style="text-align: right;">Total pagado:</td>
                   <td>L. ${totalCost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
                 </tr>` : ''}

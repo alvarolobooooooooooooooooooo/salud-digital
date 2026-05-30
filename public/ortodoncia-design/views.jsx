@@ -1064,7 +1064,7 @@ function OclusalView({ teeth, selected, onSelect }) {
   const wirePath = catmullRomPath(wirePts);
 
   return (
-    <div className="arch-wrap" style={{gap:'var(--sp-3)'}}>
+    <div className="arch-wrap" style={{gap:'var(--sp-3)', justifyContent:'flex-start'}}>
       <div style={{display:'flex', gap: 6, alignItems:'center'}}>
         <button className="btn btn-ghost"
           style={{background: arch==='sup' ? 'var(--sd-blue-100)' : '', color: arch==='sup' ? 'var(--sd-blue-700)' : '', borderColor: arch==='sup' ? 'var(--sd-blue-600)' : ''}}
@@ -1603,7 +1603,38 @@ const XRAY_SLOTS = [
 const MEDIA_MAX_DIM = 1400;     // px on longest side
 const MEDIA_JPEG_QUALITY = 0.78;
 
-function resizeImageFile(file) {
+// HEIC/HEIF (formato por defecto del iPhone) no lo decodifica <img> en
+// Chrome/Firefox/Edge — solo Safari. Detectamos esos archivos y los convertimos
+// a JPEG en el servidor (heic-convert) antes de seguir con el resize por canvas.
+function isHeicFile(file) {
+  const t = (file.type || '').toLowerCase();
+  if (t === 'image/heic' || t === 'image/heif' ||
+      t === 'image/heic-sequence' || t === 'image/heif-sequence') return true;
+  return /\.(heic|heif)$/i.test(file.name || '');
+}
+
+async function convertHeicToJpeg(file) {
+  const fd = new FormData();
+  fd.append('file', file, file.name || 'foto.heic');
+  let resp;
+  try {
+    resp = await fetch('/api/media/heic-to-jpeg', {
+      method: 'POST', body: fd, credentials: 'same-origin',
+    });
+  } catch (e) {
+    throw new Error('No se pudo convertir la imagen HEIC (sin conexión).');
+  }
+  if (!resp.ok) {
+    throw new Error('No se pudo convertir la imagen HEIC. Prueba con JPG o PNG.');
+  }
+  return await resp.blob();
+}
+
+async function resizeImageFile(file) {
+  let source = file;
+  if (isHeicFile(file)) {
+    source = await convertHeicToJpeg(file);
+  }
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
@@ -1622,7 +1653,7 @@ function resizeImageFile(file) {
       };
       img.src = reader.result;
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(source);
   });
 }
 
@@ -1633,7 +1664,7 @@ function MediaSlot({ slot, dataUrl, onUpload, onClear, isXray }) {
 
   const handleFile = async (file) => {
     if (!file) return;
-    if (!file.type.startsWith('image/')) { setErr('Archivo no es imagen'); return; }
+    if (!isHeicFile(file) && !(file.type || '').startsWith('image/')) { setErr('Archivo no es imagen'); return; }
     setBusy(true); setErr(null);
     try {
       const url = await resizeImageFile(file);
@@ -1656,7 +1687,7 @@ function MediaSlot({ slot, dataUrl, onUpload, onClear, isXray }) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         style={{ display: 'none' }}
         onChange={e => { handleFile(e.target.files && e.target.files[0]); e.target.value = ''; }}
       />

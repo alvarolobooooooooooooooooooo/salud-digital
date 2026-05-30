@@ -940,23 +940,10 @@ window.addEventListener('message', (e) => {
   if (data.type === 'orto:height' && typeof data.height === 'number') {
     const frame = document.getElementById('ortoFrame');
     if (frame) {
-      // Only auto-grow on narrow viewports where the widget stacks vertically.
-      // On desktop keep the fixed 820px so the layout stays predictable.
-      if (window.matchMedia('(max-width: 1100px)').matches) {
-        frame.style.height = Math.max(300, data.height) + 'px';
-      } else {
-        frame.style.height = '';
-      }
+      // Always grow the iframe to fit its content (all viewports) so the widget
+      // has no inner scrollbar and scrolls with the parent page.
+      frame.style.height = Math.max(300, data.height) + 'px';
     }
-  }
-});
-
-// Re-apply size policy when viewport crosses the 1100px threshold
-window.addEventListener('resize', () => {
-  const frame = document.getElementById('ortoFrame');
-  if (!frame) return;
-  if (!window.matchMedia('(max-width: 1100px)').matches) {
-    frame.style.height = '';
   }
 });
 
@@ -1002,6 +989,63 @@ function ortoRequestState(timeoutMs = 800) {
       resolve(ortoLastState);
     }, timeoutMs);
   });
+}
+
+// Run cb once the orthodontics iframe has announced 'orto:ready'
+function whenOrtoReady(cb) {
+  if (ortoReady) return cb();
+  const onReady = (e) => {
+    if (e.data && e.data.type === 'orto:ready') {
+      window.removeEventListener('message', onReady);
+      cb();
+    }
+  };
+  window.addEventListener('message', onReady);
+}
+
+// Seed the treatment timeline with REAL dates for a new consultation:
+//   startDate   = date of the patient's earliest orthodontics consultation
+//                 (or today if this is their first one)
+//   nextControl = the patient's next scheduled appointment, if any
+// Only sets these if not already present (so a restored draft / saved
+// plan keeps the doctor's own dates). Milestones/metrics are untouched.
+async function seedOrtoTreatment() {
+  try {
+    if (!patientId) return;
+    const cur = await ortoRequestState(600);
+    if (cur && cur.treatment && cur.treatment.startDate) return;
+
+    let startDate = null;
+    try {
+      const res = await api(`/api/patients/${patientId}/consultations?limit=100`);
+      const list = Array.isArray(res) ? res : (res && res.consultations) || [];
+      const dates = list
+        .filter(c => (c.specialty || '').toLowerCase().includes('ortodon'))
+        .map(c => c.created_at).filter(Boolean)
+        .map(d => String(d).slice(0, 10)).sort();
+      if (dates.length) startDate = dates[0];
+    } catch (_) {}
+    if (!startDate) startDate = new Date().toISOString().slice(0, 10);
+
+    let nextControl = null;
+    try {
+      const appts = await api('/api/appointments');
+      const now = Date.now();
+      const future = (appts || [])
+        .filter(a => a.patient_id === patientId && a.scheduled_at && new Date(a.scheduled_at).getTime() > now)
+        .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
+      if (future.length) nextControl = String(future[0].scheduled_at).slice(0, 10);
+    } catch (_) {}
+
+    const frame = document.getElementById('ortoFrame');
+    if (frame && frame.contentWindow) {
+      const seed = { startDate, nextControl };
+      frame.contentWindow.postMessage({ type: 'orto:setState', state: { treatment: seed } }, '*');
+      ortoLastState = { ...(ortoLastState || {}), treatment: { ...((ortoLastState || {}).treatment || {}), ...seed } };
+    }
+  } catch (e) {
+    console.warn('seedOrtoTreatment failed', e);
+  }
 }
 
 function formatCostBlur(el) {
@@ -1081,6 +1125,10 @@ async function loadAppointment() {
       ConsultationDraft.bind(appointmentId);
       ConsultationDraft.maybeRestore();
     }
+
+    // Seed the evolution timeline with real start/next-control dates once
+    // the iframe is ready (won't override a restored draft's own dates).
+    whenOrtoReady(seedOrtoTreatment);
   } catch (e) {
     console.error(e);
     alert('Error al cargar la cita');

@@ -3,47 +3,130 @@
 // evolucion-v2.jsx — Treatment evolution view (redesigned)
 // Clean before/after slider, clinical metrics, milestone timeline,
 // summary cards, evolution-focused right panel.
+//
+// Timeline data is now driven by a persisted `treatment` object
+// (start date, milestones, metrics, text lists) that rides inside
+// the orthodontics state blob and saves with "Guardar Consulta".
+// Dates and progress % are COMPUTED live from `startDate` + today;
+// milestones / metrics / lists are editable ("Editar plan").
 // ============================================================
 
 const { useState: useStateE, useRef: useRefE, useMemo: useMemoE } = React;
 
 // =============================================================
-// Treatment milestone data
+// Date helpers (all relative to "today", computed in the browser)
 // =============================================================
-const TX_MILESTONES = [
-  { id: 'inicio',    label: 'Inicio',            month: 0,  date: 'Ene 2026', icon: 'play',
-    objective: 'Cementado de brackets y bandas. Educación del paciente.',
-    archwire: '.014 NiTi' },
-  { id: 'alineacion', label: 'Alineación',       month: 2,  date: 'Mar 2026', icon: 'align',
-    objective: 'Corrección de rotaciones y apiñamiento anterior.',
-    archwire: '.016 NiTi' },
-  { id: 'nivelacion', label: 'Nivelación',       month: 4,  date: 'May 2026', icon: 'level',
-    objective: 'Curva de Spee y nivelación de marginal ridges.',
-    archwire: '.018 NiTi' },
-  { id: 'torque',    label: 'Control de torque', month: 8,  date: 'Sep 2026', icon: 'torque',
-    objective: 'Inclinación radicular y control vestíbulo-lingual.',
-    archwire: '.019×.025 NiTi' },
-  { id: 'cierre',    label: 'Cierre de espacios', month: 12, date: 'Ene 2027', icon: 'close',
-    objective: 'Mecánica de deslizamiento. Cadenetas elásticas.',
-    archwire: '.019×.025 SS' },
-  { id: 'refinamiento', label: 'Refinamiento',  month: 16, date: 'May 2027', icon: 'polish',
-    objective: 'Detallado oclusal, paralelismo radicular, gemelas.',
-    archwire: '.019×.025 SS' },
-  { id: 'final',     label: 'Finalización',      month: 18, date: 'Jul 2027', icon: 'check',
-    objective: 'Retirada de aparatos. Retenedores fijos + Hawley.',
-    archwire: 'Retenedor' },
-];
+const MESES_ABBR = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-// Clinical metrics: initial → final values
-const TX_METRICS = [
-  { id: 'overjet',     label: 'Overjet',        unit:'mm', initial: 5.2, final: 2.5, status: 'mejoro' },
-  { id: 'overbite',    label: 'Overbite',       unit:'mm', initial: 4.0, final: 2.5, status: 'mejoro' },
-  { id: 'crowding_s',  label: 'Apiñ. sup',      unit:'mm', initial:-3.5, final:-0.5, status: 'mejoro' },
-  { id: 'crowding_i',  label: 'Apiñ. inf',      unit:'mm', initial:-2.0, final: 0.0, status: 'mejoro' },
-  { id: 'midline',     label: 'Línea media',    unit:'mm', initial: 0.5, final: 0.0, status: 'mejoro' },
-  { id: 'class_mol',   label: 'Clase molar',    raw: true, initial:'II',  final:'I',  status: 'mejoro' },
-  { id: 'class_can',   label: 'Clase canina',   raw: true, initial:'II',  final:'I',  status: 'mejoro' },
-];
+function parseDate(s) {
+  if (!s) return null;
+  const parts = String(s).slice(0, 10).split('-').map(Number);
+  const [y, m, d] = parts;
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+}
+function addMonths(date, n) {
+  if (!date) return null;
+  const d = new Date(date.getTime());
+  d.setMonth(d.getMonth() + Math.round(n));
+  return d;
+}
+function fmtDMY(date) {
+  return date ? `${date.getDate()} ${MESES_ABBR[date.getMonth()]} ${date.getFullYear()}` : '—';
+}
+function fmtMY(date) {
+  return date ? `${MESES_ABBR[date.getMonth()]} ${date.getFullYear()}` : '—';
+}
+// Fractional months between a → b (positive when b is later than a)
+function monthsBetween(a, b) {
+  if (!a || !b) return 0;
+  return (b.getFullYear() - a.getFullYear()) * 12
+    + (b.getMonth() - a.getMonth())
+    + (b.getDate() - a.getDate()) / 30;
+}
+// Human relative label for a date vs today: "hace 4 meses" / "en 2 sem" / "hoy"
+function relLabel(date, today) {
+  if (!date) return '';
+  const days = Math.round((date.getTime() - today.getTime()) / 86400000);
+  if (days === 0) return 'hoy';
+  const fut = days > 0;
+  if (Math.abs(days) <= 6) {
+    const n = Math.abs(days);
+    return `${fut ? 'en' : 'hace'} ${n} día${n > 1 ? 's' : ''}`;
+  }
+  const months = Math.round(monthsBetween(today, date));
+  if (months === 0) {
+    const wk = Math.max(1, Math.round(Math.abs(days) / 7));
+    return `${fut ? 'en' : 'hace'} ${wk} sem`;
+  }
+  const n = Math.abs(months);
+  return `${months > 0 ? 'en' : 'hace'} ${n} mes${n > 1 ? 'es' : ''}`;
+}
+
+// =============================================================
+// Default treatment plan (template). Used as a seed for new
+// consultations and to backfill any missing fields on load.
+// `current` values are picked so a fresh plan looks like a case
+// already at ~month 4 (matches the previous static demo).
+// =============================================================
+function seedTreatment() {
+  return {
+    startDate: null,        // ISO 'YYYY-MM-DD' — seeded by the parent from the 1st ortho consult
+    durationMonths: 18,
+    nextControl: null,      // ISO — optional; defaults to today + 4 weeks
+    milestones: [
+      { id: 'inicio',       label: 'Inicio',            month: 0,  objective: 'Cementado de brackets y bandas. Educación del paciente.', archwire: '.014 NiTi' },
+      { id: 'alineacion',   label: 'Alineación',        month: 2,  objective: 'Corrección de rotaciones y apiñamiento anterior.',        archwire: '.016 NiTi' },
+      { id: 'nivelacion',   label: 'Nivelación',        month: 4,  objective: 'Curva de Spee y nivelación de marginal ridges.',          archwire: '.018 NiTi' },
+      { id: 'torque',       label: 'Control de torque', month: 8,  objective: 'Inclinación radicular y control vestíbulo-lingual.',       archwire: '.019×.025 NiTi' },
+      { id: 'cierre',       label: 'Cierre de espacios', month: 12, objective: 'Mecánica de deslizamiento. Cadenetas elásticas.',         archwire: '.019×.025 SS' },
+      { id: 'refinamiento', label: 'Refinamiento',      month: 16, objective: 'Detallado oclusal, paralelismo radicular, gemelas.',      archwire: '.019×.025 SS' },
+      { id: 'final',        label: 'Finalización',      month: 18, objective: 'Retirada de aparatos. Retenedores fijos + Hawley.',        archwire: 'Retenedor' },
+    ],
+    metrics: [
+      { id: 'overjet',    label: 'Overjet',      unit: 'mm', initial: 5.2,  current: 3.4,  target: 2.5 },
+      { id: 'overbite',   label: 'Overbite',     unit: 'mm', initial: 4.0,  current: 3.6,  target: 2.5 },
+      { id: 'crowding_s', label: 'Apiñ. sup',    unit: 'mm', initial: -3.5, current: -1.2, target: -0.5 },
+      { id: 'crowding_i', label: 'Apiñ. inf',    unit: 'mm', initial: -2.0, current: -1.6, target: 0.0 },
+      { id: 'midline',    label: 'Línea media',  unit: 'mm', initial: 0.5,  current: 0.4,  target: 0.0 },
+      { id: 'class_mol',  label: 'Clase molar',  raw: true,  initial: 'II', current: 'II', target: 'I' },
+      { id: 'class_can',  label: 'Clase canina', raw: true,  initial: 'II', current: 'II', target: 'I' },
+    ],
+    observedChanges: [
+      'Reducción de apiñamiento ant. sup.',
+      'Mejor alineación de incisivos',
+      'Overjet en descenso (5.2 → 3.4 mm)',
+    ],
+    nextSteps: [
+      'Cambio a .019×.025 NiTi en 4 sem.',
+      'Inicio de cierre con cadenetas',
+      'Revisión radiográfica al mes 8',
+    ],
+    alerts: [
+      'Bracket flojo en 26 — revisar',
+      'Higiene oral: control profiláctico',
+    ],
+    caseNotes: 'Paciente colabora bien con higiene oral. Sin signos de descalcificación. Se recomienda continuar con .018 NiTi hasta nivelación completa antes de progresar a calibre rectangular.',
+  };
+}
+
+// Merge a (possibly partial / legacy) saved plan with the template so
+// every field is always present and the view never breaks.
+function normalizeTreatment(t) {
+  const base = seedTreatment();
+  if (!t || typeof t !== 'object') return base;
+  return {
+    startDate: t.startDate || base.startDate,
+    durationMonths: Number(t.durationMonths) > 0 ? Number(t.durationMonths) : base.durationMonths,
+    nextControl: t.nextControl || base.nextControl,
+    milestones: Array.isArray(t.milestones) && t.milestones.length ? t.milestones : base.milestones,
+    metrics: Array.isArray(t.metrics) && t.metrics.length ? t.metrics : base.metrics,
+    observedChanges: Array.isArray(t.observedChanges) ? t.observedChanges : base.observedChanges,
+    nextSteps: Array.isArray(t.nextSteps) ? t.nextSteps : base.nextSteps,
+    alerts: Array.isArray(t.alerts) ? t.alerts : base.alerts,
+    caseNotes: typeof t.caseNotes === 'string' ? t.caseNotes : base.caseNotes,
+  };
+}
 
 const STATUS_STYLE = {
   mejoro:    { bg:'var(--sd-vital-100)',    fg:'var(--sd-vital-600)',    label: 'mejoró',    icon: '↑' },
@@ -53,14 +136,94 @@ const STATUS_STYLE = {
 };
 
 // =============================================================
-// Compact milestone timeline
+// Metric helpers — status + progress from initial→current→target
 // =============================================================
-function MilestoneTimeline({ currentMonth, onMonthChange }) {
-  const totalMonths = 18;
-  const progress = Math.min(100, (currentMonth / totalMonths) * 100);
+function metricStatus(m) {
+  if (m.raw) {
+    if (String(m.current) === String(m.target)) return 'mejoro';
+    if (String(m.current) === String(m.initial)) return 'pendiente';
+    return 'mejoro';
+  }
+  const init = +m.initial, cur = +m.current, tgt = +m.target;
+  if (![init, cur, tgt].every(Number.isFinite)) return 'estable';
+  const totalGap = Math.abs(tgt - init);
+  if (totalGap < 1e-6) return 'estable';
+  const remGap = Math.abs(tgt - cur);
+  if (remGap > totalGap + 1e-6) return 'alerta';           // moved away from target
+  if (remGap < 1e-6) return 'mejoro';                       // reached target
+  if (Math.abs(cur - init) < 1e-6) return 'pendiente';      // no change yet
+  return 'mejoro';                                          // moving toward target
+}
 
-  // Find current milestone (closest one that's been reached)
-  const currentMilestoneIdx = TX_MILESTONES.reduce((acc, m, i) => m.month <= currentMonth ? i : acc, 0);
+// =============================================================
+// Tiny styled inputs for the plan editor
+// =============================================================
+const editInputStyle = {
+  background:'var(--bg-app)', border:'1px solid var(--border-default)',
+  borderRadius:'var(--r-sm)', padding:'6px 8px',
+  fontSize:'var(--t-12)', color:'var(--fg-strong)', fontFamily:'inherit',
+  width:'100%', boxSizing:'border-box',
+};
+function EInput({ value, onChange, type = 'text', placeholder, style, ...rest }) {
+  return (
+    <input type={type} value={value == null ? '' : value} placeholder={placeholder}
+      onChange={e => onChange(type === 'number' ? e.target.value : e.target.value)}
+      style={{ ...editInputStyle, ...style }} {...rest} />
+  );
+}
+function IconBtn({ onClick, title, children, danger }) {
+  return (
+    <button type="button" title={title} onClick={onClick}
+      style={{
+        width: 26, height: 26, flexShrink: 0, borderRadius:'var(--r-sm)',
+        border:'1px solid var(--border-default)', cursor:'pointer',
+        background: danger ? 'var(--sd-critical-100)' : 'var(--bg-surface)',
+        color: danger ? 'var(--sd-critical-600)' : 'var(--fg-muted)',
+        display:'grid', placeItems:'center', padding: 0,
+      }}>{children}</button>
+  );
+}
+function AddBtn({ onClick, children }) {
+  return (
+    <button type="button" onClick={onClick}
+      style={{
+        display:'inline-flex', alignItems:'center', gap: 6,
+        padding:'6px 10px', borderRadius:'var(--r-sm)',
+        border:'1px dashed var(--border-strong)', background:'none',
+        color:'var(--sd-blue-700)', fontSize:'var(--t-12)', fontWeight: 600, cursor:'pointer',
+      }}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M12 5v14M5 12h14"/></svg>
+      {children}
+    </button>
+  );
+}
+const ICON_X = <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>;
+
+function uid(prefix) {
+  return prefix + '-' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
+}
+
+// Editable list of plain strings (cambios / próximos pasos / alertas)
+function EditableList({ items, onChange, placeholder, addLabel }) {
+  return (
+    <div style={{display:'flex', flexDirection:'column', gap: 6}}>
+      {items.map((it, i) => (
+        <div key={i} style={{display:'flex', gap: 6, alignItems:'center'}}>
+          <EInput value={it} placeholder={placeholder}
+            onChange={v => onChange(items.map((x, j) => j === i ? v : x))} />
+          <IconBtn danger title="Quitar" onClick={() => onChange(items.filter((_, j) => j !== i))}>{ICON_X}</IconBtn>
+        </div>
+      ))}
+      <div><AddBtn onClick={() => onChange([...items, ''])}>{addLabel || 'Agregar'}</AddBtn></div>
+    </div>
+  );
+}
+
+// =============================================================
+// Compact milestone timeline (driven by treatment data)
+// =============================================================
+function MilestoneTimeline({ milestones, startDate, durationMonths, realMonth, today, progress, currentIdx, beforeStart, inspectIdx, onInspect, onEditPlan, editing }) {
+  const start = parseDate(startDate);
 
   return (
     <div style={{
@@ -69,21 +232,41 @@ function MilestoneTimeline({ currentMonth, onMonthChange }) {
       borderRadius:'var(--r-lg)',
       padding:'18px 24px 16px',
     }}>
-      <div style={{display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom: 14}}>
+      <div style={{display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom: 14, gap: 12, flexWrap:'wrap'}}>
         <div>
           <div style={{fontFamily:'var(--font-display)', fontWeight: 700, fontSize:'var(--t-14)', color:'var(--fg-strong)'}}>
             Línea de tiempo del tratamiento
           </div>
           <div style={{fontSize: 'var(--t-12)', color:'var(--fg-muted)', marginTop: 2}}>
-            {totalMonths} meses · Etapa actual: <strong style={{color:'var(--sd-blue-700)'}}>{TX_MILESTONES[currentMilestoneIdx].label}</strong>
+            {durationMonths} meses · Etapa actual: <strong style={{color:'var(--sd-blue-700)'}}>{beforeStart ? 'por iniciar' : (milestones[currentIdx] ? milestones[currentIdx].label : '—')}</strong>
+            {!start && <span style={{color:'var(--sd-alert-600)'}}> · falta fecha de inicio</span>}
           </div>
         </div>
-        <div style={{display:'flex', gap: 10, alignItems:'baseline'}}>
-          <span style={{
-            fontFamily:'var(--font-display)', fontWeight: 800,
-            fontSize:'var(--t-24)', color:'var(--sd-blue-700)',
-          }}>{Math.round(progress)}<span style={{fontSize:'var(--t-12)', fontWeight: 600, marginLeft: 2}}>%</span></span>
-          <span style={{fontSize:'var(--t-12)', color:'var(--fg-muted)'}}>completado</span>
+        <div style={{display:'flex', gap: 12, alignItems:'baseline'}}>
+          <div style={{display:'flex', gap: 10, alignItems:'baseline'}}>
+            <span style={{
+              fontFamily:'var(--font-display)', fontWeight: 800,
+              fontSize:'var(--t-24)', color:'var(--sd-blue-700)',
+            }}>{Math.round(progress)}<span style={{fontSize:'var(--t-12)', fontWeight: 600, marginLeft: 2}}>%</span></span>
+            <span style={{fontSize:'var(--t-12)', color:'var(--fg-muted)'}}>completado</span>
+          </div>
+          {onEditPlan && (
+            <button type="button" onClick={onEditPlan}
+              style={{
+                display:'inline-flex', alignItems:'center', gap: 6,
+                padding:'5px 10px', borderRadius:'var(--r-sm)', cursor:'pointer',
+                border:'1px solid ' + (editing ? 'var(--sd-blue-600)' : 'var(--border-default)'),
+                background: editing ? 'var(--sd-blue-600)' : 'var(--bg-surface)',
+                color: editing ? 'white' : 'var(--fg-default)',
+                fontSize:'var(--t-12)', fontWeight: 600,
+              }}>
+              {editing ? (
+                <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6L9 17l-5-5"/></svg>Listo</>
+              ) : (
+                <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Editar plan</>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -103,15 +286,18 @@ function MilestoneTimeline({ currentMonth, onMonthChange }) {
         }}></div>
 
         {/* milestone stops */}
-        {TX_MILESTONES.map((m, i) => {
-          const left = `calc(${(m.month / totalMonths) * 100}% * (1 - 24px/100%) + 12px)`;
-          const isPast = m.month < currentMonth;
-          const isCurrent = i === currentMilestoneIdx;
-          const isFuture = m.month > currentMonth;
+        {milestones.map((m, i) => {
+          const frac = durationMonths ? Math.max(0, Math.min(1, m.month / durationMonths)) : 0;
+          const left = `calc(12px + (100% - 24px) * ${frac})`;
+          const isPast = m.month < realMonth;
+          const isCurrent = !beforeStart && i === currentIdx;
+          const isInspect = i === inspectIdx && i !== currentIdx;
+          const isFuture = m.month > realMonth;
+          const mDate = start ? addMonths(start, m.month) : null;
           return (
-            <button key={m.id}
-              onClick={() => onMonthChange(m.month)}
-              title={`${m.label} · ${m.date}`}
+            <button key={m.id || i}
+              onClick={() => onInspect && onInspect(i)}
+              title={`${m.label} · ${fmtMY(mDate)}`}
               style={{
                 position:'absolute', top: 0, left, transform:'translateX(-50%)',
                 display:'flex', flexDirection:'column', alignItems:'center', gap: 4,
@@ -122,8 +308,8 @@ function MilestoneTimeline({ currentMonth, onMonthChange }) {
                 width: isCurrent ? 22 : 18, height: isCurrent ? 22 : 18,
                 borderRadius:'50%',
                 background: isCurrent ? 'var(--sd-blue-600)' : isPast ? 'var(--sd-vital-500)' : 'var(--bg-surface)',
-                border: isFuture ? '2px solid var(--border-strong)' : '2px solid white',
-                boxShadow: isCurrent ? '0 0 0 4px rgba(0,128,176,0.25)' : 'none',
+                border: isInspect ? '2px solid var(--sd-blue-600)' : isFuture ? '2px solid var(--border-strong)' : '2px solid white',
+                boxShadow: isCurrent ? '0 0 0 4px rgba(0,128,176,0.25)' : isInspect ? '0 0 0 3px rgba(0,128,176,0.18)' : 'none',
                 marginTop: isCurrent ? 7 : 9,
                 display:'grid', placeItems:'center',
                 color:'white',
@@ -149,7 +335,7 @@ function MilestoneTimeline({ currentMonth, onMonthChange }) {
                 fontSize: 9,
                 color: isCurrent ? 'var(--sd-blue-600)' : 'var(--fg-subtle)',
                 fontFamily:'var(--font-mono)',
-              }}>{m.date}</div>
+              }}>{fmtMY(mDate)}</div>
             </button>
           );
         })}
@@ -159,18 +345,21 @@ function MilestoneTimeline({ currentMonth, onMonthChange }) {
 }
 
 // =============================================================
-// Clinical metric tile (comparativo antes → ahora)
+// Clinical metric tile (comparativo inicio → actual → meta)
 // =============================================================
-function MetricTile({ m, progress }) {
-  const ss = STATUS_STYLE[m.status] || STATUS_STYLE.estable;
-  // Interpolate value at current progress (between initial and final)
-  const cur = m.raw
-    ? m.initial /* keep initial label for non-numeric until done */
-    : (m.initial + (m.final - m.initial) * (progress / 100)).toFixed(1);
+function MetricTile({ m }) {
+  const status = metricStatus(m);
+  const ss = STATUS_STYLE[status] || STATUS_STYLE.estable;
+  const cur = m.raw ? m.current : (Number.isFinite(+m.current) ? (+m.current).toFixed(1) : m.current);
 
-  const change = m.raw
-    ? `${m.initial} → ${m.final}`
-    : `${m.final - m.initial >= 0 ? '+' : ''}${(m.final - m.initial).toFixed(1)}${m.unit}`;
+  // Change so far = current − initial (the actual progress, not the plan)
+  let change = null;
+  if (!m.raw && Number.isFinite(+m.current) && Number.isFinite(+m.initial)) {
+    const delta = +m.current - +m.initial;
+    change = `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}${m.unit || ''}`;
+  } else if (m.raw) {
+    change = `${m.initial} → ${m.current}`;
+  }
 
   return (
     <div style={{
@@ -195,7 +384,7 @@ function MetricTile({ m, progress }) {
       <div style={{display:'flex', alignItems:'center', gap: 6, fontSize: 'var(--t-12)', color:'var(--fg-muted)', fontFamily:'var(--font-mono)'}}>
         <span>inicio: <strong style={{color:'var(--fg-default)'}}>{m.initial}{!m.raw && m.unit}</strong></span>
         <span style={{margin:'0 4px'}}>→</span>
-        <span>meta: <strong style={{color:'var(--fg-default)'}}>{m.final}{!m.raw && m.unit}</strong></span>
+        <span>meta: <strong style={{color:'var(--fg-default)'}}>{m.target}{!m.raw && m.unit}</strong></span>
       </div>
 
       <span style={{
@@ -209,14 +398,14 @@ function MetricTile({ m, progress }) {
           width: 14, height: 14, borderRadius:'50%', background: ss.fg, color:'white',
           display:'grid', placeItems:'center', fontSize: 9, fontWeight: 800,
         }}>{ss.icon}</span>
-        {ss.label} {!m.raw && `· ${change}`}
+        {ss.label}{change != null && ` · ${change}`}
       </span>
     </div>
   );
 }
 
 // =============================================================
-// Summary cards (5 small cards at bottom)
+// Summary cards (small cards at bottom)
 // =============================================================
 function SummaryCard({ title, icon, items, accent }) {
   return (
@@ -240,6 +429,9 @@ function SummaryCard({ title, icon, items, accent }) {
         </div>
       </div>
       <ul style={{margin: 0, padding: 0, listStyle:'none', display:'flex', flexDirection:'column', gap: 4}}>
+        {items.length === 0 && (
+          <li style={{fontSize:'var(--t-12)', color:'var(--fg-subtle)', fontStyle:'italic'}}>Sin registros</li>
+        )}
         {items.map((it, i) => (
           <li key={i} style={{
             fontSize: 'var(--t-12)', color:'var(--fg-default)',
@@ -325,7 +517,7 @@ function EvoPhotoCompare({ media = {}, setMedia = () => {} }) {
 
   const handleFile = async (key, file) => {
     if (!file) return;
-    if (!file.type || !file.type.startsWith('image/')) { setErr('El archivo no es una imagen'); return; }
+    if (!isHeicFile(file) && (!file.type || !file.type.startsWith('image/'))) { setErr('El archivo no es una imagen'); return; }
     setUploading(key === 'evo_before' ? 'before' : 'after'); setErr(null);
     try {
       setPhoto(key, await resizeImageFile(file));
@@ -363,9 +555,9 @@ function EvoPhotoCompare({ media = {}, setMedia = () => {} }) {
       boxShadow:'var(--shadow-xs)',
     }}>
       {/* Hidden file inputs */}
-      <input ref={beforeInput} type="file" accept="image/*" style={{display:'none'}}
+      <input ref={beforeInput} type="file" accept="image/*,.heic,.heif" style={{display:'none'}}
         onChange={e => { handleFile('evo_before', e.target.files && e.target.files[0]); e.target.value = ''; }} />
-      <input ref={afterInput} type="file" accept="image/*" style={{display:'none'}}
+      <input ref={afterInput} type="file" accept="image/*,.heic,.heif" style={{display:'none'}}
         onChange={e => { handleFile('evo_after', e.target.files && e.target.files[0]); e.target.value = ''; }} />
 
       {/* Header */}
@@ -419,13 +611,13 @@ function EvoPhotoCompare({ media = {}, setMedia = () => {} }) {
             </div>
           </div>
           <div style={{display:'flex', gap: 10, flexWrap:'wrap', justifyContent:'center'}}>
-            <button type="button" className="btn btn-primary" style={{cursor:'pointer'}} onClick={pickBefore}>
+            <button type="button" className="btn btn-primary" style={{cursor: uploading ? 'default' : 'pointer'}} onClick={pickBefore} disabled={!!uploading}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
-              Subir foto inicial
+              {uploading === 'before' ? 'Procesando…' : 'Subir foto inicial'}
             </button>
-            <button type="button" className="btn btn-ghost" style={{cursor:'pointer'}} onClick={pickAfter}>
+            <button type="button" className="btn btn-ghost" style={{cursor: uploading ? 'default' : 'pointer'}} onClick={pickAfter} disabled={!!uploading}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
-              Subir foto actual
+              {uploading === 'after' ? 'Procesando…' : 'Subir foto actual'}
             </button>
           </div>
         </div>
@@ -528,12 +720,168 @@ function EvoPhotoCompare({ media = {}, setMedia = () => {} }) {
 }
 
 // =============================================================
+// Plan editor — revealed by "Editar plan"
+// =============================================================
+function EditorSection({ title, children }) {
+  return (
+    <div style={{display:'flex', flexDirection:'column', gap: 8}}>
+      <div style={{
+        fontSize: 10, fontWeight: 700, color:'var(--fg-muted)',
+        textTransform:'uppercase', letterSpacing:'var(--ls-wide)',
+      }}>{title}</div>
+      {children}
+    </div>
+  );
+}
+
+function PlanEditor({ tx, patch }) {
+  const start = parseDate(tx.startDate);
+  const setMilestone = (i, mp) => patch({ milestones: tx.milestones.map((m, j) => j === i ? { ...m, ...mp } : m) });
+  const setMetric = (i, mp) => patch({ metrics: tx.metrics.map((m, j) => j === i ? { ...m, ...mp } : m) });
+
+  return (
+    <div style={{
+      background:'var(--bg-surface)',
+      border:'1px solid var(--sd-blue-300)',
+      borderRadius:'var(--r-lg)',
+      padding:'18px 20px',
+      display:'flex', flexDirection:'column', gap: 18,
+    }}>
+      <div style={{fontFamily:'var(--font-display)', fontWeight: 700, fontSize:'var(--t-15)', color:'var(--fg-strong)'}}>
+        Editar plan de tratamiento
+      </div>
+
+      {/* Dates / duration */}
+      <EditorSection title="Fechas y duración">
+        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(150px, 1fr))', gap: 10}}>
+          <label style={{display:'flex', flexDirection:'column', gap: 4, fontSize:'var(--t-12)', color:'var(--fg-muted)'}}>
+            Inicio del tratamiento
+            <EInput type="date" value={tx.startDate || ''} onChange={v => patch({ startDate: v || null })} />
+          </label>
+          <label style={{display:'flex', flexDirection:'column', gap: 4, fontSize:'var(--t-12)', color:'var(--fg-muted)'}}>
+            Duración (meses)
+            <EInput type="number" min="1" max="60" value={tx.durationMonths}
+              onChange={v => patch({ durationMonths: Math.max(1, parseInt(v) || 1) })} />
+          </label>
+          <label style={{display:'flex', flexDirection:'column', gap: 4, fontSize:'var(--t-12)', color:'var(--fg-muted)'}}>
+            Próximo control
+            <EInput type="date" value={tx.nextControl || ''} onChange={v => patch({ nextControl: v || null })} />
+          </label>
+        </div>
+        {start && (
+          <div style={{fontSize:'var(--t-12)', color:'var(--fg-subtle)'}}>
+            Fin estimado: <strong style={{color:'var(--fg-default)'}}>{fmtDMY(addMonths(start, tx.durationMonths))}</strong>
+          </div>
+        )}
+      </EditorSection>
+
+      {/* Milestones */}
+      <EditorSection title="Etapas del tratamiento">
+        <div style={{display:'flex', flexDirection:'column', gap: 8}}>
+          {tx.milestones.map((m, i) => (
+            <div key={m.id || i} style={{
+              display:'grid', gridTemplateColumns:'1.3fr 64px 1fr 2fr 26px', gap: 6, alignItems:'center',
+            }}>
+              <EInput value={m.label} placeholder="Etapa" onChange={v => setMilestone(i, { label: v })} />
+              <EInput type="number" min="0" value={m.month} title="Mes" onChange={v => setMilestone(i, { month: Math.max(0, parseInt(v) || 0) })} />
+              <EInput value={m.archwire || ''} placeholder="Arco" onChange={v => setMilestone(i, { archwire: v })} />
+              <EInput value={m.objective || ''} placeholder="Objetivo" onChange={v => setMilestone(i, { objective: v })} />
+              <IconBtn danger title="Quitar etapa" onClick={() => patch({ milestones: tx.milestones.filter((_, j) => j !== i) })}>{ICON_X}</IconBtn>
+            </div>
+          ))}
+          <div style={{display:'flex', gap: 6, fontSize: 9, color:'var(--fg-subtle)', textTransform:'uppercase', letterSpacing: 0.4, padding:'0 2px'}}>
+            <span style={{flex:'1.3'}}>Etapa</span><span style={{width:64}}>Mes</span><span style={{flex:1}}>Arco</span><span style={{flex:2}}>Objetivo</span><span style={{width:26}}></span>
+          </div>
+          <div>
+            <AddBtn onClick={() => patch({ milestones: [...tx.milestones, { id: uid('ms'), label: 'Nueva etapa', month: tx.durationMonths, objective: '', archwire: '' }] })}>Agregar etapa</AddBtn>
+          </div>
+        </div>
+      </EditorSection>
+
+      {/* Metrics */}
+      <EditorSection title="Métricas clínicas (inicio → actual → meta)">
+        <div style={{display:'flex', flexDirection:'column', gap: 8}}>
+          {tx.metrics.map((m, i) => (
+            <div key={m.id || i} style={{
+              display:'grid', gridTemplateColumns:'1.4fr 70px 70px 70px 54px 26px', gap: 6, alignItems:'center',
+            }}>
+              <EInput value={m.label} placeholder="Métrica" onChange={v => setMetric(i, { label: v })} />
+              <EInput type={m.raw ? 'text' : 'number'} value={m.initial} title="Inicio" onChange={v => setMetric(i, { initial: m.raw ? v : v })} />
+              <EInput type={m.raw ? 'text' : 'number'} value={m.current} title="Actual" onChange={v => setMetric(i, { current: m.raw ? v : v })} />
+              <EInput type={m.raw ? 'text' : 'number'} value={m.target} title="Meta" onChange={v => setMetric(i, { target: m.raw ? v : v })} />
+              <EInput value={m.raw ? '' : (m.unit || '')} placeholder="ud." title="Unidad" disabled={m.raw}
+                onChange={v => setMetric(i, { unit: v })} style={m.raw ? { opacity: 0.4 } : undefined} />
+              <IconBtn danger title="Quitar métrica" onClick={() => patch({ metrics: tx.metrics.filter((_, j) => j !== i) })}>{ICON_X}</IconBtn>
+            </div>
+          ))}
+          <div style={{display:'flex', gap: 6, fontSize: 9, color:'var(--fg-subtle)', textTransform:'uppercase', letterSpacing: 0.4, padding:'0 2px'}}>
+            <span style={{flex:'1.4'}}>Métrica</span><span style={{width:70}}>Inicio</span><span style={{width:70}}>Actual</span><span style={{width:70}}>Meta</span><span style={{width:54}}>Unid.</span><span style={{width:26}}></span>
+          </div>
+          <div style={{display:'flex', gap: 8, flexWrap:'wrap'}}>
+            <AddBtn onClick={() => patch({ metrics: [...tx.metrics, { id: uid('mt'), label: 'Nueva métrica', unit: 'mm', initial: 0, current: 0, target: 0 }] })}>Métrica numérica</AddBtn>
+            <AddBtn onClick={() => patch({ metrics: [...tx.metrics, { id: uid('mt'), label: 'Clase', raw: true, initial: 'II', current: 'II', target: 'I' }] })}>Métrica de clase</AddBtn>
+          </div>
+        </div>
+      </EditorSection>
+
+      {/* Text lists */}
+      <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', gap: 16}}>
+        <EditorSection title="Cambios observados">
+          <EditableList items={tx.observedChanges} placeholder="Cambio observado…" addLabel="Agregar cambio"
+            onChange={v => patch({ observedChanges: v })} />
+        </EditorSection>
+        <EditorSection title="Próximos pasos">
+          <EditableList items={tx.nextSteps} placeholder="Próximo paso…" addLabel="Agregar paso"
+            onChange={v => patch({ nextSteps: v })} />
+        </EditorSection>
+        <EditorSection title="Alertas clínicas">
+          <EditableList items={tx.alerts} placeholder="Alerta…" addLabel="Agregar alerta"
+            onChange={v => patch({ alerts: v })} />
+        </EditorSection>
+      </div>
+
+      {/* Case notes */}
+      <EditorSection title="Notas del caso">
+        <textarea value={tx.caseNotes} onChange={e => patch({ caseNotes: e.target.value })}
+          placeholder="Notas clínicas del caso…"
+          style={{ ...editInputStyle, minHeight: 70, resize:'vertical', lineHeight: 1.5 }} />
+      </EditorSection>
+    </div>
+  );
+}
+
+// =============================================================
 // Main view
 // =============================================================
-function EvolucionViewV2({ month = 4, setMonth = () => {}, media = {}, setMedia = () => {} }) {
-  const progress = (month / 18) * 100;
-  const currentMilestoneIdx = TX_MILESTONES.reduce((acc, m, i) => m.month <= month ? i : acc, 0);
-  const currentMilestone = TX_MILESTONES[currentMilestoneIdx];
+function EvolucionViewV2({ month = 4, setMonth = () => {}, media = {}, setMedia = () => {}, treatment, setTreatment = () => {} }) {
+  const tx = useMemoE(() => normalizeTreatment(treatment), [treatment]);
+  const today = useMemoE(() => new Date(), []);
+  const [editing, setEditing] = useStateE(false);
+  const [inspectIdx, setInspectIdx] = useStateE(null);
+
+  const patch = (p) => setTreatment({ ...tx, ...p });
+
+  const start = parseDate(tx.startDate);
+  const duration = tx.durationMonths || 18;
+  // Milestones sorted by month for a coherent timeline
+  const milestones = useMemoE(() => [...tx.milestones].sort((a, b) => a.month - b.month), [tx.milestones]);
+
+  // Real elapsed month (computed from startDate); falls back to the persisted scrubber value
+  const realMonth = start
+    ? Math.max(0, Math.min(duration, Math.round(monthsBetween(start, today))))
+    : (typeof month === 'number' ? month : 4);
+  const progress = duration ? Math.max(0, Math.min(100, (realMonth / duration) * 100)) : 0;
+
+  // Current stage = last milestone reached. reachedIdx === -1 means treatment
+  // hasn't reached even the first milestone yet ("por iniciar").
+  const reachedIdx = milestones.reduce((acc, m, i) => m.month <= realMonth ? i : acc, -1);
+  const beforeStart = reachedIdx < 0;
+  const currentIdx = beforeStart ? 0 : reachedIdx;
+  // Stage being inspected (clicking a dot); defaults to current
+  const shownIdx = inspectIdx != null && milestones[inspectIdx] ? inspectIdx : currentIdx;
+  const currentMilestone = milestones[currentIdx] || milestones[0] || {};
+  const shownMilestone = milestones[shownIdx] || currentMilestone;
+  const isInspectingOther = shownIdx !== currentIdx;
 
   return (
     <div style={{display:'flex', flexDirection:'column', gap:'var(--sp-4)'}}>
@@ -552,12 +900,28 @@ function EvolucionViewV2({ month = 4, setMonth = () => {}, media = {}, setMedia 
           gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
           gap: 10,
         }}>
-          {TX_METRICS.map(m => <MetricTile key={m.id} m={m} progress={progress} />)}
+          {tx.metrics.map(m => <MetricTile key={m.id} m={m} />)}
         </div>
       </div>
 
       {/* ============ Milestone timeline ============ */}
-      <MilestoneTimeline currentMonth={month} onMonthChange={setMonth} />
+      <MilestoneTimeline
+        milestones={milestones}
+        startDate={tx.startDate}
+        durationMonths={duration}
+        realMonth={realMonth}
+        today={today}
+        progress={progress}
+        currentIdx={currentIdx}
+        beforeStart={beforeStart}
+        inspectIdx={shownIdx}
+        onInspect={(i) => setInspectIdx(i === currentIdx ? null : i)}
+        onEditPlan={() => setEditing(e => !e)}
+        editing={editing}
+      />
+
+      {/* ============ Plan editor (toggled) ============ */}
+      {editing && <PlanEditor tx={tx} patch={patch} />}
 
       {/* ============ Summary cards ============ */}
       <div style={{
@@ -566,46 +930,35 @@ function EvolucionViewV2({ month = 4, setMonth = () => {}, media = {}, setMedia 
         gap: 10,
       }}>
         <SummaryCard
-          title={`Cita actual · Mes ${month}`}
+          title={isInspectingOther ? `Etapa · ${shownMilestone.label}` : (beforeStart ? 'Tratamiento por iniciar' : `Cita actual · Mes ${realMonth}`)}
           accent="var(--sd-blue-600)"
           icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>}
           items={[
-            currentMilestone.date,
-            `Arco: ${currentMilestone.archwire}`,
-            'Próxima cita: 4 semanas',
+            start ? fmtMY(addMonths(start, shownMilestone.month || 0)) : `Mes ${shownMilestone.month || 0}`,
+            `Arco: ${shownMilestone.archwire || '—'}`,
+            isInspectingOther ? 'Etapa seleccionada' : 'Próxima cita: 4 semanas',
           ]}
         />
         <SummaryCard
-          title="Objetivo del mes"
+          title={isInspectingOther ? 'Objetivo de la etapa' : 'Objetivo del mes'}
           icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>}
-          items={[currentMilestone.objective]}
+          items={shownMilestone.objective ? [shownMilestone.objective] : []}
         />
         <SummaryCard
           title="Cambios observados"
           icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 17c0-6 4-10 9-10s9 4 9 10"/></svg>}
-          items={[
-            'Reducción de apiñamiento ant. sup.',
-            'Mejor alineación de incisivos',
-            'Overjet en descenso (5.2 → 3.4 mm)',
-          ]}
+          items={tx.observedChanges}
         />
         <SummaryCard
           title="Próximos pasos"
           icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>}
-          items={[
-            'Cambio a .019×.025 NiTi en 4 sem.',
-            'Inicio de cierre con cadenetas',
-            'Revisión radiográfica al mes 8',
-          ]}
+          items={tx.nextSteps}
         />
         <SummaryCard
           title="Alertas clínicas"
           accent="var(--sd-alert-500)"
           icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 8v5M12 16v.01"/><path d="M10.3 3.86L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.86a2 2 0 0 0-3.4 0z"/></svg>}
-          items={[
-            'Bracket flojo en 26 — revisar',
-            'Higiene oral: control profiláctico',
-          ]}
+          items={tx.alerts}
         />
       </div>
     </div>
@@ -615,10 +968,38 @@ function EvolucionViewV2({ month = 4, setMonth = () => {}, media = {}, setMedia 
 // =============================================================
 // Right-side panel — evolution focused
 // =============================================================
-function EvolucionAnalysisPanel({ month = 4 }) {
-  const progress = Math.round((month / 18) * 100);
-  const currentMilestoneIdx = TX_MILESTONES.reduce((acc, m, i) => m.month <= month ? i : acc, 0);
-  const stage = TX_MILESTONES[currentMilestoneIdx];
+function EvolucionAnalysisPanel({ month = 4, treatment }) {
+  const tx = normalizeTreatment(treatment);
+  const today = useMemoE(() => new Date(), []);
+  const start = parseDate(tx.startDate);
+  const duration = tx.durationMonths || 18;
+  const milestones = [...tx.milestones].sort((a, b) => a.month - b.month);
+
+  const realMonth = start
+    ? Math.max(0, Math.min(duration, Math.round(monthsBetween(start, today))))
+    : (typeof month === 'number' ? month : 4);
+  const progress = duration ? Math.round(Math.max(0, Math.min(100, (realMonth / duration) * 100))) : 0;
+  const reachedIdx = milestones.reduce((acc, m, i) => m.month <= realMonth ? i : acc, -1);
+  const beforeStart = reachedIdx < 0;
+  const currentIdx = beforeStart ? 0 : reachedIdx;
+  const stage = beforeStart ? { label: 'Por iniciar' } : (milestones[currentIdx] || milestones[0] || { label: '—' });
+  // When still before the first milestone, the "next" stage is that first milestone itself.
+  const nextStage = beforeStart ? milestones[0] : milestones[currentIdx + 1];
+
+  const endDate = start ? addMonths(start, duration) : null;
+  const nextControlDate = parseDate(tx.nextControl) || new Date(today.getTime() + 28 * 86400000);
+  const nextMilestoneDate = start && nextStage ? addMonths(start, nextStage.month) : null;
+
+  // "Principales cambios clínicos" — derived from metrics + alerts
+  const metricChanges = tx.metrics.map(m => {
+    const status = metricStatus(m);
+    const txt = m.raw
+      ? `${m.label}: ${m.initial} → ${m.current}` + (String(m.current) === String(m.target) ? '' : ` (meta ${m.target})`)
+      : `${m.label}: ${m.initial} → ${m.current} ${m.unit || ''}`.trim();
+    return { txt, s: status };
+  });
+  const alertChanges = tx.alerts.map(a => ({ txt: a, s: 'alerta' }));
+  const keyChanges = [...metricChanges, ...alertChanges];
 
   return (
     <aside className="detail">
@@ -628,7 +1009,7 @@ function EvolucionAnalysisPanel({ month = 4 }) {
         <div className="detail-meta">
           <span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-            Mes {month} de 18
+            Mes {realMonth} de {duration}
           </span>
         </div>
       </div>
@@ -668,10 +1049,10 @@ function EvolucionAnalysisPanel({ month = 4 }) {
         <div className="detail-section">
           <div className="detail-section-title">Fechas clave</div>
           <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap: 8}}>
-            <DateCard label="Inicio" date="9 Ene 2026" sub="hace 4 meses" />
-            <DateCard label="Fin estimado" date="11 Jul 2027" sub="en 14 meses" />
-            <DateCard label="Próximo control" date="6 Jun 2026" sub="en 4 semanas" accent />
-            <DateCard label="Próximo hito" date={TX_MILESTONES[currentMilestoneIdx + 1]?.date || '—'} sub={TX_MILESTONES[currentMilestoneIdx + 1]?.label || 'final'} />
+            <DateCard label="Inicio" date={fmtDMY(start)} sub={start ? relLabel(start, today) : 'sin definir'} />
+            <DateCard label="Fin estimado" date={fmtDMY(endDate)} sub={endDate ? relLabel(endDate, today) : '—'} />
+            <DateCard label="Próximo control" date={fmtDMY(nextControlDate)} sub={relLabel(nextControlDate, today)} accent />
+            <DateCard label="Próximo hito" date={nextStage ? (nextMilestoneDate ? fmtDMY(nextMilestoneDate) : `Mes ${nextStage.month}`) : '—'} sub={nextStage ? nextStage.label : 'final'} />
           </div>
         </div>
 
@@ -679,14 +1060,11 @@ function EvolucionAnalysisPanel({ month = 4 }) {
         <div className="detail-section">
           <div className="detail-section-title">Principales cambios clínicos</div>
           <ul style={{margin: 0, padding: 0, listStyle:'none', display:'flex', flexDirection:'column', gap: 6}}>
-            {[
-              { txt: 'Reducción de apiñamiento ant. sup. (−3.5 → −1.2 mm)', s: 'mejoro' },
-              { txt: 'Overjet: 5.2 → 3.4 mm', s: 'mejoro' },
-              { txt: 'Alineación de 12 y 22 (corrección rotacional)', s: 'mejoro' },
-              { txt: 'Overbite aún por debajo de meta (4.0 → 3.6 mm)', s: 'pendiente' },
-              { txt: 'Bracket 26: desprendimiento parcial', s: 'alerta' },
-            ].map((it, i) => {
-              const ss = STATUS_STYLE[it.s];
+            {keyChanges.length === 0 && (
+              <li style={{fontSize:'var(--t-12)', color:'var(--fg-subtle)', fontStyle:'italic'}}>Sin cambios registrados</li>
+            )}
+            {keyChanges.map((it, i) => {
+              const ss = STATUS_STYLE[it.s] || STATUS_STYLE.estable;
               return (
                 <li key={i} style={{
                   padding:'8px 10px',
@@ -714,9 +1092,9 @@ function EvolucionAnalysisPanel({ month = 4 }) {
             padding: 12, borderRadius:'var(--r-md)',
             background:'var(--bg-surface)', border:'1px solid var(--border-default)',
             fontSize:'var(--t-12)', color:'var(--fg-default)', lineHeight: 1.5,
+            whiteSpace:'pre-wrap',
           }}>
-            Paciente colabora bien con higiene oral. Sin signos de descalcificación.
-            Se recomienda continuar con .018 NiTi hasta nivelación completa antes de progresar a calibre rectangular.
+            {tx.caseNotes || 'Sin notas.'}
           </div>
         </div>
 
@@ -765,4 +1143,6 @@ function DateCard({ label, date, sub, accent }) {
 Object.assign(window, {
   EvolucionView: EvolucionViewV2,
   EvolucionAnalysisPanel,
+  seedTreatment,
+  normalizeTreatment,
 });

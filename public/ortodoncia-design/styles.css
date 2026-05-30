@@ -20,8 +20,8 @@ button:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-ra
 /* ============ Shell ============ */
 .shell {
   display: grid;
-  grid-template-rows: 56px 1fr;
-  height: 100%;
+  grid-template-rows: 56px auto;
+  min-height: 100%;
   background: var(--bg-app);
 }
 
@@ -125,14 +125,16 @@ button:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-ra
 .main {
   display: grid;
   grid-template-columns: 260px 1fr 340px;
-  overflow: hidden;
+  /* Columns flow at their natural height; the tallest sets the widget height. */
+  align-items: stretch;
+  overflow: visible;
 }
 
 /* ============ Tool palette (left) ============ */
 .palette {
   background: var(--bg-surface);
   border-right: 1px solid var(--border-default);
-  overflow-y: auto;
+  overflow-y: visible;
   padding: var(--sp-5) 0;
 }
 .palette-section { padding: 0 var(--sp-5) var(--sp-5); }
@@ -192,14 +194,14 @@ button:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-ra
 /* ============ Canvas (center) ============ */
 .canvas {
   position: relative;
-  overflow: auto;
-  overflow-y: scroll; /* always-on to prevent scrollbar appearance loop */
+  overflow: visible; /* no inner scroll — the parent page scrolls */
   background:
     radial-gradient(circle at 50% 30%, var(--sd-blue-50) 0%, transparent 60%),
     var(--bg-app);
 }
 .canvas-inner {
-  min-height: 100%;
+  /* Content sits at the top (no min-height stretch) so it doesn't get
+     vertically centered into the now-taller, page-flowing canvas. */
   display: flex; flex-direction: column;
   padding: var(--sp-6);
 }
@@ -229,8 +231,8 @@ button:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-ra
 
 /* ============ Arch view ============ */
 .arch-wrap {
-  flex: 1;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 0 0 auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
   gap: var(--sp-4);
   position: relative;
 }
@@ -270,7 +272,7 @@ button:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-ra
 .detail {
   background: var(--bg-surface);
   border-left: 1px solid var(--border-default);
-  overflow-y: auto;
+  overflow-y: visible;
   display: flex; flex-direction: column;
 }
 .detail-empty {
@@ -446,7 +448,7 @@ button:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-ra
 /* ============ Frontal smile view ============ */
 .smile-wrap {
   flex: 1;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
   position: relative;
 }
 .smile-svg { width: 100%; max-width: 760px; height: auto; }

@@ -2922,6 +2922,9 @@ html[data-theme="dark"] .appointment-doctor { color: var(--sd-text-muted) !impor
 /* History table */
 html[data-theme="dark"] .history-table th {
   color: var(--sd-text-muted) !important;
+  -webkit-text-fill-color: var(--sd-text-muted) !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
   background: rgba(255, 255, 255, .02) !important;
   border-bottom: 1px solid var(--sd-border-soft) !important;
 }
@@ -2932,6 +2935,11 @@ html[data-theme="dark"] .history-table td {
 html[data-theme="dark"] .history-table tr:hover {
   background: rgba(8, 145, 178, .05) !important;
 }
+html[data-theme="dark"] .history-total-row {
+  background: rgba(255, 255, 255, .03) !important;
+  border-top: 2px solid var(--sd-border-soft) !important;
+}
+html[data-theme="dark"] .history-total-row td { color: var(--sd-text) !important; }
 
 /* Fotos del Paciente (acordeón + lightbox en el panel de detalle) */
 html[data-theme="dark"] .photo-group {

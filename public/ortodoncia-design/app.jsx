@@ -239,14 +239,14 @@ function ApplianceGlyph({ kind }) {
 // =================================================================
 // Detail panel (right sidebar)
 // =================================================================
-function DetailPanel({ selectedFdi, teeth, updateTooth, clearTooth, view, angleClass, cephValues, month }) {
+function DetailPanel({ selectedFdi, teeth, updateTooth, clearTooth, view, angleClass, cephValues, month, treatment }) {
   // For the profile view, swap in the cephalometric analysis panel
   if (view === 'profile') {
     return <ProfileAnalysisPanel angleClass={angleClass} cephValues={cephValues} />;
   }
   // For the evolution view, swap in the treatment-evolution panel
   if (view === 'evolucion') {
-    return <EvolucionAnalysisPanel month={month} />;
+    return <EvolucionAnalysisPanel month={month} treatment={treatment} />;
   }
   if (!selectedFdi) {
     return (
@@ -404,6 +404,7 @@ function App() {
   const [cephValues, setCephValues] = useState({});
   const [media, setMedia] = useState({});
   const [month, setMonth] = useState(4);
+  const [treatment, setTreatment] = useState(() => (window.seedTreatment ? window.seedTreatment() : {}));
   const [showWire, setShowWire] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
 
@@ -412,7 +413,7 @@ function App() {
     function onMessage(e) {
       const data = e.data || {};
       if (data.type === 'orto:getState') {
-        const reply = { type: 'orto:state', state: { teeth, angleClass, cephValues, media, month } };
+        const reply = { type: 'orto:state', state: { teeth, angleClass, cephValues, media, month, treatment } };
         e.source && e.source.postMessage(reply, '*');
       } else if (data.type === 'orto:setState' && data.state) {
         if (data.state.teeth && typeof data.state.teeth === 'object') setTeeth(data.state.teeth);
@@ -420,6 +421,11 @@ function App() {
         if (data.state.cephValues && typeof data.state.cephValues === 'object') setCephValues(data.state.cephValues);
         if (data.state.media && typeof data.state.media === 'object') setMedia(data.state.media);
         if (typeof data.state.month === 'number') setMonth(data.state.month);
+        // Merge treatment so a partial seed (e.g. just startDate from the parent)
+        // doesn't clobber the milestones/metrics already in state.
+        if (data.state.treatment && typeof data.state.treatment === 'object') {
+          setTreatment(prev => ({ ...(prev || {}), ...data.state.treatment }));
+        }
       }
     }
     window.addEventListener('message', onMessage);
@@ -428,7 +434,7 @@ function App() {
       window.parent.postMessage({ type: 'orto:ready' }, '*');
     }
     return () => window.removeEventListener('message', onMessage);
-  }, [teeth, angleClass, cephValues, media, month]);
+  }, [teeth, angleClass, cephValues, media, month, treatment]);
 
   // ---- Auto-scroll the view-tabs strip so the active tab is centered when changed ----
   useEffect(() => {
@@ -470,7 +476,7 @@ function App() {
     ro.observe(document.body);
     window.addEventListener('resize', postHeight);
     return () => { ro.disconnect(); window.removeEventListener('resize', postHeight); };
-  }, [view, mode, selected, teeth, media, cephValues, angleClass]);
+  }, [view, mode, selected, teeth, media, cephValues, angleClass, treatment]);
 
   const updateTooth = useCallback((fdi, patch) => {
     setTeeth(prev => ({ ...prev, [fdi]: { ...(prev[fdi] || {}), ...patch } }));
@@ -605,12 +611,12 @@ function App() {
             {view === 'oclusal' && <OclusalView teeth={teeth} selected={selected} onSelect={handleSelectTooth} />}
             {view === 'profile' && <ProfileView teeth={teeth} angleClass={angleClass} setAngleClass={setAngleClass} cephValues={cephValues} setCephValues={setCephValues} />}
             {view === 'plano' && <PlanoView teeth={teeth} selected={selected} onSelect={handleSelectTooth} />}
-            {view === 'evolucion' && <EvolucionView teeth={teeth} selected={selected} onSelect={handleSelectTooth} month={month} setMonth={setMonth} media={media} setMedia={setMedia} />}
+            {view === 'evolucion' && <EvolucionView teeth={teeth} selected={selected} onSelect={handleSelectTooth} month={month} setMonth={setMonth} media={media} setMedia={setMedia} treatment={treatment} setTreatment={setTreatment} />}
             {view === 'media' && <MediaView media={media} setMedia={setMedia} />}
           </div>
         </section>
 
-        <DetailPanel selectedFdi={selected} teeth={teeth} updateTooth={updateTooth} clearTooth={clearTooth} view={view} angleClass={angleClass} cephValues={cephValues} month={month} />
+        <DetailPanel selectedFdi={selected} teeth={teeth} updateTooth={updateTooth} clearTooth={clearTooth} view={view} angleClass={angleClass} cephValues={cephValues} month={month} treatment={treatment} />
       </main>
     </div>
   );

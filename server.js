@@ -54,6 +54,11 @@ app.use(helmet({
         "'unsafe-inline'",
         "https://fonts.googleapis.com",
         "https://cdn.quilljs.com",
+        // cdn.quilljs.com hace 301 → cdn.jsdelivr.net; el CSP revalida el destino
+        // del redirect, así que jsdelivr debe estar permitido o quill.snow.css se
+        // bloquea y el editor sale sin estilos (íconos SVG gigantes). scriptSrc ya
+        // lo permite, por eso el JS de Quill sí cargaba y el CSS no.
+        "https://cdn.jsdelivr.net",
         "https://unpkg.com", // Leaflet CSS para /mapa
       ],
       fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
@@ -163,7 +168,12 @@ app.use(compression({
   level: 6,
 }));
 
-// Límite de payload para mitigar DoS por bodies enormes (multer maneja sus propios límites)
+// Límite de payload para mitigar DoS por bodies enormes (multer maneja sus propios límites).
+// Excepción: las consultas de ortodoncia embeben fotos clínicas (data URLs base64) dentro de
+// odontogram_state, así que su body supera legítimamente el límite global. Un parser específico
+// con límite mayor corre antes que el global; express.json se salta si req._body ya existe, por
+// lo que el resto de rutas conserva el límite estricto de 256kb.
+app.use('/api/consultations', express.json({ limit: '25mb' }));
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
 
@@ -266,6 +276,7 @@ app.use('/api/inventory-usage', require('./routes/inventory-usage'));
 app.use('/api/audit', require('./routes/audit'));
 app.use('/api/growth', require('./routes/growth'));
 app.use('/api/integrations', require('./routes/integrations'));
+app.use('/api/media', require('./routes/media'));
 
 app.get('*', (req, res) => {
   serveHtmlWithVersion(path.join(PUBLIC_DIR, 'index.html'), res);
