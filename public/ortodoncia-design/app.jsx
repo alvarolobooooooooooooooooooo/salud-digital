@@ -5,6 +5,11 @@
 
 const { useState, useEffect, useCallback } = React;
 
+// Stable no-op for read-only (view) mode: swapped in for any state setter we
+// want to neutralize so child editing controls become inert without changes
+// to their own code.
+const NOOP = () => {};
+
 // ---- Icons (Lucide-style inline) -------------------------------------------
 const Icon = ({ name, size = 18, ...rest }) => {
   const paths = {
@@ -239,7 +244,7 @@ function ApplianceGlyph({ kind }) {
 // =================================================================
 // Detail panel (right sidebar)
 // =================================================================
-function DetailPanel({ selectedFdi, teeth, updateTooth, clearTooth, view, angleClass, cephValues, month, treatment }) {
+function DetailPanel({ selectedFdi, teeth, updateTooth, clearTooth, view, angleClass, cephValues, month, treatment, readOnly }) {
   // For the profile view, swap in the cephalometric analysis panel
   if (view === 'profile') {
     return <ProfileAnalysisPanel angleClass={angleClass} cephValues={cephValues} />;
@@ -285,7 +290,7 @@ function DetailPanel({ selectedFdi, teeth, updateTooth, clearTooth, view, angleC
           <div className="detail-section-title">Aparatología</div>
           <div className="chip-row">
             {APPLIANCES.map(a => (
-              <button key={a.id} className={`chip ${state.appliance === a.id ? 'active' : ''}`}
+              <button key={a.id} className={`chip ${state.appliance === a.id ? 'active' : ''}`} disabled={readOnly}
                 onClick={() => updateTooth(selectedFdi, { appliance: state.appliance === a.id ? null : a.id })}>
                 {a.label}
               </button>
@@ -300,13 +305,13 @@ function DetailPanel({ selectedFdi, teeth, updateTooth, clearTooth, view, angleC
             <div className="swatch-row">
               {LIGATURE_COLORS.map((c, i) => (
                 c === null ? (
-                  <button key={i} className={`swatch empty ${!state.ligature ? 'active' : ''}`}
+                  <button key={i} className={`swatch empty ${!state.ligature ? 'active' : ''}`} disabled={readOnly}
                     onClick={() => updateTooth(selectedFdi, { ligature: null })}>
                     <Icon name="cross" size={12} />
                   </button>
                 ) : (
                   <button key={i}
-                    className={`swatch ${state.ligature === c ? 'active' : ''}`}
+                    className={`swatch ${state.ligature === c ? 'active' : ''}`} disabled={readOnly}
                     style={{background: c, border: c === '#FFFFFF' ? '1px solid var(--border-default)' : undefined}}
                     onClick={() => updateTooth(selectedFdi, { ligature: c })} />
                 )
@@ -320,7 +325,7 @@ function DetailPanel({ selectedFdi, teeth, updateTooth, clearTooth, view, angleC
           <div className="detail-section-title">Condición clínica</div>
           <div className="chip-row">
             {CONDITIONS.map(c => (
-              <button key={c.id} className={`chip ${c.cls} ${state.condition === c.id ? 'active' : ''}`}
+              <button key={c.id} className={`chip ${c.cls} ${state.condition === c.id ? 'active' : ''}`} disabled={readOnly}
                 onClick={() => updateTooth(selectedFdi, { condition: state.condition === c.id ? null : c.id })}>
                 {c.label}
               </button>
@@ -333,7 +338,7 @@ function DetailPanel({ selectedFdi, teeth, updateTooth, clearTooth, view, angleC
           <div className="detail-section-title">Movimiento planeado</div>
           <div className="movement-grid">
             {MOVEMENTS.map(m => (
-              <button key={m.id} className={`move-btn ${movement.kind === m.id ? 'active' : ''}`}
+              <button key={m.id} className={`move-btn ${movement.kind === m.id ? 'active' : ''}`} disabled={readOnly}
                 onClick={() => updateTooth(selectedFdi, { movement: movement.kind === m.id ? null : { kind: m.id, amount: movement.amount || 2 } })}>
                 <span className="move-glyph"><Icon name={m.glyph} size={14} /></span>
                 <span>{m.label}</span>
@@ -343,7 +348,7 @@ function DetailPanel({ selectedFdi, teeth, updateTooth, clearTooth, view, angleC
           {movement.kind && (
             <div className="slider-row" style={{marginTop: 8}}>
               <span style={{fontSize:'var(--t-12)', color:'var(--fg-muted)', minWidth: 56}}>Magnitud</span>
-              <input type="range" min="1" max="6" step="0.5" value={movement.amount || 2}
+              <input type="range" min="1" max="6" step="0.5" value={movement.amount || 2} disabled={readOnly}
                 onChange={e => updateTooth(selectedFdi, { movement: { ...movement, amount: +e.target.value } })} />
               <span className="slider-val">{movement.amount || 2}mm</span>
             </div>
@@ -354,19 +359,21 @@ function DetailPanel({ selectedFdi, teeth, updateTooth, clearTooth, view, angleC
         <div className="detail-section">
           <div className="detail-section-title">Notas clínicas</div>
           <textarea className="notes-textarea"
-            placeholder="Ej: brackets cementados con corrección de torque. Control en 4 semanas."
-            value={state.notes || ''}
+            placeholder={readOnly ? 'Sin notas clínicas.' : 'Ej: brackets cementados con corrección de torque. Control en 4 semanas.'}
+            value={state.notes || ''} readOnly={readOnly}
             onChange={e => updateTooth(selectedFdi, { notes: e.target.value })} />
         </div>
 
         {/* Quick actions */}
-        <div className="detail-section">
-          <button className="btn btn-ghost" style={{justifyContent:'center'}}
-            onClick={() => clearTooth(selectedFdi)}>
-            <Icon name="cross" size={14} />
-            Limpiar registro de este diente
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="detail-section">
+            <button className="btn btn-ghost" style={{justifyContent:'center'}}
+              onClick={() => clearTooth(selectedFdi)}>
+              <Icon name="cross" size={14} />
+              Limpiar registro de este diente
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );
@@ -407,6 +414,13 @@ function App() {
   const [treatment, setTreatment] = useState(() => (window.seedTreatment ? window.seedTreatment() : {}));
   const [showWire, setShowWire] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
+  // Read-only (view) mode: the parent embeds this iframe with ?readonly=1 when
+  // a SAVED consultation is being viewed. Also settable via postMessage so the
+  // parent can flip it after load. In this mode nothing clinical can be edited.
+  const [readOnly, setReadOnly] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    return p.get('readonly') === '1' || p.get('view') === '1';
+  });
 
   // ---- Cross-frame state bridge (for embedding in consultation page) ----
   useEffect(() => {
@@ -426,6 +440,8 @@ function App() {
         if (data.state.treatment && typeof data.state.treatment === 'object') {
           setTreatment(prev => ({ ...(prev || {}), ...data.state.treatment }));
         }
+      } else if (data.type === 'orto:readonly') {
+        setReadOnly(data.value !== false);
       }
     }
     window.addEventListener('message', onMessage);
@@ -479,20 +495,24 @@ function App() {
   }, [view, mode, selected, teeth, media, cephValues, angleClass, treatment]);
 
   const updateTooth = useCallback((fdi, patch) => {
+    if (readOnly) return;
     setTeeth(prev => ({ ...prev, [fdi]: { ...(prev[fdi] || {}), ...patch } }));
-  }, []);
+  }, [readOnly]);
 
   const clearTooth = useCallback((fdi) => {
+    if (readOnly) return;
     setTeeth(prev => {
       const next = { ...prev };
       delete next[fdi];
       return next;
     });
-  }, []);
+  }, [readOnly]);
 
-  // Click on tooth — applies active tool, then selects
+  // Click on tooth — applies active tool, then selects. In read-only mode we
+  // still allow selecting a tooth (to inspect its detail panel) but never apply.
   const handleSelectTooth = useCallback((fdi) => {
     setSelected(fdi);
+    if (readOnly) return;
     // Apply active tool on click
     if (mode === 'aparato' && activeAppliance) {
       const current = (teeth[fdi] || {}).appliance;
@@ -507,11 +527,12 @@ function App() {
     } else if (mode === 'ligadura') {
       updateTooth(fdi, { ligature: activeLigature });
     }
-  }, [mode, activeAppliance, activeCondition, activeMovement, activeLigature, teeth, updateTooth]);
+  }, [mode, activeAppliance, activeCondition, activeMovement, activeLigature, teeth, updateTooth, readOnly]);
 
   // Keyboard shortcuts
   useEffect(() => {
     const onKey = (e) => {
+      if (readOnly) return;
       if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
       if (e.key === 'a' || e.key === 'A') setMode('aparato');
       else if (e.key === 'c' || e.key === 'C') setMode('condicion');
@@ -521,7 +542,7 @@ function App() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selected, clearTooth]);
+  }, [selected, clearTooth, readOnly]);
 
   const views = [
     { id: 'arch', label: 'Arcadas', icon: 'arch' },
@@ -544,7 +565,7 @@ function App() {
   };
 
   return (
-    <div className="shell">
+    <div className={`shell${readOnly ? ' readonly' : ''}`}>
       {/* Top bar */}
       <header className="topbar">
         <div className="brand">
@@ -569,20 +590,24 @@ function App() {
 
         <div className="topbar-right">
           <span style={{ fontSize: 'var(--t-12)', color: 'var(--fg-muted)' }}>
-            Los cambios se guardan al pulsar <strong style={{ color: 'var(--fg-default)' }}>Guardar Consulta</strong>
+            {readOnly
+              ? 'Modo de solo lectura · consulta guardada'
+              : <>Los cambios se guardan al pulsar <strong style={{ color: 'var(--fg-default)' }}>Guardar Consulta</strong></>}
           </span>
         </div>
       </header>
 
       {/* Main grid */}
       <main className="main">
-        <ToolPalette
-          activeAppliance={activeAppliance} setActiveAppliance={setActiveAppliance}
-          activeCondition={activeCondition} setActiveCondition={setActiveCondition}
-          activeMovement={activeMovement} setActiveMovement={setActiveMovement}
-          activeLigature={activeLigature} setActiveLigature={setActiveLigature}
-          mode={mode} setMode={setMode}
-        />
+        {!readOnly && (
+          <ToolPalette
+            activeAppliance={activeAppliance} setActiveAppliance={setActiveAppliance}
+            activeCondition={activeCondition} setActiveCondition={setActiveCondition}
+            activeMovement={activeMovement} setActiveMovement={setActiveMovement}
+            activeLigature={activeLigature} setActiveLigature={setActiveLigature}
+            mode={mode} setMode={setMode}
+          />
+        )}
 
         {/* Center canvas */}
         <section className="canvas">
@@ -609,14 +634,14 @@ function App() {
             {view === 'arch' && <ArchView teeth={teeth} selected={selected} onSelect={handleSelectTooth} showWire={showWire} showLabels={showLabels} />}
             {view === 'frontal' && <FrontalView teeth={teeth} selected={selected} onSelect={handleSelectTooth} />}
             {view === 'oclusal' && <OclusalView teeth={teeth} selected={selected} onSelect={handleSelectTooth} />}
-            {view === 'profile' && <ProfileView teeth={teeth} angleClass={angleClass} setAngleClass={setAngleClass} cephValues={cephValues} setCephValues={setCephValues} />}
+            {view === 'profile' && <ProfileView teeth={teeth} angleClass={angleClass} setAngleClass={readOnly ? NOOP : setAngleClass} cephValues={cephValues} setCephValues={readOnly ? NOOP : setCephValues} readOnly={readOnly} />}
             {view === 'plano' && <PlanoView teeth={teeth} selected={selected} onSelect={handleSelectTooth} />}
-            {view === 'evolucion' && <EvolucionView teeth={teeth} selected={selected} onSelect={handleSelectTooth} month={month} setMonth={setMonth} media={media} setMedia={setMedia} treatment={treatment} setTreatment={setTreatment} />}
-            {view === 'media' && <MediaView media={media} setMedia={setMedia} />}
+            {view === 'evolucion' && <EvolucionView teeth={teeth} selected={selected} onSelect={handleSelectTooth} month={month} setMonth={setMonth} media={media} setMedia={readOnly ? NOOP : setMedia} treatment={treatment} setTreatment={readOnly ? NOOP : setTreatment} readOnly={readOnly} />}
+            {view === 'media' && <MediaView media={media} setMedia={readOnly ? NOOP : setMedia} readOnly={readOnly} />}
           </div>
         </section>
 
-        <DetailPanel selectedFdi={selected} teeth={teeth} updateTooth={updateTooth} clearTooth={clearTooth} view={view} angleClass={angleClass} cephValues={cephValues} month={month} treatment={treatment} />
+        <DetailPanel selectedFdi={selected} teeth={teeth} updateTooth={updateTooth} clearTooth={clearTooth} view={view} angleClass={angleClass} cephValues={cephValues} month={month} treatment={treatment} readOnly={readOnly} />
       </main>
     </div>
   );

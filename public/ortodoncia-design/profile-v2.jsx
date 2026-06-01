@@ -273,18 +273,19 @@ function ProfileSvg({ angleClass, hoverPlane }) {
 // =============================================================
 // Refined Angle class card
 // =============================================================
-function AngleClassCard({ data, active, onClick }) {
+function AngleClassCard({ data, active, onClick, disabled }) {
   const c = data.id;
   return (
     <button
-      onClick={onClick}
+      onClick={onClick} disabled={disabled}
       style={{
         padding: '12px 14px', textAlign:'left',
         borderRadius:'var(--r-md)',
         border: '1px solid ' + (active ? 'var(--sd-blue-600)' : 'var(--border-default)'),
         background: active ? 'var(--bg-surface)' : 'var(--bg-surface)',
         display:'flex', flexDirection:'column', gap: 10,
-        cursor:'pointer', width: '100%',
+        cursor: disabled ? 'default' : 'pointer', width: '100%',
+        opacity: disabled && !active ? 0.7 : 1,
         boxShadow: active ? '0 2px 8px rgba(0,128,176,0.12)' : 'none',
         transition: 'all var(--dur-1) var(--ease-out)',
         position: 'relative',
@@ -738,7 +739,7 @@ function ProfileAnalysisPanel({ angleClass, cephValues }) {
 // =============================================================
 // MAIN VIEW
 // =============================================================
-function ProfileViewV2({ angleClass, setAngleClass }) {
+function ProfileViewV2({ angleClass, setAngleClass, readOnly }) {
   const [hoverPlane, setHoverPlane] = useStateP(null);
 
   return (
@@ -751,7 +752,7 @@ function ProfileViewV2({ angleClass, setAngleClass }) {
           padding:'0 4px',
         }}>Clasificación de Angle</div>
         {ANGLE_CLASSES.map(c => (
-          <AngleClassCard key={c.id} data={c} active={angleClass === c.id} onClick={() => setAngleClass(c.id)} />
+          <AngleClassCard key={c.id} data={c} active={angleClass === c.id} disabled={readOnly} onClick={() => setAngleClass(c.id)} />
         ))}
 
         {/* Plane legend */}

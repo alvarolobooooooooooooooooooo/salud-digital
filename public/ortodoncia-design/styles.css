@@ -130,6 +130,26 @@ button:focus-visible { outline: none; box-shadow: var(--shadow-focus); border-ra
   overflow: visible;
 }
 
+/* ============ Read-only (view) mode ============
+   The left tool palette is not rendered, so collapse its grid column and
+   keep the editing controls that remain on screen visibly inert. */
+.shell.readonly .palette { display: none; }
+.shell.readonly .main { grid-template-columns: 1fr 340px; }
+/* Disabled edit controls: inert (no hover/cursor affordance) but still legible. */
+.shell.readonly .chip:disabled,
+.shell.readonly .move-btn:disabled,
+.shell.readonly .swatch:disabled,
+.shell.readonly input[type="range"]:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+.shell.readonly .notes-textarea[readonly] { cursor: default; }
+.shell.readonly .chip:disabled:not(.active),
+.shell.readonly .move-btn:disabled:not(.active),
+.shell.readonly .swatch:disabled:not(.active),
+.shell.readonly input[type="range"]:disabled { opacity: 0.7; }
+.shell.readonly .notes-textarea[readonly] { background: var(--bg-subtle); }
+
 /* ============ Tool palette (left) ============ */
 .palette {
   background: var(--bg-surface);
@@ -889,6 +909,7 @@ html[data-theme="dark"] .evo-progress-card .evo-progress-label { color: #D1D5DB 
 /* Below 1280px: shrink the right detail panel slightly */
 @media (max-width: 1280px) {
   .main { grid-template-columns: 240px 1fr 300px; }
+  .shell.readonly .main { grid-template-columns: 1fr 300px; }
 }
 
 /* Below 1100px: drop the detail panel under the canvas */
@@ -903,6 +924,11 @@ html[data-theme="dark"] .evo-progress-card .evo-progress-label { color: #D1D5DB 
     grid-template-columns: 220px 1fr;
     grid-template-areas: "palette canvas" "palette detail";
     overflow: visible;
+  }
+  /* No palette in read-only: single content column, no empty gutter. */
+  .shell.readonly .main {
+    grid-template-columns: 1fr;
+    grid-template-areas: "canvas" "detail";
   }
   .palette  { grid-area: palette;  overflow-y: visible; max-height: none; }
   .canvas   { grid-area: canvas; }

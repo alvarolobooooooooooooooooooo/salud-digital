@@ -1657,7 +1657,7 @@ async function resizeImageFile(file) {
   });
 }
 
-function MediaSlot({ slot, dataUrl, onUpload, onClear, isXray }) {
+function MediaSlot({ slot, dataUrl, onUpload, onClear, isXray, readOnly }) {
   const inputRef = useRef(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
@@ -1679,31 +1679,35 @@ function MediaSlot({ slot, dataUrl, onUpload, onClear, isXray }) {
   return (
     <div className={`media-tile${dataUrl ? '' : ' empty'}`}
          style={{
-           position: 'relative', cursor: 'pointer', overflow: 'hidden',
+           position: 'relative', cursor: readOnly ? 'default' : 'pointer', overflow: 'hidden',
            background: dataUrl ? '#000' : 'var(--bg-subtle)',
          }}
-         onClick={() => !busy && inputRef.current && inputRef.current.click()}
-         title={dataUrl ? `${slot.label} — clic para reemplazar` : `${slot.label} — clic para subir`}>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*,.heic,.heif"
-        style={{ display: 'none' }}
-        onChange={e => { handleFile(e.target.files && e.target.files[0]); e.target.value = ''; }}
-      />
+         onClick={() => { if (readOnly) return; !busy && inputRef.current && inputRef.current.click(); }}
+         title={readOnly ? slot.label : (dataUrl ? `${slot.label} — clic para reemplazar` : `${slot.label} — clic para subir`)}>
+      {!readOnly && (
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*,.heic,.heif"
+          style={{ display: 'none' }}
+          onChange={e => { handleFile(e.target.files && e.target.files[0]); e.target.value = ''; }}
+        />
+      )}
       {dataUrl ? (
         <>
           <img src={dataUrl} alt={slot.label}
                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-          <button type="button"
-                  onClick={(e) => { e.stopPropagation(); onClear(slot.id); }}
-                  title="Quitar imagen"
-                  style={{
-                    position: 'absolute', top: 6, right: 6, width: 22, height: 22,
-                    borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)',
-                    color: 'white', cursor: 'pointer', fontSize: 14, lineHeight: 1,
-                    display: 'grid', placeItems: 'center',
-                  }}>×</button>
+          {!readOnly && (
+            <button type="button"
+                    onClick={(e) => { e.stopPropagation(); onClear(slot.id); }}
+                    title="Quitar imagen"
+                    style={{
+                      position: 'absolute', top: 6, right: 6, width: 22, height: 22,
+                      borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)',
+                      color: 'white', cursor: 'pointer', fontSize: 14, lineHeight: 1,
+                      display: 'grid', placeItems: 'center',
+                    }}>×</button>
+          )}
         </>
       ) : (
         <div style={{
@@ -1712,6 +1716,10 @@ function MediaSlot({ slot, dataUrl, onUpload, onClear, isXray }) {
         }}>
           {busy ? (
             <span style={{ fontSize: 11, fontWeight: 600 }}>Procesando…</span>
+          ) : readOnly ? (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.45 }}>
+              <rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6V4h8v2"/>
+            </svg>
           ) : (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 5v14M5 12h14" />
@@ -1731,7 +1739,7 @@ function MediaSlot({ slot, dataUrl, onUpload, onClear, isXray }) {
   );
 }
 
-function MediaView({ media, setMedia }) {
+function MediaView({ media, setMedia, readOnly }) {
   const updateSlot = (slotId, dataUrl) => {
     setMedia({ ...(media || {}), [slotId]: dataUrl });
   };
@@ -1750,7 +1758,7 @@ function MediaView({ media, setMedia }) {
         </div>
         <div className="media-grid">
           {PHOTO_SLOTS.map(s => (
-            <MediaSlot key={s.id} slot={s}
+            <MediaSlot key={s.id} slot={s} readOnly={readOnly}
               dataUrl={media?.[s.id]}
               onUpload={updateSlot} onClear={clearSlot} />
           ))}
@@ -1764,23 +1772,25 @@ function MediaView({ media, setMedia }) {
         </div>
         <div className="media-grid">
           {XRAY_SLOTS.map(s => (
-            <MediaSlot key={s.id} slot={s} isXray
+            <MediaSlot key={s.id} slot={s} isXray readOnly={readOnly}
               dataUrl={media?.[s.id]}
               onUpload={updateSlot} onClear={clearSlot} />
           ))}
         </div>
       </div>
 
-      <div className="media-save-hint" style={{
-        marginTop: 'var(--sp-4)', padding: '10px 14px', borderRadius: 'var(--r-md)',
-        background: 'var(--bg-subtle)', color: 'var(--fg-muted)',
-        border: '1px solid var(--border-soft)',
-        fontSize: 'var(--t-12)', display: 'flex', gap: 8, alignItems: 'flex-start',
-        lineHeight: 1.5,
-      }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, marginTop: 2 }}><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
-        <span>Las imágenes se comprimen y guardan junto al diagrama al pulsar <strong style={{ color: 'var(--fg-default)' }}>Guardar Consulta</strong>.</span>
-      </div>
+      {!readOnly && (
+        <div className="media-save-hint" style={{
+          marginTop: 'var(--sp-4)', padding: '10px 14px', borderRadius: 'var(--r-md)',
+          background: 'var(--bg-subtle)', color: 'var(--fg-muted)',
+          border: '1px solid var(--border-soft)',
+          fontSize: 'var(--t-12)', display: 'flex', gap: 8, alignItems: 'flex-start',
+          lineHeight: 1.5,
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, marginTop: 2 }}><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+          <span>Las imágenes se comprimen y guardan junto al diagrama al pulsar <strong style={{ color: 'var(--fg-default)' }}>Guardar Consulta</strong>.</span>
+        </div>
+      )}
     </div>
   );
 }

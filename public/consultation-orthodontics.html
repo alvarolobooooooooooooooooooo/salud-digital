@@ -957,11 +957,13 @@ function syncOrtoTheme() {
   try { frame.contentWindow.postMessage({ type: 'orto:theme', theme: currentTheme() }, '*'); } catch (_) {}
 }
 
-// Load the iframe with the right theme on first paint
+// Load the iframe with the right theme on first paint. When the parent is in
+// view mode (?view=<id>), boot the diagram read-only so it can't be edited.
 (function bootOrtoFrame() {
   const frame = document.getElementById('ortoFrame');
   if (!frame) return;
-  frame.src = `/ortodoncia-design/index.html?empty=1&theme=${currentTheme()}`;
+  const viewing = !!parseInt(new URLSearchParams(window.location.search).get('view'), 10);
+  frame.src = `/ortodoncia-design/index.html?empty=1&theme=${currentTheme()}${viewing ? '&readonly=1' : ''}`;
 })();
 
 // Forward theme switches from the parent (toggle in app shell) to the iframe
@@ -1707,6 +1709,8 @@ async function loadConsultationView() {
     function pushOrtoState() {
       const frame = document.getElementById('ortoFrame');
       if (!frame || !frame.contentWindow) return;
+      // Re-assert read-only in case the iframe booted without the URL flag.
+      frame.contentWindow.postMessage({ type: 'orto:readonly', value: true }, '*');
       frame.contentWindow.postMessage({ type: 'orto:setState', state: ortoState }, '*');
       ortoLastState = ortoState;
     }

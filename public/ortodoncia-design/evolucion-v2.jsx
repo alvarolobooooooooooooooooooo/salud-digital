@@ -494,7 +494,7 @@ function PhotoChip({ title, onClick, icon }) {
   );
 }
 
-function EvoPhotoCompare({ media = {}, setMedia = () => {} }) {
+function EvoPhotoCompare({ media = {}, setMedia = () => {}, readOnly = false }) {
   const [slider, setSlider] = useStateE(50);
   const [uploading, setUploading] = useStateE(null); // 'before' | 'after' | null
   const [err, setErr] = useStateE(null);
@@ -535,8 +535,20 @@ function EvoPhotoCompare({ media = {}, setMedia = () => {} }) {
     setSlider(Math.max(0, Math.min(100, (x / rect.width) * 100)));
   };
 
-  const pickBefore = () => beforeInput.current && beforeInput.current.click();
-  const pickAfter  = () => afterInput.current && afterInput.current.click();
+  const pickBefore = () => { if (!readOnly) beforeInput.current && beforeInput.current.click(); };
+  const pickAfter  = () => { if (!readOnly) afterInput.current && afterInput.current.click(); };
+  // Read-only placeholder shown where an upload control would otherwise be.
+  const EmptyPhoto = ({ label }) => (
+    <div style={{
+      position:'absolute', inset: 0, display:'flex', flexDirection:'column',
+      alignItems:'center', justifyContent:'center', gap: 8,
+      color:'rgba(255,255,255,0.7)',
+      background:'repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0 10px, rgba(255,255,255,0.07) 10px 20px)',
+    }}>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6V4h8v2"/></svg>
+      <span style={{fontSize:'var(--t-12)', fontWeight: 600}}>Sin {label}</span>
+    </div>
+  );
   const imgStyle = { position:'absolute', inset: 0, width:'100%', height:'100%', objectFit:'cover', display:'block' };
   const pillStyle = (left) => ({
     position:'absolute', top: 12, [left ? 'left' : 'right']: 12, zIndex: 4,
@@ -587,7 +599,7 @@ function EvoPhotoCompare({ media = {}, setMedia = () => {} }) {
       </div>
 
       {bothEmpty ? (
-        /* ---- Empty state: upload both photos ---- */
+        /* ---- Empty state ---- */
         <div style={{
           border:'2px dashed var(--border-strong)',
           borderRadius:'var(--r-md)',
@@ -604,22 +616,26 @@ function EvoPhotoCompare({ media = {}, setMedia = () => {} }) {
           </div>
           <div style={{maxWidth: 440}}>
             <div style={{fontFamily:'var(--font-display)', fontWeight: 700, fontSize:'var(--t-15)', color:'var(--fg-strong)', marginBottom: 4}}>
-              Comparativa con fotografías clínicas
+              {readOnly ? 'Sin fotografías clínicas' : 'Comparativa con fotografías clínicas'}
             </div>
             <div style={{fontSize:'var(--t-12)', color:'var(--fg-muted)', lineHeight: 1.5}}>
-              Sube la <strong>foto inicial</strong> (antes del tratamiento) y la <strong>foto actual</strong> (después). El divisor te dejará deslizar entre ambas.
+              {readOnly
+                ? 'No se registraron fotografías de antes/después en esta consulta.'
+                : <>Sube la <strong>foto inicial</strong> (antes del tratamiento) y la <strong>foto actual</strong> (después). El divisor te dejará deslizar entre ambas.</>}
             </div>
           </div>
-          <div style={{display:'flex', gap: 10, flexWrap:'wrap', justifyContent:'center'}}>
-            <button type="button" className="btn btn-primary" style={{cursor: uploading ? 'default' : 'pointer'}} onClick={pickBefore} disabled={!!uploading}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
-              {uploading === 'before' ? 'Procesando…' : 'Subir foto inicial'}
-            </button>
-            <button type="button" className="btn btn-ghost" style={{cursor: uploading ? 'default' : 'pointer'}} onClick={pickAfter} disabled={!!uploading}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
-              {uploading === 'after' ? 'Procesando…' : 'Subir foto actual'}
-            </button>
-          </div>
+          {!readOnly && (
+            <div style={{display:'flex', gap: 10, flexWrap:'wrap', justifyContent:'center'}}>
+              <button type="button" className="btn btn-primary" style={{cursor: uploading ? 'default' : 'pointer'}} onClick={pickBefore} disabled={!!uploading}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+                {uploading === 'before' ? 'Procesando…' : 'Subir foto inicial'}
+              </button>
+              <button type="button" className="btn btn-ghost" style={{cursor: uploading ? 'default' : 'pointer'}} onClick={pickAfter} disabled={!!uploading}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>
+                {uploading === 'after' ? 'Procesando…' : 'Subir foto actual'}
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         /* ---- Compare frame ---- */
@@ -636,13 +652,13 @@ function EvoPhotoCompare({ media = {}, setMedia = () => {} }) {
           {/* BEFORE layer (full) */}
           {before
             ? <img src={before} alt="Antes del tratamiento" style={imgStyle} />
-            : <PhotoDrop label="foto inicial" onClick={pickBefore} busy={uploading === 'before'} />}
+            : (readOnly ? <EmptyPhoto label="foto inicial" /> : <PhotoDrop label="foto inicial" onClick={pickBefore} busy={uploading === 'before'} />)}
 
           {/* AFTER layer (clipped reveal from the divider) */}
           <div style={{position:'absolute', inset: 0, clipPath:`inset(0 0 0 ${revealAt}%)`, overflow:'hidden'}}>
             {after
               ? <img src={after} alt="Después del tratamiento" style={imgStyle} />
-              : <PhotoDrop label="foto actual" onClick={pickAfter} busy={uploading === 'after'} />}
+              : (readOnly ? <EmptyPhoto label="foto actual" /> : <PhotoDrop label="foto actual" onClick={pickAfter} busy={uploading === 'after'} />)}
           </div>
 
           {/* ANTES / DESPUÉS labels */}
@@ -655,14 +671,14 @@ function EvoPhotoCompare({ media = {}, setMedia = () => {} }) {
             DESPUÉS
           </div>
 
-          {/* Per-side replace / remove controls (when that photo exists) */}
-          {before && (
+          {/* Per-side replace / remove controls (when that photo exists) — edit only */}
+          {before && !readOnly && (
             <div style={{position:'absolute', top: 42, left: 12, zIndex: 6, display:'flex', gap: 6}}>
               <PhotoChip title="Reemplazar foto inicial" onClick={pickBefore} icon="swap" />
               <PhotoChip title="Quitar foto inicial" onClick={() => clearPhoto('evo_before')} icon="x" />
             </div>
           )}
-          {after && (
+          {after && !readOnly && (
             <div style={{position:'absolute', top: 42, right: 12, zIndex: 6, display:'flex', gap: 6}}>
               <PhotoChip title="Reemplazar foto actual" onClick={pickAfter} icon="swap" />
               <PhotoChip title="Quitar foto actual" onClick={() => clearPhoto('evo_after')} icon="x" />
@@ -853,7 +869,7 @@ function PlanEditor({ tx, patch }) {
 // =============================================================
 // Main view
 // =============================================================
-function EvolucionViewV2({ month = 4, setMonth = () => {}, media = {}, setMedia = () => {}, treatment, setTreatment = () => {} }) {
+function EvolucionViewV2({ month = 4, setMonth = () => {}, media = {}, setMedia = () => {}, treatment, setTreatment = () => {}, readOnly = false }) {
   const tx = useMemoE(() => normalizeTreatment(treatment), [treatment]);
   const today = useMemoE(() => new Date(), []);
   const [editing, setEditing] = useStateE(false);
@@ -886,7 +902,7 @@ function EvolucionViewV2({ month = 4, setMonth = () => {}, media = {}, setMedia 
   return (
     <div style={{display:'flex', flexDirection:'column', gap:'var(--sp-4)'}}>
       {/* ============ Comparativa antes/después (fotografías reales) ============ */}
-      <EvoPhotoCompare media={media} setMedia={setMedia} />
+      <EvoPhotoCompare media={media} setMedia={setMedia} readOnly={readOnly} />
 
       {/* ============ Clinical metrics row ============ */}
       <div>
@@ -916,12 +932,12 @@ function EvolucionViewV2({ month = 4, setMonth = () => {}, media = {}, setMedia 
         beforeStart={beforeStart}
         inspectIdx={shownIdx}
         onInspect={(i) => setInspectIdx(i === currentIdx ? null : i)}
-        onEditPlan={() => setEditing(e => !e)}
+        onEditPlan={readOnly ? null : () => setEditing(e => !e)}
         editing={editing}
       />
 
-      {/* ============ Plan editor (toggled) ============ */}
-      {editing && <PlanEditor tx={tx} patch={patch} />}
+      {/* ============ Plan editor (toggled) — never available read-only ============ */}
+      {editing && !readOnly && <PlanEditor tx={tx} patch={patch} />}
 
       {/* ============ Summary cards ============ */}
       <div style={{
