@@ -1449,14 +1449,57 @@ async function loadConsultation() {
       populateHistorySection('consFamOtros', 'consFamOtrosObs', extraData.family_history.otros);
     }
 
-    // Personal/podological history - only the ones actually saved
-    if (extraData.personal_history) {
-      populateHistorySection('consPerTraumatic', 'consPerTraumaticObs', extraData.personal_history.traumatic);
-      populateHistorySection('consPerSurgical', 'consPerSurgicalObs', extraData.personal_history.surgical);
-      populateHistorySection('consPerAllergies', 'consPerAllergiesObs', extraData.personal_history.allergies);
-      populateHistorySection('consPerAspirin', 'consPerAspirinObs', extraData.personal_history.aspirin);
-      populateHistorySection('consPerPregnancy', 'consPerPregnancyObs', extraData.personal_history.pregnancy);
-    }
+    // Antecedentes patológicos, no patológicos y calzado. El mapa refleja el de la
+    // página de captura (consultation-podiatry.html → POD_HISTORY_GROUPS); si cambian
+    // los ids allí, actualizar aquí también.
+    const VIEW_HISTORY_GROUPS = {
+      personal_history: {
+        diabetes:       ['consPerDiabetes',       'consPerDiabetesObs'],
+        hypertension:   ['consPerHypertension',   'consPerHypertensionObs'],
+        cardiopathy:    ['consPerCardiopathy',    'consPerCardioppathyObs'],
+        vascular:       ['consPerVascular',       'consPerVascularObs'],
+        psoriasis:      ['consPerPsoriasis',      'consPerPsoriasisObs'],
+        arthritis:      ['consPerArthritis',      'consPerArthritisObs'],
+        cancer:         ['consPerCancer',         'consPerCancerObs'],
+        dermatological: ['consPerDermatological', 'consPerDermatologicalObs'],
+        hiv:            ['consPerHIV',            'consPerHIVObs'],
+        renal:          ['consPerRenal',          'consPerRenalObs'],
+        otros:          ['consPerOtros',          'consPerOtrosObs'],
+        allergies:      ['consPerAllergies',      'consPerAllergiesObs'],
+        aspirin:        ['consPerAspirin',        'consPerAspirinObs'],
+      },
+      non_pathological_history: {
+        fuma:     ['consNonPathFuma',     'consNonPathFumaObs'],
+        alcohol:  ['consNonPathAlcohol',  'consNonPathAlcoholObs'],
+        toxins:   ['consNonPathToxins',   'consNonPathToxinsObs'],
+        otros:    ['consNonPathOtros',    'consNonPathOtrosObs'],
+        exercise: ['consNonPathExercise', 'consNonPathExerciseObs'],
+      },
+      footwear_type: {
+        deportivo: ['consCalzDeportivo', 'consCalzDeportivoObs'],
+        tacones:   ['consCalzTacones',   'consCalzTaconesObs'],
+        flat:      ['consCalzFlat',      'consCalzFlatObs'],
+        cerrados:  ['consCalzCerrados',  'consCalzCerradosObs'],
+        sandalias: ['consCalzSandalias', 'consCalzSandaliasObs'],
+        botas:     ['consCalzBotas',     'consCalzBotasObs'],
+        otros:     ['consCalzOtros',     'consCalzOtrosObs'],
+      },
+    };
+    Object.keys(VIEW_HISTORY_GROUPS).forEach((groupName) => {
+      const group = VIEW_HISTORY_GROUPS[groupName];
+      const data = extraData[groupName] || {};
+      Object.keys(group).forEach((key) => {
+        const [cbId, obsId] = group[key];
+        populateHistorySection(cbId, obsId, data[key]);
+      });
+    });
+
+    // Ginecoobstétricos (guardado en obstetric_history; fallback a personal_history para datos legados)
+    const obstetric = extraData.obstetric_history || {};
+    populateHistorySection('consPerPregnancy', 'consPerPregnancyObs',
+      obstetric.pregnancy || (extraData.personal_history && extraData.personal_history.pregnancy));
+    setInputValue('consPerSG', obstetric.sg);
+    setInputValue('consPerPregnancyTx', obstetric.tx);
 
     // Podogram
     const podogram1 = new PodogramContainer('podogram1', extraData, true);

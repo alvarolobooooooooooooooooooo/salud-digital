@@ -1545,6 +1545,7 @@
     <!-- Datos Personales -->
     <div class="form-section" data-icon="user">
       <h3>Datos Personales</h3>
+      <div id="prefillBanner" style="display:none;"></div>
       <div class="form-grid">
         <div class="form-group">
           <label>Tipo de consulta</label>
@@ -2131,6 +2132,164 @@ let appointmentId = null;
 let patientId = null;
 let podogram1 = null;
 let consultSubmitting = false;
+let patientInfoPrefilled = false;
+
+// ── Mapa central de antecedentes (Sección 1 y 2) ───────────────────────────
+// Una sola fuente de verdad: clave JSON → [idCheckbox, idTextareaObs]. Se usa
+// tanto al GUARDAR (collectHistoryGroup) como al AUTOCOMPLETAR (applyHistoryGroup),
+// de modo que ambos lados nunca se desincronicen.
+const POD_HISTORY_GROUPS = {
+  personal_history: {
+    diabetes:       ['consPerDiabetes',       'consPerDiabetesObs'],
+    hypertension:   ['consPerHypertension',   'consPerHypertensionObs'],
+    cardiopathy:    ['consPerCardiopathy',    'consPerCardioppathyObs'],
+    vascular:       ['consPerVascular',       'consPerVascularObs'],
+    psoriasis:      ['consPerPsoriasis',      'consPerPsoriasisObs'],
+    arthritis:      ['consPerArthritis',      'consPerArthritisObs'],
+    cancer:         ['consPerCancer',         'consPerCancerObs'],
+    dermatological: ['consPerDermatological', 'consPerDermatologicalObs'],
+    hiv:            ['consPerHIV',            'consPerHIVObs'],
+    renal:          ['consPerRenal',          'consPerRenalObs'],
+    otros:          ['consPerOtros',          'consPerOtrosObs'],
+    allergies:      ['consPerAllergies',      'consPerAllergiesObs'],
+    aspirin:        ['consPerAspirin',        'consPerAspirinObs'],
+  },
+  non_pathological_history: {
+    fuma:     ['consNonPathFuma',     'consNonPathFumaObs'],
+    alcohol:  ['consNonPathAlcohol',  'consNonPathAlcoholObs'],
+    toxins:   ['consNonPathToxins',   'consNonPathToxinsObs'],
+    otros:    ['consNonPathOtros',    'consNonPathOtrosObs'],
+    exercise: ['consNonPathExercise', 'consNonPathExerciseObs'],
+  },
+  footwear_type: {
+    deportivo: ['consCalzDeportivo', 'consCalzDeportivoObs'],
+    tacones:   ['consCalzTacones',   'consCalzTaconesObs'],
+    flat:      ['consCalzFlat',      'consCalzFlatObs'],
+    cerrados:  ['consCalzCerrados',  'consCalzCerradosObs'],
+    sandalias: ['consCalzSandalias', 'consCalzSandaliasObs'],
+    botas:     ['consCalzBotas',     'consCalzBotasObs'],
+    otros:     ['consCalzOtros',     'consCalzOtrosObs'],
+  },
+};
+
+// Construye {clave: {checked, obs}} leyendo el DOM (para guardar).
+function collectHistoryGroup(map) {
+  const out = {};
+  for (const key in map) {
+    const [cbId, obsId] = map[key];
+    out[key] = {
+      checked: document.getElementById(cbId)?.checked || false,
+      obs: document.getElementById(obsId)?.value || ''
+    };
+  }
+  return out;
+}
+
+// Vuelca {clave: {checked, obs}} al DOM (para autocompletar). Con onlyIfEmpty
+// no pisa lo que el usuario ya haya marcado/escrito.
+function applyHistoryGroup(map, data, onlyIfEmpty) {
+  if (!data) return;
+  for (const key in map) {
+    const item = data[key];
+    if (!item) continue;
+    const [cbId, obsId] = map[key];
+    const cb = document.getElementById(cbId);
+    const obs = document.getElementById(obsId);
+    if (cb && !(onlyIfEmpty && cb.checked)) cb.checked = !!item.checked;
+    if (obs && !(onlyIfEmpty && String(obs.value || '').trim())) obs.value = item.obs || '';
+  }
+}
+
+// Setea el valor de un input/select solo si está vacío (no pisa lo ya escrito).
+function setValueIfEmpty(id, value) {
+  if (value === undefined || value === null || value === '') return;
+  const el = document.getElementById(id);
+  if (el && !String(el.value || '').trim()) el.value = value;
+}
+
+// Autocompleta "Información del Paciente" y "Antecedentes" para pacientes
+// recurrentes. NO bloquea ningún campo: solo rellena lo que esté vacío con los
+// datos de la última consulta de podología, dejando todo editable.
+async function prefillPatientInfo() {
+  if (patientInfoPrefilled || !patientId) return;
+  try {
+    // Registro del paciente: fuente canónica de la edad.
+    let patient = null;
+    try { patient = await api(`/api/patients/${patientId}`); } catch (_) {}
+
+    // Consultas previas de podología (más reciente primero). Endpoint válido
+    // tanto para doctor (sus consultas) como para admin (alcance de clínica).
+    let prev = [];
+    try {
+      const res = await api(`/api/patients/${patientId}/consultations?limit=20`);
+      prev = (res.consultations || []).filter(c =>
+        c.specialty === 'Podología' && c.appointment_id !== appointmentId
+      );
+    } catch (_) {}
+
+    const last = prev[0] || null;
+    let extra = {};
+    if (last && last.radiography_notes) {
+      try { extra = JSON.parse(last.radiography_notes) || {}; } catch (_) {}
+    }
+
+    // Edad: registro del paciente o, en su defecto, última consulta.
+    const age = (patient && Number(patient.age) > 0) ? patient.age : (extra.age || '');
+    setValueIfEmpty('consAge', age);
+
+    if (!last) { patientInfoPrefilled = true; return; }
+
+    // ── Datos Personales ──
+    setValueIfEmpty('consOccupation', extra.occupation);
+
+    const visitType = document.getElementById('consVisitType');
+    if (visitType && visitType.value === 'primera_vez') visitType.value = 'seguimiento';
+
+    // Ya tuvo una consulta aquí → "Sí, en esta clínica".
+    const seenBefore = document.getElementById('consSeenPodologistBefore');
+    if (seenBefore && !seenBefore.value) {
+      seenBefore.value = 'si_aqui';
+      const wrap = document.getElementById('consPrevPodologistDetailsWrap');
+      if (wrap) wrap.style.display = '';
+    }
+    setValueIfEmpty('consPrevPodologistDetails', extra.prev_podologist_details);
+
+    // ── Antecedentes (Sección 2) ──
+    applyHistoryGroup(POD_HISTORY_GROUPS.personal_history, extra.personal_history, true);
+    applyHistoryGroup(POD_HISTORY_GROUPS.non_pathological_history, extra.non_pathological_history, true);
+    applyHistoryGroup(POD_HISTORY_GROUPS.footwear_type, extra.footwear_type, true);
+
+    // Ginecoobstétricos
+    if (extra.obstetric_history) {
+      const oh = extra.obstetric_history;
+      const preg = document.getElementById('consPerPregnancy');
+      const pregObs = document.getElementById('consPerPregnancyObs');
+      if (preg && oh.pregnancy && !preg.checked) preg.checked = !!oh.pregnancy.checked;
+      if (pregObs && oh.pregnancy && !String(pregObs.value || '').trim()) pregObs.value = oh.pregnancy.obs || '';
+      setValueIfEmpty('consPerSG', oh.sg);
+      setValueIfEmpty('consPerPregnancyTx', oh.tx);
+    }
+
+    showPrefillBanner(last.created_at, last.doctor_name);
+    patientInfoPrefilled = true;
+  } catch (e) {
+    console.error('Error autocompletando información del paciente:', e);
+  }
+}
+
+function showPrefillBanner(createdAt, doctorName) {
+  const banner = document.getElementById('prefillBanner');
+  if (!banner) return;
+  let fecha = '';
+  try {
+    if (createdAt) fecha = new Date(createdAt).toLocaleDateString('es-HN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  } catch (_) {}
+  const quien = doctorName ? ` (Dr. ${esc(doctorName)})` : '';
+  banner.innerHTML =
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>' +
+    '<span>Datos rellenados automáticamente desde la última consulta' + (fecha ? ' del ' + fecha : '') + quien + '. Revisá y editá lo que haga falta.</span>';
+  banner.style.cssText = 'display:flex;align-items:center;gap:.6rem;margin:0 0 1.1rem;padding:.7rem .95rem;border-radius:12px;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.35);color:#a5f3fc;font-size:.85rem;line-height:1.35;font-weight:500;';
+}
 
 async function loadAppointment() {
   const params = new URLSearchParams(window.location.search);
@@ -2177,6 +2336,7 @@ async function loadAppointment() {
     await loadMedicalAlert();
 
     // Draft autosave
+    let hadDraft = false;
     if (window.ConsultationDraft) {
       ConsultationDraft.init({
         key: 'podiatry',
@@ -2195,7 +2355,17 @@ async function loadAppointment() {
         ]
       });
       ConsultationDraft.bind(appointmentId);
-      ConsultationDraft.maybeRestore();
+      hadDraft = ConsultationDraft.maybeRestore();
+    }
+
+    // Autocompletar para pacientes recurrentes. Si hay un borrador local se respeta
+    // ese flujo (el usuario decide restaurarlo); pero si lo DESCARTA, autocompletamos
+    // desde la última consulta para no dejar los campos en blanco.
+    if (hadDraft) {
+      const discardBtn = document.getElementById('cdraft-discard');
+      if (discardBtn) discardBtn.addEventListener('click', () => { prefillPatientInfo(); });
+    } else {
+      await prefillPatientInfo();
     }
   } catch (e) {
     console.error(e);
@@ -2380,11 +2550,9 @@ async function submitConsult(e) {
         foot_type_left: podogramState.foot_type_left,
         foot_shape_right: podogramState.foot_shape_right,
         foot_shape_left: podogramState.foot_shape_left,
-        personal_history: {
-          allergies: { checked: document.getElementById('consPerAllergies')?.checked || false, obs: document.getElementById('consPerAllergiesObs')?.value || '' },
-          aspirin: { checked: document.getElementById('consPerAspirin')?.checked || false, obs: document.getElementById('consPerAspirinObs')?.value || '' },
-          otros: { checked: document.getElementById('consPerOtros')?.checked || false, obs: document.getElementById('consPerOtrosObs')?.value || '' }
-        },
+        personal_history: collectHistoryGroup(POD_HISTORY_GROUPS.personal_history),
+        non_pathological_history: collectHistoryGroup(POD_HISTORY_GROUPS.non_pathological_history),
+        footwear_type: collectHistoryGroup(POD_HISTORY_GROUPS.footwear_type),
         obstetric_history: {
           pregnancy: { checked: document.getElementById('consPerPregnancy')?.checked || false, obs: document.getElementById('consPerPregnancyObs')?.value || '' },
           sg: document.getElementById('consPerSG')?.value || '',
