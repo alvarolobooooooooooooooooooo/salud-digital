@@ -49,8 +49,6 @@ const ROLE_LABEL = {
   super_admin: 'Administración',
 };
 
-const ONLINE_WINDOW_MS = 5 * 60 * 1000;
-
 function firstName(name) {
   if (!name) return '';
   const parts = String(name).trim().split(/\s+/);
@@ -84,15 +82,23 @@ function shapeMember(m) {
   return { id: m.id, name: m.name || 'Sin nombre', role: m.role, specialty: m.specialty || '', photo: m.photo_url || '' };
 }
 
+// La DB corre en UTC y node-pg parsea los `timestamp` con la TZ local de Node
+// (desfase de horas). Para evitarlo, devolvemos los tiempos como ISO-UTC explícito
+// desde SQL ("...Z"); el cliente los formatea en hora de Honduras. Las comparaciones
+// sensibles a la hora (en línea, lectura) se hacen en SQL, también TZ-independiente.
+const TS = (col) => `to_char(${col}, 'YYYY-MM-DD"T"HH24:MI:SS"Z"')`;
+
 // Carga y arma conversaciones para un usuario (lista completa o una sola por onlyId).
 async function loadConversations({ clinicId, userId, userRole, onlyId }) {
   const params = [userId, clinicId];
   let extra = '';
   if (onlyId) { params.push(onlyId); extra = ' AND c.id = $3'; }
   const convRes = await query(
-    `SELECT c.id, c.kind, c.title, c.subtitle, c.patient_id, c.created_by, c.created_at, c.last_message_at,
+    `SELECT c.id, c.kind, c.title, c.subtitle, c.patient_id, c.created_by, c.created_at,
+            ${TS('c.last_message_at')} AS last_message_at,
             p.name AS patient_name, p.identity_number AS patient_doc,
-            (SELECT last_read_at FROM chat_members m WHERE m.conversation_id = c.id AND m.user_id = $1) AS my_last_read
+            (SELECT ${TS('MIN(m2.last_read_at)')}
+               FROM chat_members m2 WHERE m2.conversation_id = c.id AND m2.user_id <> $1) AS others_read_at
        FROM chat_conversations c
        LEFT JOIN patients p ON p.id = c.patient_id
       WHERE c.clinic_id = $2
@@ -108,7 +114,8 @@ async function loadConversations({ clinicId, userId, userRole, onlyId }) {
   const [memRes, lastRes, unreadRes, urgRes] = await Promise.all([
     query(
       `SELECT m.conversation_id, u.id, u.name, u.role, u.specialty, u.photo_url,
-              (SELECT max(s.last_seen) FROM user_sessions s WHERE s.user_id = u.id AND s.revoked_at IS NULL) AS last_seen
+              ((SELECT max(s.last_seen) FROM user_sessions s WHERE s.user_id = u.id AND s.revoked_at IS NULL)
+                 > (CURRENT_TIMESTAMP::timestamp - interval '5 minutes')) AS online
          FROM chat_members m JOIN users u ON u.id = m.user_id
         WHERE m.conversation_id = ANY($1::int[])`,
       [ids]
@@ -148,7 +155,6 @@ async function loadConversations({ clinicId, userId, userRole, onlyId }) {
   for (const r of unreadRes.rows) unreadByConv[r.conversation_id] = r.unread;
   const urgentSet = new Set(urgRes.rows.map(r => r.conversation_id));
 
-  const now = Date.now();
   return convs.map(c => {
     const members = membersByConv[c.id] || [];
     let title = c.title;
@@ -159,7 +165,7 @@ async function loadConversations({ clinicId, userId, userRole, onlyId }) {
       if (other) {
         title = other.name || 'Médico/a';
         subtitle = other.specialty || ROLE_LABEL[other.role] || '';
-        online = !!other.last_seen && (now - new Date(other.last_seen).getTime() < ONLINE_WINDOW_MS);
+        online = other.online === true; // presencia real: last_seen en los últimos 5 min (calculada en SQL)
       }
     } else if (!title && c.patient_name) {
       title = c.patient_name;
@@ -180,6 +186,7 @@ async function loadConversations({ clinicId, userId, userRole, onlyId }) {
       unread: unreadByConv[c.id] || 0,
       urgent: urgentSet.has(c.id),
       online,
+      othersReadAt: c.others_read_at, // ISO-UTC: hasta dónde han leído los demás (para checks azules)
       readOnly: c.kind === 'anuncio' && userRole !== 'clinic_admin',
       createdBy: c.created_by,
     };
@@ -271,7 +278,7 @@ router.get('/patients/:id', authenticate, async (req, res) => {
     [id]
   );
   const last = await query(
-    `SELECT visit_reason, observations, created_at, u.name AS doctor_name
+    `SELECT visit_reason, observations, ${TS('c.created_at')} AS created_at, u.name AS doctor_name
        FROM consultations c LEFT JOIN users u ON u.id = c.doctor_id
       WHERE c.patient_id = $1 ORDER BY c.created_at DESC LIMIT 1`,
     [id]
@@ -395,7 +402,7 @@ router.get('/conversations/:id/messages', authenticate, async (req, res) => {
 
   const after = parseInt(req.query.after, 10) || 0;
   const r = await query(
-    `SELECT msg.id, msg.kind, msg.body, msg.payload, msg.sender_id, msg.created_at,
+    `SELECT msg.id, msg.kind, msg.body, msg.payload, msg.sender_id, ${TS('msg.created_at')} AS created_at,
             u.name AS sender_name, u.role AS sender_role, u.specialty AS sender_specialty, u.photo_url AS sender_photo
        FROM chat_messages msg LEFT JOIN users u ON u.id = msg.sender_id
       WHERE msg.conversation_id = $1 ${after ? 'AND msg.id > $2' : ''}
@@ -446,7 +453,7 @@ router.post('/conversations/:id/messages', authenticate, async (req, res) => {
   );
 
   const r = await query(
-    `SELECT msg.id, msg.kind, msg.body, msg.payload, msg.sender_id, msg.created_at,
+    `SELECT msg.id, msg.kind, msg.body, msg.payload, msg.sender_id, ${TS('msg.created_at')} AS created_at,
             u.name AS sender_name, u.role AS sender_role, u.specialty AS sender_specialty, u.photo_url AS sender_photo
        FROM chat_messages msg LEFT JOIN users u ON u.id = msg.sender_id
       WHERE msg.id = $1`,

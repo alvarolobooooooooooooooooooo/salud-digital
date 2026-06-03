@@ -571,7 +571,7 @@ function App() {
                 <div className="sd-msgs-inner">
                   {renderItems.map(it => it._divider
                     ? <Message key={it.id} msg={{ kind: 'divider', label: it.label }} />
-                    : <Message key={'m' + it.id} msg={it} onToggleTask={() => toggleTask(it.id)} />)}
+                    : <Message key={'m' + it.id} msg={it} othersReadAt={active.othersReadAt} onToggleTask={() => toggleTask(it.id)} />)}
                 </div>
               </div>
               <Composer conv={active} onSend={sendMessage} onOpenModal={setModal} onError={showToast} />

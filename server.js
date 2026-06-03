@@ -8,7 +8,7 @@ const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const { initDb } = require('./db');
 
-process.env.TZ = 'America/Chicago'; // Zona horaria local (CST/CDT)
+process.env.TZ = 'America/Tegucigalpa'; // Zona horaria de Honduras (CST, UTC-6, sin horario de verano)
 
 const app = express();
 

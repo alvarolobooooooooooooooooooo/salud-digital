@@ -294,7 +294,8 @@
 .sd-msg.own .sd-bubble { background: var(--sd-blue-600); color: #fff; border: 1px solid var(--sd-blue-600); border-top-left-radius: 14px; border-top-right-radius: 4px; }
 .sd-msg.own .sd-bubble .sd-mention { background: rgba(255,255,255,0.22); color: #fff; }
 .sd-receipt { display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 10.5px; color: var(--fg-subtle); padding: 0 2px; }
-.sd-msg.own .sd-receipt { color: var(--sd-blue-500); }
+.sd-msg.own .sd-receipt { color: var(--sd-ink-400); }          /* gris = enviado (aún no leído) */
+.sd-msg.own .sd-receipt.read { color: var(--sd-blue-600); }    /* azul = leído por el/los destinatario(s) */
 
 /* mensaje urgente */
 .sd-msg.urgent .sd-bubble {

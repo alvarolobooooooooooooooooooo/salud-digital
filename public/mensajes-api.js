@@ -51,30 +51,35 @@ function initialsOf(name) {
   const p = String(name).replace(/^(dr|dra)\.?\s+/i, '').trim().split(/\s+/);
   return (((p[0] || '')[0] || '') + ((p[1] || '')[0] || '')).toUpperCase() || '?';
 }
+// Hora de Honduras siempre, sin importar la zona horaria del navegador.
+const TZ = 'America/Tegucigalpa';
+// "Hoy/Ayer" se decide comparando la fecha-calendario en Honduras, no la del navegador.
+function hnDateStr(d) { return d.toLocaleDateString('en-CA', { timeZone: TZ }); } // YYYY-MM-DD
+
 function fmtTime(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
+  return new Date(iso).toLocaleTimeString('es-MX', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false });
 }
 function fmtListTime(iso) {
   if (!iso) return '';
   const d = new Date(iso), now = new Date();
-  if (d.toDateString() === now.toDateString()) return fmtTime(iso);
-  const y = new Date(now); y.setDate(now.getDate() - 1);
-  if (d.toDateString() === y.toDateString()) return 'Ayer';
-  if ((now - d) / 86400000 < 7) return d.toLocaleDateString('es-MX', { weekday: 'short' });
-  return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+  if (hnDateStr(d) === hnDateStr(now)) return fmtTime(iso);
+  const y = new Date(now.getTime() - 86400000);
+  if (hnDateStr(d) === hnDateStr(y)) return 'Ayer';
+  if ((now - d) / 86400000 < 7) return d.toLocaleDateString('es-MX', { timeZone: TZ, weekday: 'short' });
+  return d.toLocaleDateString('es-MX', { timeZone: TZ, day: 'numeric', month: 'short' });
 }
 function dayLabel(iso) {
   const d = new Date(iso), now = new Date();
-  if (d.toDateString() === now.toDateString()) return 'Hoy';
-  const y = new Date(now); y.setDate(now.getDate() - 1);
-  if (d.toDateString() === y.toDateString()) return 'Ayer';
-  return d.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+  if (hnDateStr(d) === hnDateStr(now)) return 'Hoy';
+  const y = new Date(now.getTime() - 86400000);
+  if (hnDateStr(d) === hnDateStr(y)) return 'Ayer';
+  return d.toLocaleDateString('es-MX', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' });
 }
 function roleLabel(r) {
   return { doctor: 'Médico/a', clinic_admin: 'Administración', receptionist: 'Recepción', super_admin: 'Administración' }[r] || '';
 }
-function dateKey(iso) { return iso ? new Date(iso).toDateString() : ''; }
+function dateKey(iso) { return iso ? hnDateStr(new Date(iso)) : ''; }
 
 // Seguridad: solo permite http(s) o rutas relativas same-origin en href/src.
 // Bloquea javascript:, data:, etc. (los payloads de mensaje vienen de usuarios).

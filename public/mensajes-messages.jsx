@@ -142,11 +142,13 @@ function TaskCard({ task, onToggle }) {
 }
 
 // ---- Switch principal de mensaje ----
-function Message({ msg, onToggleTask }) {
+function Message({ msg, onToggleTask, othersReadAt }) {
   if (msg.kind === 'divider') return <div className="sd-divider"><span>{msg.label}</span></div>;
   if (msg.kind === 'system') return <div className="sd-system">{msg.body}</div>;
 
   const own = msg.senderId != null && msg.senderId === window.ChatState.meId;
+  // Leído = los demás ya leyeron hasta una fecha >= la de este mensaje (todo en instantes UTC).
+  const read = own && msg.createdAt && othersReadAt && new Date(msg.createdAt) <= new Date(othersReadAt);
   const isUrgent = msg.kind === 'urgent-text';
   const color = window.chatHelpers.colorForId(msg.senderId);
   const roleText = msg.senderSpecialty || window.chatHelpers.roleLabel(msg.senderRole);
@@ -179,7 +181,7 @@ function Message({ msg, onToggleTask }) {
           </div>
         )}
         {own && (
-          <div className="sd-receipt">
+          <div className={'sd-receipt' + (read ? ' read' : '')} title={read ? 'Leído' : 'Enviado'}>
             <span className="sd-msg-time" style={{ color: 'inherit' }}>{time}</span>
             <Icon name="check-check" size={13} />
           </div>
