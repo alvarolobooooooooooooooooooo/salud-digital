@@ -88,7 +88,6 @@ const initDb = async () => {
       CREATE INDEX IF NOT EXISTS idx_appointments_patient ON appointments(patient_id);
       CREATE INDEX IF NOT EXISTS idx_appointments_doctor ON appointments(doctor_id);
       CREATE INDEX IF NOT EXISTS idx_consultations_patient_clinic_created ON consultations(patient_id, clinic_id, created_at);
-      CREATE INDEX IF NOT EXISTS idx_consultations_doctor ON consultations(doctor_id);
 
       CREATE TABLE IF NOT EXISTS invitations (
         id SERIAL PRIMARY KEY,
@@ -307,6 +306,39 @@ const initDb = async () => {
       );
       CREATE INDEX IF NOT EXISTS idx_sessions_user ON user_sessions(user_id);
       CREATE INDEX IF NOT EXISTS idx_sessions_jti ON user_sessions(jti);
+
+      -- ===== Mensajería clínica interna (chat entre personal de la clínica) =====
+      CREATE TABLE IF NOT EXISTS chat_conversations (
+        id SERIAL PRIMARY KEY,
+        clinic_id INTEGER NOT NULL REFERENCES clinics(id) ON DELETE CASCADE,
+        kind TEXT NOT NULL CHECK (kind IN ('directo','equipo','caso','interconsulta','anuncio')),
+        title TEXT DEFAULT '',
+        subtitle TEXT DEFAULT '',
+        patient_id INTEGER REFERENCES patients(id) ON DELETE SET NULL,
+        created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_message_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_chat_conv_clinic ON chat_conversations(clinic_id);
+
+      CREATE TABLE IF NOT EXISTS chat_members (
+        conversation_id INTEGER NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        last_read_at TIMESTAMP DEFAULT to_timestamp(0),
+        PRIMARY KEY (conversation_id, user_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_chat_members_user ON chat_members(user_id);
+
+      CREATE TABLE IF NOT EXISTS chat_messages (
+        id SERIAL PRIMARY KEY,
+        conversation_id INTEGER NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+        sender_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        kind TEXT NOT NULL DEFAULT 'text',
+        body TEXT DEFAULT '',
+        payload JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_chat_messages_conv ON chat_messages(conversation_id, id);
     `);
 
     const alterCommands = [
@@ -329,6 +361,9 @@ const initDb = async () => {
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS radiography_notes TEXT DEFAULT \'\'',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS observations TEXT DEFAULT \'\'',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS doctor_id INTEGER',
+      // El índice sobre doctor_id va aquí (no en el CREATE) porque la columna se
+      // agrega por ALTER: en una BD nueva el índice fallaría si corriera antes.
+      'CREATE INDEX IF NOT EXISTS idx_consultations_doctor ON consultations(doctor_id)',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS visit_reason TEXT DEFAULT \'\'',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS appointment_id INTEGER',
       'ALTER TABLE patients ADD COLUMN IF NOT EXISTS odontogram_state TEXT DEFAULT \'{}\'',

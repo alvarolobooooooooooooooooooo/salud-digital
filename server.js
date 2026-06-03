@@ -112,7 +112,7 @@ function serveHtmlWithVersion(filePath, res) {
     }
     const html = raw
       .replace(
-        /(<script\b[^>]*\bsrc=")(\/[^"?#]+\.js)(")/gi,
+        /(<script\b[^>]*\bsrc=")(\/[^"?#]+\.jsx?)(")/gi,
         `$1$2?v=${ASSET_VERSION}$3`,
       )
       .replace(
@@ -277,6 +277,7 @@ app.use('/api/audit', require('./routes/audit'));
 app.use('/api/growth', require('./routes/growth'));
 app.use('/api/integrations', require('./routes/integrations'));
 app.use('/api/media', require('./routes/media'));
+app.use('/api/messaging', require('./routes/messaging'));
 
 app.get('*', (req, res) => {
   serveHtmlWithVersion(path.join(PUBLIC_DIR, 'index.html'), res);

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="/theme.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>SaludDigital — Mensajería clínica</title>
+  <link rel="stylesheet" href="/layout.css">
+  <link rel="stylesheet" href="/mensajes.css">
+  <style>
+    :root {
+      --primary: #0891b2;
+      --primary-hover: #0e7490;
+      --primary-light: #f0f9ff;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --sidebar-w: 240px;
+    }
+    html, body { height: 100%; }
+    body.chat-page { overflow: hidden; }
+  </style>
+</head>
+<body class="chat-page">
+  <main class="layout-main chat-main">
+    <div id="chatRoot"></div>
+  </main>
+
+  <!-- Utilidades + shell global de la plataforma -->
+  <script src="/common.js"></script>
+  <script>
+    // Mensajería interna entre médicos: solo personal clínico.
+    requireAuth(['doctor', 'clinic_admin']);
+  </script>
+  <script src="/icons.js"></script>
+  <script src="/layout.js"></script>
+
+  <!-- React + Babel (vía unpkg, permitido por el CSP; mismo patrón que otras páginas) -->
+  <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+
+  <!-- App del chat (cliente de API en JS plano + componentes JSX compilados por Babel) -->
+  <script src="/mensajes-api.js"></script>
+  <script type="text/babel" src="/mensajes-icons.jsx"></script>
+  <script type="text/babel" src="/mensajes-ui.jsx"></script>
+  <script type="text/babel" src="/mensajes-messages.jsx"></script>
+  <script type="text/babel" src="/mensajes-composer.jsx"></script>
+  <script type="text/babel" src="/mensajes-app.jsx"></script>
+</body>
+</html>

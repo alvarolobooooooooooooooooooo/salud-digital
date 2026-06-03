@@ -17,6 +17,7 @@
     '/dashboard.html': 'dashboard',
     '/patients.html': 'patients',
     '/patient.html': 'patients',
+    '/mensajes.html': 'mensajes',
     '/citas.html': 'citas',
     '/calendario-compartido.html': 'calendario-compartido',
     '/finanzas.html': 'finanzas',
@@ -90,6 +91,7 @@
             { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
             { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
+            { href: '/mensajes.html', key: 'mensajes', iconName: 'messageSquare', label: 'Mensajes' },
             { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
           ]
         },
@@ -127,6 +129,7 @@
             { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
             { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
+            { href: '/mensajes.html', key: 'mensajes', iconName: 'messageSquare', label: 'Mensajes' },
             { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
           ]
         },
