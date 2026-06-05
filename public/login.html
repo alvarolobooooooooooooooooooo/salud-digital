@@ -59,6 +59,23 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* Loader de verificación de sesión: cubre todo hasta saber si hay sesión. */
+    .auth-loader {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+      background: #050507;
+      background-image: linear-gradient(180deg, #050507 0%, #08080a 100%);
+      transition: opacity .35s ease;
+    }
+    .auth-loader.hidden { opacity: 0; pointer-events: none; }
+    .auth-loader-spinner {
+      width: 46px; height: 46px; border-radius: 50%;
+      border: 3px solid rgba(6, 182, 212, 0.18); border-top-color: #06b6d4;
+      animation: authspin .8s linear infinite;
+    }
+    .auth-loader-text { font-size: 14px; font-weight: 500; color: rgba(255, 255, 255, 0.55); letter-spacing: .01em; }
+    @keyframes authspin { to { transform: rotate(360deg); } }
+
     /* ── Animated background blobs ── */
     body::before {
       content: '';
@@ -698,6 +715,13 @@
   </style>
 </head>
 <body>
+  <!-- Loader que cubre la pantalla mientras se verifica si hay sesión iniciada.
+       Se oculta si NO hay sesión (revela el login) o permanece si va a redirigir. -->
+  <div class="auth-loader" id="authLoader">
+    <div class="auth-loader-spinner"></div>
+    <div class="auth-loader-text">Verificando sesión…</div>
+  </div>
+
   <div class="grid-overlay"></div>
 
   <div class="particles" id="particles"></div>
@@ -891,22 +915,31 @@
     });
 
     // Si ya hay una sesión válida (cookie HttpOnly o token legacy), redirige al área correspondiente.
-    (async () => {
-      try {
-        const res = await fetch('/api/auth/me', {
-          credentials: 'same-origin',
-          headers: localStorage.getItem('sd_token')
-            ? { 'Authorization': 'Bearer ' + localStorage.getItem('sd_token') }
-            : {}
-        });
-        if (!res.ok) return;
-        const me = await res.json();
-        localStorage.setItem('sd_role', me.role);
-        if (me.clinic_id != null) localStorage.setItem('sd_clinic_id', me.clinic_id);
-        if (me.role === 'super_admin') window.location.href = '/admin.html';
-        else if (me.role === 'receptionist') window.location.href = '/recepcion-inicio.html';
-        else window.location.href = '/dashboard.html';
-      } catch (_) { /* sin sesión, queda en login */ }
+    // Mientras tanto, el overlay #authLoader cubre la pantalla: si NO hay sesión se
+    // oculta y se revela el login; si la hay, se mantiene hasta que navegue.
+    (function () {
+      const authLoader = document.getElementById('authLoader');
+      const revealLogin = () => { if (authLoader) authLoader.classList.add('hidden'); };
+      // Red de seguridad: si la verificación se cuelga, mostramos el login igual.
+      const failSafe = setTimeout(revealLogin, 8000);
+      (async () => {
+        try {
+          const res = await fetch('/api/auth/me', {
+            credentials: 'same-origin',
+            headers: localStorage.getItem('sd_token')
+              ? { 'Authorization': 'Bearer ' + localStorage.getItem('sd_token') }
+              : {}
+          });
+          if (!res.ok) { clearTimeout(failSafe); revealLogin(); return; }
+          const me = await res.json();
+          localStorage.setItem('sd_role', me.role);
+          if (me.clinic_id != null) localStorage.setItem('sd_clinic_id', me.clinic_id);
+          // Hay sesión → redirige; dejamos el loader puesto hasta que cambie la página.
+          if (me.role === 'super_admin') window.location.href = '/admin.html';
+          else if (me.role === 'receptionist') window.location.href = '/recepcion-inicio.html';
+          else window.location.href = '/dashboard.html';
+        } catch (_) { clearTimeout(failSafe); revealLogin(); /* sin sesión, queda en login */ }
+      })();
     })();
 
     let twoFaActive = false;
