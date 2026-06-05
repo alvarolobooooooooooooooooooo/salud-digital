@@ -1109,6 +1109,23 @@ nav.old-nav {
   }
 }
 
+/* ──────────────────────────────────────────────────────────────────────
+   FIX: el header (#mobileNav, fijo arriba) tapaba el contenido.
+   El nav mide 64px + safe-area (notch/Dynamic Island), pero CADA página fija su
+   propio padding-top de <main> con valores en px que NO incluyen el inset (y
+   algunos ni cubren los 64px) → en iPhone con notch el contenido quedaba debajo.
+   Este override central GARANTIZA el espacio correcto en todas:
+   · especificidad (1,1,1) + !important → gana a las reglas inline por página;
+   · `#mobileNav ~` → solo aplica cuando el nav existe (no toca login/landing);
+   · incluye env(safe-area-inset-top); en Android/desktop el inset es 0 → 80px.
+   Solo afecta padding-top; respeta padding horizontal/inferior de cada página.
+   ────────────────────────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  #mobileNav ~ main.layout-main {
+    padding-top: calc(80px + env(safe-area-inset-top, 0px)) !important;
+  }
+}
+
 /* ── Desktop: Hide Mobile Sidebar ── */
 @media (min-width: 861px) {
   .mobile-sidebar-overlay,
