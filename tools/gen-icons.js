@@ -15,10 +15,17 @@ const zlib = require('zlib');
 const OUT = path.join(__dirname, '..', 'public', 'icons');
 fs.mkdirSync(OUT, { recursive: true });
 
-// ── Paleta de marca (ver public/theme.js / layout.css) ──
-const GRAD_TOP = [0x22, 0xd3, 0xee]; // cyan-400
-const GRAD_BOT = [0x08, 0x91, 0xb2]; // cyan-600 (primary)
+// ── Paleta del logo oficial "Salud Digital" ──
+// La marca es una cruz "molinillo" de 4 cápsulas: 3 azul medio (azure) + 1 azul
+// marino (el brazo izquierdo / oeste), sobre un tile claro casi blanco.
+const AZURE    = [0x1c, 0x8e, 0xc9]; // azul medio de los 3 brazos
+const NAVY     = [0x0e, 0x2c, 0x57]; // azul marino del brazo izquierdo + wordmark
+const TILE_TOP = [0xff, 0xff, 0xff]; // fondo del icono (blanco → gris muy claro)
+const TILE_BOT = [0xee, 0xf2, 0xf7];
 const WHITE    = [0xff, 0xff, 0xff];
+
+// Hex helper para los SVG vectoriales
+const hex = (c) => `#${c.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
 
 // ───────────────────────── PNG encoder ─────────────────────────
 const CRC_TABLE = (() => {
@@ -90,37 +97,57 @@ function inRoundRect(px, py, x0, y0, w, h, r) {
 }
 
 /*
- * Renderiza un icono a `size` px.
- *   fullBleed=true  → degradado cubre todo el lienzo (maskable / apple).
- *   fullBleed=false → cuadrado redondeado con esquinas transparentes (any).
- *   plusFrac        → medio-largo del brazo de la cruz como fracción del lado.
+ * Geometría compartida de la cruz "molinillo": una cápsula base que apunta al
+ * norte (desfasada en +x) y se rota 90° cuatro veces. El brazo oeste (k=3) es
+ * marino; el resto azul medio. Devuelve el color [r,g,b] del brazo que cubre el
+ * punto local (lx,ly) dentro de una caja de marca de lado M, o null.
  */
-function renderIcon(size, { fullBleed, plusFrac }) {
+function markColorAt(lx, ly, M) {
+  const c = M / 2;
+  const HALF = 0.155 * M;  // medio-grosor de cápsula
+  const OFF  = 0.035 * M;  // desfase molinillo sutil (perpendicular al brazo)
+  const bx = c - HALF + OFF, by = 0.065 * M; // origen de la cápsula base (norte)
+  const bw = HALF * 2, bh = 0.45 * M, rr = HALF;
+  const dx = lx - c, dy = ly - c;
+  for (let k = 0; k < 4; k++) {
+    // rotar el punto -k*90° alrededor del centro (inversa del brazo = base+k*90°)
+    let rx, ry;
+    if (k === 0)      { rx = c + dx; ry = c + dy; }
+    else if (k === 1) { rx = c + dy; ry = c - dx; }
+    else if (k === 2) { rx = c - dx; ry = c - dy; }
+    else              { rx = c - dy; ry = c + dx; }
+    if (inRoundRect(rx, ry, bx, by, bw, bh, rr)) return k === 3 ? NAVY : AZURE;
+  }
+  return null;
+}
+
+/*
+ * Renderiza un icono de marca a `size` px.
+ *   fullBleed=true  → tile claro cubre todo el lienzo (maskable / apple, opaco).
+ *   fullBleed=false → squircle de esquinas transparentes (any / favicon).
+ *   markScale       → lado de la marca como fracción del lienzo (zona segura).
+ */
+function renderIcon(size, { fullBleed, markScale }) {
   const big = size * SS;
   const buf = new Uint8Array(big * big * 4); // transparente
   const bgRadius = fullBleed ? 0 : Math.round(big * 0.225); // squircle aprox
-  const cx = (big - 1) / 2, cy = (big - 1) / 2;
-  const armHalf = plusFrac * big;          // medio-largo del brazo
-  const thickHalf = big * 0.115;           // medio-grosor del brazo
-  const r = thickHalf;                     // extremos redondeados (cápsula)
+  const M = big * markScale;          // lado de la caja de la marca
+  const m0 = (big - M) / 2;           // origen (centrada)
 
   for (let y = 0; y < big; y++) {
     const t = y / (big - 1);
-    const gr = Math.round(GRAD_TOP[0] + (GRAD_BOT[0] - GRAD_TOP[0]) * t);
-    const gg = Math.round(GRAD_TOP[1] + (GRAD_BOT[1] - GRAD_TOP[1]) * t);
-    const gb = Math.round(GRAD_TOP[2] + (GRAD_BOT[2] - GRAD_TOP[2]) * t);
+    const tr = Math.round(TILE_TOP[0] + (TILE_BOT[0] - TILE_TOP[0]) * t);
+    const tg = Math.round(TILE_TOP[1] + (TILE_BOT[1] - TILE_TOP[1]) * t);
+    const tb = Math.round(TILE_TOP[2] + (TILE_BOT[2] - TILE_TOP[2]) * t);
     for (let x = 0; x < big; x++) {
       const inBg = fullBleed
         ? true
         : inRoundRect(x, y, 0, 0, big, big, bgRadius);
       if (!inBg) continue;
       const i = (y * big + x) * 4;
-      // fondo degradado
-      let R = gr, G = gg, B = gb;
-      // cruz blanca (unión de dos cápsulas)
-      const inH = inRoundRect(x, y, cx - armHalf, cy - thickHalf, armHalf * 2, thickHalf * 2, r);
-      const inV = inRoundRect(x, y, cx - thickHalf, cy - armHalf, thickHalf * 2, armHalf * 2, r);
-      if (inH || inV) { R = WHITE[0]; G = WHITE[1]; B = WHITE[2]; }
+      let R = tr, G = tg, B = tb; // tile claro de fondo (los huecos quedan blancos)
+      const col = markColorAt(x - m0, y - m0, M);
+      if (col) { R = col[0]; G = col[1]; B = col[2]; }
       buf[i] = R; buf[i + 1] = G; buf[i + 2] = B; buf[i + 3] = 255;
     }
   }
@@ -183,20 +210,56 @@ function buildIco(entries /* [{size, png}] */) {
 }
 
 // ───────────────────────── SVG vectorial ─────────────────────────
+// Grupo de la cruz "molinillo" en coordenadas locales 0..100 (centro 50,50).
+// Cápsula base norte (HALF=15, OFF=8.5) rotada 90°×4; oeste (rotate 270) marino.
+function crossGroup() {
+  const a = hex(AZURE), n = hex(NAVY);
+  const cap = (fill, rot) =>
+    `<rect x="38.5" y="6.5" width="31" height="45" rx="15.5" ry="15.5" fill="${fill}"${rot ? ` transform="rotate(${rot} 50 50)"` : ''}/>`;
+  return `<g>${cap(a, 0)}${cap(a, 90)}${cap(a, 180)}${cap(n, 270)}</g>`;
+}
+
+// Marca sola, fondo transparente (uso en UI dentro de un chip claro).
+function buildMarkSvg() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="Salud Digital">
+  ${crossGroup()}
+</svg>
+`;
+}
+
+// Icono "any" del manifest: tile claro squircle + cruz centrada (markScale 0.72).
 function buildSvg() {
-  const top = `#${GRAD_TOP.map(c => c.toString(16).padStart(2, '0')).join('')}`;
-  const bot = `#${GRAD_BOT.map(c => c.toString(16).padStart(2, '0')).join('')}`;
+  const top = hex(TILE_TOP), bot = hex(TILE_BOT);
+  const M = 512 * 0.72, m0 = (512 - M) / 2, s = M / 100;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Salud Digital">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="${top}"/>
       <stop offset="1" stop-color="${bot}"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="115" ry="115" fill="url(#g)"/>
-  <g fill="#fff">
-    <rect x="208" y="118" width="96" height="276" rx="48"/>
-    <rect x="118" y="208" width="276" height="96" rx="48"/>
+  <rect width="512" height="512" rx="115" ry="115" fill="url(#tile)"/>
+  <g transform="translate(${m0.toFixed(2)} ${m0.toFixed(2)}) scale(${s.toFixed(4)})">${crossGroup()}</g>
+</svg>
+`;
+}
+
+// Lockup horizontal: marca + wordmark "Salud Digital" + divisor + tagline.
+// Texto en vivo con una pila de fuentes redondeada (Poppins → system-ui).
+function buildLockupSvg() {
+  const n = hex(NAVY), gray = '#6e747c';
+  const FONT = "'Poppins','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif";
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 150" role="img" aria-label="Salud Digital — Tecnología que conecta salud y personas">
+  <g transform="translate(10 27) scale(0.96)">${crossGroup()}</g>
+  <g font-family="${FONT}" fill="${n}" font-weight="800" font-size="46" letter-spacing="-1">
+    <text x="128" y="68">Salud</text>
+    <text x="128" y="118">Digital</text>
+  </g>
+  <line x1="320" y1="38" x2="320" y2="112" stroke="${n}" stroke-width="3" stroke-linecap="round"/>
+  <g font-family="${FONT}" fill="${gray}" font-weight="500" font-size="25">
+    <text x="344" y="56">Tecnología que</text>
+    <text x="344" y="88">conecta salud</text>
+    <text x="344" y="120">y personas</text>
   </g>
 </svg>
 `;
@@ -205,30 +268,32 @@ function buildSvg() {
 // ───────────────────────── Generar todo ─────────────────────────
 console.log('Generando iconos en', OUT);
 
-// Maskable (full-bleed, cruz dentro de la zona segura ~ plusFrac 0.30)
-writePng('maskable-512.png', 512, { fullBleed: true, plusFrac: 0.30 });
-writePng('maskable-192.png', 192, { fullBleed: true, plusFrac: 0.30 });
+// Maskable (full-bleed opaco; marca dentro de la zona segura ~80%)
+writePng('maskable-512.png', 512, { fullBleed: true, markScale: 0.58 });
+writePng('maskable-192.png', 192, { fullBleed: true, markScale: 0.58 });
 
-// "any" (cuadrado redondeado, esquinas transparentes, cruz más grande)
-writePng('icon-512.png', 512, { fullBleed: false, plusFrac: 0.34 });
-writePng('icon-192.png', 192, { fullBleed: false, plusFrac: 0.34 });
-writePng('icon-384.png', 384, { fullBleed: false, plusFrac: 0.34 });
-writePng('icon-256.png', 256, { fullBleed: false, plusFrac: 0.34 });
-writePng('icon-144.png', 144, { fullBleed: false, plusFrac: 0.34 });
+// "any" (squircle, esquinas transparentes, marca más grande)
+writePng('icon-512.png', 512, { fullBleed: false, markScale: 0.72 });
+writePng('icon-192.png', 192, { fullBleed: false, markScale: 0.72 });
+writePng('icon-384.png', 384, { fullBleed: false, markScale: 0.72 });
+writePng('icon-256.png', 256, { fullBleed: false, markScale: 0.72 });
+writePng('icon-144.png', 144, { fullBleed: false, markScale: 0.72 });
 
 // Apple touch icon: full-bleed opaco (iOS redondea solo, no quiere transparencia)
-writePng('apple-touch-icon.png', 180, { fullBleed: true, plusFrac: 0.32 });
-writePng('apple-touch-icon-167.png', 167, { fullBleed: true, plusFrac: 0.32 });
-writePng('apple-touch-icon-152.png', 152, { fullBleed: true, plusFrac: 0.32 });
+writePng('apple-touch-icon.png', 180, { fullBleed: true, markScale: 0.64 });
+writePng('apple-touch-icon-167.png', 167, { fullBleed: true, markScale: 0.64 });
+writePng('apple-touch-icon-152.png', 152, { fullBleed: true, markScale: 0.64 });
 
-// Favicons PNG + ICO
-const fav32 = writePng('favicon-32.png', 32, { fullBleed: false, plusFrac: 0.34 });
-const fav16 = writePng('favicon-16.png', 16, { fullBleed: false, plusFrac: 0.36 });
+// Favicons PNG + ICO (marca grande para legibilidad en miniatura)
+const fav32 = writePng('favicon-32.png', 32, { fullBleed: false, markScale: 0.82 });
+const fav16 = writePng('favicon-16.png', 16, { fullBleed: false, markScale: 0.86 });
 fs.writeFileSync(path.join(OUT, 'favicon.ico'),
   buildIco([{ size: 32, png: fav32 }, { size: 16, png: fav16 }]));
 
-// SVG vectorial
+// SVG vectoriales
 fs.writeFileSync(path.join(OUT, 'icon.svg'), buildSvg());
+fs.writeFileSync(path.join(OUT, 'logo-mark.svg'), buildMarkSvg());
+fs.writeFileSync(path.join(OUT, 'logo-lockup.svg'), buildLockupSvg());
 
 const files = fs.readdirSync(OUT).sort();
 console.log('Listo:', files.join(', '));

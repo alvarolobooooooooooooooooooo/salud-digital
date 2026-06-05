@@ -85,11 +85,24 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   letter-spacing: -0.02em;
 }
 
+/* Chip claro detrás de la marca: mantiene legible el brazo marino sobre el
+   sidebar oscuro y reproduce el logo sobre fondo blanco como en la guía. */
+.sb-logo span:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #fff;
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(8, 40, 90, 0.25), inset 0 0 0 1px rgba(8, 40, 90, 0.06);
+  flex-shrink: 0;
+}
+
 .sb-logo svg {
   width: 22px;
   height: 22px;
   flex-shrink: 0;
-  fill: var(--primary);
 }
 
 .sb-profile {

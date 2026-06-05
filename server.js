@@ -141,7 +141,7 @@ function injectPwaTags(html) {
   }
   // theme.js fija theme-color dinámico; para páginas sin él, un valor de marca.
   if (!/name\s*=\s*["']theme-color["']/i.test(html)) {
-    extra += '\n    <meta name="theme-color" content="#06b6d4">';
+    extra += '\n    <meta name="theme-color" content="#0e2c57">';
   }
   return html.slice(0, idx) + extra + '\n  ' + html.slice(idx);
 }
