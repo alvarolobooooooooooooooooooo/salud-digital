@@ -432,28 +432,36 @@
       }
     }
 
+    /* Mismo tile que las tarjetas de Finanzas: gradiente cyan sólido con glow,
+       SIN borde (el borde duro lo hacía ver plano). En dark, theme-dark.css lo
+       vuelve translúcido con glow — igual que Finanzas. */
     .stat-icon {
-      width: 64px;
-      height: 64px;
+      width: 60px;
+      height: 60px;
       border-radius: 16px;
-      background: linear-gradient(135deg, rgba(8, 145, 178, 0.25) 0%, rgba(6, 182, 212, 0.25) 100%);
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      border: none;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--primary);
+      color: white;
       flex-shrink: 0;
-      font-size: 2rem;
+      font-size: 1.6rem;
       box-shadow:
-        0 12px 32px rgba(8, 145, 178, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5);
-      border: 1px solid rgba(8, 145, 178, 0.2);
+        0 8px 24px rgba(8, 145, 178, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .stat-body { flex: 1; }
+    /* Etiqueta con gradiente cyan (como Finanzas) en vez de gris plano. */
     .stat-label {
       font-size: 11px;
-      color: var(--muted);
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       margin-bottom: 0.5rem;
       text-transform: uppercase;
       letter-spacing: 0.14em;
