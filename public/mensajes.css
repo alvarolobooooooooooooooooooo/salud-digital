@@ -715,6 +715,12 @@
   --shadow-focus: 0 0 0 4px rgba(8,145,178,0.30);
 }
 
+/* Lista de conversaciones: en móvil ocupa toda la pantalla, así que en oscuro
+   usa el lienzo negro (#050507) en vez de la superficie gris (#141416) para
+   igualar el resto de la app (nav global, fondo). Las tarjetas, burbujas e
+   inputs siguen en --bg-surface, conservando su elevación. */
+:root[data-theme="dark"] .chat-shell .sd-list { background: var(--bg-app); }
+
 /* Header del hilo: vidrio claro (rgba blanco) → vidrio oscuro, conserva el blur. */
 :root[data-theme="dark"] .chat-shell .sd-thread-head {
   background: rgba(20,20,22,0.80);
