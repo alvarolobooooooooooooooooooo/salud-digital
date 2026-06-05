@@ -25,7 +25,15 @@
 </head>
 <body class="chat-page">
   <main class="layout-main chat-main">
-    <div id="chatRoot"></div>
+    <div id="chatRoot">
+      <!-- Loader inicial: visible de inmediato (antes de que React/Babel monte).
+           React reemplaza este contenido al renderizar; el overlay de booting
+           continúa la misma animación hasta que cargan las conversaciones. -->
+      <div class="chat-loader" style="position:static;height:100%;">
+        <div class="chat-loader-spinner"></div>
+        <div class="chat-loader-text">Cargando…</div>
+      </div>
+    </div>
   </main>
 
   <!-- Utilidades + shell global de la plataforma -->

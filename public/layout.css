@@ -1121,7 +1121,9 @@ nav.old-nav {
    Solo afecta padding-top; respeta padding horizontal/inferior de cada página.
    ────────────────────────────────────────────────────────────────────── */
 @media (max-width: 860px) {
-  #mobileNav ~ main.layout-main {
+  /* :not(.chat-main) → el chat (mensajes) es full-bleed y ancla su header de
+     conversación pegado al nav; define su propio padding en mensajes.css. */
+  #mobileNav ~ main.layout-main:not(.chat-main) {
     padding-top: calc(80px + env(safe-area-inset-top, 0px)) !important;
   }
 }

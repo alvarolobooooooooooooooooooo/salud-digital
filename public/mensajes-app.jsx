@@ -452,8 +452,16 @@ function App() {
         setMe(meData);
       } catch (_) {}
       window.ChatAPI.members().then(setMembers).catch(() => {});
-      const list = await refreshConvs();
-      if (list && list.length) openConv(list[0].id);
+      try {
+        const list = await refreshConvs();
+        // En desktop (maestro-detalle) auto-abrimos la primera conversación en el
+        // panel derecho. En móvil NO: al entrar a Mensajes se muestra la LISTA de
+        // chats, y el hilo se abre solo cuando el usuario toca una conversación.
+        const isMobile = window.matchMedia('(max-width: 860px)').matches;
+        if (list && list.length && !isMobile) openConv(list[0].id);
+      } catch (_) {
+        // Aunque falle la carga, quitamos el loader para no quedar colgados.
+      }
       setBooting(false);
     })();
     return () => clearTimeout(toastTimer.current);
@@ -548,6 +556,12 @@ function App() {
 
   return (
     <div className="chat-shell">
+      {booting && (
+        <div className="chat-loader">
+          <div className="chat-loader-spinner" />
+          <div className="chat-loader-text">Cargando…</div>
+        </div>
+      )}
       <div className={'sd-app ' + (mobileThread ? 'm-thread' : 'm-list')}>
         <ConversationList convs={convs} activeId={activeId} onSelect={openConv}
           filter={filter} setFilter={setFilter} query={query} setQuery={setQuery}
@@ -564,7 +578,7 @@ function App() {
                   Esta conversación contiene mensajes marcados como urgentes.
                   <span className="sd-ub-spacer" />
                   <button onClick={() => { const el = msgsRef.current; if (!el) return; const u = el.querySelector('.sd-msg.urgent'); if (u && u.offsetParent) el.scrollTop = u.offsetTop - 80; }}>Ir al urgente</button>
-                  <span style={{ cursor: 'pointer', display: 'flex', marginLeft: 4 }} onClick={() => setShowUrgentBanner(false)}><Icon name="x" size={16} /></span>
+                  <span style={{ cursor: 'pointer', display: 'flex', marginLeft: 4, flexShrink: 0 }} onClick={() => setShowUrgentBanner(false)}><Icon name="x" size={16} /></span>
                 </div>
               )}
               <div className="sd-msgs sd-scroll" ref={msgsRef}>
