@@ -112,13 +112,18 @@ app.use((req, res, next) => {
 // Se inyecta server-side en TODA respuesta HTML (todas pasan por aquí), así las
 // ~47 páginas quedan instalables como app sin tocar archivo por archivo. La
 // inyección es idempotente: si la página ya trae <link rel="manifest"> se omite.
+// ?v=ASSET_VERSION en los iconos: sin esto, el icono se sirve con max-age=1d en
+// la MISMA URL, así que Safari/Render entregan el viejo tras un cambio de marca.
+// Versionar la URL fuerza una descarga fresca en cada deploy (clave en iOS, que
+// además congela el icono al "Añadir a inicio": hay que re-añadir con el nuevo).
+const PV = '?v=' + ASSET_VERSION;
 const PWA_HEAD_TAGS =
-  '\n    <link rel="manifest" href="/manifest.webmanifest">' +
-  '\n    <link rel="icon" href="/icons/favicon.ico" sizes="32x32">' +
-  '\n    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">' +
-  '\n    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">' +
-  '\n    <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png">' +
-  '\n    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png">' +
+  '\n    <link rel="manifest" href="/manifest.webmanifest' + PV + '">' +
+  '\n    <link rel="icon" href="/icons/favicon.ico' + PV + '" sizes="32x32">' +
+  '\n    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg' + PV + '">' +
+  '\n    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png' + PV + '">' +
+  '\n    <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png' + PV + '">' +
+  '\n    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png' + PV + '">' +
   '\n    <meta name="application-name" content="Salud Digital">' +
   '\n    <meta name="apple-mobile-web-app-title" content="Salud Digital">' +
   '\n    <script>' +
@@ -198,6 +203,26 @@ app.get(/^\/c\/[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/i, (req, res) => {
 // Mapa público de clínicas registradas. Sin auth: cualquiera puede entrar y ver pines.
 app.get('/mapa', (req, res) => {
   serveHtmlWithVersion(path.join(PUBLIC_DIR, 'mapa.html'), res);
+});
+
+// Manifest dinámico: añade ?v=ASSET_VERSION a las URLs de iconos. Android/Chrome
+// cachean el icono del manifest por su URL; sin versión, el icono "pegado" en el
+// inicio no se refresca tras cambiar la marca. Se reescribe una vez y se cachea
+// en memoria (ASSET_VERSION es constante por proceso). Debe ir ANTES de static.
+let MANIFEST_VERSIONED = null;
+app.get('/manifest.webmanifest', (req, res) => {
+  if (MANIFEST_VERSIONED === null) {
+    try {
+      MANIFEST_VERSIONED = fs
+        .readFileSync(path.join(PUBLIC_DIR, 'manifest.webmanifest'), 'utf8')
+        .replace(/("src"\s*:\s*")(\/icons\/[^"?#]+)(")/g, `$1$2?v=${ASSET_VERSION}$3`);
+    } catch (_) {
+      return res.status(404).end();
+    }
+  }
+  res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.send(MANIFEST_VERSIONED);
 });
 
 // Intercept *.html requests before express.static so we can inject ?v=… into asset URLs
