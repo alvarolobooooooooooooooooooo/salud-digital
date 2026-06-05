@@ -146,6 +146,20 @@ function injectPwaTags(html) {
   return html.slice(0, idx) + extra + '\n  ' + html.slice(idx);
 }
 
+// Garantiza viewport-fit=cover en el <meta viewport> del HTML SERVIDO. iOS solo
+// respeta el safe-area (notch / Dynamic Island) si viewport-fit=cover está en el
+// HTML inicial; inyectarlo por JS después del render no es fiable. Varias páginas
+// traían el viewport sin él → por eso "a veces" la barra superior pisaba el notch.
+function ensureViewportFit(html) {
+  return html.replace(/<meta\b[^>]*name\s*=\s*["']viewport["'][^>]*>/i, (tag) => {
+    if (/viewport-fit/i.test(tag)) return tag; // ya lo trae
+    return tag.replace(
+      /(content\s*=\s*["'])([^"']*)(["'])/i,
+      (m, pre, val, post) => pre + val.replace(/\s*$/, '') + ', viewport-fit=cover' + post,
+    );
+  });
+}
+
 function serveHtmlWithVersion(filePath, res) {
   fs.readFile(filePath, 'utf8', (err, raw) => {
     if (err) {
@@ -163,7 +177,7 @@ function serveHtmlWithVersion(filePath, res) {
       );
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache');
-    res.send(injectPwaTags(html));
+    res.send(injectPwaTags(ensureViewportFit(html)));
   });
 }
 
