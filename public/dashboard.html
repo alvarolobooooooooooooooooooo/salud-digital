@@ -1174,6 +1174,37 @@
       .next-time-row svg { width: 14px; height: 14px; }
       .btn-consult-full { padding: 0.6rem 1.2rem; font-size: 0.75rem; margin-top: 0.8rem; }
     }
+
+    /* ── Dark: tarjetas de stats con MÁS relieve (que despeguen del fondo negro) ──
+       Va después de theme-dark.css → estos overrides ganan. Tile de ícono cyan
+       SÓLIDO y brillante con glow fuerte, y tarjeta con tinte cyan + glow. */
+    html[data-theme="dark"] .stat-icon {
+      background-image: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%) !important;
+      color: #ffffff !important;
+      border: none !important;
+      box-shadow:
+        0 10px 28px rgba(6, 182, 212, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+    }
+    html[data-theme="dark"] .stat-card {
+      background-image:
+        radial-gradient(130% 150% at 0% 0%, rgba(8, 145, 178, 0.16) 0%, transparent 55%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.045) 0%, rgba(255, 255, 255, 0.012) 100%) !important;
+      background-color: var(--sd-surface) !important;
+      border-color: rgba(8, 145, 178, 0.20) !important;
+      box-shadow:
+        0 18px 44px rgba(0, 0, 0, 0.5),
+        0 4px 30px rgba(8, 145, 178, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+    }
+    html[data-theme="dark"] .stat-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(8, 145, 178, 0.38) !important;
+      box-shadow:
+        0 26px 60px rgba(0, 0, 0, 0.55),
+        0 8px 44px rgba(8, 145, 178, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    }
   </style>
 </head>
 <body>
