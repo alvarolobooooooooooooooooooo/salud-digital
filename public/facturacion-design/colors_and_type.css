@@ -1,0 +1,312 @@
+/* =========================================================
+   Salud Digital — Foundations
+   Colors + typography variables for the whole brand system.
+   ========================================================= */
+
+/* --- Webfonts --------------------------------------------
+   Poppins en TODO el sistema — incluido datos tabulares / IDs
+   fiscales (CAI, RTN, correlativos, montos). Mismo font que el
+   resto de la plataforma Salud Digital (layout.css carga
+   Poppins 300–800). */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* ====== BRAND CORE =====================================
+     Sampled directly from the official logo.            */
+  --sd-navy-900: #001638;        /* darkest – deep ink */
+  --sd-navy-800: #002050;        /* logomark dark arm */
+  --sd-navy-700: #002A60;        /* wordmark "Salud Digital" */
+  --sd-navy-600: #103A78;        /* hover/elevated navy */
+  --sd-navy-500: #25579E;        /* link, navy on light */
+
+  --sd-blue-700: #00638A;        /* deep cyan-blue */
+  --sd-blue-600: #0080B0;        /* primary brand blue (logomark) */
+  --sd-blue-500: #1796C6;        /* hover */
+  --sd-blue-400: #54B0DD;        /* mid-tint */
+  --sd-blue-300: #9BD0EA;        /* soft */
+  --sd-blue-200: #D2E9F5;        /* tint, badges */
+  --sd-blue-100: #EAF4FA;        /* surface tint */
+  --sd-blue-50:  #F4FAFD;        /* faintest wash */
+
+  /* ====== NEUTRAL ========================================
+     Cool-leaning grays — clinical, not sterile.        */
+  --sd-ink-1000: #0B1424;        /* near-black headings on white */
+  --sd-ink-900:  #1A2235;
+  --sd-ink-700:  #3F485C;        /* body text */
+  --sd-ink-500:  #606A7C;        /* secondary text (tagline gray) */
+  --sd-ink-400:  #8A93A4;
+  --sd-ink-300:  #BDC4D0;
+  --sd-ink-200:  #DCE1E9;        /* borders */
+  --sd-ink-150:  #E8ECF2;
+  --sd-ink-100:  #F1F4F8;        /* subtle surface */
+  --sd-ink-50:   #F7F9FC;        /* app canvas */
+  --sd-ink-0:    #FFFFFF;
+
+  /* ====== SEMANTIC (healthcare) ===========================
+     Tuned for clarity in medical UI — never alarmist.    */
+  --sd-vital-600: #198754;       /* success / stable / "saludable" */
+  --sd-vital-500: #2BA86A;
+  --sd-vital-100: #E3F4EC;
+
+  --sd-alert-600: #C7811C;       /* warning / requires attention */
+  --sd-alert-500: #E0992E;
+  --sd-alert-100: #FBEFDB;
+
+  --sd-critical-600: #C2362C;    /* critical / urgent */
+  --sd-critical-500: #DA453A;
+  --sd-critical-100: #FBE5E3;
+
+  --sd-info-600: var(--sd-blue-600);
+  --sd-info-100: var(--sd-blue-100);
+
+  /* ====== SEMANTIC ROLES =================================
+     Use THESE in components — they map to the scales.   */
+  --bg-app:        var(--sd-ink-50);
+  --bg-surface:    var(--sd-ink-0);
+  --bg-raised:     var(--sd-ink-0);
+  --bg-subtle:     var(--sd-ink-100);
+  --bg-inverse:    var(--sd-navy-800);
+  --bg-brand:      var(--sd-blue-600);
+  --bg-brand-soft: var(--sd-blue-100);
+
+  --fg-default:   var(--sd-ink-900);
+  --fg-strong:    var(--sd-ink-1000);
+  --fg-muted:     var(--sd-ink-500);
+  --fg-subtle:    var(--sd-ink-400);
+  --fg-on-brand:  var(--sd-ink-0);
+  --fg-link:      var(--sd-blue-700);
+  --fg-brand:     var(--sd-navy-700);
+
+  --border-soft:    var(--sd-ink-150);
+  --border-default: var(--sd-ink-200);
+  --border-strong:  var(--sd-ink-300);
+  --border-focus:   var(--sd-blue-600);
+
+  /* ====== TYPOGRAPHY =====================================
+     Poppins en todo: display + body / UI y también los datos
+     (montos, RTN, CAI). --font-mono se mantiene como token por
+     compatibilidad, pero ahora apunta a Poppins.            */
+  --font-display: 'Poppins', system-ui, -apple-system, sans-serif;
+  --font-body:    'Poppins', system-ui, -apple-system, sans-serif;
+  --font-mono:    'Poppins', system-ui, -apple-system, sans-serif;
+
+  /* Scale (1.200 — minor third) */
+  --t-12: 0.75rem;
+  --t-13: 0.8125rem;
+  --t-14: 0.875rem;
+  --t-15: 0.9375rem;
+  --t-16: 1rem;
+  --t-18: 1.125rem;
+  --t-20: 1.25rem;
+  --t-24: 1.5rem;
+  --t-28: 1.75rem;
+  --t-32: 2rem;
+  --t-40: 2.5rem;
+  --t-48: 3rem;
+  --t-60: 3.75rem;
+
+  /* Line heights */
+  --lh-tight:  1.1;
+  --lh-snug:   1.25;
+  --lh-normal: 1.45;
+  --lh-loose:  1.65;
+
+  /* Letter spacing */
+  --ls-tightest: -0.03em;
+  --ls-tight:    -0.015em;
+  --ls-normal:    0;
+  --ls-wide:      0.04em;
+  --ls-widest:    0.12em;
+
+  /* ====== SPACING (4-pt) =================================*/
+  --sp-0:  0;
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
+
+  /* ====== RADII ==========================================*/
+  --r-xs:   4px;
+  --r-sm:   6px;
+  --r-md:   10px;
+  --r-lg:   14px;
+  --r-xl:   20px;
+  --r-2xl:  28px;
+  --r-pill: 999px;
+
+  /* ====== ELEVATION ======================================
+     Soft, cool-tinted (slight navy bias).                 */
+  --shadow-xs: 0 1px 2px rgba(11,20,36,0.05);
+  --shadow-sm: 0 1px 2px rgba(11,20,36,0.06), 0 1px 3px rgba(11,20,36,0.04);
+  --shadow-md: 0 4px 12px rgba(11,20,36,0.06), 0 2px 4px rgba(11,20,36,0.04);
+  --shadow-lg: 0 12px 28px rgba(11,20,36,0.10), 0 4px 10px rgba(11,20,36,0.05);
+  --shadow-xl: 0 24px 48px rgba(11,20,36,0.14), 0 8px 16px rgba(11,20,36,0.06);
+  --shadow-focus: 0 0 0 4px rgba(0,128,176,0.22);
+
+  /* ====== MOTION =========================================*/
+  --ease-out: cubic-bezier(.22,.61,.36,1);
+  --ease-in-out: cubic-bezier(.65,.05,.36,1);
+  --dur-1: 120ms;
+  --dur-2: 180ms;
+  --dur-3: 240ms;
+  --dur-4: 360ms;
+}
+
+/* =========================================================
+   SEMANTIC TYPE STYLES — apply as classes or @extend.
+   ========================================================= */
+
+.sd-display-xl,
+.sd-display-lg,
+.sd-display-md,
+.sd-h1, .sd-h2, .sd-h3, .sd-h4,
+.sd-eyebrow {
+  font-family: var(--font-display);
+  color: var(--fg-strong);
+}
+
+.sd-display-xl { font-size: var(--t-60); line-height: var(--lh-tight); letter-spacing: var(--ls-tightest); font-weight: 800; }
+.sd-display-lg { font-size: var(--t-48); line-height: var(--lh-tight); letter-spacing: var(--ls-tight);    font-weight: 800; }
+.sd-display-md { font-size: var(--t-40); line-height: var(--lh-tight); letter-spacing: var(--ls-tight);    font-weight: 700; }
+
+.sd-h1 { font-size: var(--t-32); line-height: var(--lh-snug); letter-spacing: var(--ls-tight); font-weight: 700; }
+.sd-h2 { font-size: var(--t-24); line-height: var(--lh-snug); letter-spacing: var(--ls-tight); font-weight: 700; }
+.sd-h3 { font-size: var(--t-20); line-height: var(--lh-snug); font-weight: 700; }
+.sd-h4 { font-size: var(--t-18); line-height: var(--lh-snug); font-weight: 600; }
+
+.sd-eyebrow {
+  font-size: var(--t-12);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-widest);
+  color: var(--fg-brand);
+}
+
+.sd-body-lg, .sd-body, .sd-body-sm, .sd-caption, .sd-label, .sd-mono {
+  font-family: var(--font-body);
+  color: var(--fg-default);
+}
+.sd-body-lg { font-size: var(--t-18); line-height: var(--lh-loose); font-weight: 400; }
+.sd-body    { font-size: var(--t-16); line-height: var(--lh-normal); font-weight: 400; }
+.sd-body-sm { font-size: var(--t-14); line-height: var(--lh-normal); font-weight: 400; }
+.sd-caption { font-size: var(--t-12); line-height: var(--lh-normal); color: var(--fg-muted); }
+.sd-label   { font-size: var(--t-13); line-height: var(--lh-snug);   font-weight: 600; letter-spacing: 0.01em; }
+.sd-mono    { font-family: var(--font-mono); font-size: var(--t-13); letter-spacing: 0; }
+
+/* Element baselines (when colors_and_type.css is loaded standalone) */
+html, body {
+  font-family: var(--font-body);
+  color: var(--fg-default);
+  background: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+}
+h1 { @apply: .sd-h1; }
+h2 { @apply: .sd-h2; }
+h3 { @apply: .sd-h3; }
+p  { line-height: var(--lh-normal); }
+a  { color: var(--fg-link); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 2px; }
+code, kbd, samp { font-family: var(--font-mono); font-size: 0.95em; }
+
+/* =========================================================
+   DARK THEME — activado vía data-theme="dark" en <html>.
+   El wrapper de la plataforma (facturacion.html) pasa el tema
+   por ?theme= y lo sincroniza en vivo (postMessage fact:theme).
+   Negro neutro SIN tinte azul, igual que el resto de la
+   plataforma (base #050507, superficie #141416). El cian solo
+   se usa como acento, nunca como fondo. Misma estrategia que
+   nutricion-design / ortodoncia-design.
+   ========================================================= */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg-app:        #050507;   /* canvas */
+  --bg-surface:    #141416;   /* tarjetas */
+  --bg-raised:     #1c1c1f;   /* tarjetas elevadas */
+  --bg-subtle:     #202023;   /* inputs/chips */
+  --bg-inverse:    #ffffff;
+  --bg-brand-soft: rgba(6,182,212,0.14);
+
+  /* Foreground — texto claro pero no blanco puro */
+  --fg-default:  #e6e8ec;
+  --fg-strong:   #ffffff;
+  --fg-muted:    #9aa0aa;
+  --fg-subtle:   #6c7079;
+  --fg-link:     var(--sd-blue-400);
+  --fg-brand:    #ffffff;
+  --fg-on-brand: #ffffff;
+
+  /* Borders — grises neutros, sin tinte azul */
+  --border-soft:    #1c1c1f;
+  --border-default: #2a2a2e;
+  --border-strong:  #3a3a40;
+  --border-focus:   var(--sd-blue-500);
+
+  /* Brand backgrounds — keep brand visible sobre dark */
+  --bg-brand:    var(--sd-blue-600);
+
+  /* Semantic tints — más translúcidos sobre dark */
+  --sd-vital-100:    rgba(43,168,106,0.16);
+  --sd-alert-100:    rgba(224,153,46,0.16);
+  --sd-critical-100: rgba(218,69,58,0.16);
+  --sd-info-100:     rgba(23,150,198,0.16);
+  --sd-blue-200:     rgba(6,182,212,0.24);
+  --sd-blue-100:     rgba(6,182,212,0.16);
+  --sd-blue-50:      rgba(6,182,212,0.08);
+
+  /* Neutral scale — grays neutros (sin navy). ink-50 es el fondo
+     de inputs/search/zebra, así que apunta a la superficie sutil. */
+  --sd-ink-50:  #202023;
+  --sd-ink-100: #26262a;
+  --sd-ink-150: #2a2a2e;
+  --sd-ink-200: #2e2e33;
+  --sd-ink-300: #3a3a40;
+  --sd-ink-400: #6c7079;
+  --sd-ink-500: #9aa0aa;
+  --sd-ink-900: #e6e8ec;
+  --sd-ink-1000: #ffffff;
+  --sd-ink-0:   #141416;       /* "blanco" pasa a surface oscuro */
+
+  /* Sombras densas y negras sobre fondo oscuro */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.50);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.55), 0 1px 3px rgba(0,0,0,0.40);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.40);
+  --shadow-lg: 0 12px 28px rgba(0,0,0,0.60), 0 4px 10px rgba(0,0,0,0.45);
+  --shadow-xl: 0 24px 48px rgba(0,0,0,0.65), 0 8px 16px rgba(0,0,0,0.50);
+  --shadow-focus: 0 0 0 4px rgba(6,182,212,0.25);
+}
+
+/* Overlays con fondo hardcoded a blanco en index.html → dark */
+:root[data-theme="dark"] .ov-head { background: rgba(20,20,22,0.92) !important; }
+:root[data-theme="dark"] .ov-foot { background: rgba(20,20,22,0.94) !important; }
+:root[data-theme="dark"] .overlay--drawer .ov-head { background: rgba(10,10,12,0.92) !important; }
+:root[data-theme="dark"] .overlay--drawer .ov-foot { background: rgba(10,10,12,0.94) !important; }
+
+/* La "factura SAR" es papel blanco en claro; en dark pasa a una
+   superficie oscura elevada para que el texto (tokens claros) sea
+   legible. Para imprimir, el navegador usa el media print de abajo. */
+:root[data-theme="dark"] .factura-paper { background: var(--bg-raised); }
+:root[data-theme="dark"] .fp-head,
+:root[data-theme="dark"] .fp-tot--total { border-color: var(--sd-blue-500); }
+:root[data-theme="dark"] .fp-emisor-name,
+:root[data-theme="dark"] .fp-doc-type,
+:root[data-theme="dark"] .fp-tot--total,
+:root[data-theme="dark"] .fp-tot--total .mono { color: var(--sd-blue-400); }
+
+/* El chip KPI "navy" (4ª tarjeta del dashboard) usa un fondo lavanda hardcoded
+   (#E7ECF6) + texto --sd-navy-700, que no responden al tema. En dark lo
+   resolvemos por los tokens cian ya remapeados, como sus 3 hermanos. */
+:root[data-theme="dark"] .stat__icon--navy { background: var(--sd-blue-100); color: var(--sd-blue-400); }
+/* .btn--navy depende de --sd-navy-700 (navy no se remapea en dark). Hoy es CSS
+   muerto, pero lo alineamos al acento cian por si se cablea más adelante. */
+:root[data-theme="dark"] .btn--navy { background: var(--sd-blue-600); }
+:root[data-theme="dark"] .btn--navy:hover { background: var(--sd-blue-700); }

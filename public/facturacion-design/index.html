@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Facturación — Salud Digital</title>
+<link rel="icon" href="/facturacion-design/assets/logomark.svg" />
+
+<!-- Bootstrap del tema antes del primer paint. Lee ?theme=dark|light de la
+     URL (igual que ortodoncia-design / nutricion-design) y soporta cambios en
+     vivo desde el wrapper de la plataforma vía postMessage:
+       {type:'fact:theme', theme:'dark'|'light'}  -->
+<script>
+  (function () {
+    try {
+      var p = new URLSearchParams(window.location.search);
+      var t = p.get('theme');
+      if (t !== 'dark' && t !== 'light') t = 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    } catch (_) {}
+    window.addEventListener('message', function (e) {
+      var d = e.data || {};
+      if (d.type === 'fact:theme' && (d.theme === 'dark' || d.theme === 'light')) {
+        document.documentElement.setAttribute('data-theme', d.theme);
+      }
+    });
+  })();
+</script>
+
+<!-- Rutas ABSOLUTAS a propósito (igual que nutricion-design): el inyector de
+     ?v= del server solo reescribe assets que empiezan con '/'. Con ruta
+     relativa el CSS se cachearía 1 día sin versión tras cada deploy. -->
+<link rel="stylesheet" href="/facturacion-design/colors_and_type.css" />
+<link rel="stylesheet" href="/facturacion-design/components.css" />
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg-app);
+  color: var(--fg-default);
+  -webkit-font-smoothing: antialiased;
+}
+#root { min-height: 100vh; }
+::selection { background: var(--sd-blue-200); }
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="/facturacion-design/data.jsx"></script>
+<script type="text/babel" src="/facturacion-design/ui.jsx"></script>
+<script type="text/babel" src="/facturacion-design/screen-dashboard.jsx"></script>
+<script type="text/babel" src="/facturacion-design/screen-listado.jsx"></script>
+<script type="text/babel" src="/facturacion-design/screen-emitir.jsx"></script>
+<script type="text/babel" src="/facturacion-design/screen-detalle.jsx"></script>
+<script type="text/babel" src="/facturacion-design/screen-cobro.jsx"></script>
+<script type="text/babel" src="/facturacion-design/app.jsx"></script>
+</body>
+</html>
