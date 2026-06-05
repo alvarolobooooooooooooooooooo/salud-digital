@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#050507" />
+  <title>Sin conexión · Salud Digital</title>
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+      background: #050507; color: #e2e8f0;
+      background-image: radial-gradient(120% 80% at 50% -10%, rgba(6,182,212,0.18), transparent 60%);
+      text-align: center;
+    }
+    .card { max-width: 420px; width: 100%; }
+    .logo {
+      width: 88px; height: 88px; margin: 0 auto 24px; display: block;
+      filter: drop-shadow(0 12px 28px rgba(6,182,212,0.35));
+    }
+    h1 { font-size: 1.5rem; margin: 0 0 10px; letter-spacing: -0.02em; }
+    p { font-size: 1rem; line-height: 1.55; color: #94a3b8; margin: 0 0 28px; }
+    button {
+      appearance: none; border: 0; cursor: pointer;
+      background: linear-gradient(135deg, #22d3ee, #0891b2);
+      color: #04181d; font-weight: 700; font-size: 1rem;
+      padding: 14px 28px; border-radius: 14px; width: 100%;
+      box-shadow: 0 10px 24px rgba(8,145,178,0.4);
+      transition: transform .12s ease, opacity .12s ease;
+    }
+    button:active { transform: translateY(1px); opacity: .9; }
+    .status { margin-top: 18px; font-size: .85rem; color: #64748b; min-height: 1.2em; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: #ef4444; margin-right: 6px; vertical-align: middle; }
+    .dot.online { background: #22c55e; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img class="logo" src="/icons/icon.svg" alt="Salud Digital" />
+    <h1>Estás sin conexión</h1>
+    <p>No pudimos conectar con Salud Digital. Revisa tu conexión a internet e intenta de nuevo. Tus datos están seguros en la nube.</p>
+    <button id="retry" type="button">Reintentar</button>
+    <div class="status" id="status"><span class="dot" id="dot"></span><span id="statusText">Esperando conexión…</span></div>
+  </div>
+  <script>
+    var statusText = document.getElementById('statusText');
+    var dot = document.getElementById('dot');
+    function reload() { location.reload(); }
+    function refresh() {
+      if (navigator.onLine) {
+        dot.classList.add('online');
+        statusText.textContent = 'Conexión restaurada, recargando…';
+        setTimeout(reload, 600);
+      } else {
+        dot.classList.remove('online');
+        statusText.textContent = 'Esperando conexión…';
+      }
+    }
+    document.getElementById('retry').addEventListener('click', reload);
+    window.addEventListener('online', refresh);
+    window.addEventListener('offline', refresh);
+    refresh();
+  </script>
+</body>
+</html>

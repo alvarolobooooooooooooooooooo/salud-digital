@@ -49,6 +49,10 @@ app.use(helmet({
       // la app actual depende mucho de event handlers inline → relajado a unsafe-inline.
       // TODO en una segunda iteración: migrar a addEventListener y endurecer.
       scriptSrcAttr: ["'unsafe-inline'"],
+      // Service Worker (/sw.js) de la PWA. worker-src cae a script-src por
+      // defecto, pero lo declaramos explícito para que quede claro y a prueba de
+      // cambios futuros en los defaults de helmet.
+      workerSrc: ["'self'"],
       styleSrc: [
         "'self'",
         "'unsafe-inline'",
@@ -104,6 +108,44 @@ app.use((req, res, next) => {
   next();
 });
 
+// ── Inyección PWA (manifest + iconos + registro del Service Worker) ──
+// Se inyecta server-side en TODA respuesta HTML (todas pasan por aquí), así las
+// ~47 páginas quedan instalables como app sin tocar archivo por archivo. La
+// inyección es idempotente: si la página ya trae <link rel="manifest"> se omite.
+const PWA_HEAD_TAGS =
+  '\n    <link rel="manifest" href="/manifest.webmanifest">' +
+  '\n    <link rel="icon" href="/icons/favicon.ico" sizes="32x32">' +
+  '\n    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">' +
+  '\n    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">' +
+  '\n    <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png">' +
+  '\n    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png">' +
+  '\n    <meta name="application-name" content="Salud Digital">' +
+  '\n    <meta name="apple-mobile-web-app-title" content="Salud Digital">' +
+  '\n    <script>' +
+  "if('serviceWorker' in navigator){window.addEventListener('load',function(){" +
+  "navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){});});}" +
+  '</script>';
+
+function injectPwaTags(html) {
+  // \s*=\s* tolera variantes de formato (rel = "manifest") y evita duplicar.
+  if (/rel\s*=\s*["']manifest["']/i.test(html)) return html; // ya presente
+  const idx = html.search(/<\/head>/i);
+  if (idx === -1) return html; // sin <head> (fragmento) → no tocar
+  let extra = PWA_HEAD_TAGS;
+  // Standalone en iOS/Android: añade los meta de "capable" que falten.
+  if (!/name\s*=\s*["']apple-mobile-web-app-capable["']/i.test(html)) {
+    extra += '\n    <meta name="apple-mobile-web-app-capable" content="yes">';
+  }
+  if (!/name\s*=\s*["']mobile-web-app-capable["']/i.test(html)) {
+    extra += '\n    <meta name="mobile-web-app-capable" content="yes">';
+  }
+  // theme.js fija theme-color dinámico; para páginas sin él, un valor de marca.
+  if (!/name\s*=\s*["']theme-color["']/i.test(html)) {
+    extra += '\n    <meta name="theme-color" content="#06b6d4">';
+  }
+  return html.slice(0, idx) + extra + '\n  ' + html.slice(idx);
+}
+
 function serveHtmlWithVersion(filePath, res) {
   fs.readFile(filePath, 'utf8', (err, raw) => {
     if (err) {
@@ -121,7 +163,7 @@ function serveHtmlWithVersion(filePath, res) {
       );
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache');
-    res.send(html);
+    res.send(injectPwaTags(html));
   });
 }
 
@@ -237,7 +279,16 @@ app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: 0,
   // Bloquear archivos sensibles que no deberían exponerse aunque caigan por error en /public
   setHeaders(res, filePath) {
-    if (/\.(?:js|css|svg|woff2?|ttf|otf|png|jpe?g|webp|gif|ico)$/i.test(filePath)) {
+    const base = path.basename(filePath);
+    if (base === 'sw.js') {
+      // El Service Worker debe revalidarse SIEMPRE para publicar actualizaciones;
+      // si se cacheara un día, los usuarios quedarían pegados a un SW viejo.
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Service-Worker-Allowed', '/');
+    } else if (/\.webmanifest$/i.test(filePath)) {
+      res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+    } else if (/\.(?:js|css|svg|woff2?|ttf|otf|png|jpe?g|webp|gif|ico)$/i.test(filePath)) {
       res.setHeader('Cache-Control', 'public, max-age=' + ONE_DAY + ', stale-while-revalidate=' + ONE_DAY);
     } else if (/\.html$/i.test(filePath)) {
       res.setHeader('Cache-Control', 'no-cache');
