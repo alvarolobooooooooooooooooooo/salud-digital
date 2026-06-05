@@ -122,6 +122,10 @@ const PWA_HEAD_TAGS =
   '\n    <meta name="application-name" content="Salud Digital">' +
   '\n    <meta name="apple-mobile-web-app-title" content="Salud Digital">' +
   '\n    <script>' +
+  // Marca <html class="pwa-standalone"> SOLO cuando la app corre instalada
+  // (no en navegador). Se ejecuta en <head> antes de pintar el body → el CSS
+  // que mueve el menú a la barra inferior aplica sin parpadeo.
+  "(function(){try{if(navigator.standalone===true||(window.matchMedia&&(matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: minimal-ui)').matches||matchMedia('(display-mode: fullscreen)').matches))){document.documentElement.classList.add('pwa-standalone');}}catch(e){}})();" +
   "if('serviceWorker' in navigator){window.addEventListener('load',function(){" +
   "navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(function(){});});}" +
   '</script>';

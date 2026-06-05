@@ -1100,6 +1100,45 @@ nav.old-nav {
   }
 }
 
+/* ──────────────────────────────────────────────────────────────────────
+   PWA INSTALADA (standalone) — el menú superior pasa a barra INFERIOR.
+   Solo aplica dentro de la app instalada: la clase .pwa-standalone la pone
+   un script en <head> (navigator.standalone / display-mode:standalone).
+   En vista de navegador NO se aplica nada de esto (el nav sigue arriba).
+   Mismo diseño, colores, fuentes e iconos — solo cambia la UBICACIÓN.
+   ────────────────────────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  html.pwa-standalone #mobileNav {
+    top: auto;
+    bottom: 0;
+    /* crece con el home indicator; el contenido va en los 64px de arriba */
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding-top: 0.4rem;
+    padding-bottom: calc(0.4rem + env(safe-area-inset-bottom, 0px));
+    /* el separador y la sombra van hacia el contenido (arriba), no al borde */
+    border-bottom: none;
+    border-top: 1px solid rgba(8, 145, 178, 0.1);
+    box-shadow: 0 -4px 24px rgba(8, 145, 178, 0.08), 0 -1px 0 rgba(255, 255, 255, 0.8);
+  }
+  /* Sin barra arriba: el contenido solo respeta el status bar, y reserva
+     espacio abajo para la barra. Alta especificidad + !important para ganar
+     a los padding-top que cada página fija en su <style> inline (que antes
+     dejaban contenido tapado). No se toca el padding horizontal. */
+  html.pwa-standalone main.layout-main {
+    padding-top: calc(16px + env(safe-area-inset-top, 0px)) !important;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  /* Panel de notificaciones y toasts: por encima de la barra inferior. */
+  html.pwa-standalone .sd-notif-panel {
+    top: auto;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    max-height: min(560px, calc(100vh - 120px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
+  }
+  html.pwa-standalone .sd-notif-toast-stack {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* ── Desktop: Hide Mobile Sidebar ── */
 @media (min-width: 861px) {
   .mobile-sidebar-overlay,
