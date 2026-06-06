@@ -306,13 +306,11 @@
         <div class="sb-logo-row">
           <div class="sb-logo" id="sbLogoIcon">
             <span></span>
-            <span>SaludDigital</span>
           </div>
           ${desktopBell}
         </div>` : `
         <div class="sb-logo" id="sbLogoIcon">
           <span></span>
-          <span>SaludDigital</span>
         </div>`;
 
     return `
@@ -366,7 +364,7 @@
 
     // Logo icon (marca oficial — cruz molinillo, colores fijos de marca)
     const logoIcon = document.querySelector('#sbLogoIcon span:first-child');
-    if (logoIcon && !logoIcon.innerHTML.trim()) logoIcon.innerHTML = Icons.render('logoMark', 22);
+    if (logoIcon && !logoIcon.innerHTML.trim()) logoIcon.innerHTML = Icons.render('logoMark', 30);
 
     // Sidebar nav icons
     document.querySelectorAll('.sb-item[data-icon]').forEach(item => {
