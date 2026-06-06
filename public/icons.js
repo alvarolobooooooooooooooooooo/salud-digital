@@ -1,9 +1,9 @@
 // Sistema de iconos moderno y personalizado para SaludDigital
 const Icons = {
-  // Marca oficial: cruz "molinillo" de 4 cápsulas (3 azul medio + 1 marino).
-  // Colores fijos (no usa currentColor) para preservar la identidad de marca.
-  // Mantener sincronizado con tools/gen-icons.js (crossGroup).
-  logoMark: `<svg width="24" height="24" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Salud Digital"><rect x="38.5" y="6.5" width="31" height="45" rx="15.5" ry="15.5" fill="#1c8ec9"/><rect x="38.5" y="6.5" width="31" height="45" rx="15.5" ry="15.5" fill="#1c8ec9" transform="rotate(90 50 50)"/><rect x="38.5" y="6.5" width="31" height="45" rx="15.5" ry="15.5" fill="#1c8ec9" transform="rotate(180 50 50)"/><rect x="38.5" y="6.5" width="31" height="45" rx="15.5" ry="15.5" fill="#0e2c57" transform="rotate(270 50 50)"/></svg>`,
+  // Marca oficial (mismo logo que el icono de inicio): mapa de bits recortado a
+  // la cruz, generado por tools/gen-icons.js (logo-mark.png) desde el master
+  // tools/logo-master.png. render() reescribe width/height="24".
+  logoMark: `<img src="/icons/logo-mark.png" width="24" height="24" alt="Salud Digital" style="display:block;object-fit:contain">`,
 
   // Iconos principales
   users: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,

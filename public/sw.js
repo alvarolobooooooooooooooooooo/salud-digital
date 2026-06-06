@@ -12,7 +12,7 @@
  * El servidor sirve /sw.js con Cache-Control: no-cache, así el navegador
  * detecta el cambio en la próxima visita.
  */
-const CACHE_VERSION = 'sd-v1';
+const CACHE_VERSION = 'sd-v2';
 const PRECACHE = `${CACHE_VERSION}-precache`;
 const RUNTIME = `${CACHE_VERSION}-runtime`;
 const RUNTIME_MAX = 80; // tope blando de entradas en runtime (evita crecer sin límite)
@@ -21,7 +21,7 @@ const RUNTIME_MAX = 80; // tope blando de entradas en runtime (evita crecer sin 
 const PRECACHE_URLS = [
   '/offline.html',
   '/manifest.webmanifest',
-  '/icons/icon.svg',
+  '/icons/logo-mark.png',
   '/icons/favicon.ico',
   '/icons/apple-touch-icon.png',
   '/icons/icon-192.png',

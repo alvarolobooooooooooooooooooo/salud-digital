@@ -120,7 +120,7 @@ const PV = '?v=' + ASSET_VERSION;
 const PWA_HEAD_TAGS =
   '\n    <link rel="manifest" href="/manifest.webmanifest' + PV + '">' +
   '\n    <link rel="icon" href="/icons/favicon.ico' + PV + '" sizes="32x32">' +
-  '\n    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg' + PV + '">' +
+  '\n    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png' + PV + '">' +
   '\n    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png' + PV + '">' +
   '\n    <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png' + PV + '">' +
   '\n    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png' + PV + '">' +
