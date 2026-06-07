@@ -1101,10 +1101,14 @@ nav.old-nav {
     margin: 0;
     border-radius: 20px;
 
-    /* Vidrio translúcido + desenfoque del contenido que pasa por detrás. */
-    background: rgba(255, 255, 255, 0.70);
-    -webkit-backdrop-filter: saturate(165%) blur(22px);
-    backdrop-filter: saturate(165%) blur(22px);
+    /* Vidrio translúcido + desenfoque del contenido que pasa por detrás.
+       Veladura en el MISMO gris-azulado claro de la página (no blanco puro) y
+       con menos opacidad/saturación → el blur deja pasar el tono real del fondo,
+       así el header lee como "la misma superficie esmerilada" y deja de
+       recortarse como una tarjeta blanca sobre el fondo (--bg #f1f5f9). */
+    background: rgba(244, 248, 251, 0.62);
+    -webkit-backdrop-filter: saturate(135%) blur(20px);
+    backdrop-filter: saturate(135%) blur(20px);
     /* Sin borde ni reflejo blanco arriba: solo sombra difusa para el flotado.
        Sombra ASENTADA: poco offset + blur corto + baja opacidad → la isla flota
        apenas lo justo sin "saltar" ni leerse despegada de la pantalla. */
@@ -1117,7 +1121,7 @@ nav.old-nav {
   /* Sin backdrop-filter: subir opacidad para que las etiquetas sigan legibles. */
   @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
     #mobileNav {
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(244, 248, 251, 0.96);
     }
   }
   .mobile-nav-logout {
