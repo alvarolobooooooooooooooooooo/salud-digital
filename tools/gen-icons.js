@@ -7,10 +7,12 @@
  *
  * Re-ejecutar tras cambiar el master:  node tools/gen-icons.js
  *
- * TODOS los iconos usan un RECORTE central a la cruz (sips -c) que ELIMINA el
- * squircle y la sombra del master — ese "borde de botón" no debe aparecer. La
- * cruz queda a sangre sobre blanco; iOS/Android aplican su propia máscara y
- * redondeo, así que no hace falta el marco del diseño.
+ * Se RECORTA la cruz del master (sips -c) para quitar el squircle + sombra (ese
+ * "borde de botón" no debe salir). Luego:
+ *  • Iconos de app (home screen / PWA / apple-touch / maskable): se RE-ENMARCA
+ *    con margen blanco (sips -p) para que la cruz NO toque el borde y respire
+ *    como las demás apps del iPhone.
+ *  • favicon + logo-mark (UI): la cruz llena el marco (el chip/tab ya da margen).
  *
  * El master es opaco (sin alfa) y de fondo blanco, así que iOS no muestra
  * esquinas negras y no hace falta aplanar transparencias.
@@ -22,7 +24,8 @@ const { execFileSync } = require('child_process');
 
 const OUT = path.join(__dirname, '..', 'public', 'icons');
 const MASTER = path.join(__dirname, 'logo-master.png');
-const TIGHT_CROP = 780; // recorte central de la cruz dentro del master 1254²
+const TIGHT_CROP = 780;  // recorte central de la cruz dentro del master 1254²
+const PAD_SIZE = 1300;   // re-enmarcado: cruz ≈ 780/1300 ≈ 60% (margen como las demás apps)
 fs.mkdirSync(OUT, { recursive: true });
 
 if (!fs.existsSync(MASTER)) {
@@ -64,19 +67,28 @@ function buildIco(entries /* [{size, png}] */) {
 
 console.log('Generando iconos desde', MASTER);
 
-// Recorte central a la cruz: quita el squircle + sombra del master (el "borde
-// de botón"). La cruz queda a sangre sobre blanco — base de TODOS los iconos.
+// 1) Recorte central a la cruz: quita el squircle + sombra del master (el
+//    "borde de botón"). La cruz queda a sangre sobre blanco.
 const CLEAN = path.join(os.tmpdir(), 'sd-logo-clean.png');
 sips(['-c', String(TIGHT_CROP), String(TIGHT_CROP), MASTER, '--out', CLEAN]);
 
-const sizes = [
+// 2) Re-enmarcado con margen blanco para los iconos de app: la cruz no toca el
+//    borde, respira como las demás apps del home screen.
+const PADDED = path.join(os.tmpdir(), 'sd-logo-padded.png');
+sips(['-p', String(PAD_SIZE), String(PAD_SIZE), '--padColor', 'FFFFFF', CLEAN, '--out', PADDED]);
+
+// Iconos de app (home screen iOS / PWA / apple-touch / maskable): CON margen.
+const appIcons = [
   ['icon-144.png', 144], ['icon-192.png', 192], ['icon-256.png', 256],
   ['icon-384.png', 384], ['icon-512.png', 512],
   ['maskable-192.png', 192], ['maskable-512.png', 512],
   ['apple-touch-icon.png', 180], ['apple-touch-icon-167.png', 167], ['apple-touch-icon-152.png', 152],
-  ['logo-mark.png', 256], // UI: sidebar / login / mapa
 ];
-for (const [n, s] of sizes) emit(CLEAN, n, s);
+for (const [n, s] of appIcons) emit(PADDED, n, s);
+
+// UI + favicons: la cruz llena el marco (el chip del sidebar / la pestaña ya
+// aportan el margen alrededor).
+emit(CLEAN, 'logo-mark.png', 256);
 const fav32 = emit(CLEAN, 'favicon-32.png', 32);
 const fav16 = emit(CLEAN, 'favicon-16.png', 16);
 fs.writeFileSync(path.join(OUT, 'favicon.ico'),
