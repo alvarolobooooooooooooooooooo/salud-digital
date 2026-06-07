@@ -1085,73 +1085,38 @@ nav.old-nav {
   #mobileNav {
     display: flex;
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    /* La barra CRECE por el safe-area (notch / Dynamic Island): su slab difuminado
-       cubre detrás del status bar y el contenido (logo + tabs) queda debajo.
-       env(...,0px) → sin notch queda igual (64px). */
-    height: calc(64px + env(safe-area-inset-top, 0px));
+    /* Isla de vidrio FLOTANTE: cuelga DEBAJO del notch con márgenes laterales,
+       esquinas redondeadas y sombra difusa — separada del contenido, sin líneas
+       duras. El top arranca tras el safe-area + un pequeño aire. */
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    left: 8px;
+    right: 8px;
+    width: auto;
+    height: 60px;
     z-index: 100;
     align-items: center;
     justify-content: space-around;
     gap: 0.3rem;
-    padding: 0.4rem 0.6rem;
-    padding-top: calc(0.4rem + env(safe-area-inset-top, 0px));
+    padding: 0.4rem 0.4rem;
     margin: 0;
-    border-radius: 0;
+    border-radius: 20px;
 
-    /* Liquid-glass slab: translucent white sheen (bright top → milkier bottom)
-       over two radial brand glows (deep teal left, sky right) bleeding up behind
-       the notch — the same vocabulary as the sidebar / glass cards. */
-    background:
-      linear-gradient(180deg,
-        rgba(255, 255, 255, 0.86) 0%,
-        rgba(255, 255, 255, 0.74) 46%,
-        rgba(240, 249, 255, 0.78) 100%),
-      radial-gradient(120% 140% at 12% -40%,
-        rgba(14, 116, 144, 0.18) 0%,
-        rgba(8, 145, 178, 0.10) 34%,
-        rgba(8, 145, 178, 0.0) 64%),
-      radial-gradient(120% 150% at 92% -30%,
-        rgba(56, 189, 248, 0.20) 0%,
-        rgba(14, 165, 233, 0.10) 38%,
-        rgba(56, 189, 248, 0.0) 68%);
-    background-color: rgba(255, 255, 255, 0.82);
-
-    /* ONE blur layer for the whole bar — saturate mirrors the sidebar recipe. */
+    /* Vidrio translúcido + desenfoque del contenido que pasa por detrás. */
+    background: rgba(255, 255, 255, 0.70);
     -webkit-backdrop-filter: saturate(165%) blur(22px);
     backdrop-filter: saturate(165%) blur(22px);
-
-    border: none;
-    border-bottom: 1px solid rgba(8, 145, 178, 0.10);
-
-    /* Depth: crisp inset top specular rim · lensed inset bottom shadow · soft
-       brand-tinted drop glow · bottom hairline catch. */
+    /* Borde de vidrio muy tenue (no es una línea divisoria) + sombra flotante. */
+    border: 1px solid rgba(255, 255, 255, 0.55);
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.85) inset,
-      0 -10px 18px -12px rgba(8, 145, 178, 0.16) inset,
-      0 6px 26px rgba(8, 145, 178, 0.10),
-      0 1px 0 rgba(255, 255, 255, 0.55);
+      0 1px 0 rgba(255, 255, 255, 0.85) inset,    /* brillo de vidrio arriba */
+      0 14px 34px -12px rgba(15, 23, 42, 0.28),    /* sombra flotante difusa */
+      0 4px 12px -6px rgba(8, 145, 178, 0.10);     /* toque de marca, suave */
   }
 
-  /* Where backdrop-filter is unsupported, the translucent slab would sit on bare
-     content and risk weak label contrast — make it near-opaque (≈ the old .92). */
+  /* Sin backdrop-filter: subir opacidad para que las etiquetas sigan legibles. */
   @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
     #mobileNav {
-      background:
-        linear-gradient(180deg,
-          rgba(255, 255, 255, 0.97) 0%,
-          rgba(255, 255, 255, 0.94) 46%,
-          rgba(240, 249, 255, 0.95) 100%),
-        radial-gradient(120% 140% at 12% -40%,
-          rgba(14, 116, 144, 0.10) 0%,
-          rgba(8, 145, 178, 0.0) 60%),
-        radial-gradient(120% 150% at 92% -30%,
-          rgba(56, 189, 248, 0.12) 0%,
-          rgba(56, 189, 248, 0.0) 64%);
-      background-color: rgba(255, 255, 255, 0.96);
+      background: rgba(255, 255, 255, 0.95);
     }
   }
   .mobile-nav-logout {

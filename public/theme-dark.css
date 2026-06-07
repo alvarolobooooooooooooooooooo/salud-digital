@@ -210,33 +210,23 @@ html[data-theme="dark"] body::after {
    while staying dark enough for status-bar legibility. PHI-safe: this bar only
    overlaps app chrome / scroll content, never /api·/uploads media. Blur is gated
    behind @supports; where unsupported a near-opaque slab keeps labels readable. */
+/* Isla de vidrio flotante (oscuro): superficie translúcida con esquinas
+   redondeadas (la geometría vive en layout.css) y sombra difusa. Sin líneas
+   duras — solo un borde de vidrio muy tenue. */
 [data-theme="dark"] #mobileNav {
-  background: rgba(10, 12, 16, 0.96) !important;
-  background-color: rgba(10, 12, 16, 0.96) !important;
-  border-bottom: 1px solid rgba(6, 182, 212, 0.18) !important;
+  background: rgba(14, 16, 22, 0.92) !important;
+  background-color: rgba(14, 16, 22, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
   box-shadow:
-    0 1px 0 rgba(103, 232, 249, 0.14) inset,
-    0 -10px 18px -12px rgba(6, 182, 212, 0.20) inset,
-    0 6px 26px rgba(0, 0, 0, 0.5),
-    0 1px 0 rgba(0, 0, 0, 0.6) !important;
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 14px 34px -12px rgba(0, 0, 0, 0.72),
+    0 4px 12px -6px rgba(0, 0, 0, 0.5) !important;
 }
 
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   [data-theme="dark"] #mobileNav {
-    background:
-      linear-gradient(180deg,
-        rgba(16, 19, 26, 0.78) 0%,
-        rgba(10, 12, 16, 0.70) 48%,
-        rgba(8, 10, 14, 0.74) 100%),
-      radial-gradient(120% 140% at 12% -40%,
-        rgba(14, 116, 144, 0.32) 0%,
-        rgba(8, 145, 178, 0.14) 36%,
-        rgba(8, 145, 178, 0.0) 66%),
-      radial-gradient(120% 150% at 92% -30%,
-        rgba(56, 189, 248, 0.26) 0%,
-        rgba(14, 165, 233, 0.12) 40%,
-        rgba(56, 189, 248, 0.0) 70%) !important;
-    background-color: rgba(10, 12, 16, 0.88) !important;
+    background: rgba(16, 18, 24, 0.60) !important;
+    background-color: rgba(16, 18, 24, 0.60) !important;
     -webkit-backdrop-filter: saturate(150%) blur(22px) !important;
             backdrop-filter: saturate(150%) blur(22px) !important;
   }
