@@ -342,13 +342,34 @@ html[data-theme="dark"] body::after {
   border-right-color: #22d3ee !important;
   border-top-color: #22d3ee !important;
 }
-[data-theme="dark"] .sidebar-logout-btn {
+/* Cerrar Sesión (dark): misma tarjeta que los demás del drawer pero en ROJO. */
+[data-theme="dark"] .sidebar-menu-link.sidebar-logout-link {
   background: rgba(239, 68, 68, .08) !important;
   color: #fca5a5 !important;
-  border: 1px solid rgba(239, 68, 68, .2) !important;
+  border: 1px solid rgba(239, 68, 68, .22) !important;
 }
-[data-theme="dark"] .sidebar-logout-btn:hover {
+[data-theme="dark"] .sidebar-menu-link.sidebar-logout-link > span:first-child {
+  background: linear-gradient(135deg, rgba(239, 68, 68, .22), rgba(248, 113, 113, .10)) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(239, 68, 68, .30) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .05),
+    0 4px 10px -5px rgba(239, 68, 68, .30) !important;
+}
+[data-theme="dark"] .sidebar-menu-link.sidebar-logout-link::after {
+  border-right-color: #f87171 !important;
+  border-top-color: #f87171 !important;
+}
+[data-theme="dark"] .sidebar-menu-link.sidebar-logout-link:hover {
+  border-color: rgba(239, 68, 68, .32) !important;
   background: rgba(239, 68, 68, .15) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .05),
+    0 8px 22px -8px rgba(239, 68, 68, .30) !important;
+}
+[data-theme="dark"] .sidebar-menu-link.sidebar-logout-link:hover::after {
+  border-right-color: #fca5a5 !important;
+  border-top-color: #fca5a5 !important;
 }
 [data-theme="dark"] .notification-item {
   background: rgba(255, 255, 255, .02) !important;

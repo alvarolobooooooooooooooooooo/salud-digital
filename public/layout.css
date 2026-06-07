@@ -957,13 +957,43 @@ nav.old-nav {
   color: #94a3b8;
 }
 
-/* Cerrar Sesión en el drawer: mismo diseño que los demás botones del menú
-   (usa la clase .sidebar-menu-link, así hereda tarjeta, cajita de icono y
-   chevron). Como es un <button>, forzamos width 100% y text-align izquierda
-   (el <button> centra por defecto y desalinearía la etiqueta vs los <a>). */
+/* Cerrar Sesión en el drawer: misma TARJETA que los demás botones (clase
+   .sidebar-menu-link → cajita de icono, chevron, tamaños), pero en ROJO porque
+   es una acción destructiva. <button> centra por defecto → forzamos text-align
+   izquierda. Selector compuesto (.sidebar-menu-link.sidebar-logout-link) para
+   ganarle en especificidad a .sidebar-menu-link sin depender del orden. */
 .sidebar-logout-link {
   width: 100%;
   text-align: left;
+}
+.sidebar-menu-link.sidebar-logout-link {
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.18);
+  background:
+    linear-gradient(135deg, rgba(220, 38, 38, 0.08) 0%, rgba(248, 113, 113, 0.03) 100%),
+    rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 3px 10px -5px rgba(220, 38, 38, 0.14);
+}
+.sidebar-menu-link.sidebar-logout-link > span:first-child {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.16) 0%, rgba(248, 113, 113, 0.10) 100%);
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.22);
+}
+.sidebar-menu-link.sidebar-logout-link::after {
+  border-right-color: rgba(220, 38, 38, 0.55);
+  border-top-color: rgba(220, 38, 38, 0.55);
+}
+.sidebar-menu-link.sidebar-logout-link:hover {
+  border-color: rgba(220, 38, 38, 0.32);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 8px 22px -8px rgba(220, 38, 38, 0.28);
+}
+.sidebar-menu-link.sidebar-logout-link:hover::after {
+  border-right-color: #dc2626;
+  border-top-color: #dc2626;
 }
 
 /* Mini-tarjeta tipo .sb-notif-card pero compacta (icono 36px, una sola línea)

@@ -174,7 +174,7 @@
     }).join('');
 
     // Mobile menu items (exclude items reserved for the drawer)
-    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio').map(item => {
+    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio' && item.key !== 'doctors' && item.key !== 'facturacion').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
@@ -231,6 +231,10 @@
               <span>Configuración</span>
             </a>
           </div>` : `<div class="sidebar-section">
+            <a href="/facturacion.html" class="sidebar-menu-link">
+              <span id="facturacionMenuIcon"></span>
+              <span>Facturación</span>
+            </a>
             <a href="/calendario-compartido.html" class="sidebar-menu-link">
               <span id="calCompartidoIcon"></span>
               <span>Calendario Compartido</span>
@@ -411,6 +415,9 @@
     if (notificationIcon && !notificationIcon.innerHTML.trim()) notificationIcon.innerHTML = Icons.render('bell', 24);
 
     // Calendario Compartido menu icon
+    const facturacionMenuIcon = document.querySelector('#facturacionMenuIcon');
+    if (facturacionMenuIcon && !facturacionMenuIcon.innerHTML.trim()) facturacionMenuIcon.innerHTML = Icons.render('fileText', 16);
+
     const calCompartidoIcon = document.querySelector('#calCompartidoIcon');
     if (calCompartidoIcon && !calCompartidoIcon.innerHTML.trim()) calCompartidoIcon.innerHTML = Icons.render('calendar', 16);
 
