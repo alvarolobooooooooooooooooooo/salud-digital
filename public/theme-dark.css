@@ -204,26 +204,129 @@ html[data-theme="dark"] body::after {
 }
 
 /* ── Mobile sidebar + nav ── */
+/* Liquid-glass mobile header (dark). The old bar was solid #050507 with blur
+   OFF — i.e. the same "plano" problem at night. This re-enables a dark
+   translucent frosted slab so the bar regains layered glass depth + brand glow,
+   while staying dark enough for status-bar legibility. PHI-safe: this bar only
+   overlaps app chrome / scroll content, never /api·/uploads media. Blur is gated
+   behind @supports; where unsupported a near-opaque slab keeps labels readable. */
 [data-theme="dark"] #mobileNav {
-  background: #050507 !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border-bottom: 1px solid var(--sd-border-soft) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, .4) !important;
+  background: rgba(10, 12, 16, 0.96) !important;
+  background-color: rgba(10, 12, 16, 0.96) !important;
+  border-bottom: 1px solid rgba(6, 182, 212, 0.18) !important;
+  box-shadow:
+    0 1px 0 rgba(103, 232, 249, 0.14) inset,
+    0 -10px 18px -12px rgba(6, 182, 212, 0.20) inset,
+    0 6px 26px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(0, 0, 0, 0.6) !important;
 }
-[data-theme="dark"] .mobile-nav-item {
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  [data-theme="dark"] #mobileNav {
+    background:
+      linear-gradient(180deg,
+        rgba(16, 19, 26, 0.78) 0%,
+        rgba(10, 12, 16, 0.70) 48%,
+        rgba(8, 10, 14, 0.74) 100%),
+      radial-gradient(120% 140% at 12% -40%,
+        rgba(14, 116, 144, 0.32) 0%,
+        rgba(8, 145, 178, 0.14) 36%,
+        rgba(8, 145, 178, 0.0) 66%),
+      radial-gradient(120% 150% at 92% -30%,
+        rgba(56, 189, 248, 0.26) 0%,
+        rgba(14, 165, 233, 0.12) 40%,
+        rgba(56, 189, 248, 0.0) 70%) !important;
+    background-color: rgba(10, 12, 16, 0.88) !important;
+    -webkit-backdrop-filter: saturate(150%) blur(22px) !important;
+            backdrop-filter: saturate(150%) blur(22px) !important;
+  }
+}
+
+/* Specular sheen + glint retinted cyan for dark (geometry/animation/mask come
+   from the light #mobileNav::before). */
+[data-theme="dark"] #mobileNav::before {
+  background:
+    linear-gradient(100deg,
+      rgba(178, 240, 255, 0.0) 42%,
+      rgba(178, 240, 255, 0.16) 49%,
+      rgba(103, 232, 249, 0.20) 50%,
+      rgba(178, 240, 255, 0.16) 51%,
+      rgba(178, 240, 255, 0.0) 58%),
+    linear-gradient(180deg,
+      rgba(178, 240, 255, 0.16) 0%,
+      rgba(103, 232, 249, 0.05) 44%,
+      rgba(255, 255, 255, 0.0) 100%) !important;
+}
+[data-theme="dark"] #mobileNav::after {
+  background: linear-gradient(180deg,
+    rgba(6, 182, 212, 0.0) 0%,
+    rgba(6, 182, 212, 0.10) 60%,
+    rgba(14, 165, 233, 0.16) 100%) !important;
+}
+
+/* Idle frosted chip — translucent dark glass, borderless, faint cyan top rim. */
+[data-theme="dark"] .mobile-nav-item,
+[data-theme="dark"] .mobile-nav-hamburger {
   color: var(--sd-text-muted) !important;
+  background:
+    linear-gradient(180deg,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(255, 255, 255, 0.015) 100%) !important;
+  border: 1px solid transparent !important;
+  box-shadow:
+    0 1px 0 rgba(103, 232, 249, 0.10) inset,
+    0 1px 4px rgba(0, 0, 0, 0.35) !important;
 }
+
+[data-theme="dark"] .mobile-nav-item:hover,
+[data-theme="dark"] .mobile-nav-hamburger:hover {
+  color: #22d3ee !important;
+  background:
+    linear-gradient(180deg,
+      rgba(6, 182, 212, 0.16) 0%,
+      rgba(6, 182, 212, 0.06) 100%) !important;
+  border-color: rgba(6, 182, 212, 0.26) !important;
+  box-shadow:
+    0 1px 0 rgba(103, 232, 249, 0.18) inset,
+    0 4px 12px rgba(0, 0, 0, 0.45) !important;
+}
+
+[data-theme="dark"] .mobile-nav-item:active,
+[data-theme="dark"] .mobile-nav-hamburger:active {
+  color: #67e8f9 !important;
+  background:
+    linear-gradient(135deg,
+      rgba(6, 182, 212, 0.24) 0%,
+      rgba(14, 165, 233, 0.16) 100%) !important;
+  border-color: rgba(6, 182, 212, 0.36) !important;
+}
+
+/* Active pill — saturated cyan glass with bright specular + glow + crisp rim. */
 [data-theme="dark"] .mobile-nav-item.active {
   color: #67e8f9 !important;
+  background:
+    linear-gradient(180deg,
+      rgba(178, 240, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.0) 40%),
+    linear-gradient(135deg,
+      rgba(6, 182, 212, 0.30) 0%,
+      rgba(14, 165, 233, 0.22) 55%,
+      rgba(56, 189, 248, 0.20) 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.42) !important;
+  box-shadow:
+    0 1px 0 rgba(178, 240, 255, 0.30) inset,
+    0 -6px 10px -8px rgba(6, 182, 212, 0.30) inset,
+    0 5px 16px rgba(6, 182, 212, 0.30) !important;
 }
-[data-theme="dark"] .mobile-nav-hamburger {
-  background: transparent !important;
-  color: var(--sd-text-muted) !important;
-}
-[data-theme="dark"] .mobile-nav-hamburger:hover {
-  background: rgba(8, 145, 178, .08) !important;
-  color: #22d3ee !important;
+
+[data-theme="dark"] .mobile-nav-item:focus-visible,
+[data-theme="dark"] .mobile-nav-hamburger:focus-visible {
+  outline: none !important;
+  border-color: rgba(56, 189, 248, 0.65) !important;
+  box-shadow:
+    0 0 0 2px rgba(8, 10, 14, 0.9),
+    0 0 0 4px rgba(56, 189, 248, 0.55),
+    0 4px 12px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* Mobile nav icons — bypass the SVG gradient and use solid cyan-500

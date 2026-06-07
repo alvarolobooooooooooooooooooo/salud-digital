@@ -605,7 +605,15 @@ nav.old-nav {
   display: none;
 }
 
-.mobile-nav-item {
+/* ── Tabs: idle frosted glass chip ──────────────────────────────────────────
+   Liquid-glass treatment that is present even when NO tab is .active, so the
+   bar never reads "plano". NO backdrop-filter on tabs (perf — the bar carries
+   the single blur layer); borderless idle (transparent rim) so the row reads
+   as light-catch on the slab, not a row of boxes. Shared by items + hamburger.*/
+.mobile-nav-item,
+.mobile-nav-hamburger {
+  position: relative;
+  z-index: 1; /* above the #mobileNav::before sheen */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -613,47 +621,77 @@ nav.old-nav {
   gap: 0.3rem;
   padding: 0.45rem 0.5rem;
   flex: 1;
+  font-family: inherit;
   font-size: 0.68rem;
   font-weight: 600;
-  color: #64748b;
+  color: #475569;
   text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-family: inherit;
-  border-radius: 12px;
+  border: 1px solid transparent; /* borderless idle — crisp rim reserved for .active */
+  border-radius: 13px;
   margin: 0;
-  position: relative;
+  cursor: pointer;
   outline: none;
   -webkit-tap-highlight-color: transparent;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.25s ease, box-shadow 0.25s ease,
+              color 0.25s ease, border-color 0.25s ease;
+  background:
+    linear-gradient(180deg,
+      rgba(255, 255, 255, 0.40) 0%,
+      rgba(255, 255, 255, 0.12) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.70) inset,
+    0 1px 4px rgba(15, 23, 42, 0.04);
 }
 
-.mobile-nav-item:hover {
-  background: transparent;
+/* Hover (pointer): chip brightens + subtle teal tint + faint rim. */
+.mobile-nav-item:hover,
+.mobile-nav-hamburger:hover {
   color: var(--primary);
+  background:
+    linear-gradient(180deg,
+      rgba(240, 249, 255, 0.72) 0%,
+      rgba(224, 247, 255, 0.40) 100%);
+  border-color: rgba(8, 145, 178, 0.16);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 4px 12px rgba(8, 145, 178, 0.12);
 }
 
-.mobile-nav-item:active {
-  outline: none;
-  transform: scale(0.92);
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.1), rgba(6, 182, 212, 0.08));
+/* Press: deeper saturated teal glass + springy squish. */
+.mobile-nav-item:active,
+.mobile-nav-hamburger:active {
+  transform: scale(0.93);
+  color: var(--primary);
+  background:
+    linear-gradient(135deg,
+      rgba(8, 145, 178, 0.16) 0%,
+      rgba(6, 182, 212, 0.12) 100%);
+  border-color: rgba(8, 145, 178, 0.24);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 2px 8px rgba(8, 145, 178, 0.16);
 }
 
+/* Active tab: the bright, saturated glass pill — the hero. Brighter specular
+   sheen + teal→sky fill + lift + the ONLY crisp teal rim in the row. */
 .mobile-nav-item.active {
   color: var(--primary);
   font-weight: 700;
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.15) 0%, rgba(6, 182, 212, 0.12) 100%);
-  border-radius: 12px;
-  padding: 0.45rem 0.5rem;
-  border: 1px solid rgba(8, 145, 178, 0.2);
-  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.12);
-}
-
-.mobile-nav-item span:first-child {
-  font-size: 1.35rem;
-  line-height: 1;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background:
+    linear-gradient(180deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.0) 38%),
+    linear-gradient(135deg,
+      rgba(8, 145, 178, 0.22) 0%,
+      rgba(6, 182, 212, 0.16) 55%,
+      rgba(56, 189, 248, 0.16) 100%);
+  border: 1px solid rgba(8, 145, 178, 0.30);
+  border-radius: 13px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,        /* bright specular sheen */
+    0 -6px 10px -8px rgba(8, 145, 178, 0.25) inset, /* inner lens shadow */
+    0 5px 14px rgba(8, 145, 178, 0.18);             /* lifted brand glow */
 }
 
 /* Teal→cyan gradient on the SVG icons (mirrors the page heading style). */
@@ -666,6 +704,15 @@ nav.old-nav {
 #notificationIcon svg,
 #notificationIcon svg * {
   stroke: url(#mobileNavIconGradient);
+}
+
+/* Icon wrapper sits above the ::before sheen; keep micro-motion. */
+.mobile-nav-item span:first-child {
+  position: relative;
+  z-index: 1;
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .mobile-nav-item:active span:first-child {
@@ -719,39 +766,7 @@ nav.old-nav {
   color: #e11d48;
 }
 
-/* ── Hamburger Menu Button ── */
-.mobile-nav-hamburger {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.45rem 0.5rem;
-  flex: 1;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-family: inherit;
-  color: #64748b;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border-radius: 12px;
-  margin: 0;
-  position: relative;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.mobile-nav-hamburger:hover {
-  background: transparent;
-  color: var(--primary);
-}
-
-.mobile-nav-hamburger:active {
-  outline: none;
-  transform: scale(0.92);
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.12), rgba(6, 182, 212, 0.08));
-  color: var(--primary);
-}
-
+/* ── Hamburger Menu Button (icon sizing; chip styling shared above) ── */
 .mobile-nav-hamburger svg {
   width: 24px;
   height: 24px;
@@ -765,6 +780,87 @@ nav.old-nav {
 
 .mobile-nav-hamburger:hover svg {
   transform: none;
+}
+
+/* ── Accessibility: keyboard focus ring on the frosted chip ── */
+.mobile-nav-item:focus-visible,
+.mobile-nav-hamburger:focus-visible {
+  outline: none;
+  border-color: rgba(8, 145, 178, 0.55);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.9),
+    0 0 0 4px rgba(8, 145, 178, 0.45),
+    0 4px 12px rgba(8, 145, 178, 0.18);
+}
+
+/* ── Liquid-glass sheen on the bar (pseudo-elements — no new DOM) ─────────────
+   ::before = static top specular highlight + slow GPU-cheap diagonal glint that
+   is moved with transform: translateX (compositor-only, no slab repaint). It is
+   over-wide and extends into the safe-area so the gloss begins at the true notch
+   edge. ::after = soft brand-tinted refractive wash up from the bottom hairline.
+   Both pointer-events:none, z-index:0 (tabs sit at z-index:1). */
+#mobileNav::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  right: -60%;
+  height: calc(env(safe-area-inset-top, 0px) + 30px);
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
+  background:
+    linear-gradient(100deg,
+      rgba(255, 255, 255, 0.0) 42%,
+      rgba(255, 255, 255, 0.45) 49%,
+      rgba(224, 247, 255, 0.55) 50%,
+      rgba(255, 255, 255, 0.45) 51%,
+      rgba(255, 255, 255, 0.0) 58%),
+    linear-gradient(180deg,
+      rgba(255, 255, 255, 0.62) 0%,
+      rgba(255, 255, 255, 0.16) 44%,
+      rgba(255, 255, 255, 0.0) 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.4) 58%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.4) 58%, transparent 100%);
+  animation: mobileNavSheen 9s ease-in-out infinite;
+}
+
+#mobileNav::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 18px;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(180deg,
+    rgba(6, 182, 212, 0.0) 0%,
+    rgba(6, 182, 212, 0.06) 60%,
+    rgba(14, 165, 233, 0.10) 100%);
+}
+
+/* Compositor-only glint sweep (no slab repaint): crosses once, then rests. */
+@keyframes mobileNavSheen {
+  0%   { transform: translateX(0); }
+  55%  { transform: translateX(46%); }
+  100% { transform: translateX(46%); }
+}
+
+/* ── prefers-reduced-motion: kill the glint sweep, keep the static gloss ── */
+@media (prefers-reduced-motion: reduce) {
+  #mobileNav::before {
+    animation: none;
+    transform: none;
+  }
+  .mobile-nav-item,
+  .mobile-nav-hamburger {
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .mobile-nav-item:active,
+  .mobile-nav-hamburger:active {
+    transform: none;
+  }
 }
 
 /* ── Mobile Sidebar ── */
@@ -1080,24 +1176,71 @@ nav.old-nav {
     left: 0;
     right: 0;
     width: 100%;
-    /* La barra CRECE por el safe-area (notch / Dynamic Island): su fondo difuminado
-       cubre detrás del status bar y el contenido (logo + tabs) queda debajo. Antes
-       height:64px fijo + box-sizing border-box colapsaba el contenido y los iconos
-       se centraban dentro del status bar. env(...,0px) → sin notch queda igual (64px). */
+    /* La barra CRECE por el safe-area (notch / Dynamic Island): su slab difuminado
+       cubre detrás del status bar y el contenido (logo + tabs) queda debajo.
+       env(...,0px) → sin notch queda igual (64px). */
     height: calc(64px + env(safe-area-inset-top, 0px));
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(8, 145, 178, 0.1);
     z-index: 100;
     align-items: center;
     justify-content: space-around;
-    padding: 0.4rem 0.75rem;
-    margin: 0;
-    box-shadow: 0 4px 24px rgba(8, 145, 178, 0.08), 0 1px 0 rgba(255, 255, 255, 0.8);
-    border-radius: 0;
+    gap: 0.3rem;
+    padding: 0.4rem 0.6rem;
     padding-top: calc(0.4rem + env(safe-area-inset-top, 0px));
-    gap: 0.25rem;
+    margin: 0;
+    border-radius: 0;
+    isolation: isolate; /* scope ::before/::after stacking locally */
+
+    /* Liquid-glass slab: translucent white sheen (bright top → milkier bottom)
+       over two radial brand glows (deep teal left, sky right) bleeding up behind
+       the notch — the same vocabulary as the sidebar / glass cards. */
+    background:
+      linear-gradient(180deg,
+        rgba(255, 255, 255, 0.86) 0%,
+        rgba(255, 255, 255, 0.74) 46%,
+        rgba(240, 249, 255, 0.78) 100%),
+      radial-gradient(120% 140% at 12% -40%,
+        rgba(14, 116, 144, 0.18) 0%,
+        rgba(8, 145, 178, 0.10) 34%,
+        rgba(8, 145, 178, 0.0) 64%),
+      radial-gradient(120% 150% at 92% -30%,
+        rgba(56, 189, 248, 0.20) 0%,
+        rgba(14, 165, 233, 0.10) 38%,
+        rgba(56, 189, 248, 0.0) 68%);
+    background-color: rgba(255, 255, 255, 0.82);
+
+    /* ONE blur layer for the whole bar — saturate mirrors the sidebar recipe. */
+    -webkit-backdrop-filter: saturate(165%) blur(22px);
+    backdrop-filter: saturate(165%) blur(22px);
+
+    border: none;
+    border-bottom: 1px solid rgba(8, 145, 178, 0.10);
+
+    /* Depth: crisp inset top specular rim · lensed inset bottom shadow · soft
+       brand-tinted drop glow · bottom hairline catch. */
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.85) inset,
+      0 -10px 18px -12px rgba(8, 145, 178, 0.16) inset,
+      0 6px 26px rgba(8, 145, 178, 0.10),
+      0 1px 0 rgba(255, 255, 255, 0.55);
+  }
+
+  /* Where backdrop-filter is unsupported, the translucent slab would sit on bare
+     content and risk weak label contrast — make it near-opaque (≈ the old .92). */
+  @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    #mobileNav {
+      background:
+        linear-gradient(180deg,
+          rgba(255, 255, 255, 0.97) 0%,
+          rgba(255, 255, 255, 0.94) 46%,
+          rgba(240, 249, 255, 0.95) 100%),
+        radial-gradient(120% 140% at 12% -40%,
+          rgba(14, 116, 144, 0.10) 0%,
+          rgba(8, 145, 178, 0.0) 60%),
+        radial-gradient(120% 150% at 92% -30%,
+          rgba(56, 189, 248, 0.12) 0%,
+          rgba(56, 189, 248, 0.0) 64%);
+      background-color: rgba(255, 255, 255, 0.96);
+    }
   }
   .mobile-nav-logout {
     border-left: none !important;
