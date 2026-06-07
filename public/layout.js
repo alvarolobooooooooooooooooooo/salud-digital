@@ -21,6 +21,7 @@
     '/citas.html': 'citas',
     '/calendario-compartido.html': 'calendario-compartido',
     '/finanzas.html': 'finanzas',
+    '/facturacion.html': 'facturacion',
     '/doctors.html': 'doctors',
     '/consentimientos.html': 'consentimientos',
     '/recordatorios.html': 'recordatorios',
@@ -92,7 +93,8 @@
             { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
             { href: '/mensajes.html', key: 'mensajes', iconName: 'messageSquare', label: 'Mensajes' },
-            { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
+            { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
+            { href: '/facturacion.html', key: 'facturacion', iconName: 'fileText', label: 'Facturación' }
           ]
         },
         {
@@ -130,7 +132,8 @@
             { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
             { href: '/mensajes.html', key: 'mensajes', iconName: 'messageSquare', label: 'Mensajes' },
-            { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
+            { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
+            { href: '/facturacion.html', key: 'facturacion', iconName: 'fileText', label: 'Facturación' }
           ]
         },
         {
@@ -236,7 +239,11 @@
               <span id="citasOnlineIcon"></span>
               <span>Citas Online</span>
             </a>
-            ${isClinicAdmin ? `<a href="/inventario.html" class="sidebar-menu-link">
+            ${isClinicAdmin ? `<a href="/doctors.html" class="sidebar-menu-link">
+              <span id="personalMenuIcon"></span>
+              <span>Personal</span>
+            </a>
+            <a href="/inventario.html" class="sidebar-menu-link">
               <span id="inventarioMenuIcon"></span>
               <span>Inventario</span>
             </a>
@@ -264,7 +271,7 @@
 
           <div class="sidebar-section">
             <div class="sidebar-label">Sesión</div>
-            <button class="sidebar-logout-btn" onclick="logout()">
+            <button class="sidebar-menu-link sidebar-logout-link" onclick="logout()">
               <span id="logoutIcon"></span>
               <span>Cerrar Sesión</span>
             </button>
@@ -430,6 +437,9 @@
     // Mi Sitio Web menu icon (drawer móvil)
     const miSitioMenuIcon = document.querySelector('#miSitioMenuIcon');
     if (miSitioMenuIcon && !miSitioMenuIcon.innerHTML.trim()) miSitioMenuIcon.innerHTML = Icons.render('globe', 16);
+
+    const personalMenuIcon = document.querySelector('#personalMenuIcon');
+    if (personalMenuIcon && !personalMenuIcon.innerHTML.trim()) personalMenuIcon.innerHTML = Icons.render('staff', 16);
 
     // Configuración menu icon
     const configMenuIcon = document.querySelector('#configMenuIcon');
@@ -856,14 +866,47 @@
       }
     }
 
+    // ── Puente a la app NATIVA de escritorio (Tauri / macOS) ──
+    // Cuando la plataforma corre dentro de la app de Mac, el WKWebView NO
+    // muestra las notificaciones web; usamos las notificaciones nativas del
+    // sistema y el badge del Dock. Fuera de la app, todo esto es no-op.
+    const inTauri = typeof window !== 'undefined' && !!(window.__TAURI__ || window.__TAURI_INTERNALS__);
+
+    function tauriNotify(title, body) {
+      try {
+        const core = window.__TAURI__ && window.__TAURI__.core;
+        if (core && typeof core.invoke === 'function') {
+          core.invoke('plugin:notification|notify', {
+            options: { title: String(title || 'Salud Digital'), body: String(body || '') }
+          }).catch(() => {});
+        }
+      } catch (_) {}
+    }
+
+    function tauriDockBadge(count) {
+      try {
+        const w = window.__TAURI__ && window.__TAURI__.window;
+        const getWin = w && (w.getCurrentWindow || w.getCurrent);
+        if (getWin) {
+          const win = getWin.call(w);
+          if (win && typeof win.setBadgeCount === 'function') {
+            win.setBadgeCount(count > 0 ? count : undefined).catch(() => {});
+          }
+        }
+      } catch (_) {}
+    }
+
     function fireBrowserNotification(item) {
+      const title = item.status === 'confirmed'
+        ? 'Cita confirmada'
+        : 'Cita cancelada por el paciente';
+      const body = `${item.patient_name} · ${formatScheduled(item.scheduled_at)}`;
+      // App nativa de escritorio → notificación del sistema.
+      if (inTauri) { tauriNotify(title, body); return; }
+      // Navegador → API de notificaciones web.
       try {
         if (!('Notification' in window)) return;
         if (Notification.permission !== 'granted') return;
-        const title = item.status === 'confirmed'
-          ? 'Cita confirmada'
-          : 'Cita cancelada por el paciente';
-        const body = `${item.patient_name} · ${formatScheduled(item.scheduled_at)}`;
         const n = new Notification(title, {
           body,
           tag: `sd-conf-${item.id}`,
@@ -951,6 +994,8 @@
     function updateBadges() {
       const seen = getSeenSet();
       const unread = cached.filter(i => !seen.has(i.id)).length;
+      // Badge del Dock cuando corre en la app nativa de escritorio.
+      tauriDockBadge(unread);
       ['sdNotifBadgeDesktop', 'sdNotifBadgeMobile', 'sdNotifBadgeSidebar'].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -1131,4 +1176,33 @@
       window.location.href = href;
     }
   });
+})();
+
+// ── App nativa de escritorio (Tauri): enlaces externos en el navegador ──
+// Dentro de la app de Mac, los enlaces a OTROS dominios y los esquemas
+// especiales (mailto/tel/WhatsApp) no deben navegar el webview (dejarían al
+// usuario "atrapado" fuera de la plataforma): se abren en el navegador del
+// sistema. Los enlaces internos (mismo host) siguen navegando dentro de la app.
+(function () {
+  if (!(window.__TAURI__ || window.__TAURI_INTERNALS__)) return;
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest && e.target.closest('a[href]');
+    if (!a) return;
+    var raw = a.getAttribute('href');
+    if (!raw || raw.charAt(0) === '#' || raw.indexOf('javascript:') === 0) return;
+    var u;
+    try { u = new URL(raw, window.location.href); } catch (_) { return; }
+    var sameApp = (u.host === window.location.host) || /(^|\.)onrender\.com$/i.test(u.host);
+    var external = (u.protocol === 'http:' || u.protocol === 'https:') && !sameApp;
+    var special = /^(mailto|tel|sms|whatsapp|facetime):/i.test(u.protocol);
+    if (!external && !special) return; // interno → navega dentro de la app
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      var core = window.__TAURI__ && window.__TAURI__.core;
+      if (core && typeof core.invoke === 'function') {
+        core.invoke('plugin:opener|open_url', { url: u.href }).catch(function () {});
+      }
+    } catch (_) {}
+  }, true);
 })();

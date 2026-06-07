@@ -957,37 +957,13 @@ nav.old-nav {
   color: #94a3b8;
 }
 
-.sidebar-logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.95rem 1rem;
-  border: none;
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: inherit;
-  color: #dc2626;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: all 0.2s;
-  margin-top: auto;
-}
-
-.sidebar-logout-btn:active {
-  background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
-  transform: scale(0.98);
-}
-
-.sidebar-logout-btn:hover {
-  background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%);
-  color: #991b1b;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
-}
-
-.sidebar-logout-btn svg {
-  width: 20px;
-  height: 20px;
+/* Cerrar Sesión en el drawer: mismo diseño que los demás botones del menú
+   (usa la clase .sidebar-menu-link, así hereda tarjeta, cajita de icono y
+   chevron). Como es un <button>, forzamos width 100% y text-align izquierda
+   (el <button> centra por defecto y desalinearía la etiqueta vs los <a>). */
+.sidebar-logout-link {
+  width: 100%;
+  text-align: left;
 }
 
 /* Mini-tarjeta tipo .sb-notif-card pero compacta (icono 36px, una sola línea)
