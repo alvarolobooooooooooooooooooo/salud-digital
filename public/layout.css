@@ -88,15 +88,27 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 /* Chip claro detrás de la marca: mantiene legible el brazo marino sobre el
    sidebar oscuro y reproduce el logo sobre fondo blanco como en la guía. */
 .sb-logo span:first-child {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
   background: #fff;
-  border-radius: 11px;
-  box-shadow: 0 2px 8px rgba(8, 40, 90, 0.25), inset 0 0 0 1px rgba(8, 40, 90, 0.06);
+  border-radius: 13px;
+  box-shadow: 0 6px 16px rgba(8, 40, 90, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   flex-shrink: 0;
+}
+
+/* Halo suave detrás de la marca: mismo gesto que el .brand-mark del login. */
+.sb-logo span:first-child::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  background: radial-gradient(circle, rgba(28, 142, 201, 0.45) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: -1;
+  filter: blur(10px);
 }
 
 .sb-logo svg {
