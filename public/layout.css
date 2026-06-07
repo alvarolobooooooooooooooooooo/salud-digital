@@ -1105,10 +1105,9 @@ nav.old-nav {
     background: rgba(255, 255, 255, 0.70);
     -webkit-backdrop-filter: saturate(165%) blur(22px);
     backdrop-filter: saturate(165%) blur(22px);
-    /* Borde de vidrio muy tenue (no es una línea divisoria) + sombra flotante. */
-    border: 1px solid rgba(255, 255, 255, 0.55);
+    /* Sin borde ni reflejo blanco arriba: solo sombra difusa para el flotado. */
+    border: none;
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.85) inset,    /* brillo de vidrio arriba */
       0 14px 34px -12px rgba(15, 23, 42, 0.28),    /* sombra flotante difusa */
       0 4px 12px -6px rgba(8, 145, 178, 0.10);     /* toque de marca, suave */
   }
