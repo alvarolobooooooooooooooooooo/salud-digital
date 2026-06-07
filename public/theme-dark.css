@@ -242,53 +242,19 @@ html[data-theme="dark"] body::after {
   }
 }
 
-/* Specular sheen + glint retinted cyan for dark (geometry/animation/mask come
-   from the light #mobileNav::before). */
-[data-theme="dark"] #mobileNav::before {
-  background:
-    linear-gradient(100deg,
-      rgba(178, 240, 255, 0.0) 42%,
-      rgba(178, 240, 255, 0.16) 49%,
-      rgba(103, 232, 249, 0.20) 50%,
-      rgba(178, 240, 255, 0.16) 51%,
-      rgba(178, 240, 255, 0.0) 58%),
-    linear-gradient(180deg,
-      rgba(178, 240, 255, 0.16) 0%,
-      rgba(103, 232, 249, 0.05) 44%,
-      rgba(255, 255, 255, 0.0) 100%) !important;
-}
-[data-theme="dark"] #mobileNav::after {
-  background: linear-gradient(180deg,
-    rgba(6, 182, 212, 0.0) 0%,
-    rgba(6, 182, 212, 0.10) 60%,
-    rgba(14, 165, 233, 0.16) 100%) !important;
-}
-
-/* Idle frosted chip — translucent dark glass, borderless, faint cyan top rim. */
+/* Idle / hover tabs — transparent; the glass lives on the bar slab, not per-tab. */
 [data-theme="dark"] .mobile-nav-item,
 [data-theme="dark"] .mobile-nav-hamburger {
   color: var(--sd-text-muted) !important;
-  background:
-    linear-gradient(180deg,
-      rgba(255, 255, 255, 0.06) 0%,
-      rgba(255, 255, 255, 0.015) 100%) !important;
+  background: transparent !important;
   border: 1px solid transparent !important;
-  box-shadow:
-    0 1px 0 rgba(103, 232, 249, 0.10) inset,
-    0 1px 4px rgba(0, 0, 0, 0.35) !important;
+  box-shadow: none !important;
 }
 
 [data-theme="dark"] .mobile-nav-item:hover,
 [data-theme="dark"] .mobile-nav-hamburger:hover {
   color: #22d3ee !important;
-  background:
-    linear-gradient(180deg,
-      rgba(6, 182, 212, 0.16) 0%,
-      rgba(6, 182, 212, 0.06) 100%) !important;
-  border-color: rgba(6, 182, 212, 0.26) !important;
-  box-shadow:
-    0 1px 0 rgba(103, 232, 249, 0.18) inset,
-    0 4px 12px rgba(0, 0, 0, 0.45) !important;
+  background: transparent !important;
 }
 
 [data-theme="dark"] .mobile-nav-item:active,
@@ -296,9 +262,9 @@ html[data-theme="dark"] body::after {
   color: #67e8f9 !important;
   background:
     linear-gradient(135deg,
-      rgba(6, 182, 212, 0.24) 0%,
-      rgba(14, 165, 233, 0.16) 100%) !important;
-  border-color: rgba(6, 182, 212, 0.36) !important;
+      rgba(6, 182, 212, 0.16) 0%,
+      rgba(14, 165, 233, 0.10) 100%) !important;
+  border-color: rgba(6, 182, 212, 0.28) !important;
 }
 
 /* Active pill — saturated cyan glass with bright specular + glow + crisp rim. */
