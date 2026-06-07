@@ -5,16 +5,27 @@ function getToken() { return localStorage.getItem('sd_token'); }
 function getRole()  { return localStorage.getItem('sd_role'); }
 
 function logout() {
+  // Vamos a /login.html (no a la landing). Como login.html comprueba la sesión
+  // al cargar (/api/auth/me) y redirige a la plataforma si la cookie sigue viva,
+  // ESPERAMOS a que el logout del servidor borre la cookie ANTES de navegar; si
+  // no, habría una carrera y login.html nos rebotaría de vuelta al dashboard.
+  const go = () => {
+    localStorage.clear();
+    // replace(): "atrás" no debe volver a la pantalla autenticada.
+    window.location.replace('/login.html');
+  };
   try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 3000); // red de seguridad si cuelga
     fetch('/api/auth/logout', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      keepalive: true
-    }).catch(() => {});
-  } catch (_) {}
-  localStorage.clear();
-  window.location.href = '/';
+      signal: ctrl.signal
+    })
+      .catch(() => {})
+      .finally(() => { clearTimeout(timer); go(); });
+  } catch (_) { go(); }
 }
 
 function requireAuth(allowedRoles) {
@@ -22,7 +33,7 @@ function requireAuth(allowedRoles) {
   // es un fallback legacy; algunos navegadores limpian el storage manteniendo cookies.
   // Si tenemos cualquiera de los dos, asumimos sesión y dejamos que las llamadas a la
   // API confirmen: un 401 dispara logout() en api() y limpia ambos.
-  if (!getToken() && !getRole()) { window.location.href = '/'; return; }
+  if (!getToken() && !getRole()) { window.location.href = '/login.html'; return; }
   if (allowedRoles && !allowedRoles.includes(getRole())) {
     const role = getRole();
     const redirects = {
