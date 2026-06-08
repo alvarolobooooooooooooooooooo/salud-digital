@@ -3380,15 +3380,18 @@ html[data-theme="dark"] .chips-row .chip.active .count {
   color: #a5f3fc !important;
 }
 
-/* Staff cards (doctor / receptionist) */
+/* Staff cards (doctor / receptionist) — same elevated treatment as the
+   Inicio/dashboard cards (.card / .stat-card) so they read as raised glass
+   tiles, not flat panels. The `inset 0 1px 0 rgba(255,255,255,.04)` top-edge
+   highlight is what removes the flat look; hover adds a cyan glow. */
 html[data-theme="dark"] .staff-card {
   background: var(--sd-surface) !important;
   border: 1px solid var(--sd-border-soft) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, .35) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .04) !important;
 }
 html[data-theme="dark"] .staff-card:hover {
   border-color: rgba(8, 145, 178, .3) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .45) !important;
+  box-shadow: 0 16px 40px rgba(14, 116, 144, .15), inset 0 1px 0 rgba(255, 255, 255, .06) !important;
 }
 html[data-theme="dark"] .staff-card .name { color: var(--sd-text) !important; }
 html[data-theme="dark"] .staff-card .email { color: var(--sd-text-muted) !important; }
@@ -3421,13 +3424,16 @@ html[data-theme="dark"] .room-icon {
   color: color-mix(in oklch, var(--c, #06b6d4) 65%, #f1f5f9) !important;
 }
 
-/* KPI cards (Gestión de personal, Consentimientos) — neutral gray-black
-   so they lift visibly from the pure-black hero/body background */
+/* KPI cards (Gestión de personal, Consentimientos, Recordatorios,
+   Confirmaciones) — neutral gray-black so they lift visibly from the
+   pure-black hero/body background. The `inset 0 1px 0 rgba(255,255,255,.05)`
+   top-edge highlight + deeper drop shadow gives them the same raised, non-flat
+   look as the Inicio/dashboard cards instead of reading as flat panels. */
 html[data-theme="dark"] .kpis .kpi {
   background: #15151a !important;
   background-image: none !important;
   border: 1px solid rgba(255, 255, 255, .07) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, .55) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .05) !important;
 }
 html[data-theme="dark"] .kpis .kpi .spark { opacity: .25 !important; }
 
