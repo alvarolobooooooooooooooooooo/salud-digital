@@ -226,11 +226,13 @@
           </div>` : ''}
 
           ${isReceptionist ? `<div class="sidebar-section">
+            <div class="sidebar-label">AJUSTES</div>
             <a href="/configuracion.html" class="sidebar-menu-link">
               <span id="configMenuIcon"></span>
               <span>Configuración</span>
             </a>
           </div>` : `<div class="sidebar-section">
+            <div class="sidebar-label">GENERAL</div>
             <a href="/facturacion.html" class="sidebar-menu-link">
               <span id="facturacionMenuIcon"></span>
               <span>Facturación</span>
@@ -239,21 +241,12 @@
               <span id="calCompartidoIcon"></span>
               <span>Calendario Compartido</span>
             </a>
-            <a href="/agendar-online.html" class="sidebar-menu-link">
-              <span id="citasOnlineIcon"></span>
-              <span>Citas Online</span>
-            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">CLÍNICA</div>
             ${isClinicAdmin ? `<a href="/doctors.html" class="sidebar-menu-link">
               <span id="personalMenuIcon"></span>
               <span>Personal</span>
-            </a>
-            <a href="/inventario.html" class="sidebar-menu-link">
-              <span id="inventarioMenuIcon"></span>
-              <span>Inventario</span>
-            </a>
-            <a href="/mi-sitio.html" class="sidebar-menu-link">
-              <span id="miSitioMenuIcon"></span>
-              <span>Mi Sitio Web</span>
             </a>` : ''}
             <a href="/consentimientos.html" class="sidebar-menu-link">
               <span id="consentsIcon"></span>
@@ -267,6 +260,24 @@
               <span id="confirmsIcon"></span>
               <span>Confirmaciones</span>
             </a>
+            <a href="/agendar-online.html" class="sidebar-menu-link">
+              <span id="citasOnlineIcon"></span>
+              <span>Citas Online</span>
+            </a>
+            ${isClinicAdmin ? `<a href="/mi-sitio.html" class="sidebar-menu-link">
+              <span id="miSitioMenuIcon"></span>
+              <span>Mi Sitio Web</span>
+            </a>` : ''}
+          </div>
+          ${isClinicAdmin ? `<div class="sidebar-section">
+            <div class="sidebar-label">OPERACIONES</div>
+            <a href="/inventario.html" class="sidebar-menu-link">
+              <span id="inventarioMenuIcon"></span>
+              <span>Inventario</span>
+            </a>
+          </div>` : ''}
+          <div class="sidebar-section">
+            <div class="sidebar-label">AJUSTES</div>
             <a href="/configuracion.html" class="sidebar-menu-link">
               <span id="configMenuIcon"></span>
               <span>Configuración</span>
