@@ -652,48 +652,56 @@
 
       <div class="kpis">
         <div class="kpi">
-          <div class="label">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
-            Personal total
+          <div class="kpi-tile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
           </div>
-          <div class="v" id="kpiTotal">0<span class="unit">miembros</span></div>
-          <div class="trend">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
-            <span>Doctores + recepción</span>
+          <div class="kpi-main">
+            <div class="label">Personal total</div>
+            <div class="v" id="kpiTotal">0<span class="unit">miembros</span></div>
+            <div class="trend">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+              <span>Doctores + recepción</span>
+            </div>
           </div>
           <svg class="spark" width="120" height="36" viewBox="0 0 120 36"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0891b2" stop-opacity="0.4"/><stop offset="100%" stop-color="#0891b2" stop-opacity="0"/></linearGradient></defs><path d="M0,28 L10.9,18 L21.8,23 L32.7,14 L43.6,16 L54.5,7 L65.4,11 L76.3,4 L87.2,9 L98.1,6 L109,0 L120,2 L120,36 L0,36 Z" fill="url(#sg)"/><path d="M0,28 L10.9,18 L21.8,23 L32.7,14 L43.6,16 L54.5,7 L65.4,11 L76.3,4 L87.2,9 L98.1,6 L109,0 L120,2" fill="none" stroke="#0891b2" stroke-width="1.5" stroke-linecap="round"/></svg>
         </div>
         <div class="kpi flag">
-          <div class="label">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Doctores
+          <div class="kpi-tile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </div>
-          <div class="v" id="kpiDoctors">0</div>
-          <div class="trend">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <span id="kpiDoctorsLabel">0 especialidades</span>
+          <div class="kpi-main">
+            <div class="label">Doctores</div>
+            <div class="v" id="kpiDoctors">0</div>
+            <div class="trend">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span id="kpiDoctorsLabel">0 especialidades</span>
+            </div>
           </div>
         </div>
         <div class="kpi violet">
-          <div class="label">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3"/><path d="M3 12h18"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7"/></svg>
-            Recepción
+          <div class="kpi-tile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3"/><path d="M3 12h18"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7"/></svg>
           </div>
-          <div class="v" id="kpiReception">0<span class="unit">cuentas</span></div>
-          <div class="trend">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>Acceso al sistema</span>
+          <div class="kpi-main">
+            <div class="label">Recepción</div>
+            <div class="v" id="kpiReception">0<span class="unit">cuentas</span></div>
+            <div class="trend">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>Acceso al sistema</span>
+            </div>
           </div>
         </div>
         <div class="kpi warn">
-          <div class="label">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            Habitaciones
+          <div class="kpi-tile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </div>
-          <div class="v" id="kpiRooms">0<span class="unit" id="kpiRoomsUnit">/ 0 libres</span></div>
-          <div class="trend">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-            <span id="kpiRoomsLabel">Ocupación</span>
+          <div class="kpi-main">
+            <div class="label">Habitaciones</div>
+            <div class="v" id="kpiRooms">0<span class="unit" id="kpiRoomsUnit">/ 0 libres</span></div>
+            <div class="trend">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              <span id="kpiRoomsLabel">Ocupación</span>
+            </div>
           </div>
         </div>
       </div>

@@ -1955,3 +1955,34 @@ nav.old-nav {
 }
 .sd-notif-toast-close:hover { background: rgba(15,23,42,0.06); color: var(--text); }
 .sd-notif-toast-close svg, .sd-notif-toast-close svg * { stroke: currentColor; }
+
+/* ───────────────────────────────────────────────────────────────
+   KPI cards with icon tile — match the Inicio/dashboard stat-card
+   layout (horizontal: cyan icon tile + body). Scoped to .kpis so it
+   only affects the admin KPI grids (doctors, confirmaciones,
+   consentimientos, recordatorios). Requires each .kpi to contain a
+   .kpi-tile (the icon) and a .kpi-main wrapper around label/value/trend.
+   `.kpis .kpi` (2 classes) outranks each page's `.kpi` (1 class), so the
+   horizontal layout wins regardless of stylesheet order.
+   ─────────────────────────────────────────────────────────────── */
+.kpis .kpi {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 18px;
+  padding: 22px;
+}
+.kpis .kpi .kpi-tile {
+  width: 56px; height: 56px; flex: 0 0 56px;
+  border-radius: 16px;
+  display: grid; place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  box-shadow:
+    0 8px 24px rgba(8, 145, 178, .28),
+    inset 0 1px 0 rgba(255, 255, 255, .3);
+}
+.kpis .kpi .kpi-tile svg { width: 26px; height: 26px; }
+.kpis .kpi .kpi-main {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}

@@ -3454,6 +3454,14 @@ html[data-theme="dark"] .kpis .kpi {
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
 }
 html[data-theme="dark"] .kpis .kpi .spark { opacity: .25 !important; }
+/* KPI icon tile — brighter cyan glow on dark, matching the dashboard .stat-icon */
+html[data-theme="dark"] .kpis .kpi .kpi-tile {
+  background-image: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%) !important;
+  color: #fff !important;
+  box-shadow:
+    0 10px 28px rgba(6, 182, 212, .45),
+    inset 0 1px 0 rgba(255, 255, 255, .35) !important;
+}
 
 /* KPI trend pills (Doctores + recepción / 5 especialidades / Acceso al
    sistema / 75% ocupación / Últimos 30 días). Originally use --*-50
