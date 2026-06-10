@@ -121,6 +121,45 @@
     }
     .stat-card .stat-meta { font-size: 12px; color: #94a3b8; margin-top: .25rem; font-weight: 400; }
 
+    /* ── Premium glassmorphism for the KPI cards (dark) ──
+       The dark page background is near-black (#050507), so backdrop-filter has
+       nothing to blur — the glass has to be built from the card's OWN surface:
+       a glossy top-left sheen + cyan glass tint over a base that lifts off the
+       black, a crisp light edge, and a soft cyan glow. Scoped to .stats-grid so
+       it out-specifies theme-dark.css's flat .stat-card rule without touching
+       other pages. */
+    html[data-theme="dark"] .stats-grid .stat-card {
+      background:
+        linear-gradient(140deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.035) 26%, rgba(255,255,255,0) 58%),
+        linear-gradient(135deg, rgba(8,145,178,.14) 0%, rgba(6,182,212,.05) 100%),
+        rgba(30,32,38,.66) !important;
+      border: 1px solid rgba(255,255,255,.12) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.16),
+        inset 0 -20px 44px rgba(0,0,0,.22),
+        0 14px 36px rgba(0,0,0,.50),
+        0 0 60px rgba(8,145,178,.10) !important;
+      backdrop-filter: blur(22px) saturate(150%) !important;
+      -webkit-backdrop-filter: blur(22px) saturate(150%) !important;
+    }
+    /* Per-card accent corner, a touch stronger so it reads through the glass */
+    html[data-theme="dark"] .stats-grid .stat-card::before {
+      background: radial-gradient(circle at 100% 0%, var(--stat-accent, rgba(6,182,212,.18)), transparent 70%);
+    }
+    html[data-theme="dark"] .stats-grid .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(34,211,238,.40) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.20),
+        inset 0 -20px 44px rgba(0,0,0,.22),
+        0 20px 48px rgba(0,0,0,.55),
+        0 0 90px rgba(8,145,178,.18) !important;
+    }
+    /* Glowing cyan icon tile so it sits on the glass, not on a flat chip */
+    html[data-theme="dark"] .stats-grid .stat-card .stat-icon {
+      box-shadow: 0 6px 18px rgba(8,145,178,.32), inset 0 1px 0 rgba(255,255,255,.22) !important;
+    }
+
     /* ── Toolbar ── */
     .toolbar {
       background: white; border-radius: 16px; padding: 1rem 1.25rem; margin-bottom: 1.25rem;
