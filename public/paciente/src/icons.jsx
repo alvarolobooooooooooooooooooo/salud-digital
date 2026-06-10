@@ -1,0 +1,95 @@
+// icons.jsx — Lucide-style line icons (1.75 stroke, round caps), curated set.
+// Usage: <Icon name="calendar" size={20} color="#0080B0" />
+(function () {
+  const P = {
+    // navigation / chrome
+    home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/>',
+    calendar: '<rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/>',
+    'calendar-plus': '<rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4M12 12.5v5M9.5 15h5"/>',
+    'calendar-check': '<rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4M9 15l2 2 4-4"/>',
+    heart: '<path d="M19.5 5.5a5 5 0 0 0-7.1 0l-.4.4-.4-.4a5 5 0 0 0-7.1 7.1l.4.4L12 20.5l7.1-7.5.4-.4a5 5 0 0 0 0-7.1Z"/>',
+    'heart-pulse': '<path d="M19.5 5.5a5 5 0 0 0-7.1 0l-.4.4-.4-.4a5 5 0 1 0-7.1 7.1L12 20.5l4-4.2"/><path d="M3.5 13h3l1.5-3 2.5 6 2-4 1.2 2.2h4.3"/>',
+    message: '<path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5Z"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/>',
+    users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 21c0-3.6 3-5.8 6.5-5.8S15.5 17.4 15.5 21"/><path d="M16.5 4.6a3.5 3.5 0 0 1 0 6.8M17 15.4c2.8.4 4.5 2.5 4.5 5.6"/>',
+    // medical
+    pill: '<rect x="3.5" y="8.5" width="17" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M8.5 8.5 15.5 15.5"/>',
+    flask: '<path d="M9 3h6M10 3v6.5L5 18a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-8.5V3"/><path d="M7.2 14h9.6"/>',
+    stethoscope: '<path d="M5 3v5a4 4 0 0 0 8 0V3"/><path d="M5 3H3.5M13 3h1.5"/><path d="M9 16v1a4 4 0 0 0 8 0v-2.5"/><circle cx="18" cy="12" r="2.2"/>',
+    activity: '<path d="M3 12h4l2.5-7 5 14 2.5-7H21"/>',
+    droplet: '<path d="M12 3.5c3 3.5 6 6.4 6 9.5a6 6 0 0 1-12 0c0-3.1 3-6 6-9.5Z"/>',
+    scale: '<path d="M12 4.5a2 2 0 1 0 0-.1ZM12 7v3M5 21h14M6.5 10.5h11l1.5 6.5h-14Z"/>',
+    thermometer: '<path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0Z"/><path d="M12 9v8"/>',
+    syringe: '<path d="M18 2l4 4M21 5l-9 9M15.5 3.5 20.5 8.5M14 8l2 2M3 21l3.5-3.5M2 22l1.5-1.5M8.5 14.5 9.5 15.5"/><path d="M14 8 8.5 13.5 6 16l2 2 2.5-2.5L16 10"/>',
+    'file-text': '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5h7M8.5 9.5h2"/>',
+    clipboard: '<rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4a3 3 0 0 1 6 0M8.5 10h7M8.5 14h7M8.5 17.5h4"/>',
+    shield: '<path d="M12 2.5 4.5 5.5v6c0 4.6 3.2 8.4 7.5 10 4.3-1.6 7.5-5.4 7.5-10v-6Z"/><path d="M9 12l2 2 4-4.5"/>',
+    sparkles: '<path d="M12 3.5 13.6 9 19 10.5 13.6 12 12 17.5 10.4 12 5 10.5 10.4 9Z"/><path d="M18.5 4v3M20 5.5h-3M5.5 16v2.5M6.75 17.25h-2.5"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M4 12H1.5M22.5 12H20M5 5l1.8 1.8M17.2 17.2 19 19M19 5l-1.8 1.8M6.8 17.2 5 19"/>',
+    moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/>',
+    // actions / ui
+    bell: '<path d="M6 9a6 6 0 0 1 12 0c0 5 2 6.5 2 6.5H4S6 14 6 9Z"/><path d="M10 19a2 2 0 0 0 4 0"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    check: '<path d="M5 12.5 10 17.5 19.5 6.5"/>',
+    'check-circle': '<circle cx="12" cy="12" r="9"/><path d="M8 12.2 11 15.2 16.2 9"/>',
+    x: '<path d="M6 6l12 12M18 6 6 18"/>',
+    'chevron-right': '<path d="M9 5l7 7-7 7"/>',
+    'chevron-left': '<path d="M15 5l-7 7 7 7"/>',
+    'chevron-down': '<path d="M5 9l7 7 7-7"/>',
+    'arrow-right': '<path d="M4 12h16M14 5l7 7-7 7"/>',
+    'arrow-left': '<path d="M20 12H4M10 5l-7 7 7 7"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.5 2.3"/>',
+    'map-pin': '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
+    phone: '<path d="M5 3.5h3l1.5 4.5-2 1.5a13 13 0 0 0 5.5 5.5l1.5-2 4.5 1.5v3a2 2 0 0 1-2 2A16.5 16.5 0 0 1 3 5.5a2 2 0 0 1 2-2Z"/>',
+    video: '<rect x="2.5" y="6.5" width="13" height="11" rx="2.5"/><path d="M15.5 10l6-3.2v10.4l-6-3.2Z"/>',
+    'video-off': '<path d="M15.5 10l6-3.2v10.4l-3-1.6M2 2l20 20M10.6 6.5h2.4a2.5 2.5 0 0 1 2.5 2.5v2.4M15.5 14v1a2.5 2.5 0 0 1-2.5 2.5H5A2.5 2.5 0 0 1 2.5 15V9a2.5 2.5 0 0 1 2.5-2.5"/>',
+    mic: '<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>',
+    'mic-off': '<path d="M2 2l20 20M15 9.3V5.5a3 3 0 0 0-5.8-1.1M9 9v1.5a3 3 0 0 0 4.6 2.5M5.5 11a6.5 6.5 0 0 0 10 5.4M12 17.5V21M8.5 21h7"/>',
+    send: '<path d="M21 3 10.5 13.5M21 3l-6.5 18-4-8-8-4Z"/>',
+    paperclip: '<path d="M20 11.5 12 19.5a5 5 0 0 1-7-7l8-8a3.3 3.3 0 0 1 4.7 4.7l-8 8a1.6 1.6 0 0 1-2.4-2.2l7.3-7.3"/>',
+    camera: '<path d="M4 8.5h3l1.5-2.5h7L17 8.5h3a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="13.5" r="3.2"/>',
+    download: '<path d="M12 3v12M7 11l5 5 5-5M4.5 20.5h15"/>',
+    share: '<circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="M8.2 10.8 15.8 6.7M8.2 13.2l7.6 4.1"/>',
+    'more-horizontal': '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+    star: '<path d="M12 3.5 14.6 9l5.9.6-4.4 4 1.3 5.8L12 16.6 6.6 19.4l1.3-5.8-4.4-4L9.4 9Z"/>',
+    'alert-circle': '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.3v.2"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.7v.2"/>',
+    edit: '<path d="M4 20h4L19 9l-4-4L4 16Z"/><path d="M14 6l4 4"/>',
+    lock: '<rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2.5"/>',
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5l1.2 2.5 2.7-.6.6 2.7L19.5 11l-1.5 2.2 1.5 2.2-2.5 1.2-.6 2.7-2.7-.6L12 21.5l-1.2-2.5-2.7.6-.6-2.7L4.5 13.2 6 11 4.5 8.8l2.5-1.2.6-2.7 2.7.6Z"/>',
+    'log-out': '<path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3M16 16l4-4-4-4M20 12H9"/>',
+    'credit-card': '<rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 9.5h19M6 14.5h4"/>',
+    receipt: '<path d="M5 3.5h14v17l-2.5-1.5L14 20.5l-2.5-1.5L9 20.5l-2.5-1.5L5 20.5Z"/><path d="M8.5 8h7M8.5 11.5h7M8.5 15h4"/>',
+    filter: '<path d="M3 5h18l-7 8v6l-4-2v-4Z"/>',
+    'shield-check': '<path d="M12 2.5 4.5 5.5v6c0 4.6 3.2 8.4 7.5 10 4.3-1.6 7.5-5.4 7.5-10v-6Z"/><path d="M9 12l2 2 4-4.5"/>',
+    smile: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5v.2M15 9.5v.2"/>',
+    meh: '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5h7M9 9.5v.2M15 9.5v.2"/>',
+    frown: '<circle cx="12" cy="12" r="9"/><path d="M8.5 15.5a4.5 4.5 0 0 1 7 0M9 9.5v.2M15 9.5v.2"/>',
+    fingerprint: '<path d="M5 11a7 7 0 0 1 13-3.5M5.5 16.5A10 10 0 0 0 6 13a6 6 0 0 1 9.6-4.8M9 19a7 7 0 0 0 1-3.5 2 2 0 0 1 4 0c0 .8 0 1.6-.2 2.4M12 15.5v.2M18.5 17a14 14 0 0 0 .5-4 7 7 0 0 0-.3-2"/>',
+    baby: '<path d="M9 12a1 1 0 0 0 0 .1ZM15 12a1 1 0 0 0 0 .1ZM10 16c.7.6 1.3.9 2 .9s1.3-.3 2-.9"/><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"/><path d="M8 5.5 12 8l4-2.5"/>',
+    leaf: '<path d="M4 20c0-9 6-15 16-15 0 10-6 15-13 15-1.5 0-3-.5-3-.5Z"/><path d="M7 17C10 12 14 9 17 8"/>',
+    'qr': '<rect x="3.5" y="3.5" width="6" height="6" rx="1"/><rect x="14.5" y="3.5" width="6" height="6" rx="1"/><rect x="3.5" y="14.5" width="6" height="6" rx="1"/><path d="M14.5 14.5h2.5v2.5M20.5 14.5v6M14.5 20.5h2.5M20.5 20.5h-.1"/>',
+    eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>',
+    gift: '<rect x="3.5" y="9" width="17" height="4" rx="1"/><path d="M5 13v7.5h14V13M12 9v11.5"/><path d="M12 9S10.5 4.5 8 4.5a2 2 0 0 0 0 4.5M12 9s1.5-4.5 4-4.5a2 2 0 0 1 0 4.5"/>',
+    refresh: '<path d="M21 8a9 9 0 0 0-15.5-2.5L3 8M3 4v4h4M3 16a9 9 0 0 0 15.5 2.5L21 16M21 20v-4h-4"/>',
+    'trending-up': '<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>',
+    'plus-circle': '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+    headphones: '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2.5" y="13.5" width="4" height="7" rx="2"/><rect x="17.5" y="13.5" width="4" height="7" rx="2"/>',
+    'map': '<path d="M9 3 3.5 5v16L9 19l6 2 5.5-2V3L15 5 9 3Z"/><path d="M9 3v16M15 5v16"/>',
+  };
+
+  function Icon({ name, size = 24, color = 'currentColor', strokeWidth = 1.75, fill = 'none', style = {} }) {
+    const d = P[name];
+    if (!d) return null;
+    return React.createElement('svg', {
+      width: size, height: size, viewBox: '0 0 24 24',
+      fill: fill, stroke: color, strokeWidth: strokeWidth,
+      strokeLinecap: 'round', strokeLinejoin: 'round',
+      style: { flexShrink: 0, display: 'block', ...style },
+      dangerouslySetInnerHTML: { __html: d },
+    });
+  }
+
+  window.Icon = Icon;
+})();

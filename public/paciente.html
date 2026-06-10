@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Salud Digital · Paciente</title>
+<meta name="theme-color" content="#0080B0" />
+
+<!-- Tema (claro/oscuro) antes de pintar para evitar parpadeo. Respeta la
+     preferencia guardada por la plataforma (sd_theme) o la del sistema. -->
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('sd_theme');
+      if (t !== 'dark' && t !== 'light') {
+        t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+</script>
+
+<!-- Sistema de diseño del prototipo + capa glassmorphism de la plataforma -->
+<link rel="stylesheet" href="/paciente/salud_tokens.css" />
+<link rel="stylesheet" href="/paciente/app.css" />
+<link rel="stylesheet" href="/paciente/src/web/desktop.css" />
+<link rel="stylesheet" href="/paciente/paciente-glass.css" />
+
+<style>
+  /* Cargador mientras React + Babel compilan y la sesión se valida. */
+  #pg-boot {
+    position: fixed; inset: 0; z-index: 9999;
+    display: grid; place-items: center;
+    color: var(--sd-blue-600, #0080B0);
+    transition: opacity .3s ease;
+  }
+  #pg-boot .spin {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 3px solid rgba(8,145,178,0.25);
+    border-top-color: #0891b2;
+    animation: pgspin .8s linear infinite;
+  }
+  @keyframes pgspin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="pg-boot"><div class="spin"></div></div>
+</div>
+
+<!-- React + Babel vía unpkg (mismo patrón/CSP que mensajes.html) -->
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+
+<!-- núcleo compartido -->
+<script type="text/babel" src="/paciente/src/icons.jsx"></script>
+<script type="text/babel" src="/paciente/src/data.jsx"></script>
+<script type="text/babel" src="/paciente/src/ui.jsx"></script>
+<script type="text/babel" src="/paciente/src/store.jsx"></script>
+
+<!-- pantallas (móvil) + flujos reutilizados -->
+<script type="text/babel" src="/paciente/src/onboarding.jsx"></script>
+<script type="text/babel" src="/paciente/src/home.jsx"></script>
+<script type="text/babel" src="/paciente/src/citas.jsx"></script>
+<script type="text/babel" src="/paciente/src/booking.jsx"></script>
+<script type="text/babel" src="/paciente/src/preconsulta.jsx"></script>
+<script type="text/babel" src="/paciente/src/salud.jsx"></script>
+<script type="text/babel" src="/paciente/src/salud_detail.jsx"></script>
+<script type="text/babel" src="/paciente/src/chat.jsx"></script>
+<script type="text/babel" src="/paciente/src/video.jsx"></script>
+<script type="text/babel" src="/paciente/src/perfil.jsx"></script>
+<script type="text/babel" src="/paciente/src/app.jsx"></script>
+
+<!-- pantallas (escritorio / navegador) + shell web -->
+<script type="text/babel" src="/paciente/src/web/dashboard.jsx"></script>
+<script type="text/babel" src="/paciente/src/web/citas.jsx"></script>
+<script type="text/babel" src="/paciente/src/web/salud.jsx"></script>
+<script type="text/babel" src="/paciente/src/web/mensajes.jsx"></script>
+<script type="text/babel" src="/paciente/src/web/facturas.jsx"></script>
+<script type="text/babel" src="/paciente/src/web/drawers.jsx"></script>
+<script type="text/babel" src="/paciente/src/web/shell.jsx"></script>
+
+<!-- raíz responsiva + compuerta de sesión (monta la app, quita el cargador) -->
+<script type="text/babel" src="/paciente/src/paciente-root.jsx"></script>
+</body>
+</html>

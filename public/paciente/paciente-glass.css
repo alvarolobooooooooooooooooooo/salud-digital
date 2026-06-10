@@ -1,0 +1,285 @@
+/* =====================================================================
+   paciente-glass.css — capa de glassmorphism para la plataforma del
+   paciente. Se carga DESPUÉS de salud_tokens.css + app.css + desktop.css
+   y reescribe las superficies planas del prototipo al lenguaje "liquid
+   glass" del resto de Salud Digital (translúcido + blur + glow cian sobre
+   un fondo de orbes), full-bleed para incrustarse en la plataforma.
+   Soporta claro y oscuro vía [data-theme].
+   ===================================================================== */
+
+:root {
+  /* malla de orbes (canvas de la app) — claro */
+  --pg-mesh:
+    radial-gradient(1200px 820px at 84% -12%, rgba(14, 165, 233, 0.18), transparent 56%),
+    radial-gradient(960px 720px at -8% 108%, rgba(8, 145, 178, 0.15), transparent 54%),
+    radial-gradient(760px 600px at 52% 122%, rgba(2, 132, 199, 0.08), transparent 60%),
+    linear-gradient(180deg, #eef4fa 0%, #e7eef6 100%);
+
+  /* vidrio */
+  --pg-glass: rgba(255, 255, 255, 0.60);
+  --pg-glass-strong: rgba(255, 255, 255, 0.74);
+  --pg-glass-soft: rgba(255, 255, 255, 0.42);
+  --pg-glass-border: rgba(255, 255, 255, 0.70);
+  --pg-hair: rgba(13, 95, 120, 0.10);
+  --pg-blur: saturate(180%) blur(20px);
+  --pg-blur-sm: saturate(170%) blur(12px);
+
+  --pg-inset: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  --pg-shadow: 0 10px 30px -16px rgba(13, 47, 56, 0.20), 0 2px 8px -4px rgba(13, 47, 56, 0.06);
+  --pg-shadow-lg: 0 28px 64px -24px rgba(13, 47, 56, 0.34), 0 8px 22px -12px rgba(13, 47, 56, 0.12);
+  --pg-glow: 0 12px 32px -12px rgba(8, 145, 178, 0.45);
+
+  /* hover/tint translúcido cian (reemplaza el sólido --sd-blue-50) */
+  --pg-tint: rgba(8, 145, 178, 0.08);
+  --pg-tint-strong: rgba(8, 145, 178, 0.13);
+}
+
+/* ---- Full-bleed: la app ocupa todo el contenedor; el mesh va detrás ---- */
+html, body { height: 100%; margin: 0; }
+body { background: #e7eef6; overflow: hidden; }
+#root {
+  position: fixed; inset: 0; overflow: hidden;
+  background: var(--pg-mesh);
+  background-attachment: fixed;
+}
+/* quitamos el "stage"/escenario de dispositivo del prototipo */
+.stage { display: contents; background: none !important; }
+.scaler { transform: none !important; }
+/* las raíces del prototipo se vuelven transparentes para ver el mesh */
+.app, .web-root { background: transparent !important; }
+
+/* =====================================================================
+   MÓVIL (MobileShell)
+   ===================================================================== */
+
+/* header superior translúcido + safe-area real del dispositivo */
+.topbar {
+  background: var(--pg-glass-strong);
+  -webkit-backdrop-filter: var(--pg-blur);
+  backdrop-filter: var(--pg-blur);
+  border-bottom: 1px solid var(--pg-hair);
+  padding-top: calc(env(safe-area-inset-top, 0px) + 18px);
+  box-shadow: var(--pg-inset);
+}
+.topbar-flat { box-shadow: none; }
+
+/* barra inferior translúcida + safe-area */
+.tabbar {
+  background: var(--pg-glass-strong);
+  -webkit-backdrop-filter: var(--pg-blur);
+  backdrop-filter: var(--pg-blur);
+  border-top: 1px solid var(--pg-hair);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  box-shadow: 0 -8px 24px -16px rgba(13, 47, 56, 0.18);
+}
+
+/* tarjetas → vidrio */
+.card {
+  background: var(--pg-glass);
+  -webkit-backdrop-filter: var(--pg-blur);
+  backdrop-filter: var(--pg-blur);
+  border: 1px solid var(--pg-glass-border);
+  border-radius: 18px;
+  box-shadow: var(--pg-inset), var(--pg-shadow);
+}
+.card-flush { background: var(--pg-glass); }
+
+/* filas: transparentes (van sobre el vidrio de la tarjeta) */
+.row { background: transparent; }
+.row:hover { background: var(--pg-tint); }
+.row + .row { border-top: 1px solid var(--pg-hair); }
+
+/* control segmentado translúcido */
+.seg { background: var(--pg-glass-soft); border: 1px solid var(--pg-hair); }
+.seg button.on {
+  background: var(--pg-glass-strong);
+  -webkit-backdrop-filter: var(--pg-blur-sm);
+  backdrop-filter: var(--pg-blur-sm);
+  box-shadow: var(--pg-inset), 0 2px 8px -4px rgba(13, 47, 56, 0.12);
+}
+
+/* sheets / scrim */
+.sheet {
+  background: var(--pg-glass-strong);
+  -webkit-backdrop-filter: var(--pg-blur);
+  backdrop-filter: var(--pg-blur);
+  border: 1px solid var(--pg-glass-border);
+  border-bottom: 0;
+  box-shadow: var(--pg-inset), var(--pg-shadow-lg);
+}
+.scrim { background: rgba(8, 20, 36, 0.38); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+
+/* =====================================================================
+   ESCRITORIO (WebShell)
+   ===================================================================== */
+
+/* sidebar: navy de marca, ahora en vidrio profundo con glow cian */
+.side {
+  background:
+    radial-gradient(380px 300px at 100% 0%, rgba(14, 165, 233, 0.26), transparent 60%),
+    radial-gradient(340px 320px at 0% 100%, rgba(8, 145, 178, 0.18), transparent 62%),
+    linear-gradient(180deg, rgba(0, 32, 80, 0.90) 0%, rgba(0, 20, 52, 0.94) 100%);
+  -webkit-backdrop-filter: saturate(160%) blur(18px);
+  backdrop-filter: saturate(160%) blur(18px);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
+}
+.nav-item.on {
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.95), rgba(14, 165, 233, 0.92));
+  box-shadow: 0 8px 20px -10px rgba(8, 145, 178, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* topbar del navegador → vidrio */
+.web-top {
+  background: var(--pg-glass-strong);
+  -webkit-backdrop-filter: var(--pg-blur);
+  backdrop-filter: var(--pg-blur);
+  border-bottom: 1px solid var(--pg-hair);
+  box-shadow: var(--pg-inset);
+  z-index: 5;
+}
+.web-search, .icon-btn, .fam-switch {
+  background: var(--pg-glass-soft);
+  -webkit-backdrop-filter: var(--pg-blur-sm);
+  backdrop-filter: var(--pg-blur-sm);
+  border: 1px solid var(--pg-glass-border);
+}
+.web-search:focus-within { border-color: rgba(8, 145, 178, 0.45); box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.14); }
+.icon-btn:hover, .fam-switch:hover { background: var(--pg-glass-strong); }
+
+/* tarjetas web → vidrio */
+.wcard {
+  background: var(--pg-glass);
+  -webkit-backdrop-filter: var(--pg-blur);
+  backdrop-filter: var(--pg-blur);
+  border: 1px solid var(--pg-glass-border);
+  border-radius: 18px;
+  box-shadow: var(--pg-inset), var(--pg-shadow);
+}
+.wcard-flush { background: var(--pg-glass); }
+.lift:hover {
+  border-color: rgba(8, 145, 178, 0.35);
+  box-shadow: var(--pg-inset), var(--pg-shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* filas / tablas web translúcidas */
+.wrow { background: transparent; }
+.wrow:hover { background: var(--pg-tint); }
+.wrow + .wrow { border-top: 1px solid var(--pg-hair); }
+.wtable th { border-bottom-color: var(--pg-hair); }
+.wtable td { border-bottom-color: var(--pg-hair); }
+.wtable tbody tr:hover { background: var(--pg-tint); }
+.web-chip { background: var(--pg-glass-soft); border: 1px solid var(--pg-glass-border); }
+
+/* chat de dos paneles sobre el mesh */
+.chat-2pane { background: var(--pg-glass-soft); -webkit-backdrop-filter: var(--pg-blur); backdrop-filter: var(--pg-blur); }
+.chat-list { background: transparent; border-right: 1px solid var(--pg-hair); }
+.chat-main { background: transparent; }
+
+/* overlays: modal-phone + drawer en vidrio */
+.web-scrim, .drawer-scrim { background: rgba(8, 20, 36, 0.46); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.modal-phone {
+  background: var(--pg-glass-strong);
+  -webkit-backdrop-filter: var(--pg-blur);
+  backdrop-filter: var(--pg-blur);
+  border: 1px solid var(--pg-glass-border);
+  box-shadow: var(--pg-inset), var(--pg-shadow-lg);
+}
+.drawer {
+  background: var(--pg-glass-strong);
+  -webkit-backdrop-filter: var(--pg-blur);
+  backdrop-filter: var(--pg-blur);
+  border-left: 1px solid var(--pg-glass-border);
+  box-shadow: var(--pg-shadow-lg);
+}
+.drawer-head, .drawer-foot { border-color: var(--pg-hair); }
+.modal-close { background: var(--pg-glass-strong); -webkit-backdrop-filter: var(--pg-blur-sm); backdrop-filter: var(--pg-blur-sm); }
+
+/* =====================================================================
+   Acentos compartidos
+   ===================================================================== */
+.btn-primary { box-shadow: var(--pg-glow); }
+.btn-primary:hover { box-shadow: 0 16px 38px -12px rgba(8, 145, 178, 0.55); }
+.hr { background: var(--pg-hair); }
+
+/* =====================================================================
+   TEMA OSCURO  [data-theme="dark"]
+   Reescribe tokens de diseño + superficies a vidrio oscuro.
+   ===================================================================== */
+[data-theme="dark"] {
+  --pg-mesh:
+    radial-gradient(1200px 820px at 84% -12%, rgba(14, 165, 233, 0.16), transparent 56%),
+    radial-gradient(960px 720px at -8% 108%, rgba(6, 182, 212, 0.12), transparent 54%),
+    radial-gradient(760px 600px at 52% 122%, rgba(2, 132, 199, 0.10), transparent 60%),
+    linear-gradient(180deg, #060a12 0%, #04070d 100%);
+
+  --pg-glass: rgba(20, 26, 34, 0.62);
+  --pg-glass-strong: rgba(18, 23, 31, 0.80);
+  --pg-glass-soft: rgba(255, 255, 255, 0.05);
+  --pg-glass-border: rgba(255, 255, 255, 0.09);
+  --pg-hair: rgba(255, 255, 255, 0.08);
+  --pg-blur: saturate(150%) blur(20px);
+  --pg-blur-sm: saturate(140%) blur(12px);
+  --pg-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --pg-shadow: 0 12px 34px -16px rgba(0, 0, 0, 0.6), 0 2px 8px -4px rgba(0, 0, 0, 0.4);
+  --pg-shadow-lg: 0 30px 70px -24px rgba(0, 0, 0, 0.75);
+  --pg-glow: 0 12px 32px -12px rgba(6, 182, 212, 0.4);
+  --pg-tint: rgba(6, 182, 212, 0.10);
+  --pg-tint-strong: rgba(6, 182, 212, 0.16);
+
+  /* tokens semánticos del diseño → oscuro (afecta estilos inline) */
+  --bg-app: transparent;
+  --bg-surface: rgba(20, 26, 34, 0.72);
+  --bg-raised: rgba(26, 32, 41, 0.85);
+  --bg-subtle: rgba(255, 255, 255, 0.06);
+  --bg-brand-soft: rgba(8, 145, 178, 0.18);
+
+  --fg-default: #e2e8f0;
+  --fg-strong: #f1f5f9;
+  --fg-muted: #94a3b8;
+  --fg-subtle: #6b7a8d;
+
+  --border-soft: rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.11);
+  --border-strong: rgba(255, 255, 255, 0.17);
+
+  /* superficies/tintes claros usados inline → equivalentes oscuros */
+  --sd-ink-50: rgba(255, 255, 255, 0.03);
+  --sd-ink-100: rgba(255, 255, 255, 0.05);
+  --sd-ink-150: rgba(255, 255, 255, 0.08);
+  --sd-ink-200: rgba(255, 255, 255, 0.12);
+  --sd-blue-50: rgba(8, 145, 178, 0.10);
+  --sd-blue-100: rgba(8, 145, 178, 0.18);
+}
+
+[data-theme="dark"] body { background: #04070d; }
+
+/* botones translúcidos en oscuro */
+[data-theme="dark"] .btn-ghost { background: rgba(255, 255, 255, 0.07); color: var(--fg-strong); }
+[data-theme="dark"] .btn-ghost:hover { background: rgba(255, 255, 255, 0.11); }
+[data-theme="dark"] .btn-outline { background: rgba(255, 255, 255, 0.04); color: var(--fg-strong); border-color: var(--border-strong); }
+
+/* campos de texto del prototipo usan background:#fff inline → forzamos vidrio */
+[data-theme="dark"] .app input, [data-theme="dark"] .app textarea,
+[data-theme="dark"] .web-root input, [data-theme="dark"] .web-root textarea {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--fg-strong) !important;
+}
+[data-theme="dark"] .seg button.on { color: var(--fg-strong); }
+
+/* el sidebar navy ya es oscuro: solo profundizamos el glow */
+[data-theme="dark"] .side {
+  background:
+    radial-gradient(380px 300px at 100% 0%, rgba(6, 182, 212, 0.22), transparent 60%),
+    radial-gradient(340px 320px at 0% 100%, rgba(8, 145, 178, 0.14), transparent 62%),
+    linear-gradient(180deg, rgba(8, 14, 24, 0.92) 0%, rgba(4, 8, 16, 0.95) 100%);
+}
+
+/* scrollbars web en oscuro */
+[data-theme="dark"] .web-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); }
+
+/* respeta usuarios que prefieren menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .rise, .pageIn { animation: none !important; }
+}

@@ -951,6 +951,7 @@
           // Hay sesión → redirige; dejamos el loader puesto hasta que cambie la página.
           if (me.role === 'super_admin') window.location.href = '/admin.html';
           else if (me.role === 'receptionist') window.location.href = '/recepcion-inicio.html';
+          else if (me.role === 'patient') window.location.href = '/paciente.html';
           else window.location.href = '/dashboard.html';
         } catch (_) { clearTimeout(failSafe); revealLogin(); /* sin sesión, queda en login */ }
       })();
@@ -1008,6 +1009,7 @@
 
         if (data.role === 'super_admin') window.location.href = '/admin.html';
         else if (data.role === 'receptionist') window.location.href = '/recepcion-inicio.html';
+        else if (data.role === 'patient') window.location.href = '/paciente.html';
         else window.location.href = '/dashboard.html';
       } catch {
         err.textContent = 'Error de conexión. Intente nuevamente.';

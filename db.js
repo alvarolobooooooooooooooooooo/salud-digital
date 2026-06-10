@@ -28,7 +28,7 @@ const initDb = async () => {
         id SERIAL PRIMARY KEY,
         email TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
-        role TEXT NOT NULL CHECK(role IN ('super_admin', 'clinic_admin', 'doctor', 'receptionist')),
+        role TEXT NOT NULL CHECK(role IN ('super_admin', 'clinic_admin', 'doctor', 'receptionist', 'patient')),
         name TEXT DEFAULT '',
         clinic_id INTEGER,
         FOREIGN KEY (clinic_id) REFERENCES clinics(id)
@@ -345,6 +345,16 @@ const initDb = async () => {
       'ALTER TABLE patients ADD COLUMN IF NOT EXISTS created_by INTEGER',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS specialty TEXT DEFAULT \'\'',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT DEFAULT \'\'',
+      // Cuentas de paciente (plataforma del paciente, /paciente.html). El rol
+      // 'patient' no existía en la constraint original (creada por CREATE TABLE);
+      // en una BD ya existente hay que recrear la constraint con ALTER.
+      // users_role_check es el nombre que Postgres asigna por defecto a un CHECK
+      // inline sobre la columna role.
+      'ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check',
+      "ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('super_admin', 'clinic_admin', 'doctor', 'receptionist', 'patient'))",
+      // Enlace opcional a su expediente en la clínica (se llena cuando el backend
+      // del portal del paciente se conecte; hoy la app del paciente usa datos mock).
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS patient_id INTEGER',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS address TEXT DEFAULT \'\'',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS chairs INTEGER DEFAULT 1',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS specialties TEXT DEFAULT \'\'',

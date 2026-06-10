@@ -228,13 +228,14 @@ router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async
 
   let assignedClinicId;
   if (req.user.role === 'clinic_admin') {
-    if (!['doctor', 'receptionist'].includes(role)) {
-      return res.status(403).json({ error: 'Clinic admin can only create doctors or receptionists' });
+    // 'patient' = cuenta del portal del paciente (plataforma del paciente).
+    if (!['doctor', 'receptionist', 'patient'].includes(role)) {
+      return res.status(403).json({ error: 'Clinic admin can only create doctors, receptionists or patients' });
     }
     assignedClinicId = req.user.clinic_id;
   } else {
-    if (!['clinic_admin', 'doctor', 'receptionist'].includes(role)) {
-      return res.status(400).json({ error: 'Role must be clinic_admin, doctor or receptionist' });
+    if (!['clinic_admin', 'doctor', 'receptionist', 'patient'].includes(role)) {
+      return res.status(400).json({ error: 'Role must be clinic_admin, doctor, receptionist or patient' });
     }
     if (!clinic_id) return res.status(400).json({ error: 'clinic_id required' });
     assignedClinicId = clinic_id;
