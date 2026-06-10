@@ -73,8 +73,8 @@
             </button>
           ))}
           <button className="fam-item" onClick={() => app.go('familiar', { id: 'ana' })}>
-            <span style={{ width: 30, height: 30, borderRadius: 999, border: '1.5px dashed rgba(255,255,255,0.3)', display: 'grid', placeItems: 'center' }}><Icon name="plus" size={16} color="rgba(255,255,255,0.6)" /></span>
-            <div className="col"><div className="nm" style={{ color: 'var(--sd-blue-300)' }}>Agregar</div></div>
+            <span className="side-add-ico" style={{ width: 30, height: 30, borderRadius: 999, border: '1.5px dashed rgba(255,255,255,0.3)', display: 'grid', placeItems: 'center' }}><Icon name="plus" size={16} color="rgba(255,255,255,0.6)" /></span>
+            <div className="col"><div className="nm side-add-lbl" style={{ color: 'var(--sd-blue-300)' }}>Agregar</div></div>
           </button>
         </div>
 

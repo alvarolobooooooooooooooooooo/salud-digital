@@ -1,21 +1,27 @@
 /* =====================================================================
    paciente-glass.css — capa de glassmorphism para la plataforma del
    paciente. Se carga DESPUÉS de salud_tokens.css + app.css + desktop.css
-   y reescribe las superficies planas del prototipo al lenguaje "liquid
-   glass" del resto de Salud Digital (translúcido + blur + glow cian sobre
-   un fondo de orbes), full-bleed para incrustarse en la plataforma.
-   Soporta claro y oscuro vía [data-theme].
+   y reescribe las superficies del prototipo al lenguaje "liquid glass" de
+   Salud Digital, IGUALANDO la app de clínica (layout.css + theme-dark.css):
+   sidebar de vidrio claro / negro, lienzo casi-negro con glow cian tenue
+   en oscuro, tarjetas de vidrio, acento cian #0891b2/#06b6d4.
+   Full-bleed para incrustarse en la plataforma. Soporta claro y oscuro.
    ===================================================================== */
 
 :root {
-  /* malla de orbes (canvas de la app) — claro */
-  --pg-mesh:
-    radial-gradient(1200px 820px at 84% -12%, rgba(14, 165, 233, 0.18), transparent 56%),
-    radial-gradient(960px 720px at -8% 108%, rgba(8, 145, 178, 0.15), transparent 54%),
-    radial-gradient(760px 600px at 52% 122%, rgba(2, 132, 199, 0.08), transparent 60%),
-    linear-gradient(180deg, #eef4fa 0%, #e7eef6 100%);
+  /* ---- acento de plataforma (cian) ---- */
+  --pg-cyan-600: #0891b2;
+  --pg-cyan-500: #06b6d4;
+  --pg-cyan-700: #0e7490;
 
-  /* vidrio */
+  /* malla del lienzo — claro (igual familia que el dashboard claro) */
+  --pg-mesh:
+    radial-gradient(1200px 820px at 84% -12%, rgba(14, 165, 233, 0.16), transparent 56%),
+    radial-gradient(960px 720px at -8% 108%, rgba(8, 145, 178, 0.13), transparent 54%),
+    radial-gradient(760px 600px at 52% 122%, rgba(2, 132, 199, 0.07), transparent 60%),
+    linear-gradient(180deg, #eef4fa 0%, #e6eef6 100%);
+
+  /* vidrio — claro */
   --pg-glass: rgba(255, 255, 255, 0.60);
   --pg-glass-strong: rgba(255, 255, 255, 0.74);
   --pg-glass-soft: rgba(255, 255, 255, 0.42);
@@ -29,30 +35,48 @@
   --pg-shadow-lg: 0 28px 64px -24px rgba(13, 47, 56, 0.34), 0 8px 22px -12px rgba(13, 47, 56, 0.12);
   --pg-glow: 0 12px 32px -12px rgba(8, 145, 178, 0.45);
 
-  /* hover/tint translúcido cian (reemplaza el sólido --sd-blue-50) */
   --pg-tint: rgba(8, 145, 178, 0.08);
   --pg-tint-strong: rgba(8, 145, 178, 0.13);
+
+  /* tokens de sidebar — claro */
+  --pg-side-bg:
+    radial-gradient(420px 320px at 100% 0%, rgba(14, 165, 233, 0.10), transparent 65%),
+    radial-gradient(360px 260px at 0% 100%, rgba(8, 145, 178, 0.08), transparent 65%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 252, 255, 0.92) 100%);
+  --pg-side-border: rgba(15, 23, 42, 0.06);
+  --pg-side-shadow: 1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 4px 24px rgba(15, 23, 42, 0.05);
+  --pg-side-logo: var(--sd-navy-800);
+  --pg-side-label: #94a3b8;
+  --pg-side-item: #475569;
+  --pg-side-item-hover-bg: rgba(8, 145, 178, 0.08);
+  --pg-side-item-hover: var(--pg-cyan-700);
+  --pg-side-active-bg: linear-gradient(135deg, rgba(8, 145, 178, 0.12) 0%, rgba(14, 165, 233, 0.10) 100%);
+  --pg-side-active-fg: var(--pg-cyan-700);
+  --pg-side-active-border: rgba(8, 145, 178, 0.16);
+  --pg-side-fam-nm: #334155;
+  --pg-side-fam-rl: #94a3b8;
+  --pg-side-fam-hover: rgba(8, 145, 178, 0.06);
+  --pg-side-account-bg: rgba(8, 145, 178, 0.06);
+  --pg-side-account-border: rgba(8, 145, 178, 0.12);
+  --pg-side-account-nm: #0f172a;
+  --pg-side-account-em: #64748b;
 }
 
 /* ---- Full-bleed: la app ocupa todo el contenedor; el mesh va detrás ---- */
 html, body { height: 100%; margin: 0; }
-body { background: #e7eef6; overflow: hidden; }
+body { background: #e6eef6; overflow: hidden; }
 #root {
   position: fixed; inset: 0; overflow: hidden;
   background: var(--pg-mesh);
   background-attachment: fixed;
 }
-/* quitamos el "stage"/escenario de dispositivo del prototipo */
 .stage { display: contents; background: none !important; }
 .scaler { transform: none !important; }
-/* las raíces del prototipo se vuelven transparentes para ver el mesh */
 .app, .web-root { background: transparent !important; }
 
 /* =====================================================================
    MÓVIL (MobileShell)
    ===================================================================== */
-
-/* header superior translúcido + safe-area real del dispositivo */
 .topbar {
   background: var(--pg-glass-strong);
   -webkit-backdrop-filter: var(--pg-blur);
@@ -63,7 +87,6 @@ body { background: #e7eef6; overflow: hidden; }
 }
 .topbar-flat { box-shadow: none; }
 
-/* barra inferior translúcida + safe-area */
 .tabbar {
   background: var(--pg-glass-strong);
   -webkit-backdrop-filter: var(--pg-blur);
@@ -73,7 +96,6 @@ body { background: #e7eef6; overflow: hidden; }
   box-shadow: 0 -8px 24px -16px rgba(13, 47, 56, 0.18);
 }
 
-/* tarjetas → vidrio */
 .card {
   background: var(--pg-glass);
   -webkit-backdrop-filter: var(--pg-blur);
@@ -84,12 +106,10 @@ body { background: #e7eef6; overflow: hidden; }
 }
 .card-flush { background: var(--pg-glass); }
 
-/* filas: transparentes (van sobre el vidrio de la tarjeta) */
 .row { background: transparent; }
 .row:hover { background: var(--pg-tint); }
 .row + .row { border-top: 1px solid var(--pg-hair); }
 
-/* control segmentado translúcido */
 .seg { background: var(--pg-glass-soft); border: 1px solid var(--pg-hair); }
 .seg button.on {
   background: var(--pg-glass-strong);
@@ -98,7 +118,6 @@ body { background: #e7eef6; overflow: hidden; }
   box-shadow: var(--pg-inset), 0 2px 8px -4px rgba(13, 47, 56, 0.12);
 }
 
-/* sheets / scrim */
 .sheet {
   background: var(--pg-glass-strong);
   -webkit-backdrop-filter: var(--pg-blur);
@@ -110,26 +129,53 @@ body { background: #e7eef6; overflow: hidden; }
 .scrim { background: rgba(8, 20, 36, 0.38); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
 
 /* =====================================================================
-   ESCRITORIO (WebShell)
+   SIDEBAR (escritorio) — igual a la app de clínica (vidrio claro / negro)
    ===================================================================== */
-
-/* sidebar: navy de marca, ahora en vidrio profundo con glow cian */
 .side {
-  background:
-    radial-gradient(380px 300px at 100% 0%, rgba(14, 165, 233, 0.26), transparent 60%),
-    radial-gradient(340px 320px at 0% 100%, rgba(8, 145, 178, 0.18), transparent 62%),
-    linear-gradient(180deg, rgba(0, 32, 80, 0.90) 0%, rgba(0, 20, 52, 0.94) 100%);
-  -webkit-backdrop-filter: saturate(160%) blur(18px);
-  backdrop-filter: saturate(160%) blur(18px);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
+  background: var(--pg-side-bg);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  backdrop-filter: saturate(160%) blur(16px);
+  border-right: 1px solid var(--pg-side-border);
+  box-shadow: var(--pg-side-shadow);
 }
-.nav-item.on {
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.95), rgba(14, 165, 233, 0.92));
-  box-shadow: 0 8px 20px -10px rgba(8, 145, 178, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
+.side-logo .wm { color: var(--pg-side-logo); }
+.side-logo .wm small { color: var(--pg-cyan-600); }
+.side-label { color: var(--pg-side-label); }
 
-/* topbar del navegador → vidrio */
+.nav-item { color: var(--pg-side-item); position: relative; }
+.nav-item:hover { background: var(--pg-side-item-hover-bg); color: var(--pg-side-item-hover); }
+.nav-item.on {
+  background: var(--pg-side-active-bg);
+  color: var(--pg-side-active-fg);
+  border: 1px solid var(--pg-side-active-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.nav-item.on::before {
+  content: ""; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, var(--pg-cyan-500) 0%, var(--pg-cyan-600) 100%);
+  box-shadow: 0 0 12px rgba(8, 145, 178, 0.45);
+}
+.nav-item .nav-badge { background: #ef4444; color: #fff; }
+.nav-item.on .nav-badge { background: #ef4444; color: #fff; }
+
+.side-fam .fam-item .nm { color: var(--pg-side-fam-nm); }
+.side-fam .fam-item .rl { color: var(--pg-side-fam-rl); }
+.fam-item:hover { background: var(--pg-side-fam-hover); }
+
+.side-account {
+  background: var(--pg-side-account-bg);
+  border: 1px solid var(--pg-side-account-border);
+}
+.side-account .nm { color: var(--pg-side-account-nm); }
+.side-account .em { color: var(--pg-side-account-em); }
+.side-add-ico { border: 1.5px dashed var(--pg-side-label) !important; }
+.side-add-ico svg { stroke: var(--pg-side-item) !important; }
+.side-add-lbl { color: var(--pg-cyan-600) !important; }
+
+/* =====================================================================
+   ESCRITORIO — superficies
+   ===================================================================== */
 .web-top {
   background: var(--pg-glass-strong);
   -webkit-backdrop-filter: var(--pg-blur);
@@ -147,7 +193,6 @@ body { background: #e7eef6; overflow: hidden; }
 .web-search:focus-within { border-color: rgba(8, 145, 178, 0.45); box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.14); }
 .icon-btn:hover, .fam-switch:hover { background: var(--pg-glass-strong); }
 
-/* tarjetas web → vidrio */
 .wcard {
   background: var(--pg-glass);
   -webkit-backdrop-filter: var(--pg-blur);
@@ -163,7 +208,6 @@ body { background: #e7eef6; overflow: hidden; }
   transform: translateY(-2px);
 }
 
-/* filas / tablas web translúcidas */
 .wrow { background: transparent; }
 .wrow:hover { background: var(--pg-tint); }
 .wrow + .wrow { border-top: 1px solid var(--pg-hair); }
@@ -172,12 +216,10 @@ body { background: #e7eef6; overflow: hidden; }
 .wtable tbody tr:hover { background: var(--pg-tint); }
 .web-chip { background: var(--pg-glass-soft); border: 1px solid var(--pg-glass-border); }
 
-/* chat de dos paneles sobre el mesh */
 .chat-2pane { background: var(--pg-glass-soft); -webkit-backdrop-filter: var(--pg-blur); backdrop-filter: var(--pg-blur); }
 .chat-list { background: transparent; border-right: 1px solid var(--pg-hair); }
 .chat-main { background: transparent; }
 
-/* overlays: modal-phone + drawer en vidrio */
 .web-scrim, .drawer-scrim { background: rgba(8, 20, 36, 0.46); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
 .modal-phone {
   background: var(--pg-glass-strong);
@@ -196,90 +238,99 @@ body { background: #e7eef6; overflow: hidden; }
 .drawer-head, .drawer-foot { border-color: var(--pg-hair); }
 .modal-close { background: var(--pg-glass-strong); -webkit-backdrop-filter: var(--pg-blur-sm); backdrop-filter: var(--pg-blur-sm); }
 
-/* =====================================================================
-   Acentos compartidos
-   ===================================================================== */
+/* acentos compartidos */
 .btn-primary { box-shadow: var(--pg-glow); }
 .btn-primary:hover { box-shadow: 0 16px 38px -12px rgba(8, 145, 178, 0.55); }
 .hr { background: var(--pg-hair); }
 
 /* =====================================================================
-   TEMA OSCURO  [data-theme="dark"]
-   Reescribe tokens de diseño + superficies a vidrio oscuro.
+   TEMA OSCURO  [data-theme="dark"] — valores EXACTOS de theme-dark.css
    ===================================================================== */
 [data-theme="dark"] {
+  /* lienzo casi-negro con glow cian muy tenue (igual al dashboard) */
   --pg-mesh:
-    radial-gradient(1200px 820px at 84% -12%, rgba(14, 165, 233, 0.16), transparent 56%),
-    radial-gradient(960px 720px at -8% 108%, rgba(6, 182, 212, 0.12), transparent 54%),
-    radial-gradient(760px 600px at 52% 122%, rgba(2, 132, 199, 0.10), transparent 60%),
-    linear-gradient(180deg, #060a12 0%, #04070d 100%);
+    radial-gradient(1100px 760px at 82% -10%, rgba(6, 182, 212, 0.05), transparent 60%),
+    radial-gradient(820px 640px at -8% 108%, rgba(8, 145, 178, 0.04), transparent 58%),
+    linear-gradient(180deg, #050507 0%, #08080a 100%);
 
-  --pg-glass: rgba(20, 26, 34, 0.62);
-  --pg-glass-strong: rgba(18, 23, 31, 0.80);
-  --pg-glass-soft: rgba(255, 255, 255, 0.05);
+  /* vidrio oscuro = --sd-surface / --sd-surface-2 de la plataforma */
+  --pg-glass: rgba(20, 20, 22, 0.72);
+  --pg-glass-strong: rgba(28, 28, 30, 0.82);
+  --pg-glass-soft: rgba(255, 255, 255, 0.045);
   --pg-glass-border: rgba(255, 255, 255, 0.09);
-  --pg-hair: rgba(255, 255, 255, 0.08);
+  --pg-hair: rgba(255, 255, 255, 0.055);
   --pg-blur: saturate(150%) blur(20px);
   --pg-blur-sm: saturate(140%) blur(12px);
-  --pg-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  --pg-shadow: 0 12px 34px -16px rgba(0, 0, 0, 0.6), 0 2px 8px -4px rgba(0, 0, 0, 0.4);
-  --pg-shadow-lg: 0 30px 70px -24px rgba(0, 0, 0, 0.75);
-  --pg-glow: 0 12px 32px -12px rgba(6, 182, 212, 0.4);
-  --pg-tint: rgba(6, 182, 212, 0.10);
-  --pg-tint-strong: rgba(6, 182, 212, 0.16);
+  --pg-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --pg-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --pg-shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+  --pg-glow: 0 6px 20px rgba(6, 182, 212, 0.25);
+  --pg-tint: rgba(6, 182, 212, 0.08);
+  --pg-tint-strong: rgba(6, 182, 212, 0.14);
+
+  /* sidebar oscuro = #sidebar de theme-dark.css (negro, NO navy) */
+  --pg-side-bg: linear-gradient(180deg, #0c0c0e 0%, #07070a 100%);
+  --pg-side-border: rgba(255, 255, 255, 0.055);
+  --pg-side-shadow: 1px 0 24px rgba(0, 0, 0, 0.45);
+  --pg-side-logo: #f1f5f9;
+  --pg-side-label: #64748b;
+  --pg-side-item: #cbd5e1;
+  --pg-side-item-hover-bg: rgba(6, 182, 212, 0.08);
+  --pg-side-item-hover: #22d3ee;
+  --pg-side-active-bg: linear-gradient(135deg, rgba(6, 182, 212, 0.18) 0%, rgba(8, 145, 178, 0.12) 100%);
+  --pg-side-active-fg: #22d3ee;
+  --pg-side-active-border: rgba(6, 182, 212, 0.35);
+  --pg-side-fam-nm: #cbd5e1;
+  --pg-side-fam-rl: #64748b;
+  --pg-side-fam-hover: rgba(6, 182, 212, 0.08);
+  --pg-side-account-bg: linear-gradient(135deg, rgba(8, 145, 178, 0.12), rgba(14, 165, 233, 0.04));
+  --pg-side-account-border: rgba(8, 145, 178, 0.2);
+  --pg-side-account-nm: #f1f5f9;
+  --pg-side-account-em: #94a3b8;
 
   /* tokens semánticos del diseño → oscuro (afecta estilos inline) */
   --bg-app: transparent;
-  --bg-surface: rgba(20, 26, 34, 0.72);
-  --bg-raised: rgba(26, 32, 41, 0.85);
+  --bg-surface: rgba(20, 20, 22, 0.72);
+  --bg-raised: rgba(28, 28, 30, 0.85);
   --bg-subtle: rgba(255, 255, 255, 0.06);
   --bg-brand-soft: rgba(8, 145, 178, 0.18);
 
-  --fg-default: #e2e8f0;
+  --fg-default: #cbd5e1;
   --fg-strong: #f1f5f9;
   --fg-muted: #94a3b8;
-  --fg-subtle: #6b7a8d;
+  --fg-subtle: #64748b;
 
-  --border-soft: rgba(255, 255, 255, 0.07);
-  --border-default: rgba(255, 255, 255, 0.11);
-  --border-strong: rgba(255, 255, 255, 0.17);
+  --border-soft: rgba(255, 255, 255, 0.055);
+  --border-default: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.14);
 
-  /* superficies/tintes claros usados inline → equivalentes oscuros */
   --sd-ink-50: rgba(255, 255, 255, 0.03);
   --sd-ink-100: rgba(255, 255, 255, 0.05);
   --sd-ink-150: rgba(255, 255, 255, 0.08);
   --sd-ink-200: rgba(255, 255, 255, 0.12);
-  --sd-blue-50: rgba(8, 145, 178, 0.10);
+  --sd-blue-50: rgba(6, 182, 212, 0.10);
   --sd-blue-100: rgba(8, 145, 178, 0.18);
 }
 
-[data-theme="dark"] body { background: #04070d; }
+[data-theme="dark"] body { background: #050507; }
+[data-theme="dark"] .side { -webkit-backdrop-filter: none; backdrop-filter: none; }
 
 /* botones translúcidos en oscuro */
 [data-theme="dark"] .btn-ghost { background: rgba(255, 255, 255, 0.07); color: var(--fg-strong); }
 [data-theme="dark"] .btn-ghost:hover { background: rgba(255, 255, 255, 0.11); }
 [data-theme="dark"] .btn-outline { background: rgba(255, 255, 255, 0.04); color: var(--fg-strong); border-color: var(--border-strong); }
 
-/* campos de texto del prototipo usan background:#fff inline → forzamos vidrio */
+/* campos de texto del prototipo usan background:#fff inline → vidrio oscuro */
 [data-theme="dark"] .app input, [data-theme="dark"] .app textarea,
 [data-theme="dark"] .web-root input, [data-theme="dark"] .web-root textarea {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: rgba(18, 18, 20, 0.55) !important;
   color: var(--fg-strong) !important;
 }
 [data-theme="dark"] .seg button.on { color: var(--fg-strong); }
 
-/* el sidebar navy ya es oscuro: solo profundizamos el glow */
-[data-theme="dark"] .side {
-  background:
-    radial-gradient(380px 300px at 100% 0%, rgba(6, 182, 212, 0.22), transparent 60%),
-    radial-gradient(340px 320px at 0% 100%, rgba(8, 145, 178, 0.14), transparent 62%),
-    linear-gradient(180deg, rgba(8, 14, 24, 0.92) 0%, rgba(4, 8, 16, 0.95) 100%);
-}
-
 /* scrollbars web en oscuro */
 [data-theme="dark"] .web-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); }
 
-/* respeta usuarios que prefieren menos movimiento */
 @media (prefers-reduced-motion: reduce) {
   .rise, .pageIn { animation: none !important; }
 }
