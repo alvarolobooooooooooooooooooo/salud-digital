@@ -117,7 +117,8 @@
         {
           label: 'AJUSTES',
           items: [
-            { href: '/configuracion.html', key: 'configuracion', iconName: 'settings', label: 'Configuración' }
+            { href: '/configuracion.html', key: 'configuracion', iconName: 'settings', label: 'Configuración' },
+            { href: '/plan.html', key: 'plan', iconName: 'creditCard', label: 'Suscripción' }
           ]
         }
       ];
@@ -148,7 +149,8 @@
         {
           label: 'AJUSTES',
           items: [
-            { href: '/configuracion.html', key: 'configuracion', iconName: 'settings', label: 'Configuración' }
+            { href: '/configuracion.html', key: 'configuracion', iconName: 'settings', label: 'Configuración' },
+            { href: '/plan.html', key: 'plan', iconName: 'creditCard', label: 'Suscripción' }
           ]
         }
       ];
@@ -174,7 +176,7 @@
     }).join('');
 
     // Mobile menu items (exclude items reserved for the drawer)
-    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio' && item.key !== 'doctors' && item.key !== 'facturacion').map(item => {
+    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'plan' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio' && item.key !== 'doctors' && item.key !== 'facturacion').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
@@ -281,6 +283,10 @@
             <a href="/configuracion.html" class="sidebar-menu-link">
               <span id="configMenuIcon"></span>
               <span>Configuración</span>
+            </a>
+            <a href="/plan.html" class="sidebar-menu-link">
+              <span id="planMenuIcon"></span>
+              <span>Suscripción</span>
             </a>
           </div>`}
 
@@ -462,6 +468,10 @@
     // Configuración menu icon
     const configMenuIcon = document.querySelector('#configMenuIcon');
     if (configMenuIcon && !configMenuIcon.innerHTML.trim()) configMenuIcon.innerHTML = Icons.render('settings', 16);
+
+    // Suscripción menu icon (drawer móvil)
+    const planMenuIcon = document.querySelector('#planMenuIcon');
+    if (planMenuIcon && !planMenuIcon.innerHTML.trim()) planMenuIcon.innerHTML = Icons.render('creditCard', 16);
 
     // Doctor notification bell icons
     const bellDesktop = document.querySelector('#sdNotifBellIconDesktop');
@@ -1194,6 +1204,38 @@
       window.location.href = href;
     }
   });
+})();
+
+// ── Guardián de suscripción (frontend) ──
+// El bloqueo real lo hace el servidor (402 en /api). Esto es el complemento
+// visual: si la cuenta no está al día, la página se manda a /plan.html sin
+// esperar a que falle su primera llamada — y cubre las pantallas que casi no
+// consultan la API. La respuesta se cachea 60s en sessionStorage para no pedir
+// el estado en cada navegación.
+(function () {
+  var GATED_ROLES = ['clinic_admin', 'doctor', 'receptionist'];
+  var CACHE_KEY = 'sd_billing_ok_until';
+  var path = window.location.pathname;
+
+  if (path === '/plan.html' || path === '/login.html' || path === '/' || path === '/index.html') return;
+  try {
+    if (GATED_ROLES.indexOf(localStorage.getItem('sd_role')) === -1) return;
+    var okUntil = parseInt(sessionStorage.getItem(CACHE_KEY) || '0', 10);
+    if (okUntil && Date.now() < okUntil) return; // verificado hace poco
+  } catch (_) { return; }
+
+  fetch('/api/billing/status', { credentials: 'same-origin' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      if (!data || !data.access) return;
+      if (data.access.active) {
+        try { sessionStorage.setItem(CACHE_KEY, String(Date.now() + 60000)); } catch (_) {}
+        return;
+      }
+      try { sessionStorage.removeItem(CACHE_KEY); } catch (_) {}
+      window.location.replace('/plan.html?bloqueo=1');
+    })
+    .catch(function () { /* sin red: que decida el servidor en la próxima llamada */ });
 })();
 
 // ── App nativa de escritorio (Tauri): enlaces externos en el navegador ──

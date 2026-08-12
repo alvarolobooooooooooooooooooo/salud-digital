@@ -522,6 +522,61 @@ const initDb = async () => {
       );
       CREATE INDEX IF NOT EXISTS idx_landing_leads_clinic ON clinic_landing_leads(clinic_id);
       CREATE INDEX IF NOT EXISTS idx_landing_leads_created ON clinic_landing_leads(created_at DESC);
+
+      -- ── Suscripción de la plataforma (PayPal) ──
+      -- Una fila por suscripción creada en PayPal. La clínica es el "cliente"
+      -- (en el modelo individual: un doctor = una clínica = una suscripción).
+      -- external_id es el ID de PayPal (I-XXXXXXXXXXXX) y es la clave real:
+      -- todo lo demás es copia local de lo que dice PayPal, que manda siempre.
+      CREATE TABLE IF NOT EXISTS subscriptions (
+        id SERIAL PRIMARY KEY,
+        clinic_id INTEGER NOT NULL,
+        user_id INTEGER,
+        provider TEXT NOT NULL DEFAULT 'paypal',
+        external_id TEXT NOT NULL UNIQUE,
+        plan_id TEXT DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'APPROVAL_PENDING',
+        amount NUMERIC DEFAULT 0,
+        currency TEXT DEFAULT 'USD',
+        subscriber_email TEXT DEFAULT '',
+        subscriber_name TEXT DEFAULT '',
+        start_time TIMESTAMP,
+        next_billing_time TIMESTAMP,
+        last_payment_at TIMESTAMP,
+        last_payment_amount NUMERIC,
+        cancelled_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_subscriptions_clinic ON subscriptions(clinic_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
+
+      -- Historial de cobros mensuales (llega por webhook PAYMENT.SALE.COMPLETED).
+      -- external_payment_id es UNIQUE → reintentos de webhook no duplican filas.
+      CREATE TABLE IF NOT EXISTS subscription_payments (
+        id SERIAL PRIMARY KEY,
+        subscription_id INTEGER,
+        external_subscription_id TEXT NOT NULL,
+        external_payment_id TEXT NOT NULL UNIQUE,
+        amount NUMERIC DEFAULT 0,
+        currency TEXT DEFAULT 'USD',
+        status TEXT DEFAULT 'COMPLETED',
+        paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE CASCADE
+      );
+      CREATE INDEX IF NOT EXISTS idx_subscription_payments_sub ON subscription_payments(external_subscription_id, paid_at DESC);
+
+      -- Idempotencia de webhooks: PayPal reintenta el mismo evento hasta recibir
+      -- 200, y puede mandarlo duplicado. Guardar el id del evento evita procesar
+      -- dos veces (p. ej. registrar el mismo cobro o revivir un estado viejo).
+      CREATE TABLE IF NOT EXISTS paypal_webhook_events (
+        event_id TEXT PRIMARY KEY,
+        event_type TEXT DEFAULT '',
+        received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
     for (const cmd of alterCommands) {

@@ -96,6 +96,18 @@ async function api(url, options = {}) {
     catch { data = { error: text.slice(0, 200) }; }
   }
   if (!res.ok) {
+    // 402 = suscripción inactiva. El servidor cierra la API entera, así que no
+    // tiene sentido dejar la página a medio cargar: se manda a la pantalla de
+    // suscripción (salvo que ya estemos en ella, o sería un bucle).
+    if (res.status === 402 && data && data.code === 'subscription_required') {
+      if (window.location.pathname !== '/plan.html') {
+        window.location.replace('/plan.html?bloqueo=1');
+      }
+      const err = new Error(data.error || 'Tu suscripción no está activa.');
+      err.status = 402;
+      err.code = 'subscription_required';
+      throw err;
+    }
     const err = new Error((data && data.error) || `Request failed (${res.status})`);
     err.status = res.status;
     throw err;

@@ -4,27 +4,28 @@
   <script src="/theme.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>SaludDigital — Mi Plan</title>
+  <title>SaludDigital — Suscripción</title>
   <link rel="stylesheet" href="/layout.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     /* ============================================================
-       Mi Plan — premium cyan redesign (scoped to .miplan-page)
+       Suscripción — mismo lenguaje visual que Mi Plan / Finanzas
+       (cian premium, tarjetas de vidrio, todo scoped a .subs-page)
        ============================================================ */
-    @property --miplan-ring-angle {
+    @property --subs-ring-angle {
       syntax: '<angle>';
       inherits: false;
       initial-value: 0deg;
     }
-    @property --miplan-shimmer-x {
+    @property --subs-shimmer-x {
       syntax: '<percentage>';
       inherits: false;
       initial-value: -120%;
     }
 
-    .miplan-page {
+    .subs-page {
       --cyan-50:  #ECFBFE;
       --cyan-100: #D2F4FA;
       --cyan-200: #A6E8F4;
@@ -52,770 +53,431 @@
       --green-500: #16B981;
       --green-600: #0E9B6B;
       --amber-500: #F2A33A;
+      --amber-600: #C77C15;
+      --red-500:   #EF4444;
+      --red-600:   #DC2626;
 
-      --mp-surface: var(--ink-0);
-      --mp-radius-sm: 10px;
-      --mp-radius:    16px;
-      --mp-radius-lg: 22px;
-      --mp-radius-xl: 28px;
+      --sp-surface: var(--ink-0);
+      --sp-radius:    16px;
+      --sp-radius-lg: 22px;
+      --sp-radius-xl: 28px;
 
-      --mp-shadow-1: 0 1px 0 rgba(13,40,52,.04), 0 1px 2px rgba(13,40,52,.04);
-      --mp-shadow-2: 0 1px 0 rgba(13,40,52,.04), 0 8px 20px -10px rgba(13,40,52,.12);
-      --mp-shadow-3: 0 1px 0 rgba(13,40,52,.04), 0 22px 50px -22px rgba(11,181,201,.28);
+      --sp-shadow-1: 0 1px 0 rgba(13,40,52,.04), 0 1px 2px rgba(13,40,52,.04);
+      --sp-shadow-2: 0 1px 0 rgba(13,40,52,.04), 0 8px 20px -10px rgba(13,40,52,.12);
+      --sp-shadow-3: 0 1px 0 rgba(13,40,52,.04), 0 22px 50px -22px rgba(11,181,201,.28);
 
-      --mp-font: 'Poppins', system-ui, sans-serif;
-      --mp-mono: 'Poppins', sans-serif;
-
-      font-family: var(--mp-font);
+      font-family: 'Poppins', system-ui, sans-serif;
       color: var(--ink-800);
       -webkit-font-smoothing: antialiased;
-      font-feature-settings: 'ss01','cv11';
       padding: 8px 0 64px;
       width: 100%;
-      max-width: none;
     }
-    .miplan-page * { box-sizing: border-box; }
-    .miplan-page button { font: inherit; cursor: pointer; }
-    .miplan-page a { color: inherit; }
+    .subs-page * { box-sizing: border-box; }
+    .subs-page button { font: inherit; cursor: pointer; }
+    .subs-page a { color: inherit; }
+
+    /* ── Tema oscuro: se re-mapea la escala de grises y todo lo demás sigue ── */
+    [data-theme="dark"] .subs-page {
+      --ink-0:   #131315;
+      --ink-50:  #17171a;
+      --ink-100: #1d1d21;
+      --ink-150: rgba(255,255,255,.09);
+      --ink-200: rgba(255,255,255,.14);
+      --ink-300: #64748b;
+      --ink-400: #94a3b8;
+      --ink-500: #cbd5e1;
+      --ink-600: #dbe3ea;
+      --ink-700: #e8eef3;
+      --ink-800: #f1f5f9;
+      --ink-900: #f8fafc;
+
+      --cyan-50:  rgba(6,182,212,.08);
+      --cyan-100: rgba(6,182,212,.15);
+      --cyan-200: rgba(6,182,212,.26);
+
+      --sp-surface: rgba(20, 20, 22, .72);
+      --sp-shadow-1: 0 1px 2px rgba(0,0,0,.4);
+      --sp-shadow-2: 0 8px 24px rgba(0,0,0,.45);
+      --sp-shadow-3: 0 18px 44px rgba(0,0,0,.5);
+      color: var(--ink-800);
+    }
 
     /* Topbar */
-    .miplan-page .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 28px;
-      gap: 16px;
-      flex-wrap: wrap;
+    .subs-page .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 26px; gap: 16px; flex-wrap: wrap;
     }
-    .miplan-page .crumbs {
-      font-size: 12.5px;
-      color: var(--ink-400);
-      letter-spacing: .02em;
+    .subs-page .crumbs {
+      font-size: 12.5px; color: var(--ink-400); letter-spacing: .02em;
       display: flex; gap: 8px; align-items: center;
     }
-    .miplan-page .crumbs b { color: var(--ink-700); font-weight: 600; }
-    .miplan-page .crumbs span { opacity: .5; }
-    .miplan-page .tb-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .miplan-page .pill-btn {
+    .subs-page .crumbs b { color: var(--ink-700); font-weight: 600; }
+    .subs-page .pill-btn {
       border: 1px solid var(--ink-150);
-      background: var(--mp-surface);
-      border-radius: 999px;
-      padding: 8px 14px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--ink-600);
+      background: var(--sp-surface);
+      border-radius: 999px; padding: 8px 14px;
+      font-size: 13px; font-weight: 500; color: var(--ink-600);
       display: inline-flex; align-items: center; gap: 8px;
       transition: all .15s ease;
     }
-    .miplan-page .pill-btn:hover { border-color: var(--cyan-300); color: var(--cyan-700); }
-    .miplan-page .pill-btn svg { width: 14px; height: 14px; }
+    .subs-page .pill-btn:hover { border-color: var(--cyan-300); color: var(--cyan-700); }
+    .subs-page .pill-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .subs-page .pill-btn svg { width: 14px; height: 14px; }
 
-    .miplan-page .page-title {
-      font-size: 34px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin: 0 0 6px;
-      color: var(--ink-900);
-      display: flex; align-items: baseline; gap: 12px;
+    .subs-page .page-title {
+      font-size: 34px; font-weight: 700; letter-spacing: -0.02em;
+      margin: 0 0 6px; color: var(--ink-900);
     }
-    .miplan-page .page-sub {
-      color: var(--ink-500);
-      font-size: 14.5px;
-      margin: 0 0 28px;
-      font-weight: 400;
+    .subs-page .page-sub {
+      color: var(--ink-500); font-size: 14.5px; margin: 0 0 26px;
     }
+
+    /* Avisos (bloqueo, retorno de PayPal, errores) */
+    .subs-page .notice {
+      display: flex; gap: 14px; align-items: flex-start;
+      border-radius: var(--sp-radius); padding: 16px 18px;
+      margin-bottom: 22px; font-size: 13.5px; line-height: 1.55;
+      border: 1px solid var(--ink-150); background: var(--sp-surface);
+      color: var(--ink-700);
+    }
+    .subs-page .notice .n-ic {
+      width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+      display: grid; place-items: center;
+      background: var(--ink-100); color: var(--ink-500);
+    }
+    .subs-page .notice .n-ic svg { width: 15px; height: 15px; }
+    .subs-page .notice b { display: block; margin-bottom: 2px; color: var(--ink-800); font-weight: 600; }
+    .subs-page .notice.warn { border-color: rgba(242,163,58,.35); background: rgba(242,163,58,.08); }
+    .subs-page .notice.warn .n-ic { background: rgba(242,163,58,.16); color: var(--amber-600); }
+    .subs-page .notice.danger { border-color: rgba(239,68,68,.32); background: rgba(239,68,68,.07); }
+    .subs-page .notice.danger .n-ic { background: rgba(239,68,68,.14); color: var(--red-600); }
+    .subs-page .notice.ok { border-color: rgba(22,185,129,.32); background: rgba(22,185,129,.08); }
+    .subs-page .notice.ok .n-ic { background: rgba(22,185,129,.15); color: var(--green-600); }
 
     /* HERO */
-    .miplan-page .hero {
-      position: relative;
-      border-radius: var(--mp-radius-xl);
-      overflow: hidden;
-      background: var(--mp-surface);
-      box-shadow: var(--mp-shadow-3);
-      isolation: isolate;
-      container-type: inline-size;
+    .subs-page .hero {
+      position: relative; border-radius: var(--sp-radius-xl); overflow: hidden;
+      background: var(--sp-surface); box-shadow: var(--sp-shadow-3);
+      isolation: isolate; container-type: inline-size;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     }
-    .miplan-page .hero::before {
-      content: '';
-      position: absolute; inset: 0;
-      padding: 1.5px;
-      border-radius: inherit;
-      background: conic-gradient(from var(--miplan-ring-angle),
-        var(--cyan-300) 0deg,
-        transparent 60deg 300deg,
-        var(--cyan-300) 360deg);
+    .subs-page .hero::before {
+      content: ''; position: absolute; inset: 0; padding: 1.5px; border-radius: inherit;
+      background: conic-gradient(from var(--subs-ring-angle),
+        var(--cyan-300) 0deg, transparent 60deg 300deg, var(--cyan-300) 360deg);
       -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
               mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor;
-              mask-composite: exclude;
-      animation: mp-spin 8s linear infinite;
-      opacity: .55;
-      pointer-events: none;
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      animation: sp-spin 8s linear infinite; opacity: .55; pointer-events: none;
     }
-    @keyframes mp-spin { to { --miplan-ring-angle: 360deg; } }
-
-    .miplan-page .hero::after {
-      content: '';
-      position: absolute; inset: 0;
+    @keyframes sp-spin { to { --subs-ring-angle: 360deg; } }
+    .subs-page .hero::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
       background:
         radial-gradient(60% 80% at 100% 0%, rgba(11,181,201,.10), transparent 60%),
         radial-gradient(50% 60% at 0% 100%, rgba(11,181,201,.06), transparent 60%);
-      pointer-events: none;
-      z-index: 0;
     }
-
-    .miplan-page .hero-grid {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: 1.4fr 1fr;
+    .subs-page .hero-grid {
+      position: relative; z-index: 1; display: grid; grid-template-columns: 1.35fr 1fr;
     }
     @container (max-width: 900px) {
-      .miplan-page .hero-grid { grid-template-columns: 1fr; }
+      .subs-page .hero-grid { grid-template-columns: 1fr; }
+      .subs-page .hero-right { border-left: 0 !important; border-top: 1px dashed var(--ink-150); }
     }
-
-    .miplan-page .hero-left { padding: 36px 40px 32px; }
-    .miplan-page .hero-right {
+    .subs-page .hero-left { padding: 36px 40px 32px; }
+    .subs-page .hero-right {
       padding: 36px 40px 32px;
       background: linear-gradient(180deg, rgba(11,181,201,.04), rgba(11,181,201,.08));
       border-left: 1px dashed var(--ink-150);
-      display: flex; flex-direction: column; gap: 22px;
+      display: flex; flex-direction: column; gap: 20px;
     }
 
-    .miplan-page .plan-tag {
-      font-size: 11.5px;
-      letter-spacing: .14em;
-      color: var(--cyan-600);
-      font-weight: 600;
-      text-transform: uppercase;
+    .subs-page .plan-tag {
+      font-size: 11.5px; letter-spacing: .14em; color: var(--cyan-600);
+      font-weight: 600; text-transform: uppercase;
     }
-    .miplan-page .plan-name {
-      font-size: 38px;
-      font-weight: 700;
-      margin: 4px 0 10px;
-      letter-spacing: -0.022em;
-      color: var(--ink-900);
+    .subs-page .plan-name {
+      font-size: 36px; font-weight: 700; margin: 4px 0 10px;
+      letter-spacing: -0.022em; color: var(--ink-900);
       display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
     }
-    .miplan-page .badge-active {
-      font-size: 11px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      font-weight: 600;
+    .subs-page .badge {
+      font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
+      border-radius: 999px; padding: 6px 12px 6px 26px; position: relative; color: white;
+      background: linear-gradient(160deg, #94a3b8, #64748b);
+    }
+    .subs-page .badge::before {
+      content: ''; position: absolute; left: 11px; top: 50%;
+      width: 8px; height: 8px; border-radius: 50%; background: white;
+      transform: translateY(-50%);
+    }
+    .subs-page .badge.on {
       background: linear-gradient(160deg, #1FCC95, #0E9B6B);
-      color: white;
-      border-radius: 999px;
-      padding: 6px 12px 6px 26px;
-      position: relative;
       box-shadow: 0 6px 14px -8px rgba(14,155,107,.55);
     }
-    .miplan-page .badge-active::before {
-      content: '';
-      position: absolute;
-      left: 11px; top: 50%;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: white;
-      box-shadow: 0 0 0 0 rgba(255,255,255,.6);
-      transform: translateY(-50%);
-      animation: mp-pulse 1.8s infinite;
-    }
-    .miplan-page .badge-inactive {
-      background: linear-gradient(160deg, #94a3b8, #64748b);
-      box-shadow: none;
-    }
-    @keyframes mp-pulse {
+    .subs-page .badge.on::before { animation: sp-pulse 1.8s infinite; }
+    .subs-page .badge.warn { background: linear-gradient(160deg, #F7B955, #C77C15); }
+    .subs-page .badge.off { background: linear-gradient(160deg, #F87171, #DC2626); }
+    @keyframes sp-pulse {
       0%   { box-shadow: 0 0 0 0 rgba(255,255,255,.6); }
       70%  { box-shadow: 0 0 0 8px rgba(255,255,255,0); }
       100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
     }
 
-    .miplan-page .plan-blurb {
-      color: var(--ink-500);
-      font-size: 14.5px;
-      margin: 0 0 24px;
-      max-width: 52ch;
-      line-height: 1.55;
+    .subs-page .plan-blurb {
+      color: var(--ink-500); font-size: 14.5px; margin: 0 0 24px;
+      max-width: 54ch; line-height: 1.55;
     }
-
-    .miplan-page .meta-row {
-      display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 24px;
-    }
-    .miplan-page .meta { display: flex; flex-direction: column; gap: 4px; }
-    .miplan-page .meta-label {
-      font-size: 11px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--ink-400);
-      font-weight: 600;
-    }
-    .miplan-page .meta-value {
-      font-size: 14.5px;
-      color: var(--ink-800);
-      font-weight: 500;
-    }
-    .miplan-page .meta-value .dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--cyan-500);
-      display: inline-block;
-      margin-right: 6px;
-      vertical-align: middle;
-    }
-
-    .miplan-page .price-row {
-      display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px;
-    }
-    .miplan-page .price-cur {
-      font-size: 26px;
-      color: var(--cyan-600);
-      font-weight: 700;
-      align-self: start;
-      margin-top: 10px;
-      letter-spacing: -0.02em;
-    }
-    .miplan-page .price-num {
-      font-size: 64px;
-      font-weight: 700;
-      letter-spacing: -0.04em;
-      background: linear-gradient(160deg, var(--cyan-500) 0%, var(--cyan-700) 100%);
-      -webkit-background-clip: text;
-              background-clip: text;
-      color: transparent;
-      line-height: 1;
-    }
-    .miplan-page .price-unit { font-size: 14px; color: var(--ink-500); font-weight: 500; }
-
-    .miplan-page .next-bill {
-      background: var(--mp-surface);
-      border: 1px solid var(--ink-150);
-      border-radius: var(--mp-radius);
-      padding: 14px 16px;
-      display: flex; align-items: center; gap: 14px;
-    }
-    .miplan-page .next-bill-cal {
-      width: 44px; height: 44px;
-      border-radius: 12px;
-      background: linear-gradient(160deg, var(--cyan-50), var(--cyan-100));
-      color: var(--cyan-700);
-      display: grid; place-items: center;
-      font-weight: 600;
-      font-size: 11px;
-      text-align: center;
-      line-height: 1;
-      flex-shrink: 0;
-      border: 1px solid var(--cyan-200);
-    }
-    .miplan-page .next-bill-cal b { display: block; font-size: 18px; letter-spacing: -0.02em; }
-    .miplan-page .next-bill-text { display: flex; flex-direction: column; gap: 2px; }
-    .miplan-page .next-bill-text .nb-label {
+    .subs-page .meta-row { display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 22px; }
+    .subs-page .meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .subs-page .meta-label {
       font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
       color: var(--ink-400); font-weight: 600;
     }
-    .miplan-page .next-bill-text .nb-value { font-size: 13.5px; color: var(--ink-700); font-weight: 500; }
+    .subs-page .meta-value {
+      font-size: 14px; color: var(--ink-800); font-weight: 500;
+      max-width: 34ch; overflow-wrap: anywhere;
+    }
+    .subs-page .meta-value .dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--cyan-500);
+      display: inline-block; margin-right: 6px; vertical-align: middle;
+    }
 
-    .miplan-page .pay-card {
-      display: flex; align-items: center; gap: 12px;
-      padding: 14px 16px;
-      background: var(--mp-surface);
+    .subs-page .next-bill {
+      background: var(--sp-surface); border: 1px solid var(--ink-150);
+      border-radius: var(--sp-radius); padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px; margin-bottom: 22px;
+    }
+    .subs-page .next-bill-cal {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(160deg, var(--cyan-50), var(--cyan-100));
+      color: var(--cyan-700); display: grid; place-items: center;
+      font-weight: 600; font-size: 11px; text-align: center; line-height: 1;
+      flex-shrink: 0; border: 1px solid var(--cyan-200);
+    }
+    .subs-page .next-bill-cal b { display: block; font-size: 18px; letter-spacing: -0.02em; }
+    .subs-page .next-bill-text { display: flex; flex-direction: column; gap: 2px; }
+    .subs-page .nb-label {
+      font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--ink-400); font-weight: 600;
+    }
+    .subs-page .nb-value { font-size: 13.5px; color: var(--ink-700); font-weight: 500; }
+
+    /* Precio */
+    .subs-page .price-row { display: flex; align-items: baseline; gap: 8px; }
+    .subs-page .price-cur {
+      font-size: 26px; color: var(--cyan-600); font-weight: 700;
+      align-self: start; margin-top: 10px; letter-spacing: -0.02em;
+    }
+    .subs-page .price-num {
+      font-size: 62px; font-weight: 700; letter-spacing: -0.04em; line-height: 1;
+      background: linear-gradient(160deg, var(--cyan-500) 0%, var(--cyan-700) 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .subs-page .price-unit { font-size: 14px; color: var(--ink-500); font-weight: 500; }
+    .subs-page .price-note { font-size: 12.5px; color: var(--ink-400); margin-top: 2px; }
+
+    .subs-page .paypal-card {
+      display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+      background: var(--sp-surface); border: 1px solid var(--ink-150);
+      border-radius: var(--sp-radius);
+    }
+    .subs-page .pp-mark {
+      font-weight: 800; font-size: 14px; letter-spacing: -.02em; flex-shrink: 0;
+      padding: 8px 10px; border-radius: 9px; background: var(--ink-50);
       border: 1px solid var(--ink-150);
-      border-radius: var(--mp-radius);
     }
-    .miplan-page .pay-brand {
-      width: 44px; height: 30px;
-      border-radius: 6px;
-      background: linear-gradient(135deg, #1A1F71 0%, #2A3199 100%);
-      color: white;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: .12em;
-      display: grid; place-items: center;
-    }
-    .miplan-page .pay-card .pc-num { font-size: 13.5px; color: var(--ink-700); font-weight: 500; }
-    .miplan-page .pay-card .pc-num .mono { font-family: var(--mp-mono); letter-spacing: .04em; color: var(--ink-500); }
-    .miplan-page .pay-card .pc-sub { font-size: 11px; color: var(--ink-400); }
+    .subs-page .pp-mark .a { color: #003087; }
+    .subs-page .pp-mark .b { color: #009cde; }
+    [data-theme="dark"] .subs-page .pp-mark .a { color: #7ea6ff; }
+    .subs-page .pp-txt .t { font-size: 13px; color: var(--ink-700); font-weight: 500; }
+    .subs-page .pp-txt .s { font-size: 11.5px; color: var(--ink-400); }
 
-    .miplan-page .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-    .miplan-page .btn {
-      border: 0;
-      border-radius: 12px;
-      padding: 13px 22px;
-      font-size: 13.5px;
-      font-weight: 600;
-      letter-spacing: .02em;
+    .subs-page .secure-line {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11.5px; color: var(--ink-400); line-height: 1.5;
+    }
+    .subs-page .secure-line svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* Botones */
+    .subs-page .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .subs-page .btn {
+      border: 0; border-radius: 12px; padding: 13px 22px;
+      font-size: 13.5px; font-weight: 600; letter-spacing: .02em;
       display: inline-flex; align-items: center; gap: 8px;
       transition: transform .12s ease, box-shadow .15s ease, background .2s ease;
     }
-    .miplan-page .btn svg { width: 15px; height: 15px; }
-    .miplan-page .btn-primary {
-      position: relative;
-      color: white;
+    .subs-page .btn svg { width: 15px; height: 15px; }
+    .subs-page .btn:disabled { opacity: .6; cursor: not-allowed; transform: none !important; }
+    .subs-page .btn-primary {
+      position: relative; color: white; overflow: hidden;
       background: linear-gradient(160deg, var(--cyan-400) 0%, var(--cyan-600) 100%);
       box-shadow: 0 14px 28px -14px rgba(11,181,201,.7);
-      overflow: hidden;
     }
-    .miplan-page .btn-primary::after {
-      content: '';
-      position: absolute; inset: 0;
+    .subs-page .btn-primary::after {
+      content: ''; position: absolute; inset: 0;
       background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.45) 50%, transparent 70%);
-      transform: translateX(var(--miplan-shimmer-x));
-      transition: --miplan-shimmer-x 1.2s ease;
+      transform: translateX(var(--subs-shimmer-x));
+      transition: --subs-shimmer-x 1.2s ease;
     }
-    .miplan-page .btn-primary:hover::after { --miplan-shimmer-x: 120%; }
-    .miplan-page .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 18px 32px -14px rgba(11,181,201,.8); }
-    .miplan-page .btn-ghost {
-      background: var(--mp-surface);
-      color: var(--ink-700);
-      border: 1px solid var(--ink-150);
+    .subs-page .btn-primary:hover::after { --subs-shimmer-x: 120%; }
+    .subs-page .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 18px 32px -14px rgba(11,181,201,.8); }
+    .subs-page .btn-ghost {
+      background: var(--sp-surface); color: var(--ink-700); border: 1px solid var(--ink-150);
     }
-    .miplan-page .btn-ghost:hover { border-color: var(--cyan-300); color: var(--cyan-700); background: var(--cyan-50); }
+    .subs-page .btn-ghost:hover { border-color: var(--cyan-300); color: var(--cyan-700); background: var(--cyan-50); }
+    .subs-page .btn-danger-ghost {
+      background: transparent; color: var(--red-600); border: 1px solid rgba(239,68,68,.3);
+    }
+    .subs-page .btn-danger-ghost:hover { background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.5); }
+    .subs-page .btn-spin {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.35); border-top-color: #fff;
+      animation: sp-rot .7s linear infinite;
+    }
+    .subs-page .btn-ghost .btn-spin { border-color: var(--ink-200); border-top-color: var(--cyan-600); }
+    @keyframes sp-rot { to { transform: rotate(360deg); } }
 
-    /* USAGE SECTION */
-    .miplan-page .section { margin-top: 36px; }
-    .miplan-page .sec-head {
+    /* Secciones */
+    .subs-page .section { margin-top: 34px; }
+    .subs-page .sec-head {
       display: flex; align-items: end; justify-content: space-between;
       margin-bottom: 16px; gap: 16px; flex-wrap: wrap;
     }
-    .miplan-page .sec-title {
+    .subs-page .sec-title {
       font-size: 18px; font-weight: 600; letter-spacing: -0.01em;
-      color: var(--ink-800); margin: 0;
-      display: flex; align-items: center; gap: 10px;
+      color: var(--ink-800); margin: 0; display: flex; align-items: center; gap: 10px;
     }
-    .miplan-page .sec-title .accent {
+    .subs-page .sec-title .accent {
       width: 5px; height: 18px; border-radius: 3px;
       background: linear-gradient(180deg, var(--cyan-400), var(--cyan-600));
     }
-    .miplan-page .sec-sub { font-size: 12.5px; color: var(--ink-400); font-weight: 500; }
+    .subs-page .sec-sub { font-size: 12.5px; color: var(--ink-400); font-weight: 500; }
 
-    .miplan-page .usage-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
+    .subs-page .card {
+      background: var(--sp-surface); border: 1px solid var(--ink-150);
+      border-radius: var(--sp-radius-lg); padding: 24px 26px;
+      box-shadow: var(--sp-shadow-1);
     }
-    .miplan-page .ucp {
-      position: relative;
-      background: var(--mp-surface);
-      border: 1px solid var(--ink-150);
-      border-radius: var(--mp-radius-lg);
-      padding: 24px 26px 20px;
-      box-shadow: var(--mp-shadow-1);
-      overflow: hidden;
-      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
-      isolation: isolate;
-    }
-    .miplan-page .ucp::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(120% 90% at 100% 0%, rgba(11,181,201,.06), transparent 55%);
-      z-index: -1;
-    }
-    .miplan-page .ucp:hover {
-      transform: translateY(-2px);
-      border-color: var(--cyan-200);
-      box-shadow: var(--mp-shadow-2);
-    }
-    .miplan-page .ucp-head {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 20px;
-    }
-    .miplan-page .ucp-label {
-      display: flex; align-items: center; gap: 10px;
-      font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
-      color: var(--ink-500); font-weight: 600;
-    }
-    .miplan-page .ucp-label .dotx {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--cyan-400), var(--cyan-600));
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan-500) 14%, transparent);
-    }
-    .miplan-page .ucp-body { display: flex; align-items: center; gap: 22px; }
+    .subs-page .split-2 { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
 
-    .miplan-page .pring {
-      position: relative;
-      width: 124px; height: 124px;
-      flex-shrink: 0;
-      filter: drop-shadow(0 8px 18px rgba(11,181,201,.18));
+    .subs-page .feat-list {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0 26px;
     }
-    .miplan-page .pring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-    .miplan-page .pring .track { stroke: var(--ink-100); }
-    .miplan-page .pring .fill {
-      stroke-linecap: round;
-      transition: stroke-dashoffset 1.4s cubic-bezier(.2,.7,.2,1);
-    }
-    .miplan-page .pring-center {
-      position: absolute; inset: 0;
-      display: grid; place-items: center;
-      text-align: center;
-    }
-    .miplan-page .pring-center .big {
-      font-size: 30px;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      color: var(--ink-900);
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
-    }
-    .miplan-page .pring-center .big .pct-unit {
-      font-size: 14px; color: var(--ink-400); font-weight: 500;
-    }
-    .miplan-page .pring-center .lbl {
-      font-size: 10px;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: var(--ink-400);
-      font-weight: 600;
-      margin-top: 6px;
-    }
-    .miplan-page .pring-center .inf {
-      font-size: 32px;
-      color: var(--cyan-600);
-      font-weight: 600;
-      margin-top: 2px;
-      line-height: 1;
-    }
-
-    .miplan-page .ucp-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
-    .miplan-page .ucp-stat {
-      display: flex; align-items: baseline; gap: 8px;
-      font-size: 38px; font-weight: 700;
-      letter-spacing: -0.03em; line-height: 1;
-      color: var(--ink-900);
-      font-variant-numeric: tabular-nums;
-    }
-    .miplan-page .ucp-stat .of {
-      font-size: 14px; color: var(--ink-400); font-weight: 500; letter-spacing: 0;
-    }
-    .miplan-page .ucp-delta {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 12px; font-weight: 600;
-      color: var(--green-600);
-      background: color-mix(in srgb, var(--green-500) 10%, transparent);
-      padding: 4px 9px;
-      border-radius: 999px;
-      align-self: flex-start;
-    }
-    .miplan-page .ucp-delta.flat { color: var(--cyan-700); background: var(--cyan-50); }
-    .miplan-page .ucp-delta svg { width: 11px; height: 11px; }
-    .miplan-page .ucp-meta { font-size: 12.5px; color: var(--ink-500); }
-    .miplan-page .ucp-meta b { color: var(--ink-700); font-weight: 600; }
-
-    .miplan-page .ucp-track {
-      margin-top: 18px;
-      position: relative;
-      height: 6px;
-      background: var(--ink-100);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .miplan-page .ucp-track .pfill {
-      position: absolute; inset: 0 auto 0 0;
-      width: 100%;
-      background: linear-gradient(90deg, var(--cyan-400), var(--cyan-600));
-      border-radius: 999px;
-      transform-origin: left;
-      transform: scaleX(var(--p, 0));
-      transition: transform 1.4s cubic-bezier(.2,.7,.2,1);
-    }
-    .miplan-page .ucp-track.indef {
-      background: linear-gradient(90deg, var(--cyan-200) 0%, var(--cyan-500) 50%, var(--cyan-200) 100%);
-      background-size: 200% 100%;
-      animation: mp-drift 5s linear infinite;
-      opacity: .55;
-    }
-    @keyframes mp-drift { to { background-position: 200% 0; } }
-    .miplan-page .ucp-foot {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-top: 10px;
-      font-size: 11px; color: var(--ink-400); letter-spacing: .04em;
-    }
-    .miplan-page .ucp-foot .max { font-family: var(--mp-mono); }
-
-    /* SPLIT (features + billing) */
-    .miplan-page .split-2 {
-      display: grid;
-      grid-template-columns: 1.3fr 1fr;
-      gap: 16px;
-    }
-    .miplan-page .card {
-      background: var(--mp-surface);
-      border: 1px solid var(--ink-150);
-      border-radius: var(--mp-radius-lg);
-      padding: 24px 26px;
-      box-shadow: var(--mp-shadow-1);
-    }
-    .miplan-page .card h3 {
-      margin: 0 0 18px;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--ink-800);
-      display: flex; align-items: center; gap: 10px;
-    }
-    .miplan-page .card h3 .h3-link {
-      font-size: 12px; color: var(--cyan-600); text-decoration: none; font-weight: 500;
-    }
-
-    .miplan-page .feat-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; }
-    .miplan-page .feat {
+    .subs-page .feat {
       display: flex; align-items: center; gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px dashed var(--ink-150);
+      padding: 10px 0; border-bottom: 1px dashed var(--ink-150);
     }
-    .miplan-page .feat:nth-last-child(-n+2) { border-bottom: 0; }
-    .miplan-page .feat-ic {
-      width: 26px; height: 26px;
-      border-radius: 8px;
+    .subs-page .feat:nth-last-child(-n+2) { border-bottom: 0; }
+    .subs-page .feat-ic {
+      width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
       background: linear-gradient(160deg, var(--cyan-50), var(--cyan-100));
-      color: var(--cyan-700);
-      display: grid; place-items: center;
-      flex-shrink: 0;
+      color: var(--cyan-700); display: grid; place-items: center;
     }
-    .miplan-page .feat-ic svg { width: 13px; height: 13px; }
-    .miplan-page .feat-text { font-size: 13.5px; color: var(--ink-700); font-weight: 500; flex: 1; }
-    .miplan-page .feat-val { font-size: 12px; color: var(--ink-400); font-weight: 500; }
+    .subs-page .feat-ic svg { width: 13px; height: 13px; }
+    .subs-page .feat-text { font-size: 13.5px; color: var(--ink-700); font-weight: 500; flex: 1; }
 
-    .miplan-page .bill-list { display: flex; flex-direction: column; gap: 2px; }
-    .miplan-page .bill-row {
-      display: grid;
-      grid-template-columns: auto 1fr auto auto;
-      gap: 14px;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px dashed var(--ink-150);
+    /* Historial de pagos */
+    .subs-page .bill-row {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 14px;
+      align-items: center; padding: 12px 0; border-bottom: 1px dashed var(--ink-150);
     }
-    .miplan-page .bill-row:last-child { border-bottom: 0; }
-    .miplan-page .bill-dot {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: var(--cyan-500);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan-500) 18%, transparent);
+    .subs-page .bill-row:last-child { border-bottom: 0; }
+    .subs-page .bill-dot {
+      width: 10px; height: 10px; border-radius: 50%; background: var(--cyan-500);
+      box-shadow: 0 0 0 3px rgba(11,181,201,.18);
     }
-    .miplan-page .bill-row.pending .bill-dot {
-      background: var(--amber-500);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--amber-500) 18%, transparent);
+    .subs-page .bill-row.refunded .bill-dot {
+      background: var(--amber-500); box-shadow: 0 0 0 3px rgba(242,163,58,.18);
     }
-    .miplan-page .bill-date { display: flex; flex-direction: column; }
-    .miplan-page .bill-date .d { font-size: 13px; color: var(--ink-700); font-weight: 600; }
-    .miplan-page .bill-date .y { font-size: 11px; color: var(--ink-400); }
-    .miplan-page .bill-date .pending-label {
-      color: var(--amber-500); font-size: 10px; margin-left: 6px; letter-spacing: .08em;
+    .subs-page .bill-date .d { font-size: 13px; color: var(--ink-700); font-weight: 600; }
+    .subs-page .bill-date .y { font-size: 11px; color: var(--ink-400); }
+    .subs-page .bill-amt {
+      font-size: 13px; color: var(--ink-800); font-weight: 600; letter-spacing: -.01em;
+      font-variant-numeric: tabular-nums;
     }
-    .miplan-page .bill-amt {
-      font-family: var(--mp-mono);
-      font-size: 13px; color: var(--ink-800); font-weight: 500; letter-spacing: -.01em;
-    }
-    .miplan-page .bill-act {
-      width: 30px; height: 30px;
-      border-radius: 8px;
-      display: grid; place-items: center;
-      background: var(--ink-50);
-      color: var(--ink-500);
-      border: 1px solid var(--ink-150);
-      transition: all .15s ease;
-    }
-    .miplan-page .bill-act:hover {
-      color: var(--cyan-700); border-color: var(--cyan-300); background: var(--cyan-50);
-    }
-    .miplan-page .bill-act svg { width: 13px; height: 13px; }
-
-    /* COMPARE PLANS */
-    .miplan-page .compare {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
-    .miplan-page .cp {
-      background: var(--mp-surface);
-      border: 1px solid var(--ink-150);
-      border-radius: var(--mp-radius-lg);
-      padding: 24px 24px 22px;
-      position: relative;
-      transition: all .2s ease;
-    }
-    .miplan-page .cp:hover {
-      transform: translateY(-3px);
-      border-color: var(--cyan-200);
-      box-shadow: var(--mp-shadow-2);
-    }
-    .miplan-page .cp.current {
-      border-color: var(--cyan-400);
-      background: linear-gradient(180deg, color-mix(in srgb, var(--cyan-50) 60%, white) 0%, white 50%);
-    }
-    .miplan-page .cp.featured {
-      border-color: transparent;
-      background: linear-gradient(180deg, var(--ink-900) 0%, #061018 100%);
-      color: white;
-    }
-    .miplan-page .cp.featured::before {
-      content: 'RECOMENDADO';
-      position: absolute;
-      top: 16px; right: 16px;
-      font-size: 9.5px;
-      letter-spacing: .16em;
-      font-weight: 700;
-      color: var(--cyan-300);
-      background: rgba(11,181,201,.12);
-      padding: 5px 9px;
-      border-radius: 999px;
-      border: 1px solid rgba(11,181,201,.25);
-    }
-    .miplan-page .cp-name { font-size: 14px; font-weight: 600; letter-spacing: -.01em; color: var(--ink-800); }
-    .miplan-page .cp.featured .cp-name { color: white; }
-    .miplan-page .cp-tag {
-      display: inline-block;
-      font-size: 10px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      font-weight: 600;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: var(--ink-100);
-      color: var(--ink-500);
-      margin-top: 8px;
-    }
-    .miplan-page .cp.current .cp-tag { background: var(--cyan-100); color: var(--cyan-700); }
-    .miplan-page .cp.featured .cp-tag { background: rgba(255,255,255,.08); color: var(--cyan-300); }
-
-    .miplan-page .cp-price { margin: 18px 0 6px; display: flex; align-items: baseline; gap: 4px; }
-    .miplan-page .cp-price .c { font-size: 16px; color: var(--ink-500); margin-top: 4px; font-weight: 600; }
-    .miplan-page .cp.featured .cp-price .c { color: rgba(255,255,255,.5); }
-    .miplan-page .cp-price .n {
-      font-size: 40px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink-900);
-    }
-    .miplan-page .cp.featured .cp-price .n { color: white; }
-    .miplan-page .cp.current .cp-price .n {
-      background: linear-gradient(160deg, var(--cyan-500), var(--cyan-700));
-      -webkit-background-clip: text; background-clip: text; color: transparent;
-    }
-    .miplan-page .cp-price .u { font-size: 12px; color: var(--ink-400); }
-    .miplan-page .cp.featured .cp-price .u { color: rgba(255,255,255,.5); }
-
-    .miplan-page .cp-blurb {
-      font-size: 12.5px; color: var(--ink-500);
-      margin: 0 0 16px; line-height: 1.55; min-height: 36px;
-    }
-    .miplan-page .cp.featured .cp-blurb { color: rgba(255,255,255,.6); }
-
-    .miplan-page .cp-feats {
-      list-style: none; padding: 0; margin: 0 0 20px;
-      display: flex; flex-direction: column; gap: 9px;
-    }
-    .miplan-page .cp-feats li {
-      font-size: 12.5px; color: var(--ink-600);
-      display: flex; gap: 9px; align-items: center;
-    }
-    .miplan-page .cp.featured .cp-feats li { color: rgba(255,255,255,.75); }
-    .miplan-page .cp-feats li::before {
-      content: '';
-      width: 14px; height: 14px;
-      border-radius: 50%;
-      background: var(--cyan-100) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%230BB5C9' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='3 8 7 12 13 4'/></svg>") center / 11px no-repeat;
-      flex-shrink: 0;
-    }
-    .miplan-page .cp.featured .cp-feats li::before {
-      background-color: rgba(11,181,201,.18);
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%236FD6EA' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='3 8 7 12 13 4'/></svg>");
+    .subs-page .empty {
+      text-align: center; padding: 26px 10px; color: var(--ink-400); font-size: 13px;
     }
 
-    .miplan-page .cp-cta {
-      width: 100%;
-      padding: 12px;
-      border-radius: 11px;
-      border: 0;
-      font-weight: 600;
-      font-size: 13px;
-      letter-spacing: .02em;
-      transition: all .15s ease;
-      background: var(--ink-50);
-      color: var(--ink-700);
-      border: 1px solid var(--ink-150);
+    .subs-page .faq { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .subs-page .faq-item .q {
+      font-size: 13.5px; font-weight: 600; color: var(--ink-800); margin-bottom: 5px;
     }
-    .miplan-page .cp .cp-cta:hover {
-      background: white; border-color: var(--cyan-300); color: var(--cyan-700);
-    }
-    .miplan-page .cp.current .cp-cta {
-      background: white; border-color: var(--cyan-200); color: var(--cyan-700); cursor: default;
-    }
-    .miplan-page .cp.featured .cp-cta {
-      background: linear-gradient(160deg, var(--cyan-400), var(--cyan-600));
-      color: white;
-      border: 0;
-      box-shadow: 0 12px 22px -10px rgba(11,181,201,.65);
-    }
-    .miplan-page .cp.featured .cp-cta:hover { transform: translateY(-1px); }
+    .subs-page .faq-item .a { font-size: 13px; color: var(--ink-500); line-height: 1.6; }
 
-    .miplan-page .page-foot {
-      margin-top: 36px;
-      display: flex; justify-content: space-between; align-items: center;
-      color: var(--ink-400); font-size: 12px;
-      gap: 12px; flex-wrap: wrap;
+    .subs-page .page-foot {
+      margin-top: 34px; display: flex; justify-content: space-between; align-items: center;
+      color: var(--ink-400); font-size: 12px; gap: 12px; flex-wrap: wrap;
     }
-    .miplan-page .page-foot a {
-      color: var(--cyan-600); text-decoration: none; font-weight: 500;
-    }
-    .miplan-page .page-foot a:hover { text-decoration: underline; }
 
-    /* fade in */
-    .miplan-page .fade-up { animation: mp-fadeUp .6s cubic-bezier(.2,.7,.2,1) both; }
-    .miplan-page .fade-up.d1 { animation-delay: .05s; }
-    .miplan-page .fade-up.d2 { animation-delay: .12s; }
-    .miplan-page .fade-up.d3 { animation-delay: .2s; }
-    .miplan-page .fade-up.d4 { animation-delay: .28s; }
-    .miplan-page .fade-up.d5 { animation-delay: .36s; }
-    @keyframes mp-fadeUp {
+    /* Modal de cancelación */
+    .subs-page .modal-ov {
+      position: fixed; inset: 0; z-index: 2000;
+      background: rgba(11,19,24,.55); backdrop-filter: blur(8px);
+      display: grid; place-items: center; padding: 1rem;
+      animation: sp-fade .2s ease;
+    }
+    @keyframes sp-fade { from { opacity: 0; } to { opacity: 1; } }
+    .subs-page .modal {
+      width: 100%; max-width: 460px; background: var(--ink-0);
+      border: 1px solid var(--ink-150); border-radius: var(--sp-radius-lg);
+      box-shadow: 0 30px 70px rgba(0,0,0,.35); overflow: hidden;
+      animation: sp-slide .25s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes sp-slide { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+    .subs-page .modal-hd {
+      padding: 20px 24px 0; font-size: 17px; font-weight: 700; color: var(--ink-900);
+    }
+    .subs-page .modal-bd { padding: 10px 24px 4px; font-size: 13.5px; color: var(--ink-500); line-height: 1.6; }
+    .subs-page .modal-ft {
+      display: flex; justify-content: flex-end; gap: 10px; padding: 18px 24px 22px;
+    }
+
+    /* Carga / error */
+    .subs-page .sp-loading {
+      min-height: 340px; display: grid; place-items: center;
+      color: var(--ink-400); font-size: 14px; gap: 14px;
+    }
+    .subs-page .sp-spinner {
+      width: 32px; height: 32px; border: 3px solid var(--ink-150);
+      border-top-color: var(--cyan-500); border-radius: 50%;
+      animation: sp-rot .8s linear infinite;
+    }
+
+    .subs-page .fade-up { animation: sp-fadeUp .55s cubic-bezier(.2,.7,.2,1) both; }
+    .subs-page .fade-up.d1 { animation-delay: .05s; }
+    .subs-page .fade-up.d2 { animation-delay: .12s; }
+    .subs-page .fade-up.d3 { animation-delay: .2s; }
+    .subs-page .fade-up.d4 { animation-delay: .28s; }
+    @keyframes sp-fadeUp {
       from { opacity: 0; transform: translateY(10px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Loading + error states */
-    .miplan-page .mp-loading {
-      min-height: 360px;
-      display: grid; place-items: center;
-      color: var(--ink-400);
-      font-size: 14px;
-      gap: 14px;
-    }
-    .miplan-page .mp-spinner {
-      width: 32px; height: 32px;
-      border: 3px solid var(--ink-150);
-      border-top-color: var(--cyan-500);
-      border-radius: 50%;
-      animation: mp-rot .8s linear infinite;
-    }
-    @keyframes mp-rot { to { transform: rotate(360deg); } }
-    .miplan-page .mp-error {
-      padding: 32px;
-      border: 1px solid #FECACA;
-      background: #FEF2F2;
-      color: #B91C1C;
-      border-radius: var(--mp-radius);
-      font-size: 14px;
-    }
-
-    /* Responsive */
     @media (max-width: 1180px) {
-      .miplan-page .compare,
-      .miplan-page .usage-grid { grid-template-columns: 1fr 1fr; }
-      .miplan-page .split-2 { grid-template-columns: 1fr; }
+      .subs-page .split-2 { grid-template-columns: 1fr; }
     }
     @media (max-width: 760px) {
-      .miplan-page { padding: 4px 0 48px; }
-      .miplan-page .hero-left,
-      .miplan-page .hero-right { padding: 24px 22px; }
-      .miplan-page .compare,
-      .miplan-page .usage-grid { grid-template-columns: 1fr; }
-      .miplan-page .feat-list { grid-template-columns: 1fr; }
-      .miplan-page .plan-name { font-size: 30px; }
-      .miplan-page .price-num { font-size: 50px; }
-      .miplan-page .page-title { font-size: 28px; }
+      .subs-page { padding: 4px 0 48px; }
+      .subs-page .hero-left, .subs-page .hero-right { padding: 26px 22px; }
+      .subs-page .plan-name { font-size: 28px; }
+      .subs-page .price-num { font-size: 52px; }
+      .subs-page .page-title { font-size: 27px; }
+      .subs-page .feat-list, .subs-page .faq { grid-template-columns: 1fr; }
+      .subs-page .feat:nth-last-child(-n+2) { border-bottom: 1px dashed var(--ink-150); }
+      .subs-page .feat:last-child { border-bottom: 0; }
+      .subs-page .actions .btn { width: 100%; justify-content: center; }
     }
   </style>
 </head>
 <body>
 
 <main class="layout-main">
-  <div class="miplan-page" id="miplanRoot">
-    <div class="mp-loading">
-      <div class="mp-spinner"></div>
-      <span>Cargando tu plan…</span>
+  <div class="subs-page" id="subsRoot">
+    <div class="sp-loading">
+      <div class="sp-spinner"></div>
+      <span>Cargando tu suscripción…</span>
     </div>
   </div>
 </main>
@@ -824,533 +486,537 @@
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
 <script>
-  requireAuth(['clinic_admin']);
+  // La recepcionista entra en modo lectura (para entender por qué está bloqueada
+  // la app), pero solo el dueño de la cuenta puede contratar o cancelar.
+  requireAuth(['clinic_admin', 'doctor', 'receptionist']);
 
-  /* ========== Catálogo de planes ========== */
-  const PLAN_CATALOG = {
-    basic: {
-      key: 'basic',
-      name: 'Plan Básico',
-      tag: 'Para empezar',
-      price: 49,
-      blurb: 'Lo básico para una práctica individual con expediente digital.',
-      blurbLong: 'Acceso a la plataforma con consultas ilimitadas y recordatorios SMS para una práctica individual.',
-      patientLimit: 100,
-      doctorLimit: 2,
-      features: [
-        { t: 'Hasta 100 pacientes',          v: '' },
-        { t: 'Hasta 2 doctores',             v: '' },
-        { t: 'Consultas ilimitadas',         v: 'Sin tope' },
-        { t: 'Reportes básicos',             v: 'Incluido' },
-        { t: 'Recordatorios SMS',            v: 'Activos' },
-        { t: 'Soporte por email',            v: '< 24 hrs' }
-      ],
-      compareFeats: ['Hasta 100 pacientes', 'Hasta 2 doctores', 'Consultas ilimitadas', 'Reportes básicos', 'Recordatorios SMS']
-    },
-    professional: {
-      key: 'professional',
-      name: 'Plan Profesional',
-      tag: 'Tu plan actual',
-      price: 149,
-      blurb: 'Todo lo que necesita una clínica en crecimiento.',
-      blurbLong: 'Acceso completo a la plataforma con consultas y doctores ilimitados, recordatorios automáticos por WhatsApp y reportes avanzados para tu clínica.',
-      patientLimit: 500,
-      doctorLimit: null,
-      features: [
-        { t: 'Hasta 500 pacientes',          v: '' },
-        { t: 'Doctores ilimitados',          v: '' },
-        { t: 'Consultas ilimitadas',         v: 'Sin tope' },
-        { t: 'Reportes avanzados',           v: 'Incluido' },
-        { t: 'Recordatorios WhatsApp',       v: 'Activos' },
-        { t: 'Soporte prioritario',          v: '< 2 hrs' },
-        { t: 'API access',                    v: '1 token activo' },
-        { t: 'Exportar a CSV / Excel',       v: 'Incluido' }
-      ],
-      compareFeats: ['Hasta 500 pacientes', 'Doctores ilimitados', 'WhatsApp + Reportes', 'Soporte prioritario', 'API access']
-    },
-    enterprise: {
-      key: 'enterprise',
-      name: 'Plan Empresarial',
-      tag: 'Multi-clínica',
-      price: 399,
-      blurb: 'Para redes de clínicas con necesidades de cumplimiento y SSO.',
-      blurbLong: 'Solución empresarial con multi-sede, SSO, auditoría HIPAA y manager dedicado para redes de clínicas.',
-      patientLimit: null,
-      doctorLimit: null,
-      features: [
-        { t: 'Pacientes ilimitados',         v: '' },
-        { t: 'Doctores ilimitados',          v: '' },
-        { t: 'Consultas ilimitadas',         v: 'Sin tope' },
-        { t: 'Multi-sede',                   v: 'Activo' },
-        { t: 'SSO + SAML',                   v: 'Incluido' },
-        { t: 'Auditoría HIPAA',              v: 'Incluido' },
-        { t: 'Manager dedicado',             v: 'Asignado' },
-        { t: 'API access',                    v: 'Sin tope' }
-      ],
-      compareFeats: ['Pacientes ilimitados', 'Multi-sede', 'SSO + SAML', 'Auditoría HIPAA', 'Manager dedicado']
-    }
+  const ROOT = document.getElementById('subsRoot');
+
+  /* ── Iconos inline (mismos trazos que el resto de la plataforma) ── */
+  const I = {
+    refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.5 9a9 9 0 0114.8-3.4L23 10M1 14l4.7 4.4A9 9 0 0020.5 15"/></svg>',
+    check:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>',
+    lock:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>',
+    alert:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>',
+    info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+    party:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>',
+    arrow:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
   };
 
-  /* ========== Helpers de fechas ========== */
-  const MES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const MES_UPPER = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
   const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
 
-  function diasEntre(a, b) {
-    const ms = b.getTime() - a.getTime();
-    return Math.round(ms / 86400000);
-  }
-  function addMonths(date, n) {
-    const d = new Date(date.getTime());
-    d.setMonth(d.getMonth() + n);
-    return d;
-  }
+  /* ── Lo que incluye la plataforma (una sola suscripción, todo dentro) ── */
+  const FEATURES = [
+    'Expediente clínico digital ilimitado',
+    'Agenda de citas y calendario',
+    'Recordatorios y confirmaciones por WhatsApp',
+    'Odontograma, periodontograma y mapas clínicos',
+    'Consentimientos informados con firma',
+    'Finanzas y facturación',
+    'Inventario y control de insumos',
+    'Portal del paciente',
+    'Sitio web público de la clínica',
+    'Citas online para tus pacientes',
+    'Respaldo en la nube y auditoría',
+    'Actualizaciones y soporte incluidos'
+  ];
 
-  /* ========== SVG Icons (inline) ========== */
-  const I = {
-    arrow:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
-    sup:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12c0 5-4 9-9 9s-9-4-9-9 4-9 9-9 9 4 9 9z"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 1.5-2.5 2-2.5 3.5M12 17h.01"/></svg>',
-    refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.5 9a9 9 0 0114.8-3.4L23 10M1 14l4.7 4.4A9 9 0 0020.5 15"/></svg>',
-    chev:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
-    check:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg>',
-    up:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg>',
-    dl:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M6 11l6 6 6-6M5 21h14"/></svg>',
-    spark:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--cyan-600)"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>',
-    card:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--cyan-600)"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18M7 16h3"/></svg>',
-    lock:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>'
-  };
+  let state = { status: null, payments: [], banner: null, busy: '' };
 
-  /* ========== Render: Hero ========== */
-  function renderHero(plan, currentPlan) {
-    const expiryRaw = plan.plan_expires_at ? new Date(plan.plan_expires_at) : null;
-    const today = new Date();
-    let nextBillBlock = '';
-    if (expiryRaw) {
-      const upcoming = new Date(expiryRaw.getTime());
-      const days = Math.max(0, diasEntre(today, upcoming));
-      const mesLong = upcoming.toLocaleDateString('es-HN', { month: 'long' });
-      const dia = upcoming.getDate();
-      const yr = upcoming.getFullYear();
-      const dow = DIAS[upcoming.getDay()];
-      nextBillBlock = `
-        <div class="next-bill">
-          <div class="next-bill-cal">${MES_UPPER[upcoming.getMonth()]}<b>${dia}</b></div>
-          <div class="next-bill-text">
-            <span class="nb-label">Próxima renovación</span>
-            <span class="nb-value">${dow.charAt(0).toUpperCase()+dow.slice(1)} ${dia} de ${mesLong} ${yr} · en ${days} día${days===1?'':'s'}</span>
-          </div>
-        </div>
-      `;
-    } else {
-      nextBillBlock = `
-        <div class="next-bill">
-          <div class="next-bill-cal" style="background:linear-gradient(160deg,var(--ink-50),var(--ink-100));color:var(--ink-500);border-color:var(--ink-150)">∞</div>
-          <div class="next-bill-text">
-            <span class="nb-label">Renovación</span>
-            <span class="nb-value">Suscripción sin vencimiento</span>
-          </div>
-        </div>
-      `;
+  /* ── Formato ── */
+  function money(amount, currency) {
+    const value = Number(amount || 0);
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency', currency: currency || 'USD', minimumFractionDigits: 2
+      }).format(value);
+    } catch (_) {
+      return '$' + value.toFixed(2);
     }
+  }
+  function fechaLarga(d) {
+    return d.getDate() + ' de ' + d.toLocaleDateString('es-HN', { month: 'long' }) + ' de ' + d.getFullYear();
+  }
+  function diasHasta(d) {
+    return Math.max(0, Math.round((d.getTime() - Date.now()) / 86400000));
+  }
 
-    const cycle = plan.billing_cycle === 'yearly' ? 'Anual · renovación automática' : 'Mensual · renovación automática';
-    const isActive = plan.plan_status === 'active';
+  /* ── Estado legible ── */
+  function estado(st) {
+    const sub = st.subscription;
+    const status = sub ? String(sub.status || '').toUpperCase() : null;
+    const pagada = st.access.paid;
 
-    return `
+    if (!sub || status === 'EXPIRED') {
+      return { key: 'none', badge: 'Sin suscripción', tone: 'off',
+        blurb: 'Activa la suscripción mensual para usar Salud Digital sin interrupciones. El cobro lo procesa PayPal y puedes cancelarlo cuando quieras.' };
+    }
+    if (status === 'ACTIVE') {
+      return { key: 'active', badge: 'Activa', tone: 'on',
+        blurb: 'Tu suscripción está al día. PayPal cobra automáticamente cada mes y te enviará el recibo a tu correo.' };
+    }
+    if (status === 'APPROVAL_PENDING' || status === 'APPROVED') {
+      return { key: 'pending', badge: 'Pendiente', tone: 'warn',
+        blurb: 'Empezaste el proceso en PayPal pero aún no se confirmó el pago. Puedes retomarlo cuando quieras.' };
+    }
+    if (status === 'SUSPENDED') {
+      return { key: 'suspended', badge: 'Suspendida', tone: 'warn',
+        blurb: 'PayPal no pudo cobrar el mes. Revisa tu método de pago en PayPal o vuelve a suscribirte para reactivar el acceso.' };
+    }
+    if (status === 'CANCELLED') {
+      return { key: 'cancelled', badge: pagada ? 'Cancelada · activa hasta el fin del ciclo' : 'Cancelada', tone: pagada ? 'warn' : 'off',
+        blurb: pagada
+          ? 'Cancelaste la renovación automática. Conservas el acceso hasta que termine el mes que ya pagaste.'
+          : 'Tu suscripción está cancelada. Puedes reactivarla en cualquier momento; tus datos siguen intactos.' };
+    }
+    return { key: 'other', badge: status || 'Desconocido', tone: 'off', blurb: 'Estado reportado por PayPal.' };
+  }
+
+  /* ── Render ── */
+  function render() {
+    const st = state.status;
+    if (!st) return;
+    const sub = st.subscription;
+    const e = estado(st);
+    const owner = st.can_manage;
+    const precio = money(st.price, st.currency);
+
+    ROOT.innerHTML = `
+      <div class="topbar fade-up">
+        <div class="crumbs"><span>Cuenta</span> › <b>Suscripción</b></div>
+        <div>
+          ${owner && sub ? `<button class="pill-btn" id="btnSync" ${state.busy === 'sync' ? 'disabled' : ''}>
+            ${I.refresh} ${state.busy === 'sync' ? 'Actualizando…' : 'Actualizar estado'}
+          </button>` : ''}
+        </div>
+      </div>
+
+      <h1 class="page-title fade-up">Suscripción</h1>
+      <p class="page-sub fade-up">Un solo plan, todo incluido. Cobro mensual automático con PayPal.</p>
+
+      ${renderBanner()}
+      ${renderConfigWarning(st, owner)}
+
       <section class="hero fade-up d1">
         <div class="hero-grid">
           <div class="hero-left">
-            <div class="plan-tag">Tu plan actual</div>
+            <div class="plan-tag">Plan individual</div>
             <h2 class="plan-name">
-              ${esc(currentPlan.name)}
-              <span class="badge-active ${isActive ? '' : 'badge-inactive'}">${isActive ? 'Activo' : esc(plan.plan_status || 'Inactivo')}</span>
+              Salud Digital
+              <span class="badge ${e.tone}">${esc(e.badge)}</span>
             </h2>
-            <p class="plan-blurb">${esc(currentPlan.blurbLong)}</p>
+            <p class="plan-blurb">${esc(e.blurb)}</p>
 
-            <div class="meta-row">
-              <div class="meta">
-                <span class="meta-label">Clínica</span>
-                <span class="meta-value"><span class="dot"></span>${esc(plan.clinic_name || '—')}</span>
-              </div>
-              <div class="meta">
-                <span class="meta-label">Ciclo</span>
-                <span class="meta-value">${cycle}</span>
-              </div>
-              <div class="meta">
-                <span class="meta-label">Estado</span>
-                <span class="meta-value">${isActive ? 'Al día · sin cargos pendientes' : esc(plan.plan_status || '—')}</span>
-              </div>
-            </div>
-
-            <div class="actions">
-              <button class="btn btn-primary" id="mp-upgrade">
-                Mejorar plan ${I.arrow}
-              </button>
-              <button class="btn btn-ghost" id="mp-support">
-                ${I.sup} Contactar soporte
-              </button>
-              <button class="btn btn-ghost" id="mp-cycle">
-                ${I.refresh} Cambiar ciclo
-              </button>
-            </div>
+            ${renderMeta(st, sub)}
+            ${renderNextBill(st, sub, e)}
+            ${renderActions(st, e, owner)}
           </div>
 
           <div class="hero-right">
             <div>
-              <div class="meta-label" style="margin-bottom:4px">Precio actual</div>
+              <div class="meta-label" style="margin-bottom:4px">Precio</div>
               <div class="price-row">
-                <span class="price-cur">L.</span>
-                <span class="price-num">${currentPlan.price}</span>
-                <span class="price-unit">Lempiras / ${plan.billing_cycle === 'yearly' ? 'año' : 'mes'}</span>
+                <span class="price-cur">$</span>
+                <span class="price-num">${Number(st.price).toFixed(2)}</span>
+                <span class="price-unit">${esc(st.currency)} / mes</span>
               </div>
-              <div style="font-size:12px;color:var(--ink-400)">
-                IVA incluido · facturable a ${esc(plan.clinic_name || 'tu clínica')}
+              <div class="price-note">Renovación automática cada mes · sin contrato ni permanencia</div>
+            </div>
+
+            <div class="paypal-card">
+              <div class="pp-mark"><span class="a">Pay</span><span class="b">Pal</span></div>
+              <div class="pp-txt">
+                <div class="t">Pago procesado por PayPal</div>
+                <div class="s">Tarjeta, saldo o cuenta PayPal</div>
               </div>
             </div>
 
-            ${nextBillBlock}
-
-            <div class="pay-card">
-              <div class="pay-brand">VISA</div>
-              <div>
-                <div class="pc-num"><span class="mono">•••• •••• •••• 4827</span></div>
-                <div class="pc-sub">Vence 09/27 · método registrado</div>
-              </div>
+            <div class="secure-line">
+              ${I.lock}
+              <span>Salud Digital nunca ve ni almacena los datos de tu tarjeta. Todo el cobro ocurre dentro de PayPal.</span>
+            </div>
+            <div class="secure-line">
+              ${I.check}
+              <span>Cancela en un clic desde esta misma pantalla.</span>
             </div>
           </div>
         </div>
       </section>
-    `;
-  }
 
-  /* ========== Render: Usage cards (SVG ring) ========== */
-  function ringCard({ label, count, total, unit, longUnit, trend, trendDir, gradId, gradFrom, gradTo }) {
-    const isUnlimited = !total;
-    const pct = isUnlimited ? 1 : Math.min(count / total, 1);
-    const size = 124, stroke = 12, r = (size - stroke) / 2;
-    const C = 2 * Math.PI * r;
-    const offsetTarget = C * (1 - pct);
-
-    const center = isUnlimited
-      ? `<div class="inf">∞</div><div class="lbl">sin tope</div>`
-      : `<div class="big">${Math.round(pct*100)}<span class="pct-unit">%</span></div><div class="lbl">usado</div>`;
-
-    const trendBlock = trend ? `
-      <span class="ucp-delta ${trendDir==='flat'?'flat':''}">
-        ${trendDir==='up' ? I.up : ''}
-        ${esc(trend)}
-      </span>
-    ` : '';
-
-    return `
-      <div class="ucp">
-        <div class="ucp-head">
-          <div class="ucp-label">
-            <span class="dotx"></span>${esc(label)}
+      <div class="section split-2 fade-up d2">
+        <div class="card">
+          <div class="sec-head" style="margin-bottom:6px">
+            <h3 class="sec-title"><span class="accent"></span> Qué incluye</h3>
           </div>
-          ${trendBlock}
-        </div>
-        <div class="ucp-body">
-          <div class="pring">
-            <svg viewBox="0 0 ${size} ${size}">
-              <defs>
-                <linearGradient id="${gradId}" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="${gradFrom}"/>
-                  <stop offset="100%" stop-color="${gradTo}"/>
-                </linearGradient>
-              </defs>
-              <circle class="track" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke-width="${stroke}"/>
-              <circle class="fill" cx="${size/2}" cy="${size/2}" r="${r}" fill="none"
-                stroke="url(#${gradId})" stroke-width="${stroke}"
-                stroke-dasharray="${C}" stroke-dashoffset="${C}"
-                data-target-offset="${offsetTarget}"/>
-            </svg>
-            <div class="pring-center">${center}</div>
-          </div>
-          <div class="ucp-info">
-            <div class="ucp-stat">
-              ${count.toLocaleString('es-HN')}
-              <span class="of">/ ${total ? total.toLocaleString('es-HN') : '∞'} ${esc(unit)}</span>
-            </div>
-            <div class="ucp-meta">
-              ${total
-                ? `Quedan <b>${Math.max(0, total-count).toLocaleString('es-HN')}</b> ${esc(longUnit)} en tu plan`
-                : `Tu plan no tiene límite de ${esc(longUnit)}`}
-            </div>
+          <div class="feat-list">
+            ${FEATURES.map(f => `
+              <div class="feat">
+                <div class="feat-ic">${I.check}</div>
+                <div class="feat-text">${esc(f)}</div>
+              </div>`).join('')}
           </div>
         </div>
-        <div class="ucp-track ${isUnlimited?'indef':''}">
-          ${!isUnlimited ? `<div class="pfill" style="--p:${pct}"></div>` : ''}
-        </div>
-        <div class="ucp-foot">
-          <span>0</span>
-          <span class="max">${total ? total.toLocaleString('es-HN') : 'ilimitado'}</span>
+
+        <div class="card">
+          <div class="sec-head" style="margin-bottom:6px">
+            <h3 class="sec-title"><span class="accent"></span> Historial de pagos</h3>
+            <span class="sec-sub">${state.payments.length ? 'Últimos cobros' : ''}</span>
+          </div>
+          ${renderPayments()}
         </div>
       </div>
-    `;
-  }
 
-  function renderUsage(stats, currentPlan) {
-    const today = new Date();
-    const periodStart = new Date(today.getFullYear(), today.getMonth(), 1);
-    const periodEnd = new Date(today.getFullYear(), today.getMonth()+1, 0);
-    const fmtPeriod = (d) => `${d.getDate()} ${MES_CORTO[d.getMonth()].toLowerCase()}`;
-    const periodLabel = `Período actual · ${fmtPeriod(periodStart)} — ${fmtPeriod(periodEnd)} ${periodEnd.getFullYear()}`;
-
-    const patientsCard = ringCard({
-      label: 'Pacientes activos',
-      count: stats.total_patients,
-      total: currentPlan.patientLimit,
-      unit: 'pac.', longUnit: 'pacientes',
-      trend: currentPlan.patientLimit ? null : 'Ilimitado',
-      trendDir: 'flat',
-      gradId: 'mp-grad-pat', gradFrom: '#2EBED9', gradTo: '#0794AA'
-    });
-    const doctorsCard = ringCard({
-      label: 'Doctores',
-      count: stats.total_doctors,
-      total: currentPlan.doctorLimit,
-      unit: 'doc.', longUnit: 'doctores',
-      trend: currentPlan.doctorLimit ? null : 'Ilimitado',
-      trendDir: 'flat',
-      gradId: 'mp-grad-doc', gradFrom: '#6FD6EA', gradTo: '#0BB5C9'
-    });
-    const consultationsCard = ringCard({
-      label: 'Consultas este mes',
-      count: stats.consultations_this_month,
-      total: null,
-      unit: 'cons.', longUnit: 'consultas',
-      trend: 'Ilimitado',
-      trendDir: 'flat',
-      gradId: 'mp-grad-con', gradFrom: '#2EBED9', gradTo: '#096F82'
-    });
-
-    return `
-      <div class="section fade-up d2">
+      <div class="section fade-up d3">
         <div class="sec-head">
-          <h2 class="sec-title"><span class="accent"></span> Uso de tu plan</h2>
-          <span class="sec-sub">${esc(periodLabel)}</span>
+          <h3 class="sec-title"><span class="accent"></span> Preguntas frecuentes</h3>
         </div>
-        <div class="usage-grid">
-          ${patientsCard}
-          ${doctorsCard}
-          ${consultationsCard}
+        <div class="card faq">
+          <div class="faq-item">
+            <div class="q">¿Cuándo se hace el cobro?</div>
+            <div class="a">El primer cobro es al suscribirte y luego cada mes en la misma fecha. PayPal envía el recibo a tu correo.</div>
+          </div>
+          <div class="faq-item">
+            <div class="q">¿Qué pasa si cancelo?</div>
+            <div class="a">Conservas el acceso hasta que termine el mes que ya pagaste. Tus datos clínicos no se borran.</div>
+          </div>
+          <div class="faq-item">
+            <div class="q">¿Necesito cuenta de PayPal?</div>
+            <div class="a">No necesariamente: PayPal permite pagar con tarjeta de crédito o débito sin abrir una cuenta, según tu país.</div>
+          </div>
+          <div class="faq-item">
+            <div class="q">¿Y si falla un cobro?</div>
+            <div class="a">PayPal reintenta el cobro. Tras varios intentos fallidos la suscripción se suspende y el acceso queda en pausa hasta regularizarlo.</div>
+          </div>
         </div>
       </div>
+
+      <div class="page-foot fade-up d4">
+        <span>Precios en ${esc(st.currency)}. La suscripción se gestiona con PayPal${st.environment === 'sandbox' ? ' (entorno de pruebas)' : ''}.</span>
+        <span>¿Dudas? Escríbenos a contacto@saluddigital.hn</span>
+      </div>
     `;
+
+    wire();
   }
 
-  /* ========== Render: Features + Billing ========== */
-  function renderFeatures(currentPlan, stats) {
-    const dynamicVal = (f) => {
-      if (f.t === 'Hasta 100 pacientes' || f.t === 'Hasta 500 pacientes')
-        return `${stats.total_patients} / ${currentPlan.patientLimit}`;
-      if (f.t === 'Pacientes ilimitados')
-        return `${stats.total_patients.toLocaleString('es-HN')} activos`;
-      if (f.t === 'Hasta 2 doctores')
-        return `${stats.total_doctors} / 2`;
-      if (f.t === 'Doctores ilimitados')
-        return `${stats.total_doctors} activos`;
-      if (f.t === 'Consultas ilimitadas' && currentPlan.key !== 'basic')
-        return 'Sin tope';
-      return f.v;
-    };
+  function renderBanner() {
+    if (!state.banner) return '';
+    const b = state.banner;
+    const ic = b.tone === 'ok' ? I.party : b.tone === 'danger' ? I.alert : b.tone === 'warn' ? I.alert : I.info;
     return `
-      <div class="card">
-        <h3>${I.spark} Incluido en tu plan</h3>
-        <div class="feat-list">
-          ${currentPlan.features.map(f => `
-            <div class="feat">
-              <div class="feat-ic">${I.check}</div>
-              <div class="feat-text">${esc(f.t)}</div>
-              <div class="feat-val">${esc(dynamicVal(f))}</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
+      <div class="notice ${b.tone} fade-up">
+        <div class="n-ic">${ic}</div>
+        <div><b>${esc(b.title)}</b>${esc(b.text)}</div>
+      </div>`;
   }
 
-  function renderBilling(plan, currentPlan) {
-    const expiryRaw = plan.plan_expires_at ? new Date(plan.plan_expires_at) : null;
-    const rows = [];
-    const amount = `L. ${currentPlan.price.toLocaleString('es-HN')}.00`;
-    if (expiryRaw) {
-      // Próximo cargo (la fecha de expiración)
-      rows.push({
-        date: expiryRaw,
-        amt: amount, status: 'pending', label: 'Próximo'
-      });
-      // Cargos pasados (4 meses anteriores al expires_at, asumiendo ciclo mensual)
-      const stride = plan.billing_cycle === 'yearly' ? -12 : -1;
-      for (let i = 1; i <= 4; i++) {
-        const d = addMonths(expiryRaw, stride * i);
-        rows.push({ date: d, amt: amount, status: 'paid' });
-      }
-    } else {
-      // Solo historial sintético si no hay expiración
-      const today = new Date();
-      for (let i = 0; i < 5; i++) {
-        const d = addMonths(today, -i);
-        rows.push({ date: d, amt: amount, status: i === 0 ? 'pending' : 'paid', label: i === 0 ? 'Próximo' : null });
-      }
+  // Aviso solo para el dueño: la plataforma está desplegada sin credenciales de
+  // PayPal, así que el botón de suscripción no puede funcionar todavía.
+  function renderConfigWarning(st, owner) {
+    if (!owner) return '';
+    if (st.configured && st.plan_ready) return '';
+    return `
+      <div class="notice warn fade-up">
+        <div class="n-ic">${I.alert}</div>
+        <div>
+          <b>PayPal aún no está configurado en el servidor</b>
+          ${!st.configured
+            ? 'Faltan las credenciales PAYPAL_CLIENT_ID y PAYPAL_CLIENT_SECRET.'
+            : 'Falta PAYPAL_PLAN_ID: crea el plan con <code>node tools/paypal-setup.js</code>.'}
+        </div>
+      </div>`;
+  }
+
+  function renderMeta(st, sub) {
+    const items = [];
+    if (sub && sub.subscriber_email) {
+      items.push({ label: 'Cuenta de PayPal', value: sub.subscriber_email, dot: true });
     }
-    const html = rows.map(r => {
-      const dStr = `${r.date.getDate()} ${MES_CORTO[r.date.getMonth()]}`;
-      const yStr = `${r.date.getFullYear()} · VISA •• 4827`;
+    if (sub && sub.id) {
+      items.push({ label: 'ID de suscripción', value: sub.id });
+    }
+    if (sub && sub.start_time) {
+      items.push({ label: 'Suscrito desde', value: fechaLarga(new Date(sub.start_time)) });
+    }
+    if (!items.length) {
+      items.push({ label: 'Estado de la cuenta', value: 'Sin suscripción activa' });
+      items.push({ label: 'Ciclo', value: 'Mensual · renovación automática' });
+    }
+    return `
+      <div class="meta-row">
+        ${items.map(m => `
+          <div class="meta">
+            <span class="meta-label">${esc(m.label)}</span>
+            <span class="meta-value">${m.dot ? '<span class="dot"></span>' : ''}${esc(m.value)}</span>
+          </div>`).join('')}
+      </div>`;
+  }
+
+  function renderNextBill(st, sub, e) {
+    if (!sub) return '';
+    if (e.key === 'active' && sub.next_billing_time) {
+      const d = new Date(sub.next_billing_time);
+      const dias = diasHasta(d);
       return `
-        <div class="bill-row ${r.status==='pending'?'pending':''}">
-          <div class="bill-dot"></div>
-          <div class="bill-date">
-            <span class="d">${esc(dStr)}${r.label ? `<span class="pending-label">· ${esc(r.label.toUpperCase())}</span>` : ''}</span>
-            <span class="y">${esc(yStr)}</span>
+        <div class="next-bill">
+          <div class="next-bill-cal">${MES_UPPER[d.getMonth()]}<b>${d.getDate()}</b></div>
+          <div class="next-bill-text">
+            <span class="nb-label">Próximo cobro</span>
+            <span class="nb-value">${DIAS[d.getDay()].charAt(0).toUpperCase() + DIAS[d.getDay()].slice(1)} ${fechaLarga(d)} · en ${dias} día${dias === 1 ? '' : 's'} · ${money(sub.amount || st.price, sub.currency || st.currency)}</span>
           </div>
-          <div class="bill-amt">${esc(r.amt)}</div>
-          <button class="bill-act" title="Descargar factura" data-bill-download>${I.dl}</button>
-        </div>
-      `;
-    }).join('');
-    return `
-      <div class="card">
-        <h3 style="justify-content:space-between;display:flex">
-          <span style="display:inline-flex;align-items:center;gap:10px">
-            ${I.card} Facturación reciente
-          </span>
-          <a class="h3-link" href="#" data-action="see-all-bills">Ver todo →</a>
-        </h3>
-        <div class="bill-list">${html}</div>
-      </div>
-    `;
-  }
-
-  /* ========== Render: Compare plans ========== */
-  function renderCompare(currentKey) {
-    const order = ['basic', 'professional', 'enterprise'];
-    const cards = order.map(k => {
-      const p = PLAN_CATALOG[k];
-      let variant = '';
-      let cta = `Cambiar a ${p.name.replace('Plan ', '')}`;
-      let tag = p.key === 'basic' ? 'Para empezar' : p.key === 'enterprise' ? 'Multi-clínica' : 'Recomendado';
-      if (p.key === currentKey) {
-        variant = 'current';
-        cta = 'Plan actual';
-        tag = 'Tu plan actual';
-      } else if (p.key === 'enterprise') {
-        variant = 'featured';
-        cta = 'Hablar con ventas';
-      }
+        </div>`;
+    }
+    if ((e.key === 'cancelled' || e.key === 'suspended') && st.access.paid && sub.next_billing_time) {
+      const d = new Date(sub.next_billing_time);
       return `
-        <div class="cp ${variant}" data-plan="${esc(p.key)}">
-          <div class="cp-name">${esc(p.name.replace('Plan ', ''))}</div>
-          <span class="cp-tag">${esc(tag)}</span>
-          <div class="cp-price">
-            <span class="c">L.</span>
-            <span class="n">${p.price}</span>
-            <span class="u">/ mes</span>
+        <div class="next-bill">
+          <div class="next-bill-cal">${MES_UPPER[d.getMonth()]}<b>${d.getDate()}</b></div>
+          <div class="next-bill-text">
+            <span class="nb-label">Acceso hasta</span>
+            <span class="nb-value">${fechaLarga(d)} · después de esa fecha la plataforma se pausa</span>
           </div>
-          <p class="cp-blurb">${esc(p.blurb)}</p>
-          <ul class="cp-feats">
-            ${p.compareFeats.map(f => `<li>${esc(f)}</li>`).join('')}
-          </ul>
-          <button class="cp-cta">${esc(cta)}</button>
-        </div>
-      `;
-    }).join('');
-    return `
-      <div class="section fade-up d3">
-        <div class="sec-head">
-          <h2 class="sec-title"><span class="accent"></span> Comparar planes</h2>
-          <span class="sec-sub">Cambia o mejora cuando lo necesites · prorrateo automático</span>
-        </div>
-        <div class="compare">${cards}</div>
-      </div>
-    `;
+        </div>`;
+    }
+    return '';
   }
 
-  /* ========== Main render ========== */
-  function renderPage(plan) {
-    const planKey = PLAN_CATALOG[plan.plan_type] ? plan.plan_type : 'professional';
-    const currentPlan = PLAN_CATALOG[planKey];
+  function renderActions(st, e, owner) {
+    if (!owner) {
+      return `<div class="notice" style="margin:0">
+        <div class="n-ic">${I.info}</div>
+        <div><b>Solo el administrador de la cuenta puede gestionar la suscripción</b>Pídele que active o renueve el plan desde su usuario.</div>
+      </div>`;
+    }
 
-    return `
-      <div class="topbar fade-up">
-        <div class="crumbs">
-          <span>Cuenta</span> ${I.chev.replace('<svg', '<svg style="width:12px;height:12px;opacity:.4"')} <b>Mi Plan</b>
-        </div>
-        <div class="tb-right">
-          <button class="pill-btn" data-action="download-all">${I.dl} Descargar facturas</button>
-          <button class="pill-btn" data-action="security">${I.lock} Seguridad</button>
-        </div>
-      </div>
+    const puedeContratar = st.configured && st.plan_ready;
+    const cargando = state.busy === 'subscribe';
+    const spin = '<span class="btn-spin"></span>';
 
-      <h1 class="page-title fade-up">Mi Plan</h1>
-      <p class="page-sub fade-up">Información de tu suscripción, uso y facturación.</p>
+    const btnSuscribir = (texto) => `
+      <button class="btn btn-primary" id="btnSubscribe" ${cargando || !puedeContratar ? 'disabled' : ''}>
+        ${cargando ? spin + ' Conectando con PayPal…' : esc(texto) + ' ' + I.arrow}
+      </button>`;
 
-      ${renderHero(plan, currentPlan)}
-      ${renderUsage(plan.stats, currentPlan)}
-
-      <div class="section fade-up d3">
-        <div class="sec-head">
-          <h2 class="sec-title"><span class="accent"></span> Beneficios y facturación</h2>
-          <span class="sec-sub">Todo lo incluido + tus últimos cargos</span>
-        </div>
-        <div class="split-2">
-          ${renderFeatures(currentPlan, plan.stats)}
-          ${renderBilling(plan, currentPlan)}
-        </div>
-      </div>
-
-      ${renderCompare(planKey)}
-
-      <div class="page-foot fade-up d5">
-        <span>¿Dudas con la facturación? <a href="#" data-action="support">Contactar soporte</a> · responde en menos de 2 horas.</span>
-        <span style="font-family:var(--mp-mono);font-size:11px">v2.6 · salud digital</span>
-      </div>
-    `;
+    if (e.key === 'active') {
+      return `
+        <div class="actions">
+          <button class="btn btn-danger-ghost" id="btnCancel" ${state.busy === 'cancel' ? 'disabled' : ''}>
+            ${state.busy === 'cancel' ? spin + ' Cancelando…' : 'Cancelar suscripción'}
+          </button>
+        </div>`;
+    }
+    if (e.key === 'pending') {
+      return `<div class="actions">${btnSuscribir('Continuar con PayPal')}</div>`;
+    }
+    if (e.key === 'cancelled' || e.key === 'suspended') {
+      return `<div class="actions">${btnSuscribir('Reactivar por ' + money(st.price, st.currency) + '/mes')}</div>`;
+    }
+    return `<div class="actions">${btnSuscribir('Suscribirme por ' + money(st.price, st.currency) + '/mes')}</div>`;
   }
 
-  function attachInteractions(root) {
-    // Anillos: animar stroke-dashoffset hacia el target
-    requestAnimationFrame(() => {
-      root.querySelectorAll('.pring .fill').forEach(el => {
-        const target = el.getAttribute('data-target-offset');
-        if (target != null) el.style.strokeDashoffset = target;
-      });
-    });
-
-    const supportMsg = () => alert('Para cambios en tu suscripción, contacta a soporte: contacto@saluddigital.hn');
-    const upgradeMsg = () => alert('Contacta a ventas para mejorar tu plan: contacto@saluddigital.hn');
-    root.querySelector('#mp-upgrade')?.addEventListener('click', upgradeMsg);
-    root.querySelector('#mp-support')?.addEventListener('click', supportMsg);
-    root.querySelector('#mp-cycle')?.addEventListener('click', supportMsg);
-    root.querySelectorAll('[data-action="support"], [data-action="security"], [data-action="download-all"], [data-action="see-all-bills"], [data-bill-download]').forEach(el => {
-      el.addEventListener('click', (e) => { e.preventDefault(); supportMsg(); });
-    });
-    root.querySelectorAll('.cp .cp-cta').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const card = btn.closest('.cp');
-        if (card?.classList.contains('current')) return;
-        upgradeMsg();
-      });
-    });
+  function renderPayments() {
+    if (!state.status.can_manage) {
+      return `<div class="empty">Sin acceso al historial.</div>`;
+    }
+    if (!state.payments.length) {
+      return `<div class="empty">Todavía no hay cobros registrados.<br>Aparecerán aquí en cuanto PayPal procese el primero.</div>`;
+    }
+    return `<div class="bill-list">
+      ${state.payments.map(p => {
+        const d = new Date(p.paid_at);
+        const refunded = String(p.status).toUpperCase() !== 'COMPLETED';
+        return `
+          <div class="bill-row ${refunded ? 'refunded' : ''}">
+            <span class="bill-dot"></span>
+            <div class="bill-date">
+              <span class="d">${d.getDate()} ${MES_UPPER[d.getMonth()].toLowerCase()}${refunded ? ' · ' + esc(p.status.toLowerCase()) : ''}</span>
+              <span class="y">${d.getFullYear()}</span>
+            </div>
+            <span class="bill-amt">${money(p.amount, p.currency)}</span>
+          </div>`;
+      }).join('')}
+    </div>`;
   }
 
-  (async () => {
-    const root = document.getElementById('miplanRoot');
+  /* ── Acciones ── */
+  function wire() {
+    const sync = document.getElementById('btnSync');
+    if (sync) sync.onclick = doSync;
+
+    const sub = document.getElementById('btnSubscribe');
+    if (sub) sub.onclick = doSubscribe;
+
+    const cancel = document.getElementById('btnCancel');
+    if (cancel) cancel.onclick = openCancelModal;
+  }
+
+  function banner(tone, title, text) {
+    state.banner = { tone, title, text };
+  }
+
+  async function doSubscribe() {
+    state.busy = 'subscribe';
+    state.banner = null;
+    render();
     try {
-      const plan = await api('/api/clinics/plan/info');
-      root.innerHTML = renderPage(plan);
-      attachInteractions(root);
-    } catch (e) {
-      console.error(e);
-      root.innerHTML = `
-        <div class="mp-error">
-          <strong>No pudimos cargar tu plan.</strong><br>
-          ${esc(e.message || 'Error desconocido')}
+      const r = await api('/api/billing/subscribe', { method: 'POST', body: {} });
+
+      // En la app de escritorio (Tauri) NO se navega el webview a paypal.com:
+      // dejaría al doctor atrapado fuera de la plataforma, sin barra de
+      // direcciones ni forma de volver. El pago se abre en el navegador del
+      // sistema y aquí se queda el botón "Actualizar estado".
+      const tauri = (window.__TAURI__ && window.__TAURI__.core) || null;
+      if (tauri && typeof tauri.invoke === 'function') {
+        tauri.invoke('plugin:opener|open_url', { url: r.approve_url }).catch(() => {});
+        state.busy = '';
+        await load();
+        banner('info', 'Completa el pago en tu navegador',
+          'Abrimos PayPal fuera de la app. Cuando termines, vuelve aquí y pulsa "Actualizar estado".');
+        render();
+        return;
+      }
+
+      // Salimos de la app hacia PayPal; al volver, la página se encarga del resto.
+      window.location.href = r.approve_url;
+    } catch (err) {
+      state.busy = '';
+      banner('danger', 'No se pudo iniciar el pago', err.message || 'Intenta de nuevo en unos minutos.');
+      render();
+    }
+  }
+
+  async function doSync() {
+    state.busy = 'sync';
+    render();
+    try {
+      await api('/api/billing/sync', { method: 'POST', body: {} });
+      await load();
+      banner('ok', 'Estado actualizado', 'Los datos de tu suscripción se leyeron directamente de PayPal.');
+    } catch (err) {
+      banner('danger', 'No se pudo actualizar', err.message || 'Intenta de nuevo.');
+    }
+    state.busy = '';
+    render();
+  }
+
+  function openCancelModal() {
+    const ov = document.createElement('div');
+    ov.className = 'modal-ov';
+    ov.innerHTML = `
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal-hd">¿Cancelar la suscripción?</div>
+        <div class="modal-bd">
+          Se detiene la renovación automática en PayPal. Conservas el acceso hasta que
+          termine el mes que ya pagaste y tus datos clínicos permanecen intactos.
+          Puedes volver a suscribirte cuando quieras.
         </div>
-      `;
+        <div class="modal-ft">
+          <button class="btn btn-ghost" id="mdKeep">Seguir suscrito</button>
+          <button class="btn btn-danger-ghost" id="mdCancel">Sí, cancelar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+
+    const close = () => ov.remove();
+    ov.addEventListener('click', (ev) => { if (ev.target === ov) close(); });
+    ov.querySelector('#mdKeep').onclick = close;
+    ov.querySelector('#mdCancel').onclick = async () => {
+      close();
+      state.busy = 'cancel';
+      render();
+      try {
+        await api('/api/billing/cancel', { method: 'POST', body: { reason: 'Cancelada por el usuario' } });
+        await load();
+        banner('warn', 'Suscripción cancelada', 'No se harán más cobros. Puedes reactivarla cuando quieras.');
+      } catch (err) {
+        banner('danger', 'No se pudo cancelar', err.message || 'Intenta de nuevo o hazlo desde tu cuenta de PayPal.');
+      }
+      state.busy = '';
+      render();
+    };
+  }
+
+  /* ── Carga de datos ── */
+  async function load() {
+    const status = await api('/api/billing/status');
+    state.status = status;
+    if (status.can_manage) {
+      try { state.payments = await api('/api/billing/payments'); } catch (_) { state.payments = []; }
+    }
+    return status;
+  }
+
+  /* ── Regreso desde PayPal ── */
+  // PayPal añade ?subscription_id=I-XXXX al return_url. Se confirma contra la API
+  // (el servidor comprueba que esa suscripción sea de esta cuenta) y, si PayPal
+  // todavía la tiene en "aprobada", se reintenta un par de veces: la activación
+  // puede tardar unos segundos.
+  async function manejarRegreso(params) {
+    const subId = params.get('subscription_id');
+    if (!subId) {
+      banner('warn', 'El pago no se completó', 'Volviste de PayPal sin terminar la suscripción. Puedes intentarlo de nuevo cuando quieras.');
+      return;
+    }
+    try {
+      const r = await api('/api/billing/confirm', { method: 'POST', body: { subscription_id: subId } });
+      let activa = r.access && r.access.active;
+      for (let intento = 0; !activa && intento < 4; intento++) {
+        await new Promise(res => setTimeout(res, 2500));
+        try {
+          const s = await api('/api/billing/sync', { method: 'POST', body: {} });
+          activa = s.access && s.access.active;
+        } catch (_) { break; }
+      }
+      if (activa) {
+        banner('ok', '¡Listo, tu suscripción está activa!', 'PayPal cobrará ' + money(state.status ? state.status.price : 19.99, state.status ? state.status.currency : 'USD') + ' cada mes automáticamente. Ya tienes acceso completo a la plataforma.');
+      } else {
+        banner('warn', 'PayPal aún está confirmando el pago', 'Puede tardar unos minutos. Usa "Actualizar estado" para volver a consultar.');
+      }
+    } catch (err) {
+      banner('danger', 'No se pudo confirmar la suscripción', err.message || 'Consulta el estado con el botón "Actualizar estado".');
+    }
+  }
+
+  (async function init() {
+    const params = new URLSearchParams(window.location.search);
+    const flujo = params.get('paypal');
+    const bloqueo = params.get('bloqueo') === '1';
+
+    try {
+      await load();
+    } catch (err) {
+      ROOT.innerHTML = `<div class="notice danger"><div class="n-ic">${I.alert}</div>
+        <div><b>No se pudo cargar tu suscripción</b>${esc(err.message || 'Revisa tu conexión e intenta de nuevo.')}</div></div>`;
+      return;
+    }
+
+    if (bloqueo && !state.status.access.active) {
+      banner('danger', 'Tu acceso está en pausa',
+        'La plataforma queda bloqueada mientras la suscripción no esté activa. Actívala aquí y todo vuelve a funcionar al instante.');
+    }
+
+    if (flujo === 'cancel') {
+      banner('warn', 'Pago cancelado', 'Saliste de PayPal sin completar la suscripción. No se te ha cobrado nada.');
+    }
+
+    render();
+
+    if (flujo === 'return') {
+      ROOT.querySelector('.topbar').insertAdjacentHTML('afterend',
+        `<div class="notice fade-up"><div class="n-ic">${I.info}</div>
+         <div><b>Confirmando tu pago con PayPal…</b>Un momento, no cierres esta ventana.</div></div>`);
+      await manejarRegreso(params);
+      await load().catch(() => {});
+      render();
+    }
+
+    // La URL se limpia siempre: si el usuario recarga, no se re-dispara el flujo.
+    if (flujo || bloqueo) {
+      window.history.replaceState({}, '', '/plan.html');
     }
   })();
 </script>
+
 </body>
 </html>

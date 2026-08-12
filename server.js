@@ -263,6 +263,10 @@ app.use(compression({
 // odontogram_state, así que su body supera legítimamente el límite global. Un parser específico
 // con límite mayor corre antes que el global; express.json se salta si req._body ya existe, por
 // lo que el resto de rutas conserva el límite estricto de 256kb.
+// El webhook de PayPal necesita el cuerpo EXACTO tal como llegó para verificar
+// la firma, así que se captura como Buffer antes de cualquier parser JSON
+// (body-parser marca req._body y los parsers de abajo se saltan esta ruta).
+app.use('/api/billing/webhook', express.raw({ type: '*/*', limit: '1mb' }));
 app.use('/api/consultations', express.json({ limit: '25mb' }));
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
@@ -353,7 +357,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   dotfiles: 'deny',
 }));
 
+// Guardián de suscripción: sin plan activo, la API queda cerrada (402) salvo
+// login, facturación y endpoints públicos. Va ANTES de los routers para que
+// cualquier ruta futura quede cubierta sin acordarse de añadir nada.
+app.use('/api', require('./middleware/subscription').gate);
+
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/billing', require('./routes/billing'));
 app.use('/api/invitations', require('./routes/invitations'));
 app.use('/api/clinics', require('./routes/clinics'));
 app.use('/api/users', require('./routes/users'));
