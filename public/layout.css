@@ -803,6 +803,11 @@ nav.old-nav {
 
 .mobile-sidebar-overlay.active {
   display: block;
+  /* Se detiene en el canto izquierdo del cajón. Si lo cubriera, el vidrio del
+     cajón estaría desenfocando una capa negra al 40% YA desenfocada: un campo
+     uniforme, que por mucho blur que le eches sigue siendo un campo uniforme.
+     De ahí que el panel se viera plano y opaco. Ahora tiene detrás la página. */
+  right: 320px;
 }
 
 @keyframes overlayFadeIn {
@@ -822,29 +827,25 @@ nav.old-nav {
   /* Lámina de vidrio: veladura fina + desenfoque de lo que queda detrás (el
      scrim y la página). El canto izquierdo lleva el reflejo. */
   background: linear-gradient(180deg,
-    rgba(255, 255, 255, 0.78) 0%,
-    rgba(240, 247, 251, 0.68) 100%);
+    rgba(255, 255, 255, 0.62) 0%,
+    rgba(240, 247, 251, 0.52) 100%);
   -webkit-backdrop-filter: saturate(180%) blur(26px);
   backdrop-filter: saturate(180%) blur(26px);
-  border-left: 1px solid rgba(255, 255, 255, 0.6);
+  border-left: 1px solid rgba(255, 255, 255, 0.22);
   z-index: 200;
   display: flex;
   flex-direction: column;
-  box-shadow:
-    inset 1px 0 0 rgba(255, 255, 255, 0.6),
-    -8px 0 32px rgba(15, 23, 42, 0.16);
-  /* Se desliza con `right`, NO con transform.
-     WebKit anula el backdrop-filter de un elemento promovido a su propia capa
-     (transform / will-change / backface-visibility): en el iPhone el panel
-     salía plano y opaco mientras el scrim de al lado —que no lleva transform—
-     sí desenfocaba. Chrome de escritorio no lo reproduce, así que esto no se
-     ve en pruebas locales. Animar `right` cuesta layout por frame, pero son
-     350 ms y es el precio de que el vidrio exista en el dispositivo real.
-     El easing NO rebota: con `right`, pasarse de 0 abre un hueco a la derecha. */
-  right: -340px;
-  transition: right 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  box-shadow: -8px 0 32px rgba(15, 23, 42, 0.16);
+  /* Se desliza con transform (compositado en GPU): animar `right` obligaba a
+     recalcular layout en cada frame y se notaba el tirón. Sin will-change ni
+     backface-visibility, que fuerzan una promoción de capa más agresiva.
+     El scroll lo hace .mobile-sidebar-content, no este contenedor: dejarlo
+     scrollable aquí (overflow-y + -webkit-overflow-scrolling) creaba una capa
+     de scroll propia, otro escenario donde WebKit deja de pintar el vidrio. */
+  right: 0;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+  overflow: hidden;
   /* Drawer a pantalla completa: respeta notch arriba y home indicator abajo. */
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -860,7 +861,7 @@ nav.old-nav {
 }
 
 .mobile-sidebar.active {
-  right: 0;
+  transform: translateX(0);
 }
 
 .mobile-sidebar-header {

@@ -304,14 +304,12 @@ html[data-theme="dark"] body::after {
     /* Veladura al nivel del negro de la app (#050507): sobre el scrim oscuro
        lee como vidrio ahumado, no como un panel gris pegado encima. */
     background: linear-gradient(180deg,
-      rgba(12, 12, 15, 0.66) 0%,
-      rgba(6, 6, 9, 0.78) 100%) !important;
+      rgba(12, 12, 15, 0.52) 0%,
+      rgba(6, 6, 9, 0.64) 100%) !important;
     -webkit-backdrop-filter: saturate(170%) blur(26px) !important;
             backdrop-filter: saturate(170%) blur(26px) !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow:
-      inset 1px 0 0 rgba(255, 255, 255, 0.05),
-      -8px 0 32px rgba(0, 0, 0, 0.6) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.06) !important;
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.6) !important;
   }
 }
 [data-theme="dark"] .mobile-sidebar-header {
