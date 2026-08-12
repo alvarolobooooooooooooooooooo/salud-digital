@@ -114,7 +114,7 @@
 
     // ---- done / welcome ----
     return (
-      <div className="app" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, var(--sd-navy-700), var(--sd-navy-800))' }}>
+      <div className="app" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(120% 80% at 50% 0%, #06b6d4 0%, transparent 55%), linear-gradient(180deg, #0891b2 0%, #0369a1 60%, #075985 100%)' }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 36 }}>
           <div style={{ width: 100, height: 100, borderRadius: 999, background: 'rgba(255,255,255,0.12)', display: 'grid', placeItems: 'center', animation: 'popIn var(--dur-4) var(--ease-out)' }}>
             <div style={{ width: 76, height: 76, borderRadius: 999, background: 'var(--sd-vital-500)', display: 'grid', placeItems: 'center' }}><Icon name="check" size={42} color="#fff" strokeWidth={2.4} /></div>

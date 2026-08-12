@@ -46,7 +46,7 @@
 
         <div className="pad" style={{ paddingTop: 18, paddingBottom: 28 }}>
           {/* día de salud card */}
-          <div className="card rise" style={{ padding: 0, overflow: 'hidden', borderColor: 'transparent', background: 'linear-gradient(155deg, var(--sd-navy-700), var(--sd-navy-800))', color: '#fff' }}>
+          <div className="card rise" style={{ padding: 0, overflow: 'hidden', borderColor: 'transparent', background: 'radial-gradient(130% 130% at 100% 0%, rgba(255,255,255,0.20), transparent 55%), linear-gradient(135deg, #0891b2 0%, #0369a1 48%, #06b6d4 100%)', color: '#fff', boxShadow: '0 22px 48px -16px rgba(8,145,178,0.5), inset 0 1px 0 rgba(255,255,255,0.22)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '20px 22px' }}>
               <Ring value={adherence} size={86} stroke={9} color="var(--sd-blue-300)" track="rgba(255,255,255,0.16)">
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'var(--t-20)', color: '#fff', lineHeight: 1 }}>{takenCount}/{totalMeds}</div>

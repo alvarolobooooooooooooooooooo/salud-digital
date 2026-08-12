@@ -739,6 +739,7 @@
     <!-- Hábitos -->
     <div class="form-section" data-icon="lifestyle">
       <h3>Hábitos</h3>
+      <div id="anamnesisBanner" style="display:none;"></div>
       <div class="form-grid">
         <div class="form-group">
           <label>¿Consume drogas?</label>
@@ -925,6 +926,71 @@ requireAuth(['clinic_admin', 'doctor']);
 let appointmentId = null;
 let patientId = null;
 let consultSubmitting = false;
+let anamnesisPrefilled = false;
+
+// Autocompleta la Anamnesis (Hábitos) desde la última consulta de Ortodoncia del
+// paciente. NO bloquea ningún campo: solo marca los radios que estén sin elegir,
+// dejando todo editable. Se ejecuta dentro de loadAppointment() (esperado), así la
+// pantalla de carga (pageLoader) lo cubre y el doctor no escribe sobre datos a medio cargar.
+async function prefillAnamnesis() {
+  if (anamnesisPrefilled || !patientId) return;
+  try {
+    let prev = [];
+    try {
+      // Historial de la clínica para Ortodoncia (cualquier doctor de la especialidad).
+      const res = await api(`/api/patients/${patientId}/prefill-history?specialty=${encodeURIComponent('Ortodoncia')}&fields=lifestyle`);
+      prev = (res.consultations || []).filter(c => c.appointment_id !== appointmentId);
+    } catch (_) {}
+
+    if (!prev.length) { anamnesisPrefilled = true; return; }
+
+    // lifestyle viene como string (columna TEXT) desde /consultations; parsear defensivamente.
+    const lifestyleOf = (c) => {
+      let ls = c.lifestyle;
+      if (typeof ls === 'string') { try { ls = JSON.parse(ls || '{}'); } catch { ls = {}; } }
+      return ls || {};
+    };
+
+    // Para cada hábito tomamos el valor más reciente que se haya registrado en
+    // ALGUNA consulta anterior (prev viene de más nueva a más vieja), así no se
+    // pierde un dato si la última consulta dejó ese hábito en blanco. No se pisa
+    // lo que el doctor ya haya elegido.
+    let filledAny = false;
+    let sourceIdx = Infinity;
+    ['drugs', 'alcohol', 'smoking'].forEach(name => {
+      if (document.querySelector(`input[name="${name}"]:checked`)) return;
+      for (let i = 0; i < prev.length; i++) {
+        const val = lifestyleOf(prev[i])[name];
+        if (!val) continue;
+        const radio = document.querySelector(`input[name="${name}"][value="${val}"]`);
+        if (radio) { radio.checked = true; filledAny = true; sourceIdx = Math.min(sourceIdx, i); }
+        break;
+      }
+    });
+
+    if (filledAny) {
+      const src = prev[sourceIdx === Infinity ? 0 : sourceIdx];
+      showAnamnesisBanner(src.created_at, src.doctor_name);
+    }
+    anamnesisPrefilled = true;
+  } catch (e) {
+    console.error('Error autocompletando anamnesis:', e);
+  }
+}
+
+function showAnamnesisBanner(createdAt, doctorName) {
+  const banner = document.getElementById('anamnesisBanner');
+  if (!banner) return;
+  let fecha = '';
+  try {
+    if (createdAt) fecha = new Date(createdAt).toLocaleDateString('es-HN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  } catch (_) {}
+  const quien = doctorName ? ` (Dr. ${esc(doctorName)})` : '';
+  banner.innerHTML =
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>' +
+    '<span>Anamnesis rellenada automáticamente desde la última consulta' + (fecha ? ' del ' + fecha : '') + quien + '. Revisá y editá lo que haga falta.</span>';
+  banner.style.cssText = 'display:flex;align-items:center;gap:.6rem;margin:0 0 1.1rem;padding:.7rem .95rem;border-radius:12px;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.35);color:#a5f3fc;font-size:.85rem;line-height:1.35;font-weight:500;';
+}
 
 // ---- Orthodontics iframe bridge ----
 let ortoLastState = null;
@@ -1108,6 +1174,7 @@ async function loadAppointment() {
     await loadMedicalAlert();
 
     // Draft autosave
+    let hadDraft = false;
     if (window.ConsultationDraft) {
       ConsultationDraft.init({
         key: 'orthodontics',
@@ -1125,7 +1192,20 @@ async function loadAppointment() {
         }]
       });
       ConsultationDraft.bind(appointmentId);
-      ConsultationDraft.maybeRestore();
+      hadDraft = ConsultationDraft.maybeRestore();
+    }
+
+    // Autocompletar la anamnesis para pacientes recurrentes. Si hay borrador local
+    // se respeta ese flujo (el usuario decide restaurarlo); si lo DESCARTA, autocompletamos.
+    if (hadDraft) {
+      const discardBtn = document.getElementById('cdraft-discard');
+      if (discardBtn) discardBtn.addEventListener('click', () => {
+        const pl = document.getElementById('pageLoader');
+        if (pl) pl.classList.remove('hidden');
+        prefillAnamnesis().finally(() => { if (pl) pl.classList.add('hidden'); });
+      });
+    } else {
+      await prefillAnamnesis();
     }
 
     // Seed the evolution timeline with real start/next-control dates once

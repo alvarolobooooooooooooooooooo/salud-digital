@@ -249,6 +249,47 @@ router.get('/:id/consultations', authenticate, async (req, res) => {
   res.json({ consultations: consResult.rows, total, offset, limit });
 });
 
+// Historial acotado para autocompletar (prefill) una consulta nueva. A diferencia de
+// /:id/consultations, NO filtra por doctor: devuelve el historial de la clínica para la
+// misma especialidad, de modo que la anamnesis/antecedentes se hereden aunque haya
+// atendido otro profesional de la misma especialidad. Expone SOLO los campos necesarios
+// para el prefill (anamnesis/antecedentes), nunca diagnóstico/tratamiento/notas/costos.
+// El acceso del doctor sigue requiriendo una cita con el paciente.
+router.get('/:id/prefill-history', authenticate, async (req, res) => {
+  const patientResult = await query('SELECT id FROM patients WHERE id = $1 AND clinic_id = $2',
+    [req.params.id, req.user.clinic_id]);
+  const patient = patientResult.rows[0];
+  if (!patient) return res.status(404).json({ error: 'Patient not found' });
+
+  if (req.user.role === 'doctor') {
+    const accessResult = await query(
+      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = $1 AND doctor_id = $2 AND clinic_id = $3',
+      [patient.id, req.user.id, req.user.clinic_id]
+    );
+    if (parseInt(accessResult.rows[0].count) === 0) return res.status(403).json({ error: 'Access denied' });
+  }
+
+  const specialty = req.query.specialty || '';
+  // Solo se pueden exponer los contenedores de anamnesis/antecedentes, y el cliente
+  // pide explícitamente cuál necesita (ortodoncia → lifestyle; podología → radiography_notes),
+  // para no sobre-exponer notas clínicas de otras especialidades. Whitelist fija ⇒ sin inyección.
+  const ALLOWED_FIELDS = ['lifestyle', 'radiography_notes'];
+  const requested = String(req.query.fields || ALLOWED_FIELDS.join(','))
+    .split(',').map(s => s.trim()).filter(f => ALLOWED_FIELDS.includes(f));
+  const payloadCols = requested.map(f => `c.${f}`).join(', ');
+
+  const params = [patient.id, req.user.clinic_id];
+  let queryStr = `SELECT c.id, c.created_at, c.specialty, c.appointment_id, u.name as doctor_name${payloadCols ? ', ' + payloadCols : ''}
+                  FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id
+                  WHERE c.patient_id = $1 AND c.clinic_id = $2`;
+  if (specialty) { params.push(specialty); queryStr += ` AND c.specialty = $${params.length}`; }
+  // created_at + id como desempate determinístico de "más reciente".
+  queryStr += ' ORDER BY c.created_at DESC, c.id DESC LIMIT 50';
+
+  const consResult = await query(queryStr, params);
+  res.json({ consultations: consResult.rows });
+});
+
 router.put('/:id/odontogram', authenticate, async (req, res) => {
   const patientResult = await query('SELECT * FROM patients WHERE id = $1 AND clinic_id = $2',
     [req.params.id, req.user.clinic_id]);

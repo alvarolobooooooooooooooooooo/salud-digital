@@ -204,39 +204,35 @@ html[data-theme="dark"] body::after {
 }
 
 /* ── Mobile sidebar + nav ── */
-/* Liquid-glass mobile header (dark). The old bar was solid #050507 with blur
-   OFF — i.e. the same "plano" problem at night. This re-enables a dark
-   translucent frosted slab so the bar regains layered glass depth + brand glow,
-   while staying dark enough for status-bar legibility. PHI-safe: this bar only
-   overlaps app chrome / scroll content, never /api·/uploads media. Blur is gated
-   behind @supports; where unsupported a near-opaque slab keeps labels readable. */
-/* Isla de vidrio flotante (oscuro): superficie translúcida con esquinas
-   redondeadas (la geometría vive en layout.css) y sombra difusa. Sin líneas
-   duras — solo un borde de vidrio muy tenue. */
+/* Tab bar inferior de vidrio (oscuro). La geometría (anclaje abajo, esquinas
+   superiores redondeadas, safe-area del home indicator) vive en layout.css;
+   aquí solo va la materia: lámina oscura translúcida + pelo de luz arriba.
+   PHI-safe: la barra solo se superpone al chrome / scroll de la app, nunca a
+   media de /api·/uploads. El blur va tras @supports; sin él, una lámina casi
+   opaca mantiene legibles las etiquetas. */
 [data-theme="dark"] #mobileNav {
-  background: rgba(14, 16, 22, 0.92) !important;
-  background-color: rgba(14, 16, 22, 0.92) !important;
+  background: rgba(14, 16, 22, 0.94) !important;
+  background-color: rgba(14, 16, 22, 0.94) !important;
   border: none !important;
-  box-shadow:
-    0 14px 34px -12px rgba(0, 0, 0, 0.72),
-    0 4px 12px -6px rgba(0, 0, 0, 0.5) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 -12px 30px -20px rgba(0, 0, 0, 0.8) !important;
 }
 
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   [data-theme="dark"] #mobileNav {
-    background: rgba(16, 18, 24, 0.60) !important;
-    background-color: rgba(16, 18, 24, 0.60) !important;
-    -webkit-backdrop-filter: saturate(150%) blur(22px) !important;
-            backdrop-filter: saturate(150%) blur(22px) !important;
+    background: rgba(16, 18, 24, 0.68) !important;
+    background-color: rgba(16, 18, 24, 0.68) !important;
+    -webkit-backdrop-filter: saturate(150%) blur(24px) !important;
+            backdrop-filter: saturate(150%) blur(24px) !important;
   }
 }
 
-/* Idle / hover tabs — transparent; the glass lives on the bar slab, not per-tab. */
+/* Tabs en reposo / hover — transparentes; el vidrio vive en la lámina. */
 [data-theme="dark"] .mobile-nav-item,
 [data-theme="dark"] .mobile-nav-hamburger {
   color: var(--sd-text-muted) !important;
   background: transparent !important;
-  border: 1px solid transparent !important;
+  border: none !important;
   box-shadow: none !important;
 }
 
@@ -249,48 +245,47 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .mobile-nav-item:active,
 [data-theme="dark"] .mobile-nav-hamburger:active {
   color: #67e8f9 !important;
-  background:
-    linear-gradient(135deg,
-      rgba(6, 182, 212, 0.16) 0%,
-      rgba(14, 165, 233, 0.10) 100%) !important;
-  border-color: rgba(6, 182, 212, 0.28) !important;
+  background: transparent !important;
 }
 
-/* Active pill — saturated cyan glass with bright specular + glow + crisp rim. */
+/* Tab activo: solo color — sin píldora, como en la barra nativa. */
 [data-theme="dark"] .mobile-nav-item.active {
   color: #67e8f9 !important;
-  background:
-    linear-gradient(180deg,
-      rgba(178, 240, 255, 0.18) 0%,
-      rgba(255, 255, 255, 0.0) 40%),
-    linear-gradient(135deg,
-      rgba(6, 182, 212, 0.30) 0%,
-      rgba(14, 165, 233, 0.22) 55%,
-      rgba(56, 189, 248, 0.20) 100%) !important;
-  border: 1px solid rgba(56, 189, 248, 0.42) !important;
-  box-shadow:
-    0 1px 0 rgba(178, 240, 255, 0.30) inset,
-    0 -6px 10px -8px rgba(6, 182, 212, 0.30) inset,
-    0 5px 16px rgba(6, 182, 212, 0.30) !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 [data-theme="dark"] .mobile-nav-item:focus-visible,
 [data-theme="dark"] .mobile-nav-hamburger:focus-visible {
   outline: none !important;
-  border-color: rgba(56, 189, 248, 0.65) !important;
   box-shadow:
     0 0 0 2px rgba(8, 10, 14, 0.9),
-    0 0 0 4px rgba(56, 189, 248, 0.55),
-    0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    0 0 0 4px rgba(56, 189, 248, 0.55) !important;
 }
 
-/* Mobile nav icons — bypass the SVG gradient and use solid cyan-500
-   (same color as .stat-icon stroke via var(--primary) → #06b6d4) */
+/* Iconos: gris frío en reposo (el degradado no se lee sobre fondo oscuro),
+   cyan sólido en el tab activo o pulsado. */
 [data-theme="dark"] .mobile-nav-item .mobile-icon svg,
 [data-theme="dark"] .mobile-nav-item .mobile-icon svg *,
 [data-theme="dark"] .mobile-nav-hamburger svg,
 [data-theme="dark"] .mobile-nav-hamburger svg * {
-  stroke: #06b6d4 !important;
+  stroke: #7c8494 !important;
+}
+
+[data-theme="dark"] .mobile-nav-item.active .mobile-icon svg,
+[data-theme="dark"] .mobile-nav-item.active .mobile-icon svg *,
+[data-theme="dark"] .mobile-nav-item:active .mobile-icon svg,
+[data-theme="dark"] .mobile-nav-item:active .mobile-icon svg *,
+[data-theme="dark"] .mobile-nav-hamburger:active svg,
+[data-theme="dark"] .mobile-nav-hamburger:active svg * {
+  stroke: #22d3ee !important;
+}
+
+[data-theme="dark"] .mobile-nav-badge {
+  box-shadow:
+    0 0 0 2px rgba(16, 18, 24, 0.95),
+    0 4px 10px -3px rgba(225, 29, 72, 0.55) !important;
 }
 [data-theme="dark"] .mobile-sidebar {
   background: linear-gradient(180deg, #0c0c0e 0%, #07070a 100%) !important;

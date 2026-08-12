@@ -26,7 +26,8 @@ class OdontogramContainer {
   }
 
   _getSurfaceLabel(surface, fdi) {
-    const isUpperTooth = fdi && (Math.floor(fdi / 10) === 1 || Math.floor(fdi / 10) === 2);
+    // Upper teeth: permanent quadrants 1-2 and deciduous quadrants 5-6.
+    const isUpperTooth = fdi && [1, 2, 5, 6].includes(Math.floor(fdi / 10));
     const map = {
       mesial: 'Mesial',
       distal: 'Distal',

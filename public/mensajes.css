@@ -621,18 +621,23 @@
 
 /* Móvil: maestro-detalle (lista ⇄ hilo) */
 @media (max-width: 860px) {
-  /* Deja libre la barra de navegación superior fija (64px + safe-area del notch).
-     El header de la conversación queda pegado justo donde acaba el nav. */
-  .chat-page .layout-main.chat-main { padding-top: calc(64px + env(safe-area-inset-top, 0px)) !important; }
+  /* La tab bar vive ABAJO (fija): arriba solo hay que respetar el notch —el
+     header de la conversación arranca pegado a la status bar— y abajo se
+     reserva el alto de la barra + el home indicator, para que el composer no
+     quede debajo. */
+  .chat-page .layout-main.chat-main {
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    padding-bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px)) !important;
+  }
   .sd-app { grid-template-columns: 1fr; }
   .sd-list, .sd-thread { grid-column: 1; grid-row: 1; min-width: 0; }
   .sd-app.m-list .sd-thread { display: none; }
   .sd-app.m-thread .sd-list { display: none; }
   .sd-th-back { display: inline-flex; }
   .sd-msgs { padding: 16px 14px 8px; }
-  /* El composer respeta el home indicator del iPhone (safe-area abajo) para no
-     quedar tapado/cortado al borde inferior. */
-  .sd-composer { padding: 10px 14px calc(14px + env(safe-area-inset-bottom, 0px)); }
+  /* El home indicator ya lo reserva .chat-main (junto con el alto de la tab
+     bar), así que el composer no vuelve a sumarlo: solo su propio aire. */
+  .sd-composer { padding: 10px 14px 12px; }
   .sd-panel { width: 100%; max-width: 380px; }
 }
 
@@ -732,4 +737,380 @@
    superficie elevada para no quedar blanco sobre blanco. */
 :root[data-theme="dark"] .chat-shell .sd-toast {
   background: #2a2a2e;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SALUD DIGITAL · Mensajería — ELEVACIÓN PREMIUM (claro/base)
+   Base: Profundidad Premium Minimalista + injertos de marca y glass.
+   REGLAS DURAS: el único backdrop-filter es el header (estático,
+   cacheado). Cero blur sobre elementos que scrollean. Semánticos
+   clínicos OPACOS e intactos. Densidad sin cambios.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Nuevos tokens (extienden el bloque .chat-shell existente) ── */
+.chat-shell {
+  /* Sombras color-tintadas (cyan suave) — múltiples box-shadow baratos */
+  --shadow-cyan-xs: 0 1px 2px rgba(8,145,178,0.08);
+  --shadow-cyan-sm: 0 2px 4px rgba(8,145,178,0.10), 0 1px 2px rgba(8,145,178,0.06);
+  --shadow-cyan-md: 0 4px 12px rgba(8,145,178,0.14), 0 2px 4px rgba(8,145,178,0.08);
+
+  /* Inset de elevación (luz cenital en tarjetas) */
+  --inset-top-light: inset 0 1px 0 rgba(255,255,255,0.55);
+
+  /* Degradado de marca — SOLO momentos de acción. Mono-cyan (sin teal).
+     El extremo oscuro (#0e7490) asegura contraste AA con texto blanco. */
+  --grad-brand:        linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
+  --grad-brand-strong: linear-gradient(135deg, #0c647d 0%, #0e7490 100%);
+
+  /* Wash diagonal del lienzo (imperceptible, va en el PADRE estático) */
+  --wash-thread: linear-gradient(135deg, rgba(8,145,178,0.045) 0%, rgba(8,145,178,0.012) 60%, transparent 100%);
+
+  /* Specular highlight (cohesión liquid-glass del login) */
+  --specular-light: linear-gradient(90deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 45%, rgba(255,255,255,0) 100%);
+}
+
+/* ── 1 · LIENZO DEL HILO — aura de marca + wash en el PADRE estático ──
+   .sd-msgs es el scroller; el fondo vive en .sd-thread (no scrollea) →
+   0 re-rasterización por frame. Aura radial superior + wash diagonal:
+   da profundidad evidente al lienzo sin parallax ni blur. */
+.chat-shell .sd-thread {
+  background:
+    radial-gradient(135% 72% at 50% -8%, rgba(8,145,178,0.11) 0%, rgba(8,145,178,0.028) 40%, transparent 66%),
+    var(--wash-thread),
+    var(--bg-app);
+  background-attachment: fixed, fixed, scroll;
+  background-repeat: no-repeat, no-repeat, repeat;
+}
+
+/* ── 2 · CABECERA — glass refinado + specular (único backdrop-filter) ── */
+.chat-shell .sd-thread-head {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  box-shadow: 0 1px 3px rgba(11,20,36,0.06);
+  position: relative;
+}
+.chat-shell .sd-thread-head::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 1px;
+  background: var(--specular-light); pointer-events: none;
+}
+
+/* ── 3 · BURBUJA ENTRANTE — tarjeta flotante OPACA ── */
+.chat-shell .sd-msg .sd-bubble {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-top-left-radius: 4px;
+  box-shadow: var(--shadow-cyan-xs), var(--shadow-sm);
+}
+
+/* ── 3b · BURBUJA PROPIA — degradado de marca + contraste AA corregido ──
+   Antes: #0891b2 plano (~3:1 con blanco). Ahora: extremo #0e7490 (~4.6:1). */
+.chat-shell .sd-msg.own .sd-bubble {
+  background: var(--grad-brand);
+  color: #fff;
+  border: 1px solid var(--sd-blue-700);
+  border-top-left-radius: 14px; border-top-right-radius: 4px;
+  box-shadow: var(--shadow-cyan-md);
+}
+.chat-shell .sd-msg.own .sd-bubble .sd-mention {
+  background: rgba(255,255,255,0.26); color: #fff;
+}
+
+/* ── 3c · BURBUJA URGENTE — semántica intacta, sombra ROJA, sin animación ── */
+.chat-shell .sd-msg.urgent .sd-bubble {
+  box-shadow: 0 2px 6px rgba(190,18,60,0.14), 0 1px 2px rgba(190,18,60,0.08);
+}
+
+/* ── 4 · TARJETAS DE ADJUNTO — elevación (shadow-md + inset cenital) ── */
+.chat-shell .sd-pcard,
+.chat-shell .sd-study,
+.chat-shell .sd-ic,
+.chat-shell .sd-voice,
+.chat-shell .sd-task,
+.chat-shell .sd-announce {
+  box-shadow: var(--shadow-md), var(--inset-top-light);
+}
+
+/* ── 5 · LISTA — conv activa 'hundida' + hover con tinte cyan leve ── */
+.chat-shell .sd-conv.active {
+  background: var(--sd-blue-100);
+  box-shadow: inset 0 2px 6px rgba(8,145,178,0.12),
+              inset 0 -1px 2px rgba(8,145,178,0.06);
+}
+.chat-shell .sd-conv.active::before {
+  background: var(--grad-brand);
+  box-shadow: 2px 0 4px rgba(8,145,178,0.22);
+}
+
+/* ── 6 · COMPOSER — opaco; focus con sombra cyan + specular estático ── */
+.chat-shell .sd-comp-box { position: relative; }
+.chat-shell .sd-comp-box::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 1px;
+  background: var(--specular-light); pointer-events: none; z-index: 1;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+.chat-shell .sd-comp-box.focused {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-cyan-md), var(--shadow-focus);
+}
+
+/* ── 7 · FICHA — sombra izquierda + hairline cyan, OPACA, sin blur ── */
+.chat-shell .sd-panel {
+  box-shadow: -8px 0 24px rgba(11,20,36,0.08),
+              -1px 0 0 rgba(8,145,178,0.12);
+}
+
+/* ── 8 · MOMENTOS DE MARCA — degradado lineal (barato, 1 raster) ── */
+.chat-shell .sd-send,
+.chat-shell .sd-iconbtn.primary,
+.chat-shell .sd-voice-play,
+.chat-shell .sd-panel-btn.primary,
+.chat-shell .sd-btn.primary {
+  background: var(--grad-brand);
+  box-shadow: var(--shadow-cyan-sm);
+}
+.chat-shell .sd-send:hover,
+.chat-shell .sd-iconbtn.primary:hover,
+.chat-shell .sd-voice-play:hover,
+.chat-shell .sd-panel-btn.primary:hover,
+.chat-shell .sd-btn.primary:hover {
+  background: var(--grad-brand-strong);
+  box-shadow: var(--shadow-cyan-md);
+}
+.chat-shell .sd-send:disabled {
+  background: var(--sd-ink-200); box-shadow: none; color: var(--sd-ink-400);
+}
+.chat-shell .sd-filter.active {
+  background: var(--grad-brand); border-color: var(--sd-blue-700);
+  box-shadow: 0 2px 8px rgba(8,145,178,0.20);
+}
+
+/* ── 9 · DIVISORES + SCROLLBAR — cohesión cyan, decorativo ── */
+.chat-shell .sd-divider::before,
+.chat-shell .sd-divider::after {
+  background: linear-gradient(90deg, transparent, rgba(8,145,178,0.10), transparent);
+}
+.chat-shell .sd-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--sd-ink-200) 0%, rgba(8,145,178,0.16) 100%);
+}
+.chat-shell .sd-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--sd-ink-300) 0%, rgba(8,145,178,0.28) 100%);
+}
+
+/* ── 10 · FOCUS RINGS — sombra cyan coherente ── */
+.chat-shell .sd-search input:focus,
+.chat-shell .sd-field input:focus,
+.chat-shell .sd-field textarea:focus,
+.chat-shell .sd-field select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(8,145,178,0.18);
+}
+
+/* ── 11 · HOVER STATES refinados (sin blur) ── */
+.chat-shell .sd-iconbtn:hover { box-shadow: inset 0 1px 2px rgba(8,145,178,0.06); }
+.chat-shell .sd-cardbtn:hover { box-shadow: inset 0 1px 2px rgba(8,145,178,0.08); }
+
+/* ════════════════════════════════════════════════════════════════
+   DARK — overrides (negro neutro; cyan SOLO acento). Van DESPUÉS del
+   bloque dark base para ganar por orden a la regla previa del header.
+   ════════════════════════════════════════════════════════════════ */
+:root[data-theme="dark"] .chat-shell {
+  --shadow-cyan-xs: 0 1px 2px rgba(8,145,178,0.14);
+  --shadow-cyan-sm: 0 2px 4px rgba(8,145,178,0.16), 0 1px 2px rgba(8,145,178,0.10);
+  --shadow-cyan-md: 0 4px 12px rgba(8,145,178,0.20), 0 2px 4px rgba(8,145,178,0.12);
+
+  --inset-top-light: inset 0 1px 0 rgba(255,255,255,0.06);
+
+  /* Wash más visible que en claro pero aún imperceptible, sobre negro */
+  --wash-thread: linear-gradient(135deg, rgba(8,145,178,0.06) 0%, rgba(8,145,178,0.02) 60%, transparent 100%);
+
+  /* Specular tenue (evita glow en oscuro) */
+  --specular-light: linear-gradient(90deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0) 100%);
+}
+
+/* Lienzo del hilo — aura + wash sobre #050507 (PADRE estático).
+   Aura algo más presente que en claro (negro la absorbe). */
+:root[data-theme="dark"] .chat-shell .sd-thread {
+  background:
+    radial-gradient(135% 72% at 50% -8%, rgba(8,145,178,0.17) 0%, rgba(8,145,178,0.045) 40%, transparent 66%),
+    var(--wash-thread),
+    var(--bg-app);
+  background-attachment: fixed, fixed, scroll;
+  background-repeat: no-repeat, no-repeat, repeat;
+}
+
+/* Cabecera — glass oscuro (sube de 0.80 a 0.85 para más cohesión) */
+:root[data-theme="dark"] .chat-shell .sd-thread-head {
+  background: rgba(20,20,22,0.68);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.40);
+}
+
+/* Burbuja entrante — opaca, sombra cyan + sombra neutra oscura */
+:root[data-theme="dark"] .chat-shell .sd-msg .sd-bubble {
+  box-shadow: var(--shadow-cyan-xs), var(--shadow-sm);
+}
+
+/* Burbuja propia — mismo degradado mono-cyan, sombra más visible */
+:root[data-theme="dark"] .chat-shell .sd-msg.own .sd-bubble {
+  background: var(--grad-brand);
+  border-color: var(--sd-blue-700);
+  box-shadow: var(--shadow-cyan-md);
+}
+
+/* Burbuja urgente — sombra roja un poco más densa */
+:root[data-theme="dark"] .chat-shell .sd-msg.urgent .sd-bubble {
+  box-shadow: 0 2px 8px rgba(244,63,94,0.20), 0 1px 2px rgba(0,0,0,0.30);
+}
+
+/* Tarjetas — shadow-md (ya negro denso) + inset blanco apenas visible */
+:root[data-theme="dark"] .chat-shell .sd-pcard,
+:root[data-theme="dark"] .chat-shell .sd-study,
+:root[data-theme="dark"] .chat-shell .sd-ic,
+:root[data-theme="dark"] .chat-shell .sd-voice,
+:root[data-theme="dark"] .chat-shell .sd-task,
+:root[data-theme="dark"] .chat-shell .sd-announce {
+  box-shadow: var(--shadow-md), var(--inset-top-light);
+}
+
+/* Conv activa en oscuro */
+:root[data-theme="dark"] .chat-shell .sd-conv.active {
+  background: rgba(8,145,178,0.16);
+  box-shadow: inset 0 2px 6px rgba(8,145,178,0.18),
+              inset 0 -1px 2px rgba(8,145,178,0.08);
+}
+
+/* Composer focus en oscuro */
+:root[data-theme="dark"] .chat-shell .sd-comp-box.focused {
+  border-color: var(--sd-blue-500);
+  box-shadow: var(--shadow-cyan-md), var(--shadow-focus);
+}
+
+/* Ficha en oscuro */
+:root[data-theme="dark"] .chat-shell .sd-panel {
+  box-shadow: -8px 0 24px rgba(0,0,0,0.45),
+              -1px 0 0 rgba(8,145,178,0.18);
+}
+
+/* Divisores + scrollbar en oscuro */
+:root[data-theme="dark"] .chat-shell .sd-divider::before,
+:root[data-theme="dark"] .chat-shell .sd-divider::after {
+  background: linear-gradient(90deg, transparent, rgba(8,145,178,0.14), transparent);
+}
+:root[data-theme="dark"] .chat-shell .sd-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #2a2a2e 0%, rgba(8,145,178,0.20) 100%);
+}
+
+/* Focus rings en oscuro */
+:root[data-theme="dark"] .chat-shell .sd-search input:focus,
+:root[data-theme="dark"] .chat-shell .sd-field input:focus,
+:root[data-theme="dark"] .chat-shell .sd-field textarea:focus,
+:root[data-theme="dark"] .chat-shell .sd-field select:focus {
+  box-shadow: 0 0 0 3px rgba(8,145,178,0.26);
+}
+
+/* Filtro activo en oscuro */
+:root[data-theme="dark"] .chat-shell .sd-filter.active {
+  background: var(--grad-brand); border-color: var(--sd-blue-600);
+  box-shadow: 0 2px 8px rgba(8,145,178,0.28);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   GLASS+ · Vidrio esmerilado en SUPERFICIES FLOTANTES (opt-in del
+   usuario, asumiendo algo de coste en WKWebView). Solo elementos que
+   NO scrollean su propio contenido bajo el blur de forma continua:
+   composer, ficha, scrim+modales, popovers. La LISTA y las BURBUJAS
+   /TARJETAS siguen OPACAS (densidad + legibilidad + peor patrón de lag).
+   Guard: el composer suelta el blur durante la grabación de voz para
+   no recalcular el filtro con las barras animadas dentro del vidrio.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Composer — tarjeta de vidrio con brillo (claro) ── */
+.chat-shell .sd-comp-box {
+  background: rgba(255,255,255,0.66);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+.chat-shell .sd-comp-box.focused {
+  background: rgba(255,255,255,0.78);
+}
+/* Perf: sin blur mientras se graba (animaciones dentro del vidrio) */
+.chat-shell .sd-comp-box:has(.sd-recording) {
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  background: var(--bg-surface);
+}
+
+/* ── Ficha del paciente — columna de vidrio + brillo especular (claro) ── */
+.chat-shell .sd-panel {
+  position: relative;
+  background: rgba(255,255,255,0.70);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+.chat-shell .sd-panel::after {
+  content: ''; position: absolute; inset: 0 auto 0 0; width: 1px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0) 40%);
+  pointer-events: none;
+}
+
+/* ── Scrim de modales — desenfoca toda la app detrás (claro/oscuro) ── */
+.chat-shell .sd-scrim {
+  backdrop-filter: blur(7px) saturate(110%);
+  -webkit-backdrop-filter: blur(7px) saturate(110%);
+}
+
+/* ── Modal — vidrio + brillo especular superior (claro) ── */
+.chat-shell .sd-modal {
+  position: relative;
+  background: rgba(255,255,255,0.86);
+  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.5);
+}
+.chat-shell .sd-modal::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 1px;
+  background: var(--specular-light); pointer-events: none; z-index: 1;
+}
+
+/* ── Popovers (adjuntar / menciones) — vidrio (claro) ── */
+.chat-shell .sd-popover,
+.chat-shell .sd-mention-pop {
+  background: rgba(255,255,255,0.84);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+
+/* ───────────────── GLASS+ · variantes OSCURO ───────────────── */
+:root[data-theme="dark"] .chat-shell .sd-comp-box {
+  background: rgba(20,20,22,0.62);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+:root[data-theme="dark"] .chat-shell .sd-comp-box.focused {
+  background: rgba(26,26,30,0.74);
+}
+:root[data-theme="dark"] .chat-shell .sd-comp-box:has(.sd-recording) {
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  background: var(--bg-surface);
+}
+:root[data-theme="dark"] .chat-shell .sd-panel {
+  background: rgba(20,20,22,0.64);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+}
+:root[data-theme="dark"] .chat-shell .sd-panel::after {
+  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 40%);
+}
+:root[data-theme="dark"] .chat-shell .sd-modal {
+  background: rgba(20,20,22,0.86);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+:root[data-theme="dark"] .chat-shell .sd-popover,
+:root[data-theme="dark"] .chat-shell .sd-mention-pop {
+  background: rgba(28,28,32,0.82);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
 }

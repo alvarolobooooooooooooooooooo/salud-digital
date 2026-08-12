@@ -724,8 +724,10 @@ async function loadConsultation() {
     const kind = new URLSearchParams(window.location.search).get('kind');
     if (spec === 'Periodoncia') { window.location.replace(`/consultation-periodontology.html?view=${consultation.id}`); return; }
     if (spec === 'Ortodoncia')  { window.location.replace(`/consultation-orthodontics.html?view=${consultation.id}`); return; }
+    if (spec === 'Odontopediatría') { window.location.replace(`/consultation-odontopediatria.html?view=${consultation.id}`); return; }
     if (spec === 'Medicina General') { window.location.replace(`/consultation-general.html?view=${consultation.id}`); return; }
     if (spec === 'Podología')   { window.location.replace(`/view-consultation-podiatry.html?id=${consultation.id}`); return; }
+    if (spec === 'Dermatología') { window.location.replace(`/consultation-dermatology.html?view=${consultation.id}`); return; }
 
     // Para Odontología (y Nutrición vía kind=nutrition), exigir rol con acceso dental.
     if (me.role === 'doctor' && me.specialty !== 'Odontología' && kind !== 'nutrition') {

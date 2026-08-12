@@ -1893,6 +1893,8 @@ function consultationPathForSpecialty(specialty) {
   if (specialty === 'Nutrición') return '/consultation-nutrition.html';
   if (specialty === 'Periodoncia') return '/consultation-periodontology.html';
   if (specialty === 'Ortodoncia') return '/consultation-orthodontics.html';
+  if (specialty === 'Odontopediatría') return '/consultation-odontopediatria.html';
+  if (specialty === 'Dermatología') return '/consultation-dermatology.html';
   if (specialty === 'Medicina General') return '/consultation-general.html';
   return '/consultation.html';
 }
@@ -1903,6 +1905,8 @@ function colorForSpecialty(specialty) {
   if (specialty === 'Nutrición')       return 'var(--ok-500)';
   if (specialty === 'Periodoncia')     return '#0080B0';
   if (specialty === 'Ortodoncia')      return '#7B3FF2';
+  if (specialty === 'Odontopediatría') return '#1ABC9C';
+  if (specialty === 'Dermatología')    return '#2db8d8';
   return 'var(--ink-400)';
 }
 function dotForSpecialty(specialty) {
@@ -1913,6 +1917,8 @@ function viewConsultationPathForSpecialty(specialty, id) {
   if (specialty === 'Nutrición') return `/view-consultation.html?id=${id}&kind=nutrition`;
   if (specialty === 'Periodoncia') return `/consultation-periodontology.html?view=${id}`;
   if (specialty === 'Ortodoncia') return `/consultation-orthodontics.html?view=${id}`;
+  if (specialty === 'Odontopediatría') return `/consultation-odontopediatria.html?view=${id}`;
+  if (specialty === 'Dermatología') return `/consultation-dermatology.html?view=${id}`;
   if (specialty === 'Medicina General') return `/consultation-general.html?view=${id}`;
   return `/view-consultation.html?id=${id}`;
 }

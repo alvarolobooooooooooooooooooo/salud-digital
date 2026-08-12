@@ -383,7 +383,8 @@ function createSurfaceElement(surface, fdi, condition = CONDITIONS.HEALTHY, isEd
   container.appendChild(labelContainer);
 
   // Add tooltip with full surface name
-  const isUpperTooth = fdi && (Math.floor(fdi / 10) === 1 || Math.floor(fdi / 10) === 2);
+  // Upper teeth: permanent quadrants 1-2 and deciduous quadrants 5-6.
+  const isUpperTooth = fdi && [1, 2, 5, 6].includes(Math.floor(fdi / 10));
   const surfaceNames = {
     mesial: 'Mesial',
     distal: 'Distal',
@@ -398,7 +399,8 @@ function createSurfaceElement(surface, fdi, condition = CONDITIONS.HEALTHY, isEd
 }
 
 function getSurfaceLabel(surface, fdi) {
-  const isUpperTooth = fdi && (Math.floor(fdi / 10) === 1 || Math.floor(fdi / 10) === 2);
+  // Upper teeth: permanent quadrants 1-2 and deciduous quadrants 5-6.
+  const isUpperTooth = fdi && [1, 2, 5, 6].includes(Math.floor(fdi / 10));
   const labels = {
     [SURFACES.MESIAL]: 'M',
     [SURFACES.DISTAL]: 'D',

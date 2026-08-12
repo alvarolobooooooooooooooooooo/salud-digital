@@ -1488,6 +1488,41 @@
 </head>
 <body>
 
+<!-- Pantalla de carga: bloquea el formulario hasta que termina la inicialización
+     y el autocompletado, para que el doctor no empiece a escribir sobre datos
+     que aún no han cargado. Se oculta desde JS (hidePageLoading). -->
+<style>
+  .page-loading-overlay {
+    position: fixed; inset: 0; z-index: 100000;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(8, 12, 20, 0.94);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    transition: opacity .35s ease, visibility .35s ease;
+  }
+  .page-loading-overlay.is-hidden { opacity: 0; pointer-events: none; visibility: hidden; }
+  .page-loading-box { text-align: center; padding: 2rem; max-width: 360px; }
+  .page-loading-spinner {
+    width: 52px; height: 52px; margin: 0 auto 1.25rem;
+    border-radius: 50%;
+    border: 4px solid rgba(34, 211, 238, 0.18);
+    border-top-color: #22d3ee;
+    animation: pageLoadingSpin .8s linear infinite;
+  }
+  @keyframes pageLoadingSpin { to { transform: rotate(360deg); } }
+  .page-loading-text { color: #e2f6fb; font-weight: 700; font-size: 1.05rem; letter-spacing: .2px; }
+  .page-loading-sub { color: #93c5cf; font-weight: 500; font-size: .85rem; margin-top: .4rem; line-height: 1.4; }
+  html:not([data-theme="dark"]) .page-loading-overlay { background: rgba(248, 250, 252, 0.95); }
+  html:not([data-theme="dark"]) .page-loading-text { color: #0f172a; }
+  html:not([data-theme="dark"]) .page-loading-sub { color: #475569; }
+</style>
+<div id="pageLoadingOverlay" class="page-loading-overlay" role="status" aria-live="polite">
+  <div class="page-loading-box">
+    <div class="page-loading-spinner" aria-hidden="true"></div>
+    <div class="page-loading-text">Cargando información del paciente…</div>
+    <div class="page-loading-sub">Un momento, estamos trayendo los datos de consultas anteriores.</div>
+  </div>
+</div>
+
 <main class="layout-main">
   <!-- ── Premium Hero Header ── -->
   <header class="pod-hero">
@@ -2217,14 +2252,12 @@ async function prefillPatientInfo() {
     let patient = null;
     try { patient = await api(`/api/patients/${patientId}`); } catch (_) {}
 
-    // Consultas previas de podología (más reciente primero). Endpoint válido
-    // tanto para doctor (sus consultas) como para admin (alcance de clínica).
+    // Historial de la clínica para Podología (cualquier doctor de la especialidad),
+    // más reciente primero. Solo expone los campos de anamnesis/antecedentes.
     let prev = [];
     try {
-      const res = await api(`/api/patients/${patientId}/consultations?limit=20`);
-      prev = (res.consultations || []).filter(c =>
-        c.specialty === 'Podología' && c.appointment_id !== appointmentId
-      );
+      const res = await api(`/api/patients/${patientId}/prefill-history?specialty=${encodeURIComponent('Podología')}&fields=radiography_notes`);
+      prev = (res.consultations || []).filter(c => c.appointment_id !== appointmentId);
     } catch (_) {}
 
     const last = prev[0] || null;
@@ -2363,7 +2396,11 @@ async function loadAppointment() {
     // desde la última consulta para no dejar los campos en blanco.
     if (hadDraft) {
       const discardBtn = document.getElementById('cdraft-discard');
-      if (discardBtn) discardBtn.addEventListener('click', () => { prefillPatientInfo(); });
+      if (discardBtn) discardBtn.addEventListener('click', () => {
+        const ov = document.getElementById('pageLoadingOverlay');
+        if (ov) ov.classList.remove('is-hidden');
+        prefillPatientInfo().finally(hidePageLoading);
+      });
     } else {
       await prefillPatientInfo();
     }
@@ -2884,8 +2921,18 @@ async function downloadConsentPDF() {
   });
 })();
 
+// Oculta la pantalla de carga (formulario ya inicializado y autocompletado).
+function hidePageLoading() {
+  const ov = document.getElementById('pageLoadingOverlay');
+  if (ov) ov.classList.add('is-hidden');
+}
+
 loadConsentTemplates();
-loadAppointment();
+// Mantener el formulario bloqueado hasta que loadAppointment() termine —incluye
+// el autocompletado de datos y antecedentes— y recién ahí ocultar la pantalla.
+loadAppointment().finally(hidePageLoading);
+// Red de seguridad: si algo tardara demasiado, no dejar el formulario bloqueado.
+setTimeout(hidePageLoading, 60000);
 
 // Trigger consent info on load in case a value is already selected
 setTimeout(() => {

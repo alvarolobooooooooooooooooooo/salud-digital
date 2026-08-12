@@ -31,7 +31,7 @@
       <div className="web-scroll">
         <div className="web-page">
           {/* greeting hero */}
-          <div className="wcard rise" style={{ display: 'flex', alignItems: 'center', gap: 24, padding: 0, overflow: 'hidden', border: 'none', background: 'linear-gradient(120deg, var(--sd-navy-700), var(--sd-navy-800))', color: '#fff', marginBottom: 22 }}>
+          <div className="wcard rise" style={{ display: 'flex', alignItems: 'center', gap: 24, padding: 0, overflow: 'hidden', border: 'none', background: 'radial-gradient(120% 150% at 100% 0%, rgba(255,255,255,0.18), transparent 55%), linear-gradient(120deg, #0891b2 0%, #0369a1 48%, #06b6d4 100%)', color: '#fff', boxShadow: '0 26px 60px -20px rgba(8,145,178,0.5), inset 0 1px 0 rgba(255,255,255,0.22)', marginBottom: 22 }}>
             <div style={{ flex: 1, padding: '28px 0 28px 30px' }}>
               <div className="eyebrow" style={{ color: 'var(--sd-blue-300)' }}>Jueves, 8 de mayo</div>
               <h2 style={{ margin: '6px 0 8px', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'var(--t-32)', letterSpacing: 'var(--ls-tight)' }}>Buenos días, Ana</h2>

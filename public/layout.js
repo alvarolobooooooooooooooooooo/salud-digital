@@ -178,13 +178,17 @@
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
-        <span>${item.label}</span>
+        <span class="mobile-nav-label">${item.label}</span>
       </a>`;
     }).join('');
 
-    const hamburgerMenu = `<button class="mobile-nav-hamburger" id="mobileMenuToggle" title="Menú">
+    // El hamburger es un tab más de la barra: icono + etiqueta, misma métrica.
+    // El badge cuelga aquí porque las notificaciones viven dentro del drawer.
+    const hamburgerMenu = `<button class="mobile-nav-hamburger" id="mobileMenuToggle" title="Menú" aria-label="Menú">
       <span class="hamburger-icon" id="hamburgerIcon"></span>
       <span class="close-icon" id="closeIcon" style="display: none;"></span>
+      ${isDoctor ? '<span class="mobile-nav-badge" id="sdNotifBadgeMobileNav" hidden>0</span>' : ''}
+      <span class="mobile-nav-label">Menú</span>
     </button>`;
 
     const mobileSidebar = `<div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
@@ -397,7 +401,7 @@
     // Mobile nav icons
     document.querySelectorAll('.mobile-nav-item[data-icon]').forEach(item => {
       const icon = item.querySelector('.mobile-icon');
-      if (icon && !icon.innerHTML.trim()) icon.innerHTML = Icons.render(item.dataset.icon, 22);
+      if (icon && !icon.innerHTML.trim()) icon.innerHTML = Icons.render(item.dataset.icon, 25);
     });
 
     // Logout icons
@@ -414,8 +418,8 @@
     // Hamburger and close icons
     const hamburgerIcon = document.querySelector('#hamburgerIcon');
     const closeIcon = document.querySelector('#closeIcon');
-    if (hamburgerIcon && !hamburgerIcon.innerHTML.trim()) hamburgerIcon.innerHTML = Icons.render('menu', 20);
-    if (closeIcon && !closeIcon.innerHTML.trim()) closeIcon.innerHTML = Icons.render('x', 20);
+    if (hamburgerIcon && !hamburgerIcon.innerHTML.trim()) hamburgerIcon.innerHTML = Icons.render('menu', 24);
+    if (closeIcon && !closeIcon.innerHTML.trim()) closeIcon.innerHTML = Icons.render('x', 24);
 
     // Close sidebar button icon
     const closeSidebarBtn = document.querySelector('#closeSidebarBtn');
@@ -711,7 +715,7 @@
       sidebar.classList.add('active');
       overlay.classList.add('active');
       if (hamburgerIcon) hamburgerIcon.style.display = 'none';
-      if (closeIcon) closeIcon.style.display = 'block';
+      if (closeIcon) closeIcon.style.display = 'flex';
       document.body.style.overflow = 'hidden';
     }
 
@@ -719,7 +723,7 @@
       console.log('[layout.js] Closing sidebar');
       sidebar.classList.remove('active');
       overlay.classList.remove('active');
-      if (hamburgerIcon) hamburgerIcon.style.display = 'block';
+      if (hamburgerIcon) hamburgerIcon.style.display = 'flex';
       if (closeIcon) closeIcon.style.display = 'none';
       document.body.style.overflow = '';
       toggleBtn.blur();
@@ -1014,7 +1018,7 @@
       const unread = cached.filter(i => !seen.has(i.id)).length;
       // Badge del Dock cuando corre en la app nativa de escritorio.
       tauriDockBadge(unread);
-      ['sdNotifBadgeDesktop', 'sdNotifBadgeMobile', 'sdNotifBadgeSidebar'].forEach(id => {
+      ['sdNotifBadgeDesktop', 'sdNotifBadgeMobile', 'sdNotifBadgeSidebar', 'sdNotifBadgeMobileNav'].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         if (unread === 0) {

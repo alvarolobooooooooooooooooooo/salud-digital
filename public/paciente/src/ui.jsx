@@ -122,10 +122,22 @@
   }
 
   // ---- Specialty / mini icon tile ----
-  function IconTile({ name, color = '#0080B0', bg = 'var(--sd-blue-100)', size = 44, iconSize = 22, radius = 12, style = {} }) {
+  // Tile "liquid glass" de la plataforma de doctores: gradiente sólido del color
+  // semántico + glow + brillo interno, ícono blanco. (El prop `bg` queda como
+  // compatibilidad; ya no se usa para el fondo.)
+  function IconTile({ name, color = '#0891b2', bg, size = 44, iconSize = 22, radius = 12, style = {} }) {
+    const isHex = typeof color === 'string' && color[0] === '#';
+    const dark = isHex ? shade(color, -26) : color;
+    const glow = isHex ? color + '59' : 'rgba(8,145,178,0.4)'; // 59 ≈ 35% alpha
     return (
-      <span style={{ width: size, height: size, borderRadius: radius, background: bg, display: 'inline-grid', placeItems: 'center', flexShrink: 0, ...style }}>
-        <Icon name={name} size={iconSize} color={color} />
+      <span style={{
+        width: size, height: size, borderRadius: radius, flexShrink: 0,
+        display: 'inline-grid', placeItems: 'center',
+        background: `linear-gradient(140deg, ${color} 0%, ${dark} 100%)`,
+        boxShadow: `0 8px 20px -6px ${glow}, inset 0 1px 0 rgba(255,255,255,0.30)`,
+        ...style,
+      }}>
+        <Icon name={name} size={iconSize} color="#fff" />
       </span>
     );
   }

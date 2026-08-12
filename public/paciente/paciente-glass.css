@@ -34,6 +34,7 @@
   --pg-shadow: 0 10px 30px -16px rgba(13, 47, 56, 0.20), 0 2px 8px -4px rgba(13, 47, 56, 0.06);
   --pg-shadow-lg: 0 28px 64px -24px rgba(13, 47, 56, 0.34), 0 8px 22px -12px rgba(13, 47, 56, 0.12);
   --pg-glow: 0 12px 32px -12px rgba(8, 145, 178, 0.45);
+  --pg-ambient: 0 0 50px -22px rgba(8, 145, 178, 0.20);
 
   --pg-tint: rgba(8, 145, 178, 0.08);
   --pg-tint-strong: rgba(8, 145, 178, 0.13);
@@ -102,7 +103,7 @@ body { background: #e6eef6; overflow: hidden; }
   backdrop-filter: var(--pg-blur);
   border: 1px solid var(--pg-glass-border);
   border-radius: 18px;
-  box-shadow: var(--pg-inset), var(--pg-shadow);
+  box-shadow: var(--pg-inset), var(--pg-shadow), var(--pg-ambient);
 }
 .card-flush { background: var(--pg-glass); }
 
@@ -199,7 +200,7 @@ body { background: #e6eef6; overflow: hidden; }
   backdrop-filter: var(--pg-blur);
   border: 1px solid var(--pg-glass-border);
   border-radius: 18px;
-  box-shadow: var(--pg-inset), var(--pg-shadow);
+  box-shadow: var(--pg-inset), var(--pg-shadow), var(--pg-ambient);
 }
 .wcard-flush { background: var(--pg-glass); }
 .lift:hover {
@@ -249,9 +250,10 @@ body { background: #e6eef6; overflow: hidden; }
 [data-theme="dark"] {
   /* lienzo casi-negro con glow cian muy tenue (igual al dashboard) */
   --pg-mesh:
-    radial-gradient(1100px 760px at 82% -10%, rgba(6, 182, 212, 0.05), transparent 60%),
-    radial-gradient(820px 640px at -8% 108%, rgba(8, 145, 178, 0.04), transparent 58%),
+    radial-gradient(1100px 760px at 82% -10%, rgba(6, 182, 212, 0.09), transparent 60%),
+    radial-gradient(820px 640px at -8% 108%, rgba(8, 145, 178, 0.06), transparent 58%),
     linear-gradient(180deg, #050507 0%, #08080a 100%);
+  --pg-ambient: 0 0 60px -26px rgba(6, 182, 212, 0.32);
 
   /* vidrio oscuro = --sd-surface / --sd-surface-2 de la plataforma */
   --pg-glass: rgba(20, 20, 22, 0.72);
