@@ -24,15 +24,24 @@
     var head = document.head || document.getElementsByTagName('head')[0];
     if (!head) return;
 
-    // theme-color → tints iOS Safari status bar + Android system bar
+    // theme-color → tints iOS Safari status bar + Android system bar.
+    // El HTML servido trae DOS metas (una por prefers-color-scheme) para que el
+    // sistema acierte ya en el arranque. Aquí manda el tema EFECTIVO, que puede
+    // no coincidir con el del sistema si el usuario lo ha forzado en la app:
+    // se pisan todas y se les quita el `media`, o la meta del esquema del SO
+    // seguiría ganando y la status bar quedaría del color contrario.
     var color = theme === 'dark' ? '#050507' : '#f8fafc';
-    var tc = head.querySelector('meta[name="theme-color"]');
-    if (!tc) {
-      tc = document.createElement('meta');
+    var tcs = head.querySelectorAll('meta[name="theme-color"]');
+    if (!tcs.length) {
+      var tc = document.createElement('meta');
       tc.setAttribute('name', 'theme-color');
       head.appendChild(tc);
+      tcs = [tc];
     }
-    tc.setAttribute('content', color);
+    for (var i = 0; i < tcs.length; i++) {
+      tcs[i].removeAttribute('media');
+      tcs[i].setAttribute('content', color);
+    }
 
     // viewport-fit=cover → extends body bg under notch / home indicator
     var vp = head.querySelector('meta[name="viewport"]');

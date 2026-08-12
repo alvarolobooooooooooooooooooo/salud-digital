@@ -144,9 +144,18 @@ function injectPwaTags(html) {
   if (!/name\s*=\s*["']mobile-web-app-capable["']/i.test(html)) {
     extra += '\n    <meta name="mobile-web-app-capable" content="yes">';
   }
-  // theme.js fija theme-color dinámico; para páginas sin él, un valor de marca.
+  // theme-color por ESQUEMA, no un color fijo. En standalone (iOS 15+ y
+  // Android) el sistema pinta con esto la franja de la status bar, y la lee al
+  // ARRANCAR: theme.js la actualiza después, pero para entonces la franja ya
+  // está pintada. Con un único valor de marca, en modo oscuro quedaba una banda
+  // clara pegada arriba que no responde a ningún CSS nuestro.
+  // Se deja el estilo de status bar en "default" a propósito: con
+  // "black-translucent" iOS fuerza el texto de la status bar a BLANCO, que
+  // sobre el vidrio claro del tema light es ilegible.
   if (!/name\s*=\s*["']theme-color["']/i.test(html)) {
-    extra += '\n    <meta name="theme-color" content="#0e2c57">';
+    extra +=
+      '\n    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">' +
+      '\n    <meta name="theme-color" content="#050507" media="(prefers-color-scheme: dark)">';
   }
   return html.slice(0, idx) + extra + '\n  ' + html.slice(idx);
 }
