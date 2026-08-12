@@ -15,7 +15,7 @@
   /* Alto de la tab bar móvil SIN el safe-area inferior (métrica nativa ≈49pt).
      Las páginas reservan este espacio abajo (ver el override central de
      .layout-main). */
-  --mobile-nav-h: 50px;
+  --mobile-nav-h: 54px;
 }
 
 * {
@@ -684,8 +684,8 @@ nav.old-nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 27px;
+  height: 27px;
   line-height: 0;
 }
 
@@ -789,9 +789,9 @@ nav.old-nav {
 
 /* ── Iconos: trazo fino, tamaño de tab bar (el peso lo da el color, no el grosor) ── */
 .mobile-nav-item .mobile-icon svg {
-  width: 23px;
-  height: 23px;
-  stroke-width: 1.75;
+  width: 26px;
+  height: 26px;
+  stroke-width: 1.7;
 }
 
 .mobile-nav-item.active .mobile-icon svg {
@@ -799,9 +799,9 @@ nav.old-nav {
 }
 
 .mobile-nav-hamburger svg {
-  width: 22px;
-  height: 22px;
-  stroke-width: 1.9;
+  width: 24px;
+  height: 24px;
+  stroke-width: 1.85;
 }
 
 /* ── Accessibility: keyboard focus ring ── */

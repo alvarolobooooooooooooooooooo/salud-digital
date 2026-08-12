@@ -401,7 +401,7 @@
     // Mobile nav icons
     document.querySelectorAll('.mobile-nav-item[data-icon]').forEach(item => {
       const icon = item.querySelector('.mobile-icon');
-      if (icon && !icon.innerHTML.trim()) icon.innerHTML = Icons.render(item.dataset.icon, 23);
+      if (icon && !icon.innerHTML.trim()) icon.innerHTML = Icons.render(item.dataset.icon, 26);
     });
 
     // Logout icons
@@ -418,8 +418,8 @@
     // Hamburger and close icons
     const hamburgerIcon = document.querySelector('#hamburgerIcon');
     const closeIcon = document.querySelector('#closeIcon');
-    if (hamburgerIcon && !hamburgerIcon.innerHTML.trim()) hamburgerIcon.innerHTML = Icons.render('menu', 22);
-    if (closeIcon && !closeIcon.innerHTML.trim()) closeIcon.innerHTML = Icons.render('x', 22);
+    if (hamburgerIcon && !hamburgerIcon.innerHTML.trim()) hamburgerIcon.innerHTML = Icons.render('menu', 24);
+    if (closeIcon && !closeIcon.innerHTML.trim()) closeIcon.innerHTML = Icons.render('x', 24);
 
     // Close sidebar button icon
     const closeSidebarBtn = document.querySelector('#closeSidebarBtn');
