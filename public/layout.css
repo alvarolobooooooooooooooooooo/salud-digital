@@ -1204,7 +1204,9 @@ nav.old-nav {
     height: calc(var(--mobile-top-h) + env(safe-area-inset-top, 0px));
     z-index: 99;
     pointer-events: none;
-    border-radius: 0 0 20px 20px;
+    /* Canto recto: es un header, no una tarjeta colgada. El redondeo de la tab
+       bar de abajo viene de la referencia; aquí leía como esquinas de más. */
+    border-radius: 0;
 
     background: linear-gradient(180deg,
       rgba(244, 249, 252, 0.62) 0%,
