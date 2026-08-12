@@ -816,7 +816,6 @@ nav.old-nav {
 
 .mobile-sidebar {
   position: fixed;
-  right: 0;
   top: 0;
   width: 320px;
   height: 100vh;
@@ -834,15 +833,16 @@ nav.old-nav {
   box-shadow:
     inset 1px 0 0 rgba(255, 255, 255, 0.6),
     -8px 0 32px rgba(15, 23, 42, 0.16);
-  /* Se anima `transform` (compositado en GPU) en vez de `right` (que hacía
-     relayout en cada frame → ~60fps). Mismo movimiento y easing, pero ahora
-     corre a 120Hz/ProMotion como el scroll. translateX(100%) lo deja fuera de
-     pantalla a la derecha; .active lo trae a translateX(0). */
-  transform: translateX(100%);
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-  will-change: transform;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  /* Se desliza con `right`, NO con transform.
+     WebKit anula el backdrop-filter de un elemento promovido a su propia capa
+     (transform / will-change / backface-visibility): en el iPhone el panel
+     salía plano y opaco mientras el scrim de al lado —que no lleva transform—
+     sí desenfocaba. Chrome de escritorio no lo reproduce, así que esto no se
+     ve en pruebas locales. Animar `right` cuesta layout por frame, pero son
+     350 ms y es el precio de que el vidrio exista en el dispositivo real.
+     El easing NO rebota: con `right`, pasarse de 0 abre un hueco a la derecha. */
+  right: -340px;
+  transition: right 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   /* Drawer a pantalla completa: respeta notch arriba y home indicator abajo. */
@@ -860,7 +860,7 @@ nav.old-nav {
 }
 
 .mobile-sidebar.active {
-  transform: translateX(0);
+  right: 0;
 }
 
 .mobile-sidebar-header {
