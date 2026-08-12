@@ -12,9 +12,10 @@
   --muted: #64748b;
   --border: #e2e8f0;
   --sidebar-w: 240px;
-  /* Alto de la tab bar móvil SIN el safe-area inferior. Las páginas reservan
-     este espacio abajo (ver el override central de .layout-main). */
-  --mobile-nav-h: 60px;
+  /* Alto de la tab bar móvil SIN el safe-area inferior (métrica nativa ≈49pt).
+     Las páginas reservan este espacio abajo (ver el override central de
+     .layout-main). */
+  --mobile-nav-h: 50px;
 }
 
 * {
@@ -632,8 +633,8 @@ nav.old-nav {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 4px;
-  padding: 4px 2px;
+  gap: 3px;
+  padding: 2px;
   flex: 1;
   min-width: 0;
   font-family: inherit;
@@ -683,13 +684,16 @@ nav.old-nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   line-height: 0;
 }
 
-/* Iconos: gris apagado en reposo; el degradado teal→sky (el mismo de los
-   títulos de página) solo en el tab activo o pulsado. */
+/* Iconos: gris apagado en reposo, teal PLANO en el tab activo o pulsado.
+   Nada de degradado aquí: en una tab bar el activo se marca con un cambio de
+   color liso —el degradado se leía como un tratamiento "de vidrio" sobre el
+   icono, justo lo que no queremos. El degradado sigue en los títulos de página
+   y en el drawer, que es donde tiene sentido. */
 .mobile-nav-item .mobile-icon svg,
 .mobile-nav-item .mobile-icon svg *,
 .mobile-nav-hamburger svg,
@@ -704,7 +708,7 @@ nav.old-nav {
 .mobile-nav-item:active .mobile-icon svg *,
 .mobile-nav-hamburger:active svg,
 .mobile-nav-hamburger:active svg * {
-  stroke: url(#mobileNavIconGradient);
+  stroke: var(--primary);
 }
 
 .sidebar-menu-link svg,
@@ -785,8 +789,8 @@ nav.old-nav {
 
 /* ── Iconos: trazo fino, tamaño de tab bar (el peso lo da el color, no el grosor) ── */
 .mobile-nav-item .mobile-icon svg {
-  width: 25px;
-  height: 25px;
+  width: 23px;
+  height: 23px;
   stroke-width: 1.75;
 }
 
@@ -795,8 +799,8 @@ nav.old-nav {
 }
 
 .mobile-nav-hamburger svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   stroke-width: 1.9;
 }
 
@@ -1150,23 +1154,32 @@ nav.old-nav {
     align-items: flex-start;
     justify-content: space-around;
     gap: 2px;
-    padding: 7px 6px calc(7px + env(safe-area-inset-bottom, 0px));
+    /* max() en vez de sumar: en un iPhone el home indicator (34px) ES el aire
+       de abajo, no se le añade otro. Sumándolo la barra crecía ~40px y los
+       iconos quedaban muy arriba, con un hueco muerto debajo. */
+    padding: 5px 6px max(5px, env(safe-area-inset-bottom, 0px));
     margin: 0;
     border-radius: 20px 20px 0 0;
 
-    /* Vidrio translúcido + desenfoque del contenido que pasa por detrás.
-       Veladura en el MISMO gris-azulado claro de la página (no blanco puro) y
-       con menos opacidad/saturación → el blur deja pasar el tono real del fondo,
-       así la barra lee como "la misma superficie esmerilada" y no se recorta
-       como una tarjeta blanca sobre el fondo (--bg #f1f5f9). */
-    background: rgba(246, 250, 252, 0.72);
-    -webkit-backdrop-filter: saturate(180%) blur(22px);
-    backdrop-filter: saturate(180%) blur(22px);
-    /* Un solo pelo de separación arriba + sombra hacia arriba, muy corta: la
-       barra se asienta sobre el contenido sin despegarse de la pantalla. */
+    /* Vidrio de verdad: la veladura tiene que ser lo bastante FINA para que se
+       vea pasar el contenido por detrás — con 0.72 sobre un fondo casi blanco
+       no pasaba nada y la barra leía como un bloque sólido. Veladura al 0.5 en
+       degradado (más densa abajo, donde van las etiquetas) + saturación alta,
+       que es lo que hace que el color del contenido de detrás "encienda" el
+       vidrio en vez de lavarlo. */
+    background: linear-gradient(180deg,
+      rgba(252, 253, 255, 0.42) 0%,
+      rgba(244, 249, 252, 0.62) 100%);
+    -webkit-backdrop-filter: saturate(200%) blur(30px);
+    backdrop-filter: saturate(200%) blur(30px);
+    /* Canto de vidrio: reflejo interior arriba + pelo de separación + sombra
+       corta hacia arriba. Sin esto la lámina no tiene grosor. */
     border: none;
-    border-top: 1px solid rgba(15, 23, 42, 0.06);
-    box-shadow: 0 -10px 28px -18px rgba(15, 23, 42, 0.22);
+    border-top: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      0 -1px 0 rgba(15, 23, 42, 0.05),
+      0 -10px 28px -18px rgba(15, 23, 42, 0.22);
   }
 
   /* Sin backdrop-filter: subir opacidad para que las etiquetas sigan legibles. */
