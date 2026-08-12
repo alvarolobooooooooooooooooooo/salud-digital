@@ -368,6 +368,8 @@
         </button>
       </aside>
 
+      <div id="mobileTopBar" aria-hidden="true"></div>
+
       <nav id="mobileNav" class="mobile-nav">
         <svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true" focusable="false">
           <defs>
@@ -504,6 +506,7 @@
     // Get all elements (desktop sidebar, mobile nav, mobile overlay, mobile sidebar, notif panel, toast stack)
     const sidebarEl = wrapper.querySelector('aside#sidebar');
     const mobileNavEl = wrapper.querySelector('nav#mobileNav');
+    const mobileTopBarEl = wrapper.querySelector('#mobileTopBar');
     const mobileOverlayEl = wrapper.querySelector('.mobile-sidebar-overlay');
     const mobileSidebarEl = wrapper.querySelector('aside.mobile-sidebar');
     const notifPanelEl = wrapper.querySelector('#sdNotifPanel');
@@ -518,6 +521,13 @@
     if (mobileNavEl) {
       document.body.insertBefore(mobileNavEl, document.body.firstChild);
       console.log('[layout.js] Mobile nav injected');
+    }
+    // Va DESPUÉS del nav: como todo se inserta en firstChild, la franja acaba
+    // ANTES de #mobileNav en el DOM y el selector `#mobileNav ~ main` (que
+    // reserva el espacio de las páginas) sigue encontrando el <main>.
+    if (mobileTopBarEl) {
+      document.body.insertBefore(mobileTopBarEl, document.body.firstChild);
+      console.log('[layout.js] Mobile top bar injected');
     }
     if (mobileOverlayEl) {
       document.body.insertBefore(mobileOverlayEl, document.body.firstChild);

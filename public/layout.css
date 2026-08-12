@@ -16,6 +16,8 @@
      Las páginas reservan este espacio abajo (ver el override central de
      .layout-main). */
   --mobile-nav-h: 54px;
+  /* Alto de la franja de vidrio superior SIN el safe-area del notch. */
+  --mobile-top-h: 44px;
 }
 
 * {
@@ -617,8 +619,17 @@ nav.old-nav {
   }
 }
 
-/* ── Mobile Navigation (sticky top bar) ── */
+/* ── Mobile Navigation (tab bar inferior) ── */
 #mobileNav {
+  display: none;
+}
+
+/* ── Franja de vidrio superior ──
+   Header vacío a propósito: no lleva logo ni controles, solo material. Cubre la
+   status bar (safe-area) más el alto de un nav bar nativo, y el contenido pasa
+   esmerilado por debajo al hacer scroll. `pointer-events: none` → es puramente
+   decorativa, nunca se come un toque del contenido que hay debajo. */
+#mobileTopBar {
   display: none;
 }
 
@@ -1182,9 +1193,37 @@ nav.old-nav {
       0 -10px 28px -18px rgba(15, 23, 42, 0.22);
   }
 
+  /* La franja superior: mismo vidrio que la tab bar, reflejado (la veladura se
+     densifica hacia arriba, hacia la status bar, y el canto va abajo). */
+  #mobileTopBar {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--mobile-top-h) + env(safe-area-inset-top, 0px));
+    z-index: 99;
+    pointer-events: none;
+    border-radius: 0 0 20px 20px;
+
+    background: linear-gradient(180deg,
+      rgba(244, 249, 252, 0.62) 0%,
+      rgba(252, 253, 255, 0.42) 100%);
+    -webkit-backdrop-filter: saturate(200%) blur(30px);
+    backdrop-filter: saturate(200%) blur(30px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow:
+      inset 0 -1px 0 rgba(255, 255, 255, 0.6),
+      0 1px 0 rgba(15, 23, 42, 0.05),
+      0 10px 28px -18px rgba(15, 23, 42, 0.22);
+  }
+
   /* Sin backdrop-filter: subir opacidad para que las etiquetas sigan legibles. */
   @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
     #mobileNav {
+      background: rgba(246, 250, 252, 0.97);
+    }
+    #mobileTopBar {
       background: rgba(246, 250, 252, 0.97);
     }
   }
@@ -1194,9 +1233,9 @@ nav.old-nav {
   .layout-main {
     margin: 0;
     padding: 0 1.5rem;
-    /* Ya no hay barra arriba: solo el safe-area (notch) + aire. Abajo se
-       reserva el alto de la tab bar + el home indicator. */
-    padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+    /* Arriba: franja de vidrio + safe-area (notch) + aire. Abajo: alto de la
+       tab bar + el home indicator. */
+    padding-top: calc(var(--mobile-top-h) + env(safe-area-inset-top, 0px) + 8px);
     padding-bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px) + 16px);
     width: 100%;
     max-width: 100%;
@@ -1204,7 +1243,7 @@ nav.old-nav {
   }
   .content {
     padding: 0.75rem !important;
-    padding-top: calc(0.75rem + env(safe-area-inset-top, 0px)) !important;
+    padding-top: calc(var(--mobile-top-h) + env(safe-area-inset-top, 0px) + 8px) !important;
     padding-bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px) + 16px) !important;
     margin: 0 !important;
     width: 100% !important;
@@ -1221,16 +1260,16 @@ nav.old-nav {
    lo garantiza en todas:
    · especificidad (1,1,1) + !important → gana a las reglas por página;
    · `#mobileNav ~` → solo aplica cuando el nav existe (no toca login/landing);
-   · abajo: alto de la barra + home indicator + aire;
-   · arriba: ya no hay barra, pero con viewport-fit=cover el contenido se metería
-     bajo la status bar en modo standalone → se respeta el inset del notch.
+   · abajo: alto de la tab bar + home indicator + aire;
+   · arriba: alto de la franja de vidrio + el inset del notch (con
+     viewport-fit=cover el contenido se metería bajo la status bar).
    Solo afecta padding vertical; respeta el padding horizontal de cada página.
    ────────────────────────────────────────────────────────────────────── */
 @media (max-width: 860px) {
   /* :not(.chat-main) → el chat (mensajes) es full-bleed y a pantalla completa;
      define su propio padding en mensajes.css. */
   #mobileNav ~ main:not(.chat-main) {
-    padding-top: calc(env(safe-area-inset-top, 0px) + 1rem) !important;
+    padding-top: calc(var(--mobile-top-h) + env(safe-area-inset-top, 0px) + 8px) !important;
     padding-bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px) + 16px) !important;
   }
 }
