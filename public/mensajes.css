@@ -623,7 +623,7 @@
 @media (max-width: 860px) {
   /* Deja libre la barra de navegación superior fija (64px + safe-area del notch).
      El header de la conversación queda pegado justo donde acaba el nav. */
-  .chat-page .layout-main.chat-main { padding-top: calc(64px + env(safe-area-inset-top, 0px)) !important; }
+  .chat-page .layout-main.chat-main { padding-top: calc(70px + env(safe-area-inset-top, 0px)) !important; }
   .sd-app { grid-template-columns: 1fr; }
   .sd-list, .sd-thread { grid-column: 1; grid-row: 1; min-width: 0; }
   .sd-app.m-list .sd-thread { display: none; }
