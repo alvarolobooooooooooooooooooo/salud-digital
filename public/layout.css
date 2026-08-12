@@ -820,12 +820,20 @@ nav.old-nav {
   top: 0;
   width: 320px;
   height: 100vh;
-  background: var(--card);
-  border-left: 1px solid var(--border);
+  /* Lámina de vidrio: veladura fina + desenfoque de lo que queda detrás (el
+     scrim y la página). El canto izquierdo lleva el reflejo. */
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.78) 0%,
+    rgba(240, 247, 251, 0.68) 100%);
+  -webkit-backdrop-filter: saturate(180%) blur(26px);
+  backdrop-filter: saturate(180%) blur(26px);
+  border-left: 1px solid rgba(255, 255, 255, 0.6);
   z-index: 200;
   display: flex;
   flex-direction: column;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    inset 1px 0 0 rgba(255, 255, 255, 0.6),
+    -8px 0 32px rgba(15, 23, 42, 0.16);
   /* Se anima `transform` (compositado en GPU) en vez de `right` (que hacía
      relayout en cada frame → ~60fps). Mismo movimiento y easing, pero ahora
      corre a 120Hz/ProMotion como el scroll. translateX(100%) lo deja fuera de
@@ -840,6 +848,15 @@ nav.old-nav {
   /* Drawer a pantalla completa: respeta notch arriba y home indicator abajo. */
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Sin backdrop-filter no hay vidrio posible: lámina opaca para que el menú siga
+   siendo legible sobre el contenido. */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .mobile-sidebar {
+    background: var(--card);
+    border-left: 1px solid var(--border);
+  }
 }
 
 .mobile-sidebar.active {

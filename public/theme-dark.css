@@ -292,10 +292,27 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .mobile-nav-hamburger svg * {
   stroke: #06b6d4 !important;
 }
+/* Cajón del menú: lámina opaca de respaldo; el vidrio va tras @supports. */
 [data-theme="dark"] .mobile-sidebar {
   background: linear-gradient(180deg, #0c0c0e 0%, #07070a 100%) !important;
   color: var(--sd-text) !important;
   border-left: 1px solid var(--sd-border-soft) !important;
+}
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  [data-theme="dark"] .mobile-sidebar {
+    /* Veladura al nivel del negro de la app (#050507): sobre el scrim oscuro
+       lee como vidrio ahumado, no como un panel gris pegado encima. */
+    background: linear-gradient(180deg,
+      rgba(12, 12, 15, 0.66) 0%,
+      rgba(6, 6, 9, 0.78) 100%) !important;
+    -webkit-backdrop-filter: saturate(170%) blur(26px) !important;
+            backdrop-filter: saturate(170%) blur(26px) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow:
+      inset 1px 0 0 rgba(255, 255, 255, 0.05),
+      -8px 0 32px rgba(0, 0, 0, 0.6) !important;
+  }
 }
 [data-theme="dark"] .mobile-sidebar-header {
   background: transparent !important;
