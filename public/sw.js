@@ -12,7 +12,7 @@
  * El servidor sirve /sw.js con Cache-Control: no-cache, así el navegador
  * detecta el cambio en la próxima visita.
  */
-const CACHE_VERSION = 'sd-v3';
+const CACHE_VERSION = 'sd-v4';
 const PRECACHE = `${CACHE_VERSION}-precache`;
 const RUNTIME = `${CACHE_VERSION}-runtime`;
 const RUNTIME_MAX = 80; // tope blando de entradas en runtime (evita crecer sin límite)

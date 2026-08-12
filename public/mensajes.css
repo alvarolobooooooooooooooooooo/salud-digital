@@ -621,21 +621,18 @@
 
 /* Móvil: maestro-detalle (lista ⇄ hilo) */
 @media (max-width: 860px) {
-  /* Arriba, la franja de vidrio + el notch; abajo, el alto de la tab bar + el
-     home indicator, para que el composer no quede debajo. */
-  .chat-page .layout-main.chat-main {
-    padding-top: calc(var(--mobile-top-h) + env(safe-area-inset-top, 0px)) !important;
-    padding-bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px)) !important;
-  }
+  /* Deja libre la barra de navegación superior fija (64px + safe-area del notch).
+     El header de la conversación queda pegado justo donde acaba el nav. */
+  .chat-page .layout-main.chat-main { padding-top: calc(64px + env(safe-area-inset-top, 0px)) !important; }
   .sd-app { grid-template-columns: 1fr; }
   .sd-list, .sd-thread { grid-column: 1; grid-row: 1; min-width: 0; }
   .sd-app.m-list .sd-thread { display: none; }
   .sd-app.m-thread .sd-list { display: none; }
   .sd-th-back { display: inline-flex; }
   .sd-msgs { padding: 16px 14px 8px; }
-  /* El home indicator ya lo reserva .chat-main (junto con el alto de la tab
-     bar), así que el composer no vuelve a sumarlo: solo su propio aire. */
-  .sd-composer { padding: 10px 14px 12px; }
+  /* El composer respeta el home indicator del iPhone (safe-area abajo) para no
+     quedar tapado/cortado al borde inferior. */
+  .sd-composer { padding: 10px 14px calc(14px + env(safe-area-inset-bottom, 0px)); }
   .sd-panel { width: 100%; max-width: 380px; }
 }
 

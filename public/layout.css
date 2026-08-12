@@ -12,12 +12,6 @@
   --muted: #64748b;
   --border: #e2e8f0;
   --sidebar-w: 240px;
-  /* Alto de la tab bar móvil SIN el safe-area inferior (métrica nativa ≈49pt).
-     Las páginas reservan este espacio abajo (ver el override central de
-     .layout-main). */
-  --mobile-nav-h: 54px;
-  /* Alto de la franja de vidrio superior SIN el safe-area del notch. */
-  --mobile-top-h: 44px;
 }
 
 * {
@@ -619,109 +613,80 @@ nav.old-nav {
   }
 }
 
-/* ── Mobile Navigation (tab bar inferior) ── */
+/* ── Mobile Navigation (sticky top bar) ── */
 #mobileNav {
   display: none;
 }
 
-/* ── Franja de vidrio superior ──
-   Header vacío a propósito: no lleva logo ni controles, solo material. Cubre la
-   status bar (safe-area) más el alto de un nav bar nativo, y el contenido pasa
-   esmerilado por debajo al hacer scroll. `pointer-events: none` → es puramente
-   decorativa, nunca se come un toque del contenido que hay debajo. */
-#mobileTopBar {
-  display: none;
-}
-
-/* ── Tabs: gramática de tab bar nativa. El vidrio vive en la BARRA entera (es
-   la lámina), nunca por tab — así la fila no lee como "una fila de cajas".
-   El tab activo NO lleva píldora: se distingue solo por color (icono +
-   etiqueta), como en iOS. Compartido por items + hamburguesa. ── */
+/* ── Tabs: transparent at rest. The liquid glass lives on the BAR background
+   (the whole header is the pane of glass), NOT per-tab — so the row never reads
+   as "una fila de cajas". Only the active tab gets a glass pill, so it stays
+   the unambiguous hero. Shared by items + hamburger. ── */
 .mobile-nav-item,
 .mobile-nav-hamburger {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 3px;
-  padding: 2px;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.5rem;
   flex: 1;
-  min-width: 0;
   font-family: inherit;
-  font-size: 0.625rem;          /* 10px — escala de etiqueta de tab bar */
+  font-size: 0.68rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
-  line-height: 1.15;
-  color: var(--muted);
+  color: #475569;
   text-decoration: none;
   background: transparent;
-  border: none;
-  border-radius: 12px;          /* solo para el anillo de foco */
+  border: 1px solid transparent; /* matches the active pill box → no layout shift */
+  border-radius: 13px;
   margin: 0;
   cursor: pointer;
   outline: none;
   -webkit-tap-highlight-color: transparent;
-  transition: color 0.2s ease,
-              transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.25s ease, color 0.25s ease;
 }
 
-/* Hover (solo puntero) y press: color + micro-squish, sin fondo. Animar un
-   background encima del backdrop-filter obliga a WKWebView a recalcular el
-   blur en cada frame; el color no. */
+/* Hover (pointer only): just a color shift — no chip. */
 .mobile-nav-item:hover,
 .mobile-nav-hamburger:hover {
   color: var(--primary);
+  background: transparent;
 }
 
+/* Press: faint teal tap-feedback + springy squish. */
 .mobile-nav-item:active,
 .mobile-nav-hamburger:active {
-  transform: scale(0.92);
+  transform: scale(0.93);
   color: var(--primary);
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.10), rgba(6, 182, 212, 0.08));
 }
 
-/* Tab activo: solo color. */
+/* Active tab: the bright glass pill — the only highlighted tab in the row. */
 .mobile-nav-item.active {
   color: var(--primary);
   font-weight: 700;
+  background:
+    linear-gradient(180deg,
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.0) 40%),
+    linear-gradient(135deg,
+      rgba(8, 145, 178, 0.18) 0%,
+      rgba(6, 182, 212, 0.14) 55%,
+      rgba(56, 189, 248, 0.14) 100%);
+  border: 1px solid rgba(8, 145, 178, 0.28);
+  border-radius: 13px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 4px 12px rgba(8, 145, 178, 0.14);
 }
 
-/* Caja del icono: tamaño fijo → las etiquetas quedan alineadas entre tabs.
-   Los #id están para ganarle a la regla genérica #hamburgerIcon/#closeIcon
-   (24×24) de más arriba, que si no dejaba el tab "Menú" 2px más bajo. */
-.mobile-nav-item .mobile-icon,
-.mobile-nav-hamburger #hamburgerIcon,
-.mobile-nav-hamburger #closeIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 27px;
-  height: 27px;
-  line-height: 0;
-}
-
-/* Iconos: gris apagado en reposo, teal PLANO en el tab activo o pulsado.
-   Nada de degradado aquí: en una tab bar el activo se marca con un cambio de
-   color liso —el degradado se leía como un tratamiento "de vidrio" sobre el
-   icono, justo lo que no queremos. El degradado sigue en los títulos de página
-   y en el drawer, que es donde tiene sentido. */
+/* Teal→cyan gradient on the SVG icons (mirrors the page heading style). */
 .mobile-nav-item .mobile-icon svg,
 .mobile-nav-item .mobile-icon svg *,
 .mobile-nav-hamburger svg,
-.mobile-nav-hamburger svg * {
-  stroke: #94a3b8;
-  transition: stroke 0.2s ease;
-}
-
-.mobile-nav-item.active .mobile-icon svg,
-.mobile-nav-item.active .mobile-icon svg *,
-.mobile-nav-item:active .mobile-icon svg,
-.mobile-nav-item:active .mobile-icon svg *,
-.mobile-nav-hamburger:active svg,
-.mobile-nav-hamburger:active svg * {
-  stroke: var(--primary);
-}
-
+.mobile-nav-hamburger svg *,
 .sidebar-menu-link svg,
 .sidebar-menu-link svg *,
 #notificationIcon svg,
@@ -729,38 +694,26 @@ nav.old-nav {
   stroke: url(#mobileNavIconGradient);
 }
 
-.mobile-nav-label {
+.mobile-nav-item span:first-child {
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mobile-nav-item:active span:first-child {
+  transform: scale(0.92);
+}
+
+.mobile-nav-item:hover span:first-child {
+  transform: none;
+}
+
+.mobile-nav-item span:last-child {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
 }
-
-/* Badge sobre el icono (esquina superior derecha), en el rojo de la
-   plataforma — el mismo de .sd-notif-badge. */
-.mobile-nav-badge {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  margin-left: 5px;
-  min-width: 17px;
-  height: 17px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-  color: #fff;
-  font-size: 0.56rem;
-  font-weight: 800;
-  line-height: 17px;
-  text-align: center;
-  letter-spacing: 0.02em;
-  box-shadow:
-    0 0 0 2px rgba(246, 250, 252, 0.95),
-    0 4px 10px -3px rgba(225, 29, 72, 0.5);
-  pointer-events: none;
-}
-
-.mobile-nav-badge[hidden] { display: none !important; }
 
 .mobile-nav-logout {
   display: flex;
@@ -798,27 +751,27 @@ nav.old-nav {
   color: #e11d48;
 }
 
-/* ── Iconos: trazo fino, tamaño de tab bar (el peso lo da el color, no el grosor) ── */
-.mobile-nav-item .mobile-icon svg {
-  width: 26px;
-  height: 26px;
-  stroke-width: 1.7;
-}
-
-.mobile-nav-item.active .mobile-icon svg {
-  stroke-width: 2;
-}
-
+/* ── Hamburger Menu Button (icon sizing; chip styling shared above) ── */
 .mobile-nav-hamburger svg {
   width: 24px;
   height: 24px;
-  stroke-width: 1.85;
+  stroke-width: 2;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mobile-nav-hamburger:active svg {
+  transform: scale(0.92);
+}
+
+.mobile-nav-hamburger:hover svg {
+  transform: none;
 }
 
 /* ── Accessibility: keyboard focus ring ── */
 .mobile-nav-item:focus-visible,
 .mobile-nav-hamburger:focus-visible {
   outline: none;
+  border-color: rgba(8, 145, 178, 0.55);
   box-shadow:
     0 0 0 2px rgba(255, 255, 255, 0.9),
     0 0 0 4px rgba(8, 145, 178, 0.45);
@@ -1151,82 +1104,43 @@ nav.old-nav {
   #mobileNav {
     display: flex;
     position: fixed;
-    /* Tab bar ANCLADA ABAJO, de borde a borde: lámina de vidrio con las esquinas
-       superiores redondeadas y el home indicator dentro del propio vidrio (el
-       safe-area inferior va como padding, no como hueco). */
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: auto;
-    min-height: var(--mobile-nav-h);
+    /* Isla de vidrio FLOTANTE: cuelga DEBAJO del notch con márgenes laterales,
+       esquinas redondeadas y sombra difusa — separada del contenido, sin líneas
+       duras. El top arranca tras el safe-area + un pequeño aire. */
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    left: 8px;
+    right: 8px;
+    width: auto;
+    height: 60px;
     z-index: 100;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-around;
-    gap: 2px;
-    /* max() en vez de sumar: en un iPhone el home indicator (34px) ES el aire
-       de abajo, no se le añade otro. Sumándolo la barra crecía ~40px y los
-       iconos quedaban muy arriba, con un hueco muerto debajo. */
-    padding: 5px 6px max(5px, env(safe-area-inset-bottom, 0px));
+    gap: 0.3rem;
+    padding: 0.4rem 0.4rem;
     margin: 0;
-    border-radius: 20px 20px 0 0;
+    border-radius: 20px;
 
-    /* Vidrio de verdad: la veladura tiene que ser lo bastante FINA para que se
-       vea pasar el contenido por detrás — con 0.72 sobre un fondo casi blanco
-       no pasaba nada y la barra leía como un bloque sólido. Veladura al 0.5 en
-       degradado (más densa abajo, donde van las etiquetas) + saturación alta,
-       que es lo que hace que el color del contenido de detrás "encienda" el
-       vidrio en vez de lavarlo. */
-    background: linear-gradient(180deg,
-      rgba(252, 253, 255, 0.42) 0%,
-      rgba(244, 249, 252, 0.62) 100%);
-    -webkit-backdrop-filter: saturate(200%) blur(30px);
-    backdrop-filter: saturate(200%) blur(30px);
-    /* Canto de vidrio: reflejo interior arriba + pelo de separación + sombra
-       corta hacia arriba. Sin esto la lámina no tiene grosor. */
+    /* Vidrio translúcido + desenfoque del contenido que pasa por detrás.
+       Veladura en el MISMO gris-azulado claro de la página (no blanco puro) y
+       con menos opacidad/saturación → el blur deja pasar el tono real del fondo,
+       así el header lee como "la misma superficie esmerilada" y deja de
+       recortarse como una tarjeta blanca sobre el fondo (--bg #f1f5f9). */
+    background: rgba(244, 248, 251, 0.62);
+    -webkit-backdrop-filter: saturate(135%) blur(20px);
+    backdrop-filter: saturate(135%) blur(20px);
+    /* Sin borde ni reflejo blanco arriba: solo sombra difusa para el flotado.
+       Sombra ASENTADA: poco offset + blur corto + baja opacidad → la isla flota
+       apenas lo justo sin "saltar" ni leerse despegada de la pantalla. */
     border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.55);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.6),
-      0 -1px 0 rgba(15, 23, 42, 0.05),
-      0 -10px 28px -18px rgba(15, 23, 42, 0.22);
-  }
-
-  /* La franja superior: mismo vidrio que la tab bar, reflejado (la veladura se
-     densifica hacia arriba, hacia la status bar, y el canto va abajo). */
-  #mobileTopBar {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: calc(var(--mobile-top-h) + env(safe-area-inset-top, 0px));
-    z-index: 99;
-    pointer-events: none;
-    /* Canto recto: es un header, no una tarjeta colgada. El redondeo de la tab
-       bar de abajo viene de la referencia; aquí leía como esquinas de más. */
-    border-radius: 0;
-
-    background: linear-gradient(180deg,
-      rgba(244, 249, 252, 0.62) 0%,
-      rgba(252, 253, 255, 0.42) 100%);
-    -webkit-backdrop-filter: saturate(200%) blur(30px);
-    backdrop-filter: saturate(200%) blur(30px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.55);
-    box-shadow:
-      inset 0 -1px 0 rgba(255, 255, 255, 0.6),
-      0 1px 0 rgba(15, 23, 42, 0.05),
-      0 10px 28px -18px rgba(15, 23, 42, 0.22);
+      0 4px 14px -8px rgba(15, 23, 42, 0.16),     /* sombra suave, cercana */
+      0 1px 3px rgba(15, 23, 42, 0.05);           /* contacto sutil al borde */
   }
 
   /* Sin backdrop-filter: subir opacidad para que las etiquetas sigan legibles. */
   @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
     #mobileNav {
-      background: rgba(246, 250, 252, 0.97);
-    }
-    #mobileTopBar {
-      background: rgba(246, 250, 252, 0.97);
+      background: rgba(244, 248, 251, 0.96);
     }
   }
   .mobile-nav-logout {
@@ -1235,18 +1149,15 @@ nav.old-nav {
   .layout-main {
     margin: 0;
     padding: 0 1.5rem;
-    /* Arriba: franja de vidrio + safe-area (notch) + aire. Abajo: alto de la
-       tab bar + el home indicator. */
-    padding-top: calc(var(--mobile-top-h) + env(safe-area-inset-top, 0px) + 8px);
-    padding-bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px) + 16px);
+    /* 80px (alto barra + aire) + el safe-area que la barra ahora ocupa arriba */
+    padding-top: calc(80px + env(safe-area-inset-top, 0px));
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
   }
   .content {
     padding: 0.75rem !important;
-    padding-top: calc(var(--mobile-top-h) + env(safe-area-inset-top, 0px) + 8px) !important;
-    padding-bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px) + 16px) !important;
+    padding-top: calc(80px + env(safe-area-inset-top, 0px)) !important;
     margin: 0 !important;
     width: 100% !important;
   }
@@ -1256,23 +1167,21 @@ nav.old-nav {
 }
 
 /* ──────────────────────────────────────────────────────────────────────
-   Reserva central de espacio para la tab bar (#mobileNav, fijo ABAJO).
-   Cada página fija su propio padding de <main> con valores en px que no saben
-   nada de la barra ni de los insets del iPhone, así que este override central
-   lo garantiza en todas:
-   · especificidad (1,1,1) + !important → gana a las reglas por página;
+   FIX: el header (#mobileNav, fijo arriba) tapaba el contenido.
+   El nav mide 64px + safe-area (notch/Dynamic Island), pero CADA página fija su
+   propio padding-top de <main> con valores en px que NO incluyen el inset (y
+   algunos ni cubren los 64px) → en iPhone con notch el contenido quedaba debajo.
+   Este override central GARANTIZA el espacio correcto en todas:
+   · especificidad (1,1,1) + !important → gana a las reglas inline por página;
    · `#mobileNav ~` → solo aplica cuando el nav existe (no toca login/landing);
-   · abajo: alto de la tab bar + home indicator + aire;
-   · arriba: alto de la franja de vidrio + el inset del notch (con
-     viewport-fit=cover el contenido se metería bajo la status bar).
-   Solo afecta padding vertical; respeta el padding horizontal de cada página.
+   · incluye env(safe-area-inset-top); en Android/desktop el inset es 0 → 80px.
+   Solo afecta padding-top; respeta padding horizontal/inferior de cada página.
    ────────────────────────────────────────────────────────────────────── */
 @media (max-width: 860px) {
-  /* :not(.chat-main) → el chat (mensajes) es full-bleed y a pantalla completa;
-     define su propio padding en mensajes.css. */
-  #mobileNav ~ main:not(.chat-main) {
-    padding-top: calc(var(--mobile-top-h) + env(safe-area-inset-top, 0px) + 8px) !important;
-    padding-bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px) + 16px) !important;
+  /* :not(.chat-main) → el chat (mensajes) es full-bleed y ancla su header de
+     conversación pegado al nav; define su propio padding en mensajes.css. */
+  #mobileNav ~ main.layout-main:not(.chat-main) {
+    padding-top: calc(80px + env(safe-area-inset-top, 0px)) !important;
   }
 }
 
@@ -1696,16 +1605,11 @@ nav.old-nav {
 /* ── Notification Panel (dropdown / sheet) ── */
 .sd-notif-panel {
   position: fixed;
-  /* En móvil sube DESDE la tab bar inferior (que incluye el home indicator). */
-  top: auto;
-  bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px) + 10px);
+  /* En móvil cuelga bajo la barra superior, que ahora incluye el safe-area. */
+  top: calc(64px + env(safe-area-inset-top, 0px));
   right: 16px;
   width: min(380px, calc(100vw - 32px));
-  max-height: min(
-    560px,
-    calc(100vh - var(--mobile-nav-h) - env(safe-area-inset-bottom, 0px)
-                - env(safe-area-inset-top, 0px) - 44px)
-  );
+  max-height: min(560px, calc(100vh - 96px - env(safe-area-inset-top, 0px)));
   background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 18px;
@@ -1718,8 +1622,8 @@ nav.old-nav {
   flex-direction: column;
   overflow: hidden;
   opacity: 0;
-  transform: translateY(8px) scale(0.98);
-  transform-origin: bottom right;
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top right;
   transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
   backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
@@ -1949,35 +1853,13 @@ nav.old-nav {
 }
 @media (max-width: 860px) {
   /* Bottom-anchored en móvil: el top (72px) chocaba con el hero y los toasts
-     (pointer-events:auto) tapaban "Nueva Cita" / "Nuevo paciente".
-     Ahora, además, se apoyan JUSTO encima de la tab bar. */
+     (pointer-events:auto) tapaban "Nueva Cita" / "Nuevo paciente". */
   .sd-notif-toast-stack {
     top: auto;
-    bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px) + 12px);
+    bottom: calc(16px + env(safe-area-inset-bottom));
     right: 12px;
     left: 12px;
     max-width: none;
-  }
-}
-
-/* ──────────────────────────────────────────────────────────────────────
-   Elementos flotantes de PÁGINA anclados abajo (toasts, barra de acciones en
-   lote, botones de acción). Cada página los define en su propio <style>, con
-   `bottom` en px y sin saber que ahora hay una tab bar fija: en móvil quedaban
-   justo debajo. Se levantan aquí, de forma central, por encima de la barra.
-   Todos son position:fixed sin `top`, así que tocar solo `bottom` es seguro.
-   ────────────────────────────────────────────────────────────────────── */
-@media (max-width: 860px) {
-  /* `#mobileNav ~` los ata a las páginas que SÍ montan el shell (no login ni
-     landing). Los toasts de confirmaciones / recordatorios / consentimientos /
-     personal cuelgan de #toastContainer, que es hermano del nav. */
-  #mobileNav ~ .toast,
-  #mobileNav ~ .toast-wrap,
-  #mobileNav ~ .bulk,
-  #mobileNav ~ .pm-toast,
-  #mobileNav ~ #toastContainer > .toast,
-  #mobileNav ~ #toastWrap > .toast {
-    bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom, 0px) + 12px) !important;
   }
 }
 

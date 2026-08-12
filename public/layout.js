@@ -178,17 +178,13 @@
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
-        <span class="mobile-nav-label">${item.label}</span>
+        <span>${item.label}</span>
       </a>`;
     }).join('');
 
-    // El hamburger es un tab más de la barra: icono + etiqueta, misma métrica.
-    // El badge cuelga aquí porque las notificaciones viven dentro del drawer.
-    const hamburgerMenu = `<button class="mobile-nav-hamburger" id="mobileMenuToggle" title="Menú" aria-label="Menú">
+    const hamburgerMenu = `<button class="mobile-nav-hamburger" id="mobileMenuToggle" title="Menú">
       <span class="hamburger-icon" id="hamburgerIcon"></span>
       <span class="close-icon" id="closeIcon" style="display: none;"></span>
-      ${isDoctor ? '<span class="mobile-nav-badge" id="sdNotifBadgeMobileNav" hidden>0</span>' : ''}
-      <span class="mobile-nav-label">Menú</span>
     </button>`;
 
     const mobileSidebar = `<div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
@@ -368,8 +364,6 @@
         </button>
       </aside>
 
-      <div id="mobileTopBar" aria-hidden="true"></div>
-
       <nav id="mobileNav" class="mobile-nav">
         <svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true" focusable="false">
           <defs>
@@ -403,7 +397,7 @@
     // Mobile nav icons
     document.querySelectorAll('.mobile-nav-item[data-icon]').forEach(item => {
       const icon = item.querySelector('.mobile-icon');
-      if (icon && !icon.innerHTML.trim()) icon.innerHTML = Icons.render(item.dataset.icon, 26);
+      if (icon && !icon.innerHTML.trim()) icon.innerHTML = Icons.render(item.dataset.icon, 22);
     });
 
     // Logout icons
@@ -420,8 +414,8 @@
     // Hamburger and close icons
     const hamburgerIcon = document.querySelector('#hamburgerIcon');
     const closeIcon = document.querySelector('#closeIcon');
-    if (hamburgerIcon && !hamburgerIcon.innerHTML.trim()) hamburgerIcon.innerHTML = Icons.render('menu', 24);
-    if (closeIcon && !closeIcon.innerHTML.trim()) closeIcon.innerHTML = Icons.render('x', 24);
+    if (hamburgerIcon && !hamburgerIcon.innerHTML.trim()) hamburgerIcon.innerHTML = Icons.render('menu', 20);
+    if (closeIcon && !closeIcon.innerHTML.trim()) closeIcon.innerHTML = Icons.render('x', 20);
 
     // Close sidebar button icon
     const closeSidebarBtn = document.querySelector('#closeSidebarBtn');
@@ -506,7 +500,6 @@
     // Get all elements (desktop sidebar, mobile nav, mobile overlay, mobile sidebar, notif panel, toast stack)
     const sidebarEl = wrapper.querySelector('aside#sidebar');
     const mobileNavEl = wrapper.querySelector('nav#mobileNav');
-    const mobileTopBarEl = wrapper.querySelector('#mobileTopBar');
     const mobileOverlayEl = wrapper.querySelector('.mobile-sidebar-overlay');
     const mobileSidebarEl = wrapper.querySelector('aside.mobile-sidebar');
     const notifPanelEl = wrapper.querySelector('#sdNotifPanel');
@@ -521,13 +514,6 @@
     if (mobileNavEl) {
       document.body.insertBefore(mobileNavEl, document.body.firstChild);
       console.log('[layout.js] Mobile nav injected');
-    }
-    // Va DESPUÉS del nav: como todo se inserta en firstChild, la franja acaba
-    // ANTES de #mobileNav en el DOM y el selector `#mobileNav ~ main` (que
-    // reserva el espacio de las páginas) sigue encontrando el <main>.
-    if (mobileTopBarEl) {
-      document.body.insertBefore(mobileTopBarEl, document.body.firstChild);
-      console.log('[layout.js] Mobile top bar injected');
     }
     if (mobileOverlayEl) {
       document.body.insertBefore(mobileOverlayEl, document.body.firstChild);
@@ -725,7 +711,7 @@
       sidebar.classList.add('active');
       overlay.classList.add('active');
       if (hamburgerIcon) hamburgerIcon.style.display = 'none';
-      if (closeIcon) closeIcon.style.display = 'flex';
+      if (closeIcon) closeIcon.style.display = 'block';
       document.body.style.overflow = 'hidden';
     }
 
@@ -733,7 +719,7 @@
       console.log('[layout.js] Closing sidebar');
       sidebar.classList.remove('active');
       overlay.classList.remove('active');
-      if (hamburgerIcon) hamburgerIcon.style.display = 'flex';
+      if (hamburgerIcon) hamburgerIcon.style.display = 'block';
       if (closeIcon) closeIcon.style.display = 'none';
       document.body.style.overflow = '';
       toggleBtn.blur();
@@ -1028,7 +1014,7 @@
       const unread = cached.filter(i => !seen.has(i.id)).length;
       // Badge del Dock cuando corre en la app nativa de escritorio.
       tauriDockBadge(unread);
-      ['sdNotifBadgeDesktop', 'sdNotifBadgeMobile', 'sdNotifBadgeSidebar', 'sdNotifBadgeMobileNav'].forEach(id => {
+      ['sdNotifBadgeDesktop', 'sdNotifBadgeMobile', 'sdNotifBadgeSidebar'].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         if (unread === 0) {
