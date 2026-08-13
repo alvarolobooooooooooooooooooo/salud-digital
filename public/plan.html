@@ -11,11 +11,39 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     /* ============================================================
-       Suscripción — UI de producto, no landing: superficies planas,
-       una línea de acento y tipografía haciendo el trabajo.
-       Todo scoped a .subs-page.
+       Suscripción — UI de producto sobre el vidrio de la plataforma:
+       misma receta que configuracion/finanzas (gradiente translúcido +
+       blur(14px) + borde blanco + blobs de fondo), pero sin degradados
+       decorativos en el contenido. Todo scoped a .subs-page.
        ============================================================ */
+
+    /* Fondo degradado + blobs: sin algo detrás, el backdrop-filter no refracta
+       nada y el vidrio no se ve. Misma base que configuracion/finanzas/inventario.
+       En oscuro lo pisa theme-dark.css con su propia versión (!important). */
+    body {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      min-height: 100vh;
+    }
+    body::before {
+      content: ''; position: fixed; width: 900px; height: 900px;
+      background: radial-gradient(circle, rgba(8, 145, 178, 0.10) 0%, transparent 70%);
+      top: -250px; right: -300px; border-radius: 50%; z-index: 0;
+      filter: blur(60px); pointer-events: none;
+    }
+    body::after {
+      content: ''; position: fixed; width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
+      bottom: -200px; left: -150px; border-radius: 50%; z-index: 0;
+      filter: blur(60px); pointer-events: none;
+    }
+
     .subs-page {
+      /* Vidrio: se define una vez y lo reutilizan tarjetas, avisos y modal. */
+      --glass: linear-gradient(135deg, rgba(255, 255, 255, .88) 0%, rgba(240, 249, 255, .80) 100%);
+      --glass-2: linear-gradient(135deg, rgba(255, 255, 255, .72) 0%, rgba(240, 249, 255, .62) 100%);
+      --glass-border: rgba(255, 255, 255, .6);
+      --glass-shadow: 0 8px 24px rgba(8, 145, 178, .06), inset 0 1px 0 rgba(255, 255, 255, .8);
+      --blur: saturate(140%) blur(14px);
       --accent:      #0891B2;
       --accent-ink:  #0E7490;
       --accent-soft: #ECFBFE;
@@ -38,6 +66,9 @@
       -webkit-font-smoothing: antialiased;
       padding: 4px 0 64px;
       max-width: 1180px;
+      /* Por encima de los blobs (z-index: 0), o el contenido queda debajo. */
+      position: relative;
+      z-index: 1;
     }
     .subs-page * { box-sizing: border-box; }
     .subs-page button { font: inherit; cursor: pointer; }
@@ -51,7 +82,7 @@
       --danger: #F87171;
 
       --surface: #121214;
-      --surface-2: #171719;
+      --surface-2: rgba(255, 255, 255, .04);
       --line: rgba(255, 255, 255, .08);
       --line-soft: rgba(255, 255, 255, .05);
       --text: #F1F5F9;
@@ -59,6 +90,13 @@
       --muted: #94A3B8;
       --faint: #64748B;
       --shadow: none;
+
+      /* Mismo vidrio en negro: la superficie translúcida del tema oscuro
+         (--sd-surface) con un realce mínimo arriba en vez de brillo blanco. */
+      --glass: linear-gradient(135deg, rgba(24, 24, 27, .74) 0%, rgba(16, 16, 19, .68) 100%);
+      --glass-2: linear-gradient(135deg, rgba(28, 28, 32, .55) 0%, rgba(18, 18, 21, .5) 100%);
+      --glass-border: rgba(255, 255, 255, .07);
+      --glass-shadow: 0 10px 30px rgba(0, 0, 0, .38), inset 0 1px 0 rgba(255, 255, 255, .04);
     }
 
     /* ── Cabecera ── */
@@ -73,7 +111,8 @@
     .subs-page .head p { margin: 0; font-size: 13.5px; color: var(--muted); }
 
     .subs-page .ghost-btn {
-      border: 1px solid var(--line); background: var(--surface);
+      border: 1px solid var(--glass-border); background: var(--glass-2);
+      -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
       border-radius: 9px; padding: 8px 13px;
       font-size: 12.5px; font-weight: 500; color: var(--text-2);
       display: inline-flex; align-items: center; gap: 7px;
@@ -86,8 +125,10 @@
     /* ── Avisos ── */
     .subs-page .notice {
       display: flex; gap: 12px; align-items: flex-start;
-      border: 1px solid var(--line); border-left: 3px solid var(--faint);
-      background: var(--surface); border-radius: 10px;
+      border: 1px solid var(--glass-border); border-left: 3px solid var(--faint);
+      background: var(--glass); border-radius: 12px;
+      -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+      box-shadow: var(--glass-shadow);
       padding: 13px 16px; margin-bottom: 18px;
       font-size: 13px; line-height: 1.55; color: var(--text-2);
     }
@@ -106,8 +147,18 @@
 
     /* ── Tarjeta de estado ── */
     .subs-page .card {
-      background: var(--surface); border: 1px solid var(--line);
-      border-radius: 14px; box-shadow: var(--shadow);
+      background: var(--glass);
+      -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px; box-shadow: var(--glass-shadow);
+    }
+
+    /* Sin soporte de backdrop-filter (Firefox antiguo, WebView viejo) el vidrio
+       se vería transparente sobre los blobs: se cae a superficie sólida. */
+    @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+      .subs-page .card, .subs-page .notice, .subs-page .ghost-btn {
+        background: var(--surface);
+      }
     }
     .subs-page .state {
       display: flex; align-items: flex-start; justify-content: space-between;
@@ -271,21 +322,54 @@
       flex-wrap: wrap; font-size: 11.5px; color: var(--faint);
     }
 
-    /* ── Modal ── */
-    .subs-page .ov {
+    /* ── Modal ──
+       FUERA del scope .subs-page a propósito: el diálogo cuelga de <body> para
+       que el scrim tape también la barra lateral (dentro de .layout-main, que
+       hace de bloque contenedor, un position:fixed se quedaría recortado al
+       área de contenido). Por eso tampoco usa las variables de .subs-page. */
+    .sp-ov {
       position: fixed; inset: 0; z-index: 2000; padding: 1rem;
-      background: rgba(15, 23, 42, .5); backdrop-filter: blur(6px);
+      background: rgba(15, 23, 42, .5);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
       display: grid; place-items: center; animation: sp-in .18s ease;
+      font-family: 'Poppins', system-ui, sans-serif;
     }
     @keyframes sp-in { from { opacity: 0; } to { opacity: 1; } }
-    .subs-page .dlg {
-      width: 100%; max-width: 420px; background: var(--surface);
-      border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, .3);
+    .sp-dlg {
+      width: 100%; max-width: 420px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, .94) 0%, rgba(240, 249, 255, .88) 100%);
+      -webkit-backdrop-filter: saturate(160%) blur(20px); backdrop-filter: saturate(160%) blur(20px);
+      border: 1px solid rgba(255, 255, 255, .6); border-radius: 20px; overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .6);
     }
-    .subs-page .dlg h3 { margin: 0; padding: 22px 24px 0; font-size: 16px; font-weight: 600; color: var(--text); }
-    .subs-page .dlg p { margin: 8px 0 0; padding: 0 24px; font-size: 13px; color: var(--muted); line-height: 1.6; }
-    .subs-page .dlg .row { display: flex; justify-content: flex-end; gap: 9px; padding: 20px 24px 22px; }
+    .sp-dlg h3 { margin: 0; padding: 22px 24px 0; font-size: 16px; font-weight: 600; color: #0F172A; }
+    .sp-dlg p { margin: 8px 0 0; padding: 0 24px; font-size: 13px; color: #64748B; line-height: 1.6; }
+    .sp-dlg .row { display: flex; justify-content: flex-end; gap: 9px; padding: 20px 24px 22px; }
+    .sp-dlg button {
+      font: inherit; cursor: pointer; border: 1px solid transparent; border-radius: 10px;
+      padding: 11px 18px; font-size: 13px; font-weight: 600;
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
+    }
+    .sp-dlg .go { background: #0891B2; color: #fff; }
+    .sp-dlg .go:hover { background: #0E7490; }
+    .sp-dlg .keep { background: transparent; border-color: #E6EBF0; color: #475569; }
+    .sp-dlg .keep:hover { border-color: #94A3B8; }
+
+    [data-theme="dark"] .sp-dlg {
+      background: linear-gradient(135deg, rgba(24, 24, 27, .88) 0%, rgba(16, 16, 19, .82) 100%);
+      border-color: rgba(255, 255, 255, .08);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .05);
+    }
+    [data-theme="dark"] .sp-dlg h3 { color: #F1F5F9; }
+    [data-theme="dark"] .sp-dlg p { color: #94A3B8; }
+    [data-theme="dark"] .sp-dlg .go { background: #22D3EE; color: #06202A; }
+    [data-theme="dark"] .sp-dlg .go:hover { background: #67E8F9; }
+    [data-theme="dark"] .sp-dlg .keep { border-color: rgba(255, 255, 255, .12); color: #CBD5E1; }
+
+    @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+      .sp-dlg { background: #fff; }
+      [data-theme="dark"] .sp-dlg { background: #121214; }
+    }
 
     /* ── Carga ── */
     .subs-page .loading {
@@ -655,15 +739,15 @@
 
   function openCancelModal() {
     const ov = document.createElement('div');
-    ov.className = 'ov';
+    ov.className = 'sp-ov';
     ov.innerHTML = `
-      <div class="dlg" role="dialog" aria-modal="true">
+      <div class="sp-dlg" role="dialog" aria-modal="true">
         <h3>¿Cancelar la suscripción?</h3>
         <p>Se detiene la renovación automática en PayPal. Conservas el acceso hasta que
            termine el mes que ya pagaste y tus datos clínicos permanecen intactos.</p>
         <div class="row">
-          <button class="btn btn-quiet" id="mdKeep">Seguir suscrito</button>
-          <button class="btn btn-primary" id="mdCancel">Sí, cancelar</button>
+          <button class="keep" id="mdKeep">Seguir suscrito</button>
+          <button class="go" id="mdCancel">Sí, cancelar</button>
         </div>
       </div>`;
     document.body.appendChild(ov);
