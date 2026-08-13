@@ -255,23 +255,26 @@
       text-transform: uppercase; color: var(--muted);
       margin-bottom: 12px; text-align: center;
     }
-    .subs-page .pz-slots { min-height: 102px; display: grid; gap: 10px; }
+    .subs-page .pz-slots { min-height: 48px; display: grid; gap: 10px; }
 
-    /* El iframe de PayPal trae fondo BLANCO y el botón redondeado dentro, así
-       que sobre nuestro cristal asomaban cuatro esquinas blancas. No se puede
-       tocar su interior (es otro origen): se recorta desde fuera con el mismo
-       radio que el resto de la interfaz. `isolation` obliga a WebKit a crear
-       el contexto de apilamiento, o el clip no se aplica al iframe. */
-    .subs-page .pz-slot {
-      border-radius: 10px;
-      overflow: hidden;
-      isolation: isolate;
-      min-height: 44px;
+    /* <paypal-button> del SDK v6 es un componente propio, no un iframe: acepta
+       nuestro radio por variable CSS. (Con la v5 había que recortar el iframe
+       desde fuera porque traía fondo blanco en las esquinas.) */
+    .subs-page paypal-button {
+      --paypal-button-border-radius: 10px;
+      --paypal-mark-border-radius: 10px;
+      display: block;
+      width: 100%;
+    }
+
+    .subs-page .pz-hint {
+      margin-top: 11px; font-size: 11.5px; color: var(--muted);
+      line-height: 1.5; text-align: center;
     }
 
     .subs-page .pz-loading {
       display: flex; align-items: center; justify-content: center; gap: 9px;
-      height: 102px; border: 1px dashed var(--line); border-radius: 12px;
+      height: 48px; border: 1px dashed var(--line); border-radius: 12px;
       font-size: 12.5px; color: var(--faint);
     }
     .subs-page .pz-note {
@@ -761,10 +764,9 @@
         <div class="pz">
           <div class="pz-label">${esc(titulo)}</div>
           <div class="pz-slots" id="pzSlots">
-            <div class="pz-loading" id="pzLoading"><span class="spin"></span> Cargando opciones de pago…</div>
-            <div class="pz-slot" id="pzPaypal"></div>
-            <div class="pz-slot" id="pzCard"></div>
+            <div class="pz-loading" id="pzLoading"><span class="spin"></span> Cargando el pago…</div>
           </div>
+          <div class="pz-hint">Con tu cuenta de PayPal o con tarjeta de crédito o débito, sin crear cuenta. Todo ocurre en esta misma pantalla.</div>
           <div class="pz-note" id="pzNote" hidden></div>
         </div>
         ${NOTA_SEGURO}
@@ -806,13 +808,21 @@
     if (document.getElementById('pzSlots')) montarPaypal();
   }
 
-  /* ══════════ Pago dentro de la página (SDK de PayPal) ══════════
-     El SDK pinta sus botones en iframes sobre ESTA página y abre el checkout
-     en una ventana superpuesta: el usuario no navega a paypal.com ni tiene que
-     volver. Los campos de tarjeta embebidos en nuestro HTML (`card-fields`) no
-     sirven aquí: PayPal solo los admite para pedidos sueltos, no para
-     suscripciones. Por eso la tarjeta va en el botón "Débito o Crédito", que
-     abre el formulario de PayPal como invitado, sin crear cuenta. */
+  /* ══════════ Pago dentro de la página (SDK v6 de PayPal) ══════════
+     `presentationMode: 'modal'` abre el checkout como una CAPA sobre esta
+     página — sin ventana emergente, sin salir de la app. Dentro de esa capa el
+     usuario elige cuenta de PayPal o tarjeta de crédito/débito como invitado.
+
+     Por qué v6 y no la v5: la v5 solo sabe abrir ventana emergente y pintaba
+     sus botones en iframes con fondo blanco (esquinas blancas sobre nuestro
+     cristal). La v6 usa componentes estilables y deja elegir la presentación.
+
+     Aviso de PayPal sobre 'modal': depende de cookies de terceros, que Safari
+     restringe. Si alguna vez el checkout no abriera o quedara en blanco, el
+     cambio es una línea — 'auto' vuelve a intentar ventana emergente primero.
+
+     Los campos de tarjeta dentro de NUESTRO html (`card-fields`) siguen sin ser
+     opción: PayPal solo los admite para pedidos sueltos, no para suscripciones. */
 
   function esApp() {
     return !!(window.__TAURI__ || window.__TAURI_INTERNALS__);
@@ -822,24 +832,17 @@
   function cargarSdk(st) {
     if (sdkPromesa) return sdkPromesa;
     sdkPromesa = new Promise((resolve, reject) => {
-      if (window.paypal && window.paypal.Buttons) return resolve(window.paypal);
-      // Mismo host para sandbox y producción: el entorno lo decide el client id.
-      const q = new URLSearchParams({
-        'client-id': st.client_id,
-        vault: 'true',
-        intent: 'subscription',
-        currency: st.currency,
-        locale: 'es_ES',
-        components: 'buttons',
-        'enable-funding': 'card',
-        'disable-funding': 'paylater',
-      });
+      if (window.paypal && window.paypal.createInstance) return resolve(window.paypal);
+      // v6 sí distingue el host por entorno (v5 lo deducía del client id).
+      const host = st.environment === 'live'
+        ? 'https://www.paypal.com'
+        : 'https://www.sandbox.paypal.com';
       const s = document.createElement('script');
-      s.src = 'https://www.paypal.com/sdk/js?' + q.toString();
+      s.src = host + '/web-sdk/v6/core';
       s.async = true;
-      s.onload = () => (window.paypal && window.paypal.Buttons)
+      s.onload = () => (window.paypal && window.paypal.createInstance)
         ? resolve(window.paypal)
-        : reject(new Error('El SDK cargó sin Buttons'));
+        : reject(new Error('El SDK cargó sin createInstance'));
       s.onerror = () => reject(new Error('No se pudo cargar el SDK de PayPal'));
       document.head.appendChild(s);
     });
@@ -853,44 +856,59 @@
     nota.textContent = texto || '';
   }
 
+  function fallbackRedireccion(slots, st, motivo) {
+    console.warn('[paypal]', motivo);
+    slots.innerHTML = `<button class="btn btn-primary" id="btnSubscribe" style="width:100%">Suscribirme por ${money(st.price, st.currency)}/mes</button>`;
+    const b = document.getElementById('btnSubscribe');
+    if (b) b.onclick = doSubscribe;
+    notaPago('El pago se abrirá en otra pantalla de PayPal.');
+  }
+
   async function montarPaypal() {
     const st = state.status;
     const slots = document.getElementById('pzSlots');
     if (!slots || slots.dataset.montado) return;
     slots.dataset.montado = '1';
 
-    let pp;
+    let sdk, metodos;
     try {
-      pp = await cargarSdk(st);
+      const paypal = await cargarSdk(st);
+      sdk = await paypal.createInstance({
+        clientId: st.client_id,
+        // 'paypal-subscriptions' es el que trae createPayPalSubscriptionPaymentSession.
+        // (La documentación lo llama createPayPalSubscriptionSession y el
+        //  componente ni lo menciona; el nombre real salió de inspeccionar el
+        //  SDK cargado. Si algún día deja de existir, el fallback de abajo
+        //  devuelve el pago al flujo de redirección sin romper nada.)
+        components: ['paypal-payments', 'paypal-subscriptions'],
+        pageType: 'checkout',
+        // Sin esto el checkout sale en inglés. El SDK valida el valor: 'es-HN'
+        // sirve, 'es_HN' (con guion bajo) lo rechaza.
+        locale: 'es-HN',
+      });
+      metodos = await sdk.findEligibleMethods({ currencyCode: st.currency });
     } catch (err) {
       // Sin SDK (red, bloqueador, CSP) se cae al flujo de redirección, que no
       // depende de scripts de terceros.
-      console.warn('[paypal]', err.message);
-      slots.innerHTML = `<button class="btn btn-primary" id="btnSubscribe" style="width:100%">Suscribirme por ${money(st.price, st.currency)}/mes</button>`;
-      const b = document.getElementById('btnSubscribe');
-      if (b) b.onclick = doSubscribe;
-      notaPago('No se pudieron cargar los botones de pago aquí; se abrirá PayPal en otra pantalla.');
+      fallbackRedireccion(slots, st, err.message);
       return;
     }
 
-    const cargando = document.getElementById('pzLoading');
-    if (cargando) cargando.remove();
+    if (!metodos || !metodos.isEligible('paypal')) {
+      fallbackRedireccion(slots, st, 'PayPal no elegible para esta cuenta/moneda');
+      return;
+    }
 
     const acciones = {
-      // PayPal pide el id de una suscripción ya creada: la crea NUESTRO
-      // servidor, que es quien conoce el plan y deja la fila en la BD.
-      createSubscription: () =>
-        api('/api/billing/subscribe', { method: 'POST', body: {} }).then((r) => r.subscription_id),
-
       onApprove: async (data) => {
-        // Ojo: no se re-renderiza la página aquí dentro — eso destruiría los
-        // iframes de PayPal que están ejecutando este callback. Solo se toca
-        // el texto de la nota hasta que termina todo.
+        // Ojo: no se re-renderiza la página aquí dentro — eso destruiría el
+        // botón que está ejecutando este callback. Solo se toca el texto de la
+        // nota hasta que termina todo.
         notaPago('Confirmando el pago con PayPal…');
         try {
           const r = await api('/api/billing/confirm', {
             method: 'POST',
-            body: { subscription_id: data.subscriptionID },
+            body: { subscription_id: data.subscriptionId },
           });
           let activa = r.access && r.access.active;
           // La activación puede tardar unos segundos en PayPal.
@@ -918,48 +936,41 @@
 
       onCancel: () => {
         notaPago('');
-        banner('warn', 'Pago cancelado', 'Cerraste la ventana de PayPal sin terminar. No se te ha cobrado nada.');
+        banner('warn', 'Pago cancelado', 'Cerraste el pago sin terminar. No se te ha cobrado nada.');
         render();
       },
 
       onError: (err) => {
         console.error('[paypal]', err);
         banner('danger', 'PayPal no pudo procesar el pago',
-          'Intenta de nuevo, o prueba con el otro método de pago.');
+          'Intenta de nuevo en unos minutos; si sigue fallando, escríbenos.');
         render();
       },
     };
 
-    montarBoton(pp, pp.FUNDING.PAYPAL, 'pzPaypal', acciones, { color: 'gold', label: 'subscribe' });
-    montarBoton(pp, pp.FUNDING.CARD, 'pzCard', acciones, { color: 'black' });
-  }
-
-  function montarBoton(pp, fuente, id, acciones, estilo) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    let botones;
+    let sesion;
     try {
-      botones = pp.Buttons(Object.assign({
-        fundingSource: fuente,
-        style: Object.assign({ shape: 'rect', height: 44 }, estilo),
-      }, acciones));
+      sesion = sdk.createPayPalSubscriptionPaymentSession(acciones);
     } catch (err) {
-      console.warn('[paypal] no se pudo construir el botón', id, err);
-      el.remove();
+      fallbackRedireccion(slots, st, 'createPayPalSubscriptionPaymentSession: ' + err.message);
       return;
     }
 
-    // isEligible(): PayPal decide si esa vía está disponible para el comprador
-    // (país, moneda, configuración de la cuenta). El pago con tarjeta como
-    // invitado no se ofrece en todos los países.
-    if (!botones.isEligible()) {
-      el.remove();
-      if (fuente === pp.FUNDING.CARD) {
-        notaPago('Para pagar con tarjeta sin cuenta de PayPal, usa la opción "Pagar con tarjeta" dentro de la ventana de PayPal.');
-      }
-      return;
-    }
-    botones.render(el).catch((err) => console.warn('[paypal] render', err));
+    // <paypal-button> es un componente del SDK, no un iframe: se le puede dar
+    // nuestro radio con variables CSS (por eso desaparece el recorte a mano).
+    slots.innerHTML = '<paypal-button type="subscribe" class="paypal-gold" id="ppBtn"></paypal-button>';
+    const boton = document.getElementById('ppBtn');
+
+    boton.addEventListener('click', () => {
+      notaPago('');
+      // presentationMode 'modal' = capa sobre ESTA página, sin ventana aparte.
+      // La suscripción la crea nuestro servidor; el SDK solo recibe su id.
+      sesion.start(
+        { presentationMode: 'modal' },
+        api('/api/billing/subscribe', { method: 'POST', body: {} })
+          .then((r) => ({ subscriptionId: r.subscription_id })),
+      );
+    });
   }
 
   function banner(tone, title, text) { state.banner = { tone, title, text }; }
