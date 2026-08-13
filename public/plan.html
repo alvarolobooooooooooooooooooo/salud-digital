@@ -239,25 +239,46 @@
     }
 
     /* ── Zona de pago (botones del SDK de PayPal) ──
-       Los botones los pinta PayPal dentro de iframes propios: su aspecto es
-       intocable (es requisito de marca), así que el trabajo aquí es darles un
-       marco que no desentone y reservarles altura para que no salte el layout. */
-    .subs-page .pz { width: 290px; max-width: 100%; }
-    .subs-page .pz-label {
-      font-size: 11.5px; font-weight: 600; letter-spacing: .06em;
-      text-transform: uppercase; color: var(--muted);
-      margin-bottom: 9px; text-align: right;
+       Banda propia a lo ancho de la tarjeta y centrada: metidos en la columna
+       derecha quedaban apretados contra el borde y descolocados respecto al
+       resto. Los botones los pinta PayPal dentro de iframes: su aspecto es
+       intocable (requisito de marca suyo), así que aquí solo se les da sitio,
+       se centran y se les recortan los cantos. */
+    .subs-page .payband {
+      border-top: 1px solid var(--line-soft);
+      padding: 24px 26px 26px;
+      display: grid; justify-items: center; gap: 14px; text-align: center;
     }
-    .subs-page .pz-slots { min-height: 96px; display: grid; gap: 8px; }
+    .subs-page .pz { width: 100%; max-width: 340px; }
+    .subs-page .pz-label {
+      font-size: 11.5px; font-weight: 600; letter-spacing: .09em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 12px; text-align: center;
+    }
+    .subs-page .pz-slots { min-height: 102px; display: grid; gap: 10px; }
+
+    /* El iframe de PayPal trae fondo BLANCO y el botón redondeado dentro, así
+       que sobre nuestro cristal asomaban cuatro esquinas blancas. No se puede
+       tocar su interior (es otro origen): se recorta desde fuera con el mismo
+       radio que el resto de la interfaz. `isolation` obliga a WebKit a crear
+       el contexto de apilamiento, o el clip no se aplica al iframe. */
+    .subs-page .pz-slot {
+      border-radius: 10px;
+      overflow: hidden;
+      isolation: isolate;
+      min-height: 44px;
+    }
+
     .subs-page .pz-loading {
       display: flex; align-items: center; justify-content: center; gap: 9px;
-      height: 96px; border: 1px dashed var(--line); border-radius: 12px;
+      height: 102px; border: 1px dashed var(--line); border-radius: 12px;
       font-size: 12.5px; color: var(--faint);
     }
     .subs-page .pz-note {
-      margin-top: 9px; font-size: 11.5px; color: var(--faint);
-      text-align: right; line-height: 1.5;
+      margin-top: 10px; font-size: 11.5px; color: var(--faint);
+      text-align: center; line-height: 1.5;
     }
+    .subs-page .payband .pay-note { text-align: center; justify-content: center; }
     .subs-page .pay-note {
       display: flex; align-items: center; gap: 7px;
       font-size: 11.5px; color: var(--faint); text-align: right; line-height: 1.45;
@@ -591,6 +612,7 @@
             ${renderActions(st, e, owner)}
           </div>
         </div>
+        ${renderPayBand(st, e, owner)}
         ${renderFacts(st, sub, e)}
       </section>
 
@@ -692,47 +714,61 @@
       return `<div class="pay-note">${I.info}<span>Solo el administrador de la cuenta puede gestionar la suscripción.</span></div>`;
     }
 
+    // Solo la suscripción activa tiene acción en esta columna (cancelar). Todo
+    // lo relativo a PAGAR vive en su propia banda centrada, más abajo.
+    if (e.key !== 'active') return '';
+
+    return `<button class="btn btn-quiet" id="btnCancel" ${state.busy === 'cancel' ? 'disabled' : ''}>
+        ${state.busy === 'cancel' ? '<span class="spin"></span> Cancelando' : 'Cancelar suscripción'}
+      </button>
+      ${NOTA_SEGURO}`;
+  }
+
+  const NOTA_SEGURO = `<div class="pay-note">${I.lock}<span>Pago procesado por <span class="pp"><span class="a">Pay</span><span class="b">Pal</span></span>. Nunca vemos tu tarjeta.</span></div>`;
+
+  // Banda de pago: ocupa el ancho de la tarjeta y va centrada. Aquí se montan
+  // los botones del SDK (cuenta de PayPal / tarjeta) o, si no se puede, el
+  // botón clásico que abre el pago fuera.
+  function renderPayBand(st, e, owner) {
+    if (!owner || e.key === 'active') return '';
+
     const puede = st.configured && st.plan_ready;
     const cargando = state.busy === 'subscribe';
-    const seguro = `<div class="pay-note">${I.lock}<span>Pago procesado por <span class="pp"><span class="a">Pay</span><span class="b">Pal</span></span>. Nunca vemos tu tarjeta.</span></div>`;
 
-    const btn = (texto) => `<button class="btn btn-primary" id="btnSubscribe" ${cargando || !puede ? 'disabled' : ''}>
-      ${cargando ? '<span class="spin"></span> Conectando…' : esc(texto)}
-    </button>`;
-
-    if (e.key === 'active') {
-      return `<button class="btn btn-quiet" id="btnCancel" ${state.busy === 'cancel' ? 'disabled' : ''}>
-          ${state.busy === 'cancel' ? '<span class="spin"></span> Cancelando' : 'Cancelar suscripción'}
-        </button>
-        ${seguro}`;
-    }
+    const titulo = e.key === 'pending' ? 'Termina tu pago'
+      : (e.key === 'cancelled' || e.key === 'suspended') ? 'Reactivar por ' + money(st.price, st.currency) + ' al mes'
+      : money(st.price, st.currency) + ' al mes · elige cómo pagar';
 
     // En la app de escritorio (Tauri) no se usa el SDK: sus ventanas emergentes
-    // no funcionan bien dentro del WKWebView empaquetado, así que ahí se
-    // mantiene el pago en el navegador del sistema.
+    // no funcionan bien dentro del WKWebView empaquetado, así que ahí el pago
+    // se abre en el navegador del sistema.
     if (!puede || esApp()) {
       const texto = e.key === 'pending' ? 'Continuar con PayPal'
         : (e.key === 'cancelled' || e.key === 'suspended') ? 'Reactivar suscripción'
         : 'Suscribirme por ' + money(st.price, st.currency) + '/mes';
-      return btn(texto) + seguro;
+      return `<div class="payband">
+          <div class="pz">
+            <div class="pz-label">${esc(titulo)}</div>
+            <button class="btn btn-primary" id="btnSubscribe" style="width:100%" ${cargando || !puede ? 'disabled' : ''}>
+              ${cargando ? '<span class="spin"></span> Conectando…' : esc(texto)}
+            </button>
+          </div>
+          ${NOTA_SEGURO}
+        </div>`;
     }
 
-    // Botones del SDK: el pago ocurre sobre esta misma página, sin salir de la
-    // app. Se ofrecen las dos vías por separado — cuenta de PayPal y tarjeta.
-    const titulo = e.key === 'pending' ? 'Termina tu pago'
-      : (e.key === 'cancelled' || e.key === 'suspended') ? 'Reactivar · ' + money(st.price, st.currency) + '/mes'
-      : money(st.price, st.currency) + ' al mes · elige cómo pagar';
-
-    return `<div class="pz">
-        <div class="pz-label">${esc(titulo)}</div>
-        <div class="pz-slots" id="pzSlots">
-          <div class="pz-loading" id="pzLoading"><span class="spin"></span> Cargando opciones de pago…</div>
-          <div id="pzPaypal"></div>
-          <div id="pzCard"></div>
+    return `<div class="payband">
+        <div class="pz">
+          <div class="pz-label">${esc(titulo)}</div>
+          <div class="pz-slots" id="pzSlots">
+            <div class="pz-loading" id="pzLoading"><span class="spin"></span> Cargando opciones de pago…</div>
+            <div class="pz-slot" id="pzPaypal"></div>
+            <div class="pz-slot" id="pzCard"></div>
+          </div>
+          <div class="pz-note" id="pzNote" hidden></div>
         </div>
-        <div class="pz-note" id="pzNote" hidden></div>
-      </div>
-      ${seguro}`;
+        ${NOTA_SEGURO}
+      </div>`;
   }
 
   function renderPayments() {
@@ -830,7 +866,7 @@
       // Sin SDK (red, bloqueador, CSP) se cae al flujo de redirección, que no
       // depende de scripts de terceros.
       console.warn('[paypal]', err.message);
-      slots.innerHTML = `<button class="btn btn-primary" id="btnSubscribe">Suscribirme por ${money(st.price, st.currency)}/mes</button>`;
+      slots.innerHTML = `<button class="btn btn-primary" id="btnSubscribe" style="width:100%">Suscribirme por ${money(st.price, st.currency)}/mes</button>`;
       const b = document.getElementById('btnSubscribe');
       if (b) b.onclick = doSubscribe;
       notaPago('No se pudieron cargar los botones de pago aquí; se abrirá PayPal en otra pantalla.');
