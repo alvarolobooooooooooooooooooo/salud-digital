@@ -92,7 +92,8 @@
             { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
             { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
-            { href: '/mensajes.html', key: 'mensajes', iconName: 'messageSquare', label: 'Mensajes' },
+            // Mensajes desactivado — para reactivar, descomentar esta línea:
+            // { href: '/mensajes.html', key: 'mensajes', iconName: 'messageSquare', label: 'Mensajes' },
             { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
             { href: '/facturacion.html', key: 'facturacion', iconName: 'fileText', label: 'Facturación' }
           ]
@@ -132,7 +133,8 @@
             { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
             { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
-            { href: '/mensajes.html', key: 'mensajes', iconName: 'messageSquare', label: 'Mensajes' },
+            // Mensajes desactivado — para reactivar, descomentar esta línea:
+            // { href: '/mensajes.html', key: 'mensajes', iconName: 'messageSquare', label: 'Mensajes' },
             { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
             { href: '/facturacion.html', key: 'facturacion', iconName: 'fileText', label: 'Facturación' }
           ]

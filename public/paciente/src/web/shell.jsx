@@ -12,7 +12,8 @@
     { id: 'home', icon: 'home', label: 'Inicio' },
     { id: 'citas', icon: 'calendar', label: 'Citas' },
     { id: 'salud', icon: 'heart-pulse', label: 'Mi salud' },
-    { id: 'chat', icon: 'message', label: 'Mensajes' },
+    // Mensajes desactivado — para reactivar, descomentar esta línea:
+    // { id: 'chat', icon: 'message', label: 'Mensajes' },
     { id: 'facturas', icon: 'receipt', label: 'Facturas' },
   ];
   const TITLES = {

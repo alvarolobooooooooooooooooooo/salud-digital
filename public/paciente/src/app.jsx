@@ -111,7 +111,8 @@
     { id: 'home', icon: 'home', label: 'Inicio' },
     { id: 'citas', icon: 'calendar', label: 'Citas' },
     { id: 'salud', icon: 'heart-pulse', label: 'Mi salud' },
-    { id: 'chat', icon: 'message', label: 'Chat' },
+    // Mensajes desactivado — para reactivar, descomentar esta línea:
+    // { id: 'chat', icon: 'message', label: 'Chat' },
     { id: 'perfil', icon: 'user', label: 'Perfil' },
   ];
 
