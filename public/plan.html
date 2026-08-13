@@ -17,33 +17,63 @@
        decorativos en el contenido. Todo scoped a .subs-page.
        ============================================================ */
 
-    /* Fondo degradado + blobs: sin algo detrás, el backdrop-filter no refracta
-       nada y el vidrio no se ve. Misma base que configuracion/finanzas/inventario.
-       En oscuro lo pisa theme-dark.css con su propia versión (!important). */
+    /* Fondo con color DETRÁS de las tarjetas. Clave: el backdrop-filter solo se
+       nota si hay algo que difuminar; con los blobs en las esquinas (como en el
+       resto de páginas) el vidrio quedaba invisible sobre fondo casi blanco.
+       Aquí las manchas cruzan por debajo del contenido a propósito.
+       Son estáticas: nada animado sobre una capa borrosa (mata los fps en
+       WKWebView). En oscuro las pisa theme-dark.css con su propia versión. */
     body {
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      background: linear-gradient(135deg, #f4f9fc 0%, #eef5fa 45%, #e6f6fb 100%);
       min-height: 100vh;
     }
     body::before {
-      content: ''; position: fixed; width: 900px; height: 900px;
-      background: radial-gradient(circle, rgba(8, 145, 178, 0.10) 0%, transparent 70%);
-      top: -250px; right: -300px; border-radius: 50%; z-index: 0;
-      filter: blur(60px); pointer-events: none;
+      content: ''; position: fixed; width: 1100px; height: 1100px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(6, 182, 212, 0.30) 0%, transparent 60%),
+        radial-gradient(circle at 70% 60%, rgba(56, 189, 248, 0.24) 0%, transparent 62%);
+      top: -420px; right: -160px; border-radius: 50%; z-index: 0;
+      filter: blur(70px); pointer-events: none;
     }
     body::after {
-      content: ''; position: fixed; width: 700px; height: 700px;
-      background: radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
-      bottom: -200px; left: -150px; border-radius: 50%; z-index: 0;
-      filter: blur(60px); pointer-events: none;
+      content: ''; position: fixed; width: 950px; height: 950px;
+      background:
+        radial-gradient(circle at 60% 40%, rgba(14, 165, 233, 0.22) 0%, transparent 62%),
+        radial-gradient(circle at 25% 75%, rgba(45, 212, 191, 0.20) 0%, transparent 60%);
+      bottom: -380px; left: 120px; border-radius: 50%; z-index: 0;
+      filter: blur(75px); pointer-events: none;
+    }
+
+    /* En oscuro, theme-dark.css pisa los blobs con unos casi invisibles
+       (alpha .025) y !important. Sobre negro plano el cristal tampoco se vería,
+       así que esta pantalla recupera su propia aurora, tenue pero presente.
+       Va después de layout.css en la cascada, por eso gana con !important. */
+    html[data-theme="dark"] body::before {
+      background:
+        radial-gradient(circle at 35% 35%, rgba(34, 211, 238, .17) 0%, transparent 62%),
+        radial-gradient(circle at 72% 62%, rgba(56, 189, 248, .13) 0%, transparent 60%) !important;
+      filter: blur(80px) !important;
+      opacity: 1 !important;
+    }
+    html[data-theme="dark"] body::after {
+      background:
+        radial-gradient(circle at 58% 42%, rgba(45, 212, 191, .13) 0%, transparent 60%),
+        radial-gradient(circle at 28% 72%, rgba(99, 102, 241, .13) 0%, transparent 62%) !important;
+      filter: blur(85px) !important;
+      opacity: 1 !important;
     }
 
     .subs-page {
       /* Vidrio: se define una vez y lo reutilizan tarjetas, avisos y modal. */
-      --glass: linear-gradient(135deg, rgba(255, 255, 255, .88) 0%, rgba(240, 249, 255, .80) 100%);
-      --glass-2: linear-gradient(135deg, rgba(255, 255, 255, .72) 0%, rgba(240, 249, 255, .62) 100%);
-      --glass-border: rgba(255, 255, 255, .6);
-      --glass-shadow: 0 8px 24px rgba(8, 145, 178, .06), inset 0 1px 0 rgba(255, 255, 255, .8);
-      --blur: saturate(140%) blur(14px);
+      /* Translúcidas de verdad (~70%): a .88 el color de detrás no llegaba a
+         atravesar y la "tarjeta de vidrio" se veía igual que una blanca. */
+      --glass: linear-gradient(140deg, rgba(255, 255, 255, .72) 0%, rgba(236, 248, 255, .58) 100%);
+      --glass-2: linear-gradient(140deg, rgba(255, 255, 255, .60) 0%, rgba(236, 248, 255, .46) 100%);
+      --glass-border: rgba(255, 255, 255, .85);
+      --glass-shadow:
+        0 12px 32px -12px rgba(8, 74, 100, .22),
+        inset 0 1px 0 rgba(255, 255, 255, .95);
+      --blur: saturate(180%) blur(22px);
       --accent:      #0891B2;
       --accent-ink:  #0E7490;
       --accent-soft: #ECFBFE;
@@ -52,9 +82,11 @@
       --danger: #DC2626;
 
       --surface: #FFFFFF;
-      --surface-2: #F8FAFC;
-      --line: #E6EBF0;
-      --line-soft: #EEF2F6;
+      --surface-2: rgba(255, 255, 255, .55);
+      /* Líneas translúcidas: sobre cristal, una línea sólida se ve pegada encima
+         en vez de grabada en la superficie. */
+      --line: rgba(15, 23, 42, .10);
+      --line-soft: rgba(15, 23, 42, .07);
       --text: #0F172A;
       --text-2: #475569;
       --muted: #64748B;
@@ -91,12 +123,14 @@
       --faint: #64748B;
       --shadow: none;
 
-      /* Mismo vidrio en negro: la superficie translúcida del tema oscuro
-         (--sd-surface) con un realce mínimo arriba en vez de brillo blanco. */
-      --glass: linear-gradient(135deg, rgba(24, 24, 27, .74) 0%, rgba(16, 16, 19, .68) 100%);
-      --glass-2: linear-gradient(135deg, rgba(28, 28, 32, .55) 0%, rgba(18, 18, 21, .5) 100%);
-      --glass-border: rgba(255, 255, 255, .07);
-      --glass-shadow: 0 10px 30px rgba(0, 0, 0, .38), inset 0 1px 0 rgba(255, 255, 255, .04);
+      /* Mismo vidrio en negro: superficie translúcida + un filo de luz arriba,
+         que es lo que hace legible el canto del cristal sobre fondo oscuro. */
+      --glass: linear-gradient(140deg, rgba(38, 40, 46, .58) 0%, rgba(18, 19, 23, .48) 100%);
+      --glass-2: linear-gradient(140deg, rgba(44, 46, 52, .48) 0%, rgba(22, 23, 27, .38) 100%);
+      --glass-border: rgba(255, 255, 255, .12);
+      --glass-shadow:
+        0 14px 36px -14px rgba(0, 0, 0, .65),
+        inset 0 1px 0 rgba(255, 255, 255, .10);
     }
 
     /* ── Cabecera ── */
