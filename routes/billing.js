@@ -1,324 +1,290 @@
-// ── /api/billing — suscripción mensual de la plataforma (PayPal) ──
+// ── /api/billing — API de suscripciones ──
 //
-// Alta:      POST /subscribe  → crea la suscripción en PayPal y devuelve el link
-//                               de aprobación (el navegador va ahí)
-// Regreso:   POST /confirm    → la página vuelve con ?subscription_id=… y aquí
-//                               se verifica contra PayPal antes de darla por buena
-// Recurrente: el cobro mensual lo hace PayPal; nos llega por /webhook
-//
-// Nada de esto confía en lo que manda el navegador: el estado SIEMPRE se lee de
-// la API de PayPal (o de un webhook con firma verificada).
+// Esta capa NO conoce PayPal: solo habla con los servicios y con la interfaz
+// PaymentProvider. Cambiar de procesador no debería tocar este archivo salvo,
+// como mucho, el bloque `checkout` que se envía al navegador.
 
 const express = require('express');
-const crypto = require('crypto');
 const router = express.Router();
 const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
-const paypal = require('../lib/paypal');
-const subscription = require('../lib/subscription');
+const { getProvider, PaymentError } = require('../lib/payments/provider');
+const subs = require('../lib/billing/subscription-service');
+const billing = require('../lib/billing/billing-service');
+const webhooks = require('../lib/billing/webhook-service');
 
-// Roles que pueden contratar/cancelar: el dueño de la cuenta. La recepcionista
-// puede VER el estado (para saber por qué está bloqueada la app) pero no pagar.
+// Quien puede contratar y cancelar: el dueño de la cuenta. La recepcionista ve
+// el estado (para entender por qué está bloqueada la app) pero no paga.
 const OWNER_ROLES = ['clinic_admin', 'doctor'];
 
-const SUBSCRIPTION_ID_RE = /^I-[A-Z0-9]{6,32}$/i;
+const REF_SUSCRIPCION = /^[A-Za-z0-9_-]{6,64}$/;
 
 function appUrl() {
   const raw = String(process.env.APP_URL || '').trim().replace(/\/+$/, '');
   return raw || 'http://localhost:' + (process.env.PORT || 3000);
 }
 
-function publicSubscription(sub) {
-  if (!sub) return null;
+function publicPlan(p) {
   return {
-    id: sub.external_id,
-    status: sub.status,
-    amount: sub.amount != null ? Number(sub.amount) : null,
-    currency: sub.currency,
-    subscriber_email: sub.subscriber_email || '',
-    subscriber_name: sub.subscriber_name || '',
-    start_time: sub.start_time,
-    next_billing_time: sub.next_billing_time,
-    last_payment_at: sub.last_payment_at,
-    last_payment_amount: sub.last_payment_amount != null ? Number(sub.last_payment_amount) : null,
-    cancelled_at: sub.cancelled_at,
-    created_at: sub.created_at,
+    code: p.code,
+    name: p.name,
+    description: p.description,
+    amount: p.amount,
+    currency: p.currency,
+    interval: p.billing_interval,
+    interval_count: p.interval_count,
+    trial_days: p.trial_days,
   };
 }
 
-// ── GET /api/billing/status ──
-// La usan la página de suscripción y el guardián del frontend. Exenta del
-// bloqueo (ver middleware/subscription.js) porque es justo lo que hay que poder
-// consultar cuando la app está bloqueada.
+function publicSubscription(s) {
+  if (!s) return null;
+  return {
+    id: s.provider_subscription_id,
+    provider: s.provider,
+    status: s.status,
+    plan_code: s.plan_code || null,
+    plan_name: s.plan_name || null,
+    amount: s.amount,
+    currency: s.currency,
+    interval: s.billing_interval,
+    current_period_start: s.current_period_start,
+    current_period_end: s.current_period_end,
+    next_billing_at: s.next_billing_at,
+    cancel_at_period_end: s.cancel_at_period_end,
+    cancelled_at: s.cancelled_at,
+    failed_attempts: s.failed_attempts,
+    subscriber_email: s.subscriber_email || '',
+    subscriber_name: s.subscriber_name || '',
+    created_at: s.created_at,
+  };
+}
+
+function manejarError(res, err, mensajeGenerico) {
+  if (err instanceof PaymentError) {
+    const mapa = {
+      already_subscribed: 409,
+      unknown_plan: 400,
+      inactive_plan: 400,
+      no_clinic: 403,
+      provider_not_configured: 503,
+      plan_not_mapped: 503,
+      unsupported_operation: 501,
+    };
+    const status = mapa[err.code] || 502;
+    return res.status(status).json({ error: err.message, code: err.code });
+  }
+  console.error('[billing]', mensajeGenerico, err);
+  return res.status(500).json({ error: mensajeGenerico });
+}
+
+// ── Catálogo ──
+router.get('/plans', authenticate, async (req, res) => {
+  res.json((await subs.listPlans()).map(publicPlan));
+});
+
+// ── Estado ──
+// Exenta del bloqueo (ver middleware/subscription.js): es justo lo que hay que
+// poder consultar cuando la app está bloqueada.
 router.get('/status', authenticate, async (req, res) => {
   const clinicId = req.user.clinic_id;
-  const sub = clinicId ? await subscription.getClinicSubscription(clinicId) : null;
-  const access = subscription.accessFromSubscription(sub);
-  const exempt = clinicId ? subscription.isExemptClinic(clinicId) : true;
+  const sub = clinicId ? await subs.getForClinic(clinicId) : null;
+  const acceso = subs.access(sub);
+
+  const enforcement = require('../lib/subscription');
+  const exento = clinicId ? enforcement.isExemptClinic(clinicId) : true;
+
+  let provider = null;
+  let checkout = { provider: 'none', configured: false };
+  try {
+    provider = getProvider(sub ? sub.provider : undefined);
+    checkout = { ...provider.publicConfig(), configured: provider.isConfigured(), capabilities: provider.capabilities };
+  } catch (_) {
+    /* procesador desconocido: se informa como no configurado */
+  }
+
+  const planes = await subs.listPlans();
 
   res.json({
-    configured: paypal.isConfigured(),
-    plan_ready: paypal.hasPlan(),
-    environment: paypal.env(),
-    enforced: subscription.enforcementEnabled(),
-    exempt,
+    configured: !!(provider && provider.isConfigured()),
+    enforced: enforcement.enforcementEnabled(),
+    exempt: exento,
     can_manage: OWNER_ROLES.includes(req.user.role),
-    // Client id público: la página lo necesita para cargar el SDK de PayPal y
-    // cobrar sin sacar al usuario de la app. El secreto se queda en el servidor.
-    client_id: paypal.clientId(),
-    price: paypal.price(),
-    currency: paypal.currency(),
+    checkout,
+    plans: planes.map(publicPlan),
     access: {
-      // exempt o sin enforcement → la app no bloquea, aunque no haya suscripción
-      active: access.active || exempt || !subscription.enforcementEnabled(),
-      paid: access.active,
-      reason: access.reason,
+      active: acceso.active || exento || !enforcement.enforcementEnabled(),
+      paid: acceso.active,
+      reason: acceso.reason,
     },
     subscription: publicSubscription(sub),
   });
 });
 
-// ── GET /api/billing/payments — historial de cobros ──
+// ── Historial de cobros ──
 router.get('/payments', authenticate, requireRole(...OWNER_ROLES), async (req, res) => {
   if (!req.user.clinic_id) return res.json([]);
   const r = await query(
-    `SELECT p.external_payment_id, p.amount, p.currency, p.status, p.paid_at
-       FROM subscription_payments p
-       JOIN subscriptions s ON s.external_id = p.external_subscription_id
-      WHERE s.clinic_id = $1
-      ORDER BY p.paid_at DESC
-      LIMIT 24`,
+    `SELECT provider_payment_id, amount, currency, status, attempt, failure_message, paid_at, created_at
+       FROM payments WHERE clinic_id = $1 ORDER BY COALESCE(paid_at, created_at) DESC LIMIT 50`,
     [req.user.clinic_id],
   );
   res.json(
-    r.rows.map((row) => ({
-      id: row.external_payment_id,
-      amount: Number(row.amount),
-      currency: row.currency,
-      status: row.status,
-      paid_at: row.paid_at,
+    r.rows.map((p) => ({
+      id: p.provider_payment_id,
+      amount: Number(p.amount),
+      currency: p.currency,
+      status: p.status,
+      attempt: p.attempt,
+      failure_message: p.failure_message || '',
+      paid_at: p.paid_at || p.created_at,
     })),
   );
 });
 
-// ── POST /api/billing/subscribe ──
+// ── Alta ──
 router.post('/subscribe', authenticate, requireRole(...OWNER_ROLES), async (req, res) => {
-  const clinicId = req.user.clinic_id;
-  if (!clinicId) return res.status(403).json({ error: 'Tu usuario no tiene una clínica asignada.' });
-  if (!paypal.isConfigured()) {
-    return res.status(503).json({ error: 'PayPal no está configurado en el servidor.' });
-  }
-  if (!paypal.hasPlan()) {
-    return res.status(503).json({ error: 'Falta el plan de PayPal. Ejecuta tools/paypal-setup.js.' });
-  }
-
-  const existing = await subscription.getClinicSubscription(clinicId);
-  if (existing && String(existing.status).toUpperCase() === 'ACTIVE') {
-    return res.status(409).json({ error: 'Ya tienes una suscripción activa.' });
-  }
-
-  const userRow = await query('SELECT name, email FROM users WHERE id = $1', [req.user.id]);
-  const me = userRow.rows[0] || {};
-
-  let created;
   try {
-    created = await paypal.createSubscription({
-      customId: clinicId,
-      subscriberEmail: me.email || req.user.email,
-      subscriberName: me.name || '',
-      returnUrl: appUrl() + '/plan.html?paypal=return',
-      cancelUrl: appUrl() + '/plan.html?paypal=cancel',
-      requestId: crypto.randomUUID(),
+    const usuario = await query('SELECT name, email FROM users WHERE id = $1', [req.user.id]);
+    const yo = usuario.rows[0] || {};
+
+    const r = await subs.start({
+      clinicId: req.user.clinic_id,
+      userId: req.user.id,
+      planCode: String((req.body && req.body.plan_code) || 'individual-monthly'),
+      email: yo.email || req.user.email,
+      name: yo.name || '',
+      returnUrl: appUrl() + '/plan.html?checkout=return',
+      cancelUrl: appUrl() + '/plan.html?checkout=cancel',
+    });
+
+    res.json({
+      subscription_id: r.providerSubscriptionId,
+      approve_url: r.approvalUrl,
+      plan: publicPlan(r.plan),
     });
   } catch (err) {
-    console.error('[billing] createSubscription:', err.message);
-    return res.status(502).json({ error: 'PayPal rechazó la solicitud. Intenta de nuevo en unos minutos.' });
+    manejarError(res, err, 'No se pudo iniciar la suscripción.');
   }
-
-  const approveUrl = paypal.approveLink(created);
-  if (!approveUrl) {
-    return res.status(502).json({ error: 'PayPal no devolvió un enlace de pago.' });
-  }
-
-  // Se guarda ya en APPROVAL_PENDING: así, al volver, podemos comprobar que la
-  // suscripción que nos presentan es una que NOSOTROS creamos para esta clínica.
-  await subscription.upsertFromPayPal(created, { clinicId, userId: req.user.id });
-
-  res.json({ subscription_id: created.id, approve_url: approveUrl });
 });
 
-// ── POST /api/billing/confirm ──
-// Se llama al volver de PayPal. El id llega por la URL, así que se valida contra
-// la fila local antes de consultar a PayPal: nadie puede "adoptar" la
-// suscripción de otro pasando un id ajeno.
+// ── Confirmación tras el checkout ──
+// El id llega por el navegador, así que se comprueba contra nuestra fila ANTES
+// de consultar al procesador: nadie puede adoptar la suscripción de otro.
 router.post('/confirm', authenticate, requireRole(...OWNER_ROLES), async (req, res) => {
-  const clinicId = req.user.clinic_id;
-  const id = String((req.body && req.body.subscription_id) || '').trim();
-  if (!SUBSCRIPTION_ID_RE.test(id)) return res.status(400).json({ error: 'Identificador de suscripción inválido.' });
-  if (!clinicId) return res.status(403).json({ error: 'Tu usuario no tiene una clínica asignada.' });
+  const ref = String((req.body && req.body.subscription_id) || '').trim();
+  if (!REF_SUSCRIPCION.test(ref)) return res.status(400).json({ error: 'Identificador inválido.' });
 
-  const own = await query('SELECT id FROM subscriptions WHERE external_id = $1 AND clinic_id = $2', [id, clinicId]);
-  if (own.rowCount === 0) {
+  const propia = await query(
+    'SELECT id FROM subscriptions WHERE provider_subscription_id = $1 AND clinic_id = $2',
+    [ref, req.user.clinic_id],
+  );
+  if (propia.rowCount === 0) {
     return res.status(404).json({ error: 'Esa suscripción no pertenece a esta cuenta.' });
   }
 
-  let remote;
   try {
-    remote = await paypal.getSubscription(id);
+    const sub = await subs.getForClinic(req.user.clinic_id);
+    const actualizada = await subs.syncFromProvider(sub);
+    res.json({ subscription: publicSubscription(actualizada), access: subs.access(actualizada) });
   } catch (err) {
-    console.error('[billing] getSubscription:', err.message);
-    return res.status(502).json({ error: 'No se pudo verificar el estado con PayPal. Intenta de nuevo.' });
+    manejarError(res, err, 'No se pudo verificar el estado con el procesador.');
   }
-
-  const row = await subscription.upsertFromPayPal(remote, { clinicId, userId: req.user.id });
-  const access = subscription.accessFromSubscription(row);
-  res.json({ subscription: publicSubscription(row), access });
 });
 
-// ── POST /api/billing/sync — refrescar contra PayPal a mano ──
-// Red de seguridad si un webhook se perdió (o si aún no están configurados).
+// ── Relectura manual ──
 router.post('/sync', authenticate, requireRole(...OWNER_ROLES), async (req, res) => {
-  const clinicId = req.user.clinic_id;
-  const local = clinicId ? await subscription.getClinicSubscription(clinicId) : null;
-  if (!local) return res.json({ subscription: null, access: { active: false, reason: 'none' } });
-  if (!paypal.isConfigured()) return res.status(503).json({ error: 'PayPal no está configurado.' });
-
-  let remote;
+  const sub = await subs.getForClinic(req.user.clinic_id);
+  if (!sub) return res.json({ subscription: null, access: { active: false, reason: 'none' } });
   try {
-    remote = await paypal.getSubscription(local.external_id);
+    const actualizada = await subs.syncFromProvider(sub);
+    res.json({ subscription: publicSubscription(actualizada), access: subs.access(actualizada) });
   } catch (err) {
-    console.error('[billing] sync:', err.message);
-    return res.status(502).json({ error: 'No se pudo consultar a PayPal.' });
+    manejarError(res, err, 'No se pudo consultar al procesador.');
   }
-
-  const row = await subscription.upsertFromPayPal(remote, { clinicId });
-  res.json({ subscription: publicSubscription(row), access: subscription.accessFromSubscription(row) });
 });
 
-// ── POST /api/billing/cancel ──
+// ── Cancelación ──
 router.post('/cancel', authenticate, requireRole(...OWNER_ROLES), async (req, res) => {
-  const clinicId = req.user.clinic_id;
-  const local = clinicId ? await subscription.getClinicSubscription(clinicId) : null;
-  if (!local) return res.status(404).json({ error: 'No hay ninguna suscripción que cancelar.' });
-
-  const reason = String((req.body && req.body.reason) || '').slice(0, 128) || 'Cancelada desde Salud Digital';
-
+  const sub = await subs.getForClinic(req.user.clinic_id);
+  if (!sub) return res.status(404).json({ error: 'No hay ninguna suscripción que cancelar.' });
   try {
-    await paypal.cancelSubscription(local.external_id, reason);
-  } catch (err) {
-    // 422 = PayPal dice que ya no está activa. No es un error para el usuario:
-    // se sincroniza el estado real y se responde normal.
-    if (err.status !== 422) {
-      console.error('[billing] cancel:', err.message);
-      return res.status(502).json({ error: 'PayPal no pudo cancelar la suscripción. Intenta de nuevo.' });
-    }
-  }
-
-  let row = local;
-  try {
-    row = await subscription.upsertFromPayPal(await paypal.getSubscription(local.external_id), { clinicId });
-  } catch (err) {
-    console.warn('[billing] no se pudo releer tras cancelar:', err.message);
-  }
-
-  res.json({ subscription: publicSubscription(row), access: subscription.accessFromSubscription(row) });
-});
-
-// ── POST /api/billing/webhook ──
-// Público (PayPal no manda cookies). La autenticidad la da la verificación de
-// firma contra la API de PayPal; sin PAYPAL_WEBHOOK_ID no se procesa nada.
-// req.body llega como Buffer: express.raw se monta para esta ruta en server.js
-// ANTES del express.json global, porque la firma se calcula sobre el cuerpo tal
-// cual llegó.
-router.post('/webhook', async (req, res) => {
-  const raw = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body || {}));
-
-  if (!paypal.isConfigured() || !paypal.webhookId()) {
-    console.warn('[billing] webhook recibido pero PayPal no está configurado');
-    return res.status(503).end();
-  }
-
-  let verified = false;
-  try {
-    verified = await paypal.verifyWebhookSignature(req.headers, raw);
-  } catch (err) {
-    console.error('[billing] verificación de webhook falló:', err.message);
-  }
-  if (!verified) {
-    console.warn('[billing] webhook con firma inválida — descartado');
-    return res.status(400).end();
-  }
-
-  let event;
-  try {
-    event = JSON.parse(raw.toString('utf8'));
-  } catch {
-    return res.status(400).end();
-  }
-
-  // Idempotencia: si el id ya está registrado, PayPal está reintentando.
-  try {
-    const dedupe = await query(
-      `INSERT INTO paypal_webhook_events (event_id, event_type)
-       VALUES ($1, $2) ON CONFLICT (event_id) DO NOTHING RETURNING event_id`,
-      [String(event.id || '').slice(0, 120), String(event.event_type || '').slice(0, 80)],
-    );
-    if (dedupe.rowCount === 0) return res.status(200).end();
-  } catch (err) {
-    console.warn('[billing] dedupe de webhook falló:', err.message);
-  }
-
-  try {
-    await handleEvent(event);
-  } catch (err) {
-    // 200 igualmente: reintentar no arreglaría un bug nuestro y PayPal seguiría
-    // machacando. El estado real se recupera con el botón "Actualizar estado".
-    console.error('[billing] error procesando webhook', event.event_type, err.message);
-  }
-
-  res.status(200).end();
-});
-
-async function handleEvent(event) {
-  const type = String(event.event_type || '').toUpperCase();
-  const resource = event.resource || {};
-
-  if (type === 'PAYMENT.SALE.COMPLETED' || type === 'PAYMENT.SALE.REFUNDED' || type === 'PAYMENT.SALE.REVERSED') {
-    const subId = resource.billing_agreement_id;
-    if (!subId) return;
-    const amount = resource.amount || {};
-    await subscription.recordPayment({
-      externalSubscriptionId: subId,
-      paymentId: resource.id,
-      amount: parseFloat(amount.total || amount.value || 0) || 0,
-      currencyCode: amount.currency || amount.currency_code,
-      status: type === 'PAYMENT.SALE.COMPLETED' ? 'COMPLETED' : type.split('.').pop(),
-      paidAt: resource.create_time || new Date(),
+    const actualizada = await subs.cancel(sub, {
+      reason: String((req.body && req.body.reason) || 'Cancelada por el usuario'),
+      immediate: false,
+      userId: req.user.id,
     });
-    // Tras el cobro cambia next_billing_time: se relee la suscripción completa.
-    await refreshSubscription(subId);
-    return;
-  }
-
-  if (type.startsWith('BILLING.SUBSCRIPTION.')) {
-    const subId = resource.id;
-    if (!subId) return;
-    await refreshSubscription(subId, resource);
-  }
-}
-
-// Relee el estado desde la API (más fiable que el resource del evento, que a
-// veces llega parcial) y cae al resource del webhook si la API falla.
-async function refreshSubscription(subId, fallbackResource) {
-  try {
-    const remote = await paypal.getSubscription(subId);
-    await subscription.upsertFromPayPal(remote, {});
+    res.json({ subscription: publicSubscription(actualizada), access: subs.access(actualizada) });
   } catch (err) {
-    console.warn('[billing] no se pudo releer la suscripción', subId, '→', err.message);
-    if (fallbackResource && fallbackResource.id) {
-      await subscription.upsertFromPayPal(fallbackResource, {});
-    }
+    manejarError(res, err, 'No se pudo cancelar la suscripción.');
   }
+});
+
+// ── Cambio de plan ──
+router.post('/change-plan', authenticate, requireRole(...OWNER_ROLES), async (req, res) => {
+  const sub = await subs.getForClinic(req.user.clinic_id);
+  if (!sub) return res.status(404).json({ error: 'No hay suscripción que cambiar.' });
+  try {
+    const r = await subs.changePlan(sub, {
+      planCode: String((req.body && req.body.plan_code) || ''),
+      userId: req.user.id,
+    });
+    res.json({
+      subscription: publicSubscription(r.subscription),
+      proration: r.proration || null,
+      approve_url: r.approvalUrl || null,
+    });
+  } catch (err) {
+    manejarError(res, err, 'No se pudo cambiar de plan.');
+  }
+});
+
+// ── Reintento manual de un cobro fallido ──
+router.post('/retry', authenticate, requireRole(...OWNER_ROLES), async (req, res) => {
+  const sub = await subs.getForClinic(req.user.clinic_id);
+  if (!sub) return res.status(404).json({ error: 'No hay suscripción.' });
+  try {
+    const r = await billing.retryNow(sub);
+    res.json({
+      ok: !!r.ok,
+      delegated: !!r.delegated,
+      subscription: publicSubscription(r.subscription || sub),
+    });
+  } catch (err) {
+    manejarError(res, err, 'No se pudo reintentar el cobro.');
+  }
+});
+
+// ── Webhooks ──
+// Públicos (el procesador no manda cookies). La autenticidad la da la
+// verificación de firma dentro del provider. req.body llega como Buffer:
+// express.raw se monta para esta ruta en server.js ANTES del express.json
+// global, porque la firma se calcula sobre el cuerpo tal cual llegó.
+async function manejarWebhook(req, res) {
+  const raw = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body || {}));
+  const r = await webhooks.receive({
+    providerName: req.params.provider,
+    headers: req.headers,
+    rawBody: raw,
+  });
+  res.status(r.status).end();
 }
+
+router.post('/webhook', manejarWebhook);
+router.post('/webhook/:provider', manejarWebhook);
+
+// ── Observabilidad (solo super admin) ──
+router.get('/events', authenticate, requireRole('super_admin'), async (req, res) => {
+  const r = await query(
+    `SELECT id, provider, provider_event_id, event_type, signature_verified, status,
+            attempts, last_error, received_at, processed_at
+       FROM payment_events ORDER BY received_at DESC LIMIT 100`,
+  );
+  res.json(r.rows);
+});
+
+router.post('/events/reprocess', authenticate, requireRole('super_admin'), async (req, res) => {
+  res.json(await webhooks.reprocessFailed({ limit: 50 }));
+});
 
 module.exports = router;

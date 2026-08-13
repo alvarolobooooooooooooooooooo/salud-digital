@@ -1,5 +1,12 @@
 # Suscripción con PayPal — $19.99/mes
 
+> **Nota:** este documento describe la integración concreta con PayPal.
+> La arquitectura del sistema de suscripciones (agnóstica del procesador),
+> el esquema de base de datos y cómo conectar otro procesador están en
+> [docs/PAYMENTS.md](docs/PAYMENTS.md) y
+> [docs/ADDING_A_PROVIDER.md](docs/ADDING_A_PROVIDER.md).
+
+
 Salud Digital se vende como **plan individual**: un profesional = una clínica =
 una suscripción mensual de **19.99 USD** cobrada automáticamente por PayPal.
 Sin suscripción activa, la plataforma queda bloqueada.
@@ -93,20 +100,21 @@ de PayPal.
 
 | Archivo | Qué hace |
 |---|---|
-| `lib/paypal.js` | Cliente REST: token, suscripciones, webhooks, alta de plan |
-| `lib/subscription.js` | Estado/acceso, volcado de PayPal a la BD, caché de 60s |
+| `lib/paypal.js` | Cliente REST crudo: token, suscripciones, webhooks, alta de plan |
+| `lib/payments/providers/paypal.js` | **Único** sitio que traduce PayPal ↔ vocabulario propio |
+| `lib/payments/provider.js` | Interfaz `PaymentProvider` + registro de procesadores |
+| `lib/billing/*` | Suscripciones, cobros, webhooks y job — sin saber de PayPal |
 | `middleware/subscription.js` | Guardián: 402 en `/api` si no hay plan activo |
-| `routes/billing.js` | `/status`, `/subscribe`, `/confirm`, `/sync`, `/cancel`, `/payments`, `/webhook` |
+| `routes/billing.js` | API de facturación |
 | `public/plan.html` | Pantalla "Suscripción" (AJUSTES en el menú) |
-| `tools/paypal-setup.js` | Crea producto + plan + webhook |
+| `tools/paypal-setup.js` | Crea producto + plan + webhook en PayPal |
 
 ### Tablas
 
-- `subscriptions` — una fila por suscripción de PayPal (`external_id` = `I-…`).
-- `subscription_payments` — cada cobro mensual (llega por webhook, sin duplicados).
-- `paypal_webhook_events` — ids de eventos ya procesados (idempotencia).
-
-Las columnas `clinics.plan_status` / `plan_expires_at` se mantienen alineadas.
+`plans`, `subscriptions`, `payment_methods`, `payments` y `payment_events`.
+El detalle del esquema y los estados está en [docs/PAYMENTS.md](docs/PAYMENTS.md).
+Las columnas `clinics.plan_status` / `plan_expires_at` se mantienen alineadas por
+compatibilidad con pantallas anteriores.
 
 ---
 
@@ -120,11 +128,11 @@ Sin suscripción activa, **toda** la API responde `402` y el frontend manda a
 - el rol `super_admin` (operador de la plataforma) y el rol `patient`
 - clínicas listadas en `BILLING_EXEMPT_CLINIC_IDS`
 
-Se considera **activa**: estado `ACTIVE`, o `CANCELLED`/`SUSPENDED` mientras la
-fecha del próximo cobro siga en el futuro (el mes ya pagado se respeta).
+Se considera **con acceso**: `active`/`trialing`, o `past_due`/`cancelled`/`paused`
+mientras el periodo ya pagado siga vigente (el mes cobrado se respeta).
 
-El bloqueo solo se activa si hay credenciales de PayPal configuradas — en local,
-sin credenciales, la app funciona normal.
+El bloqueo solo se activa si hay un procesador configurado — en local, sin
+credenciales, la app funciona normal.
 
 ### Palancas de emergencia
 
@@ -145,4 +153,4 @@ BILLING_EXEMPT_CLINIC_IDS=1,4  # clínicas que nunca se bloquean
   `node tools/paypal-setup.js`. Las suscripciones ya existentes siguen con el
   precio viejo hasta que el cliente se pase al plan nuevo.
 - **Reembolsos y disputas** se gestionan desde el panel de PayPal; el webhook
-  registra `REFUNDED` / `REVERSED` en el historial.
+  registra el reembolso en el historial de `payments`.

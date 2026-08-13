@@ -454,6 +454,10 @@ const PORT = process.env.PORT || 3000;
     setTimeout(runPurge, 30 * 1000);                // primera corrida 30s después del arranque
     setInterval(runPurge, 24 * 60 * 60 * 1000);     // cada 24 horas
 
+    // Ciclo de facturación: cobra lo vencido (solo con procesadores que no
+    // cobran solos), caduca lo pagado y reprocesa webhooks fallidos.
+    require('./lib/billing/jobs').start();
+
     // Geocodifica al arranque las clínicas que aún no tienen lat/lng. Corre en
     // background respetando el rate limit de Nominatim (1 req/s) y no bloquea listen.
     setTimeout(() => {

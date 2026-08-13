@@ -523,61 +523,264 @@ const initDb = async () => {
       CREATE INDEX IF NOT EXISTS idx_landing_leads_clinic ON clinic_landing_leads(clinic_id);
       CREATE INDEX IF NOT EXISTS idx_landing_leads_created ON clinic_landing_leads(created_at DESC);
 
-      -- ── Suscripción de la plataforma (PayPal) ──
-      -- Una fila por suscripción creada en PayPal. La clínica es el "cliente"
-      -- (en el modelo individual: un doctor = una clínica = una suscripción).
-      -- external_id es el ID de PayPal (I-XXXXXXXXXXXX) y es la clave real:
-      -- todo lo demás es copia local de lo que dice PayPal, que manda siempre.
+      -- ══════════════ FACTURACIÓN ══════════════
+      -- Modelo AGNÓSTICO del procesador de pagos. Ninguna columna se llama
+      -- "paypal_*": el proveedor va en la columna provider y sus identificadores
+      -- en las columnas provider_*, para poder migrar a PixelPay/Tilopay/BAC sin
+      -- tocar la lógica de negocio. Ver docs/PAYMENTS.md.
+
+      -- Catálogo de planes. El importe vive aquí, no en el código, y
+      -- provider_refs guarda el id del plan en CADA procesador:
+      --   {"paypal": {"plan_id": "P-XXXX"}, "pixelpay": {...}}
+      CREATE TABLE IF NOT EXISTS plans (
+        id SERIAL PRIMARY KEY,
+        code TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        description TEXT DEFAULT '',
+        amount NUMERIC(12,2) NOT NULL,
+        currency TEXT NOT NULL DEFAULT 'USD',
+        billing_interval TEXT NOT NULL DEFAULT 'month'
+          CHECK (billing_interval IN ('day','week','month','year')),
+        interval_count INTEGER NOT NULL DEFAULT 1 CHECK (interval_count > 0),
+        trial_days INTEGER NOT NULL DEFAULT 0 CHECK (trial_days >= 0),
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        provider_refs JSONB NOT NULL DEFAULT '{}'::jsonb,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Métodos de pago tokenizados. NUNCA se guarda el PAN completo ni el CVV:
+      -- solo el token del procesador y los datos de presentación (marca y
+      -- últimos 4) que él mismo devuelve. Si un procesador no tokeniza, aquí no
+      -- se escribe nada y la suscripción va por su motor nativo.
+      CREATE TABLE IF NOT EXISTS payment_methods (
+        id SERIAL PRIMARY KEY,
+        clinic_id INTEGER NOT NULL,
+        user_id INTEGER,
+        provider TEXT NOT NULL,
+        provider_customer_id TEXT DEFAULT '',
+        provider_token TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT 'card' CHECK (type IN ('card','wallet','bank')),
+        brand TEXT DEFAULT '',
+        last4 TEXT DEFAULT '' CHECK (char_length(last4) <= 4),
+        exp_month INTEGER CHECK (exp_month BETWEEN 1 AND 12),
+        exp_year INTEGER CHECK (exp_year BETWEEN 2000 AND 2100),
+        holder_name TEXT DEFAULT '',
+        is_default BOOLEAN NOT NULL DEFAULT FALSE,
+        status TEXT NOT NULL DEFAULT 'active'
+          CHECK (status IN ('active','expired','revoked','invalid')),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        UNIQUE (provider, provider_token)
+      );
+      CREATE INDEX IF NOT EXISTS idx_payment_methods_clinic ON payment_methods(clinic_id, is_default DESC);
+
+      -- Suscripciones. La tabla venía de la primera iteración (acoplada a
+      -- PayPal); se migra abajo con ALTER para no perder las filas existentes.
       CREATE TABLE IF NOT EXISTS subscriptions (
         id SERIAL PRIMARY KEY,
         clinic_id INTEGER NOT NULL,
         user_id INTEGER,
         provider TEXT NOT NULL DEFAULT 'paypal',
-        external_id TEXT NOT NULL UNIQUE,
-        plan_id TEXT DEFAULT '',
-        status TEXT NOT NULL DEFAULT 'APPROVAL_PENDING',
-        amount NUMERIC DEFAULT 0,
+        provider_subscription_id TEXT UNIQUE,
+        status TEXT NOT NULL DEFAULT 'incomplete',
+        amount NUMERIC(12,2) DEFAULT 0,
         currency TEXT DEFAULT 'USD',
-        subscriber_email TEXT DEFAULT '',
-        subscriber_name TEXT DEFAULT '',
-        start_time TIMESTAMP,
-        next_billing_time TIMESTAMP,
-        last_payment_at TIMESTAMP,
-        last_payment_amount NUMERIC,
-        cancelled_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
         FOREIGN KEY (user_id) REFERENCES users(id)
       );
-      CREATE INDEX IF NOT EXISTS idx_subscriptions_clinic ON subscriptions(clinic_id, created_at DESC);
-      CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
 
-      -- Historial de cobros mensuales (llega por webhook PAYMENT.SALE.COMPLETED).
-      -- external_payment_id es UNIQUE → reintentos de webhook no duplican filas.
-      CREATE TABLE IF NOT EXISTS subscription_payments (
+      -- Un cobro = un intento. Se registra tanto el éxito como el fallo, con su
+      -- número de intento, para poder auditar el dunning.
+      CREATE TABLE IF NOT EXISTS payments (
         id SERIAL PRIMARY KEY,
         subscription_id INTEGER,
-        external_subscription_id TEXT NOT NULL,
-        external_payment_id TEXT NOT NULL UNIQUE,
-        amount NUMERIC DEFAULT 0,
-        currency TEXT DEFAULT 'USD',
-        status TEXT DEFAULT 'COMPLETED',
-        paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        clinic_id INTEGER NOT NULL,
+        provider TEXT NOT NULL,
+        provider_payment_id TEXT,
+        provider_subscription_id TEXT DEFAULT '',
+        payment_method_id INTEGER,
+        amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+        currency TEXT NOT NULL DEFAULT 'USD',
+        status TEXT NOT NULL DEFAULT 'pending'
+          CHECK (status IN ('pending','succeeded','failed','refunded','reversed','cancelled')),
+        attempt INTEGER NOT NULL DEFAULT 1,
+        failure_code TEXT DEFAULT '',
+        failure_message TEXT DEFAULT '',
+        period_start TIMESTAMP,
+        period_end TIMESTAMP,
+        paid_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE CASCADE
+        FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE SET NULL,
+        FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
+        FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id) ON DELETE SET NULL,
+        UNIQUE (provider, provider_payment_id)
       );
-      CREATE INDEX IF NOT EXISTS idx_subscription_payments_sub ON subscription_payments(external_subscription_id, paid_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_payments_clinic ON payments(clinic_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_payments_subscription ON payments(subscription_id, created_at DESC);
 
-      -- Idempotencia de webhooks: PayPal reintenta el mismo evento hasta recibir
-      -- 200, y puede mandarlo duplicado. Guardar el id del evento evita procesar
-      -- dos veces (p. ej. registrar el mismo cobro o revivir un estado viejo).
-      CREATE TABLE IF NOT EXISTS paypal_webhook_events (
-        event_id TEXT PRIMARY KEY,
+      -- Bitácora de webhooks: guarda TODO evento recibido (aunque falle su
+      -- procesamiento) para idempotencia, auditoría y reproceso manual.
+      CREATE TABLE IF NOT EXISTS payment_events (
+        id SERIAL PRIMARY KEY,
+        provider TEXT NOT NULL,
+        provider_event_id TEXT NOT NULL,
         event_type TEXT DEFAULT '',
-        received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        signature_verified BOOLEAN NOT NULL DEFAULT FALSE,
+        status TEXT NOT NULL DEFAULT 'pending'
+          CHECK (status IN ('pending','processed','failed','ignored')),
+        attempts INTEGER NOT NULL DEFAULT 0,
+        last_error TEXT DEFAULT '',
+        payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+        received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        processed_at TIMESTAMP,
+        UNIQUE (provider, provider_event_id)
       );
+      CREATE INDEX IF NOT EXISTS idx_payment_events_status ON payment_events(status, received_at);
     `);
+
+    // ── Migración de la tabla subscriptions de la 1ª iteración ──
+    // Los renombrados no son idempotentes: se comprueba el catálogo antes.
+    // Con esto las filas existentes (intentos sin completar) se conservan.
+    await query(`
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns
+                    WHERE table_name='subscriptions' AND column_name='external_id') THEN
+          ALTER TABLE subscriptions RENAME COLUMN external_id TO provider_subscription_id;
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns
+                    WHERE table_name='subscriptions' AND column_name='plan_id'
+                      AND data_type = 'text') THEN
+          ALTER TABLE subscriptions RENAME COLUMN plan_id TO provider_plan_id;
+        END IF;
+      END $$;
+    `);
+
+    // Columnas del ciclo de facturación. A diferencia de `alterCommands`, estos
+    // NO se ejecutan tragándose errores: si el esquema no queda como el código
+    // espera, es mejor que el arranque falle a que los cobros se comporten raro.
+    const billingAlters = [
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS plan_id INTEGER REFERENCES plans(id)",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS provider_plan_id TEXT DEFAULT ''",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS provider_customer_id TEXT DEFAULT ''",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS payment_method_id INTEGER REFERENCES payment_methods(id) ON DELETE SET NULL",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS billing_interval TEXT NOT NULL DEFAULT 'month'",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS interval_count INTEGER NOT NULL DEFAULT 1",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS current_period_start TIMESTAMP",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS current_period_end TIMESTAMP",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS next_billing_at TIMESTAMP",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMP",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS cancel_reason TEXT DEFAULT ''",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS failed_attempts INTEGER NOT NULL DEFAULT 0",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS last_error TEXT DEFAULT ''",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS metadata JSONB NOT NULL DEFAULT '{}'::jsonb",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS subscriber_email TEXT DEFAULT ''",
+      "ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS subscriber_name TEXT DEFAULT ''",
+      "CREATE INDEX IF NOT EXISTS idx_subscriptions_clinic ON subscriptions(clinic_id, created_at DESC)",
+      "CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status)",
+      // El job de renovación busca por aquí: sin índice haría un seq scan cada minuto.
+      "CREATE INDEX IF NOT EXISTS idx_subscriptions_due ON subscriptions(next_billing_at) WHERE status IN ('active','past_due','trialing')",
+    ];
+    for (const cmd of billingAlters) await query(cmd);
+
+    // Estados: la 1ª iteración guardaba los de PayPal en mayúsculas
+    // (APPROVAL_PENDING, ACTIVE…). Se traducen al vocabulario interno, que es
+    // el mismo sea cual sea el procesador.
+    await query(`
+      UPDATE subscriptions SET status = CASE upper(status)
+        WHEN 'ACTIVE'           THEN 'active'
+        WHEN 'APPROVAL_PENDING' THEN 'incomplete'
+        WHEN 'APPROVED'         THEN 'incomplete'
+        WHEN 'SUSPENDED'        THEN 'past_due'
+        WHEN 'CANCELLED'        THEN 'cancelled'
+        WHEN 'EXPIRED'          THEN 'expired'
+        ELSE lower(status) END
+      WHERE status <> lower(status)
+    `);
+
+    // Valores de las columnas viejas → nuevas, y fuera las viejas.
+    await query(`
+      UPDATE subscriptions
+         SET current_period_start = COALESCE(current_period_start, start_time),
+             next_billing_at      = COALESCE(next_billing_at, next_billing_time),
+             current_period_end   = COALESCE(current_period_end, next_billing_time)
+       WHERE start_time IS NOT NULL OR next_billing_time IS NOT NULL
+    `).catch(() => {});
+    for (const col of ['start_time', 'next_billing_time', 'last_payment_at', 'last_payment_amount']) {
+      await query(`ALTER TABLE subscriptions DROP COLUMN IF EXISTS ${col}`);
+    }
+
+    await query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'subscriptions_status_check') THEN
+          ALTER TABLE subscriptions ADD CONSTRAINT subscriptions_status_check
+            CHECK (status IN ('incomplete','trialing','active','past_due','payment_failed','paused','cancelled','expired'));
+        END IF;
+      END $$;
+    `);
+
+    // Tablas de la 1ª iteración → nuevas. Se copian las filas (si las hubiera) y
+    // se retiran las viejas, para no dejar dos fuentes de verdad.
+    await query(`
+      INSERT INTO payments (subscription_id, clinic_id, provider, provider_payment_id,
+                            provider_subscription_id, amount, currency, status, paid_at, created_at)
+      SELECT sp.subscription_id, COALESCE(s.clinic_id, 0), 'paypal', sp.external_payment_id,
+             sp.external_subscription_id, sp.amount, sp.currency,
+             CASE upper(sp.status) WHEN 'COMPLETED' THEN 'succeeded'
+                                   WHEN 'REFUNDED'  THEN 'refunded'
+                                   WHEN 'REVERSED'  THEN 'reversed'
+                                   ELSE 'failed' END,
+             sp.paid_at, sp.created_at
+        FROM subscription_payments sp
+        LEFT JOIN subscriptions s ON s.id = sp.subscription_id
+       WHERE s.clinic_id IS NOT NULL
+      ON CONFLICT DO NOTHING
+    `).catch(() => {});
+    await query(`
+      INSERT INTO payment_events (provider, provider_event_id, event_type, signature_verified, status, received_at)
+      SELECT 'paypal', event_id, event_type, TRUE, 'processed', received_at FROM paypal_webhook_events
+      ON CONFLICT DO NOTHING
+    `).catch(() => {});
+    await query('DROP TABLE IF EXISTS subscription_payments');
+    await query('DROP TABLE IF EXISTS paypal_webhook_events');
+
+    // Plan por defecto: el catálogo pasa a la BD, pero el precio sigue saliendo
+    // de las variables de entorno la primera vez para no cambiar el importe a
+    // nadie por sorpresa. A partir de ahí, manda la tabla.
+    const precioEnv = parseFloat(process.env.SUBSCRIPTION_PRICE || '19.99');
+    const monedaEnv = (process.env.SUBSCRIPTION_CURRENCY || 'USD').toUpperCase();
+    const refsPaypal = process.env.PAYPAL_PLAN_ID
+      ? JSON.stringify({ paypal: { plan_id: process.env.PAYPAL_PLAN_ID } })
+      : '{}';
+    await query(
+      `INSERT INTO plans (code, name, description, amount, currency, billing_interval, interval_count, provider_refs)
+       VALUES ('individual-monthly', 'Plan Individual',
+               'Acceso completo a Salud Digital para un profesional.', $1, $2, 'month', 1, $3::jsonb)
+       ON CONFLICT (code) DO UPDATE
+         SET provider_refs = plans.provider_refs || EXCLUDED.provider_refs`,
+      [Number.isFinite(precioEnv) && precioEnv > 0 ? precioEnv : 19.99, monedaEnv, refsPaypal]
+    );
+    // Suscripciones antiguas sin plan → al plan por defecto.
+    await query(
+      `UPDATE subscriptions SET plan_id = (SELECT id FROM plans WHERE code = 'individual-monthly')
+        WHERE plan_id IS NULL`
+    );
+
+    // audit_logs nació exigiendo user_id, pero los eventos de facturación los
+    // origina el SISTEMA: un webhook del procesador o el job de renovación no
+    // tienen usuario detrás. Sin esto, esas entradas se perdían en silencio
+    // (el servicio de auditoría traga sus propios errores) y nos quedábamos
+    // justo sin la traza de los cobros, que es la que más importa.
+    await query('ALTER TABLE audit_logs ALTER COLUMN user_id DROP NOT NULL');
+    await query('ALTER TABLE audit_logs ALTER COLUMN clinic_id DROP NOT NULL');
 
     for (const cmd of alterCommands) {
       try {

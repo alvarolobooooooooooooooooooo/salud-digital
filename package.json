@@ -5,7 +5,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "reset-db": "node reset-db.js"
+    "reset-db": "node reset-db.js",
+    "test": "node --test tests/*.test.js",
+    "test:db": "BILLING_TEST_DB=1 node --test tests/*.test.js"
   },
   "dependencies": {
     "@medicplus/tooth-font": "^1.0.5",

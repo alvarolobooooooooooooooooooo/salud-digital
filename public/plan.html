@@ -550,32 +550,45 @@
   /* ── Estado legible ── */
   function estado(st) {
     const sub = st.subscription;
-    const status = sub ? String(sub.status || '').toUpperCase() : null;
+    // Estados canónicos del sistema (los mismos con cualquier procesador).
+    const status = sub ? String(sub.status || '').toLowerCase() : null;
     const pagada = st.access.paid;
 
-    if (!sub || status === 'EXPIRED') {
+    if (!sub || status === 'expired') {
       return { key: 'none', label: 'Sin suscripción', tone: 'off',
-        blurb: 'Activa la suscripción mensual para usar Salud Digital sin interrupciones. El cobro lo procesa PayPal y puedes cancelarlo cuando quieras.' };
+        blurb: 'Activa la suscripción mensual para usar Salud Digital sin interrupciones. Puedes cancelarla cuando quieras.' };
     }
-    if (status === 'ACTIVE') {
-      return { key: 'active', label: 'Activa', tone: 'on',
-        blurb: 'Tu suscripción está al día. PayPal cobra automáticamente cada mes y envía el recibo a tu correo.' };
+    if (status === 'active' || status === 'trialing') {
+      return {
+        key: 'active',
+        label: status === 'trialing' ? 'En prueba' : 'Activa',
+        tone: 'on',
+        blurb: 'Tu suscripción está al día. El cobro se renueva solo cada mes y el recibo te llega por correo.',
+      };
     }
-    if (status === 'APPROVAL_PENDING' || status === 'APPROVED') {
+    if (status === 'incomplete') {
       return { key: 'pending', label: 'Pendiente', tone: 'warn',
-        blurb: 'Empezaste el proceso en PayPal pero aún no se confirmó el pago. Puedes retomarlo cuando quieras.' };
+        blurb: 'Empezaste el proceso de pago pero aún no se confirmó. Puedes retomarlo cuando quieras.' };
     }
-    if (status === 'SUSPENDED') {
-      return { key: 'suspended', label: 'Suspendida', tone: 'warn',
-        blurb: 'PayPal no pudo cobrar el mes. Revisa tu método de pago en PayPal o vuelve a suscribirte para reactivar el acceso.' };
+    if (status === 'past_due') {
+      return { key: 'suspended', label: 'Pago pendiente', tone: 'warn',
+        blurb: 'No se pudo cobrar la última renovación y lo estamos reintentando. Revisa tu método de pago para no perder el acceso.' };
     }
-    if (status === 'CANCELLED') {
+    if (status === 'payment_failed') {
+      return { key: 'suspended', label: 'Cobro fallido', tone: 'warn',
+        blurb: 'Se agotaron los reintentos de cobro. Vuelve a suscribirte para reactivar el acceso; tus datos siguen intactos.' };
+    }
+    if (status === 'paused') {
+      return { key: 'suspended', label: 'En pausa', tone: 'warn',
+        blurb: 'Tu suscripción está pausada. Reactívala cuando quieras.' };
+    }
+    if (status === 'cancelled') {
       return { key: 'cancelled', label: 'Cancelada', tone: pagada ? 'warn' : 'off',
         blurb: pagada
           ? 'Cancelaste la renovación automática. Conservas el acceso hasta que termine el mes que ya pagaste.'
           : 'Tu suscripción está cancelada. Puedes reactivarla en cualquier momento; tus datos siguen intactos.' };
     }
-    return { key: 'other', label: status || 'Desconocido', tone: 'off', blurb: 'Estado reportado por PayPal.' };
+    return { key: 'other', label: status || 'Desconocido', tone: 'off', blurb: 'Estado reportado por el procesador de pagos.' };
   }
 
   /* ── Render ── */
@@ -673,10 +686,9 @@
   function renderConfigWarning(st, owner) {
     if (!owner || (st.configured && st.plan_ready)) return '';
     return `<div class="notice warn in">${I.alert}<div>
-      <b>PayPal aún no está configurado en el servidor</b>
-      ${!st.configured
-        ? 'Faltan las credenciales <code>PAYPAL_CLIENT_ID</code> y <code>PAYPAL_CLIENT_SECRET</code>.'
-        : 'Falta <code>PAYPAL_PLAN_ID</code>: crea el plan con <code>node tools/paypal-setup.js</code>.'}
+      <b>El procesador de pagos aún no está configurado</b>
+      Faltan las credenciales del procesador de pagos en el servidor.
+      Revisa las variables de entorno descritas en <code>docs/PAYMENTS.md</code>.
     </div></div>`;
   }
 
@@ -685,19 +697,20 @@
   function renderFacts(st, sub, e) {
     const facts = [];
 
-    if (sub && e.key === 'active' && sub.next_billing_time) {
-      const d = new Date(sub.next_billing_time);
+    const proximo = sub && (sub.next_billing_at || sub.current_period_end);
+    if (sub && e.key === 'active' && proximo) {
+      const d = new Date(proximo);
       facts.push({ k: 'Próximo cobro', v: fechaCorta(d), s: 'en ' + diasHasta(d) + ' día' + (diasHasta(d) === 1 ? '' : 's') });
-    } else if (sub && st.access.paid && sub.next_billing_time) {
-      facts.push({ k: 'Acceso hasta', v: fechaCorta(new Date(sub.next_billing_time)), s: 'después se pausa' });
+    } else if (sub && st.access.paid && sub.current_period_end) {
+      facts.push({ k: 'Acceso hasta', v: fechaCorta(new Date(sub.current_period_end)), s: 'después se pausa' });
     } else {
       facts.push({ k: 'Ciclo', v: 'Mensual', s: 'renovación automática' });
     }
 
-    if (sub && sub.subscriber_email) facts.push({ k: 'Cuenta de PayPal', v: sub.subscriber_email });
-    else facts.push({ k: 'Método de pago', v: 'PayPal', s: 'tarjeta, saldo o cuenta' });
+    if (sub && sub.subscriber_email) facts.push({ k: 'Cuenta de pago', v: sub.subscriber_email });
+    else facts.push({ k: 'Método de pago', v: 'Tarjeta o PayPal', s: 'lo procesa la pasarela' });
 
-    if (sub && sub.start_time) facts.push({ k: 'Suscrito desde', v: fechaCorta(new Date(sub.start_time)) });
+    if (sub && sub.created_at) facts.push({ k: 'Suscrito desde', v: fechaCorta(new Date(sub.created_at)) });
     else facts.push({ k: 'Permanencia', v: 'Ninguna', s: 'cancela cuando quieras' });
 
     if (sub && sub.id) facts.push({ k: 'ID de suscripción', v: sub.id, mono: true });
@@ -783,13 +796,13 @@
       <tbody>
         ${state.payments.map(p => {
           const d = new Date(p.paid_at);
-          const st = String(p.status).toUpperCase();
-          const completo = st === 'COMPLETED';
-          // PayPal manda el estado en inglés; aquí se traduce para la tabla.
-          const ESTADOS = { COMPLETED: 'Pagado', REFUNDED: 'Reembolsado', REVERSED: 'Revertido', DENIED: 'Rechazado', PENDING: 'Pendiente' };
+          const st = String(p.status).toLowerCase();
+          const completo = st === 'succeeded';
+          const ESTADOS = { succeeded: 'Pagado', failed: 'Fallido', refunded: 'Reembolsado',
+                            reversed: 'Revertido', cancelled: 'Cancelado', pending: 'Pendiente' };
           return `<tr>
             <td class="date">${fechaCorta(d)}</td>
-            <td><span class="tag ${completo ? '' : 'alt'}">${esc(ESTADOS[st] || st.toLowerCase())}</span></td>
+            <td><span class="tag ${completo ? '' : 'alt'}" ${p.failure_message ? `title="${esc(p.failure_message)}"` : ''}>${esc(ESTADOS[st] || st)}</span></td>
             <td class="r">${money(p.amount, p.currency)}</td>
           </tr>`;
         }).join('')}
@@ -869,6 +882,13 @@
     const slots = document.getElementById('pzSlots');
     if (!slots || slots.dataset.montado) return;
     slots.dataset.montado = '1';
+
+    // Cada procesador trae su propio checkout. Si mañana el activo es PixelPay
+    // o Tilopay, aquí se llama a su montaje y el resto de la página no cambia.
+    if (st.proveedor !== 'paypal') {
+      fallbackRedireccion(slots, st, 'checkout no implementado para: ' + st.proveedor);
+      return;
+    }
 
     let sdk, metodos;
     try {
@@ -967,7 +987,7 @@
       // La suscripción la crea nuestro servidor; el SDK solo recibe su id.
       sesion.start(
         { presentationMode: 'modal' },
-        api('/api/billing/subscribe', { method: 'POST', body: {} })
+        api('/api/billing/subscribe', { method: 'POST', body: { plan_code: st.plan_code } })
           .then((r) => ({ subscriptionId: r.subscription_id })),
       );
     });
@@ -976,11 +996,12 @@
   function banner(tone, title, text) { state.banner = { tone, title, text }; }
 
   async function doSubscribe() {
+    const st = state.status;
     state.busy = 'subscribe';
     state.banner = null;
     render();
     try {
-      const r = await api('/api/billing/subscribe', { method: 'POST', body: {} });
+      const r = await api('/api/billing/subscribe', { method: 'POST', body: { plan_code: st.plan_code } });
 
       // En la app de escritorio (Tauri) NO se navega el webview a paypal.com:
       // dejaría al doctor atrapado fuera de la plataforma, sin barra de
@@ -1055,8 +1076,28 @@
   }
 
   /* ── Carga de datos ── */
+  // La API devuelve el modelo agnóstico (plans[], checkout{}, estados en
+  // minúscula). Se adapta aquí, en un solo sitio, a los campos que usa el
+  // render — así el resto de la página no sabe de procesadores ni de esquemas.
+  function adaptar(api) {
+    const plan = (api.plans || [])[0] || {};
+    const sub = api.subscription;
+    return Object.assign({}, api, {
+      price: sub && sub.amount != null ? sub.amount : plan.amount || 0,
+      currency: (sub && sub.currency) || plan.currency || 'USD',
+      plan_name: (sub && sub.plan_name) || plan.name || 'Plan Individual',
+      plan_code: (sub && sub.plan_code) || plan.code || 'individual-monthly',
+      // Datos del checkout del procesador que toque (hoy PayPal).
+      configured: !!api.configured,
+      plan_ready: !!(api.checkout && api.checkout.configured),
+      client_id: (api.checkout && api.checkout.client_id) || '',
+      environment: (api.checkout && api.checkout.environment) || '',
+      proveedor: (api.checkout && api.checkout.provider) || 'none',
+    });
+  }
+
   async function load() {
-    const status = await api('/api/billing/status');
+    const status = adaptar(await api('/api/billing/status'));
     state.status = status;
     if (status.can_manage) {
       try { state.payments = await api('/api/billing/payments'); } catch (_) { state.payments = []; }
@@ -1098,7 +1139,7 @@
 
   (async function init() {
     const params = new URLSearchParams(window.location.search);
-    const flujo = params.get('paypal');
+    const flujo = params.get('checkout');
     const bloqueo = params.get('bloqueo') === '1';
 
     try {
