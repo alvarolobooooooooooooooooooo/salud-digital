@@ -63,6 +63,9 @@ router.get('/status', authenticate, async (req, res) => {
     enforced: subscription.enforcementEnabled(),
     exempt,
     can_manage: OWNER_ROLES.includes(req.user.role),
+    // Client id público: la página lo necesita para cargar el SDK de PayPal y
+    // cobrar sin sacar al usuario de la app. El secreto se queda en el servidor.
+    client_id: paypal.clientId(),
     price: paypal.price(),
     currency: paypal.currency(),
     access: {

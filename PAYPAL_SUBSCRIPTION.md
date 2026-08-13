@@ -59,21 +59,35 @@ En developer.paypal.com → **Testing Tools → Sandbox Accounts** hay una cuent
 ## 2. Cómo funciona
 
 ```
-Doctor → /plan.html  ──POST /api/billing/subscribe──►  PayPal crea la suscripción
-       ◄── approve_url ──                              (estado APPROVAL_PENDING)
-
-Doctor paga en paypal.com  ──redirect──►  /plan.html?subscription_id=I-XXXX
-                                          POST /api/billing/confirm
-                                          (el servidor RE-CONSULTA a PayPal)
+Doctor pulsa un botón en /plan.html (SDK de PayPal, dentro de la página)
+   └─ createSubscription ──POST /api/billing/subscribe──►  PayPal crea la
+                                                           suscripción
+                                                           (APPROVAL_PENDING)
+   └─ paga en la ventana superpuesta de PayPal (cuenta o tarjeta)
+   └─ onApprove ──POST /api/billing/confirm──►  el servidor RE-CONSULTA a PayPal
 
 Cada mes:  PayPal cobra solo  ──webhook──►  POST /api/billing/webhook
                                             (firma verificada + idempotente)
 ```
 
-Se usa el **flujo de redirección**, no el SDK JavaScript de PayPal: así el botón
-mantiene el diseño de la plataforma y no hace falta abrir el CSP a scripts de
-terceros. Nada del estado se acepta desde el navegador — siempre se verifica
-contra la API de PayPal.
+**El pago ocurre sobre la propia página**: el SDK (`vault=true&intent=subscription`)
+pinta dos botones — cuenta de PayPal y *Tarjeta de débito o crédito* — y abre el
+checkout en una ventana superpuesta, sin navegar fuera de la app ni tener que
+volver. Requiere que el CSP permita los dominios de PayPal (ver `server.js`).
+
+Los campos de tarjeta embebidos en NUESTRO HTML (componente `card-fields`) no son
+una opción: PayPal solo los admite para pedidos sueltos (`intent=capture`), no
+para suscripciones. De ahí que la tarjeta se cobre por el botón negro, que abre
+el formulario de PayPal en modo invitado (sin crear cuenta). Su disponibilidad la
+decide PayPal según el país del comprador y de la cuenta: si no aplica,
+`isEligible()` es falso, el botón no se pinta y la página lo explica.
+
+Se conserva el **flujo de redirección** como respaldo: se usa si el SDK no carga
+(red, bloqueador, CSP) y en la app de escritorio, donde las ventanas emergentes
+no funcionan bien dentro del WKWebView empaquetado.
+
+Nada del estado se acepta desde el navegador — siempre se verifica contra la API
+de PayPal.
 
 ### Archivos
 

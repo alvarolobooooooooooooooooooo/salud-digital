@@ -235,7 +235,28 @@
 
     .subs-page .state-r {
       display: flex; flex-direction: column; align-items: flex-end;
-      gap: 10px; min-width: 220px;
+      gap: 10px; min-width: 290px;
+    }
+
+    /* ── Zona de pago (botones del SDK de PayPal) ──
+       Los botones los pinta PayPal dentro de iframes propios: su aspecto es
+       intocable (es requisito de marca), así que el trabajo aquí es darles un
+       marco que no desentone y reservarles altura para que no salte el layout. */
+    .subs-page .pz { width: 290px; max-width: 100%; }
+    .subs-page .pz-label {
+      font-size: 11.5px; font-weight: 600; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 9px; text-align: right;
+    }
+    .subs-page .pz-slots { min-height: 96px; display: grid; gap: 8px; }
+    .subs-page .pz-loading {
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      height: 96px; border: 1px dashed var(--line); border-radius: 12px;
+      font-size: 12.5px; color: var(--faint);
+    }
+    .subs-page .pz-note {
+      margin-top: 9px; font-size: 11.5px; color: var(--faint);
+      text-align: right; line-height: 1.5;
     }
     .subs-page .pay-note {
       display: flex; align-items: center; gap: 7px;
@@ -685,9 +706,33 @@
         </button>
         ${seguro}`;
     }
-    if (e.key === 'pending') return btn('Continuar con PayPal') + seguro;
-    if (e.key === 'cancelled' || e.key === 'suspended') return btn('Reactivar suscripción') + seguro;
-    return btn('Suscribirme por ' + money(st.price, st.currency) + '/mes') + seguro;
+
+    // En la app de escritorio (Tauri) no se usa el SDK: sus ventanas emergentes
+    // no funcionan bien dentro del WKWebView empaquetado, así que ahí se
+    // mantiene el pago en el navegador del sistema.
+    if (!puede || esApp()) {
+      const texto = e.key === 'pending' ? 'Continuar con PayPal'
+        : (e.key === 'cancelled' || e.key === 'suspended') ? 'Reactivar suscripción'
+        : 'Suscribirme por ' + money(st.price, st.currency) + '/mes';
+      return btn(texto) + seguro;
+    }
+
+    // Botones del SDK: el pago ocurre sobre esta misma página, sin salir de la
+    // app. Se ofrecen las dos vías por separado — cuenta de PayPal y tarjeta.
+    const titulo = e.key === 'pending' ? 'Termina tu pago'
+      : (e.key === 'cancelled' || e.key === 'suspended') ? 'Reactivar · ' + money(st.price, st.currency) + '/mes'
+      : money(st.price, st.currency) + ' al mes · elige cómo pagar';
+
+    return `<div class="pz">
+        <div class="pz-label">${esc(titulo)}</div>
+        <div class="pz-slots" id="pzSlots">
+          <div class="pz-loading" id="pzLoading"><span class="spin"></span> Cargando opciones de pago…</div>
+          <div id="pzPaypal"></div>
+          <div id="pzCard"></div>
+        </div>
+        <div class="pz-note" id="pzNote" hidden></div>
+      </div>
+      ${seguro}`;
   }
 
   function renderPayments() {
@@ -722,6 +767,163 @@
     if (sub) sub.onclick = doSubscribe;
     const cancel = document.getElementById('btnCancel');
     if (cancel) cancel.onclick = openCancelModal;
+    if (document.getElementById('pzSlots')) montarPaypal();
+  }
+
+  /* ══════════ Pago dentro de la página (SDK de PayPal) ══════════
+     El SDK pinta sus botones en iframes sobre ESTA página y abre el checkout
+     en una ventana superpuesta: el usuario no navega a paypal.com ni tiene que
+     volver. Los campos de tarjeta embebidos en nuestro HTML (`card-fields`) no
+     sirven aquí: PayPal solo los admite para pedidos sueltos, no para
+     suscripciones. Por eso la tarjeta va en el botón "Débito o Crédito", que
+     abre el formulario de PayPal como invitado, sin crear cuenta. */
+
+  function esApp() {
+    return !!(window.__TAURI__ || window.__TAURI_INTERNALS__);
+  }
+
+  let sdkPromesa = null;
+  function cargarSdk(st) {
+    if (sdkPromesa) return sdkPromesa;
+    sdkPromesa = new Promise((resolve, reject) => {
+      if (window.paypal && window.paypal.Buttons) return resolve(window.paypal);
+      // Mismo host para sandbox y producción: el entorno lo decide el client id.
+      const q = new URLSearchParams({
+        'client-id': st.client_id,
+        vault: 'true',
+        intent: 'subscription',
+        currency: st.currency,
+        locale: 'es_ES',
+        components: 'buttons',
+        'enable-funding': 'card',
+        'disable-funding': 'paylater',
+      });
+      const s = document.createElement('script');
+      s.src = 'https://www.paypal.com/sdk/js?' + q.toString();
+      s.async = true;
+      s.onload = () => (window.paypal && window.paypal.Buttons)
+        ? resolve(window.paypal)
+        : reject(new Error('El SDK cargó sin Buttons'));
+      s.onerror = () => reject(new Error('No se pudo cargar el SDK de PayPal'));
+      document.head.appendChild(s);
+    });
+    return sdkPromesa;
+  }
+
+  function notaPago(texto) {
+    const nota = document.getElementById('pzNote');
+    if (!nota) return;
+    nota.hidden = !texto;
+    nota.textContent = texto || '';
+  }
+
+  async function montarPaypal() {
+    const st = state.status;
+    const slots = document.getElementById('pzSlots');
+    if (!slots || slots.dataset.montado) return;
+    slots.dataset.montado = '1';
+
+    let pp;
+    try {
+      pp = await cargarSdk(st);
+    } catch (err) {
+      // Sin SDK (red, bloqueador, CSP) se cae al flujo de redirección, que no
+      // depende de scripts de terceros.
+      console.warn('[paypal]', err.message);
+      slots.innerHTML = `<button class="btn btn-primary" id="btnSubscribe">Suscribirme por ${money(st.price, st.currency)}/mes</button>`;
+      const b = document.getElementById('btnSubscribe');
+      if (b) b.onclick = doSubscribe;
+      notaPago('No se pudieron cargar los botones de pago aquí; se abrirá PayPal en otra pantalla.');
+      return;
+    }
+
+    const cargando = document.getElementById('pzLoading');
+    if (cargando) cargando.remove();
+
+    const acciones = {
+      // PayPal pide el id de una suscripción ya creada: la crea NUESTRO
+      // servidor, que es quien conoce el plan y deja la fila en la BD.
+      createSubscription: () =>
+        api('/api/billing/subscribe', { method: 'POST', body: {} }).then((r) => r.subscription_id),
+
+      onApprove: async (data) => {
+        // Ojo: no se re-renderiza la página aquí dentro — eso destruiría los
+        // iframes de PayPal que están ejecutando este callback. Solo se toca
+        // el texto de la nota hasta que termina todo.
+        notaPago('Confirmando el pago con PayPal…');
+        try {
+          const r = await api('/api/billing/confirm', {
+            method: 'POST',
+            body: { subscription_id: data.subscriptionID },
+          });
+          let activa = r.access && r.access.active;
+          // La activación puede tardar unos segundos en PayPal.
+          for (let intento = 0; !activa && intento < 4; intento++) {
+            await new Promise((res) => setTimeout(res, 2500));
+            try {
+              const s = await api('/api/billing/sync', { method: 'POST', body: {} });
+              activa = s.access && s.access.active;
+            } catch (_) { break; }
+          }
+          await load();
+          if (activa) {
+            banner('ok', 'Suscripción activada',
+              'PayPal cobrará ' + money(st.price, st.currency) + ' cada mes automáticamente. Ya tienes acceso completo a la plataforma.');
+          } else {
+            banner('warn', 'PayPal aún está confirmando el pago',
+              'Puede tardar unos minutos. Usa "Actualizar estado" para volver a consultar.');
+          }
+        } catch (err) {
+          banner('danger', 'No se pudo confirmar la suscripción',
+            err.message || 'Consulta el estado con el botón "Actualizar estado".');
+        }
+        render();
+      },
+
+      onCancel: () => {
+        notaPago('');
+        banner('warn', 'Pago cancelado', 'Cerraste la ventana de PayPal sin terminar. No se te ha cobrado nada.');
+        render();
+      },
+
+      onError: (err) => {
+        console.error('[paypal]', err);
+        banner('danger', 'PayPal no pudo procesar el pago',
+          'Intenta de nuevo, o prueba con el otro método de pago.');
+        render();
+      },
+    };
+
+    montarBoton(pp, pp.FUNDING.PAYPAL, 'pzPaypal', acciones, { color: 'gold', label: 'subscribe' });
+    montarBoton(pp, pp.FUNDING.CARD, 'pzCard', acciones, { color: 'black' });
+  }
+
+  function montarBoton(pp, fuente, id, acciones, estilo) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let botones;
+    try {
+      botones = pp.Buttons(Object.assign({
+        fundingSource: fuente,
+        style: Object.assign({ shape: 'rect', height: 44 }, estilo),
+      }, acciones));
+    } catch (err) {
+      console.warn('[paypal] no se pudo construir el botón', id, err);
+      el.remove();
+      return;
+    }
+
+    // isEligible(): PayPal decide si esa vía está disponible para el comprador
+    // (país, moneda, configuración de la cuenta). El pago con tarjeta como
+    // invitado no se ofrece en todos los países.
+    if (!botones.isEligible()) {
+      el.remove();
+      if (fuente === pp.FUNDING.CARD) {
+        notaPago('Para pagar con tarjeta sin cuenta de PayPal, usa la opción "Pagar con tarjeta" dentro de la ventana de PayPal.');
+      }
+      return;
+    }
+    botones.render(el).catch((err) => console.warn('[paypal] render', err));
   }
 
   function banner(tone, title, text) { state.banner = { tone, title, text }; }

