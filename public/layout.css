@@ -12,6 +12,9 @@
   --muted: #64748b;
   --border: #e2e8f0;
   --sidebar-w: 240px;
+  /* Ancho del cajón móvil. Lo comparten el propio cajón y el scrim, que se
+     retira exactamente esa distancia para no descubrir página sin desenfocar. */
+  --drawer-w: 320px;
 }
 
 * {
@@ -796,33 +799,63 @@ nav.old-nav {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   z-index: 199;
-  animation: overlayFadeIn 0.3s ease;
 }
 
+/* El scrim se detiene en el canto izquierdo del cajón: si lo cubriera, el vidrio
+   del cajón estaría desenfocando una capa negra al 40% YA desenfocada — un campo
+   uniforme, que por mucho blur que le eches sigue siendo un campo uniforme, y el
+   panel se veía plano. Pero ese hueco no puede aparecer de golpe: se abre
+   DESLIZANDO, con la misma duración y la misma curva que el cajón, así su canto
+   derecho coincide con el canto izquierdo del cajón en todos los frames.
+   Antes era un `right: 320px` fijo: al empezar a abrir quedaba al descubierto
+   una franja de página sin desenfocar, con un corte vertical inmóvil, hasta que
+   el cajón terminaba de llegar. */
 .mobile-sidebar-overlay.active {
   display: block;
-  /* Se detiene en el canto izquierdo del cajón. Si lo cubriera, el vidrio del
-     cajón estaría desenfocando una capa negra al 40% YA desenfocada: un campo
-     uniforme, que por mucho blur que le eches sigue siendo un campo uniforme.
-     De ahí que el panel se viera plano y opaco. Ahora tiene detrás la página. */
-  right: 320px;
+  transform: translateX(calc(-1 * var(--drawer-w)));
+  animation: overlayIn 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-@keyframes overlayFadeIn {
+/* Al cerrar, el scrim vuelve a taparlo todo acompañando al cajón que sale. Sin
+   esto se ocultaba de golpe y la página aparecía nítida antes de tiempo: el
+   mismo corte, en sentido contrario. */
+.mobile-sidebar-overlay.closing {
+  display: block;
+  transform: translateX(0);
+  opacity: 0;
+  pointer-events: none;
+  animation: overlayOut 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@keyframes overlayIn {
   from {
     opacity: 0;
+    transform: translateX(0);
   }
   to {
     opacity: 1;
+    transform: translateX(calc(-1 * var(--drawer-w)));
+  }
+}
+
+@keyframes overlayOut {
+  from {
+    opacity: 1;
+    transform: translateX(calc(-1 * var(--drawer-w)));
+  }
+  to {
+    opacity: 0;
+    transform: translateX(0);
   }
 }
 
 .mobile-sidebar {
   position: fixed;
   top: 0;
-  width: 320px;
+  width: var(--drawer-w);
   height: 100vh;
   /* Lámina de vidrio: veladura fina + desenfoque de lo que queda detrás (el
      scrim y la página). El canto izquierdo lleva el reflejo. */

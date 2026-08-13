@@ -716,8 +716,16 @@
     const hamburgerIcon = toggleBtn.querySelector('.hamburger-icon');
     const closeIcon = toggleBtn.querySelector('.close-icon');
 
+    // El scrim acompaña al cajón al cerrar (.closing) durante lo que dura el
+    // deslizamiento; si se ocultara de golpe, la página aparecería nítida antes
+    // de que el cajón terminara de salir y se vería un corte vertical.
+    const DRAWER_MS = 350;
+    let closingTimer = null;
+
     function openSidebar() {
       console.log('[layout.js] Opening sidebar');
+      clearTimeout(closingTimer);
+      overlay.classList.remove('closing');
       sidebar.classList.add('active');
       overlay.classList.add('active');
       if (hamburgerIcon) hamburgerIcon.style.display = 'none';
@@ -727,8 +735,14 @@
 
     function closeSidebar() {
       console.log('[layout.js] Closing sidebar');
+      const estabaAbierto = overlay.classList.contains('active');
       sidebar.classList.remove('active');
       overlay.classList.remove('active');
+      if (estabaAbierto) {
+        overlay.classList.add('closing');
+        clearTimeout(closingTimer);
+        closingTimer = setTimeout(() => overlay.classList.remove('closing'), DRAWER_MS);
+      }
       if (hamburgerIcon) hamburgerIcon.style.display = 'block';
       if (closeIcon) closeIcon.style.display = 'none';
       document.body.style.overflow = '';
@@ -1141,7 +1155,13 @@
           const mobOverlay = document.getElementById('mobileSidebarOverlay');
           const hamb = document.getElementById('mobileMenuToggle');
           if (mobSidebar) mobSidebar.classList.remove('active');
-          if (mobOverlay) mobOverlay.classList.remove('active');
+          // Mismo cierre acompañado que el del botón: sin .closing el scrim
+          // desaparecería de golpe y se vería el corte mientras el cajón sale.
+          if (mobOverlay && mobOverlay.classList.contains('active')) {
+            mobOverlay.classList.remove('active');
+            mobOverlay.classList.add('closing');
+            setTimeout(() => mobOverlay.classList.remove('closing'), 350);
+          }
           document.body.style.overflow = '';
           if (hamb) {
             const hi = hamb.querySelector('.hamburger-icon');
