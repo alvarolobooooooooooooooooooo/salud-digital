@@ -249,7 +249,7 @@
       padding: 24px 26px 26px;
       display: grid; justify-items: center; gap: 14px; text-align: center;
     }
-    .subs-page .pz { width: 100%; max-width: 340px; }
+    .subs-page .pz { width: 100%; max-width: 400px; }
     .subs-page .pz-label {
       font-size: 11.5px; font-weight: 600; letter-spacing: .09em;
       text-transform: uppercase; color: var(--muted);
@@ -257,9 +257,20 @@
     }
     .subs-page .pz-slots { min-height: 48px; display: grid; gap: 10px; }
 
+    /* Pago único (SDK v5): cada botón va en un iframe con fondo BLANCO, así que
+       sobre el cristal asomaban cuatro esquinas blancas. Su interior es de otro
+       origen y no se puede pintar: se recorta desde fuera. `isolation` obliga a
+       WebKit a crear el contexto de apilamiento, o el clip no llega al iframe.
+       El bloque crece cuando el formulario de tarjeta se despliega dentro. */
+    .subs-page .pz-slot {
+      border-radius: 10px;
+      overflow: hidden;
+      isolation: isolate;
+      min-height: 44px;
+    }
+
     /* <paypal-button> del SDK v6 es un componente propio, no un iframe: acepta
-       nuestro radio por variable CSS. (Con la v5 había que recortar el iframe
-       desde fuera porque traía fondo blanco en las esquinas.) */
+       nuestro radio por variable CSS. */
     .subs-page paypal-button {
       --paypal-button-border-radius: 10px;
       --paypal-mark-border-radius: 10px;
@@ -751,7 +762,13 @@
     const puede = st.configured && st.plan_ready;
     const cargando = state.busy === 'subscribe';
 
-    const titulo = e.key === 'pending' ? 'Termina tu pago'
+    const manual = (st.checkout && st.checkout.capabilities &&
+                    st.checkout.capabilities.recurring === 'manual');
+
+    const titulo = manual
+      ? (e.key === 'suspended' ? 'Renovar · ' + money(st.price, st.currency)
+                               : 'Pagar el mes · ' + money(st.price, st.currency))
+      : e.key === 'pending' ? 'Termina tu pago'
       : (e.key === 'cancelled' || e.key === 'suspended') ? 'Reactivar por ' + money(st.price, st.currency) + ' al mes'
       : money(st.price, st.currency) + ' al mes · elige cómo pagar';
 
@@ -779,7 +796,9 @@
           <div class="pz-slots" id="pzSlots">
             <div class="pz-loading" id="pzLoading"><span class="spin"></span> Cargando el pago…</div>
           </div>
-          <div class="pz-hint">Con tu cuenta de PayPal o con tarjeta de crédito o débito, sin crear cuenta. Todo ocurre en esta misma pantalla.</div>
+          <div class="pz-hint">${manual
+            ? 'Paga con tarjeta de crédito o débito sin salir de esta pantalla. Cada mes te avisaremos para renovar; no se guarda tu tarjeta ni se te cobra solo.'
+            : 'Con tu cuenta de PayPal o con tarjeta de crédito o débito, sin crear cuenta. Todo ocurre en esta misma pantalla.'}</div>
           <div class="pz-note" id="pzNote" hidden></div>
         </div>
         ${NOTA_SEGURO}
@@ -841,6 +860,113 @@
     return !!(window.__TAURI__ || window.__TAURI_INTERNALS__);
   }
 
+  // ── SDK v5, modo PAGO ÚNICO ──
+  // Es el que despliega el formulario de tarjeta DENTRO de la página. Solo se
+  // usa con procesadores de renovación manual (checkout: 'inline_card').
+  let sdkPagoUnico = null;
+  function cargarSdkPagoUnico(st) {
+    if (sdkPagoUnico) return sdkPagoUnico;
+    sdkPagoUnico = new Promise((resolve, reject) => {
+      if (window.paypal && window.paypal.Buttons) return resolve(window.paypal);
+      const q = new URLSearchParams({
+        'client-id': st.client_id,
+        currency: st.currency,
+        intent: 'capture',
+        locale: 'es_ES',
+        components: 'buttons',
+        'enable-funding': 'card',
+        'disable-funding': 'paylater',
+      });
+      const s = document.createElement('script');
+      s.src = 'https://www.paypal.com/sdk/js?' + q.toString();
+      s.async = true;
+      s.onload = () => (window.paypal && window.paypal.Buttons)
+        ? resolve(window.paypal)
+        : reject(new Error('El SDK cargó sin Buttons'));
+      s.onerror = () => reject(new Error('No se pudo cargar el SDK de PayPal'));
+      document.head.appendChild(s);
+    });
+    return sdkPagoUnico;
+  }
+
+  async function montarPagoUnico(slots, st) {
+    let pp;
+    try {
+      pp = await cargarSdkPagoUnico(st);
+    } catch (err) {
+      fallbackRedireccion(slots, st, err.message);
+      return;
+    }
+
+    // La orden se pide ANTES de pintar los botones, y createOrder devuelve el
+    // id ya resuelto. Es la diferencia entre que el formulario de tarjeta se
+    // despliegue aquí dentro o que PayPal abra una ventana: si createOrder
+    // tuviera que esperar a nuestro servidor, el SDK abriría la ventana en el
+    // mismo clic para no perder el gesto del usuario. Medido: con la llamada
+    // asíncrona el bloque se quedaba en 51px; con la orden lista, crece.
+    let orden;
+    try {
+      orden = await api('/api/billing/order', { method: 'POST', body: { plan_code: st.plan_code } });
+    } catch (err) {
+      fallbackRedireccion(slots, st, 'no se pudo crear la orden: ' + err.message);
+      return;
+    }
+
+    // El SDK v5 pinta cada botón en un iframe propio, y el formulario de
+    // tarjeta se despliega dentro del suyo: por eso cada uno necesita su
+    // contenedor.
+    slots.innerHTML = '<div class="pz-slot" id="pzPaypal"></div><div class="pz-slot" id="pzCard"></div>';
+
+    const acciones = {
+      // El importe NO viaja desde aquí: lo puso el servidor según el plan.
+      createOrder: () => orden.order_id,
+
+      onApprove: async (data) => {
+        // Sin re-render aquí dentro: destruiría el iframe que ejecuta esto.
+        notaPago('Confirmando el pago…');
+        try {
+          const r = await api('/api/billing/capture', {
+            method: 'POST',
+            body: { order_id: data.orderID },
+          });
+          await load();
+          const hasta = r.subscription && r.subscription.current_period_end;
+          banner('ok', 'Pago recibido',
+            'Tu suscripción queda activa' + (hasta ? ' hasta el ' + fechaCorta(new Date(hasta)) : '') +
+            '. Te avisaremos antes de que toque renovar.');
+        } catch (err) {
+          banner('danger', 'No se pudo confirmar el pago',
+            err.message || 'Si se te cobró, usa "Actualizar estado" o escríbenos.');
+        }
+        render();
+      },
+
+      onCancel: () => { notaPago(''); render(); },
+
+      onError: (err) => {
+        console.error('[pago]', err);
+        banner('danger', 'No se pudo procesar el pago', 'Revisa los datos e inténtalo de nuevo.');
+        render();
+      },
+    };
+
+    for (const [fuente, id, estilo] of [
+      [pp.FUNDING.PAYPAL, 'pzPaypal', { color: 'gold' }],
+      [pp.FUNDING.CARD, 'pzCard', { color: 'black' }],
+    ]) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      let botones;
+      try {
+        botones = pp.Buttons(Object.assign({ fundingSource: fuente, style: Object.assign({ shape: 'rect', height: 44 }, estilo) }, acciones));
+      } catch (_) { el.remove(); continue; }
+      // isEligible: PayPal decide si esa vía aplica al comprador (país, moneda).
+      if (!botones.isEligible()) { el.remove(); continue; }
+      botones.render(el).catch(() => {});
+    }
+  }
+
+  // ── SDK v6, modo SUSCRIPCIÓN ──
   let sdkPromesa = null;
   function cargarSdk(st) {
     if (sdkPromesa) return sdkPromesa;
@@ -883,10 +1009,17 @@
     if (!slots || slots.dataset.montado) return;
     slots.dataset.montado = '1';
 
-    // Cada procesador trae su propio checkout. Si mañana el activo es PixelPay
-    // o Tilopay, aquí se llama a su montaje y el resto de la página no cambia.
-    if (st.proveedor !== 'paypal') {
-      fallbackRedireccion(slots, st, 'checkout no implementado para: ' + st.proveedor);
+    // Cada procesador declara qué tipo de checkout usa. Añadir PixelPay o
+    // Tilopay es añadir una rama aquí; el resto de la página no cambia.
+    const tipo = (state.status.checkout && state.status.checkout.checkout) || 'none';
+
+    if (tipo === 'inline_card') {
+      // Formulario de tarjeta dentro de esta misma página (pago único).
+      await montarPagoUnico(slots, st);
+      return;
+    }
+    if (tipo !== 'provider_hosted') {
+      fallbackRedireccion(slots, st, 'checkout no soportado: ' + tipo);
       return;
     }
 

@@ -25,6 +25,7 @@ const PLAN_NAME = 'Salud Digital — Plan Individual (mensual)';
 
 // Eventos que necesita routes/billing.js para mantener el estado al día.
 const EVENT_TYPES = [
+  // Suscripciones nativas (provider "paypal")
   'BILLING.SUBSCRIPTION.ACTIVATED',
   'BILLING.SUBSCRIPTION.CANCELLED',
   'BILLING.SUBSCRIPTION.SUSPENDED',
@@ -35,6 +36,12 @@ const EVENT_TYPES = [
   'PAYMENT.SALE.COMPLETED',
   'PAYMENT.SALE.REFUNDED',
   'PAYMENT.SALE.REVERSED',
+  // Pago único (provider "paypal_onetime"): cada renovación es una captura.
+  'PAYMENT.CAPTURE.COMPLETED',
+  'PAYMENT.CAPTURE.DENIED',
+  'PAYMENT.CAPTURE.REFUNDED',
+  'PAYMENT.CAPTURE.REVERSED',
+  'CHECKOUT.ORDER.APPROVED',
 ];
 
 function log(...args) { console.log(...args); }

@@ -168,6 +168,125 @@ router.post('/subscribe', authenticate, requireRole(...OWNER_ROLES), async (req,
   }
 });
 
+// ── Pago único de un periodo (procesadores 'manual') ──
+//
+// Es el flujo que permite el formulario de tarjeta DENTRO de nuestra página.
+// El navegador pide una orden, el usuario paga en el widget y luego pedimos la
+// captura. El importe lo pone SIEMPRE el servidor desde el catálogo de planes:
+// si viniera del navegador, cualquiera podría suscribirse por un centavo.
+router.post('/order', authenticate, requireRole(...OWNER_ROLES), async (req, res) => {
+  try {
+    const clinicId = req.user.clinic_id;
+    if (!clinicId) return res.status(403).json({ error: 'Tu usuario no tiene una clínica asignada.' });
+
+    let sub = await subs.getForClinic(clinicId);
+    const acceso = subs.access(sub);
+
+    // Sin suscripción utilizable (nunca hubo, expiró o se canceló y ya venció)
+    // se crea una nueva antes de cobrar.
+    if (!sub || ['expired'].includes(sub.status) || (sub.status === 'cancelled' && !acceso.active)) {
+      const alta = await subs.start({
+        clinicId,
+        userId: req.user.id,
+        planCode: String((req.body && req.body.plan_code) || 'individual-monthly'),
+        email: req.user.email,
+      });
+      sub = alta.subscription;
+    }
+
+    const provider = getProvider(sub.provider);
+    if (provider.capabilities.recurring !== 'manual') {
+      return res.status(400).json({
+        error: 'Este procesador cobra por su cuenta; no se crean órdenes manuales.',
+        code: 'not_manual_provider',
+      });
+    }
+
+    const plan = await subs.getPlanById(sub.plan_id);
+    if (!plan) return res.status(500).json({ error: 'La suscripción no tiene plan asociado.' });
+
+    const orden = await provider.createOrder({
+      amount: plan.amount,
+      currency: plan.currency,
+      description: `${plan.name} — ${plan.billing_interval === 'month' ? 'mes' : plan.billing_interval}`,
+      // Ata el pago a la suscripción: vuelve en la captura y en el webhook.
+      customId: sub.provider_subscription_id,
+      idempotencyKey: 'ord-' + sub.id + '-' + Date.now(),
+    });
+
+    res.json({
+      order_id: orden.orderId,
+      amount: plan.amount,
+      currency: plan.currency,
+      plan: publicPlan(plan),
+    });
+  } catch (err) {
+    manejarError(res, err, 'No se pudo preparar el pago.');
+  }
+});
+
+// Captura: aquí es donde el dinero se mueve de verdad y donde se extiende el
+// periodo. Es idempotente por partida doble — PayPal reconoce la orden ya
+// capturada y, aun así, el pago se registra con UNIQUE, de modo que repetir la
+// llamada nunca regala un mes.
+router.post('/capture', authenticate, requireRole(...OWNER_ROLES), async (req, res) => {
+  const orderId = String((req.body && req.body.order_id) || '').trim();
+  if (!/^[A-Za-z0-9_-]{6,64}$/.test(orderId)) {
+    return res.status(400).json({ error: 'Identificador de orden inválido.' });
+  }
+
+  const sub = await subs.getForClinic(req.user.clinic_id);
+  if (!sub) return res.status(404).json({ error: 'No hay suscripción que pagar.' });
+
+  try {
+    const provider = getProvider(sub.provider);
+    const captura = await provider.captureOrder({ orderId, idempotencyKey: 'cap-' + orderId });
+
+    // La orden debe pertenecer a ESTA suscripción: el custom_id lo puso el
+    // servidor al crearla, así que el navegador no puede falsearlo.
+    if (captura.customId && captura.customId !== sub.provider_subscription_id) {
+      return res.status(403).json({ error: 'Esa orden no corresponde a esta suscripción.' });
+    }
+
+    if (captura.status !== 'succeeded') {
+      const fallida = await subs.markPaymentFailed(sub, {
+        reason: captura.failureMessage || 'El pago no fue aprobado',
+        code: 'capture_' + captura.status,
+        providerPaymentId: captura.id,
+        amount: captura.amount,
+      });
+      return res.status(402).json({
+        error: 'El pago no se completó. Revisa los datos de tu tarjeta e inténtalo de nuevo.',
+        subscription: publicSubscription(fallida),
+      });
+    }
+
+    // Comprobación de importe: si no coincide con el plan, se registra igual
+    // (el dinero ya se movió) pero queda constancia para revisarlo.
+    const plan = await subs.getPlanById(sub.plan_id);
+    if (plan && Math.abs(captura.amount - plan.amount) > 0.009) {
+      console.warn(
+        `[billing] importe capturado ${captura.amount} ≠ plan ${plan.amount} (suscripción ${sub.id})`,
+      );
+    }
+
+    const actualizada = await subs.markPaymentSucceeded(sub, {
+      amount: captura.amount,
+      currency: captura.currency,
+      providerPaymentId: captura.id,
+      paidAt: new Date(),
+    });
+
+    res.json({
+      subscription: publicSubscription(actualizada),
+      access: subs.access(actualizada),
+      payment: { id: captura.id, amount: captura.amount, currency: captura.currency },
+    });
+  } catch (err) {
+    manejarError(res, err, 'No se pudo confirmar el pago.');
+  }
+});
+
 // ── Confirmación tras el checkout ──
 // El id llega por el navegador, así que se comprueba contra nuestra fila ANTES
 // de consultar al procesador: nadie puede adoptar la suscripción de otro.

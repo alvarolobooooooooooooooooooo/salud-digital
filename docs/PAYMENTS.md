@@ -43,6 +43,7 @@ en la interfaz.
 | `BILLING_ENFORCEMENT` | no | `off` desactiva el bloqueo por impago |
 | `BILLING_EXEMPT_CLINIC_IDS` | no | Clínicas que nunca se bloquean, p. ej. `1,5` |
 | `BILLING_MAX_RETRIES` | no (3) | Intentos antes de dar el cobro por perdido |
+| `BILLING_GRACE_DAYS` | no (3) | Días de acceso tras vencer el periodo sin pagar |
 | `BILLING_RETRY_DAYS` | no (`1,3,5`) | Espera entre reintentos, en días |
 | `BILLING_JOB_INTERVAL_MINUTES` | no (60) | Cada cuánto corre el ciclo de facturación |
 
@@ -144,6 +145,9 @@ Depende de lo que declare el provider en `capabilities.recurring`:
   El job **no programa nada** — hacerlo duplicaría cargos.
 - **`token`** (PixelPay, Tilopay…): `BillingService` busca lo vencido
   (`next_billing_at <= now`) y cobra contra el token guardado.
+- **`manual`** (`paypal_onetime`): no se puede cobrar sin el usuario. El job
+  marca la suscripción vencida como `past_due` para que la pantalla le pida el
+  pago, y respeta `BILLING_GRACE_DAYS` antes de cortar el acceso.
 
 El job (`lib/billing/jobs.js`) corre dentro del proceso con `setInterval`, igual
 que la purga de auditoría. Cada pasada: cobra lo vencido → caduca lo agotado →
@@ -188,6 +192,8 @@ reprocesa webhooks fallidos.
 | GET | `/api/billing/status` | autenticado (exento del bloqueo) |
 | GET | `/api/billing/payments` | dueño de la cuenta |
 | POST | `/api/billing/subscribe` | dueño |
+| POST | `/api/billing/order` | dueño (procesadores 'manual') |
+| POST | `/api/billing/capture` | dueño (procesadores 'manual') |
 | POST | `/api/billing/confirm` | dueño |
 | POST | `/api/billing/sync` | dueño |
 | POST | `/api/billing/cancel` | dueño |
@@ -230,6 +236,37 @@ Por eso el sistema **no depende** de que PayPal habilite el cobro recurrente con
 tarjeta: en cuanto se conecte un procesador local con tokenización, se cambia
 `PAYMENTS_PROVIDER` y la lógica de suscripciones sigue igual. Ver
 [ADDING_A_PROVIDER.md](ADDING_A_PROVIDER.md).
+
+### 8.1 El provider de PAGO ÚNICO (`paypal_onetime`)
+
+Segunda vía para la misma cuenta, activable con `PAYMENTS_PROVIDER=paypal_onetime`.
+Usa órdenes (`intent=capture`) en lugar de suscripciones:
+
+- **Permite pagar con tarjeta sin cuenta de PayPal**, igual que el otro.
+- La plataforma lleva toda la estructura: planes, periodos, acceso, mora e
+  historial. `capabilities.recurring = 'manual'`.
+- **Cada renovación la paga el usuario pulsando un botón.** Sin tokenización no
+  se puede cobrar sin él delante, y no se simula lo contrario. Cuando vence el
+  periodo, el job pasa la suscripción a `past_due`, la pantalla pide el pago y
+  hay `BILLING_GRACE_DAYS` (3 por defecto) antes de cortar el acceso.
+- Endpoints propios: `POST /api/billing/order` (el servidor fija el importe
+  desde el catálogo) y `POST /api/billing/capture`.
+
+**Sobre el formulario de tarjeta embebido, con honestidad:** en una prueba con
+las credenciales reales el botón de tarjeta desplegó el formulario DENTRO de la
+página (el contenedor pasó de 48px a 664px, sin abrir ninguna ventana). Al
+repetir la misma prueba más tarde, la misma página dejó de hacerlo y PayPal pasó
+a ofrecer su ventana ("¿No ve el navegador seguro de card?"). Se descartaron por
+medición el ancho del contenedor, el recorte CSS, el `backdrop-filter` de los
+ancestros, quién crea la orden y el tamaño del viewport: **la decisión es de
+PayPal**, no de nuestro código, y puede depender de señales de riesgo o de
+experimentos suyos. Conviene comprobarlo en un navegador real antes de prometer
+esa experiencia a nadie.
+
+Idempotencia del pago único: la captura es idempotente en PayPal (misma
+`PayPal-Request-Id`), si la orden ya estaba capturada se recupera la captura
+existente, y `markPaymentSucceeded` no extiende el periodo si el cobro ya estaba
+registrado. Hacen falta las tres para que un doble clic no regale un mes.
 
 Candidatos para Honduras, ambos con tokenización y cobros recurrentes:
 **PixelPay** (hondureño) y **Tilopay** (Centroamérica); el adquirente detrás
