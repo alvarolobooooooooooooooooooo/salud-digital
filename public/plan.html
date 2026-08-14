@@ -252,7 +252,10 @@
          recortes aquí, o se saldría de la tarjeta al desplegarse. */
       overflow: visible;
     }
-    .subs-page .pz { width: 100%; max-width: 400px; }
+        /* Ancho de la zona de pago. 400px se veía perdido en el centro de una
+       tarjeta de ~1290px; 620 llena sin estirar los botones hasta lo ridículo
+       (PayPal los pinta a ancho completo del contenedor). */
+    .subs-page .pz { width: 100%; max-width: 620px; }
     .subs-page .pz-label {
       font-size: 11.5px; font-weight: 600; letter-spacing: .09em;
       text-transform: uppercase; color: var(--muted);
@@ -267,8 +270,8 @@
     .subs-page .paybox {
       background: #FFFFFF;
       border: 1px solid rgba(15, 23, 42, .10);
-      border-radius: 16px;
-      padding: 14px;
+      border-radius: 18px;
+      padding: 18px;
       box-shadow: 0 10px 28px -14px rgba(8, 74, 100, .45);
     }
     [data-theme="dark"] .subs-page .paybox {
@@ -309,8 +312,9 @@
     }
 
     .subs-page .pz-hint {
-      margin-top: 11px; font-size: 11.5px; color: var(--muted);
-      line-height: 1.5; text-align: center;
+      margin-top: 12px; font-size: 12px; color: var(--muted);
+      line-height: 1.55; text-align: center;
+      max-width: 52ch; margin-left: auto; margin-right: auto;
     }
 
     .subs-page .pz-loading {
