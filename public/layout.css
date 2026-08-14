@@ -129,6 +129,18 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   border-color: rgba(8, 145, 178, 0.28);
 }
 
+/* En PC el bloque de identidad va SUELTO sobre el sidebar (igual expandido que
+   colapsado): sin tarjeta, sin borde y sin fondo detrás del avatar. La
+   superficie tipo cristal se queda solo en el drawer de celular
+   (.mobile-sidebar .sb-profile). El borde se mantiene en `transparent` en vez
+   de quitarlo para que no haya salto de 1px entre estados. */
+#sidebar .sb-profile,
+#sidebar .sb-profile:hover {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
 .sb-profile-row {
   display: flex;
   align-items: center;
