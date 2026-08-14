@@ -106,85 +106,94 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   flex-shrink: 0;
 }
 
+/* ── Bloque de identidad (sidebar) ──────────────────────────────────
+   Superficie plana, borde de 1px y sin cristal: la especialidad va como
+   label en mayúsculas sobre el nombre (nada de píldora) y el cian solo
+   aparece en el avatar y en ese label. */
 .sb-profile {
-  margin: 0.6rem 0.85rem 0.85rem;
-  padding: 0.85rem 0.9rem;
+  margin: 0.6rem 0.75rem 0.85rem;
+  padding: 0.7rem 0.75rem;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 0.65rem;
   position: relative;
-  background:
-    linear-gradient(135deg, rgba(8, 145, 178, 0.06) 0%, rgba(14, 165, 233, 0.025) 100%),
-    rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(8, 145, 178, 0.12);
+  background: var(--card, #ffffff);
+  border: 1px solid var(--border, rgba(15, 23, 42, 0.09));
   border-radius: 14px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.6) inset,
-    0 4px 14px -6px rgba(8, 145, 178, 0.12);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: none;
+  transition: border-color 0.15s ease;
 }
 
 .sb-profile:hover {
-  border-color: rgba(8, 145, 178, 0.22);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.6) inset,
-    0 6px 18px -6px rgba(8, 145, 178, 0.18);
+  border-color: rgba(8, 145, 178, 0.28);
 }
 
 .sb-profile-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.7rem;
   width: 100%;
 }
 
 .sb-avatar {
   position: relative;
-  width: 48px;
-  height: 48px;
-  border-radius: 15px;
-  background: linear-gradient(135deg, var(--primary) 0%, #0ea5e9 100%);
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--primary);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.02rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.35) inset,
-    0 6px 16px -4px rgba(8, 145, 178, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.03em;
+  box-shadow: none;
   flex-shrink: 0;
 }
 
 .sb-avatar::after {
   content: '';
   position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 12px;
-  height: 12px;
+  bottom: -1px;
+  right: -1px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: #22c55e;
   border: 2px solid var(--card, #ffffff);
-  box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+  box-shadow: none;
 }
 
 .sb-user-block {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.1rem;
   min-width: 0;
   flex: 1;
 }
 
-.sb-user-name {
-  font-size: 1.02rem;
+.sb-specialty {
+  font-size: 0.62rem;
   font-weight: 700;
+  color: var(--primary-hover);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sb-specialty:empty {
+  display: none;
+}
+
+.sb-user-name {
+  font-size: 0.95rem;
+  font-weight: 600;
   color: var(--text);
   text-align: left;
   margin: 0;
@@ -192,11 +201,11 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .sb-clinic {
-  font-size: 0.8rem;
+  font-size: 0.765rem;
   font-weight: 500;
   color: #64748b;
   text-align: left;
@@ -204,45 +213,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.3;
-}
-
-.sb-specialty-badge {
-  font-size: 0.64rem;
-  font-weight: 700;
-  color: var(--primary-hover);
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.12), rgba(6, 182, 212, 0.06));
-  padding: 0.32rem 0.8rem;
-  border-radius: 999px;
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border: 1px solid rgba(8, 145, 178, 0.18);
-  align-self: center;
-  white-space: nowrap;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
-}
-
-.sb-specialty-badge::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--primary);
-  box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.18), 0 0 6px rgba(8, 145, 178, 0.4);
-  animation: sb-profile-pulse 2.4s ease-in-out infinite;
-}
-
-@keyframes sb-profile-pulse {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.18), 0 0 6px rgba(8, 145, 178, 0.4); }
-  50% { box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1), 0 0 10px rgba(8, 145, 178, 0.6); }
+  line-height: 1.35;
 }
 
 .sb-nav {
@@ -502,7 +473,6 @@ nav.old-nav {
 
   #sidebar .sb-logo,
   #sidebar .sb-user-block,
-  #sidebar .sb-specialty-badge,
   #sidebar .sb-section-label,
   #sidebar .sb-item span:last-child,
   #sidebar .sb-logout span:last-child {
@@ -510,7 +480,7 @@ nav.old-nav {
   }
 
   #sidebar .sb-profile {
-    padding: 1rem 0.5rem;
+    padding: 0.6rem 0.5rem;
     gap: 0.5rem;
     align-items: center;
   }
@@ -547,18 +517,20 @@ nav.old-nav {
   }
 
   #sidebar.expanded .sb-logo,
-  #sidebar.expanded .sb-user-block,
-  #sidebar.expanded .sb-specialty-badge,
   #sidebar.expanded .sb-section-label,
   #sidebar.expanded .sb-item span:last-child,
   #sidebar.expanded .sb-logout span:last-child {
     display: block;
   }
 
+  #sidebar.expanded .sb-user-block {
+    display: flex;
+  }
+
   #sidebar.expanded .sb-profile {
-    padding: 0.5rem 1rem 1.25rem;
+    padding: 0.7rem 0.75rem;
     gap: 0.5rem;
-    align-items: flex-start;
+    align-items: stretch;
   }
 
   #sidebar.expanded .sb-profile::after { display: block; }

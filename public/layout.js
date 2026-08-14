@@ -204,11 +204,11 @@
               <div class="sb-profile-row">
                 <div class="sb-avatar" id="sbAvatarMobile">?</div>
                 <div class="sb-user-block">
+                  <div class="sb-specialty" id="sbSpecialtyMobile"></div>
                   <div class="sb-user-name" id="sbNameMobile">—</div>
                   <div class="sb-clinic" id="sbClinicMobile">—</div>
                 </div>
               </div>
-              <div class="sb-specialty-badge" id="sbSpecialtyMobile"></div>
             </div>
           </div>
 
@@ -351,11 +351,11 @@
           <div class="sb-profile-row">
             <div class="sb-avatar" id="sbAvatar">?</div>
             <div class="sb-user-block">
+              <div class="sb-specialty" id="sbSpecialty"></div>
               <div class="sb-user-name" id="sbName">—</div>
               <div class="sb-clinic" id="sbClinic">—</div>
             </div>
           </div>
-          <div class="sb-specialty-badge" id="sbSpecialty"></div>
         </div>
 
         <nav class="sb-nav">
