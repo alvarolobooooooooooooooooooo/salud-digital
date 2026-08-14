@@ -248,6 +248,9 @@
       border-top: 1px solid var(--line-soft);
       padding: 24px 26px 26px;
       display: grid; justify-items: center; gap: 14px; text-align: center;
+      /* El formulario de tarjeta crece dentro: nada de alturas fijas ni
+         recortes aquí, o se saldría de la tarjeta al desplegarse. */
+      overflow: visible;
     }
     .subs-page .pz { width: 100%; max-width: 400px; }
     .subs-page .pz-label {
@@ -255,6 +258,25 @@
       text-transform: uppercase; color: var(--muted);
       margin-bottom: 12px; text-align: center;
     }
+    /* Caja de pago: superficie CLARA a propósito, en los dos temas.
+       Los widgets de PayPal (botones y formulario de tarjeta) son iframes con
+       fondo blanco que no podemos pintar — son de otro origen. Peleándose con
+       ellos siempre asoma un canto blanco; enmarcándolos en una tarjeta clara,
+       el blanco deja de ser un defecto y pasa a ser el material del módulo,
+       como el teclado de un datáfono. */
+    .subs-page .paybox {
+      background: #FFFFFF;
+      border: 1px solid rgba(15, 23, 42, .10);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 10px 28px -14px rgba(8, 74, 100, .45);
+    }
+    [data-theme="dark"] .subs-page .paybox {
+      background: #F7FAFC;
+      border-color: rgba(255, 255, 255, .14);
+      box-shadow: 0 14px 34px -16px rgba(0, 0, 0, .7);
+    }
+
     .subs-page .pz-slots { min-height: 48px; display: grid; gap: 10px; }
 
     /* Pago único (SDK v5): cada botón va en un iframe con fondo BLANCO, así que
@@ -265,9 +287,17 @@
     .subs-page .pz-slot {
       border-radius: 10px;
       overflow: hidden;
+      /* WebKit no recorta iframes con overflow+border-radius: hace falta una
+         máscara para que respete el radio (si no, asoman las esquinas). */
+      -webkit-mask-image: -webkit-radial-gradient(#fff, #000);
+      mask-image: radial-gradient(#fff, #000);
       isolation: isolate;
       min-height: 44px;
+      /* El iframe es inline: sin esto queda una franja bajo el botón. */
+      line-height: 0;
+      font-size: 0;
     }
+    .subs-page .pz-slot .paypal-buttons { margin: 0 !important; }
 
     /* <paypal-button> del SDK v6 es un componente propio, no un iframe: acepta
        nuestro radio por variable CSS. */
@@ -285,8 +315,8 @@
 
     .subs-page .pz-loading {
       display: flex; align-items: center; justify-content: center; gap: 9px;
-      height: 48px; border: 1px dashed var(--line); border-radius: 12px;
-      font-size: 12.5px; color: var(--faint);
+      height: 48px; border: 1px dashed rgba(15, 23, 42, .12); border-radius: 12px;
+      font-size: 12.5px; color: #64748B;
     }
     .subs-page .pz-note {
       margin-top: 10px; font-size: 11.5px; color: var(--faint);
@@ -793,8 +823,10 @@
     return `<div class="payband">
         <div class="pz">
           <div class="pz-label">${esc(titulo)}</div>
-          <div class="pz-slots" id="pzSlots">
-            <div class="pz-loading" id="pzLoading"><span class="spin"></span> Cargando el pago…</div>
+          <div class="paybox">
+            <div class="pz-slots" id="pzSlots">
+              <div class="pz-loading" id="pzLoading"><span class="spin"></span> Cargando el pago…</div>
+            </div>
           </div>
           <div class="pz-hint">${manual
             ? 'Paga con tarjeta de crédito o débito sin salir de esta pantalla. Cada mes te avisaremos para renovar; no se guarda tu tarjeta ni se te cobra solo.'
