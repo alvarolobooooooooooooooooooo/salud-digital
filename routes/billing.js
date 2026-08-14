@@ -97,7 +97,13 @@ router.get('/status', authenticate, async (req, res) => {
   let provider = null;
   let checkout = { provider: 'none', configured: false };
   try {
-    provider = getProvider(sub ? sub.provider : undefined);
+    // Qué checkout se pinta: el del procesador que cobrará el PRÓXIMO pago.
+    // Solo se usa el de la suscripción existente mientras esta dé acceso (hay
+    // que poder gestionarla con su propio procesador). Si es un intento a
+    // medias del provider anterior, manda el activo — si no, cambiar
+    // PAYMENTS_PROVIDER no serviría de nada: la pantalla seguiría ofreciendo el
+    // checkout viejo para siempre.
+    provider = getProvider(sub && acceso.active ? sub.provider : undefined);
     checkout = { ...provider.publicConfig(), configured: provider.isConfigured(), capabilities: provider.capabilities };
   } catch (_) {
     /* procesador desconocido: se informa como no configurado */
