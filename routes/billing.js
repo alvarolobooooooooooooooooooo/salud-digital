@@ -181,10 +181,21 @@ router.post('/order', authenticate, requireRole(...OWNER_ROLES), async (req, res
 
     let sub = await subs.getForClinic(clinicId);
     const acceso = subs.access(sub);
+    const activo = getProvider();
 
-    // Sin suscripción utilizable (nunca hubo, expiró o se canceló y ya venció)
-    // se crea una nueva antes de cobrar.
-    if (!sub || ['expired'].includes(sub.status) || (sub.status === 'cancelled' && !acceso.active)) {
+    // Sin suscripción utilizable se crea una nueva antes de cobrar. Cuenta como
+    // inutilizable:
+    //   • que no exista, haya expirado, o esté cancelada y ya vencida;
+    //   • que sea de OTRO procesador y nunca llegara a dar acceso — típico al
+    //     cambiar PAYMENTS_PROVIDER dejando atrás intentos a medias. Sin esto,
+    //     el intento viejo bloquearía el cobro nuevo con un error confuso.
+    const inutilizable =
+      !sub ||
+      sub.status === 'expired' ||
+      (sub.status === 'cancelled' && !acceso.active) ||
+      (sub.provider !== activo.name && !acceso.active);
+
+    if (inutilizable) {
       const alta = await subs.start({
         clinicId,
         userId: req.user.id,
@@ -235,17 +246,23 @@ router.post('/capture', authenticate, requireRole(...OWNER_ROLES), async (req, r
     return res.status(400).json({ error: 'Identificador de orden inválido.' });
   }
 
-  const sub = await subs.getForClinic(req.user.clinic_id);
-  if (!sub) return res.status(404).json({ error: 'No hay suscripción que pagar.' });
-
   try {
-    const provider = getProvider(sub.provider);
+    // La orden la creó el procesador ACTIVO, así que es el que debe capturarla
+    // (no el de una suscripción antigua que pudiera quedar por ahí).
+    const provider = getProvider();
     const captura = await provider.captureOrder({ orderId, idempotencyKey: 'cap-' + orderId });
 
-    // La orden debe pertenecer a ESTA suscripción: el custom_id lo puso el
-    // servidor al crearla, así que el navegador no puede falsearlo.
-    if (captura.customId && captura.customId !== sub.provider_subscription_id) {
-      return res.status(403).json({ error: 'Esa orden no corresponde a esta suscripción.' });
+    // A qué suscripción pertenece: manda el custom_id que puso el servidor al
+    // crear la orden — el navegador no puede falsearlo. Si no viniera, se cae a
+    // la suscripción vigente de la clínica.
+    let sub = captura.customId
+      ? await subs.getByProviderRef(provider.name, captura.customId)
+      : null;
+    if (!sub) sub = await subs.getForClinic(req.user.clinic_id);
+
+    if (!sub) return res.status(404).json({ error: 'No hay suscripción que pagar.' });
+    if (sub.clinic_id !== req.user.clinic_id) {
+      return res.status(403).json({ error: 'Esa orden no corresponde a esta cuenta.' });
     }
 
     if (captura.status !== 'succeeded') {
