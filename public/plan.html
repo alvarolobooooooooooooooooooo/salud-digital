@@ -361,6 +361,29 @@
       font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; letter-spacing: -.01em;
     }
 
+    /* ── Cuerpo partido: datos a la izquierda, pago a la derecha ──
+       Cuando hay algo que pagar, la banda de pago sola dejaba media tarjeta en
+       blanco y la tira de datos quedaba relegada al pie. Se reparten el ancho:
+       los datos en un 2×2 y el módulo de PayPal enfrente, separados por el
+       mismo filo que ya divide el resto de la tarjeta. */
+    .subs-page .split {
+      display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      border-top: 1px solid var(--line-soft);
+    }
+    .subs-page .split .facts {
+      border-top: 0; grid-template-columns: 1fr 1fr;
+      /* El pago manda en la altura: el bloque de datos se centra frente a él en
+         vez de estirarse y dejar los rótulos flotando arriba. */
+      align-content: center;
+    }
+    .subs-page .split .fact { padding: 18px 26px; border-left: 1px solid var(--line-soft); }
+    .subs-page .split .fact:nth-child(2n+1) { border-left: 0; }
+    .subs-page .split .fact:nth-child(n+3) { border-top: 1px solid var(--line-soft); }
+    .subs-page .split .payband {
+      border-top: 0; border-left: 1px solid var(--line-soft);
+      align-content: center;
+    }
+
     /* ── Botones ── */
     .subs-page .btn {
       border: 1px solid transparent; border-radius: 10px;
@@ -516,14 +539,20 @@
       .subs-page .facts { grid-template-columns: 1fr 1fr; }
       .subs-page .fact:nth-child(3) { border-left: 0; }
       .subs-page .fact:nth-child(n+3) { border-top: 1px solid var(--line-soft); }
+      /* Apilado: el pago vuelve arriba (es la acción) y los datos debajo. */
+      .subs-page .split { grid-template-columns: 1fr; }
+      .subs-page .split .payband { order: -1; border-left: 0; }
+      .subs-page .split .facts { border-top: 1px solid var(--line-soft); }
     }
     @media (max-width: 640px) {
       .subs-page .state { padding: 20px; gap: 18px; }
       .subs-page .state-r { align-items: stretch; width: 100%; }
       .subs-page .state-r .btn { width: 100%; }
       .subs-page .pay-note { text-align: left; }
-      .subs-page .facts { grid-template-columns: 1fr; }
-      .subs-page .fact { border-left: 0 !important; border-top: 1px solid var(--line-soft); padding: 14px 20px; }
+      .subs-page .facts, .subs-page .split .facts { grid-template-columns: 1fr; }
+      .subs-page .fact, .subs-page .split .fact {
+        border-left: 0 !important; border-top: 1px solid var(--line-soft); padding: 14px 20px;
+      }
       .subs-page .fact:first-child { border-top: 0; }
       .subs-page .panel, .subs-page .faq { padding: 20px; }
       .subs-page .checks { grid-template-columns: 1fr; }
@@ -648,6 +677,13 @@
     const e = estado(st);
     const owner = st.can_manage;
 
+    // Con pago pendiente la tarjeta se parte en dos columnas (datos | PayPal);
+    // ya suscrito no hay módulo de pago, así que la tira de datos ocupa el
+    // ancho completo como antes.
+    const payband = renderPayBand(st, e, owner);
+    const facts = renderFacts(st, sub, e);
+    const cuerpo = payband ? `<div class="split">${facts}${payband}</div>` : facts;
+
     ROOT.innerHTML = `
       <div class="head in">
         <div>
@@ -677,8 +713,7 @@
             ${renderActions(st, e, owner)}
           </div>
         </div>
-        ${renderPayBand(st, e, owner)}
-        ${renderFacts(st, sub, e)}
+        ${cuerpo}
       </section>
 
       <div class="cols in d2">
