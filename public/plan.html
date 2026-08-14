@@ -97,7 +97,10 @@
       color: var(--text);
       -webkit-font-smoothing: antialiased;
       padding: 4px 0 64px;
-      max-width: 1180px;
+      /* A todo el ancho del área de contenido, como configuración o finanzas:
+         con un max-width fijo y sin centrar, en pantallas grandes quedaba una
+         franja muerta a la derecha. */
+      width: 100%;
       /* Por encima de los blobs (z-index: 0), o el contenido queda debajo. */
       position: relative;
       z-index: 1;
@@ -252,9 +255,10 @@
          recortes aquí, o se saldría de la tarjeta al desplegarse. */
       overflow: visible;
     }
-        /* Ancho de la zona de pago. 400px se veía perdido en el centro de una
-       tarjeta de ~1290px; 620 llena sin estirar los botones hasta lo ridículo
-       (PayPal los pinta a ancho completo del contenedor). */
+    /* Ancho de la zona de pago. Tope propio a propósito: la tarjeta va a todo
+       el ancho del contenido, y PayPal pinta sus botones al ancho del
+       contenedor, así que sin este límite quedarían estirados y ridículos.
+       620px es el punto en que el módulo pesa sin deformarse. */
     .subs-page .pz { width: 100%; max-width: 620px; }
     .subs-page .pz-label {
       font-size: 11.5px; font-weight: 600; letter-spacing: .09em;
