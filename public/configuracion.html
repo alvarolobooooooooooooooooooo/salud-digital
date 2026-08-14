@@ -524,13 +524,53 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* ── Sub-menús plegables (sólo móvil/tablet) ──
+       Sin menú lateral los paneles se apilan y la página se vuelve un scroll
+       interminable. Cada panel recibe una cabecera plegable —mismo patrón que
+       los grupos numerados de la consulta podológica— y arranca cerrado salvo
+       el primero. En escritorio estas cabeceras no existen visualmente. */
+    .m-sec-head { display: none; }
+    [data-theme="dark"] .m-sec-head .m-sec-title { color: var(--sd-text, #f1f5f9); }
+    [data-theme="dark"] .m-sec-head .m-sec-chev { color: #67e8f9; }
+    [data-theme="dark"] .m-sec-head .m-sec-ico { box-shadow: 0 4px 14px rgba(6, 182, 212, .35); }
+
     /* ── Responsive ── */
     @media (max-width: 1024px) {
       .settings-grid { grid-template-columns: 1fr; }
       /* Mobile: no tab menu, all sections stacked vertically */
       .tabs-nav { display: none !important; }
-      .settings-panel { display: block !important; margin-bottom: 1rem; }
-      .settings-panel[style*="display: none"] { display: block !important; }
+      .settings-panel { display: block; margin: 0 0 .7rem; }
+      .settings-panel:not(.m-collapsed) { animation: panelIn .3s ease; }
+      .settings-panel.m-collapsed { display: none !important; }
+      .settings-panel > .glass-card:last-child { margin-bottom: 0; }
+
+      .m-sec-head {
+        display: flex; align-items: center; gap: .8rem;
+        width: 100%; text-align: left; cursor: pointer;
+        font-family: inherit;
+        padding: .8rem .95rem; margin: 0 0 .7rem;
+        border-radius: 16px;
+        scroll-margin-top: 100px;
+        -webkit-tap-highlight-color: transparent;
+        transition: transform .15s ease, box-shadow .25s ease;
+      }
+      .m-sec-head:active { transform: scale(.99); }
+      .m-sec-head .m-sec-ico {
+        width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+        display: inline-flex; align-items: center; justify-content: center;
+        background: linear-gradient(135deg, #0891b2, #06b6d4); color: #fff;
+        box-shadow: 0 4px 12px rgba(8, 145, 178, .25);
+      }
+      .m-sec-head .m-sec-title {
+        flex: 1; min-width: 0;
+        font-size: 14.5px; font-weight: 600; color: #0f172a; letter-spacing: -.01em;
+      }
+      .m-sec-head .m-sec-chev {
+        width: 22px; height: 22px; flex-shrink: 0; color: #0891b2;
+        display: inline-flex; align-items: center; justify-content: center;
+        transition: transform .25s ease;
+      }
+      .m-sec-head[aria-expanded="false"] .m-sec-chev { transform: rotate(-90deg); }
     }
     @media (max-width: 768px) {
       .layout-main { padding: 1.25rem 1rem; padding-top: 90px; padding-bottom: 100px; }
@@ -1401,6 +1441,51 @@
       const btn = e.target.closest('.tab-btn');
       if (btn) activateTab(btn.dataset.tab);
     });
+
+    // ── Sub-menús plegables en móvil ──
+    // En ≤1024px no hay menú lateral y todos los paneles se apilan. Cada panel
+    // recibe una cabecera plegable (icono + título del tab + chevron) y sólo el
+    // primero queda abierto, así la página cabe en una pantalla.
+    function setSectionOpen(tab, open) {
+      const head = document.querySelector(`.m-sec-head[data-section="${tab}"]`);
+      const panel = document.querySelector(`.settings-panel[data-panel="${tab}"]`);
+      if (!head || !panel) return;
+      head.setAttribute('aria-expanded', open ? 'true' : 'false');
+      panel.classList.toggle('m-collapsed', !open);
+    }
+    function initMobileSections() {
+      const nav = document.getElementById('tabsNav');
+      let isFirst = true;
+      document.querySelectorAll('.settings-panel').forEach(panel => {
+        // Los paneles que el rol no puede ver quedan fuera (applyRole ya los ocultó).
+        if (panel.getAttribute('aria-hidden') === 'true') return;
+        const tab = panel.dataset.panel;
+        const tabBtn = nav.querySelector(`.tab-btn[data-tab="${tab}"]`);
+        if (!tabBtn) return;
+        const iconEl = tabBtn.querySelector('.tab-icon');
+        const label = (tabBtn.querySelector('.tab-label').textContent || '').trim();
+
+        if (!panel.id) panel.id = `panel-${tab}`;
+        const head = document.createElement('button');
+        head.type = 'button';
+        head.className = 'glass-card m-sec-head';
+        head.dataset.section = tab;
+        head.setAttribute('aria-controls', panel.id);
+        head.innerHTML = `<span class="m-sec-ico" data-icon="${iconEl ? iconEl.dataset.icon : 'settings'}" data-size="17"></span>` +
+                         `<span class="m-sec-title"></span>` +
+                         `<span class="m-sec-chev" data-icon="chevronDown" data-size="18"></span>`;
+        head.querySelector('.m-sec-title').textContent = label;
+        panel.parentNode.insertBefore(head, panel);
+        hydrateIcons(head);
+
+        setSectionOpen(tab, isFirst);
+        isFirst = false;
+        head.addEventListener('click', () => {
+          setSectionOpen(tab, head.getAttribute('aria-expanded') === 'false');
+        });
+      });
+    }
+    initMobileSections();
 
     // ── Tag chips (languages, focus) ──
     function renderChips(targetKey) {
@@ -2370,6 +2455,10 @@
     const initialTab = (location.hash || '').replace('#', '');
     if (initialTab && document.querySelector(`.tab-btn[data-tab="${initialTab}"]`)) {
       activateTab(initialTab);
+      // En móvil los paneles son plegables: deja abierto sólo el del enlace.
+      document.querySelectorAll('.m-sec-head').forEach(h => {
+        setSectionOpen(h.dataset.section, h.dataset.section === initialTab);
+      });
     }
 
     loadInitial().finally(() => {
