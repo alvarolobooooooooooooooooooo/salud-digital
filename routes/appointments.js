@@ -44,7 +44,13 @@ router.get('/calendar', authenticate, async (req, res) => {
   res.json(result.rows);
 });
 
-const VALID_APPOINTMENT_TYPES = ['nuevo_paciente', 'seguimiento', 'control', 'urgencia', 'procedimiento'];
+// Tipos comunes a todas las especialidades + tipos exclusivos de Podología
+// (en Podología no se ofrece 'control'; el filtrado por especialidad se hace en el frontend)
+const VALID_APPOINTMENT_TYPES = [
+  'nuevo_paciente', 'seguimiento', 'control', 'urgencia', 'procedimiento',
+  'pedicure_clinico', 'onicocriptosis', 'pedicure_onicomicosis',
+  'pedicure_hiperqueratosis', 'pedicure_spa'
+];
 
 router.put('/:id', authenticate, async (req, res) => {
   const { patient_id, doctor_id, scheduled_at, status, appointment_type } = req.body;

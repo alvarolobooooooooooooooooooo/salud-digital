@@ -474,6 +474,40 @@
     new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
 
   /* ─────────── Agendar Cita ─────────── */
+  // Tipos de cita por especialidad: Podología no usa "Control" y suma sus propios pedicures
+  const APPT_TYPE_LABELS = {
+    nuevo_paciente: 'Nuevo paciente',
+    seguimiento: 'Seguimiento',
+    control: 'Control',
+    urgencia: 'Urgencia',
+    procedimiento: 'Procedimiento',
+    pedicure_clinico: 'Pedicure Clínico',
+    onicocriptosis: 'Onicocriptosis',
+    pedicure_onicomicosis: 'Pedicure Onicomicosis',
+    pedicure_hiperqueratosis: 'Pedicure Hiperqueratosis',
+    pedicure_spa: 'Pedicure Spa',
+  };
+  const APPT_TYPES_DEFAULT  = ['nuevo_paciente','seguimiento','control','urgencia','procedimiento'];
+  const APPT_TYPES_PODIATRY = ['nuevo_paciente','seguimiento','urgencia','procedimiento',
+                               'pedicure_clinico','onicocriptosis','pedicure_onicomicosis',
+                               'pedicure_hiperqueratosis','pedicure_spa'];
+  function syncApptTypeOptions(specialty, desired) {
+    const sel = document.getElementById('fAppointmentType');
+    if (!sel) return;
+    // Tolerante a cómo quedó guardada la especialidad: 'Podología', 'Podologia' o 'podologia'
+    const isPodiatry = String(specialty || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().trim().startsWith('podolog');
+    const values = isPodiatry ? APPT_TYPES_PODIATRY : APPT_TYPES_DEFAULT;
+    const want = desired || sel.value;
+    sel.innerHTML = '';
+    values.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = APPT_TYPE_LABELS[v];
+      sel.appendChild(o);
+    });
+    sel.value = values.includes(want) ? want : 'seguimiento';
+  }
+
   let allDoctors = [];
   let allPatients = [];
   let allClinicAppts = [];
@@ -507,6 +541,7 @@
       dd.addEventListener('change', (e) => {
         const doctor = allDoctors.find(d => d.id === parseInt(e.target.value, 10));
         document.getElementById('fSpecialty').value = doctor ? (doctor.specialty || 'Medicina General') : '';
+        syncApptTypeOptions(document.getElementById('fSpecialty').value);
         const dt = document.getElementById('fDatetime');
         if (dt && dt._calendarDatetimePicker) dt._calendarDatetimePicker.renderTimeGrid();
       });
@@ -534,7 +569,7 @@
     if (!schedulerReady) { showToast('Cargando datos, intenta de nuevo en un momento'); return; }
     document.getElementById('apptForm').reset();
     document.getElementById('fSpecialty').value = '';
-    document.getElementById('fAppointmentType').value = 'seguimiento';
+    syncApptTypeOptions('', 'seguimiento');
     const now = new Date(); now.setMinutes(0, 0, 0); now.setHours(now.getHours() + 1);
     const pad = n => String(n).padStart(2, '0');
     document.getElementById('fDatetime').value =

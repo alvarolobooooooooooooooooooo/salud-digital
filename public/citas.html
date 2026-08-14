@@ -1826,7 +1826,44 @@ const APPT_TYPE_META = {
   control:        { label: 'Control',        color: '#10b981' },
   urgencia:       { label: 'Urgencia',       color: '#ef4444' },
   procedimiento:  { label: 'Procedimiento',  color: '#f59e0b' },
+  // Exclusivos de Podología
+  pedicure_clinico:         { label: 'Pedicure Clínico',         color: '#14b8a6' },
+  onicocriptosis:           { label: 'Onicocriptosis',           color: '#f43f5e' },
+  pedicure_onicomicosis:    { label: 'Pedicure Onicomicosis',    color: '#84cc16' },
+  pedicure_hiperqueratosis: { label: 'Pedicure Hiperqueratosis', color: '#6366f1' },
+  pedicure_spa:             { label: 'Pedicure Spa',             color: '#ec4899' },
 };
+
+// Tipos de cita por especialidad: Podología no usa "Control" y suma sus propios pedicures
+const APPT_TYPES_DEFAULT  = ['nuevo_paciente','seguimiento','control','urgencia','procedimiento'];
+const APPT_TYPES_PODIATRY = ['nuevo_paciente','seguimiento','urgencia','procedimiento',
+                             'pedicure_clinico','onicocriptosis','pedicure_onicomicosis',
+                             'pedicure_hiperqueratosis','pedicure_spa'];
+// Tolerante a cómo quedó guardada la especialidad: 'Podología', 'Podologia' o 'podologia'
+function isPodiatrySpecialty(specialty) {
+  return String(specialty || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().trim().startsWith('podolog');
+}
+function apptTypesForSpecialty(specialty) {
+  return isPodiatrySpecialty(specialty) ? APPT_TYPES_PODIATRY : APPT_TYPES_DEFAULT;
+}
+// Repuebla el <select> de tipo de cita según la especialidad del doctor elegido.
+// keepUnlisted: al editar una cita ya guardada conservamos su tipo histórico
+// aunque la especialidad ya no lo ofrezca (p. ej. una podología antigua con 'Control').
+function syncApptTypeOptions(specialty, desired, keepUnlisted) {
+  const sel = document.getElementById('fAppointmentType');
+  if (!sel) return;
+  const values = apptTypesForSpecialty(specialty).slice();
+  const want = desired || sel.value;
+  if (keepUnlisted && want && APPT_TYPE_META[want] && !values.includes(want)) values.push(want);
+  sel.innerHTML = '';
+  values.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v; o.textContent = APPT_TYPE_META[v].label;
+    sel.appendChild(o);
+  });
+  sel.value = values.includes(want) ? want : 'seguimiento';
+}
 function apptTypeLabel(v) { return (APPT_TYPE_META[v] && APPT_TYPE_META[v].label) || 'Seguimiento'; }
 function apptTypeColor(v) { return (APPT_TYPE_META[v] && APPT_TYPE_META[v].color) || '#06b6d4'; }
 function apptTypeBadgeHtml(a) {
@@ -1966,6 +2003,7 @@ async function refreshReminders() {
       } else if (specialtyField) {
         specialtyField.value = '';
       }
+      syncApptTypeOptions(specialtyField ? specialtyField.value : '');
       // Re-renderizar las horas ocupadas del picker para el doctor seleccionado
       const dtInput = document.getElementById('fDatetime');
       if (dtInput && dtInput._calendarDatetimePicker) {
@@ -2153,7 +2191,9 @@ function renderFilters() {
   }
 
   // Tipo de cita (appointment_type)
-  const apptTypeOrder = ['nuevo_paciente','seguimiento','control','urgencia','procedimiento'];
+  const apptTypeOrder = ['nuevo_paciente','seguimiento','control','urgencia','procedimiento',
+                         'pedicure_clinico','onicocriptosis','pedicure_onicomicosis',
+                         'pedicure_hiperqueratosis','pedicure_spa'];
   const apptTypeOpts = apptTypeOrder
     .map(v => ({
       value: v,
@@ -3293,7 +3333,7 @@ function openModal() {
   document.getElementById('btnDelete').style.display = 'none';
   document.getElementById('citaForm').reset();
   document.getElementById('fStatus').value = 'pending';
-  document.getElementById('fAppointmentType').value = 'seguimiento';
+  syncApptTypeOptions(document.getElementById('fSpecialty').value, 'seguimiento');
   const now = new Date(); now.setMinutes(0,0,0);
   document.getElementById('fDatetime').value = now.toISOString().slice(0,16);
 
@@ -3321,7 +3361,7 @@ function openEdit(id) {
 
   document.getElementById('fDatetime').value = a.scheduled_at.slice(0,16);
   document.getElementById('fStatus').value   = a.status;
-  document.getElementById('fAppointmentType').value = a.appointment_type || 'seguimiento';
+  syncApptTypeOptions(document.getElementById('fSpecialty').value, a.appointment_type || 'seguimiento', true);
 
   initializeDatePicker();
   const dtInput = document.getElementById('fDatetime');
