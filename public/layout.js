@@ -90,7 +90,8 @@
           items: [
             { href: '/dashboard.html', key: 'dashboard', iconName: 'home', label: 'Inicio' },
             { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
-            { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
+            // Calendario Compartido desactivado — para reactivar, descomentar esta línea:
+            // { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
             // Mensajes desactivado — para reactivar, descomentar esta línea:
             // { href: '/mensajes.html', key: 'mensajes', iconName: 'messageSquare', label: 'Mensajes' },
@@ -131,7 +132,8 @@
           items: [
             { href: '/dashboard.html', key: 'dashboard', iconName: 'home', label: 'Inicio' },
             { href: '/citas.html', key: 'citas', iconName: 'calendar', label: 'Citas' },
-            { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
+            // Calendario Compartido desactivado — para reactivar, descomentar esta línea:
+            // { href: '/calendario-compartido.html', key: 'calendario-compartido', iconName: 'calendar', label: 'Calendario Compartido' },
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
             // Mensajes desactivado — para reactivar, descomentar esta línea:
             // { href: '/mensajes.html', key: 'mensajes', iconName: 'messageSquare', label: 'Mensajes' },
@@ -241,10 +243,12 @@
               <span id="facturacionMenuIcon"></span>
               <span>Facturación</span>
             </a>
+            <!-- Calendario Compartido desactivado — para reactivar, descomentar este bloque:
             <a href="/calendario-compartido.html" class="sidebar-menu-link">
               <span id="calCompartidoIcon"></span>
               <span>Calendario Compartido</span>
             </a>
+            -->
           </div>
           <div class="sidebar-section">
             <div class="sidebar-label">CLÍNICA</div>
