@@ -1,0 +1,1089 @@
+<!doctype html>
+<html lang="es">
+<head>
+<script src="/theme.js"></script>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Consulta · Odontopediatría</title>
+<link rel="stylesheet" href="/layout.css"/>
+<style>
+  /* =========================================================
+     Salud Digital — design tokens (from colors_and_type.css)
+     Scoped to the odontopediatría clinical-history surface.
+     ========================================================= */
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  .hc-root {
+    --sd-navy-900:#001638; --sd-navy-800:#002050; --sd-navy-700:#002A60; --sd-navy-600:#103A78; --sd-navy-500:#25579E;
+    --sd-blue-700:#00638A; --sd-blue-600:#0080B0; --sd-blue-500:#1796C6; --sd-blue-400:#54B0DD; --sd-blue-300:#9BD0EA;
+    --sd-blue-200:#D2E9F5; --sd-blue-100:#EAF4FA; --sd-blue-50:#F4FAFD;
+    --sd-ink-1000:#0B1424; --sd-ink-900:#1A2235; --sd-ink-700:#3F485C; --sd-ink-500:#606A7C; --sd-ink-400:#8A93A4;
+    --sd-ink-300:#BDC4D0; --sd-ink-200:#DCE1E9; --sd-ink-150:#E8ECF2; --sd-ink-100:#F1F4F8; --sd-ink-50:#F7F9FC; --sd-ink-0:#FFFFFF;
+    --sd-vital-600:#198754; --sd-vital-500:#2BA86A; --sd-vital-100:#E3F4EC;
+    --sd-alert-600:#C7811C; --sd-alert-500:#E0992E; --sd-alert-100:#FBEFDB;
+    --sd-critical-600:#C2362C; --sd-critical-500:#DA453A; --sd-critical-100:#FBE5E3;
+    --bg-app:var(--sd-ink-50); --fg-default:var(--sd-ink-900); --fg-strong:var(--sd-ink-1000); --fg-muted:var(--sd-ink-500);
+    --fg-subtle:var(--sd-ink-400); --fg-link:var(--sd-blue-700); --fg-brand:var(--sd-navy-700);
+    --border-soft:var(--sd-ink-150); --border-default:var(--sd-ink-200); --border-strong:var(--sd-ink-300);
+    --font-display:'Manrope','Nunito Sans',system-ui,sans-serif;
+    --font-body:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;
+    --font-mono:'JetBrains Mono','SF Mono',Menlo,monospace;
+    --r-xs:4px; --r-sm:6px; --r-md:10px; --r-lg:14px; --r-xl:20px; --r-pill:999px;
+    --shadow-xs:0 1px 2px rgba(11,20,36,0.05); --shadow-lg:0 12px 28px rgba(11,20,36,0.10),0 4px 10px rgba(11,20,36,0.05);
+    --ease-out:cubic-bezier(.22,.61,.36,1); --dur-1:120ms;
+  }
+
+  .hc-root * { box-sizing: border-box; }
+  .hc-root ::selection { background: var(--sd-blue-200); }
+
+  .hc-root { --hc-accent: var(--sd-blue-600); max-width: 1180px; margin: 0 auto; padding: 8px 4px 80px;
+    font-family: var(--font-body); color: var(--fg-default); }
+
+  /* ============ PATIENT BAR ============ */
+  .hc-patientbar { display: flex; justify-content: space-between; align-items: center; gap: 24px;
+    background: #fff; border: 1px solid var(--border-default); border-radius: var(--r-lg);
+    padding: 20px 24px; margin-bottom: 16px; }
+  .hc-pb-left { display: flex; align-items: center; gap: 18px; }
+  .hc-avatar { width: 56px; height: 56px; border-radius: var(--r-pill); flex: 0 0 56px;
+    background: var(--sd-blue-100); color: var(--sd-blue-700); display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 800; font-size: 20px; letter-spacing: -0.02em; }
+  .hc-pb-eyebrow { font-family: var(--font-display); font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--fg-brand); }
+  .hc-pb-name { font-family: var(--font-display); font-size: 26px; font-weight: 800; letter-spacing: -0.02em;
+    color: var(--fg-strong); margin: 3px 0 6px; }
+  .hc-pb-meta { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--fg-muted); flex-wrap: wrap; }
+  .hc-pb-meta i { width: 3px; height: 3px; border-radius: 999px; background: var(--sd-ink-300); display: inline-block; }
+  .hc-pb-meta .mono { font-family: var(--font-mono); font-size: 12.5px; color: var(--fg-default); }
+  .hc-pb-right { display: flex; align-items: center; gap: 14px; }
+  .hc-alert-chip { display: inline-flex; align-items: center; gap: 7px; background: var(--sd-critical-100);
+    color: var(--sd-critical-600); font-size: 12.5px; font-weight: 600; padding: 8px 12px; border-radius: var(--r-md);
+    border: 1px solid #F3CFCB; max-width: 240px; }
+  .hc-pb-index { text-align: center; background: var(--sd-ink-50); border: 1px solid var(--border-soft);
+    border-radius: var(--r-md); padding: 8px 16px; min-width: 66px; }
+  .hc-pb-index-v { display: block; font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--fg-strong); line-height: 1; }
+  .hc-pb-index-l { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); margin-top: 4px; }
+
+  /* ============ SECTION NAV ============ */
+  .hc-nav { position: sticky; top: 0; z-index: 40; display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 12px; margin: 0 0 20px; background: rgba(247,249,252,0.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-soft); border-radius: var(--r-md); }
+  .hc-nav-chip { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px;
+    border: 1px solid var(--border-default); background: #fff; border-radius: var(--r-pill);
+    font-family: var(--font-body); font-size: 13px; font-weight: 600; color: var(--fg-muted); cursor: pointer;
+    transition: all var(--dur-1) var(--ease-out); white-space: nowrap; }
+  .hc-nav-chip:hover { border-color: var(--border-strong); color: var(--fg-default); }
+  .hc-nav-chip.on { background: var(--hc-accent); border-color: var(--hc-accent); color: #fff; }
+  .hc-nav-num { font-family: var(--font-mono); font-size: 11px; opacity: 0.6; }
+  .hc-nav-chip.on .hc-nav-num { opacity: 0.8; }
+
+  /* ============ CARDS ============ */
+  .hc-main { display: flex; flex-direction: column; gap: 20px; }
+  .hc-card { background: #fff; border: 1px solid var(--border-default); border-radius: var(--r-lg);
+    padding: 28px 32px; scroll-margin-top: 76px; }
+  .hc-card-head { display: flex; gap: 16px; align-items: flex-start; padding-bottom: 20px; margin-bottom: 22px;
+    border-bottom: 1px solid var(--border-soft); }
+  .hc-card-num { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--hc-accent);
+    background: var(--sd-blue-100); border-radius: var(--r-sm); padding: 4px 9px; margin-top: 2px; }
+  .hc-card-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; letter-spacing: -0.01em;
+    color: var(--fg-strong); margin: 0; }
+  .hc-card-sub { font-size: 13.5px; color: var(--fg-muted); margin: 4px 0 0; }
+
+  /* ============ SUBGROUPS + GRID + FIELDS ============ */
+  .hc-subgroup { margin-bottom: 24px; }
+  .hc-subgroup:last-child { margin-bottom: 0; }
+  .hc-subgroup-title { font-family: var(--font-display); font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--fg-muted); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px dashed var(--border-default); }
+  .hc-grid { display: grid; gap: 16px 18px; margin-bottom: 16px; }
+  .hc-grid:last-child { margin-bottom: 0; }
+  .hc-grid.c2 { grid-template-columns: repeat(2, 1fr); }
+  .hc-grid.c3 { grid-template-columns: repeat(3, 1fr); }
+  .hc-span-2 { grid-column: span 2; }
+  .hc-span-3 { grid-column: span 3; }
+  .hc-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .hc-grid .hc-field { margin-bottom: 0; }
+  .hc-field:last-child { margin-bottom: 0; }
+  .hc-label { font-size: 13px; font-weight: 600; color: var(--fg-default); letter-spacing: 0.01em; }
+  .hc-req { color: var(--sd-critical-500); margin-left: 3px; }
+  .hc-help { font-size: 12px; color: var(--fg-muted); line-height: 1.4; }
+  .hc-help.err { color: var(--sd-critical-600); }
+
+  .hc-input { width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border-default);
+    border-radius: var(--r-md); font-family: var(--font-body); font-size: 14px; color: var(--fg-strong);
+    background: #fff; outline: none; transition: border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out); }
+  .hc-input::placeholder { color: var(--sd-ink-400); }
+  .hc-input:hover { border-color: var(--border-strong); }
+  .hc-input:focus { border-color: var(--hc-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--hc-accent) 22%, transparent); }
+  .hc-input.error { border-color: var(--sd-critical-500); box-shadow: 0 0 0 4px rgba(218,69,58,0.14); }
+  .hc-input.mono { font-family: var(--font-mono); letter-spacing: 0.02em; }
+  .hc-textarea { height: auto; padding: 10px 12px; line-height: 1.5; resize: vertical; }
+
+  .hc-select-wrap { position: relative; }
+  .hc-select { width: 100%; appearance: none; padding-right: 36px; cursor: pointer; }
+  .hc-select-caret { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--fg-subtle); pointer-events: none; }
+
+  .hc-suffix-wrap { position: relative; max-width: 140px; }
+  .hc-suffix { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--fg-muted); font-size: 14px; }
+
+  /* ============ SWITCH / TOGGLE ROWS ============ */
+  .hc-switch { width: 38px; height: 22px; background: var(--sd-ink-200); border: none; border-radius: 999px;
+    position: relative; cursor: pointer; transition: background var(--dur-1) var(--ease-out); flex: 0 0 38px; }
+  .hc-switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff;
+    border-radius: 999px; box-shadow: var(--shadow-xs); transition: left var(--dur-1) var(--ease-out); }
+  .hc-switch.on { background: var(--hc-accent); }
+  .hc-switch.on::after { left: 18px; }
+
+  .hc-toggle-list { border: 1px solid var(--border-default); border-radius: var(--r-md); overflow: hidden; }
+  .hc-toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 12px 16px; border-bottom: 1px solid var(--border-soft); }
+  .hc-toggle-list .hc-toggle-row:last-child { border-bottom: none; }
+  .hc-toggle-text { display: flex; flex-direction: column; gap: 2px; }
+  .hc-toggle-label { font-size: 14px; font-weight: 500; color: var(--fg-default); }
+  .hc-toggle-sub { font-size: 12px; color: var(--fg-muted); }
+  .hc-toggle-right { display: flex; align-items: center; gap: 12px; }
+  .hc-inline-input { height: 32px; width: 190px; padding: 0 10px; border: 1px solid var(--border-default);
+    border-radius: var(--r-sm); font-family: var(--font-body); font-size: 13px; color: var(--fg-strong); outline: none; }
+  .hc-inline-input:focus { border-color: var(--hc-accent); }
+
+  /* ============ CHECK / RADIO ============ */
+  .hc-checkgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 18px; }
+  .hc-check-item, .hc-radio-item { display: flex; align-items: center; gap: 10px; background: none; border: none;
+    padding: 6px 0; cursor: pointer; text-align: left; font-family: var(--font-body); }
+  .hc-check { width: 19px; height: 19px; flex: 0 0 19px; border: 1.5px solid var(--border-strong); border-radius: 5px;
+    display: inline-flex; align-items: center; justify-content: center; color: #fff; transition: all var(--dur-1) var(--ease-out); }
+  .hc-check.on { background: var(--hc-accent); border-color: var(--hc-accent); }
+  .hc-check-label { font-size: 14px; color: var(--fg-default); }
+
+  /* ============ SEGMENTED ============ */
+  .hc-seg { display: inline-flex; padding: 3px; background: var(--sd-ink-100); border-radius: var(--r-md); gap: 2px; flex-wrap: wrap; }
+  .hc-seg button { background: transparent; border: 0; padding: 7px 14px; font-size: 13px; font-weight: 600;
+    font-family: var(--font-body); color: var(--fg-muted); border-radius: 7px; cursor: pointer; transition: all var(--dur-1) var(--ease-out); }
+  .hc-seg button:hover { color: var(--fg-default); }
+  .hc-seg button.on { background: #fff; color: var(--fg-strong); box-shadow: var(--shadow-xs); }
+
+  .hc-chip-toggles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .hc-toggle-chip { padding: 8px 14px; border: 1px solid var(--border-default); background: #fff; border-radius: var(--r-pill);
+    font-family: var(--font-body); font-size: 13px; font-weight: 600; color: var(--fg-muted); cursor: pointer; transition: all var(--dur-1) var(--ease-out); }
+  .hc-toggle-chip:hover { border-color: var(--border-strong); }
+  .hc-toggle-chip.on { background: var(--sd-blue-100); border-color: var(--sd-blue-300); color: var(--sd-blue-700); }
+
+  /* ============ TABLE (plan) ============ */
+  .hc-table { border: 1px solid var(--border-default); border-radius: var(--r-md); overflow: hidden; }
+  .hc-tr { display: grid; grid-template-columns: 150px 110px 1fr 150px 44px; align-items: center; border-bottom: 1px solid var(--border-soft); }
+  .hc-tr:last-child { border-bottom: none; }
+  .hc-th { background: var(--sd-ink-50); }
+  .hc-th .hc-td { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); padding: 10px 12px; }
+  .hc-td { padding: 6px 8px; }
+  .hc-td.c-fase { padding-left: 12px; }
+  .hc-cell-input { width: 100%; height: 34px; padding: 0 8px; border: 1px solid transparent; background: transparent;
+    border-radius: var(--r-sm); font-family: var(--font-body); font-size: 13.5px; color: var(--fg-strong); outline: none; cursor: pointer; }
+  .hc-cell-input.mono { font-family: var(--font-mono); font-size: 12.5px; }
+  .hc-cell-input:hover { border-color: var(--border-default); background: #fff; }
+  .hc-cell-input:focus { border-color: var(--hc-accent); background: #fff; box-shadow: 0 0 0 3px color-mix(in srgb, var(--hc-accent) 16%, transparent); }
+  select.hc-cell-input { appearance: none; }
+  .hc-cell-input.pill-ok { color: var(--sd-vital-600); font-weight: 600; }
+  .hc-cell-input.pill-warn { color: var(--sd-alert-600); font-weight: 600; }
+  .hc-cell-input.pill-muted { color: var(--fg-muted); }
+  .hc-row-del { width: 32px; height: 32px; border: none; background: none; border-radius: var(--r-sm); color: var(--fg-subtle);
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all var(--dur-1) var(--ease-out); }
+  .hc-row-del:hover { background: var(--sd-critical-100); color: var(--sd-critical-600); }
+  .hc-empty { padding: 20px; text-align: center; font-size: 13.5px; color: var(--fg-muted); }
+  .hc-btn-add { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; height: 38px; padding: 0 16px;
+    border: 1px dashed var(--border-strong); background: #fff; border-radius: var(--r-md); font-family: var(--font-body);
+    font-size: 13.5px; font-weight: 600; color: var(--fg-default); cursor: pointer; transition: all var(--dur-1) var(--ease-out); }
+  .hc-btn-add:hover { border-color: var(--hc-accent); color: var(--hc-accent); border-style: solid; }
+
+  /* ============ INDEX CARDS ============ */
+  .hc-index-row { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 16px; margin-bottom: 24px; }
+  .hc-index-card { border: 1px solid var(--border-default); border-radius: var(--r-md); padding: 18px 20px; background: var(--sd-blue-50); }
+  .hc-index-total { font-family: var(--font-display); font-size: 40px; font-weight: 800; color: var(--fg-strong); line-height: 1; letter-spacing: -0.02em; }
+  .hc-index-name { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--sd-blue-700); margin-top: 6px; }
+  .hc-index-sub { font-size: 12px; color: var(--fg-muted); margin-bottom: 14px; }
+  .hc-index-break { display: flex; gap: 16px; }
+  .hc-index-cell { display: flex; flex-direction: column; gap: 3px; }
+  .hc-index-dot { width: 9px; height: 9px; border-radius: 999px; }
+  .hc-index-dot.crit { background: var(--sd-critical-500); }
+  .hc-index-dot.muted { background: var(--sd-ink-400); }
+  .hc-index-dot.blue { background: var(--sd-blue-600); }
+  .hc-index-k { font-size: 11px; color: var(--fg-muted); }
+  .hc-index-v { font-family: var(--font-mono); font-size: 16px; font-weight: 600; color: var(--fg-strong); }
+  .hc-index-note { display: flex; gap: 10px; align-items: center; background: var(--sd-blue-100); border-radius: var(--r-md);
+    padding: 16px 18px; font-size: 13px; color: var(--sd-blue-700); line-height: 1.45; }
+  .hc-index-note svg { flex: 0 0 18px; }
+
+  /* ============ TIMELINE ============ */
+  .hc-note-compose { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 24px; }
+  .hc-note-compose .hc-textarea { flex: 1; }
+  .hc-timeline { display: flex; flex-direction: column; }
+  .hc-tl-item { display: flex; gap: 14px; padding-bottom: 18px; position: relative; }
+  .hc-tl-item:not(:last-child)::before { content: ""; position: absolute; left: 5px; top: 14px; bottom: 0; width: 1.5px; background: var(--border-default); }
+  .hc-tl-dot { width: 11px; height: 11px; flex: 0 0 11px; border-radius: 999px; background: #fff; border: 2.5px solid var(--hc-accent); margin-top: 4px; z-index: 1; }
+  .hc-tl-head { display: flex; gap: 12px; align-items: baseline; margin-bottom: 4px; }
+  .hc-tl-date { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; color: var(--fg-strong); }
+  .hc-tl-prof { font-size: 12.5px; color: var(--fg-muted); }
+  .hc-tl-text { font-size: 14px; color: var(--fg-default); margin: 0; line-height: 1.5; }
+
+  /* ============ CONSENT ============ */
+  .hc-consent-text { background: var(--sd-ink-50); border: 1px solid var(--border-soft); border-radius: var(--r-md);
+    padding: 18px 22px; margin-bottom: 18px; }
+  .hc-consent-text p { font-size: 13.5px; line-height: 1.6; color: var(--fg-default); margin: 0 0 10px; }
+  .hc-consent-text p:last-child { margin-bottom: 0; }
+  .hc-consent-check { display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 22px; font-size: 14px; font-weight: 500; }
+  .hc-firma { border: 1px solid var(--border-default); border-radius: var(--r-md); overflow: hidden; }
+  .hc-firma-canvas { display: block; width: 100%; height: 130px; background:
+    repeating-linear-gradient(0deg, #fff, #fff 28px, var(--sd-ink-100) 29px); cursor: crosshair; touch-action: none; }
+  .hc-firma-base { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
+    border-top: 1px solid var(--border-soft); background: var(--sd-ink-50); font-size: 12px; color: var(--fg-muted); }
+  .hc-link-btn { background: none; border: none; color: var(--fg-link); font-family: var(--font-body); font-size: 12.5px;
+    font-weight: 600; cursor: pointer; }
+  .hc-link-btn:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+  /* ============ BUTTONS / FOOTER ============ */
+  .hc-btn-primary, .hc-btn-secondary, .hc-btn-navy { display: inline-flex; align-items: center; gap: 8px; height: 40px;
+    padding: 0 18px; font-family: var(--font-body); font-size: 14px; font-weight: 600; border-radius: var(--r-md);
+    border: 1px solid transparent; cursor: pointer; transition: all var(--dur-1) var(--ease-out); white-space: nowrap; }
+  .hc-btn-primary { background: var(--hc-accent); color: #fff; }
+  .hc-btn-primary:hover { filter: brightness(0.93); }
+  .hc-btn-secondary { background: #fff; color: var(--fg-strong); border-color: var(--border-default); }
+  .hc-btn-secondary:hover { background: var(--sd-ink-100); border-color: var(--border-strong); }
+  .hc-btn-navy { background: var(--sd-navy-700); color: #fff; }
+  .hc-btn-navy:hover { background: var(--sd-navy-600); }
+  .hc-btn-navy:disabled { opacity: 0.45; cursor: not-allowed; }
+  .hc-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px;
+    margin-top: 4px; position: sticky; bottom: 12px; background: rgba(255,255,255,0.94); backdrop-filter: blur(10px);
+    border: 1px solid var(--border-default); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); }
+  .hc-footer-note { font-size: 12.5px; color: var(--fg-muted); }
+  .hc-footer-actions { display: flex; gap: 12px; }
+
+  .hc-msg { padding: 12px 16px; border-radius: var(--r-md); font-size: 13.5px; font-weight: 600; margin-bottom: 16px;
+    border-left: 4px solid; }
+  .hc-msg.ok { color: #14532d; background: rgba(22,163,74,0.08); border-left-color: var(--sd-vital-600); }
+  .hc-msg.err { color: #991b1b; background: rgba(218,69,58,0.08); border-left-color: var(--sd-critical-500); }
+
+  /* ============ ODONTOGRAMA (general component) ============ */
+  .odontogram-container {
+    background: linear-gradient(135deg, #f8fafc 0%, rgba(236, 254, 255, 0.6) 100%);
+    padding: 1.5rem 1rem; border-radius: var(--r-lg); border: 1px solid var(--border-default);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5); }
+  .op-odonto-hint { display:flex; gap:10px; align-items:center; background: var(--sd-blue-100); color: var(--sd-blue-700);
+    border-radius: var(--r-md); padding: 12px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.45; }
+  .op-odonto-hint svg { flex: 0 0 18px; }
+
+  /* ============ VIEWER MODE ============ */
+  .hc-root.viewer .hc-input, .hc-root.viewer .hc-cell-input { pointer-events: none; background: var(--sd-ink-50); }
+  .hc-root.viewer .hc-switch, .hc-root.viewer .hc-check-item, .hc-root.viewer .hc-seg button,
+  .hc-root.viewer .hc-toggle-chip, .hc-root.viewer .hc-btn-add, .hc-root.viewer .hc-row-del,
+  .hc-root.viewer .hc-note-compose, .hc-root.viewer .hc-firma-base .hc-link-btn { pointer-events: none; opacity: 0.85; }
+
+  @media (max-width: 720px) {
+    .hc-root { padding: 6px 2px 60px; }
+    .hc-patientbar { flex-direction: column; align-items: flex-start; }
+    .hc-grid.c2, .hc-grid.c3 { grid-template-columns: 1fr; }
+    .hc-span-2, .hc-span-3 { grid-column: span 1; }
+    .hc-checkgrid { grid-template-columns: 1fr; }
+    .hc-index-row { grid-template-columns: 1fr; }
+    .hc-card { padding: 20px 18px; }
+  }
+
+  /* Page loader */
+  #pageLoader { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center;
+    background: var(--sd-ink-50, #F7F9FC); transition: opacity .3s; }
+  #pageLoader.hidden { opacity: 0; pointer-events: none; }
+  #pageLoader .sp { width: 40px; height: 40px; border: 3px solid #D2E9F5; border-top-color: #0080B0; border-radius: 50%;
+    animation: opspin 0.8s linear infinite; }
+  @keyframes opspin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="pageLoader"><div class="sp"></div></div>
+
+<main>
+  <div id="root"></div>
+</main>
+
+<!-- App shell + helpers -->
+<script src="/common.js"></script>
+<script src="/icons.js"></script>
+<script src="/layout.js"></script>
+
+<!-- General odontogram component (reused as-is) + pediatric (mixed-dentition) tooth data -->
+<script src="/odontogram.types.js"></script>
+<script src="/odontogram-pediatric.data.js"></script>
+<script src="/odontogram.utils.js"></script>
+<script src="/odontogram-tooth.js"></script>
+<script src="/odontogram-arch.js"></script>
+<script src="/odontogram-toolbar.js"></script>
+<script src="/odontogram-legend.js"></script>
+<script src="/odontogram-container.js"></script>
+
+<!-- React (design medium) -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+/* ───────────────────────── Route / mode ───────────────────────── */
+const QS = new URLSearchParams(window.location.search);
+const APPT_ID = parseInt(QS.get('id'), 10) || null;
+const VIEW_ID = parseInt(QS.get('view'), 10) || null;
+const IS_VIEW = !!VIEW_ID;
+const DRAFT_KEY = APPT_ID ? ('op_draft_' + APPT_ID) : null;
+
+/* ─────────── ceo-d / CPO-D from the general odontogram state ─────────── */
+// Deciduous (FDI quadrants 5-8) → ceo-d ; permanent (1-4) → CPO-D.
+const FILLED_CONDS = ['restoration', 'amalgam', 'crown', 'endodontic', 'bridge'];
+function calcPediatricIndices(state) {
+  const acc = { ceo: { c: 0, e: 0, o: 0, total: 0 }, cpo: { c: 0, p: 0, o: 0, total: 0 } };
+  Object.keys(state || {}).forEach((k) => {
+    const fdi = +k; const st = state[fdi]; if (!st) return;
+    const temp = Math.floor(fdi / 10) >= 5;
+    const cond = st.condition || 'healthy';
+    const surfVals = Object.values(st.surfaces || {});
+    const hasCaries = cond === 'caries' || surfVals.includes('caries');
+    const isMissing = cond === 'missing' || cond === 'extraction';
+    const isFilled = FILLED_CONDS.includes(cond) || surfVals.some((v) => FILLED_CONDS.includes(v));
+    let cat = null;
+    if (hasCaries) cat = 'c';
+    else if (isMissing) cat = 'e';
+    else if (isFilled) cat = 'o';
+    if (!cat) return;
+    if (temp) { if (cat === 'c') acc.ceo.c++; else if (cat === 'e') acc.ceo.e++; else acc.ceo.o++; }
+    else { if (cat === 'c') acc.cpo.c++; else if (cat === 'e') acc.cpo.p++; else acc.cpo.o++; }
+  });
+  acc.ceo.total = acc.ceo.c + acc.ceo.e + acc.ceo.o;
+  acc.cpo.total = acc.cpo.c + acc.cpo.p + acc.cpo.o;
+  return acc;
+}
+
+/* ───────────────────────── Form primitives ───────────────────────── */
+function Field({ label, help, error, required, children, span }) {
+  return (
+    <div className={"hc-field" + (span ? " hc-span-" + span : "")}>
+      {label && <label className="hc-label">{label}{required && <span className="hc-req">*</span>}</label>}
+      {children}
+      {error ? <span className="hc-help err">{error}</span> : (help && <span className="hc-help">{help}</span>)}
+    </div>
+  );
+}
+function TextInput({ value, onChange, placeholder, mono, error, type }) {
+  return <input className={"hc-input" + (mono ? " mono" : "") + (error ? " error" : "")} type={type || "text"}
+    value={value || ""} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />;
+}
+function TextArea({ value, onChange, placeholder, rows }) {
+  return <textarea className="hc-input hc-textarea" rows={rows || 3} value={value || ""} placeholder={placeholder}
+    onChange={(e) => onChange(e.target.value)} />;
+}
+function Select({ value, onChange, options, placeholder }) {
+  return (
+    <div className="hc-select-wrap">
+      <select className="hc-input hc-select" value={value || ""} onChange={(e) => onChange(e.target.value)}>
+        <option value="">{placeholder || "Seleccionar…"}</option>
+        {options.map((o) => {
+          const val = typeof o === "string" ? o : o.value;
+          const lab = typeof o === "string" ? o : o.label;
+          return <option key={val} value={val}>{lab}</option>;
+        })}
+      </select>
+      <svg className="hc-select-caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  );
+}
+function Toggle({ on, onChange }) {
+  return <button type="button" className={"hc-switch" + (on ? " on" : "")} onClick={() => onChange(!on)} aria-pressed={!!on}></button>;
+}
+function ToggleRow({ label, sub, on, onChange, children }) {
+  return (
+    <div className="hc-toggle-row">
+      <div className="hc-toggle-text"><span className="hc-toggle-label">{label}</span>{sub && <span className="hc-toggle-sub">{sub}</span>}</div>
+      <div className="hc-toggle-right">{on && children}<Toggle on={on} onChange={onChange} /></div>
+    </div>
+  );
+}
+function Check({ on, onChange, label }) {
+  return (
+    <button type="button" className="hc-check-item" onClick={() => onChange(!on)}>
+      <span className={"hc-check" + (on ? " on" : "")}>
+        {on && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+      </span>
+      <span className="hc-check-label">{label}</span>
+    </button>
+  );
+}
+function Seg({ value, onChange, options }) {
+  return (
+    <div className="hc-seg">
+      {options.map((o) => {
+        const val = typeof o === "string" ? o : o.value;
+        const lab = typeof o === "string" ? o : o.label;
+        return <button key={val} type="button" className={value === val ? "on" : ""} onClick={() => onChange(val)}>{lab}</button>;
+      })}
+    </div>
+  );
+}
+const G = (props) => <div className={"hc-grid c" + (props.cols || 2)}>{props.children}</div>;
+const SubGroup = ({ title, children }) => (
+  <div className="hc-subgroup">{title && <div className="hc-subgroup-title">{title}</div>}{children}</div>
+);
+
+/* ───────────────────────── Sections 1–6 ───────────────────────── */
+function SecPaciente({ form, set }) {
+  return (
+    <div>
+      <SubGroup title="Paciente">
+        <G cols={3}>
+          <Field label="Nombre completo" required span={3}><TextInput value={form.p_nombre} onChange={(v) => set("p_nombre", v)} placeholder="Nombre(s) y apellidos" /></Field>
+          <Field label="Fecha de nacimiento"><TextInput type="date" value={form.p_nac} onChange={(v) => set("p_nac", v)} /></Field>
+          <Field label="Edad"><TextInput value={form.p_edad} onChange={(v) => set("p_edad", v)} placeholder="Ej. 6 años" /></Field>
+          <Field label="Sexo"><Select value={form.p_sexo} onChange={(v) => set("p_sexo", v)} options={["Femenino", "Masculino"]} /></Field>
+          <Field label="Documento de identidad"><TextInput mono value={form.p_curp} onChange={(v) => set("p_curp", v.toUpperCase())} placeholder="Identidad / RTN" /></Field>
+          <Field label="Escolaridad / grado"><TextInput value={form.p_escolaridad} onChange={(v) => set("p_escolaridad", v)} placeholder="Ej. 1.º de primaria" /></Field>
+          <Field label="Grupo sanguíneo"><Select value={form.p_sangre} onChange={(v) => set("p_sangre", v)} options={["O+","O-","A+","A-","B+","B-","AB+","AB-","Se desconoce"]} /></Field>
+          <Field label="Domicilio" span={2}><TextInput value={form.p_domicilio} onChange={(v) => set("p_domicilio", v)} placeholder="Colonia, ciudad" /></Field>
+        </G>
+      </SubGroup>
+      <SubGroup title="Tutor o responsable">
+        <G cols={3}>
+          <Field label="Nombre del tutor" required span={2}><TextInput value={form.t_nombre} onChange={(v) => set("t_nombre", v)} placeholder="Nombre completo" /></Field>
+          <Field label="Parentesco" required><Select value={form.t_parentesco} onChange={(v) => set("t_parentesco", v)} options={["Madre","Padre","Abuelo/a","Tutor legal","Otro"]} /></Field>
+          <Field label="Teléfono" required><TextInput value={form.t_tel} onChange={(v) => set("t_tel", v)} placeholder="+504 0000 0000" /></Field>
+          <Field label="Correo"><TextInput value={form.t_correo} onChange={(v) => set("t_correo", v)} placeholder="correo@ejemplo.com" /></Field>
+          <Field label="Ocupación"><TextInput value={form.t_ocupacion} onChange={(v) => set("t_ocupacion", v)} /></Field>
+        </G>
+      </SubGroup>
+    </div>
+  );
+}
+function SecMotivo({ form, set }) {
+  return (
+    <div>
+      <G cols={2}>
+        <Field label="Tipo de consulta"><Seg value={form.m_tipo} onChange={(v) => set("m_tipo", v)} options={["Primera vez", "Subsecuente", "Urgencia"]} /></Field>
+        <Field label="¿Quién refiere?"><Select value={form.m_refiere} onChange={(v) => set("m_refiere", v)} options={["Padres / tutor", "Escuela", "Médico pediatra", "Otro odontólogo", "Iniciativa propia"]} /></Field>
+      </G>
+      <Field label="Motivo (en palabras del tutor)" required help="Transcriba el motivo tal como lo expresa el responsable.">
+        <TextArea value={form.m_motivo} onChange={(v) => set("m_motivo", v)} rows={2} placeholder='Ej. "Le duele una muela de atrás al comer."' />
+      </Field>
+      <Field label="Padecimiento actual" help="Inicio, evolución, factores que lo modifican.">
+        <TextArea value={form.m_padecimiento} onChange={(v) => set("m_padecimiento", v)} rows={3} />
+      </Field>
+    </div>
+  );
+}
+const AHF = ["Diabetes", "Hipertensión", "Cardiopatías", "Alergias", "Cáncer", "Problemas dentales hereditarios", "Labio / paladar hendido", "Trastornos de coagulación"];
+function SecHeredo({ form, set }) {
+  const sel = form.ahf || {};
+  const toggle = (k) => set("ahf", { ...sel, [k]: !sel[k] });
+  return (
+    <div>
+      <Field label="Antecedentes presentes en la familia">
+        <div className="hc-checkgrid">{AHF.map((k) => <Check key={k} label={k} on={!!sel[k]} onChange={() => toggle(k)} />)}</div>
+      </Field>
+      <Field label="Detalle / parentesco" help="Especifique el familiar y la condición cuando aplique.">
+        <TextArea value={form.ahf_detalle} onChange={(v) => set("ahf_detalle", v)} rows={2} />
+      </Field>
+    </div>
+  );
+}
+const APP_TOGGLES = [
+  { k: "alergias", label: "Alergias", sub: "Medicamentos, alimentos, látex" },
+  { k: "asma", label: "Asma o problemas respiratorios" },
+  { k: "cardio", label: "Cardiopatía congénita" },
+  { k: "convulsiones", label: "Epilepsia / convulsiones" },
+  { k: "sangrado", label: "Trastornos de sangrado" },
+  { k: "hospital", label: "Hospitalizaciones o cirugías" },
+  { k: "medicamentos", label: "Toma medicamentos actualmente" },
+];
+function SecPersonales({ form, set }) {
+  const pat = form.app || {};
+  const setPat = (k, v) => set("app", { ...pat, [k]: v });
+  return (
+    <div>
+      <SubGroup title="No patológicos">
+        <G cols={3}>
+          <Field label="Tipo de parto"><Select value={form.np_parto} onChange={(v) => set("np_parto", v)} options={["Vaginal","Cesárea","Se desconoce"]} /></Field>
+          <Field label="Lactancia"><Select value={form.np_lactancia} onChange={(v) => set("np_lactancia", v)} options={["Seno materno","Fórmula","Mixta"]} /></Field>
+          <Field label="Esquema de vacunación"><Select value={form.np_vacunas} onChange={(v) => set("np_vacunas", v)} options={["Completo","Incompleto","Se desconoce"]} /></Field>
+        </G>
+        <Field label="Alimentación y consumo de azúcar" help="Frecuencia de azúcares, bebidas endulzadas, snacks entre comidas (relevante para riesgo de caries).">
+          <TextArea value={form.np_alimentacion} onChange={(v) => set("np_alimentacion", v)} rows={2} />
+        </Field>
+      </SubGroup>
+      <SubGroup title="Patológicos">
+        <div className="hc-toggle-list">
+          {APP_TOGGLES.map((it) => (
+            <ToggleRow key={it.k} label={it.label} sub={it.sub} on={!!pat[it.k]} onChange={(v) => setPat(it.k, v)}>
+              <input className="hc-inline-input" placeholder="Detalle" value={pat[it.k + "_d"] || ""} onChange={(e) => setPat(it.k + "_d", e.target.value)} />
+            </ToggleRow>
+          ))}
+        </div>
+      </SubGroup>
+    </div>
+  );
+}
+const HABITOS = [
+  { k: "succion", label: "Succión digital (dedo)" },
+  { k: "biberon", label: "Biberón nocturno" },
+  { k: "chupon", label: "Uso de chupón" },
+  { k: "onicofagia", label: "Onicofagia (morderse las uñas)" },
+  { k: "respiracion", label: "Respiración bucal" },
+  { k: "bruxismo", label: "Bruxismo (rechinar dientes)" },
+  { k: "deglucion", label: "Deglución atípica" },
+];
+function SecHabitos({ form, set }) {
+  const h = form.habitos || {};
+  const setH = (k, v) => set("habitos", { ...h, [k]: v });
+  return (
+    <div>
+      <SubGroup title="Hábitos">
+        <div className="hc-toggle-list">
+          {HABITOS.map((it) => (
+            <ToggleRow key={it.k} label={it.label} on={!!h[it.k]} onChange={(v) => setH(it.k, v)}>
+              <input className="hc-inline-input" placeholder="Edad inicio / cese" value={h[it.k + "_d"] || ""} onChange={(e) => setH(it.k + "_d", e.target.value)} />
+            </ToggleRow>
+          ))}
+        </div>
+      </SubGroup>
+      <SubGroup title="Higiene bucal">
+        <G cols={2}>
+          <Field label="Frecuencia de cepillado"><Select value={form.h_cepillado} onChange={(v) => set("h_cepillado", v)} options={["No se cepilla","1 vez al día","2 veces al día","3 o más veces al día"]} /></Field>
+          <Field label="Última visita al dentista"><Select value={form.h_visita} onChange={(v) => set("h_visita", v)} options={["Primera visita","Hace < 6 meses","Hace 6–12 meses","Hace > 1 año"]} /></Field>
+        </G>
+        <div className="hc-chip-toggles">
+          {[["pasta","Pasta con flúor"],["supervision","Cepillado supervisado por un adulto"],["hilo","Uso de hilo dental"]].map(([k,l]) => (
+            <button key={k} type="button" className={"hc-toggle-chip" + (form["h_" + k] ? " on" : "")} onClick={() => set("h_" + k, !form["h_" + k])}>{l}</button>
+          ))}
+        </div>
+      </SubGroup>
+      <SubGroup title="Conducta">
+        <Field label="Escala de Frankl" help="Evaluación del comportamiento del niño durante la consulta.">
+          <Seg value={form.h_frankl} onChange={(v) => set("h_frankl", v)} options={[
+            { value: "1", label: "1 · Def. negativo" }, { value: "2", label: "2 · Negativo" },
+            { value: "3", label: "3 · Positivo" }, { value: "4", label: "4 · Def. positivo" } ]} />
+        </Field>
+      </SubGroup>
+    </div>
+  );
+}
+function SecExploracion({ form, set }) {
+  return (
+    <div>
+      <SubGroup title="Extraoral">
+        <G cols={3}>
+          <Field label="Simetría facial"><Select value={form.e_simetria} onChange={(v) => set("e_simetria", v)} options={["Simétrica","Asimetría leve","Asimetría marcada"]} /></Field>
+          <Field label="Perfil"><Select value={form.e_perfil} onChange={(v) => set("e_perfil", v)} options={["Recto","Convexo","Cóncavo"]} /></Field>
+          <Field label="ATM"><Select value={form.e_atm} onChange={(v) => set("e_atm", v)} options={["Normal","Chasquido","Dolor / limitación"]} /></Field>
+          <Field label="Ganglios"><Select value={form.e_ganglios} onChange={(v) => set("e_ganglios", v)} options={["No palpables","Palpables no dolorosos","Palpables dolorosos"]} /></Field>
+          <Field label="Competencia labial"><Select value={form.e_labios} onChange={(v) => set("e_labios", v)} options={["Competentes","Incompetentes"]} /></Field>
+          <Field label="Respiración"><Select value={form.e_respiracion} onChange={(v) => set("e_respiracion", v)} options={["Nasal","Bucal","Mixta"]} /></Field>
+        </G>
+      </SubGroup>
+      <SubGroup title="Intraoral">
+        <G cols={3}>
+          <Field label="Mucosas"><Select value={form.i_mucosas} onChange={(v) => set("i_mucosas", v)} options={["Sanas","Alteración (ver nota)"]} /></Field>
+          <Field label="Encías"><Select value={form.i_encias} onChange={(v) => set("i_encias", v)} options={["Sanas","Gingivitis leve","Gingivitis moderada"]} /></Field>
+          <Field label="Frenillos"><Select value={form.i_frenillos} onChange={(v) => set("i_frenillos", v)} options={["Normales","Inserción alta","Anquiloglosia"]} /></Field>
+          <Field label="Lengua / paladar"><Select value={form.i_lengua} onChange={(v) => set("i_lengua", v)} options={["Normales","Alteración (ver nota)"]} /></Field>
+        </G>
+      </SubGroup>
+      <SubGroup title="Oclusión">
+        <G cols={3}>
+          <Field label="Clase molar (Angle)"><Select value={form.o_molar} onChange={(v) => set("o_molar", v)} options={["Clase I","Clase II","Clase III"]} /></Field>
+          <Field label="Plano terminal" help="Relación de 2.º molares temporales."><Select value={form.o_plano} onChange={(v) => set("o_plano", v)} options={["Recto","Escalón mesial","Escalón distal"]} /></Field>
+          <Field label="Línea media"><Select value={form.o_linea} onChange={(v) => set("o_linea", v)} options={["Centrada","Desviada"]} /></Field>
+        </G>
+        <Field label="Tipo de mordida">
+          <Seg value={form.o_mordida} onChange={(v) => set("o_mordida", v)} options={["Normal","Abierta","Cruzada","Profunda","Borde a borde"]} />
+        </Field>
+      </SubGroup>
+      <Field label="Notas de exploración"><TextArea value={form.e_notas} onChange={(v) => set("e_notas", v)} rows={2} placeholder="Hallazgos adicionales relevantes." /></Field>
+    </div>
+  );
+}
+
+/* ───────────────────────── Odontograma (general component, mixed dentition) ───────────────────────── */
+function OdontogramaPediatrico({ onState, readOnly }) {
+  useEffect(() => {
+    const inst = new OdontogramContainer('op-odontogram', window.__opOdontoInitial || {}, !!readOnly);
+    window.__opOdontoInst = inst;
+    // Bridge the vanilla component's mutations back to React so the live
+    // ceo-d / CPO-D indices and the patient bar stay in sync.
+    const orig = inst.updateTeethVisuals.bind(inst);
+    inst.updateTeethVisuals = function () { orig(); if (onState) onState(inst.getState()); };
+    if (onState) onState(inst.getState());
+    return () => { window.__opOdontoInst = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (
+    <div>
+      <div className="op-odonto-hint">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>Odontograma de dentición mixta (temporales + permanentes, notación FDI). Haz clic en un diente o superficie para registrar hallazgos; los índices ceo-d / CPO-D se calculan automáticamente.</span>
+      </div>
+      <div className="odontogram-container" id="op-odontogram"></div>
+    </div>
+  );
+}
+
+/* ───────────────────────── Sections 8–12 ───────────────────────── */
+const DIAGS = [
+  "Caries de la infancia temprana", "Caries dental", "Gingivitis", "Maloclusión en desarrollo",
+  "Hábito parafuncional", "Traumatismo dentoalveolar", "Anomalía de erupción", "Pérdida prematura de diente temporal",
+];
+function SecDiagnostico({ form, set }) {
+  const sel = form.dx || {};
+  const toggle = (k) => set("dx", { ...sel, [k]: !sel[k] });
+  return (
+    <div>
+      <Field label="Diagnósticos"><div className="hc-checkgrid">{DIAGS.map((k) => <Check key={k} label={k} on={!!sel[k]} onChange={() => toggle(k)} />)}</div></Field>
+      <G cols={2}>
+        <Field label="Código CIE-10 (opcional)"><TextInput mono value={form.dx_cie} onChange={(v) => set("dx_cie", v)} placeholder="Ej. K02.1" /></Field>
+        <Field label="Pronóstico"><Select value={form.dx_pronostico} onChange={(v) => set("dx_pronostico", v)} options={["Favorable","Reservado","Desfavorable"]} /></Field>
+      </G>
+      <Field label="Diagnóstico integral"><TextArea value={form.dx_nota} onChange={(v) => set("dx_nota", v)} rows={3} placeholder="Resumen diagnóstico y justificación." /></Field>
+    </div>
+  );
+}
+const FASES = ["Preventiva", "Restaurativa", "Pulpar", "Quirúrgica", "Ortopédica", "Mantenimiento"];
+const ESTADOS_PLAN = ["Pendiente", "En proceso", "Realizado"];
+function SecPlan({ form, set }) {
+  const rows = form.plan || [];
+  const update = (i, k, v) => set("plan", rows.map((r, j) => j === i ? { ...r, [k]: v } : r));
+  const add = () => set("plan", [...rows, { fase: "Restaurativa", diente: "", proc: "", estado: "Pendiente" }]);
+  const del = (i) => set("plan", rows.filter((_, j) => j !== i));
+  const tono = (e) => e === "Realizado" ? "ok" : e === "En proceso" ? "warn" : "muted";
+  return (
+    <div>
+      <div className="hc-table">
+        <div className="hc-tr hc-th">
+          <div className="hc-td c-fase">Fase</div><div className="hc-td">Diente</div><div className="hc-td">Procedimiento</div><div className="hc-td">Estado</div><div className="hc-td"></div>
+        </div>
+        {rows.length === 0 && <div className="hc-empty">Sin procedimientos. Agregue el primero.</div>}
+        {rows.map((r, i) => (
+          <div className="hc-tr" key={i}>
+            <div className="hc-td c-fase"><select className="hc-cell-input" value={r.fase} onChange={(e) => update(i, "fase", e.target.value)}>{FASES.map((f) => <option key={f}>{f}</option>)}</select></div>
+            <div className="hc-td"><input className="hc-cell-input mono" value={r.diente} placeholder="—" onChange={(e) => update(i, "diente", e.target.value)} /></div>
+            <div className="hc-td"><input className="hc-cell-input" value={r.proc} placeholder="Ej. Resina oclusal" onChange={(e) => update(i, "proc", e.target.value)} /></div>
+            <div className="hc-td"><select className={"hc-cell-input pill-" + tono(r.estado)} value={r.estado} onChange={(e) => update(i, "estado", e.target.value)}>{ESTADOS_PLAN.map((s) => <option key={s}>{s}</option>)}</select></div>
+            <div className="hc-td"><button className="hc-row-del" onClick={() => del(i)} aria-label="Eliminar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div>
+          </div>
+        ))}
+      </div>
+      <button className="hc-btn-add" onClick={add}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Agregar procedimiento
+      </button>
+    </div>
+  );
+}
+const FACTORES = [
+  "Consumo frecuente de azúcar", "Placa visible", "Historia de caries (paciente o familia)",
+  "Sin exposición a flúor", "Defectos del esmalte", "Higiene bucal deficiente",
+];
+function IndiceCard({ titulo, sub, data, keys }) {
+  return (
+    <div className="hc-index-card">
+      <div className="hc-index-total">{data.total}</div>
+      <div className="hc-index-name">{titulo}</div>
+      <div className="hc-index-sub">{sub}</div>
+      <div className="hc-index-break">
+        {keys.map(([k, lab, cls]) => (
+          <div key={k} className="hc-index-cell"><span className={"hc-index-dot " + cls}></span><span className="hc-index-k">{lab}</span><span className="hc-index-v">{data[k]}</span></div>
+        ))}
+      </div>
+    </div>
+  );
+}
+function SecIndices({ form, set, idx }) {
+  const sel = form.factores || {};
+  const toggle = (k) => set("factores", { ...sel, [k]: !sel[k] });
+  return (
+    <div>
+      <div className="hc-index-row">
+        <IndiceCard titulo="ceo-d" sub="Dentición temporal" data={idx.ceo} keys={[["c","Cariados","crit"],["e","Extraídos","muted"],["o","Obturados","blue"]]} />
+        <IndiceCard titulo="CPO-D" sub="Dentición permanente" data={idx.cpo} keys={[["c","Cariados","crit"],["p","Perdidos","muted"],["o","Obturados","blue"]]} />
+        <div className="hc-index-note">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>Los índices se calculan automáticamente a partir del odontograma. Marque hallazgos en la sección 07 para actualizarlos.</span>
+        </div>
+      </div>
+      <SubGroup title="Riesgo de caries">
+        <Field label="Nivel de riesgo"><Seg value={form.riesgo} onChange={(v) => set("riesgo", v)} options={["Bajo", "Moderado", "Alto"]} /></Field>
+        <Field label="Factores de riesgo presentes"><div className="hc-checkgrid">{FACTORES.map((k) => <Check key={k} label={k} on={!!sel[k]} onChange={() => toggle(k)} />)}</div></Field>
+        <G cols={2}>
+          <Field label="Índice de placa (O'Leary)" help="Porcentaje de superficies con placa.">
+            <div className="hc-suffix-wrap"><input className="hc-input mono" value={form.placa || ""} onChange={(e) => set("placa", e.target.value.replace(/[^0-9]/g, ""))} placeholder="0" /><span className="hc-suffix">%</span></div>
+          </Field>
+        </G>
+      </SubGroup>
+    </div>
+  );
+}
+function SecEvolucion({ form, set, profName }) {
+  const notas = form.evolucion || [];
+  const [draft, setDraft] = useState("");
+  const hoy = new Date().toLocaleDateString("es-HN", { day: "numeric", month: "short", year: "numeric" });
+  const add = () => { if (!draft.trim()) return; set("evolucion", [{ fecha: hoy, texto: draft.trim(), prof: profName || "" }, ...notas]); setDraft(""); };
+  return (
+    <div>
+      <div className="hc-note-compose">
+        <textarea className="hc-input hc-textarea" rows={2} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Registrar nota de evolución de hoy…" />
+        <button className="hc-btn-primary" onClick={add}>Agregar nota</button>
+      </div>
+      <div className="hc-timeline">
+        {notas.length === 0 && <div className="hc-empty">Sin notas de evolución.</div>}
+        {notas.map((n, i) => (
+          <div className="hc-tl-item" key={i}>
+            <div className="hc-tl-dot"></div>
+            <div className="hc-tl-body"><div className="hc-tl-head"><span className="hc-tl-date">{n.fecha}</span><span className="hc-tl-prof">{n.prof}</span></div><p className="hc-tl-text">{n.texto}</p></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+function FirmaPad({ value, onChange, readOnly }) {
+  const ref = useRef(null); const drawing = useRef(false);
+  const [empty, setEmpty] = useState(!value);
+  useEffect(() => {
+    const c = ref.current; const ctx = c.getContext("2d");
+    const dpr = window.devicePixelRatio || 1; const r = c.getBoundingClientRect();
+    c.width = r.width * dpr; c.height = r.height * dpr; ctx.scale(dpr, dpr);
+    ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#002A60";
+    if (value) { const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0, r.width, r.height); img.src = value; }
+  }, []);
+  const pos = (e) => { const r = ref.current.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e; return { x: t.clientX - r.left, y: t.clientY - r.top }; };
+  const start = (e) => { if (readOnly) return; drawing.current = true; const ctx = ref.current.getContext("2d"); const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
+  const move = (e) => { if (!drawing.current) return; e.preventDefault(); const ctx = ref.current.getContext("2d"); const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); setEmpty(false); };
+  const end = () => { if (!drawing.current) return; drawing.current = false; onChange(ref.current.toDataURL()); };
+  const clear = () => { if (readOnly) return; const c = ref.current; c.getContext("2d").clearRect(0, 0, c.width, c.height); setEmpty(true); onChange(null); };
+  return (
+    <div className="hc-firma">
+      <canvas ref={ref} className="hc-firma-canvas" onMouseDown={start} onMouseMove={move} onMouseUp={end} onMouseLeave={end} onTouchStart={start} onTouchMove={move} onTouchEnd={end}></canvas>
+      <div className="hc-firma-base"><span>{empty ? "Firme con el dedo o el ratón" : "Firma capturada"}</span><button className="hc-link-btn" onClick={clear}>Limpiar</button></div>
+    </div>
+  );
+}
+function SecConsentimiento({ form, set, readOnly }) {
+  const hoy = new Date().toLocaleDateString("es-HN", { day: "numeric", month: "long", year: "numeric" });
+  return (
+    <div>
+      <div className="hc-consent-text">
+        <p>Yo, <strong>{form.t_nombre || "________"}</strong>, en mi calidad de <strong>{(form.t_parentesco || "tutor").toLowerCase()}</strong> de <strong>{form.p_nombre || "el/la paciente"}</strong>, declaro que se me ha explicado en lenguaje claro el diagnóstico, el plan de tratamiento propuesto, sus alternativas, beneficios y posibles riesgos.</p>
+        <p>Autorizo al personal odontológico de la clínica a realizar los procedimientos preventivos, restaurativos y, en su caso, de manejo de conducta necesarios para la atención de mi hija/o. Comprendo que puedo revocar este consentimiento en cualquier momento.</p>
+      </div>
+      <label className="hc-consent-check">
+        <span className={"hc-check" + (form.consent_ok ? " on" : "")} onClick={() => !readOnly && set("consent_ok", !form.consent_ok)}>
+          {form.consent_ok && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+        </span>
+        <span>He leído y acepto el consentimiento informado.</span>
+      </label>
+      <G cols={2}>
+        <Field label="Nombre y firma del tutor" required><FirmaPad value={form.firma} onChange={(v) => set("firma", v)} readOnly={readOnly} /></Field>
+        <div>
+          <Field label="Lugar y fecha"><TextInput value={form.consent_fecha || ("Honduras, " + hoy)} onChange={(v) => set("consent_fecha", v)} /></Field>
+          <Field label="Profesional responsable"><TextInput value={form.consent_prof} onChange={(v) => set("consent_prof", v)} /></Field>
+        </div>
+      </G>
+    </div>
+  );
+}
+
+/* ───────────────────────── Layout ───────────────────────── */
+const SECCIONES = [
+  { id: "paciente", num: "01", title: "Datos del paciente y tutor", sub: "Identificación y responsable legal", nav: "Paciente" },
+  { id: "motivo", num: "02", title: "Motivo de consulta", sub: "Razón de la visita y padecimiento actual", nav: "Motivo" },
+  { id: "heredo", num: "03", title: "Antecedentes heredofamiliares", sub: "Condiciones presentes en la familia", nav: "Heredofamiliares" },
+  { id: "personales", num: "04", title: "Antecedentes personales", sub: "Patológicos y no patológicos", nav: "Personales" },
+  { id: "habitos", num: "05", title: "Antecedentes odontológicos y hábitos", sub: "Hábitos, higiene y conducta", nav: "Hábitos" },
+  { id: "exploracion", num: "06", title: "Exploración extraoral e intraoral", sub: "Hallazgos clínicos y oclusión", nav: "Exploración" },
+  { id: "odontograma", num: "07", title: "Odontograma", sub: "Dentición mixta · clic en cada superficie", nav: "Odontograma" },
+  { id: "diagnostico", num: "08", title: "Diagnóstico", sub: "Impresión diagnóstica y pronóstico", nav: "Diagnóstico" },
+  { id: "plan", num: "09", title: "Plan de tratamiento", sub: "Procedimientos por fase", nav: "Plan" },
+  { id: "indices", num: "10", title: "Riesgo de caries e índices", sub: "ceo-d, CPO-D y factores de riesgo", nav: "Índices" },
+  { id: "evolucion", num: "11", title: "Notas de evolución", sub: "Registro cronológico", nav: "Evolución" },
+  { id: "consentimiento", num: "12", title: "Consentimiento informado", sub: "Autorización y firma del tutor", nav: "Consentimiento" },
+];
+
+function emptyForm(ctx) {
+  const p = ctx.patient || {};
+  return {
+    p_nombre: ctx.patientName || p.name || "", p_nac: (p.birth_date || p.dob || "").toString().slice(0, 10),
+    p_edad: ctx.patientAge || "", p_sexo: p.gender || p.sex || "", p_curp: p.identity_number || p.identity || "",
+    p_escolaridad: "", p_sangre: p.blood_type || "", p_domicilio: p.address || "",
+    t_nombre: p.guardian_name || "", t_parentesco: "Madre", t_tel: p.guardian_phone || p.phone || "", t_correo: p.email || "", t_ocupacion: "",
+    m_tipo: "Primera vez", m_refiere: "Padres / tutor", m_motivo: "", m_padecimiento: "",
+    ahf: {}, ahf_detalle: "",
+    np_parto: "", np_lactancia: "", np_vacunas: "", np_alimentacion: "",
+    app: {}, habitos: {},
+    h_cepillado: "", h_visita: "", h_pasta: false, h_supervision: false, h_hilo: false, h_frankl: "",
+    e_simetria: "", e_perfil: "", e_atm: "", e_ganglios: "", e_labios: "", e_respiracion: "",
+    i_mucosas: "", i_encias: "", i_frenillos: "", i_lengua: "",
+    o_molar: "", o_plano: "", o_linea: "", o_mordida: "", e_notas: "",
+    dx: {}, dx_cie: "", dx_pronostico: "", dx_nota: "",
+    plan: [], riesgo: "", factores: {}, placa: "",
+    evolucion: [], consent_ok: false, firma: null, consent_fecha: "", consent_prof: ctx.meName || "",
+  };
+}
+
+function PatientBar({ form, idx, ctx }) {
+  const initials = (form.p_nombre || "?").split(" ").filter(Boolean).slice(0, 2).map((s) => s[0]).join("").toUpperCase();
+  const alergia = ctx.allergies || (form.app && form.app.alergias ? (form.app.alergias_d || "Alergias") : null);
+  return (
+    <div className="hc-patientbar">
+      <div className="hc-pb-left">
+        <div className="hc-avatar">{initials || "OP"}</div>
+        <div>
+          <div className="hc-pb-eyebrow">Historia clínica · Odontopediatría</div>
+          <h1 className="hc-pb-name">{form.p_nombre || "Nuevo paciente"}</h1>
+          <div className="hc-pb-meta">
+            {form.p_edad && <><span>{form.p_edad}</span><i></i></>}
+            {form.p_sexo && <><span>{form.p_sexo}</span><i></i></>}
+            {ctx.expediente && <><span className="mono">{ctx.expediente}</span><i></i></>}
+            <span>Tutor: {form.t_nombre || "—"}{form.t_parentesco ? " (" + form.t_parentesco.toLowerCase() + ")" : ""}</span>
+          </div>
+        </div>
+      </div>
+      <div className="hc-pb-right">
+        {alergia && (
+          <div className="hc-alert-chip">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Alergia: {alergia}
+          </div>
+        )}
+        <div className="hc-pb-index"><span className="hc-pb-index-v">{idx.ceo.total}</span><span className="hc-pb-index-l">ceo-d</span></div>
+        <div className="hc-pb-index"><span className="hc-pb-index-v">{idx.cpo.total}</span><span className="hc-pb-index-l">CPO-D</span></div>
+      </div>
+    </div>
+  );
+}
+
+function App({ ctx }) {
+  const [form, setForm] = useState(() => ctx.initialForm);
+  const [odonto, setOdonto] = useState(() => ctx.initialOdonto || {});
+  const [active, setActive] = useState("paciente");
+  const [msg, setMsg] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [savedDraft, setSavedDraft] = useState(false);
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const idx = useMemo(() => calcPediatricIndices(odonto), [odonto]);
+  const readOnly = ctx.readOnly;
+
+  // Scroll-spy for the section nav chips
+  useEffect(() => {
+    const onScroll = () => {
+      let cur = SECCIONES[0].id;
+      for (const s of SECCIONES) {
+        const el = document.getElementById("sec-" + s.id);
+        if (el && el.getBoundingClientRect().top < 160) cur = s.id;
+      }
+      setActive(cur);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const goto = (id) => {
+    const el = document.getElementById("sec-" + id);
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 70, behavior: "smooth" });
+  };
+
+  const saveDraft = () => {
+    if (!DRAFT_KEY) return;
+    try {
+      const odo = window.__opOdontoInst ? window.__opOdontoInst.getState() : odonto;
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ form, odonto: odo, ts: Date.now() }));
+      setSavedDraft(true); setTimeout(() => setSavedDraft(false), 2200);
+    } catch (e) { console.warn("draft save failed", e); }
+  };
+
+  const submit = async () => {
+    if (saving || readOnly) return;
+    setSaving(true);
+    setMsg({ type: "ok", text: "Guardando…" });
+    try {
+      const me = await api('/api/auth/me');
+      const odo = window.__opOdontoInst ? window.__opOdontoInst.getState() : odonto;
+      const planText = (form.plan || []).map((r) => [r.fase, r.diente, r.proc, r.estado].filter(Boolean).join(" · ")).join("\n");
+      const blob = JSON.stringify({ type: "odontopediatria", version: 1, odontogram: odo, form });
+      const body = {
+        patient_id: ctx.patientId,
+        doctor_id: me.id,
+        appointment_id: APPT_ID,
+        specialty: "Odontopediatría",
+        notes: form.m_motivo || null,
+        diagnosis: form.dx_nota || null,
+        treatment: planText || null,
+        odontogram_state: blob,
+        cost: 0,
+        payment_status: "pending",
+        payment_notes: "",
+        consent_id: null,
+        lifestyle: {},
+        procedures: planText || null,
+        radiography_notes: null,
+        observations: form.e_notas || null,
+        visit_reason: form.m_motivo || null,
+      };
+      const res = await api('/api/consultations', { method: 'POST', body });
+      if (APPT_ID) {
+        try { await api(`/api/appointments/${APPT_ID}/status`, { method: 'PUT', body: { status: 'completed' } }); } catch (_) {}
+      }
+      if (DRAFT_KEY) { try { localStorage.removeItem(DRAFT_KEY); } catch (_) {} }
+      setMsg({ type: "ok", text: "Consulta guardada correctamente." });
+      setTimeout(() => { window.location.href = '/citas.html'; }, 1500);
+    } catch (err) {
+      setMsg({ type: "err", text: err && err.message ? err.message : "Error al guardar la consulta." });
+      setSaving(false);
+    }
+  };
+
+  const COMPS = {
+    paciente: <SecPaciente form={form} set={set} />,
+    motivo: <SecMotivo form={form} set={set} />,
+    heredo: <SecHeredo form={form} set={set} />,
+    personales: <SecPersonales form={form} set={set} />,
+    habitos: <SecHabitos form={form} set={set} />,
+    exploracion: <SecExploracion form={form} set={set} />,
+    odontograma: <OdontogramaPediatrico onState={setOdonto} readOnly={readOnly} />,
+    diagnostico: <SecDiagnostico form={form} set={set} />,
+    plan: <SecPlan form={form} set={set} />,
+    indices: <SecIndices form={form} set={set} idx={idx} />,
+    evolucion: <SecEvolucion form={form} set={set} profName={ctx.meName} />,
+    consentimiento: <SecConsentimiento form={form} set={set} readOnly={readOnly} />,
+  };
+
+  return (
+    <div className={"hc-root" + (readOnly ? " viewer" : "")}>
+      <PatientBar form={form} idx={idx} ctx={ctx} />
+
+      <nav className="hc-nav">
+        {SECCIONES.map((s) => (
+          <button key={s.id} className={"hc-nav-chip" + (active === s.id ? " on" : "")} onClick={() => goto(s.id)}>
+            <span className="hc-nav-num">{s.num}</span>{s.nav}
+          </button>
+        ))}
+      </nav>
+
+      {msg && <div className={"hc-msg " + msg.type}>{msg.text}</div>}
+
+      <main className="hc-main">
+        {SECCIONES.map((s) => (
+          <section className="hc-card" id={"sec-" + s.id} key={s.id}>
+            <header className="hc-card-head">
+              <span className="hc-card-num">{s.num}</span>
+              <div><h2 className="hc-card-title">{s.title}</h2><p className="hc-card-sub">{s.sub}</p></div>
+            </header>
+            <div className="hc-card-body">{COMPS[s.id]}</div>
+          </section>
+        ))}
+
+        <footer className="hc-footer">
+          <span className="hc-footer-note">
+            {readOnly ? "Vista de consulta guardada · solo lectura"
+              : (ctx.meName ? ("Profesional: " + ctx.meName) : "Historia clínica de odontopediatría")}
+          </span>
+          <div className="hc-footer-actions">
+            {readOnly ? (
+              <button className="hc-btn-navy" onClick={() => history.back()}>Volver</button>
+            ) : (
+              <>
+                <button className="hc-btn-secondary" onClick={saveDraft}>{savedDraft ? "Borrador guardado" : "Guardar borrador"}</button>
+                <button className="hc-btn-navy" onClick={submit} disabled={saving}>{saving ? "Guardando…" : "Guardar consulta"}</button>
+              </>
+            )}
+          </div>
+        </footer>
+      </main>
+    </div>
+  );
+}
+
+/* ───────────────────────── Bootstrap (load patient / consultation) ───────────────────────── */
+function computeAge(dobStr) {
+  if (!dobStr) return "";
+  const dob = new Date(dobStr); if (isNaN(dob)) return "";
+  const now = new Date();
+  let years = now.getFullYear() - dob.getFullYear();
+  let months = now.getMonth() - dob.getMonth();
+  if (now.getDate() < dob.getDate()) months--;
+  if (months < 0) { years--; months += 12; }
+  if (years < 0) return "";
+  return years + " año" + (years === 1 ? "" : "s") + (months ? " " + months + " mes" + (months === 1 ? "" : "es") : "");
+}
+
+(async function boot() {
+  const loader = document.getElementById('pageLoader');
+  const finish = (ctx) => {
+    window.__opOdontoInitial = ctx.initialOdonto || {};
+    ReactDOM.createRoot(document.getElementById('root')).render(<App ctx={ctx} />);
+    if (loader) loader.classList.add('hidden');
+  };
+  const fail = (m) => { alert(m); history.back(); };
+
+  try {
+    requireAuth(['clinic_admin', 'doctor']);
+    const me = await api('/api/auth/me');
+    if (me.role === 'doctor' && me.specialty && me.specialty !== 'Odontopediatría') {
+      window.location.href = '/citas.html'; return;
+    }
+    const meName = me.name ? ('Dr(a). ' + me.name) : '';
+
+    if (IS_VIEW) {
+      const c = await api(`/api/consultations/${VIEW_ID}`);
+      if (!c) return fail('Consulta no encontrada');
+      let raw = c.odontogram_state;
+      if (typeof raw === 'string') { try { raw = JSON.parse(raw || '{}'); } catch (_) { raw = {}; } }
+      raw = raw || {};
+      const savedForm = raw.form || {};
+      const savedOdo = raw.odontogram || (raw.type ? {} : raw) || {};
+      const ctx = {
+        readOnly: true, mode: 'view', patientId: c.patient_id, patientName: c.patient_name || 'Paciente',
+        meName, expediente: c.patient_code || ('Consulta #' + VIEW_ID), allergies: null,
+        initialForm: { ...emptyForm({ patientName: c.patient_name, meName }), ...savedForm },
+        initialOdonto: savedOdo, patient: {},
+      };
+      return finish(ctx);
+    }
+
+    // Edit / new mode
+    if (!APPT_ID) return fail('ID de cita no proporcionado');
+    const appts = await api('/api/appointments');
+    const appt = (appts || []).find((a) => a.id === APPT_ID);
+    if (!appt) return fail('Cita no encontrada');
+    const patientId = appt.patient_id;
+
+    let patient = {};
+    try { patient = await api(`/api/patients/${patientId}`) || {}; } catch (_) {}
+    let allergies = null;
+    try {
+      const crit = await api(`/api/patients/${patientId}/critical-info`);
+      if (crit && crit.allergies) allergies = crit.allergies;
+    } catch (_) {}
+
+    const ctx = {
+      readOnly: false, mode: 'edit', patientId, patientName: appt.patient_name || patient.name || '',
+      meName, expediente: patient.patient_code || patient.code || '', allergies, patient,
+      patientAge: computeAge(patient.birth_date || patient.dob),
+      initialForm: null, initialOdonto: {},
+    };
+    ctx.initialForm = emptyForm(ctx);
+
+    // Restore a locally saved draft, if present.
+    if (DRAFT_KEY) {
+      try {
+        const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+        if (d && d.form) { ctx.initialForm = { ...ctx.initialForm, ...d.form }; ctx.initialOdonto = d.odonto || {}; }
+      } catch (_) {}
+    }
+    finish(ctx);
+  } catch (e) {
+    console.error(e);
+    fail('Error al cargar la consulta');
+  }
+})();
+</script>
+</body>
+</html>

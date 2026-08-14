@@ -1,0 +1,1324 @@
+<!doctype html>
+<html lang="es">
+<head>
+<script src="/theme.js"></script>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Historia clínica · Dermatología</title>
+<link rel="stylesheet" href="/layout.css"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap"/>
+<style>
+  /* =========================================================
+     Dermatología — historia clínica (consulta en vivo).
+     Tokens del sistema "Salud Digital" (design handoff) acotados
+     a .dz-scope para no chocar con layout.css / sidebar global.
+     El mapa corporal usa el SVG base del ITB de podología.
+     ========================================================= */
+  .dz-scope {
+    --sd-navy-900: #001638; --sd-navy-800: #002050; --sd-navy-700: #002A60;
+    --sd-navy-600: #103A78; --sd-navy-500: #25579E;
+    --sd-blue-700: #00638A; --sd-blue-600: #0080B0; --sd-blue-500: #1796C6;
+    --sd-blue-400: #54B0DD; --sd-blue-300: #9BD0EA; --sd-blue-200: #D2E9F5;
+    --sd-blue-100: #EAF4FA; --sd-blue-50: #F4FAFD;
+    --sd-ink-1000: #0B1424; --sd-ink-900: #1A2235; --sd-ink-700: #3F485C;
+    --sd-ink-500: #606A7C; --sd-ink-400: #8A93A4; --sd-ink-300: #BDC4D0;
+    --sd-ink-200: #DCE1E9; --sd-ink-150: #E8ECF2; --sd-ink-100: #F1F4F8;
+    --sd-ink-50: #F7F9FC; --sd-ink-0: #FFFFFF;
+    --sd-vital-600: #198754; --sd-vital-500: #2BA86A; --sd-vital-100: #E3F4EC;
+    --sd-alert-600: #C7811C; --sd-alert-500: #E0992E; --sd-alert-100: #FBEFDB;
+    --sd-critical-600: #C2362C; --sd-critical-500: #DA453A; --sd-critical-100: #FBE5E3;
+    --sd-info-600: var(--sd-blue-600); --sd-info-100: var(--sd-blue-100);
+
+    --bg-app: var(--sd-ink-50); --bg-surface: var(--sd-ink-0);
+    --fg-default: var(--sd-ink-900); --fg-strong: var(--sd-ink-1000);
+    --fg-muted: var(--sd-ink-500); --fg-subtle: var(--sd-ink-400);
+    --fg-brand: var(--sd-navy-700);
+    --border-default: var(--sd-ink-200); --border-strong: var(--sd-ink-300);
+    --border-focus: var(--sd-blue-600);
+
+    --font-display: 'Manrope', 'Nunito Sans', system-ui, sans-serif;
+    --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+    --t-11: 0.6875rem; --t-12: 0.75rem; --t-13: 0.8125rem; --t-14: 0.875rem;
+    --t-15: 0.9375rem; --t-16: 1rem; --t-18: 1.125rem; --t-20: 1.25rem; --t-24: 1.5rem;
+    --lh-tight: 1.1; --lh-snug: 1.25; --lh-normal: 1.45; --lh-loose: 1.65;
+    --ls-tight: -0.015em; --ls-wide: 0.04em; --ls-widest: 0.12em;
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
+    --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+    --r-xs: 4px; --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-pill: 999px;
+    --shadow-xs: 0 1px 2px rgba(11,20,36,0.05);
+    --shadow-lg: 0 12px 28px rgba(11,20,36,0.10), 0 4px 10px rgba(11,20,36,0.05);
+    --shadow-focus: 0 0 0 4px rgba(0,128,176,0.22);
+    --ease-out: cubic-bezier(.22,.61,.36,1);
+    --dur-1: 120ms; --dur-2: 180ms;
+
+    font-family: var(--font-body);
+    color: var(--fg-default);
+    -webkit-font-smoothing: antialiased;
+  }
+  .dz-scope * { box-sizing: border-box; }
+
+  /* ===== Sticky section nav ===== */
+  .dz-nav {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: var(--sp-4);
+    padding: 0 var(--sp-2); height: 60px; margin-bottom: var(--sp-6);
+    background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-default);
+  }
+  .dz-nav-back {
+    display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto;
+    border: 1px solid var(--border-default); background: #fff; cursor: pointer;
+    font-family: var(--font-body); font-size: var(--t-13); font-weight: 600;
+    color: var(--fg-default); padding: 7px 12px; border-radius: var(--r-md);
+    transition: all var(--dur-1) var(--ease-out);
+  }
+  .dz-nav-back:hover { background: var(--sd-ink-100); border-color: var(--border-strong); }
+  .dz-nav-back svg { width: 15px; height: 15px; }
+  .dz-nav-brand {
+    display: flex; align-items: center; gap: var(--sp-2);
+    font-family: var(--font-display); font-weight: 700; font-size: var(--t-14);
+    color: var(--fg-brand); white-space: nowrap;
+  }
+  .dz-nav-mark { display: inline-flex; color: var(--sd-blue-600); }
+  .dz-nav-mark svg { width: 20px; height: 20px; }
+  .dz-nav-tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin-left: auto; }
+  .dz-nav-tabs::-webkit-scrollbar { display: none; }
+  .dz-nav-tab {
+    border: 0; background: transparent; cursor: pointer;
+    font-family: var(--font-body); font-size: var(--t-13); font-weight: 600;
+    color: var(--fg-muted); padding: 8px 12px; border-radius: var(--r-sm);
+    white-space: nowrap; transition: color var(--dur-1) var(--ease-out), background var(--dur-1) var(--ease-out);
+  }
+  .dz-nav-tab:hover { background: var(--sd-ink-100); color: var(--fg-default); }
+  .dz-nav-tab.on { color: var(--sd-blue-700); background: var(--sd-blue-100); }
+
+  /* ===== Main column ===== */
+  .dz-main {
+    max-width: 1080px; margin: 0 auto;
+    display: flex; flex-direction: column; gap: var(--sp-6);
+  }
+  .dz-foot-spacer { height: 24px; }
+
+  /* ===== Patient banner ===== */
+  .dz-patient {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--sp-6);
+    background: var(--sd-navy-800);
+    background-image: linear-gradient(120deg, var(--sd-navy-800), var(--sd-navy-700));
+    border-radius: var(--r-lg); padding: var(--sp-5) var(--sp-6); color: #fff;
+  }
+  .dz-patient-id { display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }
+  .dz-avatar {
+    width: 52px; height: 52px; flex: 0 0 52px; border-radius: var(--r-pill);
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; font-size: var(--t-18); color: #fff;
+  }
+  .dz-patient-top { display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; }
+  .dz-patient-top h1 {
+    margin: 0; font-family: var(--font-display); font-weight: 700;
+    font-size: var(--t-20); letter-spacing: var(--ls-tight); color: #fff;
+  }
+  .dz-exp { font-family: var(--font-mono); font-size: var(--t-12); font-weight: 600; color: var(--sd-blue-300); letter-spacing: 0.02em; }
+  .dz-patient-sub { display: flex; align-items: center; gap: var(--sp-3); margin-top: 4px; font-size: var(--t-13); color: rgba(255,255,255,0.78); flex-wrap: wrap; }
+  .dz-patient-sub span { display: inline-flex; align-items: center; gap: 5px; }
+  .dz-patient-sub svg { width: 14px; height: 14px; color: var(--sd-blue-300); }
+  .dz-sep { width: 1px; height: 12px; background: rgba(255,255,255,0.25); display: inline-block; }
+  .dz-patient-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex: 0 0 auto; }
+  .dz-banner-allergy { display: inline-flex; align-items: center; gap: 6px; background: rgba(218,69,58,0.18); border: 1px solid rgba(218,69,58,0.5); color: #FFC9C3; padding: 5px 12px; border-radius: var(--r-pill); font-size: var(--t-13); font-weight: 600; max-width: 320px; }
+  .dz-banner-allergy svg { width: 15px; height: 15px; flex: 0 0 auto; }
+  .dz-banner-noallergy { display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.6); font-size: var(--t-13); font-weight: 500; }
+  .dz-consult { display: inline-flex; align-items: center; gap: 7px; font-size: var(--t-12); color: rgba(255,255,255,0.7); }
+  .dz-consult-dot { width: 7px; height: 7px; border-radius: 999px; background: var(--sd-vital-500); box-shadow: 0 0 0 3px rgba(43,168,106,0.25); }
+
+  /* ===== Card ===== */
+  .dz-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--r-lg); padding: var(--sp-6); scroll-margin-top: 84px; }
+  .dz-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); margin-bottom: var(--sp-5); }
+  .dz-card-title { display: flex; align-items: center; gap: var(--sp-3); }
+  .dz-card-icon { width: 38px; height: 38px; flex: 0 0 38px; border-radius: var(--r-md); background: var(--sd-blue-100); color: var(--sd-blue-700); display: inline-flex; align-items: center; justify-content: center; }
+  .dz-card-title h3 { margin: 0; font-family: var(--font-display); font-size: var(--t-18); font-weight: 700; color: var(--fg-strong); letter-spacing: var(--ls-tight); }
+  .dz-eyebrow { font-family: var(--font-display); font-size: 10.5px; font-weight: 700; letter-spacing: var(--ls-widest); text-transform: uppercase; color: var(--sd-blue-600); margin-bottom: 2px; }
+  .dz-card-note { margin: 0 0 var(--sp-4); font-size: var(--t-13); color: var(--fg-muted); }
+
+  /* ===== Fields / grid ===== */
+  .dz-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4) var(--sp-5); }
+  .dz-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .dz-field label { font-size: var(--t-13); font-weight: 600; color: var(--fg-default); letter-spacing: 0.01em; }
+  .dz-hint { font-size: var(--t-12); color: var(--fg-muted); }
+  .dz-input { width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border-default); border-radius: var(--r-md); font-family: var(--font-body); font-size: var(--t-14); color: var(--fg-strong); background: #fff; outline: none; transition: border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out); }
+  .dz-input::placeholder { color: var(--sd-ink-400); }
+  .dz-input:hover { border-color: var(--border-strong); }
+  .dz-input:focus { border-color: var(--border-focus); box-shadow: var(--shadow-focus); }
+  .dz-textarea { height: auto; padding: 10px 12px; line-height: var(--lh-normal); resize: vertical; }
+  .dz-select-wrap { position: relative; }
+  .dz-select { width: 100%; appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 36px; }
+  .dz-select-chev { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--fg-subtle); pointer-events: none; display: inline-flex; }
+  .dz-select-chev svg { width: 18px; height: 18px; }
+
+  /* ===== Subsection ===== */
+  .dz-subsection { margin-top: var(--sp-5); }
+  .dz-sub-label { display: block; font-size: var(--t-13); font-weight: 600; color: var(--fg-default); margin-bottom: 10px; }
+
+  /* ===== Chips ===== */
+  .dz-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .dz-chip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border-default); background: #fff; color: var(--fg-default); border-radius: var(--r-pill); padding: 7px 14px; font-family: var(--font-body); font-size: var(--t-13); font-weight: 500; cursor: pointer; transition: all var(--dur-1) var(--ease-out); }
+  .dz-chip:hover { border-color: var(--border-strong); background: var(--sd-ink-50); }
+  .dz-chip.on { color: #fff; border-color: var(--sd-blue-600); background: var(--sd-blue-600); font-weight: 600; }
+  .dz-chip-check { display: inline-flex; }
+  .dz-chip-check svg { width: 13px; height: 13px; }
+
+  /* ===== Segmented ===== */
+  .dz-seg { display: inline-flex; padding: 3px; background: var(--sd-ink-100); border-radius: var(--r-md); gap: 2px; }
+  .dz-seg button { background: transparent; border: 0; padding: 6px 14px; font-size: var(--t-13); font-weight: 600; font-family: var(--font-body); color: var(--fg-muted); border-radius: 7px; cursor: pointer; white-space: nowrap; transition: all var(--dur-1) var(--ease-out); }
+  .dz-seg button:hover { color: var(--fg-default); }
+  .dz-seg button.on { background: #fff; color: var(--fg-strong); box-shadow: var(--shadow-xs); }
+
+  /* ===== Pill ===== */
+  .dz-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: var(--r-pill); font-size: var(--t-12); font-weight: 600; }
+  .dz-dot { width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
+  .dz-pill-neutral, .dz-pill-info { background: var(--sd-blue-100); color: var(--sd-blue-700); }
+  .dz-pill-vital { background: var(--sd-vital-100); color: var(--sd-vital-600); }
+  .dz-pill-alert { background: var(--sd-alert-100); color: var(--sd-alert-600); }
+  .dz-pill-critical { background: var(--sd-critical-100); color: var(--sd-critical-600); }
+
+  /* ===== Allergy band ===== */
+  .dz-allergy { display: flex; gap: var(--sp-3); padding: var(--sp-4); border: 1px solid var(--border-default); border-radius: var(--r-md); background: var(--sd-ink-50); transition: all var(--dur-2) var(--ease-out); }
+  .dz-allergy.active { background: var(--sd-critical-100); border-color: rgba(218,69,58,0.4); }
+  .dz-allergy-ico { flex: 0 0 auto; color: var(--sd-ink-400); }
+  .dz-allergy.active .dz-allergy-ico { color: var(--sd-critical-600); }
+  .dz-allergy-ico svg { width: 20px; height: 20px; }
+  .dz-allergy-body { flex: 1; min-width: 0; }
+  .dz-allergy-label { display: block; font-size: var(--t-13); font-weight: 600; color: var(--fg-default); margin-bottom: 10px; }
+  .dz-allergy-input { margin-top: 10px; max-width: 420px; }
+  .dz-allergy-record { margin-top: 10px; font-size: var(--t-12); color: var(--sd-critical-600); font-weight: 600; }
+
+  /* ===== Fitzpatrick ===== */
+  .dz-fitz { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .dz-fitz-item { display: grid; grid-template-columns: 28px 18px 1fr; align-items: center; gap: 8px; text-align: left; cursor: pointer; border: 1px solid var(--border-default); background: #fff; border-radius: var(--r-md); padding: 10px 12px; font-family: var(--font-body); transition: all var(--dur-1) var(--ease-out); }
+  .dz-fitz-item:hover { border-color: var(--border-strong); }
+  .dz-fitz-item.on { border-color: var(--sd-blue-600); box-shadow: var(--shadow-focus); }
+  .dz-fitz-swatch { width: 28px; height: 28px; border-radius: var(--r-sm); border: 1px solid rgba(0,0,0,0.12); }
+  .dz-fitz-n { font-family: var(--font-mono); font-weight: 700; font-size: var(--t-14); color: var(--fg-strong); }
+  .dz-fitz-d { font-size: var(--t-12); color: var(--fg-muted); line-height: 1.3; }
+
+  /* ===== ABCDE ===== */
+  .dz-abcde { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .dz-abcde-item { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; cursor: pointer; text-align: left; border: 1px solid var(--border-default); background: #fff; border-radius: var(--r-md); padding: 12px; font-family: var(--font-body); transition: all var(--dur-1) var(--ease-out); }
+  .dz-abcde-item:hover { border-color: var(--border-strong); }
+  .dz-abcde-item.on { border-color: var(--sd-alert-500); background: var(--sd-alert-100); }
+  .dz-abcde-k { font-family: var(--font-display); font-weight: 800; font-size: var(--t-20); color: var(--sd-ink-300); }
+  .dz-abcde-item.on .dz-abcde-k { color: var(--sd-alert-600); }
+  .dz-abcde-l { font-size: var(--t-13); font-weight: 600; color: var(--fg-default); }
+  .dz-abcde-h { font-size: var(--t-12); color: var(--fg-muted); line-height: 1.25; }
+  .dz-score { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 12px; font-size: var(--t-13); color: var(--fg-muted); }
+  .dz-score-n { font-family: var(--font-mono); font-size: var(--t-16); }
+  .tone-vital { color: var(--sd-vital-600); }
+  .tone-alert { color: var(--sd-alert-600); }
+  .tone-critical { color: var(--sd-critical-600); }
+
+  /* ===== Body map (ITB silhouette base) ===== */
+  .dz-bodymap { display: grid; grid-template-columns: 300px 1fr; gap: var(--sp-6); align-items: start; }
+  .dz-bodymap-chart { display: flex; flex-direction: column; align-items: center; gap: var(--sp-3); }
+  .dz-body-frame { background: var(--sd-blue-50); border: 1px solid var(--border-default); border-radius: var(--r-md); padding: var(--sp-4); }
+  .dz-body-svg { width: 234px; height: auto; display: block; cursor: crosshair; user-select: none; }
+  .dz-bodymap-help { margin: 0; font-size: var(--t-12); color: var(--fg-muted); text-align: center; }
+  .dz-bodymap-list { min-width: 0; }
+  .dz-lesion-head { display: flex; align-items: center; gap: 8px; font-size: var(--t-13); font-weight: 600; color: var(--fg-default); margin-bottom: 12px; }
+  .dz-lesion-ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .dz-lesion { display: flex; gap: var(--sp-3); padding: 10px 12px; border: 1px solid var(--border-default); border-radius: var(--r-md); background: #fff; cursor: pointer; transition: all var(--dur-1) var(--ease-out); }
+  .dz-lesion:hover { border-color: var(--border-strong); }
+  .dz-lesion.on { border-color: var(--sd-critical-500); box-shadow: 0 0 0 3px rgba(218,69,58,0.12); }
+  .dz-lesion-n { flex: 0 0 24px; width: 24px; height: 24px; border-radius: var(--r-pill); background: var(--sd-blue-600); color: #fff; font-family: var(--font-mono); font-weight: 700; font-size: var(--t-12); display: flex; align-items: center; justify-content: center; }
+  .dz-lesion.on .dz-lesion-n { background: var(--sd-critical-500); }
+  .dz-lesion-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .dz-lesion-row1 { display: flex; align-items: center; gap: 8px; }
+  .dz-lesion-zona { flex: 1; min-width: 0; border: 0; border-bottom: 1px solid var(--border-default); padding: 3px 0; font-family: var(--font-body); font-size: var(--t-14); font-weight: 600; color: var(--fg-strong); background: transparent; outline: none; }
+  .dz-lesion-zona:focus { border-color: var(--sd-blue-600); }
+  .dz-lesion-zona::placeholder { color: var(--sd-ink-400); font-weight: 500; }
+  .dz-lesion-view { font-size: var(--t-11); font-weight: 600; color: var(--fg-muted); background: var(--sd-ink-100); padding: 2px 8px; border-radius: var(--r-pill); white-space: nowrap; }
+  .dz-lesion-nota { border: 0; padding: 0; font-family: var(--font-body); font-size: var(--t-13); color: var(--fg-default); background: transparent; outline: none; width: 100%; }
+  .dz-lesion-nota::placeholder { color: var(--sd-ink-400); }
+  .dz-icon-btn { flex: 0 0 auto; border: 0; background: transparent; color: var(--fg-subtle); cursor: pointer; padding: 4px; border-radius: var(--r-sm); display: inline-flex; transition: all var(--dur-1) var(--ease-out); }
+  .dz-icon-btn:hover { color: var(--sd-critical-600); background: var(--sd-critical-100); }
+  .dz-icon-btn svg { width: 16px; height: 16px; }
+
+  /* ===== Empty state ===== */
+  .dz-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: var(--sp-8) var(--sp-6); border: 1px dashed var(--border-strong); border-radius: var(--r-md); color: var(--fg-muted); font-size: var(--t-13); background: var(--sd-ink-50); }
+  .dz-empty-ico { color: var(--sd-ink-300); }
+  .dz-empty-ico svg { width: 28px; height: 28px; }
+
+  /* ===== Gallery ===== */
+  .dz-gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); }
+  .dz-photo { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+  .dz-photo figcaption { display: flex; flex-direction: column; gap: 2px; }
+  .dz-photo-label { font-size: var(--t-13); font-weight: 600; color: var(--fg-default); }
+  .dz-photo-date { display: inline-flex; align-items: center; gap: 5px; font-size: var(--t-12); color: var(--fg-muted); }
+  .dz-photo-date svg { width: 13px; height: 13px; }
+  .dz-photo-slot { position: relative; width: 100%; height: 180px; border-radius: 10px; border: 1px dashed var(--border-strong); background: var(--sd-ink-50); overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all var(--dur-1) var(--ease-out); }
+  .dz-photo-slot:hover { border-color: var(--sd-blue-400); background: var(--sd-blue-50); }
+  .dz-photo-slot img { width: 100%; height: 100%; object-fit: cover; }
+  .dz-photo-slot input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .dz-photo-ph { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--sd-ink-400); font-size: var(--t-12); pointer-events: none; padding: 0 8px; text-align: center; }
+  .dz-photo-ph svg { width: 24px; height: 24px; }
+  .dz-photo-clear { position: absolute; top: 6px; right: 6px; z-index: 2; width: 26px; height: 26px; border-radius: var(--r-pill); border: 0; background: rgba(11,20,36,0.7); color: #fff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .dz-photo-clear svg { width: 14px; height: 14px; }
+
+  /* ===== CIE-10 ===== */
+  .dz-cie-search { position: relative; margin-bottom: var(--sp-4); }
+  .dz-cie-ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--fg-subtle); pointer-events: none; display: inline-flex; }
+  .dz-cie-ico svg { width: 17px; height: 17px; }
+  .dz-cie-search .dz-input { padding-left: 38px; }
+  .dz-cie-pop { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 20; background: #fff; border: 1px solid var(--border-default); border-radius: var(--r-md); box-shadow: var(--shadow-lg); overflow: hidden; padding: 4px; }
+  .dz-cie-opt { display: flex; align-items: center; gap: var(--sp-3); width: 100%; border: 0; background: transparent; cursor: pointer; padding: 9px 10px; border-radius: var(--r-sm); text-align: left; font-family: var(--font-body); transition: background var(--dur-1) var(--ease-out); }
+  .dz-cie-opt:hover { background: var(--sd-blue-50); }
+  .dz-cie-code { font-family: var(--font-mono); font-weight: 600; font-size: var(--t-13); color: var(--sd-blue-700); flex: 0 0 52px; }
+  .dz-cie-name { flex: 1; font-size: var(--t-14); color: var(--fg-default); }
+  .dz-cie-add { color: var(--sd-blue-600); display: inline-flex; }
+  .dz-cie-add svg { width: 16px; height: 16px; }
+  .dz-cie-none { padding: 12px; font-size: var(--t-13); color: var(--fg-muted); }
+  .dz-dx-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .dz-dx { display: flex; align-items: center; gap: var(--sp-3); padding: 10px 12px; border: 1px solid var(--border-default); border-radius: var(--r-md); background: #fff; flex-wrap: wrap; }
+  .dz-dx-code { font-family: var(--font-mono); font-weight: 700; font-size: var(--t-13); color: var(--fg-muted); flex: 0 0 auto; padding: 3px 8px; border-radius: var(--r-sm); background: var(--sd-ink-100); }
+  .dz-dx-code.primary { background: var(--sd-blue-100); color: var(--sd-blue-700); }
+  .dz-dx-name { flex: 1; min-width: 140px; font-size: var(--t-14); color: var(--fg-strong); font-weight: 500; }
+  .dz-dx-tipo { flex: 0 0 auto; }
+
+  /* ===== Rx table ===== */
+  .dz-rx-table { display: flex; flex-direction: column; gap: 8px; }
+  .dz-rx-headrow { display: grid; grid-template-columns: 24px 1.2fr 1fr 1.6fr 28px; gap: var(--sp-3); padding: 0 2px; font-size: var(--t-12); font-weight: 600; color: var(--fg-muted); }
+  .dz-rx-row { display: grid; grid-template-columns: 24px 1.2fr 1fr 1.6fr 28px; gap: var(--sp-3); align-items: center; }
+  .dz-rx-n { font-family: var(--font-mono); font-size: var(--t-13); color: var(--fg-subtle); text-align: center; font-weight: 600; }
+
+  /* ===== Buttons ===== */
+  .dz-btn { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 16px; font-family: var(--font-body); font-size: var(--t-14); font-weight: 600; border-radius: var(--r-md); border: 1px solid transparent; cursor: pointer; white-space: nowrap; line-height: 1; transition: all var(--dur-1) var(--ease-out); }
+  .dz-btn svg { width: 16px; height: 16px; }
+  .dz-btn:disabled { opacity: 0.6; cursor: progress; }
+  .dz-btn-sm { height: 34px; padding: 0 12px; font-size: var(--t-13); }
+  .dz-btn-secondary { background: #fff; color: var(--fg-strong); border-color: var(--border-default); }
+  .dz-btn-secondary:hover { background: var(--sd-ink-100); border-color: var(--border-strong); }
+  .dz-btn-navy { background: var(--sd-navy-700); color: #fff; }
+  .dz-btn-navy:hover { background: var(--sd-navy-600); }
+
+  /* ===== Action bar (sticky within column, no overlap with sidebar) ===== */
+  .dz-actionbar { position: sticky; bottom: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-top: var(--sp-2); padding: var(--sp-3) var(--sp-4); background: rgba(255,255,255,0.94); backdrop-filter: blur(8px); border: 1px solid var(--border-default); border-radius: var(--r-lg); box-shadow: 0 -6px 18px rgba(11,20,36,0.06); }
+  .dz-autosave { display: inline-flex; align-items: center; gap: 8px; font-size: var(--t-13); color: var(--fg-muted); min-width: 0; }
+  .dz-autosave.is-err { color: var(--sd-critical-600); }
+  .dz-autosave.is-ok { color: var(--sd-vital-600); }
+  .dz-autosave-dot { width: 7px; height: 7px; border-radius: 999px; background: var(--sd-vital-500); flex: 0 0 auto; }
+  .dz-actionbar-btns { display: flex; gap: 10px; }
+
+  /* ===== Inventory host ===== */
+  #inventoryUsageSection:empty { display: none; }
+
+  /* ===== View (read-only) mode ===== */
+  body.is-view-mode .dz-card input,
+  body.is-view-mode .dz-card textarea,
+  body.is-view-mode .dz-card select,
+  body.is-view-mode .dz-chip,
+  body.is-view-mode .dz-fitz-item,
+  body.is-view-mode .dz-abcde-item,
+  body.is-view-mode .dz-seg button,
+  body.is-view-mode .dz-icon-btn,
+  body.is-view-mode .dz-body-svg,
+  body.is-view-mode .dz-photo-slot,
+  body.is-view-mode .dz-cie-search { pointer-events: none; }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 980px) {
+    .dz-grid, .dz-fitz { grid-template-columns: 1fr 1fr; }
+    .dz-gallery { grid-template-columns: 1fr 1fr; }
+    .dz-bodymap { grid-template-columns: 1fr; }
+    .dz-bodymap-chart { align-self: center; }
+  }
+  @media (max-width: 640px) {
+    .dz-nav-brand { display: none; }
+    .dz-abcde { grid-template-columns: repeat(5, 1fr); }
+  }
+
+  /* ===== Dark mode (remap tokens) ===== */
+  html[data-theme="dark"] .dz-scope {
+    --bg-surface: #0f1827; --bg-app: #0a111d;
+    --fg-strong: #eaf1f9; --fg-default: #cdd8e6; --fg-muted: #8fa0b4; --fg-subtle: #6b7c91;
+    --border-default: #22304a; --border-strong: #324563;
+    --sd-ink-50: #0e1726; --sd-ink-100: #14203440; --sd-blue-50: #0e1c2c; --sd-blue-100: #122a3e;
+  }
+  html[data-theme="dark"] .dz-scope .dz-input,
+  html[data-theme="dark"] .dz-scope .dz-chip,
+  html[data-theme="dark"] .dz-scope .dz-fitz-item,
+  html[data-theme="dark"] .dz-scope .dz-abcde-item,
+  html[data-theme="dark"] .dz-scope .dz-lesion,
+  html[data-theme="dark"] .dz-scope .dz-dx,
+  html[data-theme="dark"] .dz-scope .dz-cie-pop { background: #0c1421; }
+  html[data-theme="dark"] .dz-scope .dz-nav,
+  html[data-theme="dark"] .dz-scope .dz-actionbar { background: rgba(12,20,33,0.92); }
+  html[data-theme="dark"] .dz-scope .dz-nav-back,
+  html[data-theme="dark"] .dz-scope .dz-btn-secondary { background: #0c1421; color: var(--fg-strong); }
+
+  /* ===== Page loading overlay ===== */
+  .page-loading-overlay { position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center; background: rgba(248,250,252,0.95); transition: opacity .35s ease, visibility .35s ease; }
+  .page-loading-overlay.is-hidden { opacity: 0; pointer-events: none; visibility: hidden; }
+  .page-loading-box { text-align: center; padding: 2rem; max-width: 360px; }
+  .page-loading-spinner { width: 52px; height: 52px; margin: 0 auto 1.25rem; border-radius: 50%; border: 4px solid rgba(0,128,176,0.18); border-top-color: #0080B0; animation: dzSpin .8s linear infinite; }
+  @keyframes dzSpin { to { transform: rotate(360deg); } }
+  .page-loading-text { color: #0f172a; font-weight: 700; font-size: 1.05rem; }
+  .page-loading-sub { color: #475569; font-weight: 500; font-size: .85rem; margin-top: .4rem; line-height: 1.4; }
+  html[data-theme="dark"] .page-loading-overlay { background: rgba(8,12,20,0.94); }
+  html[data-theme="dark"] .page-loading-text { color: #e2f6fb; }
+  html[data-theme="dark"] .page-loading-sub { color: #93c5cf; }
+</style>
+</head>
+<body>
+
+<div id="pageLoadingOverlay" class="page-loading-overlay" role="status" aria-live="polite">
+  <div class="page-loading-box">
+    <div class="page-loading-spinner" aria-hidden="true"></div>
+    <div class="page-loading-text">Cargando información del paciente…</div>
+    <div class="page-loading-sub">Un momento, estamos preparando la historia clínica.</div>
+  </div>
+</div>
+
+<main class="layout-main">
+  <form id="consultForm" class="dz-scope" onsubmit="return false;">
+    <div id="derma-root"></div>
+  </form>
+</main>
+
+<script src="/common.js"></script>
+<script src="/icons.js"></script>
+<script src="/layout.js"></script>
+<script src="/consultation-inventory.js"></script>
+<script src="/consultation-draft.js"></script>
+<script src="/derma-bodymap.js"></script>
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+
+<script type="text/babel">
+/* =========================================================
+   Historia clínica de Dermatología — consulta en vivo.
+   Recreación del diseño "Salud Digital" integrada a la
+   plataforma (carga de cita/paciente + guardado real).
+   El mapa corporal usa el SVG base del ITB de podología
+   (window.DERMA_BODY_PATH).
+   ========================================================= */
+const { useState, useEffect, useRef } = React;
+
+/* ---------- Icons ---------------------------------------- */
+function Icon({ path, size = 20, stroke = 1.75, fill = "none", ...rest }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={fill}
+      stroke="currentColor" strokeWidth={stroke} strokeLinecap="round"
+      strokeLinejoin="round" {...rest}>{path}</svg>
+  );
+}
+const I = {
+  stethoscope: <Icon path={<><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></>} />,
+  alert: <Icon path={<><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></>} />,
+  history: <Icon path={<><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></>} />,
+  scan: <Icon path={<><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/></>} />,
+  camera: <Icon path={<><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></>} />,
+  clipboard: <Icon path={<><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h4"/></>} />,
+  pill: <Icon path={<><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></>} />,
+  body: <Icon path={<><circle cx="12" cy="5" r="2.5"/><path d="M12 7.5v6m0 0-4 7m4-7 4 7M6.5 10.5 12 12l5.5-1.5"/></>} />,
+  plus: <Icon path={<><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>} />,
+  search: <Icon path={<><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>} />,
+  x: <Icon path={<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>} />,
+  check: <Icon path={<polyline points="20 6 9 17 4 12"/>} />,
+  chevron: <Icon path={<polyline points="6 9 12 15 18 9"/>} />,
+  trash: <Icon path={<><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>} />,
+  back: <Icon path={<><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>} />,
+  calendar: <Icon path={<><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>} />,
+  drop: <Icon path={<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>} />,
+  ruler: <Icon path={<><path d="M21.3 8.7 8.7 21.3a1 1 0 0 1-1.4 0l-4.6-4.6a1 1 0 0 1 0-1.4L15.3 2.7a1 1 0 0 1 1.4 0l4.6 4.6a1 1 0 0 1 0 1.4Z"/><path d="m7.5 10.5 2 2"/><path d="m10.5 7.5 2 2"/><path d="m13.5 4.5 2 2"/><path d="m4.5 13.5 2 2"/></>} />,
+  signature: <Icon path={<><path d="M3 17c3-1 4-4 6-4s2 2 4 2 3-3 5-3"/><path d="M3 21h18"/></>} />,
+  save: <Icon path={<><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>} />,
+  wallet: <Icon path={<><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></>} />,
+};
+
+/* ---------- Primitives ----------------------------------- */
+function Card({ id, icon, title, kicker, action, children }) {
+  return (
+    <section id={id} className="dz-card">
+      <header className="dz-card-head">
+        <div className="dz-card-title">
+          <span className="dz-card-icon">{icon}</span>
+          <div>{kicker ? <div className="dz-eyebrow">{kicker}</div> : null}<h3>{title}</h3></div>
+        </div>
+        {action || null}
+      </header>
+      <div className="dz-card-body">{children}</div>
+    </section>
+  );
+}
+function Field({ label, hint, children, span }) {
+  return (
+    <div className="dz-field" style={span ? { gridColumn: `span ${span}` } : null}>
+      {label ? <label>{label}</label> : null}{children}{hint ? <span className="dz-hint">{hint}</span> : null}
+    </div>
+  );
+}
+function Input(props) { return <input className="dz-input" {...props} />; }
+function Textarea({ rows = 3, ...props }) { return <textarea className="dz-input dz-textarea" rows={rows} {...props} />; }
+function Select({ children, ...props }) {
+  return <div className="dz-select-wrap"><select className="dz-input dz-select" {...props}>{children}</select><span className="dz-select-chev">{I.chevron}</span></div>;
+}
+function ChipGroup({ options, value, onChange, color }) {
+  const set = new Set(value);
+  function toggle(o) { const next = new Set(set); next.has(o) ? next.delete(o) : next.add(o); onChange([...next]); }
+  return (
+    <div className="dz-chips">
+      {options.map((o) => {
+        const on = set.has(o);
+        return (
+          <button key={o} type="button" className={"dz-chip" + (on ? " on" : "")}
+            style={on && color ? { background: color, borderColor: color } : null} onClick={() => toggle(o)}>
+            {on ? <span className="dz-chip-check">{I.check}</span> : null}{o}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+function Seg({ options, value, onChange }) {
+  return (
+    <div className="dz-seg">
+      {options.map((o) => (
+        <button key={o} type="button" className={value === o ? "on" : ""} onClick={() => onChange(o)}>{o}</button>
+      ))}
+    </div>
+  );
+}
+function Pill({ children, tone = "neutral", dot }) {
+  return <span className={"dz-pill dz-pill-" + tone}>{dot ? <span className="dz-dot" /> : null}{children}</span>;
+}
+
+/* ---------- Mapa corporal (ITB silhouette base) ---------- */
+const BODY_W = 376, BODY_H = 545;
+function BodySilhouette({ view, markers, selected, onAddMarker, onSelect }) {
+  const ref = useRef(null);
+  function handleClick(e) {
+    const rect = ref.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * BODY_W;
+    const y = ((e.clientY - rect.top) / rect.height) * BODY_H;
+    onAddMarker({ x: +x.toFixed(1), y: +y.toFixed(1), view });
+  }
+  return (
+    <svg ref={ref} className="dz-body-svg" viewBox={"0 0 " + BODY_W + " " + BODY_H} onClick={handleClick}>
+      <path d={window.DERMA_BODY_PATH} fill="var(--sd-blue-100)" stroke="var(--sd-blue-400)" strokeWidth="2.5" />
+      <line x1="188" y1="40" x2="188" y2="430" stroke="var(--sd-blue-300)" strokeWidth="1.4" strokeDasharray="4 7" />
+      {markers.filter((m) => m.view === view).map((m) => {
+        const on = m.id === selected;
+        return (
+          <g key={m.id} onClick={(e) => { e.stopPropagation(); onSelect(m.id); }} style={{ cursor: "pointer" }}>
+            <circle cx={m.x} cy={m.y} r={on ? 13 : 11} fill={on ? "var(--sd-critical-500)" : "var(--sd-blue-600)"} stroke="#fff" strokeWidth="2.5" />
+            <text x={m.x} y={m.y + 4.2} textAnchor="middle" fontSize="13" fontWeight="700" fill="#fff" style={{ pointerEvents: "none", fontFamily: "var(--font-mono)" }}>{m.n}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+function MapaCorporal({ markers, setMarkers }) {
+  const [view, setView] = useState("Anterior");
+  const [selected, setSelected] = useState(null);
+  function nextN() { const used = markers.map((m) => m.n); let n = 1; while (used.includes(n)) n++; return n; }
+  function addMarker(pos) {
+    const m = { id: "m" + Date.now() + Math.round(Math.random() * 1e6), n: nextN(), zona: "", nota: "", ...pos };
+    setMarkers((prev) => [...prev, m]); setSelected(m.id);
+  }
+  function update(id, patch) { setMarkers((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m))); }
+  function remove(id) { setMarkers((prev) => prev.filter((m) => m.id !== id)); if (selected === id) setSelected(null); }
+  return (
+    <div className="dz-bodymap">
+      <div className="dz-bodymap-chart">
+        <Seg options={["Anterior", "Posterior"]} value={view} onChange={setView} />
+        <div className="dz-body-frame">
+          <BodySilhouette view={view} markers={markers} selected={selected} onAddMarker={addMarker} onSelect={setSelected} />
+        </div>
+        <p className="dz-bodymap-help">Toque la silueta para marcar una lesión.</p>
+      </div>
+      <div className="dz-bodymap-list">
+        <div className="dz-lesion-head"><span>Lesiones marcadas</span><Pill tone="info">{markers.length}</Pill></div>
+        {markers.length === 0 ? (
+          <div className="dz-empty"><span className="dz-empty-ico">{I.body}</span>Sin lesiones marcadas. Toque la silueta para registrar la primera.</div>
+        ) : (
+          <ul className="dz-lesion-ul">
+            {markers.slice().sort((a, b) => a.n - b.n).map((m) => (
+              <li key={m.id} className={"dz-lesion" + (m.id === selected ? " on" : "")} onClick={() => setSelected(m.id)}>
+                <span className="dz-lesion-n">{m.n}</span>
+                <div className="dz-lesion-body">
+                  <div className="dz-lesion-row1">
+                    <input className="dz-lesion-zona" placeholder="Zona anatómica" value={m.zona}
+                      onClick={(e) => e.stopPropagation()} onChange={(e) => update(m.id, { zona: e.target.value })} />
+                    <span className="dz-lesion-view">{m.view}</span>
+                    <button type="button" className="dz-icon-btn" title="Eliminar"
+                      onClick={(e) => { e.stopPropagation(); remove(m.id); }}>{I.trash}</button>
+                  </div>
+                  <input className="dz-lesion-nota" placeholder="Descripción breve (p. ej. placa eritematosa 2 cm)" value={m.nota}
+                    onClick={(e) => e.stopPropagation()} onChange={(e) => update(m.id, { nota: e.target.value })} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Motivo de consulta --------------------------- */
+function MotivoConsulta({ data, set }) {
+  return (
+    <Card id="motivo" kicker="Anamnesis" title="Motivo de consulta y padecimiento actual" icon={I.stethoscope}>
+      <div className="dz-grid">
+        <Field label="Motivo de consulta" hint="En palabras del paciente." span={2}>
+          <Input placeholder="Ej. manchas que pican en los brazos desde hace 3 semanas"
+            value={data.motivo} onChange={(e) => set({ motivo: e.target.value })} />
+        </Field>
+        <Field label="Tiempo de evolución">
+          <Select value={data.evolucion} onChange={(e) => set({ evolucion: e.target.value })}>
+            <option value="">Seleccionar…</option><option>Menos de 1 semana</option><option>1 – 4 semanas</option>
+            <option>1 – 6 meses</option><option>Más de 6 meses</option><option>Años / crónico</option>
+          </Select>
+        </Field>
+        <Field label="Padecimiento actual" hint="Inicio, evolución, factores que mejoran o agravan, tratamientos previos." span={3}>
+          <Textarea rows={4} placeholder="Describa cronología, síntomas asociados (prurito, dolor, ardor), desencadenantes y tratamientos ya utilizados con su respuesta…"
+            value={data.padecimiento} onChange={(e) => set({ padecimiento: e.target.value })} />
+        </Field>
+      </div>
+      <div className="dz-subsection">
+        <span className="dz-sub-label">Síntomas asociados</span>
+        <ChipGroup options={["Prurito", "Dolor", "Ardor", "Descamación", "Sangrado", "Supuración", "Fiebre", "Crecimiento reciente", "Cambio de color"]}
+          value={data.sintomas} onChange={(v) => set({ sintomas: v })} />
+      </div>
+    </Card>
+  );
+}
+
+/* ---------- Antecedentes --------------------------------- */
+const FITZPATRICK = [
+  { n: "I", c: "#F4D9C6", d: "Siempre se quema, nunca se broncea" },
+  { n: "II", c: "#E8C19E", d: "Se quema fácil, broncea poco" },
+  { n: "III", c: "#D2A078", d: "Se quema moderado, broncea gradual" },
+  { n: "IV", c: "#B07B4F", d: "Se quema poco, broncea bien" },
+  { n: "V", c: "#8C5A34", d: "Rara vez se quema, broncea mucho" },
+  { n: "VI", c: "#4A2E1E", d: "Nunca se quema, pigmentación intensa" },
+];
+function Antecedentes({ data, set, allergyRecord }) {
+  return (
+    <Card id="antecedentes" kicker="Antecedentes" title="Antecedentes y factores de riesgo" icon={I.history}>
+      <div className={"dz-allergy " + (data.alergias.length || allergyRecord ? "active" : "")}>
+        <span className="dz-allergy-ico">{I.alert}</span>
+        <div className="dz-allergy-body">
+          <span className="dz-allergy-label">Alergias y reacciones a fármacos</span>
+          <ChipGroup color="var(--sd-critical-500)"
+            options={["Penicilina", "Sulfas", "AINE", "Yodo / contraste", "Látex", "Lidocaína", "Níquel", "Sin alergias conocidas"]}
+            value={data.alergias} onChange={(v) => set({ alergias: v })} />
+          <Input className="dz-input dz-allergy-input" placeholder="Otra alergia o reacción (describa)…"
+            value={data.alergiaOtra} onChange={(e) => set({ alergiaOtra: e.target.value })} />
+          {allergyRecord ? <div className="dz-allergy-record">Expediente del paciente: {allergyRecord}</div> : null}
+        </div>
+      </div>
+      <div className="dz-grid" style={{ marginTop: "var(--sp-5)" }}>
+        <Field label="Antecedentes personales relevantes" span={2}>
+          <Textarea rows={3} placeholder="Diabetes, inmunosupresión, atopia, exposición solar ocupacional, tabaquismo…"
+            value={data.personales} onChange={(e) => set({ personales: e.target.value })} />
+        </Field>
+        <Field label="Antecedentes familiares dermatológicos">
+          <Textarea rows={3} placeholder="Melanoma, psoriasis, atopia, cáncer de piel…"
+            value={data.familiares} onChange={(e) => set({ familiares: e.target.value })} />
+        </Field>
+      </div>
+      <div className="dz-subsection">
+        <span className="dz-sub-label">Fototipo cutáneo (Fitzpatrick)</span>
+        <div className="dz-fitz">
+          {FITZPATRICK.map((f) => {
+            const on = data.fototipo === f.n;
+            return (
+              <button key={f.n} type="button" className={"dz-fitz-item" + (on ? " on" : "")} onClick={() => set({ fototipo: f.n })}>
+                <span className="dz-fitz-swatch" style={{ background: f.c }} />
+                <span className="dz-fitz-n">{f.n}</span><span className="dz-fitz-d">{f.d}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+/* ---------- Exploración física --------------------------- */
+function Exploracion({ data, set }) {
+  return (
+    <Card id="exploracion" kicker="Exploración" title="Exploración física dermatológica" icon={I.ruler}>
+      <div className="dz-subsection" style={{ marginTop: 0 }}>
+        <span className="dz-sub-label">Lesión elemental primaria</span>
+        <ChipGroup color="var(--sd-blue-600)"
+          options={["Mácula", "Pápula", "Placa", "Nódulo", "Vesícula", "Pústula", "Ampolla", "Roncha", "Quiste", "Tumor"]}
+          value={data.primarias} onChange={(v) => set({ primarias: v })} />
+      </div>
+      <div className="dz-subsection">
+        <span className="dz-sub-label">Lesión secundaria</span>
+        <ChipGroup color="var(--sd-navy-600)"
+          options={["Escama", "Costra", "Erosión", "Úlcera", "Fisura", "Liquenificación", "Atrofia", "Cicatriz", "Excoriación", "Esclerosis"]}
+          value={data.secundarias} onChange={(v) => set({ secundarias: v })} />
+      </div>
+      <div className="dz-grid" style={{ marginTop: "var(--sp-5)" }}>
+        <Field label="Distribución">
+          <Select value={data.distribucion} onChange={(e) => set({ distribucion: e.target.value })}>
+            <option value="">Seleccionar…</option><option>Localizada</option><option>Generalizada</option>
+            <option>Simétrica bilateral</option><option>Zonas fotoexpuestas</option><option>Pliegues / flexural</option>
+            <option>Dermatómica</option><option>Acral</option>
+          </Select>
+        </Field>
+        <Field label="Configuración">
+          <Select value={data.config} onChange={(e) => set({ config: e.target.value })}>
+            <option value="">Seleccionar…</option><option>Aislada</option><option>Agrupada / herpetiforme</option>
+            <option>Lineal</option><option>Anular</option><option>Numular</option><option>Reticular</option><option>Serpiginosa</option>
+          </Select>
+        </Field>
+        <Field label="Color predominante">
+          <Select value={data.color} onChange={(e) => set({ color: e.target.value })}>
+            <option value="">Seleccionar…</option><option>Eritematoso</option><option>Hiperpigmentado</option>
+            <option>Hipopigmentado</option><option>Color piel</option><option>Violáceo</option><option>Pardo / negro</option>
+          </Select>
+        </Field>
+        <Field label="Hallazgos a la exploración" span={3}>
+          <Textarea rows={3} placeholder="Tamaño, bordes, superficie, consistencia, signos asociados (Nikolsky, Auspitz, Darier)…"
+            value={data.hallazgos} onChange={(e) => set({ hallazgos: e.target.value })} />
+        </Field>
+      </div>
+    </Card>
+  );
+}
+
+/* ---------- Dermatoscopia -------------------------------- */
+const ABCDE = [
+  { k: "A", label: "Asimetría", hint: "en 1 o 2 ejes" },
+  { k: "B", label: "Bordes", hint: "irregulares / mal definidos" },
+  { k: "C", label: "Color", hint: "≥ 3 colores / heterogéneo" },
+  { k: "D", label: "Diámetro", hint: "> 6 mm" },
+  { k: "E", label: "Evolución", hint: "cambio reciente" },
+];
+function Dermatoscopia({ data, set }) {
+  const score = ABCDE.filter((a) => data.abcde.includes(a.k)).length;
+  const tone = score >= 3 ? "critical" : score >= 1 ? "alert" : "vital";
+  const label = score >= 3 ? "Referir / biopsia" : score >= 1 ? "Vigilancia estrecha" : "Bajo riesgo";
+  function toggleAbcde(k) {
+    const has = data.abcde.includes(k);
+    set({ abcde: has ? data.abcde.filter((x) => x !== k) : [...data.abcde, k] });
+  }
+  return (
+    <Card id="dermatoscopia" kicker="Dermatoscopia" title="Hallazgos dermatoscópicos" icon={I.scan} action={<Pill tone={tone} dot>{label}</Pill>}>
+      <div className="dz-subsection" style={{ marginTop: 0 }}>
+        <span className="dz-sub-label">Regla ABCDE · lesión pigmentada</span>
+        <div className="dz-abcde">
+          {ABCDE.map((a) => {
+            const on = data.abcde.includes(a.k);
+            return (
+              <button key={a.k} type="button" className={"dz-abcde-item" + (on ? " on" : "")} onClick={() => toggleAbcde(a.k)}>
+                <span className="dz-abcde-k">{a.k}</span><span className="dz-abcde-l">{a.label}</span><span className="dz-abcde-h">{a.hint}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="dz-score"><span>Criterios positivos</span><strong className={"dz-score-n tone-" + tone}>{score} / 5</strong></div>
+      </div>
+      <div className="dz-subsection">
+        <span className="dz-sub-label">Patrones y estructuras</span>
+        <ChipGroup color="var(--sd-blue-600)"
+          options={["Red de pigmento típica", "Red atípica", "Glóbulos", "Estrías radiales", "Velo azul-blanquecino", "Estructuras vasculares", "Áreas de regresión", "Puntos irregulares", "Patrón homogéneo"]}
+          value={data.patrones} onChange={(v) => set({ patrones: v })} />
+      </div>
+      <Field label="Descripción dermatoscópica" hint="Estructuras dominantes, distribución del pigmento, vascularización.">
+        <Textarea rows={3} placeholder="Describa el patrón global y las estructuras locales observadas con el dermatoscopio…"
+          value={data.notas} onChange={(e) => set({ notas: e.target.value })} />
+      </Field>
+    </Card>
+  );
+}
+
+/* ---------- Galería de fotos (subida real) --------------- */
+const FOTO_SLOTS = [
+  { key: "principal", label: "Lesión principal" },
+  { key: "detalle", label: "Detalle / acercamiento" },
+  { key: "dermatoscopia", label: "Dermatoscopia" },
+  { key: "panoramica", label: "Panorámica de zona" },
+];
+function Galeria({ readOnly, savedImages, fechaLabel }) {
+  const [slots, setSlots] = useState({});
+  useEffect(() => {
+    galleryGetFiles = () => Object.keys(slots)
+      .map((k) => ({ key: k, file: slots[k] && slots[k].file, label: (FOTO_SLOTS.find((s) => s.key === k) || {}).label }))
+      .filter((x) => x.file);
+    return () => { galleryGetFiles = () => []; };
+  }, [slots]);
+  function pick(key, fileList) {
+    const file = fileList && fileList[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setSlots((p) => { if (p[key] && p[key].url) URL.revokeObjectURL(p[key].url); return { ...p, [key]: { file, url } }; });
+  }
+  function clear(key) { setSlots((p) => { const n = { ...p }; if (n[key] && n[key].url) URL.revokeObjectURL(n[key].url); delete n[key]; return n; }); }
+
+  if (readOnly) {
+    const imgs = savedImages || [];
+    return (
+      <Card id="galeria" kicker="Imagen clínica" title="Galería de fotos clínicas" icon={I.camera} action={<Pill tone="info">Seguimiento</Pill>}>
+        {imgs.length === 0 ? (
+          <div className="dz-empty"><span className="dz-empty-ico">{I.camera}</span>No se adjuntaron fotos clínicas a esta consulta.</div>
+        ) : (
+          <div className="dz-gallery">
+            {imgs.map((img, i) => {
+              const src = img.filename || img.url || "";
+              return (
+                <figure key={img.id || i} className="dz-photo">
+                  <div className="dz-photo-slot"><img src={src} alt={"Foto " + (i + 1)} /></div>
+                  <figcaption><span className="dz-photo-label">Foto {i + 1}</span></figcaption>
+                </figure>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+    );
+  }
+  return (
+    <Card id="galeria" kicker="Imagen clínica" title="Galería de fotos clínicas" icon={I.camera} action={<Pill tone="info">Seguimiento</Pill>}>
+      <p className="dz-card-note">Documente la lesión para comparar su evolución entre consultas. Las imágenes se adjuntan al guardar y firmar la nota.</p>
+      <div className="dz-gallery">
+        {FOTO_SLOTS.map((f) => {
+          const cur = slots[f.key];
+          return (
+            <figure key={f.key} className="dz-photo">
+              <label className="dz-photo-slot">
+                {cur ? (
+                  <>
+                    <img src={cur.url} alt={f.label} />
+                    <button type="button" className="dz-photo-clear" title="Quitar"
+                      onClick={(e) => { e.preventDefault(); clear(f.key); }}>{I.x}</button>
+                  </>
+                ) : (
+                  <span className="dz-photo-ph">{I.camera}<span>Toque para agregar</span></span>
+                )}
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => pick(f.key, e.target.files)} />
+              </label>
+              <figcaption>
+                <span className="dz-photo-label">{f.label}</span>
+                <span className="dz-photo-date">{I.calendar}{fechaLabel}</span>
+              </figcaption>
+            </figure>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+/* ---------- Diagnóstico CIE-10 --------------------------- */
+const CIE10 = [
+  { code: "L20.9", name: "Dermatitis atópica, no especificada" },
+  { code: "L21.0", name: "Dermatitis seborreica del cuero cabelludo" },
+  { code: "L23.9", name: "Dermatitis alérgica de contacto" },
+  { code: "L30.9", name: "Dermatitis, no especificada" },
+  { code: "L40.0", name: "Psoriasis vulgar" },
+  { code: "L50.9", name: "Urticaria, no especificada" },
+  { code: "L57.0", name: "Queratosis actínica" },
+  { code: "L70.0", name: "Acné vulgar" },
+  { code: "L71.0", name: "Rosácea / dermatitis perioral" },
+  { code: "L80", name: "Vitíligo" },
+  { code: "B07", name: "Verrugas víricas" },
+  { code: "B35.1", name: "Tiña de las uñas (onicomicosis)" },
+  { code: "C43.9", name: "Melanoma maligno de piel" },
+  { code: "C44.9", name: "Carcinoma de piel (no melanoma)" },
+  { code: "D22.9", name: "Nevo melanocítico" },
+];
+function Diagnostico({ dxList, setDxList }) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const results = q.trim()
+    ? CIE10.filter((c) => (c.code + " " + c.name).toLowerCase().includes(q.toLowerCase())).slice(0, 6)
+    : CIE10.slice(0, 6);
+  function add(c) {
+    if (dxList.find((d) => d.code === c.code)) { setQ(""); setOpen(false); return; }
+    setDxList([...dxList, { ...c, tipo: dxList.length === 0 ? "Principal" : "Secundario" }]); setQ(""); setOpen(false);
+  }
+  function remove(code) { setDxList(dxList.filter((d) => d.code !== code)); }
+  function setTipo(code, tipo) { setDxList(dxList.map((d) => (d.code === code ? { ...d, tipo } : d))); }
+  return (
+    <Card id="diagnostico" kicker="Impresión diagnóstica" title="Diagnóstico (CIE-10)" icon={I.clipboard}>
+      <div className="dz-cie-search">
+        <span className="dz-cie-ico">{I.search}</span>
+        <input className="dz-input" placeholder="Buscar diagnóstico o código CIE-10…" value={q}
+          onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)} />
+        {open ? (
+          <div className="dz-cie-pop">
+            {results.length === 0 ? <div className="dz-cie-none">Sin coincidencias.</div> :
+              results.map((c) => (
+                <button key={c.code} type="button" className="dz-cie-opt" onMouseDown={(e) => e.preventDefault()} onClick={() => add(c)}>
+                  <span className="dz-cie-code">{c.code}</span><span className="dz-cie-name">{c.name}</span><span className="dz-cie-add">{I.plus}</span>
+                </button>
+              ))}
+          </div>
+        ) : null}
+      </div>
+      {dxList.length === 0 ? (
+        <div className="dz-empty"><span className="dz-empty-ico">{I.clipboard}</span>Sin diagnósticos. Busque un código CIE-10 para agregar la impresión diagnóstica.</div>
+      ) : (
+        <ul className="dz-dx-list">
+          {dxList.map((d) => (
+            <li key={d.code} className="dz-dx">
+              <span className={"dz-dx-code " + (d.tipo === "Principal" ? "primary" : "")}>{d.code}</span>
+              <span className="dz-dx-name">{d.name}</span>
+              <div className="dz-dx-tipo"><Seg options={["Principal", "Secundario"]} value={d.tipo} onChange={(t) => setTipo(d.code, t)} /></div>
+              <button type="button" className="dz-icon-btn" title="Quitar" onClick={() => remove(d.code)}>{I.trash}</button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+/* ---------- Receta / plan -------------------------------- */
+function blankMed() { return { id: "rx" + Date.now() + Math.round(Math.random() * 1e6), med: "", presentacion: "", indicaciones: "" }; }
+function Receta({ meds, setMeds, plan, setPlan }) {
+  function update(id, patch) { setMeds(meds.map((m) => (m.id === id ? { ...m, ...patch } : m))); }
+  function remove(id) { setMeds(meds.filter((m) => m.id !== id)); }
+  function add() { setMeds([...meds, blankMed()]); }
+  return (
+    <Card id="receta" kicker="Plan" title="Receta y plan de tratamiento" icon={I.pill}
+      action={<button type="button" className="dz-btn dz-btn-secondary dz-btn-sm" onClick={add}>{I.plus}Agregar medicamento</button>}>
+      {meds.length === 0 ? (
+        <div className="dz-empty"><span className="dz-empty-ico">{I.pill}</span>Sin medicamentos. Agregue el primero para construir la receta.</div>
+      ) : (
+        <div className="dz-rx-table">
+          <div className="dz-rx-headrow"><span>Medicamento</span><span>Presentación</span><span>Indicaciones</span><span></span></div>
+          {meds.map((m, i) => (
+            <div key={m.id} className="dz-rx-row">
+              <span className="dz-rx-n">{i + 1}</span>
+              <input className="dz-input" placeholder="Ej. Tacrolimus 0.1%" value={m.med} onChange={(e) => update(m.id, { med: e.target.value })} />
+              <input className="dz-input" placeholder="Ungüento 30 g" value={m.presentacion} onChange={(e) => update(m.id, { presentacion: e.target.value })} />
+              <input className="dz-input" placeholder="Aplicar 2 veces/día por 4 semanas en zona afectada" value={m.indicaciones} onChange={(e) => update(m.id, { indicaciones: e.target.value })} />
+              <button type="button" className="dz-icon-btn" title="Quitar" onClick={() => remove(m.id)}>{I.trash}</button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="dz-grid" style={{ marginTop: "var(--sp-5)" }}>
+        <Field label="Procedimientos realizados / solicitados">
+          <ChipGroup color="var(--sd-navy-600)"
+            options={["Biopsia", "Crioterapia", "Electrocauterización", "Curetaje", "Cultivo", "Fototerapia"]}
+            value={plan.procedimientos} onChange={(v) => setPlan({ procedimientos: v })} />
+        </Field>
+        <Field label="Cuidados e indicaciones generales" span={2}>
+          <Textarea rows={3} placeholder="Fotoprotección SPF 50+, emolientes, evitar irritantes, signos de alarma para regresar…"
+            value={plan.cuidados} onChange={(e) => setPlan({ cuidados: e.target.value })} />
+        </Field>
+        <Field label="Próxima cita / seguimiento">
+          <Select value={plan.seguimiento} onChange={(e) => setPlan({ seguimiento: e.target.value })}>
+            <option value="">Sin programar</option><option>En 2 semanas</option><option>En 1 mes</option>
+            <option>En 3 meses</option><option>En 6 meses</option><option>Por demanda</option>
+          </Select>
+        </Field>
+        <Field label="Resultado de biopsia / nota de evolución" span={2}>
+          <Input placeholder="Pendiente de patología · agregar al recibir resultado"
+            value={plan.biopsia} onChange={(e) => setPlan({ biopsia: e.target.value })} />
+        </Field>
+      </div>
+    </Card>
+  );
+}
+
+/* ---------- Cobro / pago --------------------------------- */
+function Cobro({ data, set }) {
+  return (
+    <Card id="cobro" kicker="Cobro" title="Cobro y estado de pago" icon={I.wallet}>
+      <div className="dz-grid">
+        <Field label="Costo de la consulta" hint="Monto en lempiras (HNL).">
+          <Input inputMode="decimal" placeholder="0.00" value={data.cost} onChange={(e) => set({ cost: e.target.value })} />
+        </Field>
+        <Field label="Estado de pago">
+          <Select value={data.estado} onChange={(e) => set({ estado: e.target.value })}>
+            <option value="pending">Pendiente</option><option value="paid">Pagado</option>
+          </Select>
+        </Field>
+        <Field label="Notas de pago">
+          <Input placeholder="Método, factura, observaciones…" value={data.notas} onChange={(e) => set({ notas: e.target.value })} />
+        </Field>
+      </div>
+      <div className="dz-subsection"><div id="inventoryUsageSection"></div></div>
+    </Card>
+  );
+}
+
+/* ---------- Patient banner ------------------------------- */
+function PatientBanner({ patient, allergyText, fototipo, dateLabel }) {
+  const name = (patient && patient.name) || "Paciente";
+  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0] || "").join("").toUpperCase() || "PT";
+  const a = patient && (patient.age != null ? patient.age : ageFrom(patient.birth_date || patient.birthdate || patient.dob));
+  const gender = (patient && patient.gender) || "";
+  const exp = patient && patient.id != null ? "EXP · DRM-" + String(patient.id).padStart(6, "0") : "";
+  const dobLabel = patient && fmtDate(patient.birth_date || patient.birthdate || patient.dob);
+  return (
+    <div className="dz-patient">
+      <div className="dz-patient-id">
+        <div className="dz-avatar">{initials}</div>
+        <div className="dz-patient-meta">
+          <div className="dz-patient-top">
+            <h1>{name}</h1>{exp ? <span className="dz-exp">{exp}</span> : null}
+          </div>
+          <div className="dz-patient-sub">
+            {(a != null || gender) ? <span>{[a != null ? a + " años" : null, gender].filter(Boolean).join(" · ")}</span> : null}
+            {dobLabel ? <><span className="dz-sep" /><span>F. nac. {dobLabel}</span></> : null}
+            <span className="dz-sep" /><span>{I.drop}Fototipo {fototipo || "—"}</span>
+          </div>
+        </div>
+      </div>
+      <div className="dz-patient-right">
+        {allergyText ? (
+          <span className="dz-banner-allergy">{I.alert}{allergyText}</span>
+        ) : (
+          <span className="dz-banner-noallergy">Sin alergias registradas</span>
+        )}
+        <div className="dz-consult"><span className="dz-consult-dot" />{dateLabel}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Section nav ---------------------------------- */
+const SECTIONS = [
+  { id: "motivo", label: "Motivo" },
+  { id: "antecedentes", label: "Antecedentes" },
+  { id: "exploracion", label: "Exploración" },
+  { id: "mapa", label: "Mapa corporal" },
+  { id: "dermatoscopia", label: "Dermatoscopia" },
+  { id: "galeria", label: "Fotos" },
+  { id: "diagnostico", label: "Diagnóstico" },
+  { id: "receta", label: "Receta y plan" },
+  { id: "cobro", label: "Cobro" },
+];
+function SectionNav({ active, onJump, onBack }) {
+  return (
+    <nav className="dz-nav">
+      <button type="button" className="dz-nav-back" onClick={onBack}>{I.back}Volver</button>
+      <div className="dz-nav-brand"><span className="dz-nav-mark">{I.stethoscope}</span>Historia clínica · Dermatología</div>
+      <div className="dz-nav-tabs">
+        {SECTIONS.map((s) => (
+          <button key={s.id} type="button" className={"dz-nav-tab" + (active === s.id ? " on" : "")} onClick={() => onJump(s.id)}>{s.label}</button>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+/* ---------- Action bar ----------------------------------- */
+function ActionBar({ ui, readOnly, onBack, onDraft, onSign }) {
+  if (readOnly) {
+    return (
+      <div className="dz-actionbar">
+        <span className="dz-autosave"><Pill tone="info">Nota firmada</Pill> Vista de solo lectura del expediente.</span>
+        <div className="dz-actionbar-btns"><button type="button" className="dz-btn dz-btn-secondary" onClick={onBack}>{I.back}Volver</button></div>
+      </div>
+    );
+  }
+  const status = ui.status;
+  const kindCls = ui.kind === "err" ? " is-err" : ui.kind === "ok" ? " is-ok" : "";
+  return (
+    <div className="dz-actionbar">
+      <span className={"dz-autosave" + kindCls}>
+        <span className="dz-autosave-dot" />{status || "Borrador guardado automáticamente"}
+      </span>
+      <div className="dz-actionbar-btns">
+        <button type="button" className="dz-btn dz-btn-secondary" onClick={onDraft}>{I.save}Guardar borrador</button>
+        <button type="button" id="dzSignBtn" className="dz-btn dz-btn-navy" disabled={!!ui.saving} onClick={onSign}>{I.signature}{ui.saving ? "Guardando…" : "Firmar y cerrar nota"}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- App ------------------------------------------ */
+const INITIAL = {
+  motivo: { motivo: "", evolucion: "", padecimiento: "", sintomas: [] },
+  ante: { alergias: [], alergiaOtra: "", personales: "", familiares: "", fototipo: "" },
+  explo: { primarias: [], secundarias: [], distribucion: "", config: "", color: "", hallazgos: "" },
+  markers: [],
+  derma: { abcde: [], patrones: [], notas: "" },
+  dxList: [],
+  meds: [],
+  plan: { procedimientos: [], cuidados: "", seguimiento: "", biopsia: "" },
+  pago: { cost: "", estado: "pending", notas: "" },
+};
+const bridge = { get: () => ({}), set: () => {}, ui: () => {} };
+let galleryGetFiles = () => [];
+
+function App({ initial, readOnly, patient, allergyText, savedImages, dateLabel, onReady }) {
+  const [S, setS] = useState(() => ({ ...INITIAL, ...(initial || {}) }));
+  const [active, setActive] = useState("motivo");
+  const [ui, setUi] = useState({});
+  const sref = useRef(S); sref.current = S;
+
+  useEffect(() => {
+    bridge.get = () => sref.current;
+    bridge.set = (snap) => { if (snap && typeof snap === "object") setS({ ...INITIAL, ...snap }); };
+    bridge.ui = (patch) => setUi((p) => ({ ...p, ...patch }));
+    if (onReady) onReady();
+    // eslint-disable-next-line
+  }, []);
+
+  // Scroll-spy
+  useEffect(() => {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); });
+    }, { rootMargin: "-45% 0px -50% 0px", threshold: 0 });
+    SECTIONS.forEach((s) => { const el = document.getElementById(s.id); if (el) obs.observe(el); });
+    return () => obs.disconnect();
+  }, []);
+
+  const slice = (key) => (patch) => setS((p) => ({ ...p, [key]: { ...p[key], ...patch } }));
+  const arr = (key) => (updater) => setS((p) => ({ ...p, [key]: typeof updater === "function" ? updater(p[key]) : updater }));
+
+  function jump(id) {
+    const el = document.getElementById(id);
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 84, behavior: "smooth" });
+  }
+  const back = () => (window.ConsultationDraft && !readOnly ? ConsultationDraft.exit(() => history.back()) : history.back());
+
+  return (
+    <>
+      <SectionNav active={active} onJump={jump} onBack={back} />
+      <div className="dz-main">
+        <PatientBanner patient={patient} allergyText={allergyText} fototipo={S.ante.fototipo} dateLabel={dateLabel} />
+        <MotivoConsulta data={S.motivo} set={slice("motivo")} />
+        <Antecedentes data={S.ante} set={slice("ante")} allergyRecord={allergyText} />
+        <Exploracion data={S.explo} set={slice("explo")} />
+        <Card id="mapa" kicker="Topografía" title="Mapa corporal de lesiones" icon={I.body}>
+          <MapaCorporal markers={S.markers} setMarkers={arr("markers")} />
+        </Card>
+        <Dermatoscopia data={S.derma} set={slice("derma")} />
+        <Galeria readOnly={readOnly} savedImages={savedImages} fechaLabel={dateLabel} />
+        <Diagnostico dxList={S.dxList} setDxList={arr("dxList")} />
+        <Receta meds={S.meds} setMeds={arr("meds")} plan={S.plan} setPlan={slice("plan")} />
+        <Cobro data={S.pago} set={slice("pago")} />
+        <div className="dz-foot-spacer" />
+        <ActionBar ui={ui} readOnly={readOnly} onBack={back}
+          onDraft={() => window.ConsultationDraft && ConsultationDraft.save()}
+          onSign={() => window.submitDerma && window.submitDerma()} />
+      </div>
+    </>
+  );
+}
+
+/* =========================================================
+   Integración con la plataforma (carga + guardado).
+   ========================================================= */
+function ageFrom(dob) {
+  if (!dob) return null;
+  const d = new Date(dob); if (isNaN(d.getTime())) return null;
+  const diff = Date.now() - d.getTime();
+  const yrs = Math.floor(diff / (365.25 * 24 * 3600 * 1000));
+  return yrs >= 0 && yrs < 130 ? yrs : null;
+}
+function fmtDate(dob) {
+  if (!dob) return "";
+  const d = new Date(dob); if (isNaN(d.getTime())) return "";
+  try { return d.toLocaleDateString("es-HN", { day: "2-digit", month: "short", year: "numeric" }); } catch { return ""; }
+}
+function nowLabel() {
+  try { return "Consulta en curso · " + new Date().toLocaleString("es-HN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); }
+  catch { return "Consulta en curso"; }
+}
+
+let appointmentId = null, patientId = null, currentConsultId = null;
+const _params = new URLSearchParams(location.search);
+const VIEW_ID = parseInt(_params.get("view"), 10) || null;
+const IS_VIEW = !!VIEW_ID;
+
+requireAuth(["clinic_admin", "doctor"]);
+
+function hidePageLoading() { const o = document.getElementById("pageLoadingOverlay"); if (o) o.classList.add("is-hidden"); }
+function mountApp(props) { ReactDOM.createRoot(document.getElementById("derma-root")).render(<App {...props} />); }
+
+async function safe(p) { try { return await p; } catch (e) { console.warn(e); return null; } }
+
+async function loadCreate(me) {
+  appointmentId = parseInt(_params.get("id"));
+  if (!appointmentId) { alert("ID de cita no proporcionado"); history.back(); return; }
+  const appts = await api("/api/appointments");
+  const appt = (appts || []).find((a) => a.id === appointmentId);
+  if (!appt) { alert("Cita no encontrada"); history.back(); return; }
+  patientId = appt.patient_id;
+  let patient = { id: patientId, name: appt.patient_name };
+  const p = await safe(api("/api/patients/" + patientId));
+  if (p) patient = { ...patient, ...p, id: patientId };
+  let allergyText = "";
+  const ci = await safe(api("/api/patients/" + patientId + "/critical-info"));
+  if (ci && ci.allergies) allergyText = String(ci.allergies);
+
+  mountApp({
+    initial: INITIAL, readOnly: false, patient, allergyText, savedImages: null, dateLabel: nowLabel(),
+    onReady: () => {
+      if (window.ConsultationInventory) {
+        ConsultationInventory.mount({ containerId: "inventoryUsageSection", consultationId: null, consultationType: "dermatology", readonly: false }).catch((e) => console.warn(e));
+      }
+      if (window.ConsultationDraft) {
+        ConsultationDraft.init({ key: "dermatology", formId: "consultForm", widgets: [{ name: "derma", get: () => bridge.get(), set: (s) => bridge.set(s) }] });
+        ConsultationDraft.bind(appointmentId);
+        ConsultationDraft.maybeRestore();
+      }
+    },
+  });
+}
+
+async function loadView(me) {
+  const c = await api("/api/consultations/" + VIEW_ID);
+  patientId = c.patient_id;
+  let S = INITIAL;
+  try { const rn = JSON.parse(c.radiography_notes || "{}"); if (rn && rn.__derma && rn.S) S = rn.S; } catch (e) { /* ignore */ }
+  let patient = { id: c.patient_id, name: c.patient_name };
+  const p = await safe(api("/api/patients/" + c.patient_id));
+  if (p) patient = { ...patient, ...p, id: c.patient_id };
+  let allergyText = "";
+  const ci = await safe(api("/api/patients/" + c.patient_id + "/critical-info"));
+  if (ci && ci.allergies) allergyText = String(ci.allergies);
+  const savedImages = (await safe(api("/api/consultations/" + VIEW_ID + "/images"))) || [];
+  const dateLabel = c.created_at ? ("Consulta · " + fmtDate(c.created_at)) : "Consulta firmada";
+  document.body.classList.add("is-view-mode");
+
+  mountApp({
+    initial: S, readOnly: true, patient, allergyText, savedImages, dateLabel,
+    onReady: () => {
+      if (window.ConsultationInventory) {
+        ConsultationInventory.mount({ containerId: "inventoryUsageSection", consultationId: VIEW_ID, consultationType: "dermatology", readonly: true }).catch((e) => console.warn(e));
+      }
+    },
+  });
+}
+
+function buildObservations(S) {
+  const lines = [];
+  if (S.ante.fototipo) lines.push("Fototipo Fitzpatrick: " + S.ante.fototipo);
+  if (S.explo.primarias.length) lines.push("Lesión primaria: " + S.explo.primarias.join(", "));
+  if (S.explo.secundarias.length) lines.push("Lesión secundaria: " + S.explo.secundarias.join(", "));
+  const dist = [S.explo.distribucion, S.explo.config, S.explo.color].filter(Boolean).join(" · ");
+  if (dist) lines.push("Distribución/config/color: " + dist);
+  if (S.explo.hallazgos) lines.push("Hallazgos: " + S.explo.hallazgos);
+  if (S.markers.length) {
+    lines.push("Mapa corporal (" + S.markers.length + " lesión/es):");
+    S.markers.slice().sort((a, b) => a.n - b.n).forEach((m) => {
+      lines.push("  #" + m.n + " [" + m.view + "] " + (m.zona || "sin zona") + (m.nota ? " — " + m.nota : ""));
+    });
+  }
+  const abScore = (S.derma.abcde || []).length;
+  if (abScore || (S.derma.patrones || []).length || S.derma.notas) {
+    lines.push("Dermatoscopia ABCDE: " + abScore + "/5" + ((S.derma.patrones || []).length ? " · " + S.derma.patrones.join(", ") : ""));
+    if (S.derma.notas) lines.push("  " + S.derma.notas);
+  }
+  if (S.ante.personales) lines.push("Antecedentes personales: " + S.ante.personales);
+  if (S.ante.familiares) lines.push("Antecedentes familiares: " + S.ante.familiares);
+  if (S.ante.alergias.length || S.ante.alergiaOtra) lines.push("Alergias (consulta): " + [...S.ante.alergias, S.ante.alergiaOtra].filter(Boolean).join(", "));
+  return lines.join("\n");
+}
+
+function buildBody(S, me) {
+  const dxText = (S.dxList || []).map((d) => d.code + " " + d.name + " (" + d.tipo + ")").join(" · ");
+  const rxText = (S.meds || []).filter((m) => m.med).map((m) => m.med + (m.presentacion ? " — " + m.presentacion : "") + (m.indicaciones ? " — " + m.indicaciones : "")).join("\n");
+  const treatment = [
+    rxText ? "Receta:\n" + rxText : "",
+    (S.plan.procedimientos || []).length ? "Procedimientos: " + S.plan.procedimientos.join(", ") : "",
+    S.plan.cuidados ? "Cuidados: " + S.plan.cuidados : "",
+    S.plan.seguimiento ? "Seguimiento: " + S.plan.seguimiento : "",
+    S.plan.biopsia ? "Biopsia/evolución: " + S.plan.biopsia : "",
+  ].filter(Boolean).join("\n");
+  const cost = parseFloat(String(S.pago.cost).replace(/[^\d.]/g, "")) || 0;
+  return {
+    patient_id: patientId,
+    doctor_id: me && me.id,
+    appointment_id: appointmentId,
+    specialty: "Dermatología",
+    notes: S.motivo.padecimiento || S.motivo.motivo || "",
+    visit_reason: S.motivo.motivo || "",
+    diagnosis: dxText,
+    treatment: treatment,
+    procedures: (S.plan.procedimientos || []).join(", "),
+    observations: buildObservations(S),
+    radiography_notes: JSON.stringify({ __derma: true, version: 1, S: S }),
+    cost: cost,
+    payment_status: S.pago.estado || "pending",
+    payment_notes: S.pago.notas || "",
+    consent_id: null,
+  };
+}
+
+let submitting = false;
+window.submitDerma = async function () {
+  if (IS_VIEW || submitting) return;
+  submitting = true;
+  bridge.ui({ saving: true, status: "Guardando consulta…", kind: null });
+  try {
+    const S = bridge.get();
+    const me = window.__me || (await api("/api/auth/me"));
+    const body = buildBody(S, me);
+    const res = await api("/api/consultations", { method: "POST", body });
+    currentConsultId = res.id;
+
+    const warns = [];
+
+    // Marcar la cita como atendida. Un doctor sustituto (que no es el dueño de la
+    // cita) recibe 403 por la guarda de propiedad; lo avisamos en vez de ocultarlo.
+    let apptOk = true;
+    try { await api("/api/appointments/" + appointmentId + "/status", { method: "PUT", body: { status: "completed" } }); }
+    catch (e) { console.warn("appt status", e); apptOk = false; }
+    if (!apptOk) warns.push("la cita no se marcó como atendida");
+
+    const files = galleryGetFiles();
+    if (files.length && currentConsultId) {
+      const fd = new FormData();
+      files.forEach((f) => fd.append("images", f.file));
+      const token = localStorage.getItem("sd_token");
+      let imgOk = false;
+      try {
+        const up = await fetch("/api/consultations/" + currentConsultId + "/images", {
+          method: "POST", headers: token ? { Authorization: "Bearer " + token } : {}, credentials: "same-origin", body: fd,
+        });
+        imgOk = up.ok;
+      } catch (e) { console.warn("img upload", e); }
+      if (!imgOk) warns.push("no se pudieron adjuntar las fotos");
+    }
+
+    if (window.ConsultationInventory && ConsultationInventory.hasPending()) {
+      const ci = await safe(ConsultationInventory.commit(currentConsultId));
+      if (ci && ci.errors && ci.errors.length) { console.warn("inventory errors", ci.errors); warns.push("algunos materiales no se descontaron del inventario"); }
+    }
+
+    if (window.ConsultationDraft) ConsultationDraft.clear();
+    if (warns.length) bridge.ui({ saving: false, status: "Consulta guardada, pero " + warns.join("; ") + ".", kind: "err" });
+    else bridge.ui({ saving: false, status: "Consulta guardada. Redirigiendo…", kind: "ok" });
+    setTimeout(() => (window.location.href = "/citas.html"), warns.length ? 2600 : 1500);
+  } catch (e) {
+    console.error(e);
+    submitting = false;
+    bridge.ui({ saving: false, status: "No se pudo guardar: " + (e && e.message ? e.message : e), kind: "err" });
+  }
+};
+
+(async function boot() {
+  try {
+    const me = await api("/api/auth/me");
+    window.__me = me;
+    if (me && me.role === "doctor" && me.specialty !== "Dermatología") { window.location.href = "/citas.html"; return; }
+    if (IS_VIEW) await loadView(me); else await loadCreate(me);
+  } catch (e) {
+    console.error(e);
+    alert("No se pudo cargar la consulta: " + (e && e.message ? e.message : e));
+  } finally {
+    hidePageLoading();
+  }
+})();
+setTimeout(hidePageLoading, 60000);
+</script>
+</body>
+</html>
