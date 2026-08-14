@@ -88,6 +88,12 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] .sb-logo {
   border-bottom: 1px solid var(--sd-border-soft) !important;
 }
+/* La marca va suelta sobre el sidebar (sin chip). En oscuro solo se le añade un
+   halo cian muy leve para que no quede flotando sin peso sobre el negro. */
+[data-theme="dark"] .sb-logo img,
+[data-theme="dark"] .sb-logo svg {
+  filter: drop-shadow(0 0 10px rgba(34, 211, 238, .3));
+}
 [data-theme="dark"] .sb-profile {
   background:
     linear-gradient(135deg, rgba(8, 145, 178, .12), rgba(14, 165, 233, .04)) !important;

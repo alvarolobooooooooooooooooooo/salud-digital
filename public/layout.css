@@ -11,7 +11,7 @@
   --text: #0f172a;
   --muted: #64748b;
   --border: #e2e8f0;
-  --sidebar-w: 240px;
+  --sidebar-w: 278px;
   /* Ancho del cajón móvil. Lo comparten el propio cajón y el scrim, que se
      retira exactamente esa distancia para no descubrir página sin desenfocar. */
   --drawer-w: 320px;
@@ -76,8 +76,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 .sb-logo {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 1.5rem 1.25rem 1.25rem;
+  gap: 0.65rem;
+  padding: 1.05rem 1.15rem 0.95rem;
   font-weight: 700;
   font-size: 1.05rem;
   background: linear-gradient(120deg, var(--primary-hover) 0%, var(--primary) 50%, #0ea5e9 100%);
@@ -88,42 +88,27 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   letter-spacing: -0.02em;
 }
 
-/* Chip claro detrás de la marca: mantiene legible el brazo marino sobre el
-   sidebar oscuro y reproduce el logo sobre fondo blanco como en la guía. */
+/* La marca va SUELTA sobre el sidebar: el PNG de la cruz lleva alfa
+   (tools/gen-icons.js), así que no necesita chip blanco debajo — ese cuadro era
+   justo lo que hacía que el logo se leyera como un recorte pegado encima. */
 .sb-logo span:first-child {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 6px 18px rgba(8, 40, 90, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   flex-shrink: 0;
 }
 
-/* Halo azul detrás de la marca: mismo gesto que el .brand-mark del login,
-   bien visible para que el logo se lea como el ícono de la pantalla de acceso. */
-.sb-logo span:first-child::before {
-  content: '';
-  position: absolute;
-  inset: -10px;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.6) 0%, rgba(28, 142, 201, 0.5) 42%, transparent 72%);
-  border-radius: 50%;
-  z-index: -1;
-  filter: blur(12px);
-}
-
-.sb-logo svg {
-  width: 22px;
-  height: 22px;
+.sb-logo svg,
+.sb-logo img {
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
 }
 
 .sb-profile {
-  margin: 0.75rem 0.8rem 1rem;
-  padding: 0.85rem;
+  margin: 0.6rem 0.85rem 0.85rem;
+  padding: 0.85rem 0.9rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -158,15 +143,15 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 
 .sb-avatar {
   position: relative;
-  width: 42px;
-  height: 42px;
-  border-radius: 13px;
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
   background: linear-gradient(135deg, var(--primary) 0%, #0ea5e9 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
+  font-size: 1.02rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   box-shadow:
@@ -181,8 +166,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   position: absolute;
   bottom: -2px;
   right: -2px;
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: #22c55e;
   border: 2px solid var(--card, #ffffff);
@@ -198,7 +183,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 }
 
 .sb-user-name {
-  font-size: 0.92rem;
+  font-size: 1.02rem;
   font-weight: 700;
   color: var(--text);
   text-align: left;
@@ -211,7 +196,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 }
 
 .sb-clinic {
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: #64748b;
   text-align: left;
@@ -223,11 +208,11 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 }
 
 .sb-specialty-badge {
-  font-size: 0.56rem;
+  font-size: 0.64rem;
   font-weight: 700;
   color: var(--primary-hover);
   background: linear-gradient(135deg, rgba(8, 145, 178, 0.12), rgba(6, 182, 212, 0.06));
-  padding: 0.28rem 0.7rem;
+  padding: 0.32rem 0.8rem;
   border-radius: 999px;
   margin: 0;
   display: inline-flex;
@@ -247,8 +232,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 
 .sb-specialty-badge::before {
   content: '';
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--primary);
   box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.18), 0 0 6px rgba(8, 145, 178, 0.4);
@@ -264,8 +249,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0.9rem 0.6rem;
-  gap: 0.7rem;
+  padding: 0.9rem 0.7rem;
+  gap: 0.75rem;
   margin: 0;
   list-style: none;
   overflow-y: auto;
@@ -281,12 +266,12 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 }
 
 .sb-section-label {
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: #94a3b8;
-  padding: 0.35rem 0.85rem 0.3rem;
+  padding: 0.4rem 0.9rem 0.32rem;
   margin: 0;
 }
 
@@ -298,10 +283,10 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  padding: 0.55rem 0.8rem;
-  border-radius: 10px;
-  font-size: 0.86rem;
+  gap: 0.85rem;
+  padding: 0.56rem 0.9rem;
+  border-radius: 12px;
+  font-size: 0.97rem;
   font-weight: 500;
   color: #475569;
   text-decoration: none;
@@ -310,7 +295,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   background: transparent;
   font-family: inherit;
   cursor: pointer;
-  margin: 0.08rem 0;
+  margin: 0.05rem 0;
   width: 100%;
   letter-spacing: -0.005em;
 }
@@ -331,11 +316,11 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 .sb-item.active::before {
   content: '';
   position: absolute;
-  left: -0.6rem;
+  left: -0.7rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 3px;
-  height: 18px;
+  width: 3.5px;
+  height: 22px;
   border-radius: 0 3px 3px 0;
   background: linear-gradient(180deg, var(--primary) 0%, #0ea5e9 100%);
   box-shadow: 0 0 12px rgba(8, 145, 178, 0.4);
@@ -343,8 +328,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 
 .sb-item svg,
 .sb-item .sb-icon {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -359,16 +344,16 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 .sb-logout {
   margin-top: auto;
   margin-bottom: 0.75rem;
-  margin-left: 0.6rem;
-  margin-right: 0.6rem;
-  padding: 0.6rem 0.8rem;
+  margin-left: 0.7rem;
+  margin-right: 0.7rem;
+  padding: 0.7rem 0.9rem;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.85rem;
   border: 1px solid transparent;
   background: transparent;
-  border-radius: 10px;
-  font-size: 0.82rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
   font-weight: 500;
   color: var(--muted);
   cursor: pointer;
@@ -384,8 +369,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 
 .sb-logout svg,
 #sidebarLogoutIcon {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -393,13 +378,13 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   color: currentColor;
 }
 
-#sbLogoIcon span:first-child,
+/* El CSS manda sobre el tamaño que trae el <img> desde Icons.render(). */
+#sbLogoIcon img,
 #sbLogoIcon svg {
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 38px;
+  height: 38px;
+  display: block;
+  object-fit: contain;
   color: currentColor;
 }
 
@@ -1362,9 +1347,9 @@ nav.old-nav {
 
 .sd-notif-bell {
   position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
   border: 1px solid rgba(8, 145, 178, 0.18);
   background:
     linear-gradient(135deg, rgba(8, 145, 178, 0.10) 0%, rgba(14, 165, 233, 0.06) 100%),
@@ -1404,6 +1389,9 @@ nav.old-nav {
 }
 .sd-notif-bell .sd-notif-bell-icon svg,
 .sd-notif-bell .sd-notif-bell-icon svg * { stroke: currentColor; }
+/* El icono se pinta a 18px desde JS; en el sidebar de escritorio la campana es
+   más grande, así que el trazo sube con ella. */
+#sidebar .sd-notif-bell .sd-notif-bell-icon svg { width: 20px; height: 20px; }
 
 .sd-notif-bell.has-unread { color: #be123c; border-color: rgba(244, 63, 94, 0.28); }
 .sd-notif-bell.has-unread .sd-notif-bell-icon {
