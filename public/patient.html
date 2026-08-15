@@ -336,7 +336,106 @@
     .ch-view { margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; font-weight: 600; color: #0891b2; text-decoration: none; }
     .ch-view:hover { text-decoration: underline; }
 
+    /* ═══════════════════════════════════════════════════════════════
+       FOTOS CLÍNICAS (pestaña Planes de tratamiento)
+       Origen: imágenes subidas al guardar cada consulta + fotos del
+       diagrama de ortodoncia. Filtros por especialidad, consulta y
+       periodo, con visor a pantalla completa.
+       ═══════════════════════════════════════════════════════════════ */
+    .ph-filters {
+      display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end;
+      padding: 1rem 1.1rem; margin-bottom: 1.5rem;
+      border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc;
+    }
+    .ph-field { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; flex: 1 1 175px; }
+    .ph-field-name { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: #94a3b8; }
+    .ph-select {
+      appearance: none; width: 100%;
+      padding: 0.55rem 2rem 0.55rem 0.75rem;
+      border: 1px solid #e2e8f0; border-radius: 9px; background: #ffffff;
+      color: #0f172a; font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");
+      background-repeat: no-repeat; background-position: right 0.6rem center; background-size: 14px;
+    }
+    .ph-select:focus { outline: none; border-color: #0891b2; box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1); }
+    .ph-reset {
+      padding: 0.55rem 0.9rem; border: 1px solid #e2e8f0; border-radius: 9px; background: #ffffff;
+      color: #64748b; font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+    }
+    .ph-reset:hover { border-color: #0891b2; color: #0891b2; }
+    .ph-summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .ph-count { font-size: 0.82rem; color: #64748b; font-weight: 600; }
+    .ph-loadmore {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 0.9rem; border: 1px dashed #bae6fd; border-radius: 9px;
+      background: #f0f9ff; color: #0e7490; font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    }
+    .ph-loadmore:hover { border-style: solid; }
+    .ph-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 0.85rem; }
+    .ph-tile {
+      border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff;
+      cursor: pointer; transition: all .2s ease; text-align: left; padding: 0; font-family: inherit;
+    }
+    .ph-tile:hover { border-color: #0891b2; box-shadow: 0 4px 14px rgba(8, 145, 178, 0.12); transform: translateY(-2px); }
+    .ph-thumb { position: relative; aspect-ratio: 1; background: #f1f5f9; display: block; }
+    .ph-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ph-thumb.is-broken::after {
+      content: 'Sin vista previa'; position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; color: #94a3b8;
+    }
+    .ph-tag {
+      position: absolute; top: 0.45rem; left: 0.45rem;
+      padding: 0.15rem 0.45rem; border-radius: 5px;
+      background: rgba(15, 23, 42, 0.72); color: #ffffff;
+      font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .ph-cap { padding: 0.55rem 0.65rem; }
+    .ph-cap-date { font-size: 0.76rem; font-weight: 700; color: #0f172a; }
+    .ph-cap-sub { font-size: 0.68rem; color: #94a3b8; margin-top: 0.15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Visor */
+    .ph-viewer {
+      position: fixed; inset: 0; z-index: 1200;
+      background: rgba(2, 6, 12, 0.92); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center; padding: 3.5rem 4.5rem;
+    }
+    .ph-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 10px; }
+    .ph-viewer-btn {
+      position: absolute; display: flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+      background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.18); color: #ffffff;
+    }
+    .ph-viewer-btn:hover { background: rgba(255, 255, 255, 0.2); }
+    .ph-viewer-close { top: 1.25rem; right: 1.25rem; }
+    .ph-viewer-prev { left: 1.25rem; top: 50%; transform: translateY(-50%); }
+    .ph-viewer-next { right: 1.25rem; top: 50%; transform: translateY(-50%); }
+    .ph-viewer-cap {
+      position: absolute; left: 50%; bottom: 1.1rem; transform: translateX(-50%);
+      max-width: min(90%, 640px); text-align: center;
+      padding: 0.6rem 1.1rem; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #e2e8f0; font-size: 0.82rem; line-height: 1.5;
+    }
+    .ph-viewer-cap b { color: #ffffff; font-weight: 700; }
+    .ph-viewer-count { color: #94a3b8; }
+
     /* ── Modo oscuro (theme-dark.css ya cubre .section; aquí lo interno) ── */
+    html[data-theme="dark"] .ph-filters { background: rgba(255, 255, 255, 0.025); border-color: rgba(255, 255, 255, 0.07); }
+    html[data-theme="dark"] .ph-field-name { color: #64748b; }
+    html[data-theme="dark"] .ph-select,
+    html[data-theme="dark"] .ph-reset { background-color: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.09); color: #f1f5f9; }
+    html[data-theme="dark"] .ph-reset { color: #94a3b8; }
+    html[data-theme="dark"] .ph-reset:hover { color: #22d3ee; border-color: rgba(6, 182, 212, 0.35); }
+    html[data-theme="dark"] .ph-select option { background: #141416; color: #f1f5f9; }
+    html[data-theme="dark"] .ph-count { color: #94a3b8; }
+    html[data-theme="dark"] .ph-loadmore { background: rgba(6, 182, 212, 0.08); border-color: rgba(6, 182, 212, 0.3); color: #67e8f9; }
+    html[data-theme="dark"] .ph-tile { background: rgba(255, 255, 255, 0.025); border-color: rgba(255, 255, 255, 0.07); }
+    html[data-theme="dark"] .ph-tile:hover { border-color: rgba(6, 182, 212, 0.4); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4); }
+    html[data-theme="dark"] .ph-thumb { background: rgba(255, 255, 255, 0.04); }
+    html[data-theme="dark"] .ph-cap-date { color: #f1f5f9; }
+    html[data-theme="dark"] .ph-cap-sub { color: #64748b; }
+
     html[data-theme="dark"] .np-title,
     html[data-theme="dark"] .ch-date,
     html[data-theme="dark"] .ch-stat-value,
@@ -405,6 +504,13 @@
       .ch-card { padding: 1rem; }
       .ch-top { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
       .ch-view { margin-left: 0; width: 100%; }
+      .ph-filters { padding: 0.9rem; gap: 0.6rem; }
+      .ph-field { flex: 1 1 100%; }
+      .ph-reset { width: 100%; }
+      .ph-grid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 0.6rem; }
+      .ph-viewer { padding: 3.5rem 0.75rem 5rem; }
+      .ph-viewer-prev { left: 0.5rem; }
+      .ph-viewer-next { right: 0.5rem; }
     }
   </style>
 </head>
@@ -528,10 +634,63 @@
     <div id="podNonPathSlot"></div>
   </div>
 
-  <!-- Tab Content: Treatment Plans -->
+  <!-- Tab Content: Treatment Plans + Fotos clínicas -->
   <div class="tab-content" id="tab-treatments">
-    <div id="treatmentsContainer">
-      <div class="empty-state">Cargando planes de tratamiento...</div>
+    <div id="treatmentsContainer"></div>
+
+    <div class="section">
+      <div class="np-head">
+        <div>
+          <div class="np-title">Fotos clínicas</div>
+          <p class="np-sub">Imágenes registradas en las consultas del paciente.</p>
+        </div>
+        <span class="np-badge" id="phBadge" style="display: none;"><i></i><span id="phBadgeText"></span></span>
+      </div>
+
+      <div class="ph-filters" id="phFilters" style="display: none;">
+        <div class="ph-field" id="phSpecialtyField">
+          <label class="ph-field-name" for="phSpecialty">Especialidad</label>
+          <select class="ph-select" id="phSpecialty" onchange="applyPhotoFilters()"></select>
+        </div>
+        <div class="ph-field">
+          <label class="ph-field-name" for="phConsultation">Consulta</label>
+          <select class="ph-select" id="phConsultation" onchange="applyPhotoFilters()"></select>
+        </div>
+        <div class="ph-field">
+          <label class="ph-field-name" for="phPeriod">Periodo</label>
+          <select class="ph-select" id="phPeriod" onchange="applyPhotoFilters()">
+            <option value="">Todo el historial</option>
+            <option value="30">Últimos 30 días</option>
+            <option value="90">Últimos 3 meses</option>
+            <option value="365">Último año</option>
+          </select>
+        </div>
+        <div class="ph-field" id="phTypeField">
+          <label class="ph-field-name" for="phType">Tipo</label>
+          <select class="ph-select" id="phType" onchange="applyPhotoFilters()">
+            <option value="">Todas</option>
+            <option value="galeria">Galería</option>
+            <option value="diagrama">Diagrama</option>
+          </select>
+        </div>
+        <div class="ph-field" style="flex: 1 1 160px;">
+          <label class="ph-field-name" for="phOrder">Orden</label>
+          <select class="ph-select" id="phOrder" onchange="applyPhotoFilters()">
+            <option value="desc">Más recientes primero</option>
+            <option value="asc">Más antiguas primero</option>
+          </select>
+        </div>
+        <button type="button" class="ph-reset" style="flex: 0 0 auto;" onclick="resetPhotoFilters()">Limpiar</button>
+      </div>
+
+      <div class="ph-summary" id="phSummary" style="display: none;">
+        <span class="ph-count" id="phCount"></span>
+        <button type="button" class="ph-loadmore" id="phLoadDiagram" style="display: none;" onclick="loadDiagramPhotos()"></button>
+      </div>
+
+      <div id="phGallery">
+        <div class="np-empty">Cargando fotos…</div>
+      </div>
     </div>
   </div>
 
@@ -678,6 +837,7 @@
 
     renderAlerts(ci);
     renderTreatments();
+    loadPatientPhotos();
   }
 
   function renderAlerts(ci) {
@@ -709,8 +869,10 @@
     try {
       const treatments = await api(`/api/patients/${patientId}/treatment-plans`) || [];
 
+      // Sin planes → no dejamos un bloque vacío ocupando la pestaña: las fotos
+      // clínicas de abajo son el contenido principal.
       if (treatments.length === 0) {
-        container.innerHTML = '<div class="empty-state">No hay planes de tratamiento registrados</div>';
+        container.innerHTML = '';
         return;
       }
 
@@ -763,7 +925,9 @@
       html += '</div>';
       container.innerHTML = html;
     } catch (e) {
-      container.innerHTML = '<div class="empty-state">Error al cargar planes de tratamiento</div>';
+      // El endpoint de planes puede no existir en este despliegue; en ese caso la
+      // pestaña se queda con las fotos clínicas en vez de con un error permanente.
+      container.innerHTML = '';
     }
   }
 
@@ -990,6 +1154,327 @@
         </div>
         <div class="np-grid">${tiles}</div>
       </div>`;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     FOTOS CLÍNICAS
+     Se arman desde /photo-index (índice barato: una fila por consulta con
+     fotos, solo conteos). Las de galería viven en Cloudinary y se piden en
+     paralelo; las del diagrama de ortodoncia son data URLs base64 pesadas y
+     se cargan solo si el usuario las pide.
+     ══════════════════════════════════════════════════════════════════ */
+  let photoGroups = [];   // índice por consulta
+  let photoItems = [];    // fotos ya cargadas, aplanadas
+  let photoFiltered = []; // resultado del filtrado actual (lo que ve el visor)
+  let diagramLoaded = false;
+  let photosLoaded = false;
+
+  // Miniatura de Cloudinary (si no lo es, devuelve la URL tal cual).
+  function cloudThumb(url) {
+    if (!url || !url.includes('/upload/')) return url;
+    return url.replace('/upload/', '/upload/w_400,h_400,c_fill,q_auto,f_auto/');
+  }
+
+  // Los nombres que pone la cámara o WhatsApp no dicen nada; en esos casos vale
+  // más no enseñar nada que enseñar "image.jpg".
+  function meaningfulPhotoLabel(label) {
+    const s = String(label || '').trim();
+    if (!s) return '';
+    if (/^(image|imagen|photo|foto|img|dsc|pxl|screenshot|captura|whatsapp)[\s_-]*[\d._-]*\.(jpe?g|png|heic|webp)$/i.test(s)) return '';
+    return s;
+  }
+
+  function fmtShortDate(ts) {
+    const d = new Date(ts);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  async function loadPatientPhotos() {
+    const gallery = document.getElementById('phGallery');
+    // renderProfile() se vuelve a llamar al editar datos del paciente; las fotos
+    // no cambian por eso, así que no las recargamos ni perdemos los filtros.
+    if (!gallery || photosLoaded) return;
+    photosLoaded = true;
+
+    try {
+      photoGroups = await api(`/api/patients/${patientId}/photo-index`) || [];
+    } catch (e) {
+      gallery.innerHTML = '<div class="np-empty">No se pudieron cargar las fotos del paciente.</div>';
+      return;
+    }
+
+    if (photoGroups.length === 0) {
+      gallery.innerHTML = '<div class="np-empty">Este paciente todavía no tiene fotos.<br>Se agregan al guardar una consulta con imágenes.</div>';
+      return;
+    }
+
+    // Galería (Cloudinary): JSON ligero, se pide todo de una para poder filtrar.
+    const withGallery = photoGroups.filter(g => g.gallery_count > 0);
+    const results = await Promise.all(withGallery.map(g =>
+      api(`/api/consultations/${g.consultation_id}/images`).catch(() => [])
+    ));
+
+    photoItems = [];
+    withGallery.forEach((g, i) => {
+      (results[i] || []).forEach(img => {
+        photoItems.push({
+          full: img.filename,
+          thumb: cloudThumb(img.filename),
+          label: img.original_name || 'Foto de consulta',
+          type: 'galeria',
+          consultationId: g.consultation_id,
+          date: g.created_at,
+          specialty: g.specialty || 'Consulta',
+          doctor: g.doctor_name || ''
+        });
+      });
+    });
+
+    buildPhotoFilters();
+    applyPhotoFilters();
+  }
+
+  function pendingDiagramCount() {
+    if (diagramLoaded) return 0;
+    return photoGroups.reduce((n, g) => n + (g.diagram_count || 0), 0);
+  }
+
+  // Fotos del diagrama de ortodoncia: base64 dentro de la consulta, así que solo
+  // se traen a petición para no cargar megas de golpe al abrir la pestaña.
+  async function loadDiagramPhotos() {
+    const btn = document.getElementById('phLoadDiagram');
+    if (btn) { btn.disabled = true; btn.textContent = 'Cargando…'; }
+    const withDiagram = photoGroups.filter(g => g.diagram_count > 0);
+    const results = await Promise.all(withDiagram.map(g =>
+      api(`/api/consultations/${g.consultation_id}/diagram-photos`).catch(() => [])
+    ));
+    withDiagram.forEach((g, i) => {
+      (results[i] || []).forEach(p => {
+        photoItems.push({
+          full: p.dataUrl,
+          thumb: p.dataUrl,
+          label: p.label || 'Diagrama',
+          type: 'diagrama',
+          consultationId: g.consultation_id,
+          date: g.created_at,
+          specialty: g.specialty || 'Consulta',
+          doctor: g.doctor_name || ''
+        });
+      });
+    });
+    diagramLoaded = true;
+    if (btn) btn.disabled = false;
+    buildPhotoFilters();
+    applyPhotoFilters();
+  }
+
+  function buildPhotoFilters() {
+    const filters = document.getElementById('phFilters');
+    if (filters) filters.style.display = '';
+
+    // Especialidad: solo tiene sentido si el paciente tiene fotos de más de una.
+    const specialties = [...new Set(photoGroups.map(g => g.specialty || 'Consulta'))];
+    const specField = document.getElementById('phSpecialtyField');
+    const specSel = document.getElementById('phSpecialty');
+    if (specialties.length > 1) {
+      if (specField) specField.style.display = '';
+      const current = specSel.value;
+      specSel.innerHTML = '<option value="">Todas</option>'
+        + specialties.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+      specSel.value = specialties.includes(current) ? current : '';
+    } else if (specField) {
+      specField.style.display = 'none';
+      specSel.value = '';
+    }
+
+    // Consulta: una opción por consulta con fotos, con su fecha y cuántas tiene.
+    const consSel = document.getElementById('phConsultation');
+    const current = consSel.value;
+    const counts = {};
+    photoItems.forEach(it => { counts[it.consultationId] = (counts[it.consultationId] || 0) + 1; });
+    const options = photoGroups
+      .filter(g => counts[g.consultation_id])
+      .map(g => `<option value="${g.consultation_id}">${esc(fmtShortDate(g.created_at))} · ${esc(g.specialty || 'Consulta')} (${counts[g.consultation_id]})</option>`);
+    consSel.innerHTML = '<option value="">Todas las consultas</option>' + options.join('');
+    consSel.value = current;
+
+    // Tipo: solo si hay (o puede haber) fotos de diagrama.
+    const typeField = document.getElementById('phTypeField');
+    const hasDiagram = photoItems.some(it => it.type === 'diagrama');
+    if (typeField) typeField.style.display = hasDiagram ? '' : 'none';
+    if (!hasDiagram) document.getElementById('phType').value = '';
+  }
+
+  function resetPhotoFilters() {
+    ['phSpecialty', 'phConsultation', 'phPeriod', 'phType'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('phOrder').value = 'desc';
+    applyPhotoFilters();
+  }
+
+  function applyPhotoFilters() {
+    const gallery = document.getElementById('phGallery');
+    if (!gallery) return;
+
+    const specialty = document.getElementById('phSpecialty').value;
+    const consultation = document.getElementById('phConsultation').value;
+    const period = document.getElementById('phPeriod').value;
+    const type = document.getElementById('phType').value;
+    const order = document.getElementById('phOrder').value;
+
+    const cutoff = period ? Date.now() - Number(period) * 86400000 : null;
+
+    photoFiltered = photoItems.filter(it => {
+      if (specialty && it.specialty !== specialty) return false;
+      if (consultation && String(it.consultationId) !== consultation) return false;
+      if (type && it.type !== type) return false;
+      if (cutoff && new Date(it.date).getTime() < cutoff) return false;
+      return true;
+    }).sort((a, b) => order === 'asc'
+      ? new Date(a.date) - new Date(b.date)
+      : new Date(b.date) - new Date(a.date));
+
+    // Resumen + badge
+    const pending = pendingDiagramCount();
+    const badge = document.getElementById('phBadge');
+    const badgeText = document.getElementById('phBadgeText');
+    if (badge && badgeText) {
+      // El badge cuenta TODAS las fotos del paciente, incluidas las de diagrama
+      // que aún no se han descargado.
+      const total = photoItems.length + pending;
+      badge.style.display = '';
+      badgeText.textContent = `${total} ${total === 1 ? 'foto' : 'fotos'}`;
+    }
+    const summary = document.getElementById('phSummary');
+    if (summary) summary.style.display = '';
+    const count = document.getElementById('phCount');
+    if (count) {
+      count.textContent = photoFiltered.length === photoItems.length
+        ? `${photoItems.length} ${photoItems.length === 1 ? 'foto' : 'fotos'}`
+        : `Mostrando ${photoFiltered.length} de ${photoItems.length} fotos`;
+    }
+    const loadBtn = document.getElementById('phLoadDiagram');
+    if (loadBtn) {
+      loadBtn.style.display = pending > 0 ? '' : 'none';
+      if (pending > 0) loadBtn.textContent = `Cargar ${pending} ${pending === 1 ? 'foto' : 'fotos'} de diagrama`;
+    }
+
+    if (photoFiltered.length === 0) {
+      gallery.innerHTML = photoItems.length === 0
+        ? '<div class="np-empty">Las fotos de este paciente están dentro del diagrama de la consulta.<br>Úsalas con el botón de arriba.</div>'
+        : '<div class="np-empty">Ninguna foto coincide con los filtros seleccionados.</div>';
+      return;
+    }
+
+    // DOM en vez de innerHTML: las del diagrama son data URLs base64 enormes y no
+    // deben terminar incrustadas en atributos de una plantilla.
+    const grid = document.createElement('div');
+    grid.className = 'ph-grid';
+    // Con una sola especialidad repetirla en cada ficha es ruido: mejor quién atendió.
+    const manySpecialties = new Set(photoItems.map(it => it.specialty)).size > 1;
+    photoFiltered.forEach((it, idx) => {
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'ph-tile';
+      tile.addEventListener('click', () => openPhotoViewer(idx));
+
+      const thumb = document.createElement('div');
+      thumb.className = 'ph-thumb';
+      const img = document.createElement('img');
+      img.src = it.thumb;
+      img.alt = it.label;
+      img.loading = 'lazy';
+      img.onerror = function () { thumb.classList.add('is-broken'); this.remove(); };
+      thumb.appendChild(img);
+      if (it.type === 'diagrama') {
+        const tag = document.createElement('span');
+        tag.className = 'ph-tag';
+        tag.textContent = 'Diagrama';
+        thumb.appendChild(tag);
+      }
+
+      const cap = document.createElement('div');
+      cap.className = 'ph-cap';
+      const capDate = document.createElement('div');
+      capDate.className = 'ph-cap-date';
+      capDate.textContent = fmtShortDate(it.date);
+      const capSub = document.createElement('div');
+      capSub.className = 'ph-cap-sub';
+      capSub.textContent = manySpecialties ? it.specialty : (it.doctor || it.specialty);
+      capSub.title = [meaningfulPhotoLabel(it.label), it.specialty, it.doctor].filter(Boolean).join(' · ');
+      cap.appendChild(capDate);
+      cap.appendChild(capSub);
+
+      tile.appendChild(thumb);
+      tile.appendChild(cap);
+      grid.appendChild(tile);
+    });
+
+    gallery.replaceChildren(grid);
+  }
+
+  // Visor a pantalla completa, navegable dentro del conjunto ya filtrado.
+  function openPhotoViewer(startIdx) {
+    let idx = startIdx;
+    const overlay = document.createElement('div');
+    overlay.className = 'ph-viewer';
+
+    const img = document.createElement('img');
+    const cap = document.createElement('div');
+    cap.className = 'ph-viewer-cap';
+
+    const mkBtn = (cls, path, label) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = `ph-viewer-btn ${cls}`;
+      b.setAttribute('aria-label', label);
+      b.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`;
+      return b;
+    };
+    const closeBtn = mkBtn('ph-viewer-close', '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>', 'Cerrar');
+    const prevBtn = mkBtn('ph-viewer-prev', '<polyline points="15 18 9 12 15 6"/>', 'Anterior');
+    const nextBtn = mkBtn('ph-viewer-next', '<polyline points="9 18 15 12 9 6"/>', 'Siguiente');
+
+    function paint() {
+      const it = photoFiltered[idx];
+      if (!it) return;
+      img.src = it.full;
+      img.alt = it.label;
+      const title = [fmtShortDate(it.date), it.specialty].filter(Boolean).join(' · ');
+      const meta = [meaningfulPhotoLabel(it.label), it.doctor].filter(Boolean).join(' · ');
+      cap.innerHTML = `<b>${esc(title)}</b>`
+        + (meta ? `<br>${esc(meta)}` : '')
+        + ` <span class="ph-viewer-count">${meta ? '· ' : ''}${idx + 1} de ${photoFiltered.length}</span>`;
+      const single = photoFiltered.length < 2;
+      prevBtn.style.display = single ? 'none' : '';
+      nextBtn.style.display = single ? 'none' : '';
+    }
+    const go = (step) => { idx = (idx + step + photoFiltered.length) % photoFiltered.length; paint(); };
+
+    function close() {
+      overlay.remove();
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowLeft') go(-1);
+      else if (e.key === 'ArrowRight') go(1);
+    }
+
+    closeBtn.addEventListener('click', close);
+    prevBtn.addEventListener('click', () => go(-1));
+    nextBtn.addEventListener('click', () => go(1));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    document.addEventListener('keydown', onKey);
+
+    overlay.append(img, closeBtn, prevBtn, nextBtn, cap);
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+    paint();
   }
 
   function switchTab(tabName) {
