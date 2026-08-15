@@ -237,6 +237,150 @@
     /* ── Empty State ── */
     .empty-state { text-align: center; padding: 3rem 1.5rem; color: #94a3b8; font-size: 0.95rem; }
 
+    /* ═══════════════════════════════════════════════════════════════
+       PODOLOGÍA — Antecedentes no patológicos (pestaña Ficha médica)
+       Lectura clínica, no formulario: cada antecedente es una ficha con
+       estado y observación. Ámbar = factor de riesgo presente,
+       verde = hábito protector, cian = dato adicional.
+       ═══════════════════════════════════════════════════════════════ */
+    .np-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .np-title { font-size: 1.2rem; font-weight: 700; color: #0f172a; letter-spacing: -0.3px; margin: 0 0 0.35rem; }
+    .np-sub { font-size: 0.82rem; color: #64748b; margin: 0 !important; line-height: 1.55; }
+    .np-sub strong { color: #0e7490; font-weight: 600; }
+    .np-badge {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.4rem 0.8rem; border-radius: 999px;
+      background: #f0f9ff; border: 1px solid #bae6fd; color: #0e7490;
+      font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+    }
+    .np-badge i { width: 6px; height: 6px; border-radius: 50%; background: #0891b2; display: block; }
+    /* align-items:start → cada ficha mide lo que su contenido; sin ellas, una
+       observación larga estira toda la fila y deja huecos vacíos. */
+    .np-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.85rem; align-items: start; }
+    .np-tile {
+      display: flex; align-items: flex-start; gap: 0.85rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid #e2e8f0; border-left: 3px solid #e2e8f0;
+      border-radius: 12px; background: #f8fafc;
+    }
+    .np-icon {
+      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: #eef2f7; color: #94a3b8;
+    }
+    .np-icon svg { width: 18px; height: 18px; }
+    .np-body { flex: 1; min-width: 0; }
+    .np-label { font-size: 0.9rem; font-weight: 600; color: #475569; line-height: 1.3; }
+    .np-obs { font-size: 0.82rem; color: #64748b; margin-top: 0.4rem; line-height: 1.55; overflow-wrap: anywhere; }
+    .np-state {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 0.28rem 0.55rem; border-radius: 6px; flex-shrink: 0;
+      background: #eef2f7; color: #94a3b8;
+    }
+    .np-tile.is-yes { background: #ffffff; }
+    .np-tile.is-yes .np-label { color: #0f172a; font-weight: 700; }
+    .np-tile.tone-risk.is-yes { border-left-color: #f59e0b; }
+    .np-tile.tone-risk.is-yes .np-icon { background: rgba(245, 158, 11, 0.12); color: #b45309; }
+    .np-tile.tone-risk.is-yes .np-state { background: rgba(245, 158, 11, 0.14); color: #b45309; }
+    .np-tile.tone-good.is-yes { border-left-color: #10b981; }
+    .np-tile.tone-good.is-yes .np-icon { background: rgba(16, 185, 129, 0.12); color: #047857; }
+    .np-tile.tone-good.is-yes .np-state { background: rgba(16, 185, 129, 0.14); color: #047857; }
+    .np-tile.tone-info.is-yes { border-left-color: #0891b2; }
+    .np-tile.tone-info.is-yes .np-icon { background: rgba(8, 145, 178, 0.12); color: #0e7490; }
+    .np-tile.tone-info.is-yes .np-state { background: rgba(8, 145, 178, 0.14); color: #0e7490; }
+    .np-empty { text-align: center; padding: 2rem 1.25rem; color: #94a3b8; font-size: 0.9rem; line-height: 1.6; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       PODOLOGÍA — Historial clínico (sustituye la pestaña "Citas")
+       ═══════════════════════════════════════════════════════════════ */
+    .ch-agenda {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 0.9rem; border: 1px solid #e2e8f0; border-radius: 8px;
+      background: #ffffff; color: #0891b2; font-size: 0.82rem; font-weight: 600;
+      text-decoration: none; white-space: nowrap; transition: all .2s ease;
+    }
+    .ch-agenda:hover { background: #f0f9ff; border-color: #0891b2; }
+    .ch-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem; margin-bottom: 1.75rem; }
+    .ch-stat { padding: 0.9rem 1rem; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+    .ch-stat-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: #94a3b8; }
+    .ch-stat-value { font-size: 1rem; font-weight: 700; color: #0f172a; margin-top: 0.3rem; line-height: 1.3; }
+    .ch-list { position: relative; padding-left: 1.75rem; }
+    .ch-list::before { content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: #e2e8f0; border-radius: 2px; }
+    .ch-item { position: relative; margin-bottom: 1rem; }
+    .ch-item:last-child { margin-bottom: 0; }
+    .ch-item::before {
+      content: ''; position: absolute; left: -1.75rem; top: 1.15rem;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #ffffff; border: 3px solid #cbd5e1;
+    }
+    .ch-item:first-child::before { border-color: #0891b2; }
+    .ch-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.15rem 1.25rem; background: #ffffff; transition: all .2s ease; }
+    .ch-card:hover { border-color: #0891b2; box-shadow: 0 4px 12px rgba(8, 145, 178, 0.1); }
+    .ch-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.9rem; }
+    .ch-date { font-size: 0.95rem; font-weight: 700; color: #0f172a; letter-spacing: -0.2px; }
+    .ch-time { font-weight: 600; color: #94a3b8; font-size: 0.85rem; }
+    .ch-doctor { font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; }
+    .ch-spec {
+      padding: 0.3rem 0.65rem; border-radius: 999px;
+      background: #f0f9ff; border: 1px solid #bae6fd; color: #0e7490;
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+    }
+    .ch-fields { display: flex; flex-direction: column; gap: 0.75rem; }
+    .ch-field-label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: #94a3b8; margin-bottom: 0.2rem; }
+    .ch-field-value { font-size: 0.88rem; color: #334155; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .ch-foot { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid #f1f5f9; }
+    .ch-money { font-size: 0.85rem; font-weight: 700; color: #0f172a; }
+    .ch-pay { font-size: 0.68rem; font-weight: 700; padding: 0.25rem 0.55rem; border-radius: 6px; }
+    .ch-pay.paid { background: #dcfce7; color: #15803d; }
+    .ch-pay.pending { background: #fef3c7; color: #b45309; }
+    .ch-view { margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; font-weight: 600; color: #0891b2; text-decoration: none; }
+    .ch-view:hover { text-decoration: underline; }
+
+    /* ── Modo oscuro (theme-dark.css ya cubre .section; aquí lo interno) ── */
+    html[data-theme="dark"] .np-title,
+    html[data-theme="dark"] .ch-date,
+    html[data-theme="dark"] .ch-stat-value,
+    html[data-theme="dark"] .ch-money { color: #f1f5f9; }
+    html[data-theme="dark"] .np-sub,
+    html[data-theme="dark"] .np-obs,
+    html[data-theme="dark"] .ch-doctor,
+    html[data-theme="dark"] .ch-time { color: #94a3b8; }
+    html[data-theme="dark"] .np-sub strong { color: #22d3ee; }
+    html[data-theme="dark"] .np-badge,
+    html[data-theme="dark"] .ch-spec { background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.28); color: #67e8f9; }
+    html[data-theme="dark"] .np-badge i { background: #22d3ee; }
+    html[data-theme="dark"] .np-tile,
+    html[data-theme="dark"] .ch-stat { background: rgba(255, 255, 255, 0.025); border-color: rgba(255, 255, 255, 0.07); border-left-color: rgba(255, 255, 255, 0.07); }
+    html[data-theme="dark"] .np-icon,
+    html[data-theme="dark"] .np-state { background: rgba(255, 255, 255, 0.05); color: #64748b; }
+    html[data-theme="dark"] .np-label { color: #94a3b8; }
+    html[data-theme="dark"] .np-tile.is-yes { background: rgba(255, 255, 255, 0.045); }
+    html[data-theme="dark"] .np-tile.is-yes .np-label { color: #f1f5f9; }
+    html[data-theme="dark"] .np-tile.tone-risk.is-yes { border-left-color: #f59e0b; }
+    html[data-theme="dark"] .np-tile.tone-risk.is-yes .np-icon,
+    html[data-theme="dark"] .np-tile.tone-risk.is-yes .np-state { background: rgba(245, 158, 11, 0.16); color: #fbbf24; }
+    html[data-theme="dark"] .np-tile.tone-good.is-yes { border-left-color: #10b981; }
+    html[data-theme="dark"] .np-tile.tone-good.is-yes .np-icon,
+    html[data-theme="dark"] .np-tile.tone-good.is-yes .np-state { background: rgba(16, 185, 129, 0.16); color: #34d399; }
+    html[data-theme="dark"] .np-tile.tone-info.is-yes { border-left-color: #06b6d4; }
+    html[data-theme="dark"] .np-tile.tone-info.is-yes .np-icon,
+    html[data-theme="dark"] .np-tile.tone-info.is-yes .np-state { background: rgba(6, 182, 212, 0.16); color: #67e8f9; }
+    html[data-theme="dark"] .np-empty { color: #64748b; }
+    html[data-theme="dark"] .ch-stat-label,
+    html[data-theme="dark"] .ch-field-label { color: #64748b; }
+    html[data-theme="dark"] .ch-field-value { color: #cbd5e1; }
+    html[data-theme="dark"] .ch-list::before { background: rgba(255, 255, 255, 0.08); }
+    html[data-theme="dark"] .ch-item::before { background: #141416; border-color: rgba(255, 255, 255, 0.16); }
+    html[data-theme="dark"] .ch-item:first-child::before { border-color: #06b6d4; }
+    html[data-theme="dark"] .ch-card { background: rgba(255, 255, 255, 0.025); border-color: rgba(255, 255, 255, 0.07); }
+    html[data-theme="dark"] .ch-card:hover { border-color: rgba(6, 182, 212, 0.4); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
+    html[data-theme="dark"] .ch-foot { border-top-color: rgba(255, 255, 255, 0.06); }
+    html[data-theme="dark"] .ch-pay.paid { background: rgba(34, 197, 94, 0.14); color: #4ade80; }
+    html[data-theme="dark"] .ch-pay.pending { background: rgba(245, 158, 11, 0.14); color: #fbbf24; }
+    html[data-theme="dark"] .ch-view { color: #22d3ee; }
+    html[data-theme="dark"] .ch-agenda { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.09); color: #22d3ee; }
+    html[data-theme="dark"] .ch-agenda:hover { background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.35); }
+
     @media (max-width: 768px) {
       main { padding-top: 110px !important; max-width: 100% !important; width: 100% !important; margin: 0 !important; padding-left: 1rem !important; padding-right: 1rem !important; padding-bottom: 2rem !important; }
       .profile-header { padding: 2rem 1.5rem; margin-bottom: 2rem; }
@@ -251,6 +395,16 @@
       .tab-btn { padding: 0.75rem 1rem; font-size: 0.85rem; flex: 1; text-align: center; }
       .section { padding: 1.5rem; margin-bottom: 1.5rem; }
       .section h3 { font-size: 1.1rem; }
+      .np-grid { grid-template-columns: 1fr; }
+      .np-head { flex-direction: column; gap: 0.75rem; }
+      .np-title { font-size: 1.1rem; }
+      .ch-stats { grid-template-columns: 1fr; gap: 0.6rem; }
+      .ch-list { padding-left: 1.4rem; }
+      .ch-list::before { left: 5px; }
+      .ch-item::before { left: -1.4rem; width: 12px; height: 12px; border-width: 2.5px; top: 1.2rem; }
+      .ch-card { padding: 1rem; }
+      .ch-top { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+      .ch-view { margin-left: 0; width: 100%; }
     }
   </style>
 </head>
@@ -275,7 +429,7 @@
     <button class="tab-btn active" onclick="switchTab('personal')">Datos personales</button>
     <button class="tab-btn" onclick="switchTab('medical')">Ficha médica</button>
     <button class="tab-btn" onclick="switchTab('treatments')">Planes de tratamiento</button>
-    <button class="tab-btn" onclick="switchTab('appointments')">Citas</button>
+    <button class="tab-btn" id="tabAppointmentsBtn" onclick="switchTab('appointments')">Citas</button>
   </div>
 
   <!-- Tab Content: Personal Data -->
@@ -369,6 +523,9 @@
         </button>
       </div>
     </div>
+
+    <!-- Antecedentes no patológicos — solo especialidad Podología (se llena por JS) -->
+    <div id="podNonPathSlot"></div>
   </div>
 
   <!-- Tab Content: Treatment Plans -->
@@ -378,9 +535,9 @@
     </div>
   </div>
 
-  <!-- Tab Content: Appointments -->
+  <!-- Tab Content: Appointments (default) / Historial clínico (podología) -->
   <div class="tab-content" id="tab-appointments">
-    <div class="section">
+    <div class="section" id="appointmentsDefault">
       <h3>Próximas Citas</h3>
       <p>Gestiona las citas del paciente</p>
       <a href="" id="appointmentLink" class="btn-primary">
@@ -389,6 +546,25 @@
         </svg>
         Ver Citas
       </a>
+    </div>
+
+    <!-- Historial clínico — solo especialidad Podología -->
+    <div class="section" id="clinicalHistorySection" style="display: none;">
+      <div class="np-head">
+        <div>
+          <div class="np-title">Historial clínico</div>
+          <p class="np-sub">Consultas registradas del paciente, de la más reciente a la más antigua.</p>
+        </div>
+        <a href="#" id="chAgendaLink" class="ch-agenda">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          Ver agenda de citas
+        </a>
+      </div>
+      <div id="clinicalHistoryBody">
+        <div class="np-empty">Cargando historial clínico…</div>
+      </div>
     </div>
   </div>
 
@@ -591,6 +767,231 @@
     }
   }
 
+  /* ══════════════════════════════════════════════════════════════════
+     MODO PODOLOGÍA
+     Para doctores de podología esta ficha cambia en dos puntos:
+       • la pestaña "Citas" pasa a ser "Historial clínico" (línea de tiempo
+         de consultas, con acceso a cada una);
+       • "Ficha médica" suma los antecedentes no patológicos capturados en
+         la última consulta de podología, en lectura clínica (no el
+         formulario de casillas).
+     El resto de especialidades queda exactamente igual que antes.
+     ══════════════════════════════════════════════════════════════════ */
+
+  // Ámbar = factor de riesgo presente · verde = hábito protector · cian = dato extra.
+  // Las claves coinciden con non_pathological_history de consultation-podiatry.html.
+  const NON_PATH_ITEMS = [
+    { key: 'fuma', label: 'Tabaquismo', tone: 'risk',
+      icon: '<path d="M2 15h13v4H2z"/><path d="M18 15h4v4h-4z"/><path d="M18.5 10c1.4-1 1.4-3.2 0-4.4M22 12.5c1.4-1.2 1.4-4 0-5.2"/>' },
+    { key: 'alcohol', label: 'Consumo de alcohol', tone: 'risk',
+      icon: '<path d="M8 22h8M12 15v7M6 3h12l-1.2 6.2A5 5 0 0 1 12 13a5 5 0 0 1-4.8-3.8z"/>' },
+    { key: 'toxins', label: 'Toxicomanías', tone: 'risk',
+      icon: '<path d="M10.5 20.5a5 5 0 0 1-7-7l7-7a5 5 0 0 1 7 7z"/><path d="M8.5 8.5l7 7"/>' },
+    { key: 'exercise', label: 'Actividad física', tone: 'good',
+      icon: '<path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/>' },
+    { key: 'otros', label: 'Otros antecedentes', tone: 'info',
+      icon: '<circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/>' }
+  ];
+
+  // created_at viene con hora; fmtDate() es solo para fechas sueltas (YYYY-MM-DD).
+  function fmtStamp(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts);
+    if (isNaN(d)) return '—';
+    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  // La hora distingue dos consultas del mismo día en la línea de tiempo.
+  function fmtStampTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    if (isNaN(d)) return '';
+    return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function fmtMoney(v) {
+    const n = Number(v);
+    if (!isFinite(n) || n <= 0) return '';
+    return 'L. ' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  function enablePodiatryView() {
+    const btn = document.getElementById('tabAppointmentsBtn');
+    if (btn) btn.textContent = 'Historial clínico';
+
+    const def = document.getElementById('appointmentsDefault');
+    if (def) def.style.display = 'none';
+    const sec = document.getElementById('clinicalHistorySection');
+    if (sec) sec.style.display = '';
+    const agenda = document.getElementById('chAgendaLink');
+    if (agenda) agenda.href = `/citas.html?patient=${patientId}`;
+
+    renderClinicalHistory();
+    renderNonPathological();
+  }
+
+  function renderClinicalHistory() {
+    const body = document.getElementById('clinicalHistoryBody');
+    if (!body) return;
+
+    const consultations = (patientData.consultations || [])
+      .slice()
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    if (consultations.length === 0) {
+      body.innerHTML = '<div class="np-empty">Este paciente todavía no tiene consultas registradas.<br>El historial se construye automáticamente al guardar cada consulta.</div>';
+      return;
+    }
+
+    const first = consultations[consultations.length - 1];
+    const stats = `
+      <div class="ch-stats">
+        <div class="ch-stat">
+          <div class="ch-stat-label">Consultas</div>
+          <div class="ch-stat-value">${consultations.length}</div>
+        </div>
+        <div class="ch-stat">
+          <div class="ch-stat-label">Última consulta</div>
+          <div class="ch-stat-value">${esc(fmtStamp(consultations[0].created_at))}</div>
+        </div>
+        <div class="ch-stat">
+          <div class="ch-stat-label">Primera consulta</div>
+          <div class="ch-stat-value">${esc(fmtStamp(first.created_at))}</div>
+        </div>
+      </div>`;
+
+    const items = consultations.map(c => {
+      const specialty = c.specialty || 'Consulta';
+      const viewUrl = specialty === 'Podología'
+        ? `/view-consultation-podiatry.html?id=${c.id}`
+        : `/view-consultation.html?id=${c.id}`;
+
+      const fields = [
+        ['Motivo de consulta', c.visit_reason || c.notes],
+        ['Diagnóstico', c.diagnosis],
+        ['Tratamiento', c.treatment],
+        ['Procedimientos', c.procedures]
+      ].filter(([, v]) => v && String(v).trim());
+
+      const fieldsHtml = fields.length
+        ? `<div class="ch-fields">${fields.map(([label, value]) => `
+            <div>
+              <div class="ch-field-label">${label}</div>
+              <div class="ch-field-value">${esc(value)}</div>
+            </div>`).join('')}</div>`
+        : '<div class="ch-field-value" style="color:#94a3b8;">Sin notas clínicas registradas.</div>';
+
+      const money = fmtMoney(c.cost);
+      const pay = c.payment_status === 'paid'
+        ? '<span class="ch-pay paid">Pagado</span>'
+        : c.payment_status === 'pending' ? '<span class="ch-pay pending">Pendiente</span>' : '';
+
+      return `
+        <article class="ch-item">
+          <div class="ch-card">
+            <div class="ch-top">
+              <div>
+                <div class="ch-date">${esc(fmtStamp(c.created_at))}${fmtStampTime(c.created_at) ? ` <span class="ch-time">· ${esc(fmtStampTime(c.created_at))}</span>` : ''}</div>
+                ${c.doctor_name ? `<div class="ch-doctor">Atendida por ${esc(c.doctor_name)}</div>` : ''}
+              </div>
+              <span class="ch-spec">${esc(specialty)}</span>
+            </div>
+            ${fieldsHtml}
+            <div class="ch-foot">
+              ${money ? `<span class="ch-money">${money}</span>` : ''}
+              ${pay}
+              <a class="ch-view" href="${viewUrl}">
+                Ver consulta
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            </div>
+          </div>
+        </article>`;
+    }).join('');
+
+    body.innerHTML = `${stats}<div class="ch-list">${items}</div>`;
+  }
+
+  async function renderNonPathological() {
+    const slot = document.getElementById('podNonPathSlot');
+    if (!slot) return;
+    slot.innerHTML = '<div class="section"><div class="np-empty">Cargando antecedentes…</div></div>';
+
+    let last = null;
+    let data = null;
+    try {
+      const res = await api(`/api/patients/${patientId}/prefill-history?specialty=${encodeURIComponent('Podología')}&fields=radiography_notes`);
+      last = (res.consultations || [])[0] || null;
+      if (last && last.radiography_notes) {
+        try {
+          const extra = JSON.parse(last.radiography_notes) || {};
+          data = extra.non_pathological_history || null;
+        } catch (_) { /* payload malformado → se trata como sin datos */ }
+      }
+    } catch (e) {
+      slot.innerHTML = '<div class="section"><div class="np-empty">No se pudieron cargar los antecedentes no patológicos.</div></div>';
+      return;
+    }
+
+    if (!data) {
+      slot.innerHTML = `
+        <div class="section">
+          <div class="np-head">
+            <div>
+              <div class="np-title">Antecedentes no patológicos</div>
+              <p class="np-sub">Hábitos y estilo de vida del paciente.</p>
+            </div>
+          </div>
+          <div class="np-empty">Aún no hay antecedentes registrados.<br>Se completan durante la consulta de podología y aparecen aquí automáticamente.</div>
+        </div>`;
+      return;
+    }
+
+    const positives = NON_PATH_ITEMS.filter(it => data[it.key] && data[it.key].checked).length;
+    const badge = positives > 0
+      ? `${positives} ${positives === 1 ? 'antecedente presente' : 'antecedentes presentes'}`
+      : 'Sin antecedentes positivos';
+
+    const metaParts = [
+      last ? esc(fmtStamp(last.created_at)) : null,
+      last && last.doctor_name ? esc(last.doctor_name) : null
+    ].filter(Boolean);
+    const meta = 'Registrados en la última consulta de podología'
+      + (metaParts.length ? ` · <strong>${metaParts.join(' · ')}</strong>` : '');
+
+    const tiles = NON_PATH_ITEMS.map(it => {
+      const entry = data[it.key] || {};
+      const yes = !!entry.checked;
+      let obs = String(entry.obs || '').trim();
+      // Un "No"/"ninguno" escrito sobre un antecedente ya negado no aporta nada:
+      // el estado de la ficha ya lo dice.
+      if (!yes && /^(no|ninguno|ninguna|nada|n\/a|na|-{1,2})\.?$/i.test(obs)) obs = '';
+      return `
+        <div class="np-tile tone-${it.tone} ${yes ? 'is-yes' : ''}">
+          <span class="np-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${it.icon}</svg>
+          </span>
+          <div class="np-body">
+            <div class="np-label">${it.label}</div>
+            ${obs ? `<div class="np-obs">${esc(obs)}</div>` : ''}
+          </div>
+          <span class="np-state">${yes ? 'Sí' : 'No'}</span>
+        </div>`;
+    }).join('');
+
+    slot.innerHTML = `
+      <div class="section">
+        <div class="np-head">
+          <div>
+            <div class="np-title">Antecedentes no patológicos</div>
+            <p class="np-sub">${meta}</p>
+          </div>
+          <span class="np-badge"><i></i>${badge}</span>
+        </div>
+        <div class="np-grid">${tiles}</div>
+      </div>`;
+  }
+
   function switchTab(tabName) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -693,8 +1094,15 @@
 
   (async () => {
     try {
-      patientData = await api(`/api/patients/${patientId}`);
+      const [patient, me] = await Promise.all([
+        api(`/api/patients/${patientId}`),
+        api('/api/auth/me').catch(() => ({}))
+      ]);
+      patientData = patient;
       renderProfile();
+
+      // Vista de podología: historial clínico + antecedentes no patológicos.
+      if ((me.specialty || '').toLowerCase().includes('podol')) enablePodiatryView();
       // Setup modal event listener after DOM is ready
       const medicalModal = document.getElementById('medicalEditModal');
       if (medicalModal) {
