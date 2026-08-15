@@ -421,6 +421,18 @@
     .ph-viewer-count { color: #94a3b8; }
 
     /* ── Modo oscuro (theme-dark.css ya cubre .section; aquí lo interno) ── */
+    /* El botón lleva sus colores en el atributo style, así que en oscuro hay que
+       ganarle con !important o se queda con el fondo claro. */
+    html[data-theme="dark"] #editPersonalBtn {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border-color: rgba(255, 255, 255, 0.09) !important;
+      color: #22d3ee !important;
+    }
+    html[data-theme="dark"] #editPersonalBtn:hover {
+      background: rgba(6, 182, 212, 0.1) !important;
+      border-color: rgba(6, 182, 212, 0.35) !important;
+    }
+
     html[data-theme="dark"] .ph-filters { background: rgba(255, 255, 255, 0.025); border-color: rgba(255, 255, 255, 0.07); }
     html[data-theme="dark"] .ph-field-name { color: #64748b; }
     html[data-theme="dark"] .ph-select,
