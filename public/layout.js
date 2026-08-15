@@ -614,17 +614,19 @@
     avatarEls.forEach(el => {
       if (!el) return;
       // Default: gradient del CSS + iniciales como fallback siempre.
-      el.style.backgroundImage = '';
+      el.style.removeProperty('background-image');
       el.textContent = initials;
       // Si hay photo_url, intentamos cargarla. Solo si carga, la pintamos
       // encima del gradiente y limpiamos las iniciales. Si falla (404, CORS,
       // URL rota), nos quedamos con iniciales + gradiente — sin círculo vacío.
+      // Va con `important` a propósito: los temas pintan el avatar con
+      // `background: … !important`, que sin esto tumba la foto (pasaba en dark).
       if (user.photo_url) {
         const img = new Image();
         img.onload = () => {
-          el.style.backgroundImage = `url("${user.photo_url}")`;
-          el.style.backgroundSize = 'cover';
-          el.style.backgroundPosition = 'center';
+          el.style.setProperty('background-image', `url("${user.photo_url}")`, 'important');
+          el.style.setProperty('background-size', 'cover', 'important');
+          el.style.setProperty('background-position', 'center', 'important');
           el.textContent = '';
         };
         img.onerror = () => { /* dejamos iniciales + gradiente */ };

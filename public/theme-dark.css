@@ -114,8 +114,11 @@ html[data-theme="dark"] body::after {
 [data-theme="dark"] #sidebar .sb-avatar::after {
   border-color: #0a0a0c !important;
 }
+/* OJO: `background-color`, no el shorthand `background`. El shorthand con
+   !important gana sobre el `background-image` inline que layout.js pinta con
+   la foto de perfil y la borraba en dark (en light sí se veía). */
 [data-theme="dark"] .sb-avatar {
-  background: #0891b2 !important;
+  background-color: #0891b2 !important;
   color: white !important;
   box-shadow: none !important;
 }
