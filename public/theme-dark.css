@@ -77,10 +77,47 @@ html[data-theme="dark"] body::after {
 /* ───────────────────────────────────────────────────────────────
    SIDEBAR (#sidebar from layout.css)
    ─────────────────────────────────────────────────────────────── */
+/* El sidebar es una tarjeta de cristal flotante (geometría en layout.css).
+   Aquí va la MISMA receta que las cartas del Inicio —fill translúcido +
+   grano de dither + brillo superior + filo de cristal (--sd-glass-*)—
+   con dos diferencias por ser un panel alto y estrecho:
+   · el tinte cian se anda con más cuidado: en las tarjetas el radial mide
+     115% de una caja baja, y aquí eso inundaría de azul los 900px del
+     panel; se limita al 38% de alto para que muera antes del bloque de
+     identidad, más una cola muy tenue abajo para que no se apague seco.
+   · la sombra lleva más halo cian (es lo que se lee como "diseño azul
+     por detrás" en el hueco entre el panel y el borde de la pantalla).
+   El desenfoque se queda en 16px y no en los 28 de las tarjetas: detrás
+   del sidebar no pasa contenido (el main empieza después del carril), así
+   que solo se desenfoca un fondo plano — subirlo es coste sin imagen, y
+   este panel es justo donde más se nota (cada hover de item repinta el
+   backdrop en WKWebView). */
 [data-theme="dark"] #sidebar {
-  background: linear-gradient(180deg, #0c0c0e 0%, #07070a 100%) !important;
-  border-right: 1px solid var(--sd-border-soft) !important;
-  box-shadow: 1px 0 24px rgba(0, 0, 0, .45);
+  background-color: rgba(22, 22, 26, .62) !important;
+  background-image:
+    var(--sd-glass-grain),
+    var(--sd-glass-sheen),
+    radial-gradient(125% 38% at 8% -4%,
+      rgba(8, 145, 178, .30) 0%,
+      rgba(8, 145, 178, .175) 15%,
+      rgba(8, 145, 178, .09) 32%,
+      rgba(8, 145, 178, .038) 52%,
+      rgba(8, 145, 178, .012) 72%,
+      rgba(8, 145, 178, 0) 90%),
+    radial-gradient(110% 24% at 94% 104%,
+      rgba(8, 145, 178, .13) 0%,
+      rgba(8, 145, 178, .035) 46%,
+      transparent 80%) !important;
+  border: 1px solid rgba(255, 255, 255, .055) !important;
+  box-shadow:
+    0 28px 64px -28px rgba(0, 0, 0, .7),
+    0 2px 12px -4px rgba(0, 0, 0, .45),
+    0 0 72px -22px rgba(8, 145, 178, .3) !important;
+  backdrop-filter: saturate(150%) blur(16px);
+  -webkit-backdrop-filter: saturate(150%) blur(16px);
+}
+[data-theme="dark"] #sidebar::after {
+  background: var(--sd-glass-rim) !important;
 }
 [data-theme="dark"] .sb-logo span:not(:first-child) {
   color: var(--sd-text) !important;
@@ -111,8 +148,10 @@ html[data-theme="dark"] body::after {
   border-color: transparent !important;
   box-shadow: none !important;
 }
+/* Anillo del punto de "en línea": va del color de lo que hay DETRÁS, y
+   detrás ya no está el negro del sidebar viejo sino el cristal. */
 [data-theme="dark"] #sidebar .sb-avatar::after {
-  border-color: #0a0a0c !important;
+  border-color: #14141a !important;
 }
 /* OJO: `background-color`, no el shorthand `background`. El shorthand con
    !important gana sobre el `background-image` inline que layout.js pinta con

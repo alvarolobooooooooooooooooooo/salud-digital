@@ -12,6 +12,11 @@
   --muted: #64748b;
   --border: #e2e8f0;
   --sidebar-w: 278px;
+  /* Aire alrededor del panel de cristal del sidebar. --sidebar-w sigue siendo
+     el CARRIL reservado (lo que .layout-main deja libre a la izquierda); el
+     panel vive dentro de ese carril con este margen a cada lado, así flotar el
+     sidebar no obliga a recalcular nada del contenido. */
+  --sidebar-gap: 14px;
   /* Ancho del cajón móvil. Lo comparten el propio cajón y el scrim, que se
      retira exactamente esa distancia para no descubrir página sin desenfocar. */
   --drawer-w: 320px;
@@ -39,37 +44,60 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   display: none;
 }
 
-/* ── Sidebar ── */
+/* ── Sidebar ──────────────────────────────────────────────────────────
+   En PC no es una columna pegada al borde: es una TARJETA de cristal
+   flotante con la misma receta que las cartas del Inicio —superficie
+   translúcida con desenfoque, tinte azul que entra por la esquina
+   superior y muere antes de la mitad, filo de cristal de 1px y sombra
+   con halo cian por detrás—. La geometría sale de --sidebar-gap; el
+   carril (--sidebar-w) no cambia, así que .layout-main sigue igual. */
 #sidebar {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: var(--sidebar-w);
-  height: 100vh;
+  top: var(--sidebar-gap);
+  left: var(--sidebar-gap);
+  width: calc(var(--sidebar-w) - var(--sidebar-gap) * 2);
+  height: calc(100vh - var(--sidebar-gap) * 2);
+  border-radius: 22px;
   background:
-    radial-gradient(420px 320px at 100% 0%, rgba(14, 165, 233, 0.10), transparent 65%),
-    radial-gradient(360px 260px at 0% 100%, rgba(8, 145, 178, 0.08), transparent 65%),
-    linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(248, 252, 255, 0.92) 100%);
-  border-right: 1px solid rgba(15, 23, 42, 0.06);
+    radial-gradient(125% 40% at 6% -6%, rgba(14, 165, 233, 0.16) 0%, rgba(14, 165, 233, 0.055) 40%, transparent 74%),
+    radial-gradient(100% 26% at 96% 104%, rgba(8, 145, 178, 0.10), transparent 72%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   display: flex;
   flex-direction: column;
   z-index: 100;
   padding: 0;
   margin: 0;
-  transition: width 0.25s ease;
+  transition: width 0.25s ease, left 0.25s ease;
   backdrop-filter: saturate(160%) blur(14px);
   -webkit-backdrop-filter: saturate(160%) blur(14px);
-  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 4px 24px rgba(15, 23, 42, 0.04);
+  box-shadow:
+    0 0 100px rgba(8, 145, 178, 0.10),
+    0 20px 50px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(8, 145, 178, 0.05);
 }
 
+/* Filo de cristal: hairline que entra por arriba-izquierda y se disuelve
+   antes de la esquina opuesta, para que el borde no recorte el panel
+   contra el fondo. Va por máscara (mismo truco que las tarjetas del
+   Inicio) y sustituye a la antigua raya vertical del borde derecho, que
+   ya no tiene sentido con el panel flotando. */
 #sidebar::after {
   content: '';
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 1px;
-  height: 100%;
-  background: linear-gradient(180deg, transparent, rgba(8, 145, 178, 0.12) 30%, rgba(8, 145, 178, 0.12) 70%, transparent);
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(155deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.4) 26%,
+    rgba(8, 145, 178, 0.12) 58%,
+    transparent 84%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
   pointer-events: none;
 }
 
@@ -296,15 +324,18 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
 }
 
+/* Marcador del item activo. Ya no va a hueso contra el borde del sidebar
+   (`left: -0.7rem` lo dejaba justo sobre el filo del panel): con el panel
+   flotando se mete un poco hacia dentro y se redondea por los dos lados. */
 .sb-item.active::before {
   content: '';
   position: absolute;
-  left: -0.7rem;
+  left: -0.42rem;
   top: 50%;
   transform: translateY(-50%);
   width: 3.5px;
   height: 22px;
-  border-radius: 0 3px 3px 0;
+  border-radius: 3px;
   background: linear-gradient(180deg, var(--primary) 0%, #0ea5e9 100%);
   box-shadow: 0 0 12px rgba(8, 145, 178, 0.4);
 }
@@ -463,6 +494,9 @@ nav.old-nav {
   flex-shrink: 0;
   pointer-events: auto;
   border-top: 1px solid var(--border);
+  /* Es el último hijo a todo el ancho: sin esto sus esquinas cuadradas se
+     salen del radio del panel de cristal. */
+  border-radius: 0 0 21px 21px;
 }
 
 .sb-toggle:hover {
@@ -478,8 +512,12 @@ nav.old-nav {
 
 /* ── Responsive Collapse ── */
 @media (max-width: 1400px) {
+  /* Carril estrecho: el aire baja a 8px (a 14 el panel se quedaría sin
+     ancho útil para el avatar) y el carril reservado pasa a 84px = 8 de
+     aire + 68 de panel + 8 de separación con el contenido. */
   #sidebar {
-    width: 70px;
+    --sidebar-gap: 8px;
+    width: 68px;
     z-index: 101;
   }
 
@@ -525,7 +563,8 @@ nav.old-nav {
   }
 
   #sidebar.expanded {
-    width: var(--sidebar-w);
+    --sidebar-gap: 14px;
+    width: calc(var(--sidebar-w) - 28px);
   }
 
   #sidebar.expanded .sb-logo,
@@ -573,9 +612,9 @@ nav.old-nav {
   }
 
   .layout-main {
-    margin-left: 70px;
+    margin-left: 84px;
     padding: 1.5rem 1rem 1.5rem 0.5rem;
-    width: calc(100% - 70px);
+    width: calc(100% - 84px);
   }
 
   #sidebar.expanded ~ .layout-main {

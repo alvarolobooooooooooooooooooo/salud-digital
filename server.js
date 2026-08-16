@@ -389,6 +389,29 @@ app.use('/api/public/geo', publicGeoLimiter);
 
 // Static files: hint browsers to cache JS/CSS for a day, HTML always revalidated
 const ONE_DAY = 24 * 60 * 60;
+
+// layout.css importa theme-dark.css con @import, y el ?v=ASSET_VERSION solo se
+// inyecta en el HTML: la URL del import no cambiaba nunca. Resultado: tras un
+// deploy el navegador traía el layout nuevo pero seguía con el tema oscuro
+// cacheado hasta 24h — layouts nuevos pintados con colores viejos. Aquí se
+// reescribe el import al vuelo para que también lleve la versión del deploy.
+app.get('/layout.css', (req, res, next) => {
+  fs.readFile(path.join(PUBLIC_DIR, 'layout.css'), 'utf8', (err, raw) => {
+    if (err) return next();
+    res.setHeader('Content-Type', 'text/css; charset=utf-8');
+    res.setHeader(
+      'Cache-Control',
+      'public, max-age=' + ONE_DAY + ', stale-while-revalidate=' + ONE_DAY,
+    );
+    res.send(
+      raw.replace(
+        /url\('\/theme-dark\.css'\)/,
+        `url('/theme-dark.css?v=${ASSET_VERSION}')`,
+      ),
+    );
+  });
+});
+
 app.use(express.static(path.join(__dirname, 'public'), {
   etag: true,
   lastModified: true,
