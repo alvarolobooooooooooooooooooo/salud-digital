@@ -12,7 +12,10 @@
  *  • Iconos de app (home screen / PWA / apple-touch / maskable): la cruz se
  *    aplana sobre el NEGRO de la interfaz (#0a0a0c) con margen alrededor, para
  *    que el icono sea el mismo logo oscuro que se ve al entrar a la plataforma.
- *  • favicon: la cruz llena el marco (la pestaña ya aporta el margen).
+ *  • favicon: la cruz COMPLETA sobre fondo TRANSPARENTE (ver buildUiMark). Un
+ *    recorte del master metía dos defectos en la pestaña: el fondo blanco del
+ *    master salía como un recuadro pegado sobre la barra oscura, y la cruz
+ *    quedaba cortada por los bordes del marco.
  *  • logo-mark.png (marca dentro de la UI): se genera aparte, RECORTADA a la
  *    cruz y con FONDO TRANSPARENTE (ver buildUiMark). Dentro de la app la marca
  *    se apoya sobre sidebar oscuro/claro: un PNG opaco se vería como un recorte
@@ -29,7 +32,6 @@ const { execFileSync } = require('child_process');
 
 const OUT = path.join(__dirname, '..', 'public', 'icons');
 const MASTER = path.join(__dirname, 'logo-master.png');
-const TIGHT_CROP = 780;  // recorte central de la cruz dentro del master 1254² (favicons)
 fs.mkdirSync(OUT, { recursive: true });
 
 if (!fs.existsSync(MASTER)) {
@@ -282,12 +284,7 @@ function buildUiMark(src, dest, size, padRatio = 0.06, bg = null) {
 
 console.log('Generando iconos desde', MASTER);
 
-// 1) Recorte central a la cruz: quita el squircle + sombra del master (el
-//    "borde de botón"). La cruz queda a sangre sobre blanco.
-const CLEAN = path.join(os.tmpdir(), 'sd-logo-clean.png');
-sips(['-c', String(TIGHT_CROP), String(TIGHT_CROP), MASTER, '--out', CLEAN]);
-
-// 2) Maestro de los iconos de app: la MISMA cruz que se ve dentro de la
+// 1) Maestro de los iconos de app: la MISMA cruz que se ve dentro de la
 //    plataforma, aplanada sobre el negro de la app en vez de sobre blanco. Antes
 //    se re-enmarcaba el recorte con `sips -p --padColor FFFFFF`, pero eso solo
 //    añade margen: el fondo blanco venía dentro del propio master, así que la
@@ -312,10 +309,15 @@ for (const [n, s] of appIcons) emit(APP_MASTER, n, s);
 // pinte a 28-46 px. Va sobre el sidebar (claro u oscuro), no sobre blanco.
 buildUiMark(MASTER, path.join(OUT, 'logo-mark.png'), 512);
 
-// Favicons: la cruz llena el marco (la pestaña ya aporta el margen).
-const fav32 = emit(CLEAN, 'favicon-32.png', 32);
-const fav16 = emit(CLEAN, 'favicon-16.png', 16);
-fs.writeFileSync(path.join(OUT, 'favicon.ico'),
-  buildIco([{ size: 32, png: fav32 }, { size: 16, png: fav16 }]));
+// Favicons: cruz completa con alfa, rasterizada a cada tamaño desde el master
+// (no reescalando un PNG pequeño), que es lo que la mantiene nítida en la
+// pestaña. El 48 existe porque Safari/Chrome pintan la pestaña a 32 px físicos
+// en pantallas @2x: con solo 16 y 32 disponibles, escogen el 16 y lo estiran.
+// padRatio mínimo: el borde de la pestaña ya aporta el aire.
+const favicons = [16, 32, 48].map((size) => ({
+  size,
+  png: fs.readFileSync(buildUiMark(MASTER, path.join(OUT, `favicon-${size}.png`), size, 0.04)),
+}));
+fs.writeFileSync(path.join(OUT, 'favicon.ico'), buildIco(favicons));
 
 console.log('Listo:', fs.readdirSync(OUT).sort().join(', '));

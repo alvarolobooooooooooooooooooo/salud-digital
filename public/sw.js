@@ -12,7 +12,7 @@
  * El servidor sirve /sw.js con Cache-Control: no-cache, así el navegador
  * detecta el cambio en la próxima visita.
  */
-const CACHE_VERSION = 'sd-v5'; // v5: logo-mark.png pasa a PNG con transparencia
+const CACHE_VERSION = 'sd-v6'; // v6: favicon con alfa y sin recortar (el .ico va precacheado)
 const PRECACHE = `${CACHE_VERSION}-precache`;
 const RUNTIME = `${CACHE_VERSION}-runtime`;
 const RUNTIME_MAX = 80; // tope blando de entradas en runtime (evita crecer sin límite)

@@ -153,8 +153,14 @@ app.use((req, res, next) => {
 const PV = '?v=' + ASSET_VERSION;
 const PWA_HEAD_TAGS =
   '\n    <link rel="manifest" href="/manifest.webmanifest' + PV + '">' +
-  '\n    <link rel="icon" href="/icons/favicon.ico' + PV + '" sizes="32x32">' +
-  '\n    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png' + PV + '">' +
+  // Favicon de pestaña: los PNG con alfa (16/32/48). NO se declara aquí
+  // icon-192.png: ese es la baldosa opaca de la app instalada (cruz pequeña
+  // sobre negro con margen) y el navegador la elegía por ser la más grande, así
+  // que la pestaña mostraba un cuadro en vez de la marca. Para instalar la PWA
+  // ya están los iconos del manifest.
+  '\n    <link rel="icon" href="/icons/favicon.ico' + PV + '" sizes="16x16 32x32 48x48">' +
+  '\n    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png' + PV + '">' +
+  '\n    <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png' + PV + '">' +
   '\n    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png' + PV + '">' +
   '\n    <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png' + PV + '">' +
   '\n    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png' + PV + '">' +
