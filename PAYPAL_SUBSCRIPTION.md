@@ -9,7 +9,8 @@
 
 Salud Digital se vende como **plan individual**: un profesional = una clínica =
 una suscripción mensual de **19.99 USD** cobrada automáticamente por PayPal.
-Sin suscripción activa, la plataforma queda bloqueada.
+Sin suscripción activa la plataforma queda en **solo lectura**: se puede recorrer
+y consultar, pero no guardar nada.
 
 ---
 
@@ -104,7 +105,7 @@ de PayPal.
 | `lib/payments/providers/paypal.js` | **Único** sitio que traduce PayPal ↔ vocabulario propio |
 | `lib/payments/provider.js` | Interfaz `PaymentProvider` + registro de procesadores |
 | `lib/billing/*` | Suscripciones, cobros, webhooks y job — sin saber de PayPal |
-| `middleware/subscription.js` | Guardián: 402 en `/api` si no hay plan activo |
+| `middleware/subscription.js` | Guardián: sin plan, `/api` solo admite lecturas (402 al escribir) |
 | `routes/billing.js` | API de facturación |
 | `public/plan.html` | Pantalla "Suscripción" (AJUSTES en el menú) |
 | `tools/paypal-setup.js` | Crea producto + plan + webhook en PayPal |
@@ -118,10 +119,13 @@ compatibilidad con pantallas anteriores.
 
 ---
 
-## 3. Bloqueo por impago
+## 3. Solo lectura por impago
 
-Sin suscripción activa, **toda** la API responde `402` y el frontend manda a
-`/plan.html`. Quedan fuera del bloqueo:
+Sin suscripción activa, la API deja pasar `GET`/`HEAD` y responde `402` a toda
+escritura (`POST`/`PUT`/`PATCH`/`DELETE`). El frontend no navega a ningún lado:
+muestra una pastilla permanente de "Modo solo lectura" y, al chocar con el 402,
+un aviso con enlace a `/plan.html` — el formulario que se estaba rellenando no se
+pierde. Quedan fuera del guardián:
 
 - `/api/auth/*` (login, logout, 2FA) y `/api/billing/*` (para poder pagar)
 - `/api/public/*` y `/api/confirmations/public/*` (enlaces ya enviados a pacientes)
@@ -131,13 +135,16 @@ Sin suscripción activa, **toda** la API responde `402` y el frontend manda a
 Se considera **con acceso**: `active`/`trialing`, o `past_due`/`cancelled`/`paused`
 mientras el periodo ya pagado siga vigente (el mes cobrado se respeta).
 
-El bloqueo solo se activa si hay un procesador configurado — en local, sin
+El guardián solo se activa si hay un procesador configurado — en local, sin
 credenciales, la app funciona normal.
+
+Es también el estado en el que nace toda cuenta creada desde `/registro.html`:
+el doctor entra, recorre la plataforma y activa la suscripción cuando quiere.
 
 ### Palancas de emergencia
 
 ```bash
-BILLING_ENFORCEMENT=off        # desactiva el bloqueo por completo
+BILLING_ENFORCEMENT=off        # desactiva el guardián por completo
 BILLING_EXEMPT_CLINIC_IDS=1,4  # clínicas que nunca se bloquean
 ```
 

@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { query } = require('../db');
+const { query, pool } = require('../db');
 const { authenticate, SECRET, COOKIE_NAME, authCookieOptions } = require('../middleware/auth');
 const { generateSecret, verifyTotp, otpauthUrl } = require('../lib/totp');
 const vault = require('../lib/secret-vault');
@@ -12,6 +12,28 @@ function getClientIp(req) {
   const fwd = req.headers['x-forwarded-for'];
   if (fwd) return String(fwd).split(',')[0].trim();
   return req.ip || req.connection?.remoteAddress || '';
+}
+
+// Abre sesión: registra el jti en user_sessions, firma el JWT y deja la cookie
+// HttpOnly puesta. Lo usan login y registro — el alta de cuenta deja al doctor
+// ya dentro, sin obligarle a volver a escribir sus credenciales.
+async function abrirSesion(user, req, res) {
+  const jti = crypto.randomUUID();
+  await query(
+    'INSERT INTO user_sessions (jti, user_id, user_agent, ip) VALUES ($1, $2, $3, $4)',
+    [jti, user.id, String(req.headers['user-agent'] || '').slice(0, 400), getClientIp(req).slice(0, 80)]
+  );
+
+  const token = jwt.sign(
+    { id: user.id, email: user.email, role: user.role, clinic_id: user.clinic_id, jti },
+    SECRET,
+    { expiresIn: '24h' }
+  );
+
+  // Cookie HttpOnly = la fuente de verdad de la sesión; el token también se devuelve
+  // en JSON para no romper código frontend legacy que aún lee localStorage.
+  res.cookie(COOKIE_NAME, token, authCookieOptions());
+  return token;
 }
 
 router.post('/login', async (req, res) => {
@@ -45,22 +67,121 @@ router.post('/login', async (req, res) => {
     }
   }
 
-  const jti = crypto.randomUUID();
-  await query(
-    'INSERT INTO user_sessions (jti, user_id, user_agent, ip) VALUES ($1, $2, $3, $4)',
-    [jti, user.id, String(req.headers['user-agent'] || '').slice(0, 400), getClientIp(req).slice(0, 80)]
-  );
-
-  const token = jwt.sign(
-    { id: user.id, email: user.email, role: user.role, clinic_id: user.clinic_id, jti },
-    SECRET,
-    { expiresIn: '24h' }
-  );
-
-  // Cookie HttpOnly = la fuente de verdad de la sesión; el token también se devuelve
-  // en JSON para no romper código frontend legacy que aún lee localStorage.
-  res.cookie(COOKIE_NAME, token, authCookieOptions());
+  const token = await abrirSesion(user, req, res);
   res.json({ token, role: user.role, clinic_id: user.clinic_id });
+});
+
+// ── Alta de cuenta (registro público de doctores) ──
+//
+// El doctor crea su propio espacio: en una sola transacción nacen la clínica y
+// su usuario, y queda con la sesión abierta. La cuenta nace SIN suscripción, así
+// que la plataforma se abre en modo solo lectura hasta que pague
+// (ver middleware/subscription.js).
+//
+// El rol es 'doctor' y no 'clinic_admin' a propósito: es el único que puede
+// atender citas y firmar consultas — que es para lo que se registra — y también
+// está en OWNER_ROLES, así que puede contratar y cancelar la suscripción.
+
+// Las mismas cadenas exactas que usa el resto de la app para enrutar la consulta
+// según especialidad (public/citas.html). Comparar con === es la convención
+// vigente aquí: cualquier variante de acento o minúsculas rompe el enrutado.
+const ESPECIALIDADES = [
+  'Medicina General',
+  'Odontología',
+  'Periodoncia',
+  'Ortodoncia',
+  'Odontopediatría',
+  'Podología',
+  'Nutrición',
+  'Dermatología',
+];
+
+// clinics.name es UNIQUE en el esquema. Dos doctores pueden llamar igual a su
+// consultorio con toda legitimidad ("Clínica Dental"), así que en vez de
+// rechazar el registro se numera el repetido.
+async function nombreDeClinicaLibre(client, base) {
+  for (let i = 1; i <= 60; i++) {
+    const intento = i === 1 ? base : `${base} (${i})`;
+    const r = await client.query('SELECT 1 FROM clinics WHERE LOWER(name) = LOWER($1)', [intento]);
+    if (r.rowCount === 0) return intento;
+  }
+  return `${base} (${crypto.randomBytes(3).toString('hex')})`;
+}
+
+router.post('/register', async (req, res) => {
+  const b = req.body || {};
+  const nombre = String(b.name || '').trim().replace(/\s+/g, ' ').slice(0, 120);
+  const email = String(b.email || '').trim().toLowerCase().slice(0, 160);
+  const password = String(b.password || '');
+  const especialidad = String(b.specialty || '').trim();
+  const clinica = String(b.clinic_name || '').trim().replace(/\s+/g, ' ').slice(0, 120);
+  const telefono = String(b.phone || '').trim().slice(0, 40);
+  const ciudad = String(b.city || '').trim().slice(0, 80);
+
+  if (nombre.length < 3) return res.status(400).json({ error: 'Escribe tu nombre completo.' });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'El correo electrónico no es válido.' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres.' });
+  }
+  if (!ESPECIALIDADES.includes(especialidad)) {
+    return res.status(400).json({ error: 'Selecciona una especialidad de la lista.' });
+  }
+  if (clinica.length < 3) {
+    return res.status(400).json({ error: 'Escribe el nombre de tu clínica o consultorio.' });
+  }
+
+  const yaExiste = await query('SELECT 1 FROM users WHERE LOWER(email) = $1', [email]);
+  if (yaExiste.rowCount > 0) {
+    return res.status(409).json({ error: 'Ya existe una cuenta con ese correo. Inicia sesión o usa otro.' });
+  }
+
+  const hash = await bcrypt.hash(password, 10);
+  const client = await pool.connect();
+  let usuario;
+  try {
+    await client.query('BEGIN');
+    const nombreClinica = await nombreDeClinicaLibre(client, clinica);
+    const c = await client.query(
+      `INSERT INTO clinics (name, address, chairs, specialties, phone, email, city)
+       VALUES ($1, '', 1, $2, $3, $4, $5) RETURNING id`,
+      [nombreClinica, especialidad, telefono, email, ciudad]
+    );
+    const clinicId = c.rows[0].id;
+    const u = await client.query(
+      `INSERT INTO users (email, password, role, name, clinic_id, specialty, phone)
+       VALUES ($1, $2, 'doctor', $3, $4, $5, $6)
+       RETURNING id, email, role, clinic_id`,
+      [email, hash, nombre, clinicId, especialidad, telefono]
+    );
+    usuario = u.rows[0];
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    // Carreras contra los índices únicos: dos altas simultáneas con el mismo
+    // correo, o con el mismo nombre de clínica entre la comprobación y el INSERT.
+    if (err && err.code === '23505') {
+      const porEmail = String(err.constraint || err.detail || '').includes('email');
+      return res.status(409).json({
+        error: porEmail
+          ? 'Ya existe una cuenta con ese correo. Inicia sesión o usa otro.'
+          : 'Ese nombre de clínica se acaba de ocupar. Cámbialo un poco e intenta de nuevo.',
+      });
+    }
+    console.error('[auth] registro fallido:', err);
+    return res.status(500).json({ error: 'No se pudo crear la cuenta. Intenta de nuevo en un momento.' });
+  } finally {
+    client.release();
+  }
+
+  const token = await abrirSesion(usuario, req, res);
+  res.status(201).json({
+    token,
+    role: usuario.role,
+    clinic_id: usuario.clinic_id,
+    next: '/plan.html?bienvenida=1',
+  });
 });
 
 router.post('/logout', authenticate, async (req, res) => {

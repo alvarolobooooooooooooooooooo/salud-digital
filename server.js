@@ -326,6 +326,18 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth/login', authLimiter);
 
+// Alta de cuenta: es pública y crea filas (clínica + usuario), así que se limita
+// fuerte por IP. 5/hora deja registrar a un consultorio entero y frena el spam
+// automatizado de cuentas.
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiados registros desde esta conexión. Intenta de nuevo en una hora.' },
+});
+app.use('/api/auth/register', registerLimiter);
+
 const publicBookingLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 20,
