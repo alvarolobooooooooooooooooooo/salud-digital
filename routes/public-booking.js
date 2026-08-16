@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { query } = require('../db');
 const { checkRoomCapacity } = require('../lib/room-capacity');
+const { blockedReason } = require('../lib/availability-blocks');
 const subscription = require('../lib/subscription');
 
 function timeToMinutes(t) {
@@ -51,9 +52,18 @@ router.get('/clinic/:clinicId/doctors', async (req, res) => {
   res.json(result.rows);
 });
 
+// Ruta pública: una fecha con forma correcta pero imposible ("2026-13-99")
+// llegaba tal cual a Postgres y tumbaba el proceso, así que se valida que exista.
+function isRealDate(s) {
+  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d = new Date(`${s}T12:00:00Z`);
+  return !isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+}
+
 router.get('/clinic/:clinicId/doctors/:doctorId/slots', async (req, res) => {
   const { date } = req.query;
   if (!date) return res.status(400).json({ error: 'date es requerido' });
+  if (!isRealDate(date)) return res.status(400).json({ error: 'date inválida' });
 
   const doctorCheck = await query(
     `SELECT id FROM users WHERE id = $1 AND clinic_id = $2 AND role = 'doctor'`,
@@ -71,13 +81,27 @@ router.get('/clinic/:clinicId/doctors/:doctorId/slots', async (req, res) => {
 
   if (availResult.rows.length === 0) return res.json([]);
 
+  // Excepción de ese día concreto: día cerrado, u horas que el doctor quitó.
+  const overrideResult = await query(
+    `SELECT closed, blocked_times FROM doctor_day_overrides
+      WHERE doctor_id = $1 AND override_date = $2`,
+    [req.params.doctorId, date]
+  );
+  const override = overrideResult.rows[0];
+  if (override && override.closed) return res.json([]);
+  const blockedTimes = new Set(
+    override && Array.isArray(override.blocked_times) ? override.blocked_times : []
+  );
+
   const slots = [];
   for (const avail of availResult.rows) {
     const startMin = timeToMinutes(avail.start_time);
     const endMin = timeToMinutes(avail.end_time);
     const duration = avail.slot_duration || 30;
     for (let m = startMin; m + duration <= endMin; m += duration) {
-      slots.push(minutesToTime(m));
+      const t = minutesToTime(m);
+      if (blockedTimes.has(t)) continue;
+      slots.push(t);
     }
   }
 
@@ -153,6 +177,13 @@ router.post('/clinic/:clinicId/booking', async (req, res) => {
     [doctorId, clinicId]
   );
   if (doctorCheck.rows.length === 0) return res.status(404).json({ error: 'Doctor no encontrado' });
+
+  // El listado de horas ya oculta lo que el doctor marcó como no disponible, pero
+  // esta ruta es pública: sin comprobarlo aquí, un POST directo reservaba igual.
+  // El paciente no tiene por qué saber el motivo, así que el mensaje es neutro.
+  if (await blockedReason(doctorId, scheduled_at)) {
+    return res.status(409).json({ error: 'Este horario ya no está disponible' });
+  }
 
   const conflictCheck = await query(
     `SELECT id FROM appointments WHERE doctor_id = $1 AND scheduled_at = $2 AND status != 'cancelled'`,

@@ -3,6 +3,7 @@ const router  = express.Router();
 const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { checkRoomCapacity } = require('../lib/room-capacity');
+const { blockedReason, BLOCK_MESSAGES } = require('../lib/availability-blocks');
 
 // Helper — obtiene la fecha local en formato YYYY-MM-DD según la zona horaria del servidor
 function getLocalDateString() {
@@ -235,6 +236,18 @@ router.post('/schedule', authenticate, requireRole('doctor'), async (req, res) =
 
     const patient = patientResult.rows[0];
     const scheduledAt = new Date(`${date}T${time}:00-06:00`);
+
+    // Lo que el doctor bloqueó en su disponibilidad vale también por voz.
+    const bloqueo = await blockedReason(req.user.id, `${date}T${time}`);
+    if (bloqueo) {
+      return res.json({
+        success: false,
+        error: BLOCK_MESSAGES[bloqueo],
+        spoken_response: bloqueo === 'closed'
+          ? `Ese día lo tenés cerrado en tu disponibilidad. Elegí otro día.`
+          : `Marcaste las ${time} como no disponible. Elegí otra hora.`
+      });
+    }
 
     const cap = await checkRoomCapacity(req.user.clinic_id, scheduledAt.toISOString(), null);
     if (!cap.ok) {

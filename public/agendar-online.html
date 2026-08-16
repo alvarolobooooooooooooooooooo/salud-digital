@@ -485,91 +485,212 @@
       background-position: right 6px center;
     }
 
-    .co-timeline-wrap { position: relative; z-index: 1; padding: 18px 22px 22px; overflow-x: auto; }
-    .co-timeline {
-      display: grid;
-      grid-template-columns: 112px 1fr;
-      gap: 0;
-      min-width: 720px;
+    .co-avail-body {
+      position: relative; z-index: 1;
+      padding: 18px 22px 20px;
+      display: grid; gap: 20px;
     }
-    .co-tl-hours {
-      grid-column: 2;
-      display: grid;
-      grid-template-columns: repeat(15, 1fr);
-      font-family: var(--font-mono);
-      font-size: 10.5px;
-      color: var(--muted);
-      padding-bottom: 6px;
-      border-bottom: 1px dashed var(--line);
+    .co-subhead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .co-subhead-t { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .co-subhead-s { font-size: 12px; color: var(--muted); }
+
+    /* Horario semanal (días que trabaja en general) */
+    .co-week-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+    .co-wd {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: color-mix(in oklch, var(--surface-2) 65%, transparent);
+      padding: 10px 10px 9px;
+      display: grid; gap: 8px; align-content: start;
     }
-    .co-tl-hours span { text-align: left; padding-left: 2px; }
-    .co-tl-day {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 12px 14px 0;
-      border-bottom: 1px solid var(--line);
+    .co-wd.is-off { opacity: 0.6; }
+    .co-wd-top {
+      display: inline-flex; align-items: center; gap: 8px;
+      cursor: pointer; user-select: none;
+      font-size: 12.5px;
     }
-    .co-tl-day-name { font-size: 13.5px; font-weight: 600; }
-    .co-tl-day-meta { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
-    .co-tl-track {
-      position: relative;
-      height: 56px;
-      border-bottom: 1px solid var(--line);
-      background:
-        repeating-linear-gradient(90deg,
-          transparent 0,
-          transparent calc((100% / 15) - 1px),
-          color-mix(in oklch, var(--ink) 5%, transparent) calc((100% / 15) - 1px),
-          color-mix(in oklch, var(--ink) 5%, transparent) calc(100% / 15));
-      cursor: crosshair;
-      overflow: hidden;
-    }
-    .co-tl-track.disabled { opacity: 0.4; cursor: not-allowed; background: color-mix(in oklch, var(--ink) 3%, transparent); }
-    .co-tl-track .co-now {
-      position: absolute; top: 0; bottom: 0;
-      width: 1px;
-      background: var(--danger);
-      pointer-events: none;
-    }
-    .co-tl-track .co-now::before {
-      content: ""; position: absolute; top: -3px; left: -3px;
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--danger);
-    }
-    .co-tl-slot {
-      position: absolute; top: 8px; bottom: 8px;
-      background: color-mix(in oklch, var(--accent) 18%, transparent);
-      border: 1px solid color-mix(in oklch, var(--accent) 50%, transparent);
-      border-radius: 8px;
-      display: flex; align-items: center; padding: 0 8px;
-      font-size: 11px;
-      font-family: var(--font-mono);
+    .co-wd-name { font-weight: 600; }
+    .co-wd-blocks { display: flex; flex-wrap: wrap; gap: 5px; }
+    .co-blk {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-family: var(--font-mono); font-size: 11px;
+      padding: 3px 4px 3px 7px; border-radius: 7px;
+      background: color-mix(in oklch, var(--accent) 12%, transparent);
+      border: 1px solid color-mix(in oklch, var(--accent) 28%, transparent);
       color: var(--accent-ink);
-      user-select: none;
-      cursor: pointer;
-      gap: 4px;
     }
-    .co-tl-slot:hover { filter: brightness(0.97); }
-    .co-tl-slot .co-slot-time { cursor: pointer; }
-    .co-tl-slot .co-slot-x {
-      margin-left: auto;
+    .co-blk .t { cursor: pointer; }
+    .co-blk .x {
+      width: 15px; height: 15px; border-radius: 4px;
       display: inline-flex; align-items: center; justify-content: center;
-      width: 18px; height: 18px; border-radius: 4px;
-      color: var(--accent-ink); opacity: 0.6;
-      cursor: pointer;
-      flex-shrink: 0;
+      opacity: 0.55; cursor: pointer;
     }
-    .co-tl-slot .co-slot-x:hover { opacity: 1; background: color-mix(in oklch, var(--accent) 25%, transparent); }
-    .co-tl-hover-tip {
-      position: absolute; top: 4px; transform: translateX(-50%);
-      font-size: 10px; font-family: var(--font-mono); color: var(--muted);
-      pointer-events: none;
+    .co-blk .x:hover { opacity: 1; background: color-mix(in oklch, var(--accent) 22%, transparent); }
+    .co-wd-add {
+      border: 1px dashed var(--line-2); background: transparent;
+      color: var(--muted); font-family: inherit; font-size: 11px;
+      padding: 3px 8px; border-radius: 7px; cursor: pointer;
+    }
+    .co-wd-add:hover { color: var(--accent-ink); border-color: color-mix(in oklch, var(--accent) 45%, transparent); }
+    .co-wd-rest { font-size: 11px; color: var(--muted-2); }
+
+    /* Calendario + detalle del día */
+    .co-avail-split { display: grid; grid-template-columns: 292px 1fr; gap: 18px; align-items: start; }
+    .co-cal, .co-day {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: color-mix(in oklch, var(--surface-2) 65%, transparent);
+    }
+    .co-cal { padding: 12px 12px 10px; }
+    .co-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .co-cal-title { font-size: 13.5px; font-weight: 600; }
+    .co-cal-nav {
+      width: 26px; height: 26px; border-radius: 8px;
+      border: 1px solid var(--line); background: transparent;
+      color: var(--ink-2); cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .co-cal-nav:hover { background: color-mix(in oklch, var(--ink) 6%, transparent); }
+    .co-cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+    .co-cal-dow span { text-align: center; font-size: 10px; letter-spacing: 0.08em; color: var(--muted-2); }
+    .co-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .co-cal-day {
+      position: relative; aspect-ratio: 1 / 1;
+      border: 1px solid transparent; border-radius: 9px;
+      background: transparent; color: var(--ink-2);
+      font-family: var(--font-mono); font-size: 12.5px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; padding: 0;
+    }
+    .co-cal-day:hover:not(:disabled) { border-color: color-mix(in oklch, var(--accent) 45%, transparent); }
+    .co-cal-day .st {
+      position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+      width: 4px; height: 4px; border-radius: 50%;
+    }
+    .co-cal-day.is-open .st { background: var(--accent); }
+    .co-cal-day.is-partial .st { background: var(--warm); }
+    .co-cal-day.is-closed .st { background: var(--danger); }
+    .co-cal-day.is-rest { color: var(--muted-2); }
+    .co-cal-day.is-today { border-color: color-mix(in oklch, var(--accent) 55%, transparent); }
+    .co-cal-day.is-sel { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .co-cal-day.is-sel .st { background: rgba(255,255,255,0.85); }
+    .co-cal-day:disabled { opacity: 0.4; cursor: default; }
+    .co-cal-day.is-blank { visibility: hidden; }
+    .co-cal-day .n {
+      position: absolute; top: 2px; right: 2px;
+      min-width: 12px; padding: 0 2px;
+      border-radius: 5px;
+      font-size: 8px; line-height: 12px; text-align: center;
+      background: color-mix(in oklch, var(--info) 16%, transparent);
+      color: var(--info-ink);
+    }
+    .co-cal-day.is-sel .n { background: rgba(255,255,255,0.28); color: #fff; }
+    .co-cal-multi { width: 100%; justify-content: center; margin-top: 10px; }
+    .co-cal-multi.on {
+      border-color: color-mix(in oklch, var(--accent) 55%, transparent);
+      background: color-mix(in oklch, var(--accent) 10%, transparent);
+      color: var(--accent-ink);
+    }
+    .co-cal-day.is-picked {
+      border-color: var(--accent);
+      background: color-mix(in oklch, var(--accent) 16%, transparent);
+      color: var(--accent-ink);
+    }
+    .co-cal-day.is-picked::after {
+      content: ""; position: absolute; top: 3px; left: 4px;
+      width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+    }
+    .co-day-dates { display: flex; flex-wrap: wrap; gap: 5px; }
+    .co-day-date-chip {
+      font-family: var(--font-mono); font-size: 11px;
+      padding: 3px 8px; border-radius: 7px;
+      background: color-mix(in oklch, var(--accent) 10%, transparent);
+      border: 1px solid color-mix(in oklch, var(--accent) 26%, transparent);
+      color: var(--accent-ink);
+    }
+    .co-cal-legend {
+      display: flex; flex-wrap: wrap; gap: 4px 12px;
+      margin-top: 12px; padding-top: 10px;
+      border-top: 1px solid var(--line);
+      font-size: 10.5px; color: var(--muted);
+    }
+    .co-cal-legend .sw {
+      width: 6px; height: 6px; border-radius: 50%;
+      display: inline-block; margin-right: 5px; vertical-align: middle;
     }
 
-    .co-tl-toggle {
-      display: inline-flex; align-items: center; gap: 8px;
-      cursor: pointer;
-      font-size: 12.5px;
-      user-select: none;
+    .co-day { padding: 14px 16px 16px; min-height: 250px; display: grid; gap: 13px; align-content: start; }
+    .co-day-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .co-day-title { font-size: 15px; font-weight: 600; }
+    .co-day-sub { font-size: 12px; color: var(--muted); margin-top: 3px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .co-day-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .co-mini-btn {
+      border: 1px solid var(--line); background: transparent;
+      color: var(--ink-2); font-family: inherit; font-size: 11.5px;
+      padding: 5px 10px; border-radius: 8px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .co-mini-btn:hover { background: color-mix(in oklch, var(--ink) 6%, transparent); }
+    .co-mini-btn.danger { color: var(--danger); border-color: color-mix(in oklch, var(--danger) 32%, transparent); }
+    .co-mini-btn.danger:hover { background: color-mix(in oklch, var(--danger) 10%, transparent); }
+    .co-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 999px;
+    }
+    .co-badge.ok { background: var(--ok-soft); color: var(--ok-ink); }
+    .co-badge.warn { background: var(--warm-soft); color: var(--warm-ink); }
+    .co-badge.off { background: var(--danger-soft); color: var(--danger-ink); }
+    .co-badge.rest { background: color-mix(in oklch, var(--ink) 8%, transparent); color: var(--muted); }
+
+    .co-slot-groups { display: grid; gap: 14px; }
+    .co-slot-group-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 7px; }
+    .co-slot-group-title { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+    .co-slot-group-count { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+    .co-slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 6px; }
+    .co-slot {
+      border: 1px solid var(--line); border-radius: 9px;
+      background: var(--surface-2);
+      padding: 8px 6px 7px;
+      font-family: var(--font-mono); font-size: 12px; color: var(--ink-2);
+      text-align: center; line-height: 1.15; cursor: pointer;
+    }
+    .co-slot small {
+      display: block; margin-top: 3px;
+      font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted-2);
+    }
+    .co-slot.is-on {
+      border-color: color-mix(in oklch, var(--accent) 32%, transparent);
+      background: color-mix(in oklch, var(--accent) 9%, var(--surface-2));
+      color: var(--accent-ink);
+    }
+    .co-slot.is-on:hover { border-color: color-mix(in oklch, var(--accent) 62%, transparent); }
+    .co-slot.is-off {
+      border-style: dashed; border-color: var(--line-2);
+      background: transparent; color: var(--muted-2);
+    }
+    .co-slot.is-off .h { text-decoration: line-through; }
+    .co-slot.is-busy {
+      border-color: color-mix(in oklch, var(--info) 32%, transparent);
+      background: color-mix(in oklch, var(--info) 9%, var(--surface-2));
+      color: var(--info-ink);
+      cursor: default;
+    }
+    .co-day-note {
+      border: 1px dashed var(--line-2); border-radius: var(--radius);
+      padding: 24px 18px; text-align: center;
+      color: var(--muted); font-size: 12.5px;
+      display: grid; gap: 12px; justify-items: center;
+    }
+    .co-save-state { font-size: 11px; color: var(--muted-2); font-family: var(--font-mono); }
+
+    /* Por debajo de 720px las container queries están apagadas a propósito
+       (ver el bloque @media de abajo), así que el colapso en móvil se
+       re-declara allí. */
+    @container (max-width: 980px) {
+      .co-avail-split { grid-template-columns: 1fr; }
+      .co-week-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
     .co-switch {
       width: 30px; height: 18px;
@@ -995,6 +1116,12 @@
         max-width: none;
         font-size: 14.5px;
       }
+      .co-avail-split { grid-template-columns: 1fr !important; }
+      .co-week-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+      .co-avail-body { padding: 16px 14px 18px !important; }
+      .co-avail-head { padding: 16px 14px !important; }
+      .co-avail-foot { padding: 12px 14px !important; }
+      .co-slot-grid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)) !important; }
     }
 
     /* Loading animation */
@@ -1140,70 +1267,115 @@
       </div>
     </section>
 
-    <!-- Availability + Insights -->
-    <section class="co-cols-2">
-      <div class="co-card">
-        <div class="co-avail-head">
-          <div>
-            <div class="co-card-title">Disponibilidad horaria</div>
-            <div class="co-card-sub">Tocá la pista para añadir bloques de 1 h. Tocá un bloque para ajustar inicio/fin. Snap cada 30 min.</div>
-          </div>
-          <div class="co-avail-controls">
-            <div class="co-doctor-select" id="doctorSelectRow" style="display:none;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-              <select id="doctorSelect"></select>
-            </div>
-          </div>
+    <!-- Availability -->
+    <section class="co-card">
+      <div class="co-avail-head">
+        <div>
+          <div class="co-card-title">Disponibilidad horaria</div>
+          <div class="co-card-sub">Todos los días siguen el horario semanal. Tocá un día del calendario para quitarle horas sueltas o cerrarlo entero.</div>
         </div>
-
-        <div class="co-timeline-wrap">
-          <div class="co-timeline" id="timeline">
-            <p class="co-empty" style="grid-column:1/-1;">Cargando disponibilidad…</p>
+        <div class="co-avail-controls">
+          <div class="co-doctor-select" id="doctorSelectRow" style="display:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <select id="doctorSelect"></select>
           </div>
-        </div>
-
-        <div class="co-avail-foot">
-          <div class="co-legend">
-            <span><span class="swatch" style="background:color-mix(in oklch, var(--accent) 30%, transparent);border:1px solid color-mix(in oklch, var(--accent) 50%, transparent);"></span>Bloque disponible</span>
-            <span><span class="swatch" style="background:var(--danger);"></span>Hora actual</span>
-            <span style="color:var(--muted);">Click en la pista para añadir bloque</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:18px;">
-            <div class="co-avail-summary">
-              <span><b id="totalHrs">0.0</b> h/sem</span>
-              <span><b id="totalSlots">0</b> turnos</span>
-            </div>
-            <button class="co-btn" id="saveBtn" disabled type="button">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              <span id="saveBtnLabel">Sin cambios</span>
-            </button>
+          <div class="co-doctor-select">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+            <select id="durationSelect" aria-label="Duración de cada cita"></select>
           </div>
         </div>
       </div>
 
-      <div class="co-insights">
-        <div class="co-insight">
-          <div class="co-insight-head">
-            <div>
-              <span class="eyebrow">Resumen semanal</span>
-              <div class="co-card-title" style="font-size:20px;">Carga horaria</div>
+      <div class="co-avail-body">
+        <div>
+          <div class="co-subhead">
+            <div class="co-subhead-t">Días que atiende</div>
+            <div class="co-subhead-s">El horario general de cada semana. Tocá una franja para cambiar la hora de inicio y fin.</div>
+          </div>
+          <div class="co-week-grid" id="weekGrid"></div>
+        </div>
+
+        <div class="co-avail-split">
+          <div class="co-cal">
+            <div class="co-cal-head">
+              <button class="co-cal-nav" id="calPrev" type="button" aria-label="Mes anterior">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <div class="co-cal-title" id="calTitle">—</div>
+              <button class="co-cal-nav" id="calNext" type="button" aria-label="Mes siguiente">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+            <div class="co-cal-dow">
+              <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+            </div>
+            <div class="co-cal-grid" id="calGrid"></div>
+            <button type="button" class="co-mini-btn co-cal-multi" id="multiToggle">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16.5" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/><path d="M9 15l2 2 4-4"/></svg>
+              <span id="multiToggleLabel">Cerrar varios días</span>
+            </button>
+            <div class="co-cal-legend">
+              <span><span class="sw" style="background:var(--accent);"></span>Horario normal</span>
+              <span><span class="sw" style="background:var(--warm);"></span>Con horas quitadas</span>
+              <span><span class="sw" style="background:var(--danger);"></span>Día cerrado</span>
             </div>
           </div>
-          <div class="co-weekring">
-            <svg id="weekRing" width="120" height="120" viewBox="0 0 120 120"></svg>
-            <div class="legend2" id="weekRingLegend"></div>
+
+          <div class="co-day">
+            <div class="co-day-head">
+              <div>
+                <div class="co-day-title" id="dayTitle">—</div>
+                <div class="co-day-sub" id="daySub">—</div>
+              </div>
+              <div class="co-day-actions" id="dayActions"></div>
+            </div>
+            <div id="daySlots"></div>
           </div>
         </div>
-        <div class="co-insight">
-          <div class="co-insight-head">
-            <div>
-              <span class="eyebrow">Próximas</span>
-              <div class="co-card-title" style="font-size:20px;">Citas en cola</div>
-            </div>
+      </div>
+
+      <div class="co-avail-foot">
+        <div class="co-legend">
+          <span><span class="swatch" style="background:color-mix(in oklch, var(--accent) 22%, transparent);border:1px solid color-mix(in oklch, var(--accent) 45%, transparent);"></span>Hora disponible</span>
+          <span><span class="swatch" style="background:transparent;border:1px dashed var(--line-2);"></span>No disponible</span>
+          <span><span class="swatch" style="background:color-mix(in oklch, var(--info) 25%, transparent);border:1px solid color-mix(in oklch, var(--info) 45%, transparent);"></span>Con cita</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:18px;">
+          <div class="co-avail-summary">
+            <span><b id="totalHrs">0.0</b> h/sem</span>
+            <span><b id="totalSlots">0</b> turnos</span>
           </div>
-          <div class="co-upcoming-list" id="upcomingList">
-            <p class="co-empty">Sin citas pendientes.</p>
+          <button class="co-btn" id="saveBtn" disabled type="button">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="saveBtnLabel">Sin cambios</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Insights -->
+    <section class="co-cols-2">
+      <div class="co-insight">
+        <div class="co-insight-head">
+          <div>
+            <span class="eyebrow">Resumen semanal</span>
+            <div class="co-card-title" style="font-size:20px;">Carga horaria</div>
           </div>
+        </div>
+        <div class="co-weekring">
+          <svg id="weekRing" width="120" height="120" viewBox="0 0 120 120"></svg>
+          <div class="legend2" id="weekRingLegend"></div>
+        </div>
+      </div>
+      <div class="co-insight">
+        <div class="co-insight-head">
+          <div>
+            <span class="eyebrow">Próximas</span>
+            <div class="co-card-title" style="font-size:20px;">Citas en cola</div>
+          </div>
+        </div>
+        <div class="co-upcoming-list" id="upcomingList">
+          <p class="co-empty">Sin citas pendientes.</p>
         </div>
       </div>
     </section>
@@ -1292,18 +1464,26 @@
   // ---------- Constants ----------
   const HOUR_START = 7;
   const HOUR_END = 21;
-  const HOURS_RANGE = HOUR_END - HOUR_START; // 14
+
+  // Horario que se aplica solo cuando el doctor todavía no configuró nada:
+  // todos los días abiertos, de 8 a 5, para que el enlace público sirva desde
+  // el primer minuto sin obligar a nadie a rellenar una agenda vacía.
+  const DEFAULT_START = 8;
+  const DEFAULT_END = 17;
+  const DEFAULT_DURATION = 30;
+  const DURATIONS = [15, 20, 30, 45, 60];
 
   // day_of_week: 0=Sunday, 1=Monday, ..., 6=Saturday
   const DAYS = [
-    { dow: 1, label: 'Lunes' },
-    { dow: 2, label: 'Martes' },
-    { dow: 3, label: 'Miércoles' },
-    { dow: 4, label: 'Jueves' },
-    { dow: 5, label: 'Viernes' },
-    { dow: 6, label: 'Sábado' },
-    { dow: 0, label: 'Domingo' },
+    { dow: 1, label: 'Lunes', plural: 'los lunes' },
+    { dow: 2, label: 'Martes', plural: 'los martes' },
+    { dow: 3, label: 'Miércoles', plural: 'los miércoles' },
+    { dow: 4, label: 'Jueves', plural: 'los jueves' },
+    { dow: 5, label: 'Viernes', plural: 'los viernes' },
+    { dow: 6, label: 'Sábado', plural: 'los sábados' },
+    { dow: 0, label: 'Domingo', plural: 'los domingos' },
   ];
+  const MONTH_NAMES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const DAY_COLORS = [
     'var(--accent)', 'var(--warm)', 'var(--ok)', 'var(--info)',
     'oklch(0.62 0.13 320)', 'oklch(0.72 0.10 50)', 'oklch(0.55 0.08 220)'
@@ -1324,11 +1504,20 @@
 
   // ---------- State ----------
   let userRole = null;
+  let userId = null;
   let clinicId = null;
   let doctorsList = [];
   let currentDoctorId = null;
   let availability = {}; // { 1: { enabled: true, slots: [{start, end}] }, ... }
   let savedAvailability = {};
+  let slotDuration = DEFAULT_DURATION;
+  let savedSlotDuration = DEFAULT_DURATION;
+  let overrides = {};    // 'YYYY-MM-DD' -> { closed: bool, blocked: ['09:00', …] }
+  let apptsByDate = {};  // 'YYYY-MM-DD' -> [{ time, patient, status }]
+  let calView = { y: new Date().getFullYear(), m: new Date().getMonth() };
+  let selectedDate = null;
+  let multiMode = false;              // seleccionar varios días para cerrarlos de golpe
+  const multiPicked = new Set();
   let recent = [];
   let totalCount = 0;
   let monthCount = 0;
@@ -1358,6 +1547,14 @@
     return `${dn[d.getDay()]}, ${d.getDate()} de ${months[d.getMonth()]}`;
   };
   const fmtTime = (d) => `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const isoOf = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  // Mediodía a propósito: evita que un cambio de horario mueva la fecha un día.
+  const dateFromISO = (s) => new Date(s + 'T12:00:00');
+  const todayISO = () => isoOf(new Date());
+  const minToTime = (m) => `${pad2(Math.floor(m / 60))}:${pad2(m % 60)}`;
+  const capFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  const dayMeta = (dow) => DAYS.find(d => d.dow === dow) || DAYS[0];
   const initials = (name) => {
     if (!name) return '?';
     return name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
@@ -1502,125 +1699,479 @@
     `).join('');
   }
 
-  // ---------- Timeline ----------
-  function renderTimeline() {
-    const root = document.getElementById('timeline');
+  // ---------- Horario semanal (días que trabaja en general) ----------
+  const X_SVG = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+  function renderWeekGrid() {
+    const root = document.getElementById('weekGrid');
     if (!root) return;
-    const now = new Date();
-    const nowDow = now.getDay();
-    const nowHour = now.getHours() + now.getMinutes() / 60;
-    const nowPct = ((nowHour - HOUR_START) / HOURS_RANGE) * 100;
 
-    let html = '<div></div><div class="co-tl-hours">';
-    for (let i = 0; i < HOURS_RANGE; i++) {
-      html += `<span>${String(HOUR_START + i).padStart(2, '0')}</span>`;
-    }
-    html += '</div>';
-
-    DAYS.forEach(day => {
+    root.innerHTML = DAYS.map(day => {
       const data = availability[day.dow] || { enabled: false, slots: [] };
       const enabled = !!data.enabled;
-      const dayHrs = data.slots.reduce((a, s) => a + (s.end - s.start), 0);
-      const isToday = nowDow === day.dow;
-
-      html += `
-        <div class="co-tl-day">
-          <label class="co-tl-toggle" data-toggle="${day.dow}">
+      const blocks = data.slots.map((s, i) => `
+        <span class="co-blk">
+          <span class="t" data-edit-slot="${day.dow}:${i}" title="Cambiar la hora">${fmtHour(s.start)}–${fmtHour(s.end)}</span>
+          <span class="x" data-del-slot="${day.dow}:${i}" title="Quitar franja">${X_SVG}</span>
+        </span>`).join('');
+      return `
+        <div class="co-wd ${enabled ? '' : 'is-off'}">
+          <label class="co-wd-top" data-toggle="${day.dow}">
             <span class="co-switch ${enabled ? 'on' : ''}"></span>
-            <span>
-              <div class="co-tl-day-name">${day.label}${isToday ? ' <span style="margin-left:6px;font-size:10px;color:var(--accent-ink);letter-spacing:0.06em;">HOY</span>' : ''}</div>
-              <div class="co-tl-day-meta">${enabled ? `${dayHrs.toFixed(1)} h` : 'Descanso'}</div>
-            </span>
+            <span class="co-wd-name">${day.label}</span>
           </label>
-        </div>
-        <div class="co-tl-track ${!enabled ? 'disabled' : ''}" data-track="${day.dow}">
-          ${isToday && enabled && nowPct >= 0 && nowPct <= 100 ? `<div class="co-now" style="left:${nowPct}%;"></div>` : ''}
-          ${enabled ? data.slots.map((slot, idx) => {
-            const left = ((slot.start - HOUR_START) / HOURS_RANGE) * 100;
-            const width = ((slot.end - slot.start) / HOURS_RANGE) * 100;
-            return `
-              <div class="co-tl-slot" data-slot="${day.dow}:${idx}" style="left:${left}%;width:${width}%;">
-                <span class="co-slot-time" data-edit-slot="${day.dow}:${idx}">${fmtHour(slot.start)} – ${fmtHour(slot.end)}</span>
-                <span class="co-slot-x" data-del-slot="${day.dow}:${idx}">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </span>
-              </div>
-            `;
-          }).join('') : ''}
-        </div>
-      `;
-    });
+          ${enabled
+            ? `<div class="co-wd-blocks">${blocks}<button type="button" class="co-wd-add" data-add="${day.dow}">+ franja</button></div>`
+            : '<div class="co-wd-rest">No atiende</div>'}
+        </div>`;
+    }).join('');
 
-    root.innerHTML = html;
-
-    // Wire day toggles
     root.querySelectorAll('[data-toggle]').forEach(el => {
       el.addEventListener('click', (e) => {
         e.preventDefault();
-        const dow = Number(el.dataset.toggle);
-        const cur = availability[dow] || { enabled: false, slots: [] };
-        availability[dow] = { ...cur, enabled: !cur.enabled };
-        afterAvailChange();
+        toggleWeekday(Number(el.dataset.toggle));
       });
     });
-
-    // Wire track clicks
-    root.querySelectorAll('[data-track]').forEach(track => {
-      const dow = Number(track.dataset.track);
-      track.addEventListener('click', (e) => {
-        const data = availability[dow];
-        if (!data || !data.enabled) return;
-        // Ignore clicks that originated on a slot child
-        if (e.target.closest('.co-tl-slot')) return;
-        const rect = track.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        let hour = HOUR_START + (x / rect.width) * HOURS_RANGE;
-        hour = Math.round(hour * 2) / 2; // snap 30 min
-        let start = hour;
-        let end = Math.min(hour + 1, HOUR_END);
-        if (end - start < 0.5) return;
-        const overlaps = data.slots.some(s => !(end <= s.start || start >= s.end));
-        if (overlaps) {
-          showToast('Ese horario se solapa con otro bloque');
-          return;
-        }
-        availability[dow] = {
-          ...data,
-          slots: [...data.slots, { start, end }].sort((a, b) => a.start - b.start)
-        };
-        afterAvailChange();
-      });
+    root.querySelectorAll('[data-add]').forEach(el => {
+      el.addEventListener('click', () => addBlock(Number(el.dataset.add)));
     });
-
-    // Wire slot delete
     root.querySelectorAll('[data-del-slot]').forEach(el => {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
-        const [dowStr, idxStr] = el.dataset.delSlot.split(':');
-        const dow = Number(dowStr), idx = Number(idxStr);
+        const [dow, idx] = el.dataset.delSlot.split(':').map(Number);
         const data = availability[dow];
         if (!data) return;
         availability[dow] = { ...data, slots: data.slots.filter((_, i) => i !== idx) };
         afterAvailChange();
       });
     });
-
-    // Wire slot edit (open time picker)
     root.querySelectorAll('[data-edit-slot]').forEach(el => {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
-        const [dowStr, idxStr] = el.dataset.editSlot.split(':');
-        const dow = Number(dowStr), idx = Number(idxStr);
+        const [dow, idx] = el.dataset.editSlot.split(':').map(Number);
         openSlotEditor(dow, idx);
       });
     });
   }
 
+  function toggleWeekday(dow) {
+    const cur = availability[dow] || { enabled: false, slots: [] };
+    const enabled = !cur.enabled;
+    availability[dow] = {
+      enabled,
+      slots: enabled && cur.slots.length === 0
+        ? [{ start: DEFAULT_START, end: DEFAULT_END }]
+        : cur.slots,
+    };
+    afterAvailChange();
+  }
+
+  function addBlock(dow) {
+    const data = availability[dow] || { enabled: true, slots: [] };
+    const last = data.slots[data.slots.length - 1];
+    const start = last ? last.end : DEFAULT_START;
+    const end = Math.min(start + 1, HOUR_END);
+    if (end - start < 0.5) {
+      showToast(`No queda espacio después de las ${fmtHour(HOUR_END)}`);
+      return;
+    }
+    availability[dow] = { ...data, enabled: true, slots: [...data.slots, { start, end }] };
+    afterAvailChange();
+  }
+
   function afterAvailChange() {
-    renderTimeline();
+    renderWeekGrid();
+    renderCalendar();
+    renderDayPanel();
     renderSummary();
     renderWeekRing();
     updateSaveBtn();
+  }
+
+  // ---------- Calendario: estado de cada día ----------
+  // Las horas de un día salen del horario semanal partido en turnos del tamaño
+  // elegido — las mismas que ve el paciente al agendar. La excepción del día
+  // (si existe) solo quita horas o cierra el día entero.
+  function slotsForDate(iso) {
+    const data = availability[dateFromISO(iso).getDay()];
+    if (!data || !data.enabled) return [];
+    const out = new Set();
+    data.slots.forEach(s => {
+      const startMin = Math.round(s.start * 60);
+      const endMin = Math.round(s.end * 60);
+      for (let m = startMin; m + slotDuration <= endMin; m += slotDuration) out.add(minToTime(m));
+    });
+    return [...out].sort();
+  }
+
+  function dayInfo(iso) {
+    const dow = dateFromISO(iso).getDay();
+    const week = availability[dow] || { enabled: false, slots: [] };
+    const ov = overrides[iso] || null;
+    const closed = !!(ov && ov.closed);
+    const blocked = new Set(closed || !ov ? [] : ov.blocked);
+    const times = slotsForDate(iso);
+    const busy = new Map();
+    (apptsByDate[iso] || []).forEach(a => { if (!busy.has(a.time)) busy.set(a.time, a); });
+    const open = times.filter(t => !blocked.has(t)).length;
+
+    let state;
+    if (!week.enabled || times.length === 0) state = 'rest';
+    // Quitar todas las horas deja el día igual de cerrado que cerrarlo entero,
+    // así que en el calendario se ve igual (punto rojo).
+    else if (closed || open === 0) state = 'closed';
+    else if (open < times.length) state = 'partial';
+    else state = 'open';
+
+    return { dow, week, ov, closed, blocked, busy, times, open, state };
+  }
+
+  function renderCalendar() {
+    const grid = document.getElementById('calGrid');
+    const title = document.getElementById('calTitle');
+    if (!grid || !title) return;
+
+    const { y, m } = calView;
+    title.textContent = `${capFirst(MONTH_NAMES[m])} ${y}`;
+    const lead = (new Date(y, m, 1).getDay() + 6) % 7; // la semana empieza en lunes
+    const total = new Date(y, m + 1, 0).getDate();
+    const today = todayISO();
+
+    let html = '';
+    for (let i = 0; i < lead; i++) html += '<span class="co-cal-day is-blank"></span>';
+    for (let d = 1; d <= total; d++) {
+      const iso = `${y}-${pad2(m + 1)}-${pad2(d)}`;
+      const info = dayInfo(iso);
+      const past = iso < today;
+      const cls = ['co-cal-day', `is-${info.state}`];
+      if (iso === today) cls.push('is-today');
+      if (multiMode) {
+        if (multiPicked.has(iso)) cls.push('is-picked');
+      } else if (iso === selectedDate) {
+        cls.push('is-sel');
+      }
+      const count = (apptsByDate[iso] || []).length;
+      const tip = info.state === 'rest' ? 'No atiende'
+        : info.state === 'closed' ? 'Día cerrado'
+        : info.state === 'partial' ? `${info.open} de ${info.times.length} horas disponibles`
+        : `${info.times.length} horas disponibles`;
+      html += `
+        <button type="button" class="${cls.join(' ')}" data-date="${iso}" ${past ? 'disabled' : ''} title="${tip}">
+          ${d}${count ? `<span class="n">${count}</span>` : ''}<span class="st"></span>
+        </button>`;
+    }
+    grid.innerHTML = html;
+
+    grid.querySelectorAll('[data-date]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const iso = btn.dataset.date;
+        if (multiMode) {
+          if (multiPicked.has(iso)) multiPicked.delete(iso); else multiPicked.add(iso);
+        } else {
+          selectedDate = iso;
+        }
+        renderCalendar();
+        renderDayPanel();
+      });
+    });
+  }
+
+  function setMultiMode(on) {
+    multiMode = on;
+    multiPicked.clear();
+    const btn = document.getElementById('multiToggle');
+    const label = document.getElementById('multiToggleLabel');
+    if (btn) btn.classList.toggle('on', on);
+    if (label) label.textContent = on ? 'Salir de la selección' : 'Cerrar varios días';
+    renderCalendar();
+    renderDayPanel();
+  }
+
+  // ---------- Panel del día seleccionado ----------
+  function saveStateHTML() {
+    if (overrideSaveState === 'saving') return '<span class="co-save-state">Guardando…</span>';
+    if (overrideSaveState === 'saved') return '<span class="co-save-state">Guardado ✓</span>';
+    return '';
+  }
+
+  function renderDayPanel() {
+    const titleEl = document.getElementById('dayTitle');
+    const subEl = document.getElementById('daySub');
+    const actionsEl = document.getElementById('dayActions');
+    const slotsEl = document.getElementById('daySlots');
+    if (!titleEl || !subEl || !actionsEl || !slotsEl) return;
+    if (!selectedDate) selectedDate = todayISO();
+    if (multiMode) return renderMultiPanel(titleEl, subEl, actionsEl, slotsEl);
+
+    const iso = selectedDate;
+    const info = dayInfo(iso);
+    const meta = dayMeta(info.dow);
+    const past = iso < todayISO();
+    titleEl.textContent = capFirst(fmtDateLong(dateFromISO(iso)));
+
+    let badge, sub;
+    if (!info.week.enabled) {
+      badge = '<span class="co-badge rest">No atiende</span>';
+      sub = `No trabaja ${meta.plural}.`;
+    } else if (info.times.length === 0) {
+      badge = '<span class="co-badge rest">Sin franjas</span>';
+      sub = `${capFirst(meta.plural)} no tiene ninguna franja horaria.`;
+    } else if (info.closed) {
+      badge = '<span class="co-badge off">Día cerrado</span>';
+      sub = 'Nadie puede reservar en todo el día.';
+    } else if (info.open === 0) {
+      badge = '<span class="co-badge off">Sin horas libres</span>';
+      sub = 'Quitaste todas las horas de este día.';
+    } else if (info.open < info.times.length) {
+      badge = '<span class="co-badge warn">Horario distinto</span>';
+      sub = `${info.open} de ${info.times.length} turnos disponibles`;
+    } else {
+      badge = '<span class="co-badge ok">Horario normal</span>';
+      sub = `${info.times.length} turnos de ${slotDuration} min`;
+    }
+    const conCita = info.times.filter(t => info.busy.has(t)).length;
+    if (conCita && !info.closed && info.week.enabled) {
+      sub += ` · ${conCita} con cita`;
+    }
+    subEl.innerHTML = `${badge}<span>${sub}</span>${saveStateHTML()}`;
+
+    // Acciones
+    let actions = '';
+    if (past) {
+      actions = '';
+    } else if (!info.week.enabled) {
+      actions = `<button type="button" class="co-mini-btn" data-enable-dow="${info.dow}">Atender ${meta.plural}</button>`;
+    } else if (info.closed) {
+      actions = '<button type="button" class="co-mini-btn" data-reopen="1">Reabrir el día</button>';
+      if (info.ov) actions += '<button type="button" class="co-mini-btn" data-reset="1">Quitar cambios</button>';
+    } else {
+      actions = '<button type="button" class="co-mini-btn danger" data-close="1">Cerrar el día</button>';
+      // Cerrar de una hora en adelante: lo típico de "me voy y no atiendo más hoy".
+      if (iso === todayISO()) {
+        actions += '<button type="button" class="co-mini-btn" data-block-now="1">De ahora en adelante</button>';
+      }
+      actions += '<button type="button" class="co-mini-btn" data-block-from="1">Desde una hora…</button>';
+      if (info.ov) actions += '<button type="button" class="co-mini-btn" data-reset="1">Quitar cambios</button>';
+    }
+    actionsEl.innerHTML = actions;
+
+    // Horas
+    if (!info.week.enabled) {
+      slotsEl.innerHTML = `<div class="co-day-note">
+        <span>No atiende ${meta.plural}. Activalo arriba, en «Días que atiende», para poder abrir este día.</span>
+      </div>`;
+    } else if (info.times.length === 0) {
+      slotsEl.innerHTML = `<div class="co-day-note">
+        <span>${capFirst(meta.plural)} no tiene franjas horarias. Añadí una en «Días que atiende» y las horas aparecen acá.</span>
+      </div>`;
+    } else if (info.closed) {
+      slotsEl.innerHTML = `<div class="co-day-note">
+        <span>Día cerrado: no se ofrece ninguna hora en el enlace público.</span>
+        ${past ? '' : '<button type="button" class="co-mini-btn" data-reopen="1">Reabrir el día</button>'}
+      </div>`;
+    } else {
+      const groups = [
+        { title: 'Mañana', times: info.times.filter(t => Number(t.slice(0, 2)) < 12) },
+        { title: 'Tarde', times: info.times.filter(t => Number(t.slice(0, 2)) >= 12) },
+      ].filter(g => g.times.length);
+
+      slotsEl.innerHTML = `<div class="co-slot-groups">${groups.map(g => {
+        const libres = g.times.filter(t => !info.blocked.has(t) && !info.busy.has(t)).length;
+        return `
+          <div>
+            <div class="co-slot-group-head">
+              <div class="co-slot-group-title">${g.title}</div>
+              <div class="co-slot-group-count">${libres} libres</div>
+            </div>
+            <div class="co-slot-grid">
+              ${g.times.map(t => {
+                const appt = info.busy.get(t);
+                const off = info.blocked.has(t);
+                const cls = appt ? 'is-busy' : (off ? 'is-off' : 'is-on');
+                const note = appt ? 'Cita' : (off ? 'No disp.' : '');
+                const tip = appt
+                  ? `Cita de ${appt.patient || 'un paciente'} a las ${t}`
+                  : (off ? 'Tocá para volver a ofrecer esta hora' : 'Tocá para marcarla no disponible');
+                return `<button type="button" class="co-slot ${cls}" data-time="${t}" ${past ? 'disabled' : ''} title="${esc(tip)}">
+                  <span class="h">${t}</span>${note ? `<small>${note}</small>` : ''}
+                </button>`;
+              }).join('')}
+            </div>
+          </div>`;
+      }).join('')}</div>`;
+    }
+
+    // Wiring
+    slotsEl.querySelectorAll('[data-time]').forEach(btn => {
+      btn.addEventListener('click', () => toggleSlot(iso, btn.dataset.time));
+    });
+    [actionsEl, slotsEl].forEach(root => {
+      const enableBtn = root.querySelector('[data-enable-dow]');
+      if (enableBtn) enableBtn.addEventListener('click', () => toggleWeekday(Number(enableBtn.dataset.enableDow)));
+      const closeBtn = root.querySelector('[data-close]');
+      if (closeBtn) closeBtn.addEventListener('click', () => applyOverride(iso, { closed: true, blocked: [] }));
+      const reopenBtn = root.querySelector('[data-reopen]');
+      if (reopenBtn) reopenBtn.addEventListener('click', () => applyOverride(iso, { closed: false, blocked: [] }));
+      const resetBtn = root.querySelector('[data-reset]');
+      if (resetBtn) resetBtn.addEventListener('click', () => applyOverride(iso, { closed: false, blocked: [] }));
+      const nowBtn = root.querySelector('[data-block-now]');
+      if (nowBtn) nowBtn.addEventListener('click', () => {
+        const now = new Date();
+        blockFromHour(iso, now.getHours() + now.getMinutes() / 60);
+      });
+      const fromBtn = root.querySelector('[data-block-from]');
+      if (fromBtn) fromBtn.addEventListener('click', () => openBlockFromPicker(iso));
+    });
+  }
+
+  // Bloquear de una hora en adelante: quita todas las horas del día desde ahí,
+  // sin tocar las que ya tienen cita agendada.
+  function blockFromHour(iso, hour) {
+    const info = dayInfo(iso);
+    if (!info.times.length) { showToast('Este día no tiene horas que quitar'); return; }
+    const cutoff = Math.round(hour * 60);
+    const blocked = new Set(info.blocked);
+    let añadidas = 0;
+    info.times.forEach(t => {
+      const [h, m] = t.split(':').map(Number);
+      if (h * 60 + m < cutoff) return;
+      if (info.busy.has(t)) return;      // ya hay cita: se respeta
+      if (!blocked.has(t)) añadidas++;
+      blocked.add(t);
+    });
+    if (!añadidas) { showToast('No quedan horas libres desde esa hora'); return; }
+    applyOverride(iso, { closed: false, blocked: [...blocked].sort() });
+    showToast(`${añadidas} hora${añadidas === 1 ? '' : 's'} quitada${añadidas === 1 ? '' : 's'}`);
+  }
+
+  function openBlockFromPicker(iso) {
+    const info = dayInfo(iso);
+    const first = info.times[0] || '08:00';
+    const now = new Date();
+    const base = iso === todayISO() ? now.getHours() + now.getMinutes() / 60 : parseHour(first);
+    blockFromState = { iso };
+    openPicker(base, 'Bloquear desde esta hora');
+  }
+
+  // ---------- Selección de varios días ----------
+  function renderMultiPanel(titleEl, subEl, actionsEl, slotsEl) {
+    const dates = [...multiPicked].sort();
+    const cerrados = dates.filter(d => (overrides[d] || {}).closed).length;
+    titleEl.textContent = 'Cerrar varios días';
+    subEl.innerHTML = dates.length
+      ? `<span class="co-badge warn">${dates.length} seleccionado${dates.length === 1 ? '' : 's'}</span>
+         <span>Se cierran enteros: no se ofrece ninguna hora.</span>${saveStateHTML()}`
+      : `<span class="co-badge rest">Ninguno</span><span>Tocá en el calendario los días que querés cerrar.</span>`;
+
+    let actions = '';
+    if (dates.length) {
+      actions += `<button type="button" class="co-mini-btn danger" data-multi-close="1">Cerrar ${dates.length} día${dates.length === 1 ? '' : 's'}</button>`;
+      if (cerrados) actions += `<button type="button" class="co-mini-btn" data-multi-open="1">Reabrir ${cerrados}</button>`;
+    }
+    actions += '<button type="button" class="co-mini-btn" data-multi-cancel="1">Salir</button>';
+    actionsEl.innerHTML = actions;
+
+    slotsEl.innerHTML = dates.length
+      ? `<div class="co-day-dates">${dates.map(d => {
+          const dt = dateFromISO(d);
+          const cerrado = (overrides[d] || {}).closed;
+          return `<span class="co-day-date-chip">${dt.getDate()} ${MONTH_NAMES[dt.getMonth()].slice(0, 3)}${cerrado ? ' · cerrado' : ''}</span>`;
+        }).join('')}</div>`
+      : `<div class="co-day-note"><span>Ideal para vacaciones o un congreso: tocá los días y cerralos de una sola vez.</span></div>`;
+
+    const closeBtn = actionsEl.querySelector('[data-multi-close]');
+    if (closeBtn) closeBtn.addEventListener('click', () => {
+      applyOverridesBulk(dates, { closed: true, blocked: [] });
+      showToast(`${dates.length} día${dates.length === 1 ? '' : 's'} cerrado${dates.length === 1 ? '' : 's'}`);
+    });
+    const openBtn = actionsEl.querySelector('[data-multi-open]');
+    if (openBtn) openBtn.addEventListener('click', () => {
+      applyOverridesBulk(dates, { closed: false, blocked: [] });
+      showToast('Días reabiertos');
+    });
+    const cancelBtn = actionsEl.querySelector('[data-multi-cancel]');
+    if (cancelBtn) cancelBtn.addEventListener('click', () => setMultiMode(false));
+  }
+
+  function toggleSlot(iso, time) {
+    const info = dayInfo(iso);
+    if (info.busy.has(time)) {
+      showToast(`Ya hay una cita agendada a las ${time}`);
+      return;
+    }
+    const blocked = new Set(info.blocked);
+    if (blocked.has(time)) blocked.delete(time); else blocked.add(time);
+    applyOverride(iso, { closed: false, blocked: [...blocked].sort() });
+  }
+
+  // ---------- Excepciones por fecha (se guardan solas) ----------
+  let overrideSaveState = '';
+  const dirtyDates = new Set();
+  let savingLoop = null;
+
+  function applyOverride(iso, next) {
+    if (next.closed || next.blocked.length) {
+      overrides[iso] = { closed: !!next.closed, blocked: next.closed ? [] : next.blocked };
+    } else {
+      delete overrides[iso];
+    }
+    renderCalendar();
+    renderDayPanel();
+    queueOverrideSave(iso);
+  }
+
+  function queueOverrideSave(iso) {
+    dirtyDates.add(iso);
+    overrideSaveState = 'saving';
+    renderDayPanel();
+    if (!savingLoop) savingLoop = runSaveLoop();
+  }
+
+  // Varios días de una vez (el bucle de guardado ya va fecha por fecha).
+  function applyOverridesBulk(dates, next) {
+    dates.forEach(iso => {
+      if (next.closed || next.blocked.length) {
+        overrides[iso] = { closed: !!next.closed, blocked: next.closed ? [] : next.blocked };
+      } else {
+        delete overrides[iso];
+      }
+      dirtyDates.add(iso);
+    });
+    overrideSaveState = 'saving';
+    renderCalendar();
+    renderDayPanel();
+    if (!savingLoop) savingLoop = runSaveLoop();
+  }
+
+  async function runSaveLoop() {
+    await new Promise(r => setTimeout(r, 350)); // agrupa clicks seguidos
+    while (dirtyDates.size) {
+      const iso = dirtyDates.values().next().value;
+      dirtyDates.delete(iso);
+      const cur = overrides[iso] || { closed: false, blocked: [] };
+      try {
+        const body = { date: iso, closed: cur.closed, blocked_times: cur.blocked };
+        if (userRole === 'clinic_admin' && currentDoctorId) body.doctor_id = currentDoctorId;
+        await api('/api/doctor-availability/overrides', { method: 'PUT', body });
+      } catch (e) {
+        dirtyDates.clear();
+        savingLoop = null;
+        overrideSaveState = '';
+        showToast('No se pudo guardar: ' + e.message);
+        await loadOverrides();
+        renderCalendar();
+        renderDayPanel();
+        return;
+      }
+    }
+    savingLoop = null;
+    overrideSaveState = 'saved';
+    renderDayPanel();
+    setTimeout(() => {
+      if (overrideSaveState !== 'saved') return;
+      overrideSaveState = '';
+      renderDayPanel();
+    }, 2400);
   }
 
   function renderSummary() {
@@ -1630,7 +2181,7 @@
       if (!a || !a.enabled) return;
       a.slots.forEach(s => {
         h += (s.end - s.start);
-        slots += Math.floor((s.end - s.start) * 2);
+        slots += Math.floor(((s.end - s.start) * 60) / slotDuration);
       });
     });
     document.getElementById('totalHrs').textContent = h.toFixed(1);
@@ -1638,7 +2189,8 @@
   }
 
   function isDirty() {
-    return JSON.stringify(availability) !== JSON.stringify(savedAvailability);
+    return JSON.stringify(availability) !== JSON.stringify(savedAvailability)
+      || slotDuration !== savedSlotDuration;
   }
   function updateSaveBtn() {
     const dirty = isDirty();
@@ -1651,6 +2203,7 @@
 
   // ---------- Slot editor via existing time-picker modal ----------
   let editorState = null;
+  let blockFromState = null;   // { iso } mientras se elige "bloquear desde…"
   function openSlotEditor(dow, idx) {
     const slot = availability[dow]?.slots[idx];
     if (!slot) return;
@@ -2014,7 +2567,7 @@
     }
   }
 
-  async function saveAvailability() {
+  async function saveAvailability({ silent = false } = {}) {
     const payload = [];
     DAYS.forEach(d => {
       const data = availability[d.dow];
@@ -2024,7 +2577,7 @@
           day_of_week: d.dow,
           start_time: fmtHour(s.start),
           end_time: fmtHour(s.end),
-          slot_duration: 30,
+          slot_duration: slotDuration,
           enabled: true,
         });
       });
@@ -2034,10 +2587,13 @@
       if (userRole === 'clinic_admin' && currentDoctorId) body.doctor_id = currentDoctorId;
       await api('/api/doctor-availability', { method: 'PUT', body });
       savedAvailability = JSON.parse(JSON.stringify(availability));
+      savedSlotDuration = slotDuration;
       updateSaveBtn();
-      showToast('Disponibilidad guardada');
+      if (!silent) showToast('Disponibilidad guardada');
+      return true;
     } catch (e) {
-      showToast('Error al guardar: ' + e.message);
+      if (!silent) showToast('Error al guardar: ' + e.message);
+      return false;
     }
   }
 
@@ -2050,6 +2606,22 @@
       const rows = await api(url);
       const map = {};
       DAYS.forEach(d => { map[d.dow] = { enabled: false, slots: [] }; });
+
+      if (rows.length === 0) {
+        // Nunca configuró nada: todos los días abiertos con el horario por
+        // defecto, y lo dejamos guardado para que el enlace público ya funcione.
+        DAYS.forEach(d => { map[d.dow] = { enabled: true, slots: [{ start: DEFAULT_START, end: DEFAULT_END }] }; });
+        slotDuration = DEFAULT_DURATION;
+        availability = map;
+        savedAvailability = {};
+        savedSlotDuration = null;
+        renderAvailabilityUI();
+        const ok = await saveAvailability({ silent: true });
+        if (ok) showToast(`Horario por defecto: todos los días de ${fmtHour(DEFAULT_START)} a ${fmtHour(DEFAULT_END)}`);
+        renderAvailabilityUI();
+        return;
+      }
+
       rows.forEach(r => {
         const start = parseHour(r.start_time);
         const end = parseHour(r.end_time);
@@ -2058,17 +2630,93 @@
         map[r.day_of_week].slots.push({ start, end });
       });
       Object.keys(map).forEach(k => map[k].slots.sort((a, b) => a.start - b.start));
+      slotDuration = Number(rows[0].slot_duration) || DEFAULT_DURATION;
+      savedSlotDuration = slotDuration;
       availability = map;
       savedAvailability = JSON.parse(JSON.stringify(map));
-      renderTimeline();
-      renderSummary();
-      renderWeekRing();
-      updateSaveBtn();
+      renderAvailabilityUI();
     } catch (e) {
       console.error(e);
-      document.getElementById('timeline').innerHTML =
-        '<p class="co-empty" style="grid-column:1/-1;">Error al cargar disponibilidad</p>';
+      showToast('Error al cargar la disponibilidad');
     }
+  }
+
+  function renderAvailabilityUI() {
+    syncDurationSelect();
+    renderWeekGrid();
+    renderCalendar();
+    renderDayPanel();
+    renderSummary();
+    renderWeekRing();
+    updateSaveBtn();
+  }
+
+  function syncDurationSelect() {
+    const sel = document.getElementById('durationSelect');
+    if (!sel) return;
+    const options = DURATIONS.includes(slotDuration) ? DURATIONS : [...DURATIONS, slotDuration].sort((a, b) => a - b);
+    sel.innerHTML = options.map(d => `<option value="${d}">Citas de ${d} min</option>`).join('');
+    sel.value = String(slotDuration);
+  }
+
+  // Excepciones del mes visible. Se recargan al cambiar de mes o de doctor.
+  async function loadOverrides() {
+    const from = isoOf(new Date(calView.y, calView.m, 1));
+    const to = isoOf(new Date(calView.y, calView.m + 1, 0));
+    try {
+      const params = new URLSearchParams({ from, to });
+      if (userRole === 'clinic_admin' && currentDoctorId) params.set('doctor_id', currentDoctorId);
+      const rows = await api(`/api/doctor-availability/overrides?${params.toString()}`);
+      Object.keys(overrides).forEach(k => { if (k >= from && k <= to) delete overrides[k]; });
+      rows.forEach(r => { overrides[r.date] = { closed: !!r.closed, blocked: r.blocked_times || [] }; });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // Citas ya agendadas: se pintan como ocupadas y no se pueden bloquear.
+  async function loadAppointments() {
+    try {
+      const rows = await api('/api/appointments/calendar');
+      const docId = userRole === 'clinic_admin' ? currentDoctorId : userId;
+      const map = {};
+      rows.forEach(r => {
+        if (r.status === 'cancelled') return;
+        if (docId && Number(r.doctor_id) !== Number(docId)) return;
+        const dt = new Date(r.scheduled_at);
+        if (isNaN(dt.getTime())) return;
+        const iso = isoOf(dt);
+        (map[iso] = map[iso] || []).push({ time: fmtTime(dt), patient: r.patient_name || '', status: r.status });
+      });
+      apptsByDate = map;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // Abrir directamente en un día que se trabaje: si hoy es descanso, el
+  // siguiente que tenga horas. Así el panel nunca arranca vacío.
+  function pickInitialDate() {
+    const now = new Date();
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+      const iso = isoOf(d);
+      if (slotsForDate(iso).length) {
+        selectedDate = iso;
+        calView = { y: d.getFullYear(), m: d.getMonth() };
+        return;
+      }
+    }
+    selectedDate = todayISO();
+    calView = { y: now.getFullYear(), m: now.getMonth() };
+  }
+
+  async function reloadDoctorData() {
+    await loadAvailability();
+    pickInitialDate();
+    await Promise.all([loadOverrides(), loadAppointments()]);
+    renderCalendar();
+    renderDayPanel();
   }
 
   async function loadStats() {
@@ -2096,7 +2744,11 @@
     try {
       const me = await api('/api/auth/me');
       userRole = me.role;
+      userId = me.id;
       clinicId = me.clinic_id;
+
+      selectedDate = todayISO();
+      calView = { y: new Date().getFullYear(), m: new Date().getMonth() };
 
       renderShareLink();
 
@@ -2113,11 +2765,16 @@
         }
         sel.addEventListener('change', () => {
           currentDoctorId = parseInt(sel.value);
-          loadAvailability();
+          overrides = {};
+          reloadDoctorData();
         });
       }
 
       await Promise.all([loadStats(), loadAvailability()]);
+      pickInitialDate();
+      await Promise.all([loadOverrides(), loadAppointments()]);
+      renderCalendar();
+      renderDayPanel();
       document.getElementById('loadingOverlay').classList.add('hidden');
 
       setInterval(loadStats, 5000);
@@ -2146,10 +2803,25 @@
       navigator.clipboard?.writeText(link).then(() => showToast('Link copiado'));
     }
   });
-  document.getElementById('saveBtn').addEventListener('click', saveAvailability);
+  document.getElementById('saveBtn').addEventListener('click', () => saveAvailability());
   document.getElementById('searchInput').addEventListener('input', (e) => {
     queryStr = e.target.value;
     renderAppts();
+  });
+
+  // Calendario: navegación de mes y duración de los turnos
+  function shiftMonth(delta) {
+    const d = new Date(calView.y, calView.m + delta, 1);
+    calView = { y: d.getFullYear(), m: d.getMonth() };
+    renderCalendar();
+    loadOverrides().then(renderCalendar);
+  }
+  document.getElementById('calPrev').addEventListener('click', () => shiftMonth(-1));
+  document.getElementById('calNext').addEventListener('click', () => shiftMonth(1));
+  document.getElementById('multiToggle').addEventListener('click', () => setMultiMode(!multiMode));
+  document.getElementById('durationSelect').addEventListener('change', (e) => {
+    slotDuration = Number(e.target.value) || DEFAULT_DURATION;
+    afterAvailChange();
   });
 
   // Time picker wiring
@@ -2159,9 +2831,17 @@
   document.getElementById('minuteDown').addEventListener('click', () => { pickerMinute = (pickerMinute - 30 + 60) % 60; updatePickerDisplay(); });
   document.getElementById('timepickerCancel').addEventListener('click', () => {
     editorState = null;
+    blockFromState = null;
     closePicker();
   });
   document.getElementById('timepickerConfirm').addEventListener('click', () => {
+    if (blockFromState) {
+      const { iso } = blockFromState;
+      blockFromState = null;
+      closePicker();
+      blockFromHour(iso, pickerHour + pickerMinute / 60);
+      return;
+    }
     if (!editorState) { closePicker(); return; }
     const value = pickerHour + pickerMinute / 60;
     if (editorState.mode === 'start') {
