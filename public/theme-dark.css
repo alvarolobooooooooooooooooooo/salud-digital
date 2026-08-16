@@ -3869,23 +3869,56 @@ html[data-theme="dark"] .co-page {
     0 32px 80px -40px rgba(0, 0, 0, .65);
 
   /* ── Receta de cristal de las tarjetas ──────────────────────────
-     El tinte cian se ancla FUERA de la tarjeta (at 6% -20%) y muere
-     recién en el 100%: así solo se ve la cola suave del degradado y
-     no el borde duro del blob, que era lo que se leía como "pintado
+     El tinte cian se ancla FUERA de la tarjeta (at 6% -25%) y muere
+     antes de llegar abajo: así solo se ve la cola suave del degradado
+     y no el borde duro del blob, que era lo que se leía como "pintado
      encima". El brillo va por el borde superior, no cruzando la
-     tarjeta en diagonal. */
+     tarjeta en diagonal.
+
+     Sobre un fondo casi negro un degradado así recorre ~14 valores de
+     8 bits en 500 px: sale a un escalón cada 36 px y se ve a rayas.
+     Contra eso van dos cosas: (a) muchas paradas intermedias, para
+     que la caída sea rápida arriba y plana abajo en vez de una rampa
+     larguísima de pendiente mínima —los tramos planos no bandean—, y
+     (b) --co-glass-grain, una capa de ruido que rompe los escalones
+     igual que el dithering de toda la vida. Sin el grano no hay
+     degradado suave posible a estas amplitudes. */
   --co-glass-fill: rgba(24, 24, 28, .55);
+  /* Amplitud, no solo suavidad: a .16 el degradado recorría 5 niveles de
+     8 bits en toda la tarjeta, y una rampa tan plana sale a rayas por
+     poco que se estire. Subida a .30 y con la caída más corta, recorre
+     ~18 niveles: los escalones quedan estrechos y el grano se los come. */
   --co-glass-tint:
-    radial-gradient(140% 180% at 6% -20%,
-      rgba(8, 145, 178, .13) 0%,
-      rgba(8, 145, 178, .05) 34%,
-      rgba(8, 145, 178, .015) 62%,
-      transparent 100%);
+    radial-gradient(105% 115% at 4% -18%,
+      rgba(8, 145, 178, .30) 0%,
+      rgba(8, 145, 178, .185) 16%,
+      rgba(8, 145, 178, .10) 33%,
+      rgba(8, 145, 178, .045) 52%,
+      rgba(8, 145, 178, .014) 72%,
+      rgba(8, 145, 178, 0) 90%);
   --co-glass-sheen:
     linear-gradient(180deg,
-      rgba(255, 255, 255, .05) 0%,
-      rgba(255, 255, 255, .012) 16%,
-      transparent 42%);
+      rgba(255, 255, 255, .055) 0%,
+      rgba(255, 255, 255, .022) 7%,
+      rgba(255, 255, 255, .008) 17%,
+      rgba(255, 255, 255, .002) 30%,
+      rgba(255, 255, 255, 0) 44%);
+  /* Grano de dither, calibrado a ojo de calculadora y no de diseñador:
+     los escalones del degradado son de 1 nivel de 8 bits, así que el
+     ruido tiene que valer ±1 nivel. Gris medio (127) al 1.4% sobre un
+     fondo de nivel ~15 perturba ±1.1 y sube la media +1.3: justo para
+     romper las rayas sin que se vea grano ni se desluzca la tarjeta.
+     A 3.8% ya se iba a #16181b, y en `overlay` —que sería de media
+     cero— la mezcla contra un fondo translúcido devuelve el gris del
+     ruido tal cual y la tarjeta acaba en #67686c. Por eso: mezcla
+     normal y opacidad muy baja. feFuncA fija alfa a 1 para que la
+     única variable sea la opacidad del rect, y color-interpolation-
+     filters='sRGB' es obligatorio: los filtros SVG trabajan en
+     linearRGB por defecto, con lo que el gris medio del ruido sale a
+     pantalla como nivel ~188 en vez de 127 y aclara el triple de lo
+     que dicen las cuentas. */
+  --co-glass-grain:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.02'/%3E%3C/svg%3E");
   --co-glass-blur: saturate(150%) blur(28px);
   --co-glass-rim:
     linear-gradient(155deg,
@@ -3904,11 +3937,22 @@ html[data-theme="dark"] .co-page {
 html[data-theme="dark"] .co-page::before {
   inset: 0 !important;
   border-radius: 0 !important;
+  /* mismo grano encima: estos lavados cubren toda la página, así que son
+     los que peor bandean de todos si se dejan lisos */
   background:
-    radial-gradient(620px 460px at 8% -6%, rgba(8, 145, 178, .09), transparent 65%),
-    radial-gradient(540px 420px at 96% 4%, rgba(14, 165, 233, .07), transparent 65%),
-    radial-gradient(720px 560px at 100% 52%, rgba(59, 130, 246, .045), transparent 70%),
-    radial-gradient(680px 520px at 0% 70%, rgba(6, 182, 212, .06), transparent 68%) !important;
+    var(--co-glass-grain),
+    radial-gradient(620px 460px at 8% -6%,
+      rgba(8, 145, 178, .09) 0%, rgba(8, 145, 178, .035) 32%,
+      rgba(8, 145, 178, .01) 52%, rgba(8, 145, 178, 0) 70%),
+    radial-gradient(540px 420px at 96% 4%,
+      rgba(14, 165, 233, .07) 0%, rgba(14, 165, 233, .028) 32%,
+      rgba(14, 165, 233, .008) 52%, rgba(14, 165, 233, 0) 70%),
+    radial-gradient(720px 560px at 100% 52%,
+      rgba(59, 130, 246, .045) 0%, rgba(59, 130, 246, .018) 34%,
+      rgba(59, 130, 246, .005) 55%, rgba(59, 130, 246, 0) 74%),
+    radial-gradient(680px 520px at 0% 70%,
+      rgba(6, 182, 212, .06) 0%, rgba(6, 182, 212, .024) 32%,
+      rgba(6, 182, 212, .007) 52%, rgba(6, 182, 212, 0) 72%) !important;
 }
 html[data-theme="dark"] .co-page::after {
   opacity: .25 !important;
@@ -3926,7 +3970,7 @@ html[data-theme="dark"] .co-page::after {
 html[data-theme="dark"] .co-kpi,
 html[data-theme="dark"] .co-insight,
 html[data-theme="dark"] .co-card {
-  background-image: var(--co-glass-sheen), var(--co-glass-tint) !important;
+  background-image: var(--co-glass-grain), var(--co-glass-sheen), var(--co-glass-tint) !important;
   background-color: var(--co-glass-fill) !important;
   border: 1px solid rgba(255, 255, 255, .055) !important;
   box-shadow: var(--co-glass-cast) !important;
@@ -4530,7 +4574,7 @@ html[data-theme="dark"] .co-icon-btn:hover {
 /* QR card — same dashboard glass + cyan-glow recipe as the other cards; the
    inner QR frame stays white below for scannability. */
 html[data-theme="dark"] .co-qr-card {
-  background-image: var(--co-glass-sheen), var(--co-glass-tint) !important;
+  background-image: var(--co-glass-grain), var(--co-glass-sheen), var(--co-glass-tint) !important;
   /* va encima de otro cristal (.co-share): un pelo más de cuerpo para que
      el QR no se hunda en la tarjeta madre */
   background-color: rgba(30, 30, 34, .5) !important;
