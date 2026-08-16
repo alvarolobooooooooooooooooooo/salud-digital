@@ -479,7 +479,16 @@ const initDb = async () => {
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS geocoded_at TIMESTAMP',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS show_on_public_map BOOLEAN DEFAULT TRUE',
-      'CREATE INDEX IF NOT EXISTS idx_clinics_geo ON clinics(latitude, longitude) WHERE latitude IS NOT NULL'
+      'CREATE INDEX IF NOT EXISTS idx_clinics_geo ON clinics(latitude, longitude) WHERE latitude IS NOT NULL',
+      // Ubicación marcada a mano por la clínica (Configuración › Ubicación y paso
+      // del alta). location_source = 'manual' significa "el pin lo puso una
+      // persona": el geocoder NUNCA lo pisa, aunque cambie la dirección escrita.
+      // map_url guarda el enlace de Google Maps que pegó la clínica (se muestra
+      // tal cual al paciente si existe, porque suele apuntar al local exacto).
+      // location_notes son referencias para llegar ("edificio azul, 2º piso").
+      "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS map_url TEXT DEFAULT ''",
+      "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS location_notes TEXT DEFAULT ''",
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS location_source TEXT'
     ];
 
     // Leads (formulario de contacto público de la landing). Se modelan como tabla aparte

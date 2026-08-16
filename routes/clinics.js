@@ -5,7 +5,8 @@ const cloudinary = require('cloudinary').v2;
 const { v4: uuid } = require('uuid');
 const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
-const { geocodeAndStore } = require('../lib/geocoding');
+const { geocodeAndStore, searchAddress } = require('../lib/geocoding');
+const { parseMapsUrl, resolveMapsShortLink, isValidLatLng } = require('../lib/maps-links');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -86,12 +87,106 @@ router.get('/me', authenticate, async (req, res) => {
   const result = await query(
     `SELECT id, name, type, tax_id, address, city, phone, email, info,
             brand_color, currency, website, logo_url,
-            latitude, longitude, show_on_public_map
+            latitude, longitude, show_on_public_map,
+            map_url, location_notes, location_source
        FROM clinics WHERE id = $1`,
     [req.user.clinic_id]
   );
   if (result.rows.length === 0) return res.status(404).json({ error: 'Clínica no encontrada' });
   res.json(result.rows[0]);
+});
+
+// ── Ubicación de la clínica ──────────────────────────────────────────────────
+// El pin lo edita quien atiende: clinic_admin (clínicas con varios doctores) y
+// doctor (el alta por cuenta propia crea doctores dueños de su propio consultorio,
+// así que si solo dejáramos clinic_admin no podrían corregir su propia ubicación).
+// Recepción no entra: no es dato suyo.
+const LOCATION_ROLES = ['clinic_admin', 'doctor'];
+
+// PUT /api/clinics/me/location — guarda dirección + pin del mapa
+router.put('/me/location', authenticate, requireRole(...LOCATION_ROLES), async (req, res) => {
+  if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
+
+  const b = req.body || {};
+  const address = String(b.address || '').trim().slice(0, 300);
+  const city = String(b.city || '').trim().slice(0, 120);
+  const notes = String(b.location_notes || '').trim().slice(0, 500);
+  const mapUrl = String(b.map_url || '').trim().slice(0, 600);
+
+  if (mapUrl && !/^https?:\/\//i.test(mapUrl)) {
+    return res.status(400).json({ error: 'El enlace del mapa debe comenzar con http:// o https://' });
+  }
+
+  // Coordenadas: o vienen las dos y son válidas, o se limpia el pin.
+  const hasCoords = b.latitude != null && b.longitude != null &&
+    String(b.latitude) !== '' && String(b.longitude) !== '';
+  if (hasCoords && !isValidLatLng(b.latitude, b.longitude)) {
+    return res.status(400).json({ error: 'Las coordenadas no son válidas.' });
+  }
+  const lat = hasCoords ? Number(b.latitude) : null;
+  const lng = hasCoords ? Number(b.longitude) : null;
+
+  const showOnMap = typeof b.show_on_public_map === 'boolean' ? b.show_on_public_map : null;
+  const showSql = showOnMap === null ? '' : ', show_on_public_map = $8';
+  const params = [
+    address, city, notes, mapUrl, lat, lng,
+    req.user.clinic_id,
+  ];
+  if (showOnMap !== null) params.push(showOnMap);
+
+  await query(
+    `UPDATE clinics SET
+       address = $1, city = $2, location_notes = $3, map_url = $4,
+       latitude = $5, longitude = $6,
+       location_source = CASE WHEN $5::double precision IS NULL THEN NULL ELSE 'manual' END,
+       geocoded_at = NOW()${showSql}
+     WHERE id = $7`,
+    params
+  );
+
+  // Sin pin pero con dirección escrita: dejamos que Nominatim intente resolverla
+  // en segundo plano, igual que hace el PUT general de la clínica.
+  if (!hasCoords && (address || city)) {
+    await query('UPDATE clinics SET geocoded_at = NULL WHERE id = $1', [req.user.clinic_id]);
+    setImmediate(() => {
+      geocodeAndStore(req.user.clinic_id, { address, city })
+        .catch(err => console.warn('[geocode] failed for clinic', req.user.clinic_id, err.message));
+    });
+  }
+
+  res.json({
+    success: true,
+    latitude: lat,
+    longitude: lng,
+    location_source: hasCoords ? 'manual' : null,
+  });
+});
+
+// GET /api/clinics/geo/search?q=… — autocompletado de direcciones (Nominatim vía
+// servidor, para no exponer al navegador ni saltarse el rate limit de su ToS).
+router.get('/geo/search', authenticate, requireRole(...LOCATION_ROLES), async (req, res) => {
+  const q = String(req.query.q || '').trim();
+  if (q.length < 3) return res.json({ results: [] });
+  const results = await searchAddress(q, 6);
+  res.json({ results });
+});
+
+// GET /api/clinics/geo/resolve?url=… — convierte un enlace de Google Maps (incluidos
+// los acortados de "Compartir") en coordenadas.
+router.get('/geo/resolve', authenticate, requireRole(...LOCATION_ROLES), async (req, res) => {
+  const url = String(req.query.url || '').trim().slice(0, 600);
+  if (!url) return res.status(400).json({ error: 'Falta el enlace' });
+
+  const direct = parseMapsUrl(url);
+  if (direct) return res.json({ ...direct, url });
+
+  const resolved = await resolveMapsShortLink(url);
+  if (!resolved) {
+    return res.status(422).json({
+      error: 'No pudimos leer las coordenadas de ese enlace. Marca el punto directamente en el mapa.',
+    });
+  }
+  res.json(resolved);
 });
 
 // POST /api/clinics/me/logo — upload/replace the clinic logo (clinic_admin only)
@@ -149,17 +244,25 @@ router.put('/me', authenticate, requireRole('clinic_admin'), async (req, res) =>
     return res.status(400).json({ error: 'El sitio web debe comenzar con http:// o https://' });
   }
 
-  const newAddress = address || '';
-  const newCity = city || '';
+  // address/city/show_on_public_map son opcionales: desde que existe la pestaña
+  // Ubicación, quien las edita es PUT /me/location. Si la petición no las trae,
+  // se dejan como están en vez de borrarlas.
+  const prevRow = await query(
+    'SELECT address, city, location_source FROM clinics WHERE id = $1',
+    [req.user.clinic_id]
+  );
+  const prev = prevRow.rows[0] || {};
+  const sendsAddress = Object.prototype.hasOwnProperty.call(req.body || {}, 'address');
+  const sendsCity = Object.prototype.hasOwnProperty.call(req.body || {}, 'city');
+  const newAddress = sendsAddress ? (address || '') : (prev.address || '');
+  const newCity = sendsCity ? (city || '') : (prev.city || '');
 
   // Si la dirección o ciudad cambió, invalidamos lat/lng para que el geocoding
-  // se re-dispare (el helper respeta el rate limit de Nominatim).
-  let addressChanged = false;
-  try {
-    const prev = await query('SELECT address, city FROM clinics WHERE id = $1', [req.user.clinic_id]);
-    const p = prev.rows[0] || {};
-    addressChanged = (p.address || '') !== newAddress || (p.city || '') !== newCity;
-  } catch (e) {}
+  // se re-dispare (el helper respeta el rate limit de Nominatim). Salvo que el
+  // pin esté puesto a mano: ahí manda la persona, no el geocoder.
+  const pinnedByHand = prev.location_source === 'manual';
+  const addressChanged = !pinnedByHand &&
+    ((prev.address || '') !== newAddress || (prev.city || '') !== newCity);
 
   try {
     const showFlagSql = (typeof show_on_public_map === 'boolean')

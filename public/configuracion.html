@@ -343,67 +343,98 @@
     }
     .toggle input:checked + .slider::before { transform: translateX(20px); }
 
-    /* ── URL input combo ── */
-    .url-combo {
-      display: flex; align-items: stretch; border: 1.5px solid #e2e8f0; border-radius: 11px;
-      background: white; overflow: hidden; transition: all .25s;
-    }
-    .url-combo:focus-within { border-color: #0891b2; box-shadow: 0 0 0 3px rgba(8, 145, 178, .12); }
-    .url-combo .prefix {
-      padding: .7rem .9rem; background: #f8fafc; color: #64748b;
-      font-size: 13px; font-weight: 500; border-right: 1.5px solid #e2e8f0;
-      display: inline-flex; align-items: center;
-    }
-    .url-combo input { border: none !important; box-shadow: none !important; flex: 1; }
-    .url-combo .suffix-btn {
-      padding: 0 .9rem; background: transparent; border: none; border-left: 1px solid #e2e8f0;
-      color: #0891b2; cursor: pointer; font-size: 13px; font-weight: 600;
-      display: inline-flex; align-items: center; gap: .35rem; transition: background .2s;
-    }
-    .url-combo .suffix-btn:hover { background: #f0fdfd; }
+    /* ── Ubicación (mapa + vista previa del paciente) ── */
+    .loc-search { display: flex; gap: .5rem; align-items: stretch; }
+    .loc-search input { flex: 1; min-width: 0; }
+    .loc-search .btn { flex-shrink: 0; white-space: nowrap; }
 
-    /* ── Public profile preview card ── */
-    .preview-card {
-      margin-top: 1.25rem; padding: 1.5rem;
-      background: linear-gradient(135deg, #ffffff 0%, #f8fcfd 100%);
-      border: 1.5px solid rgba(8, 145, 178, .15);
-      border-radius: 18px;
-      box-shadow: 0 12px 32px rgba(8, 145, 178, .08);
-      position: relative; overflow: hidden;
+    .loc-results {
+      margin-top: .5rem; border: 1.5px solid #e2e8f0; border-radius: 11px;
+      background: white; overflow: hidden; max-height: 230px; overflow-y: auto;
     }
-    .preview-card::before {
-      content: 'Vista previa';
-      position: absolute; top: 12px; right: 14px;
-      font-size: 10px; font-weight: 700; letter-spacing: .12em;
-      color: #94a3b8; text-transform: uppercase;
+    .loc-result {
+      display: block; width: 100%; text-align: left; border: 0; background: none;
+      font: inherit; font-size: 13px; color: #334155; line-height: 1.45;
+      padding: .6rem .8rem; cursor: pointer; border-bottom: 1px solid #f1f5f9;
     }
-    .preview-card .pv-top { display: flex; gap: 1.25rem; align-items: center; }
-    .preview-card .pv-avatar {
-      width: 78px; height: 78px; border-radius: 50%; overflow: hidden;
-      background: linear-gradient(135deg, #0891b2, #06b6d4);
-      display: flex; align-items: center; justify-content: center;
-      color: white; font-size: 26px; font-weight: 700; flex-shrink: 0;
-      border: 3px solid white; box-shadow: 0 6px 18px rgba(8, 145, 178, .25);
+    .loc-result:last-child { border-bottom: 0; }
+    .loc-result:hover { background: rgba(8, 145, 178, .07); color: #0e7490; }
+    .loc-results .loc-empty { padding: .7rem .8rem; font-size: 12.5px; color: #94a3b8; }
+
+    .loc-map-head {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap; margin-bottom: .6rem;
     }
-    .preview-card .pv-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .preview-card .pv-name { font-size: 18px; font-weight: 700; color: #0f172a; letter-spacing: -.015em; }
-    .preview-card .pv-specialty { color: #0e7490; font-size: 13px; font-weight: 600; margin-top: 2px; }
-    .preview-card .pv-info-row {
-      display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .35rem;
-      font-size: 12px; color: #64748b;
+    .loc-map-title { font-weight: 600; font-size: 14px; color: #0f172a; }
+    .loc-map-sub { font-size: 12.5px; color: #64748b; margin-top: 2px; line-height: 1.45; }
+    .loc-map-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+    /* z-index: los controles de Leaflet van a 1000 y taparían la barra de guardado
+       y el menú lateral si no se contienen aquí. */
+    .loc-map {
+      height: 320px; border-radius: 14px; overflow: hidden;
+      border: 1.5px solid #e2e8f0; background: #dde4ec;
+      position: relative; z-index: 0; isolation: isolate;
     }
-    .preview-card .pv-info-row span { display: inline-flex; align-items: center; gap: .25rem; }
-    .preview-card .pv-bio { margin-top: 1rem; font-size: 13.5px; color: #475569; line-height: 1.55; }
-    .preview-card .pv-tags { display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .85rem; }
-    .preview-card .pv-tag {
-      padding: .2rem .65rem; border-radius: 999px;
-      background: rgba(8, 145, 178, .1); color: #0e7490;
-      font-size: 11px; font-weight: 600;
+    .loc-coords {
+      margin-top: .5rem; font-size: 12.5px; color: #64748b;
+      display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
     }
-    .preview-card .pv-footer {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-top: 1.25rem; padding-top: 1rem; border-top: 1px dashed rgba(8, 145, 178, .15);
-      font-size: 12px; color: #94a3b8;
+    .loc-coords b { color: #0e7490; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .loc-preview-card {
+      border: 1.5px solid #e2e8f0; border-radius: 14px; background: white;
+      padding: 1rem 1.1rem;
+    }
+    .loc-preview-name { font-weight: 700; font-size: 15px; color: #0f172a; }
+    .loc-preview-addr { font-size: 13.5px; color: #475569; margin-top: 3px; line-height: 1.5; }
+    .loc-preview-notes {
+      font-size: 12.5px; color: #64748b; margin-top: .45rem; line-height: 1.5;
+      padding-left: .7rem; border-left: 2px solid #e2e8f0;
+    }
+    .loc-preview-btns { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .9rem; }
+    .loc-preview-btns[hidden] { display: none; }
+    .loc-btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .55rem .85rem; border-radius: 10px;
+      font-size: 13px; font-weight: 600; text-decoration: none;
+      border: 1.5px solid transparent; transition: all .2s;
+    }
+    .loc-btn.gmaps { background: rgba(8, 145, 178, .1); color: #0e7490; border-color: rgba(8, 145, 178, .25); }
+    .loc-btn.waze { background: rgba(51, 204, 255, .12); color: #0369a1; border-color: rgba(3, 105, 161, .22); }
+    .loc-btn.wa { background: rgba(37, 211, 102, .12); color: #15803d; border-color: rgba(22, 163, 74, .25); }
+    .loc-btn:hover { transform: translateY(-1px); filter: brightness(.97); }
+    .loc-preview-empty { font-size: 12.5px; color: #94a3b8; margin-top: .8rem; }
+    .loc-preview-empty[hidden] { display: none; }
+
+    [data-theme="dark"] .loc-results { background: var(--sd-surface-solid, #131315); border-color: var(--sd-border, rgba(255,255,255,.09)); }
+    [data-theme="dark"] .loc-result { color: var(--sd-text-soft, #cbd5e1); border-bottom-color: rgba(255,255,255,.055); }
+    [data-theme="dark"] .loc-result:hover { background: rgba(8, 145, 178, .14); color: #22d3ee; }
+    [data-theme="dark"] .loc-map { border-color: var(--sd-border, rgba(255,255,255,.09)); background: #1a1a1d; }
+    /* Los tiles de OSM solo existen en claro; invertirlos evita el rectángulo
+       blanco deslumbrante en medio de una pantalla oscura, y el hue-rotate
+       devuelve el verde/azul a su sitio tras la inversión. */
+    [data-theme="dark"] .loc-map .leaflet-tile-pane {
+      filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.92);
+    }
+    [data-theme="dark"] .loc-map .leaflet-control-zoom a {
+      background: #16161a; color: #e2e8f0; border-color: rgba(255,255,255,.12);
+    }
+    [data-theme="dark"] .loc-map .leaflet-control-attribution { background: rgba(0,0,0,.55); color: #94a3b8; }
+    [data-theme="dark"] .loc-map .leaflet-control-attribution a { color: #22d3ee; }
+    [data-theme="dark"] .loc-map-title { color: var(--sd-text, #f1f5f9); }
+    [data-theme="dark"] .loc-map-sub,
+    [data-theme="dark"] .loc-coords { color: var(--sd-text-muted, #94a3b8); }
+    [data-theme="dark"] .loc-coords b { color: #22d3ee; }
+    [data-theme="dark"] .loc-preview-card { background: rgba(255,255,255,.03); border-color: var(--sd-border, rgba(255,255,255,.09)); }
+    [data-theme="dark"] .loc-preview-name { color: var(--sd-text, #f1f5f9); }
+    [data-theme="dark"] .loc-preview-addr { color: var(--sd-text-soft, #cbd5e1); }
+    [data-theme="dark"] .loc-preview-notes { color: var(--sd-text-muted, #94a3b8); border-left-color: rgba(255,255,255,.12); }
+
+    @media (max-width: 640px) {
+      .loc-map { height: 260px; }
+      .loc-search { flex-direction: column; }
+      .loc-search .btn { align-self: flex-start; }
     }
 
     /* ── Tag chips input ── */
@@ -534,6 +565,24 @@
     [data-theme="dark"] .m-sec-head .m-sec-chev { color: #67e8f9; }
     [data-theme="dark"] .m-sec-head .m-sec-ico { box-shadow: 0 4px 14px rgba(6, 182, 212, .35); }
 
+    /* ── Anti-desbordamiento ──
+       Los hijos de grid/flex nacen con min-width:auto, así que un input, un
+       select o un botón de texto largo estira su columna más allá del ancho
+       de la pantalla; como body lleva overflow-x:hidden, la tarjeta acababa
+       cortada por la derecha (se veía con el zoom alto del navegador).
+       Dejando que cada nivel pueda encogerse, las tarjetas siempre caben. */
+    .settings-grid, .settings-content, .settings-panel, .glass-card,
+    .form-grid, .field, .switch-row, .switch-text, .session-item,
+    .session-info, .profile-hero, .profile-hero-info, .card-head > div { min-width: 0; }
+    .field input, .field select, .field textarea { min-width: 0; max-width: 100%; }
+    .field-readonly { min-width: 0; flex-wrap: wrap; }
+    .card-head h2, .card-head p,
+    .field label, .field .hint, .field-readonly,
+    .switch-row .switch-title, .switch-row .switch-desc,
+    .profile-hero-info .name, .session-item .session-title,
+    .session-item .session-meta { overflow-wrap: anywhere; }
+    .tag-chip { max-width: 100%; overflow-wrap: anywhere; }
+
     /* ── Responsive ── */
     @media (max-width: 1024px) {
       .settings-grid { grid-template-columns: 1fr; }
@@ -588,14 +637,33 @@
       .avatar { font-size: 34px; }
       .profile-hero-info .meta { justify-content: center; }
       .profile-hero-info .upload-actions { justify-content: center; }
-      .preview-card .pv-top { flex-direction: column; align-items: center; text-align: center; gap: .75rem; }
       .save-bar { flex-direction: column; align-items: stretch; }
       .save-bar .save-actions { display: grid; grid-template-columns: 1fr 1fr; }
       .toast-wrap { left: 1rem; right: 1rem; bottom: 80px; }
       .toast { min-width: 0; max-width: 100%; }
     }
+    /* Pantallas estrechas o zoom alto: los botones dejan de ir en una sola
+       línea y las filas de dos piezas (texto + acción) se apilan. */
+    @media (max-width: 560px) {
+      .btn { white-space: normal; text-align: center; }
+      .card-head { align-items: flex-start; }
+      .session-item { flex-wrap: wrap; row-gap: .65rem; }
+      .session-item .session-info { flex-basis: calc(100% - 56px); }
+      .session-item .session-current,
+      .session-item .session-revoke { margin-left: 56px; }
+      .field-readonly { align-items: flex-start !important; row-gap: .65rem; }
+      .field-readonly > div { flex-wrap: wrap; }
+    }
     @media (max-width: 480px) {
       .weekday-btn { width: 38px; height: 38px; font-size: 11px; }
+    }
+    @media (max-width: 420px) {
+      .layout-main { padding-left: .75rem; padding-right: .75rem; }
+      .glass-card { padding: 1rem; }
+      .switch-row { flex-direction: column; align-items: flex-start; gap: .75rem; }
+      .save-bar .save-actions { grid-template-columns: 1fr; }
+      .tag-input { min-width: 70px; }
+      .weekday-btn { width: 34px; height: 34px; }
     }
 
     /* ── Page Loader ── */
@@ -639,9 +707,9 @@
         <div class="pro-badge"><span class="dot"></span><span id="headerBadge" data-label-doctor="Perfil médico profesional" data-label-clinic_admin="Cuenta de administrador de clínica" data-label-receptionist="Cuenta de recepción">Perfil médico profesional</span></div>
         <h1>Configuración</h1>
         <p id="headerSubtitle"
-           data-desc-doctor="Administra tu perfil profesional, perfil online público, disponibilidad para citas y preferencias de la plataforma. Tus cambios son visibles para tus pacientes en cuanto los guardes."
+           data-desc-doctor="Administra tu perfil profesional, la información de tu clínica, tu disponibilidad para citas y las preferencias de la plataforma."
            data-desc-clinic_admin="Administra los datos de tu cuenta, la información de la clínica y las preferencias de la plataforma."
-           data-desc-receptionist="Administra los datos de tu cuenta y tus preferencias de la plataforma.">Administra tu perfil profesional, perfil online público, disponibilidad para citas y preferencias de la plataforma. Tus cambios son visibles para tus pacientes en cuanto los guardes.</p>
+           data-desc-receptionist="Administra los datos de tu cuenta y tus preferencias de la plataforma.">Administra tu perfil profesional, la información de tu clínica, tu disponibilidad para citas y las preferencias de la plataforma.</p>
       </div>
       <div class="header-actions">
         <button class="btn btn-ghost" id="resetBtn" type="button"><span data-icon="refresh" data-size="16"></span>Descartar</button>
@@ -658,13 +726,13 @@
           <span class="tab-icon" data-icon="user" data-size="14"></span>
           <span class="tab-label" data-label-doctor="Perfil del doctor" data-label-clinic_admin="Perfil del administrador" data-label-receptionist="Perfil personal">Perfil del doctor</span>
         </button>
-        <button class="tab-btn" data-tab="public" data-roles="doctor" type="button">
-          <span class="tab-icon" data-icon="eye" data-size="14"></span>
-          <span class="tab-label">Perfil público</span>
-        </button>
         <button class="tab-btn" data-tab="clinic" data-roles="doctor clinic_admin" type="button">
           <span class="tab-icon" data-icon="staff" data-size="14"></span>
           <span class="tab-label">Clínica</span>
+        </button>
+        <button class="tab-btn" data-tab="location" data-roles="doctor clinic_admin" type="button">
+          <span class="tab-icon" data-icon="mapPin" data-size="14"></span>
+          <span class="tab-label">Ubicación</span>
         </button>
         <button class="tab-btn" data-tab="agenda" data-roles="doctor" type="button">
           <span class="tab-icon" data-icon="calendar" data-size="14"></span>
@@ -724,7 +792,7 @@
               <div class="icon-box"><span data-icon="user" data-size="20"></span></div>
               <div>
                 <h2 id="profileSectionTitle" data-title-doctor="Información profesional" data-title-clinic_admin="Información personal" data-title-receptionist="Información personal">Información profesional</h2>
-                <p id="profileSectionDesc" data-desc-doctor="Datos visibles en tu perfil online y en historias clínicas." data-desc-clinic_admin="Datos personales de tu cuenta de administrador." data-desc-receptionist="Datos personales de tu cuenta de recepción.">Datos visibles en tu perfil online y en historias clínicas.</p>
+                <p id="profileSectionDesc" data-desc-doctor="Datos que aparecen en recetas, historias clínicas y comunicaciones con pacientes." data-desc-clinic_admin="Datos personales de tu cuenta de administrador." data-desc-receptionist="Datos personales de tu cuenta de recepción.">Datos que aparecen en recetas, historias clínicas y comunicaciones con pacientes.</p>
               </div>
             </div>
 
@@ -787,7 +855,7 @@
               <div class="field span-2" data-roles="doctor">
                 <label>Biografía profesional</label>
                 <textarea id="fldBio" placeholder="Soy especialista en... con más de 10 años de experiencia atendiendo..."></textarea>
-                <span class="hint">Aparece en tu perfil público. Recomendado: 2-4 oraciones.</span>
+                <span class="hint">Resumen de tu trayectoria. Recomendado: 2-4 oraciones.</span>
               </div>
               <div class="field span-2" data-roles="doctor">
                 <label>Idiomas que hablas</label>
@@ -801,96 +869,14 @@
                 <div class="tag-chips" id="focusChips">
                   <input type="text" class="tag-input" placeholder="Ej: Diabetes, Hipertensión..." data-target="focus">
                 </div>
-                <span class="hint">Estos tags ayudan a que los pacientes te encuentren.</span>
+                <span class="hint">Describen tu práctica y se usan para filtrar pacientes por tratamiento.</span>
               </div>
             </div>
           </div>
         </section>
 
         <!-- ════════════════════════════════════════════════════ -->
-        <!-- 2. PERFIL PÚBLICO -->
-        <!-- ════════════════════════════════════════════════════ -->
-        <section class="settings-panel" data-panel="public" data-roles="doctor">
-          <div class="glass-card">
-            <div class="card-head">
-              <div class="icon-box"><span data-icon="eye" data-size="20"></span></div>
-              <div>
-                <h2>Perfil online público</h2>
-                <p>Configura cómo te ven los pacientes que reservan citas online.</p>
-              </div>
-            </div>
-
-            <div class="switch-row">
-              <div class="switch-text">
-                <div class="switch-title">Activar perfil público</div>
-                <div class="switch-desc">Tu perfil aparecerá en el directorio público y podrás recibir reservas online.</div>
-              </div>
-              <label class="toggle">
-                <input type="checkbox" id="swPublicProfile" checked>
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="switch-row">
-              <div class="switch-text">
-                <div class="switch-title">Mostrar especialidad y experiencia</div>
-                <div class="switch-desc">Pacientes ven tu especialidad y años de experiencia en la tarjeta pública.</div>
-              </div>
-              <label class="toggle">
-                <input type="checkbox" id="swShowExperience" checked>
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="switch-row">
-              <div class="switch-text">
-                <div class="switch-title">Aceptar reseñas de pacientes</div>
-                <div class="switch-desc">Los pacientes podrán dejar reseñas tras sus consultas.</div>
-              </div>
-              <label class="toggle">
-                <input type="checkbox" id="swReviews">
-                <span class="slider"></span>
-              </label>
-            </div>
-
-            <div class="form-grid cols-1" style="margin-top: 1.25rem;">
-              <div class="field">
-                <label>URL pública del perfil</label>
-                <div class="url-combo">
-                  <span class="prefix">saluddigital.hn/</span>
-                  <input type="text" id="fldSlug" placeholder="dr-juan-perez">
-                  <button type="button" class="suffix-btn" id="copySlugBtn"><span data-icon="copy" data-size="14"></span>Copiar</button>
-                </div>
-                <span class="hint">Solo minúsculas, números y guiones. Tu link aparece en tarjetas, WhatsApp y emails.</span>
-              </div>
-            </div>
-
-            <!-- Preview card -->
-            <div class="preview-card">
-              <div class="pv-top">
-                <div class="pv-avatar" id="pvAvatar"><span id="pvInitials">DR</span></div>
-                <div style="flex:1; min-width:0;">
-                  <div class="pv-name" id="pvName">Dr. —</div>
-                  <div class="pv-specialty" id="pvSpecialty">Especialidad médica</div>
-                  <div class="pv-info-row">
-                    <span><span data-icon="staff" data-size="12"></span><span id="pvLicense">CMH —</span></span>
-                    <span><span data-icon="clock" data-size="12"></span><span id="pvExp">0 años</span></span>
-                    <span><span data-icon="mapPin" data-size="12"></span><span id="pvLocation">—</span></span>
-                  </div>
-                </div>
-              </div>
-              <div class="pv-bio" id="pvBio">Tu biografía profesional aparecerá aquí.</div>
-              <div class="pv-tags" id="pvTags"></div>
-              <div class="pv-footer">
-                <span id="pvUrl">saluddigital.hn/dr-juan-perez</span>
-                <button class="btn btn-secondary btn-sm" type="button" id="viewPublicBtn"><span data-icon="arrowRight" data-size="13"></span>Ver perfil público</button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ════════════════════════════════════════════════════ -->
-        <!-- 3. CLÍNICA -->
+        <!-- 2. CLÍNICA -->
         <!-- ════════════════════════════════════════════════════ -->
         <section class="settings-panel" data-panel="clinic" data-roles="doctor clinic_admin">
           <div class="glass-card">
@@ -930,16 +916,9 @@
                 <span class="hint">Aparece en facturas oficiales.</span>
               </div>
               <div class="field span-2">
-                <label>Dirección</label>
-                <input type="text" id="fldClinicAddress" placeholder="Col. Palmira, Calle Principal, Edificio 3">
-              </div>
-              <div class="field">
-                <label>Ciudad</label>
-                <input type="text" id="fldClinicCity" placeholder="Tegucigalpa">
-              </div>
-              <div class="field">
                 <label>Teléfono de la clínica</label>
                 <input type="tel" id="fldClinicPhone" placeholder="+504 2222 0000">
+                <span class="hint">La dirección y el punto en el mapa se configuran en <a href="#location" data-goto-tab="location">Ubicación</a>.</span>
               </div>
               <div class="field span-2" data-roles="clinic_admin">
                 <label>Correo de contacto público</label>
@@ -949,7 +928,7 @@
               <div class="field span-2">
                 <label>Información para pacientes</label>
                 <textarea id="fldClinicInfo" placeholder="Horarios, parking, indicaciones especiales, formas de pago aceptadas..."></textarea>
-                <span class="hint">Se muestra en la confirmación de cita y en perfiles públicos de doctores.</span>
+                <span class="hint">Se muestra en la confirmación de cita y en la página pública de la clínica.</span>
               </div>
               <div class="field span-2" data-roles="clinic_admin">
                 <label>Logo de la clínica</label>
@@ -963,31 +942,6 @@
                     <button class="btn btn-ghost btn-sm" type="button" id="clinicLogoRemoveBtn" style="display:none;"><span data-icon="x" data-size="14"></span>Quitar</button>
                   </div>
                   <input type="file" id="clinicLogoFile" accept="image/png,image/jpeg,image/jpg,image/webp" style="display:none;">
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Preferencias públicas para clinic_admin -->
-          <div class="glass-card" data-roles="clinic_admin">
-            <div class="card-head">
-              <div class="icon-box"><span data-icon="settings" data-size="20"></span></div>
-              <div>
-                <h2>Preferencias públicas</h2>
-                <p>Controla la visibilidad pública de tu clínica.</p>
-              </div>
-            </div>
-            <div class="form-grid">
-              <div class="field span-2">
-                <div class="switch-row">
-                  <div class="switch-text">
-                    <div class="switch-title">Aparecer en el mapa público de clínicas</div>
-                    <div class="switch-desc">Tu clínica se muestra como un pin en <a href="/mapa" target="_blank" rel="noopener">/mapa</a> con nombre, dirección y teléfono. Desmarca para ocultar.</div>
-                  </div>
-                  <label class="toggle">
-                    <input type="checkbox" id="fldShowOnPublicMap" checked>
-                    <span class="slider"></span>
-                  </label>
                 </div>
               </div>
             </div>
@@ -1010,6 +964,125 @@
                   <span data-icon="arrowRight" data-size="15"></span>Administrar salas en Personal
                 </a>
                 <span class="hint">Crea, renombra y elimina salas en Personal › Habitaciones. Cada sala aparece en el panel de recepción.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════ -->
+        <!-- 3. UBICACIÓN -->
+        <!-- ════════════════════════════════════════════════════ -->
+        <section class="settings-panel" data-panel="location" data-roles="doctor clinic_admin">
+          <div class="glass-card">
+            <div class="card-head">
+              <div class="icon-box"><span data-icon="mapPin" data-size="20"></span></div>
+              <div>
+                <h2>Ubicación de la clínica</h2>
+                <p>Dónde atiendes. El paciente la ve al reservar en línea y en cada confirmación, con botones para abrirla en Google Maps o Waze.</p>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field span-2">
+                <label for="fldClinicAddress">Dirección</label>
+                <input type="text" id="fldClinicAddress" placeholder="Col. Palmira, Calle Principal, Edificio 3">
+              </div>
+              <div class="field">
+                <label for="fldClinicCity">Ciudad</label>
+                <input type="text" id="fldClinicCity" placeholder="Tegucigalpa">
+              </div>
+              <div class="field">
+                <label for="locSearch">Buscar en el mapa</label>
+                <div class="loc-search">
+                  <input type="text" id="locSearch" placeholder="Escribe una dirección y pulsa buscar" autocomplete="off">
+                  <button class="btn btn-secondary btn-sm" type="button" id="locSearchBtn">
+                    <span data-icon="search" data-size="14"></span>Buscar
+                  </button>
+                </div>
+                <div class="loc-results" id="locResults" hidden></div>
+                <span class="hint">Busca por dirección o por el nombre de un punto conocido cerca.</span>
+              </div>
+
+              <div class="field span-2">
+                <div class="loc-map-head">
+                  <div>
+                    <div class="loc-map-title">Marca el punto exacto</div>
+                    <div class="loc-map-sub">Toca el mapa o arrastra el pin. Esa es la coordenada que abrirá el GPS de tu paciente.</div>
+                  </div>
+                  <div class="loc-map-actions">
+                    <button class="btn btn-secondary btn-sm" type="button" id="locMeBtn">
+                      <span data-icon="mapPin" data-size="14"></span>Usar mi ubicación
+                    </button>
+                    <button class="btn btn-ghost btn-sm" type="button" id="locClearBtn" style="display:none;">
+                      <span data-icon="x" data-size="14"></span>Quitar pin
+                    </button>
+                  </div>
+                </div>
+                <div class="loc-map" id="locMap"></div>
+                <div class="loc-coords" id="locCoords">Sin punto marcado — el mapa se centrará en la dirección escrita.</div>
+              </div>
+
+              <div class="field span-2">
+                <label for="fldMapUrl">Enlace de Google Maps <span class="hint" style="display:inline; margin:0;">(opcional)</span></label>
+                <div class="loc-search">
+                  <input type="text" id="fldMapUrl" placeholder="https://maps.app.goo.gl/…" autocomplete="off">
+                  <button class="btn btn-secondary btn-sm" type="button" id="locUseLinkBtn">
+                    <span data-icon="mapPin" data-size="14"></span>Leer punto
+                  </button>
+                </div>
+                <span class="hint">Si tu consultorio ya está en Google Maps, abre su ficha, toca <b>Compartir → Copiar enlace</b> y pégalo aquí. «Leer punto» coloca el pin por ti, y el paciente verá tu ficha real.</span>
+              </div>
+
+              <div class="field span-2">
+                <label for="fldLocationNotes">Referencias para llegar</label>
+                <textarea id="fldLocationNotes" placeholder="Edificio azul frente a la farmacia, segundo piso. Parqueo en el sótano."></textarea>
+                <span class="hint">Se envía junto con el mapa en confirmaciones y recordatorios.</span>
+              </div>
+
+              <div class="field span-2">
+                <div class="switch-row">
+                  <div class="switch-text">
+                    <div class="switch-title">Aparecer en el mapa público de clínicas</div>
+                    <div class="switch-desc">Tu clínica se muestra como un pin en <a href="/mapa" target="_blank" rel="noopener">/mapa</a> con nombre, dirección y teléfono. Desmarca para ocultar.</div>
+                  </div>
+                  <label class="toggle">
+                    <input type="checkbox" id="fldShowOnPublicMap" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-head">
+              <div class="icon-box"><span data-icon="eye" data-size="20"></span></div>
+              <div>
+                <h2>Así lo ve tu paciente</h2>
+                <p>Los mismos botones aparecen al reservar en línea y en el enlace de confirmación.</p>
+              </div>
+            </div>
+            <!-- data-sd-gate="off": es una maqueta de lo que ve el paciente, no una
+                 acción sobre nadie; el modo solo lectura no tiene por qué apagarla. -->
+            <div class="loc-preview" id="locPreview" data-sd-gate="off">
+              <div class="loc-preview-card">
+                <div class="loc-preview-name" id="locPreviewName">—</div>
+                <div class="loc-preview-addr" id="locPreviewAddr">Sin dirección configurada</div>
+                <div class="loc-preview-notes" id="locPreviewNotes" hidden></div>
+                <div class="loc-preview-btns">
+                  <a class="loc-btn gmaps" id="locPreviewGmaps" target="_blank" rel="noopener">
+                    <span data-icon="mapPin" data-size="15"></span>Google Maps
+                  </a>
+                  <a class="loc-btn waze" id="locPreviewWaze" target="_blank" rel="noopener">
+                    <span data-icon="navigation" data-size="15"></span>Waze
+                  </a>
+                  <a class="loc-btn wa" id="locPreviewWa" target="_blank" rel="noopener">
+                    <span data-icon="whatsapp" data-size="15"></span>Enviar por WhatsApp
+                  </a>
+                </div>
+                <div class="loc-preview-empty" id="locPreviewEmpty">
+                  Marca un punto o escribe la dirección para activar los botones.
+                </div>
               </div>
             </div>
           </div>
@@ -1089,7 +1162,7 @@
               <div class="switch-row">
                 <div class="switch-text">
                   <div class="switch-title">Permitir citas online</div>
-                  <div class="switch-desc">Pacientes pueden reservar desde tu perfil público sin contactarte.</div>
+                  <div class="switch-desc">Los pacientes pueden reservar por internet sin llamar a la clínica.</div>
                 </div>
                 <label class="toggle">
                   <input type="checkbox" id="swOnlineBooking" checked>
@@ -1121,7 +1194,7 @@
         </section>
 
         <!-- ════════════════════════════════════════════════════ -->
-        <!-- 6. SEGURIDAD -->
+        <!-- 4. SEGURIDAD -->
         <!-- ════════════════════════════════════════════════════ -->
         <section class="settings-panel" data-panel="security" data-roles="doctor clinic_admin receptionist">
           <div class="glass-card">
@@ -1190,7 +1263,7 @@
         </section>
 
         <!-- ════════════════════════════════════════════════════ -->
-        <!-- 7. PREFERENCIAS DE PLATAFORMA -->
+        <!-- 5. PREFERENCIAS DE PLATAFORMA -->
         <!-- ════════════════════════════════════════════════════ -->
         <section class="settings-panel" data-panel="preferences" data-roles="doctor clinic_admin receptionist">
           <div class="glass-card">
@@ -1281,6 +1354,8 @@
   <script src="/icons.js"></script>
   <script src="/common.js"></script>
   <script src="/layout.js"></script>
+  <script src="/location.js"></script>
+  <script src="/map-picker.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <script>
     // ──────────────────────────────────────────────────────────
@@ -1330,8 +1405,11 @@
 
     // The PUT /api/clinics/me endpoint requires clinic_admin. For doctors who can
     // see the clinic section but cannot edit it, disable the visible inputs.
+    // La pestaña Ubicación NO entra aquí: tiene su propio endpoint
+    // (PUT /api/clinics/me/location), abierto también al doctor — el alta por
+    // cuenta propia crea doctores dueños de su consultorio.
     if (CURRENT_ROLE !== 'clinic_admin') {
-      ['fldClinicName', 'fldClinicAddress', 'fldClinicCity', 'fldClinicPhone', 'fldClinicInfo']
+      ['fldClinicName', 'fldClinicPhone', 'fldClinicInfo']
         .forEach(id => {
           const el = document.getElementById(id);
           if (el) el.disabled = true;
@@ -1379,13 +1457,12 @@
         languages: [], focus: [],
         photoUrl: null, photoFile: null
       },
-      public: {
-        enabled: true, showExperience: true, reviews: false, slug: ''
-      },
       clinic: {
         name: '', type: '', taxId: '', address: '', city: '', phone: '',
         email: '', info: '', brandColor: '#0891b2', currency: 'HNL', website: '',
-        logoUrl: '', showOnPublicMap: true
+        logoUrl: '', showOnPublicMap: true,
+        // Ubicación: lat/lng null = sin pin marcado.
+        latitude: null, longitude: null, mapUrl: '', locationNotes: ''
       },
       agenda: {
         startTime: '08:00', endTime: '17:00',
@@ -1403,6 +1480,9 @@
 
     let dirty = false;
     let originalSnapshot = null;
+    // Mapa de la pestaña Ubicación. Se declara aquí arriba porque activateTab() y
+    // setSectionOpen() pueden pedirlo antes de llegar a su bloque de wiring.
+    let locPicker = null;
 
     function markDirty() {
       if (!dirty) {
@@ -1413,14 +1493,6 @@
     function markClean() {
       dirty = false;
       document.getElementById('saveBar').classList.remove('visible');
-    }
-
-    // ── Slug helper ──
-    function slugify(text) {
-      return (text || '').toString().toLowerCase()
-        .normalize('NFD').replace(/[̀-ͯ]/g, '')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim().replace(/\s+/g, '-').replace(/-+/g, '-');
     }
 
     // ── Initials helper ──
@@ -1435,11 +1507,25 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
       document.querySelectorAll('.settings-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
       try { history.replaceState(null, '', `#${tab}`); } catch (_) {}
+      // Leaflet no puede medir un contenedor oculto: el mapa se monta (o se
+      // recalcula) justo cuando la pestaña se hace visible.
+      if (tab === 'location') ensureLocationMap();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     document.getElementById('tabsNav').addEventListener('click', (e) => {
       const btn = e.target.closest('.tab-btn');
       if (btn) activateTab(btn.dataset.tab);
+    });
+    // Enlaces internos entre paneles ("…se configura en Ubicación").
+    document.addEventListener('click', (e) => {
+      const link = e.target.closest('[data-goto-tab]');
+      if (!link) return;
+      e.preventDefault();
+      const tab = link.dataset.gotoTab;
+      activateTab(tab);
+      document.querySelectorAll('.m-sec-head').forEach(h => {
+        setSectionOpen(h.dataset.section, h.dataset.section === tab);
+      });
     });
 
     // ── Sub-menús plegables en móvil ──
@@ -1452,6 +1538,7 @@
       if (!head || !panel) return;
       head.setAttribute('aria-expanded', open ? 'true' : 'false');
       panel.classList.toggle('m-collapsed', !open);
+      if (open && tab === 'location') ensureLocationMap();
     }
     function initMobileSections() {
       const nav = document.getElementById('tabsNav');
@@ -1666,18 +1753,14 @@
       }
     }
 
-    // ── Live preview (public card) ──
+    // ── Live preview (profile hero) ──
     function renderPreview() {
-      const initials = getInitials(state.profile.name);
       const fallbackName = CURRENT_ROLE === 'doctor' ? 'Dr. —' : '—';
       const name = state.profile.name || fallbackName;
       const specialtySel = document.getElementById('fldSpecialty');
       const specialty = specialtySel ? (specialtySel.selectedOptions[0]?.text || 'Especialidad médica') : 'Especialidad médica';
-      const license = state.profile.license ? `CMH ${esc(state.profile.license)}` : 'CMH —';
       const exp = state.profile.experience ? `${state.profile.experience} años` : '0 años';
       const location = state.profile.location || '—';
-      const bio = state.profile.bio || 'Tu biografía profesional aparecerá aquí.';
-      const slug = state.public.slug || slugify(name) || 'tu-perfil';
 
       // Helper for safe textContent
       const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
@@ -1695,31 +1778,6 @@
         heroRole.textContent = CURRENT_ROLE === 'clinic_admin' ? 'Administrador de clínica'
           : CURRENT_ROLE === 'receptionist' ? 'Recepción' : '';
       }
-
-      // Public preview card (only renders if doctor — elements may not exist otherwise)
-      const pvAv = document.getElementById('pvAvatar');
-      if (pvAv) {
-        if (state.profile.photoUrl) {
-          pvAv.innerHTML = `<span>${esc(initials)}</span>`;
-          const pvImg = new Image();
-          pvImg.alt = '';
-          pvImg.onload = () => { pvAv.innerHTML = ''; pvAv.appendChild(pvImg); };
-          pvImg.onerror = () => { state.profile.photoUrl = null; clearStalePhotoOnServer(); };
-          pvImg.src = state.profile.photoUrl;
-        } else {
-          pvAv.innerHTML = `<span>${esc(initials)}</span>`;
-        }
-      }
-      setText('pvName', name);
-      setText('pvSpecialty', state.profile.specialty ? specialty : 'Especialidad médica');
-      setText('pvLicense', license);
-      setText('pvExp', exp);
-      setText('pvLocation', location);
-      setText('pvBio', bio);
-      setText('pvUrl', `saluddigital.hn/${slug}`);
-
-      const tagsEl = document.getElementById('pvTags');
-      if (tagsEl) tagsEl.innerHTML = state.profile.focus.map(t => `<span class="pv-tag">${esc(t)}</span>`).join('');
     }
 
     // ── Bind inputs to state ──
@@ -1755,20 +1813,17 @@
     bind('fldLocation', 'profile.location', { onChange: renderPreview });
     bind('fldBio', 'profile.bio', { onChange: renderPreview });
 
-    bind('swPublicProfile', 'public.enabled');
-    bind('swShowExperience', 'public.showExperience');
-    bind('swReviews', 'public.reviews');
-    bind('fldSlug', 'public.slug', { onChange: renderPreview });
-
     bind('fldClinicName', 'clinic.name');
     bind('fldClinicType', 'clinic.type');
     bind('fldClinicTaxId', 'clinic.taxId');
-    bind('fldClinicAddress', 'clinic.address');
-    bind('fldClinicCity', 'clinic.city');
+    bind('fldClinicAddress', 'clinic.address', { onChange: renderLocationPreview });
+    bind('fldClinicCity', 'clinic.city', { onChange: renderLocationPreview });
     bind('fldClinicPhone', 'clinic.phone');
     bind('fldClinicEmail', 'clinic.email');
     bind('fldClinicInfo', 'clinic.info');
     bind('fldShowOnPublicMap', 'clinic.showOnPublicMap');
+    bind('fldMapUrl', 'clinic.mapUrl', { onChange: renderLocationPreview });
+    bind('fldLocationNotes', 'clinic.locationNotes', { onChange: renderLocationPreview });
 
     bind('fldStartTime', 'agenda.startTime');
     bind('fldEndTime', 'agenda.endTime');
@@ -1797,45 +1852,6 @@
     function updateHeroPhone() {
       const el = document.getElementById('heroPhone');
       if (el) el.textContent = state.profile.phone || '—';
-    }
-
-    // ── Slug auto-fill (only for doctors — slug only exists in their UI) ──
-    const nameInputEl = document.getElementById('fldName');
-    if (nameInputEl) {
-      nameInputEl.addEventListener('blur', () => {
-        const slugEl = document.getElementById('fldSlug');
-        if (slugEl && !slugEl.value.trim() && state.profile.name) {
-          const newSlug = slugify(state.profile.name);
-          slugEl.value = newSlug;
-          state.public.slug = newSlug;
-          renderPreview();
-        }
-      });
-    }
-
-    // ── Copy slug (doctor only) ──
-    const copySlugBtn = document.getElementById('copySlugBtn');
-    if (copySlugBtn) {
-      copySlugBtn.addEventListener('click', async () => {
-        const slug = state.public.slug || slugify(state.profile.name) || 'tu-perfil';
-        const url = `https://saluddigital.hn/${slug}`;
-        try {
-          await navigator.clipboard.writeText(url);
-          toast('URL copiada al portapapeles.', 'success');
-        } catch (_) {
-          toast('No se pudo copiar la URL.', 'error');
-        }
-      });
-    }
-
-    // ── View public profile (doctor only) ──
-    const viewPublicBtn = document.getElementById('viewPublicBtn');
-    if (viewPublicBtn) {
-      viewPublicBtn.addEventListener('click', () => {
-        const slug = state.public.slug || slugify(state.profile.name) || 'tu-perfil';
-        toast(`El perfil público se abrirá en saluddigital.hn/${slug}`, 'info');
-        // window.open(`/p/${slug}`, '_blank'); // ready to hook up to backend
-      });
     }
 
     // ── Clinic logo upload (clinic_admin only) ──
@@ -1918,6 +1934,181 @@
         }
       });
     }
+
+    // ── Ubicación ──
+    // El mapa se monta perezosamente la primera vez que se abre la pestaña: en
+    // móvil los paneles están plegados y montarlo de entrada descargaría Leaflet
+    // para nada. Fuera de la pestaña, el estado vive en state.clinic igual que el
+    // resto del formulario, así que "Guardar cambios" lo recoge sin más.
+
+    function currentLocation() {
+      return SDLocation.from({
+        name: state.clinic.name,
+        address: state.clinic.address,
+        city: state.clinic.city,
+        latitude: state.clinic.latitude,
+        longitude: state.clinic.longitude,
+        map_url: state.clinic.mapUrl,
+        location_notes: state.clinic.locationNotes,
+      });
+    }
+
+    function renderLocationPreview() {
+      const loc = currentLocation();
+      const addr = SDLocation.fullAddress(loc);
+      const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+
+      setText('locPreviewName', state.clinic.name || 'Tu clínica');
+      setText('locPreviewAddr', addr || 'Sin dirección configurada');
+
+      const notesEl = document.getElementById('locPreviewNotes');
+      if (notesEl) {
+        notesEl.textContent = state.clinic.locationNotes || '';
+        notesEl.hidden = !state.clinic.locationNotes;
+      }
+
+      const usable = SDLocation.has(loc);
+      const btns = document.querySelector('.loc-preview-btns');
+      const empty = document.getElementById('locPreviewEmpty');
+      if (btns) btns.hidden = !usable;
+      if (empty) empty.hidden = usable;
+
+      if (usable) {
+        const g = document.getElementById('locPreviewGmaps');
+        const w = document.getElementById('locPreviewWaze');
+        const wa = document.getElementById('locPreviewWa');
+        if (g) g.href = SDLocation.googleMapsUrl(loc);
+        if (w) w.href = SDLocation.wazeUrl(loc);
+        if (wa) wa.href = SDLocation.whatsappUrl(SDLocation.shareText({ loc }));
+      }
+
+      // Estado del pin
+      const coordsEl = document.getElementById('locCoords');
+      const clearBtn = document.getElementById('locClearBtn');
+      if (coordsEl) {
+        coordsEl.innerHTML = SDLocation.hasPin(loc)
+          ? `<span data-icon="mapPin" data-size="13"></span>Punto marcado en <b>${esc(SDLocation.coordsText(loc))}</b>`
+          : 'Sin punto marcado — el mapa se centrará en la dirección escrita.';
+        hydrateIcons(coordsEl);
+      }
+      if (clearBtn) clearBtn.style.display = SDLocation.hasPin(loc) ? '' : 'none';
+    }
+
+    function setPin(lat, lng, opts = {}) {
+      const hasPin = lat !== null && lat !== undefined && lng !== null && lng !== undefined;
+      state.clinic.latitude = hasPin ? Number(lat) : null;
+      state.clinic.longitude = hasPin ? Number(lng) : null;
+      renderLocationPreview();
+      if (!opts.silent) markDirty();
+      if (locPicker && hasPin && opts.moveMap !== false) {
+        locPicker.set(Number(lat), Number(lng), { fly: true, silent: true });
+      }
+    }
+
+    function ensureLocationMap() {
+      if (locPicker) { locPicker.refresh(); return; }
+      const el = document.getElementById('locMap');
+      if (!el) return;
+      locPicker = SDMapPicker.create(el, {
+        lat: state.clinic.latitude,
+        lng: state.clinic.longitude,
+        color: state.clinic.brandColor,
+        onChange: (lat, lng) => setPin(lat, lng, { moveMap: false }),
+      });
+    }
+
+    (function wireLocationPanel() {
+      const searchBtn = document.getElementById('locSearchBtn');
+      const searchInput = document.getElementById('locSearch');
+      const resultsEl = document.getElementById('locResults');
+      const meBtn = document.getElementById('locMeBtn');
+      const clearBtn = document.getElementById('locClearBtn');
+      const linkBtn = document.getElementById('locUseLinkBtn');
+      if (!searchBtn) return; // rol sin acceso a la pestaña
+
+      async function runSearch() {
+        const q = (searchInput.value || '').trim() ||
+          [state.clinic.address, state.clinic.city].filter(Boolean).join(', ');
+        if (q.length < 3) { toast('Escribe al menos 3 caracteres para buscar.', 'error'); return; }
+        searchBtn.disabled = true;
+        resultsEl.hidden = false;
+        resultsEl.innerHTML = '<div class="loc-empty">Buscando…</div>';
+        try {
+          const res = await api(`/api/clinics/geo/search?q=${encodeURIComponent(q)}`);
+          const list = (res && res.results) || [];
+          if (list.length === 0) {
+            resultsEl.innerHTML = '<div class="loc-empty">Sin resultados. Marca el punto directamente en el mapa.</div>';
+            return;
+          }
+          resultsEl.innerHTML = list.map((r, i) =>
+            `<button type="button" class="loc-result" data-i="${i}">${esc(r.label)}</button>`
+          ).join('');
+          resultsEl.querySelectorAll('.loc-result').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const r = list[parseInt(btn.dataset.i, 10)];
+              if (!r) return;
+              ensureLocationMap();
+              setPin(r.lat, r.lng);
+              resultsEl.hidden = true;
+              resultsEl.innerHTML = '';
+            });
+          });
+        } catch (err) {
+          resultsEl.innerHTML = `<div class="loc-empty">${esc(err.message || 'No se pudo buscar.')}</div>`;
+        } finally {
+          searchBtn.disabled = false;
+        }
+      }
+
+      searchBtn.addEventListener('click', runSearch);
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); runSearch(); }
+      });
+
+      meBtn.addEventListener('click', async () => {
+        meBtn.disabled = true;
+        try {
+          const pos = await SDMapPicker.locateMe();
+          ensureLocationMap();
+          setPin(pos.lat, pos.lng);
+          toast('Listo. Ajusta el pin si hace falta.', 'success');
+        } catch (err) {
+          toast(err.message || 'No pudimos obtener tu ubicación.', 'error');
+        } finally {
+          meBtn.disabled = false;
+        }
+      });
+
+      clearBtn.addEventListener('click', () => {
+        if (locPicker) locPicker.clear({ silent: true });
+        setPin(null, null);
+      });
+
+      linkBtn.addEventListener('click', async () => {
+        const raw = (document.getElementById('fldMapUrl').value || '').trim();
+        if (!raw) { toast('Pega primero el enlace de Google Maps.', 'error'); return; }
+        // Los enlaces largos traen las coordenadas en la propia URL; los cortos
+        // (maps.app.goo.gl) hay que resolverlos en el servidor.
+        const local = SDLocation.parseMapsUrl(raw);
+        if (local) {
+          ensureLocationMap();
+          setPin(local.lat, local.lng);
+          toast('Punto leído del enlace.', 'success');
+          return;
+        }
+        linkBtn.disabled = true;
+        try {
+          const r = await api(`/api/clinics/geo/resolve?url=${encodeURIComponent(raw)}`);
+          ensureLocationMap();
+          setPin(r.lat, r.lng);
+          toast('Punto leído del enlace.', 'success');
+        } catch (err) {
+          toast(err.message || 'No pudimos leer ese enlace.', 'error');
+        } finally {
+          linkBtn.disabled = false;
+        }
+      });
+    })();
 
     // ── Change password ──
     document.getElementById('changePwdBtn').addEventListener('click', async () => {
@@ -2229,7 +2420,6 @@
       // Build clean payload
       const payload = {
         profile: { ...state.profile },
-        public: { ...state.public },
         clinic: { ...state.clinic },
         agenda: { ...state.agenda },
         preferences: { ...state.preferences }
@@ -2265,7 +2455,9 @@
         });
         refreshLayoutProfileCache();
 
-        // Clinic data — clinic_admin only (only role allowed by the PUT endpoint)
+        // Clinic data — clinic_admin only (only role allowed by the PUT endpoint).
+        // address/city/show_on_public_map viajan en el PUT de ubicación, no aquí:
+        // el endpoint general los deja intactos si no se envían.
         if (CURRENT_ROLE === 'clinic_admin') {
           await api('/api/clinics/me', {
             method: 'PUT',
@@ -2273,14 +2465,27 @@
               name: state.clinic.name,
               type: state.clinic.type,
               tax_id: state.clinic.taxId,
-              address: state.clinic.address,
-              city: state.clinic.city,
               phone: state.clinic.phone,
               email: state.clinic.email,
               info: state.clinic.info,
               brand_color: state.clinic.brandColor,
               currency: state.clinic.currency,
               website: state.clinic.website,
+            }
+          });
+        }
+
+        // Ubicación — doctor y clinic_admin (endpoint propio, ver routes/clinics.js)
+        if (CURRENT_ROLE === 'doctor' || CURRENT_ROLE === 'clinic_admin') {
+          await api('/api/clinics/me/location', {
+            method: 'PUT',
+            body: {
+              address: state.clinic.address,
+              city: state.clinic.city,
+              latitude: state.clinic.latitude,
+              longitude: state.clinic.longitude,
+              map_url: state.clinic.mapUrl,
+              location_notes: state.clinic.locationNotes,
               show_on_public_map: state.clinic.showOnPublicMap !== false,
             }
           });
@@ -2367,6 +2572,10 @@
           state.clinic.website = c.website || '';
           state.clinic.logoUrl = c.logo_url || '';
           state.clinic.showOnPublicMap = c.show_on_public_map !== false;
+          state.clinic.latitude = c.latitude != null ? Number(c.latitude) : null;
+          state.clinic.longitude = c.longitude != null ? Number(c.longitude) : null;
+          state.clinic.mapUrl = c.map_url || '';
+          state.clinic.locationNotes = c.location_notes || '';
         }
       } catch (_) {}
 
@@ -2378,9 +2587,6 @@
           Object.keys(state).forEach(k => { if (d[k]) Object.assign(state[k], d[k]); });
         }
       } catch (_) {}
-
-      // Default slug from name
-      if (!state.public.slug && state.profile.name) state.public.slug = slugify(state.profile.name);
 
       // Hydrate the theme preference from the live system (SDTheme is authoritative)
       if (window.SDTheme) state.preferences.theme = window.SDTheme.get();
@@ -2400,11 +2606,6 @@
       setVal('fldLocation', state.profile.location);
       setVal('fldBio', state.profile.bio);
 
-      setChk('swPublicProfile', state.public.enabled);
-      setChk('swShowExperience', state.public.showExperience);
-      setChk('swReviews', state.public.reviews);
-      setVal('fldSlug', state.public.slug);
-
       setVal('fldClinicName', state.clinic.name);
       setVal('fldClinicType', state.clinic.type);
       setVal('fldClinicTaxId', state.clinic.taxId);
@@ -2414,7 +2615,14 @@
       setVal('fldClinicEmail', state.clinic.email);
       setVal('fldClinicInfo', state.clinic.info);
       setChk('fldShowOnPublicMap', state.clinic.showOnPublicMap !== false);
+      setVal('fldMapUrl', state.clinic.mapUrl);
+      setVal('fldLocationNotes', state.clinic.locationNotes);
       renderClinicLogo();
+      renderLocationPreview();
+      // Si el mapa ya estaba montado (pestaña abierta por hash), llévalo al pin.
+      if (locPicker && state.clinic.latitude != null) {
+        locPicker.set(state.clinic.latitude, state.clinic.longitude, { silent: true });
+      }
 
       setVal('fldStartTime', state.agenda.startTime);
       setVal('fldEndTime', state.agenda.endTime);

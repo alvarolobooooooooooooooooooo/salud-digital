@@ -1261,7 +1261,9 @@
           <button type="button" class="var-chip" data-var="doctorName"><span class="plus">+</span>Doctor</button>
           <button type="button" class="var-chip" data-var="appointmentDate"><span class="plus">+</span>Fecha</button>
           <button type="button" class="var-chip" data-var="appointmentTime"><span class="plus">+</span>Hora</button>
+          <button type="button" class="var-chip" data-var="clinicAddress"><span class="plus">+</span>Dirección</button>
           <button type="button" class="var-chip featured" data-var="confirmLink"><span class="plus">+</span>Link de confirmación</button>
+          <button type="button" class="var-chip featured" data-var="mapLink"><span class="plus">+</span>Enlace del mapa</button>
         </div>
         <textarea id="waTemplate" placeholder="Escribe el mensaje y toca los datos de arriba para añadirlos…"></textarea>
         <small>El <b>Link de confirmación</b> es único por cita: cuando el paciente lo toca, su cita queda confirmada automáticamente.</small>
@@ -1436,6 +1438,7 @@
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
 <script src="/whatsapp.js"></script>
+<script src="/location.js"></script>
 <script>
   requireAuth(['clinic_admin', 'doctor']);
 
@@ -1455,6 +1458,7 @@
   let activeRows = [];   // citas de hoy en adelante, de la más próxima a la más lejana
   let archivedRows = []; // citas cuyo día ya pasó, de la más reciente a la más antigua
   let waConfig = { whatsapp_enabled: false, whatsapp_number: '', whatsapp_confirmation_template: '', name: '' };
+  let clinicLocation = null;
   let currentTab = 'all';
   let selected = new Set();
   let openRowId = null;
@@ -1567,20 +1571,57 @@
     return `${location.protocol}//${location.host}/confirmar/${token}`;
   }
 
+  // Ubicación de la clínica (Configuración › Ubicación): alimenta {{mapLink}} en
+  // la plantilla y el botón "Enviar ubicación" del drawer.
+  function clinicLoc(){
+    return SDLocation.from(Object.assign({ name: waConfig.name }, clinicLocation || {}));
+  }
+  function locationVars(){
+    const loc = clinicLoc();
+    return {
+      clinicAddress: SDLocation.fullAddress(loc),
+      mapLink: SDLocation.googleMapsUrl(loc)
+    };
+  }
+  function hasLocation(){
+    return SDLocation.has(clinicLoc());
+  }
+
   function buildMessage(r){
     // Si todavía no hay token, usamos un placeholder para que la preview se vea
     // — el mensaje real con link se genera en sendConfirmation/startBulkSend
     // luego de pedirle el token al backend.
     const token = r.token || '________________________________';
     const f = WhatsApp.formatAppointmentDateTime(r.scheduled_at);
-    return WhatsApp.renderTemplate(waConfig.whatsapp_confirmation_template || '', {
+    return WhatsApp.renderTemplate(waConfig.whatsapp_confirmation_template || '', Object.assign({
       patientName: r.patient_name || '',
       clinicName: waConfig.name || '',
       doctorName: r.doctor_name || '',
       appointmentDate: f.date,
       appointmentTime: f.time,
       confirmLink: confirmUrl(token)
+    }, locationVars()));
+  }
+
+  // Mensaje suelto de "cómo llegar", reenviable a quien acompaña al paciente.
+  function buildLocationMessage(r){
+    const f = WhatsApp.formatAppointmentDateTime(r.scheduled_at);
+    return SDLocation.shareText({
+      loc: clinicLoc(),
+      when: f.date ? `${f.date} · ${f.time}` : '',
+      intro: `Ubicación de ${waConfig.name || 'la clínica'}`
     });
+  }
+
+  function sendLocation(r){
+    const phone = WhatsApp.normalizePhone(r.phone);
+    if (!WhatsApp.isValidPhone(phone)) { showToast('Número de teléfono inválido.'); return; }
+    if (!hasLocation()) {
+      showToast('Configura la ubicación en Configuración › Ubicación.');
+      return;
+    }
+    WhatsApp.openWhatsApp(phone, buildLocationMessage(r));
+    showToast('Abriendo WhatsApp con la ubicación…');
   }
 
   function showToast(text){
@@ -1601,6 +1642,13 @@
       document.getElementById('configBanner').style.display = waConfig.whatsapp_enabled ? 'none' : 'flex';
     } catch (e) {
       console.error('Error loading WhatsApp config:', e);
+    }
+    // La ubicación vive en la clínica, no en la config de WhatsApp. Si falla, las
+    // confirmaciones siguen funcionando sin mapa.
+    try {
+      clinicLocation = await api('/api/clinics/me');
+    } catch (e) {
+      clinicLocation = null;
     }
   }
 
@@ -2093,6 +2141,15 @@
             </button>` : ''}
         </div>
         <div class="right">
+          ${canSend ? (hasLocation() ? `
+            <button class="btn btn-ghost" id="drawerLocationBtn" title="Enviar la ubicación de la clínica por WhatsApp">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+              Enviar ubicación
+            </button>` : `
+            <a class="btn btn-ghost" href="/configuracion.html#location" title="Añade la dirección y el punto en el mapa">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+              Configurar ubicación
+            </a>`) : ''}
           <button class="btn btn-ghost" id="drawerCancelBtn">Cerrar</button>
           ${canSend ? `
             <button class="btn btn-success" id="drawerSendBtn">
@@ -2118,6 +2175,8 @@
       if (confirm('¿Marcar esta cita como cancelada? Esto también la cancelará en el calendario.'))
         markManual(r.appointment_id, 'decline');
     };
+    const locBtn = document.getElementById('drawerLocationBtn');
+    if (locBtn) locBtn.onclick = () => sendLocation(r);
   }
 
   function closeDrawer(){
@@ -2144,7 +2203,9 @@
       doctorName: 'Dr. Álvaro Lobo',
       appointmentDate: f.date,
       appointmentTime: f.time,
-      confirmLink: `${location.protocol}//${location.host}/confirmar/abc123ejemplo`
+      confirmLink: `${location.protocol}//${location.host}/confirmar/abc123ejemplo`,
+      clinicAddress: locationVars().clinicAddress || 'Col. Palmira, Tegucigalpa',
+      mapLink: locationVars().mapLink || 'https://www.google.com/maps/search/?api=1&query=…'
     });
     document.getElementById('templatePreview').textContent = sample || '(sin contenido)';
   }

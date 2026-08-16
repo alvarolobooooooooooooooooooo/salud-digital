@@ -7,6 +7,7 @@ const { query, pool } = require('../db');
 const { authenticate, SECRET, COOKIE_NAME, authCookieOptions } = require('../middleware/auth');
 const { generateSecret, verifyTotp, otpauthUrl } = require('../lib/totp');
 const vault = require('../lib/secret-vault');
+const { isValidLatLng } = require('../lib/maps-links');
 
 function getClientIp(req) {
   const fwd = req.headers['x-forwarded-for'];
@@ -113,6 +114,15 @@ router.post('/register', async (req, res) => {
   const clinica = String(b.clinic_name || '').trim().replace(/\s+/g, ' ').slice(0, 120);
   const telefono = String(b.phone || '').trim().slice(0, 40);
   const ciudad = String(b.city || '').trim().slice(0, 80);
+  const direccion = String(b.address || '').trim().slice(0, 300);
+  const referencias = String(b.location_notes || '').trim().slice(0, 500);
+  const enlaceMapa = /^https?:\/\//i.test(String(b.map_url || '').trim())
+    ? String(b.map_url).trim().slice(0, 600) : '';
+  // El paso de ubicación del alta es opcional: si no marcó el pin, la clínica se
+  // crea sin coordenadas y el geocoder de fondo intentará resolver la dirección.
+  const pin = isValidLatLng(b.latitude, b.longitude)
+    ? { lat: Number(b.latitude), lng: Number(b.longitude) }
+    : null;
 
   if (nombre.length < 3) return res.status(400).json({ error: 'Escribe tu nombre completo.' });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -140,9 +150,19 @@ router.post('/register', async (req, res) => {
     await client.query('BEGIN');
     const nombreClinica = await nombreDeClinicaLibre(client, clinica);
     const c = await client.query(
-      `INSERT INTO clinics (name, address, chairs, specialties, phone, email, city)
-       VALUES ($1, '', 1, $2, $3, $4, $5) RETURNING id`,
-      [nombreClinica, especialidad, telefono, email, ciudad]
+      `INSERT INTO clinics (name, address, chairs, specialties, phone, email, city,
+                            latitude, longitude, map_url, location_notes,
+                            location_source, geocoded_at)
+       VALUES ($1, $2, 1, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+      [
+        nombreClinica, direccion, especialidad, telefono, email, ciudad,
+        pin ? pin.lat : null,
+        pin ? pin.lng : null,
+        enlaceMapa,
+        referencias,
+        pin ? 'manual' : null,
+        pin ? new Date() : null,
+      ]
     );
     const clinicId = c.rows[0].id;
     const u = await client.query(

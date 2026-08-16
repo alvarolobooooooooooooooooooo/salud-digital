@@ -369,6 +369,18 @@ const publicLandingLeadLimiter = rateLimit({
 });
 app.use('/api/public/landing/:slug/lead', publicLandingLeadLimiter);
 
+// Geocodificación pública: la usa el paso de ubicación del alta, que ocurre antes
+// de que exista sesión. Detrás hay una llamada a Nominatim (ToS: 1 req/s), así que
+// el límite es apretado — el uso legítimo son un par de búsquedas por registro.
+const publicGeoLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas búsquedas. Intenta más tarde.' },
+});
+app.use('/api/public/geo', publicGeoLimiter);
+
 // Static files: hint browsers to cache JS/CSS for a day, HTML always revalidated
 const ONE_DAY = 24 * 60 * 60;
 app.use(express.static(path.join(__dirname, 'public'), {

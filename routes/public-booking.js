@@ -4,6 +4,8 @@ const { query } = require('../db');
 const { checkRoomCapacity } = require('../lib/room-capacity');
 const { blockedReason } = require('../lib/availability-blocks');
 const subscription = require('../lib/subscription');
+const { searchAddress } = require('../lib/geocoding');
+const { parseMapsUrl, resolveMapsShortLink } = require('../lib/maps-links');
 
 function timeToMinutes(t) {
   const [h, m] = t.split(':').map(Number);
@@ -18,7 +20,9 @@ function minutesToTime(mins) {
 
 router.get('/clinic/:clinicId', async (req, res) => {
   const result = await query(
-    'SELECT id, name, address, phone, brand_color, logo_url, landing_data FROM clinics WHERE id = $1',
+    `SELECT id, name, address, city, phone, brand_color, logo_url, landing_data,
+            latitude, longitude, map_url, location_notes
+       FROM clinics WHERE id = $1`,
     [req.params.clinicId]
   );
   if (result.rows.length === 0) return res.status(404).json({ error: 'Clínica no encontrada' });
@@ -31,10 +35,17 @@ router.get('/clinic/:clinicId', async (req, res) => {
     id: row.id,
     name: row.name,
     address: row.address,
+    city: row.city || '',
     phone: row.phone,
     brand_color: row.brand_color || null,
     logo_url: row.logo_url || null,
     theme,
+    // Ubicación: el paciente la necesita para llegar (mapa + Waze/Google Maps en
+    // la confirmación de la reserva).
+    latitude: row.latitude != null ? parseFloat(row.latitude) : null,
+    longitude: row.longitude != null ? parseFloat(row.longitude) : null,
+    map_url: row.map_url || '',
+    location_notes: row.location_notes || '',
   });
 });
 
@@ -337,6 +348,35 @@ router.get('/clinics/map', async (req, res) => {
   }));
   res.set('Cache-Control', 'public, max-age=300');
   res.json({ clinics });
+});
+
+// ── Geocodificación para el alta de doctores ─────────────────────────────────
+// Públicas porque el paso de ubicación del asistente de registro ocurre antes de
+// que exista sesión. No tocan la base de datos ni exponen datos de clínicas: solo
+// traducen texto o un enlace de Google Maps a coordenadas. El rate limit vive en
+// server.js (/api/public/geo) y Nominatim se llama a través de la cola global.
+
+router.get('/geo/search', async (req, res) => {
+  const q = String(req.query.q || '').trim().slice(0, 200);
+  if (q.length < 3) return res.json({ results: [] });
+  const results = await searchAddress(q, 6);
+  res.json({ results });
+});
+
+router.get('/geo/resolve', async (req, res) => {
+  const url = String(req.query.url || '').trim().slice(0, 600);
+  if (!url) return res.status(400).json({ error: 'Falta el enlace' });
+
+  const direct = parseMapsUrl(url);
+  if (direct) return res.json({ ...direct, url });
+
+  const resolved = await resolveMapsShortLink(url);
+  if (!resolved) {
+    return res.status(422).json({
+      error: 'No pudimos leer las coordenadas de ese enlace. Marca el punto en el mapa.',
+    });
+  }
+  res.json(resolved);
 });
 
 module.exports = router;

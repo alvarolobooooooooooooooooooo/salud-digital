@@ -677,6 +677,17 @@
       display:inline-grid; place-items:center;
       font-size:11px; font-weight:700; line-height:1;
     }
+    /* Chip destacado: enlace del mapa (lo que evita las llamadas de "¿dónde es?"). */
+    .var-chip.featured{
+      background:color-mix(in oklch, var(--green-500) 18%, #fff);
+      border-color:color-mix(in oklch, var(--green-600) 55%, transparent);
+      color:var(--green-700);
+    }
+    .var-chip.featured .plus{ background:var(--green-600) }
+    .var-chip.featured:hover{
+      background:color-mix(in oklch, var(--green-500) 28%, #fff);
+      border-color:var(--green-600);
+    }
     html[data-theme="dark"] .var-chip{
       background:rgba(20, 184, 166, .12);
       border-color:rgba(20, 184, 166, .4);
@@ -685,6 +696,11 @@
     html[data-theme="dark"] .var-chip:hover{
       background:rgba(20, 184, 166, .22);
       border-color:rgba(20, 184, 166, .7);
+    }
+    html[data-theme="dark"] .var-chip.featured{
+      background:rgba(34, 197, 94, .15);
+      border-color:rgba(34, 197, 94, .5);
+      color:#86efac;
     }
     html[data-theme="dark"] .var-chips-hint{ color:#94a3b8 }
 
@@ -1225,6 +1241,8 @@
           <button type="button" class="var-chip" data-var="doctorName"><span class="plus">+</span>Doctor</button>
           <button type="button" class="var-chip" data-var="appointmentDate"><span class="plus">+</span>Fecha</button>
           <button type="button" class="var-chip" data-var="appointmentTime"><span class="plus">+</span>Hora</button>
+          <button type="button" class="var-chip" data-var="clinicAddress"><span class="plus">+</span>Dirección</button>
+          <button type="button" class="var-chip featured" data-var="mapLink"><span class="plus">+</span>Enlace del mapa</button>
         </div>
         <textarea id="waTemplate" placeholder="Escribe el mensaje y toca los datos de arriba para añadirlos…"></textarea>
       </div>
@@ -1398,6 +1416,7 @@
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
 <script src="/whatsapp.js"></script>
+<script src="/location.js"></script>
 <script>
   requireAuth(['clinic_admin', 'doctor']);
 
@@ -1417,6 +1436,7 @@
   let activeReminders = [];   // citas de hoy en adelante, de la más próxima a la más lejana
   let archivedReminders = []; // citas cuyo día ya pasó, de la más reciente a la más antigua
   let waConfig = { whatsapp_enabled: false, whatsapp_number: '', whatsapp_template: '', name: '' };
+  let clinicLocation = null;
   let currentTab = 'all';
   let selected = new Set();
   let openRowId = null;
@@ -1517,14 +1537,53 @@
     return { label:'Pendiente', cls:'pending' };
   }
 
+  // Datos de ubicación de la clínica (Configuración › Ubicación). Alimentan la
+  // variable {{mapLink}} de la plantilla y el botón "Enviar ubicación".
+  function clinicLoc(){
+    return SDLocation.from(Object.assign({ name: waConfig.name }, clinicLocation || {}));
+  }
+  function locationVars(){
+    const loc = clinicLoc();
+    return {
+      clinicAddress: SDLocation.fullAddress(loc),
+      mapLink: SDLocation.googleMapsUrl(loc)
+    };
+  }
+  function hasLocation(){
+    return SDLocation.has(clinicLoc());
+  }
+
   function buildMessage(r){
-    return WhatsApp.buildReminderMessage({
-      template: waConfig.whatsapp_template || '',
-      patientName: r.patient_name,
-      clinicName: waConfig.name,
-      doctorName: r.doctor_name,
-      scheduledAt: r.scheduled_at
+    const { date, time } = WhatsApp.formatAppointmentDateTime(r.scheduled_at);
+    return WhatsApp.renderTemplate(waConfig.whatsapp_template || '', Object.assign({
+      patientName: r.patient_name || '',
+      clinicName: waConfig.name || '',
+      doctorName: r.doctor_name || '',
+      appointmentDate: date,
+      appointmentTime: time
+    }, locationVars()));
+  }
+
+  // Mensaje suelto de "cómo llegar": va aparte del recordatorio para que el
+  // paciente pueda reenviarlo a quien lo lleva sin arrastrar sus datos de cita.
+  function buildLocationMessage(r){
+    const f = WhatsApp.formatAppointmentDateTime(r.scheduled_at);
+    return SDLocation.shareText({
+      loc: clinicLoc(),
+      when: f.date ? `${f.date} · ${f.time}` : '',
+      intro: `Ubicación de ${waConfig.name || 'la clínica'}`
     });
+  }
+
+  function sendLocation(r){
+    const phone = WhatsApp.normalizePhone(r.phone);
+    if (!WhatsApp.isValidPhone(phone)) { showToast('Número de teléfono inválido.'); return; }
+    if (!hasLocation()) {
+      showToast('Configura la ubicación en Configuración › Ubicación.');
+      return;
+    }
+    WhatsApp.openWhatsApp(phone, buildLocationMessage(r));
+    showToast('Abriendo WhatsApp con la ubicación…');
   }
 
   function showToast(text){
@@ -1545,6 +1604,13 @@
       document.getElementById('configBanner').style.display = waConfig.whatsapp_enabled ? 'none' : 'flex';
     } catch (e) {
       console.error('Error loading WhatsApp config:', e);
+    }
+    // La ubicación vive en la clínica, no en la config de WhatsApp. Si falla, los
+    // recordatorios siguen funcionando sin mapa.
+    try {
+      clinicLocation = await api('/api/clinics/me');
+    } catch (e) {
+      clinicLocation = null;
     }
   }
 
@@ -1987,6 +2053,8 @@
                 <span class="var">{{doctorName}}</span>
                 <span class="var">{{appointmentDate}}</span>
                 <span class="var">{{appointmentTime}}</span>
+                <span class="var">{{clinicAddress}}</span>
+                <span class="var">{{mapLink}}</span>
               </div>
             </div>
           </div>` : ''}
@@ -2044,7 +2112,17 @@
       </div>
 
       <div class="drawer-foot">
-        <div class="left"></div>
+        <div class="left">
+          ${!messageEditable ? '' : hasLocation() ? `
+            <button class="btn btn-ghost" id="drawerLocationBtn" title="Enviar la ubicación de la clínica por WhatsApp">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+              Enviar ubicación
+            </button>` : `
+            <a class="btn btn-ghost" href="/configuracion.html#location" title="Añade la dirección y el punto en el mapa">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+              Configurar ubicación
+            </a>`}
+        </div>
         <div class="right">
           <button class="btn btn-ghost" id="drawerCancelBtn">Cerrar</button>
           ${messageEditable ? `
@@ -2064,6 +2142,8 @@
     document.getElementById('drawerCancelBtn').onclick = closeDrawer;
     const sendBtn = document.getElementById('drawerSendBtn');
     if (sendBtn) sendBtn.onclick = () => sendFromDrawer(r);
+    const locBtn = document.getElementById('drawerLocationBtn');
+    if (locBtn) locBtn.onclick = () => sendLocation(r);
   }
 
   function sendFromDrawer(r){
@@ -2103,12 +2183,16 @@
   }
   function updatePreview(){
     const tpl = document.getElementById('waTemplate').value;
-    const sample = WhatsApp.buildReminderMessage({
-      template: tpl,
+    const f = WhatsApp.formatAppointmentDateTime(new Date(Date.now() + 86400000).toISOString());
+    const vars = locationVars();
+    const sample = WhatsApp.renderTemplate(tpl, {
       patientName: 'María González',
       clinicName: waConfig.name || 'Clínica',
       doctorName: 'Dr. Álvaro Lobo',
-      scheduledAt: new Date(Date.now() + 86400000).toISOString()
+      appointmentDate: f.date,
+      appointmentTime: f.time,
+      clinicAddress: vars.clinicAddress || 'Col. Palmira, Tegucigalpa',
+      mapLink: vars.mapLink || 'https://www.google.com/maps/search/?api=1&query=…'
     });
     document.getElementById('templatePreview').textContent = sample || '(sin contenido)';
   }

@@ -229,7 +229,9 @@ router.get('/public/:token', async (req, res) => {
        a.id AS appointment_id, a.scheduled_at, a.status AS appointment_status,
        p.name AS patient_name,
        u.name AS doctor_name,
-       cl.name AS clinic_name, cl.phone AS clinic_phone, cl.brand_color
+       cl.name AS clinic_name, cl.phone AS clinic_phone, cl.brand_color,
+       cl.address AS clinic_address, cl.city AS clinic_city,
+       cl.latitude, cl.longitude, cl.map_url, cl.location_notes
      FROM appointment_confirmations c
      JOIN appointments a ON c.appointment_id = a.id
      JOIN patients p ON c.patient_id = p.id

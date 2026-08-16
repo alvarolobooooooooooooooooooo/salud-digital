@@ -243,6 +243,57 @@
     .spec.sel .tick { border-color: var(--primary); }
     .spec.sel .tick::after { background: var(--primary); }
 
+    /* ── Ubicación ── */
+    .loc-actions { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .75rem; }
+    .loc-action {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .6rem .8rem; border-radius: 11px;
+      background: rgba(12, 12, 14, 0.55);
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      font: inherit; font-size: .8rem; font-weight: 500;
+      cursor: pointer;
+      transition: border-color .18s ease, color .18s ease, background .18s ease;
+    }
+    .loc-action:hover:not(:disabled) { border-color: rgba(6, 182, 212, 0.5); color: var(--text); }
+    .loc-action:disabled { opacity: .55; cursor: progress; }
+
+    .loc-results {
+      border: 1px solid var(--border); border-radius: 12px;
+      background: rgba(12, 12, 14, 0.7);
+      overflow: hidden; margin-bottom: .75rem;
+      max-height: 190px; overflow-y: auto;
+    }
+    .loc-results button {
+      display: block; width: 100%; text-align: left;
+      background: none; border: 0; border-bottom: 1px solid var(--border-soft);
+      color: var(--text-soft); font: inherit; font-size: .8rem; line-height: 1.45;
+      padding: .6rem .75rem; cursor: pointer;
+    }
+    .loc-results button:last-child { border-bottom: 0; }
+    .loc-results button:hover { background: rgba(6, 182, 212, 0.09); color: var(--text); }
+    .loc-results .loc-empty { padding: .65rem .75rem; font-size: .78rem; color: var(--text-faint); }
+
+    /* Los tiles de OSM son claros; el filtro los acerca al resto de la pantalla
+       sin perder legibilidad de calles y etiquetas. */
+    .loc-map {
+      height: 240px; border-radius: 14px; overflow: hidden;
+      border: 1px solid var(--border); background: #111114;
+      position: relative; z-index: 0; isolation: isolate;
+    }
+    .loc-map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.92); }
+    .loc-map .leaflet-control-zoom a { background: #16161a; color: #e2e8f0; border-color: rgba(255,255,255,.12); }
+    .loc-map .leaflet-control-attribution { background: rgba(0,0,0,.55); color: #94a3b8; }
+    .loc-map .leaflet-control-attribution a { color: #22d3ee; }
+
+    .loc-status { font-size: .76rem; color: var(--text-faint); margin-top: .5rem; line-height: 1.45; }
+    .loc-status.ok { color: var(--ok); }
+    .loc-status.bad { color: var(--danger); }
+
+    .loc-link-row { display: flex; gap: .5rem; }
+    .loc-link-row input { flex: 1; min-width: 0; }
+    .loc-link-row .loc-action { flex-shrink: 0; }
+
     /* ── Resumen ── */
     .summary { border: 1px solid var(--border-soft); border-radius: 13px; overflow: hidden; }
     .summary-row {
@@ -477,8 +528,43 @@
           </div>
         </section>
 
-        <!-- 5 · Confirmación -->
+        <!-- 5 · Ubicación -->
         <section class="step" data-step="4">
+          <h1 class="step-title">¿Dónde atiendes?</h1>
+          <p class="step-sub">Tus pacientes verán este punto al reservar y en cada recordatorio, con botones para abrirlo en Google Maps o Waze. Puedes dejarlo para después.</p>
+
+          <div class="field">
+            <label for="address">Dirección</label>
+            <input type="text" id="address" autocomplete="street-address" placeholder="Col. Palmira, Calle Principal, Edificio 3">
+          </div>
+
+          <div class="loc-actions">
+            <button type="button" class="loc-action" id="btnLocateMe">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Estoy en la clínica
+            </button>
+            <button type="button" class="loc-action" id="btnSearchAddr">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              Buscar la dirección
+            </button>
+          </div>
+          <div class="loc-results" id="locResults" hidden></div>
+
+          <div class="loc-map" id="locMap"></div>
+          <div class="loc-status" id="locStatus">Toca el mapa para marcar el punto exacto.</div>
+
+          <div class="field" style="margin-top:1rem;">
+            <label for="mapUrl">O pega tu enlace de Google Maps <span style="color:var(--text-faint);font-weight:400;">(opcional)</span></label>
+            <div class="loc-link-row">
+              <input type="text" id="mapUrl" placeholder="https://maps.app.goo.gl/…" autocomplete="off" inputmode="url">
+              <button type="button" class="loc-action" id="btnReadLink">Leer</button>
+            </div>
+            <span class="hint">En Google Maps: abre tu consultorio → Compartir → Copiar enlace.</span>
+          </div>
+        </section>
+
+        <!-- 6 · Confirmación -->
+        <section class="step" data-step="5">
           <h1 class="step-title">Todo listo</h1>
           <p class="step-sub">Revisa que esté correcto y creamos tu espacio.</p>
 
@@ -493,8 +579,8 @@
           <div class="form-error" id="formError"></div>
         </section>
 
-        <!-- 6 · Éxito -->
-        <section class="step" data-step="5">
+        <!-- 7 · Éxito -->
+        <section class="step" data-step="6">
           <div class="done-mark">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
@@ -539,14 +625,17 @@
   </div>
 
   <script src="/icons.js"></script>
+  <script src="/location.js"></script>
+  <script src="/map-picker.js"></script>
   <script>
     // ── Asistente de alta en pasos ──
     // Todo el estado vive aquí; el POST a /api/auth/register solo ocurre en el
     // último paso, cuando el doctor ya vio el resumen completo.
 
-    var PASOS = ['Tus datos', 'Contraseña', 'Especialidad', 'Consultorio', 'Confirmar', 'Listo'];
-    var ULTIMO_FORMULARIO = 4;   // índice del paso de confirmación
-    var PASO_EXITO = 5;
+    var PASOS = ['Tus datos', 'Contraseña', 'Especialidad', 'Consultorio', 'Ubicación', 'Confirmar', 'Listo'];
+    var PASO_UBICACION = 4;
+    var ULTIMO_FORMULARIO = 5;   // índice del paso de confirmación
+    var PASO_EXITO = 6;
 
     // El alta por cuenta propia es solo para podología. La lista se mantiene como
     // array porque el paso funciona igual con una o con varias opciones: para
@@ -559,7 +648,10 @@
 
     var paso = 0;
     var enviando = false;
-    var datos = { specialty: '' };
+    // lat/lng en null = el doctor se saltó el paso de ubicación; la clínica se crea
+    // sin pin y podrá marcarlo luego en Configuración › Ubicación.
+    var datos = { specialty: '', lat: null, lng: null };
+    var mapaUbicacion = null;
 
     var $ = function (id) { return document.getElementById(id); };
     var pasos = Array.prototype.slice.call(document.querySelectorAll('.step'));
@@ -675,8 +767,11 @@
       ];
       var ciudad = $('city').value.trim();
       var tel = $('phone').value.trim();
+      var direccion = $('address').value.trim();
       if (ciudad) filas.push(['Ciudad', ciudad]);
       if (tel) filas.push(['Teléfono', tel]);
+      if (direccion) filas.push(['Dirección', direccion]);
+      filas.push(['Ubicación en el mapa', datos.lat != null ? 'Marcada' : 'La marcarás después']);
 
       $('summary').innerHTML = filas.map(function (f) {
         var b = document.createElement('b');
@@ -704,11 +799,133 @@
       $('btnIcon').style.display = n === ULTIMO_FORMULARIO ? 'none' : '';
 
       if (n === ULTIMO_FORMULARIO) pintarResumen();
+      // El mapa se monta al llegar al paso: Leaflet no puede medir un contenedor
+      // que estaba en display:none.
+      if (n === PASO_UBICACION) prepararMapa();
 
       // Foco en el primer campo del paso: se puede completar todo con teclado.
+      // En ubicación no: enfocar la dirección abre el teclado y tapa el mapa.
       var primero = destino.querySelector('input');
-      if (primero && n < PASO_EXITO) setTimeout(function () { primero.focus(); }, 60);
+      if (primero && n < PASO_EXITO && n !== PASO_UBICACION) {
+        setTimeout(function () { primero.focus(); }, 60);
+      }
     }
+
+    // ── Paso de ubicación ──
+    function estadoUbicacion(texto, clase) {
+      var el = $('locStatus');
+      el.textContent = texto;
+      el.className = 'loc-status' + (clase ? ' ' + clase : '');
+    }
+
+    function fijarPunto(lat, lng) {
+      if (lat == null || lng == null) { datos.lat = null; datos.lng = null; return; }
+      datos.lat = Number(lat);
+      datos.lng = Number(lng);
+      estadoUbicacion('Punto marcado en ' + datos.lat.toFixed(5) + ', ' + datos.lng.toFixed(5) +
+        '. Arrastra el pin si quieres afinarlo.', 'ok');
+    }
+
+    function prepararMapa() {
+      if (mapaUbicacion) { mapaUbicacion.refresh(); return; }
+      mapaUbicacion = SDMapPicker.create($('locMap'), {
+        lat: datos.lat,
+        lng: datos.lng,
+        onChange: function (lat, lng) { fijarPunto(lat, lng); }
+      });
+    }
+
+    $('btnLocateMe').addEventListener('click', function () {
+      var btn = this;
+      btn.disabled = true;
+      estadoUbicacion('Buscando tu ubicación…');
+      SDMapPicker.locateMe().then(function (pos) {
+        prepararMapa();
+        mapaUbicacion.set(pos.lat, pos.lng, { fly: true, silent: true });
+        fijarPunto(pos.lat, pos.lng);
+      }).catch(function (err) {
+        estadoUbicacion(err.message || 'No pudimos obtener tu ubicación.', 'bad');
+      }).finally(function () { btn.disabled = false; });
+    });
+
+    // Buscar dirección. Pasa por /api/public/geo (mismo origen: la CSP bloquea
+    // fetch a terceros) y solo se dispara con un clic, nunca al teclear — detrás
+    // hay una llamada a Nominatim con límite de 1 req/s.
+    $('btnSearchAddr').addEventListener('click', function () {
+      var btn = this;
+      var q = [$('address').value.trim(), $('city').value.trim()].filter(Boolean).join(', ');
+      if (q.length < 3) {
+        estadoUbicacion('Escribe primero la dirección para poder buscarla.', 'bad');
+        return;
+      }
+      var caja = $('locResults');
+      btn.disabled = true;
+      caja.hidden = false;
+      caja.innerHTML = '<div class="loc-empty">Buscando…</div>';
+      fetch('/api/public/geo/search?q=' + encodeURIComponent(q), {
+        headers: { 'Accept': 'application/json' }
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var lista = (data && data.results) || [];
+          if (lista.length === 0) {
+            caja.innerHTML = '<div class="loc-empty">Sin resultados. Marca el punto tocando el mapa.</div>';
+            return;
+          }
+          caja.innerHTML = '';
+          lista.forEach(function (r) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = r.label;
+            b.addEventListener('click', function () {
+              prepararMapa();
+              mapaUbicacion.set(r.lat, r.lng, { fly: true, silent: true });
+              fijarPunto(r.lat, r.lng);
+              caja.hidden = true;
+              caja.innerHTML = '';
+            });
+            caja.appendChild(b);
+          });
+        })
+        .catch(function () {
+          caja.innerHTML = '<div class="loc-empty">No pudimos buscar ahora. Marca el punto en el mapa.</div>';
+        })
+        .finally(function () { btn.disabled = false; });
+    });
+
+    // Enlaces de Google Maps. Los largos traen las coordenadas en la propia URL;
+    // los acortados (maps.app.goo.gl) los resuelve el servidor siguiendo la
+    // redirección.
+    $('btnReadLink').addEventListener('click', function () {
+      var btn = this;
+      var raw = $('mapUrl').value.trim();
+      if (!raw) { estadoUbicacion('Pega primero el enlace de Google Maps.', 'bad'); return; }
+
+      var p = SDLocation.parseMapsUrl(raw);
+      if (p) {
+        prepararMapa();
+        mapaUbicacion.set(p.lat, p.lng, { fly: true, silent: true });
+        fijarPunto(p.lat, p.lng);
+        return;
+      }
+
+      btn.disabled = true;
+      estadoUbicacion('Leyendo el enlace…');
+      fetch('/api/public/geo/resolve?url=' + encodeURIComponent(raw), {
+        headers: { 'Accept': 'application/json' }
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          if (!res.ok) throw new Error(res.d && res.d.error);
+          prepararMapa();
+          mapaUbicacion.set(res.d.lat, res.d.lng, { fly: true, silent: true });
+          fijarPunto(res.d.lat, res.d.lng);
+        })
+        .catch(function (err) {
+          estadoUbicacion(err.message || 'No pudimos leer ese enlace. Marca el punto en el mapa.', 'bad');
+        })
+        .finally(function () { btn.disabled = false; });
+    });
 
     function pintarExito() {
       $('progress').style.display = 'none';
@@ -741,7 +958,11 @@
             specialty: datos.specialty,
             clinic_name: $('clinic').value.trim(),
             city: $('city').value.trim(),
-            phone: $('phone').value.trim()
+            phone: $('phone').value.trim(),
+            address: $('address').value.trim(),
+            map_url: $('mapUrl').value.trim(),
+            latitude: datos.lat,
+            longitude: datos.lng
           })
         });
         var data = null;
