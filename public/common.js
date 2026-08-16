@@ -96,12 +96,16 @@ async function api(url, options = {}) {
     catch { data = { error: text.slice(0, 200) }; }
   }
   if (!res.ok) {
-    // 402 = suscripción inactiva. El servidor cierra la API entera, así que no
-    // tiene sentido dejar la página a medio cargar: se manda a la pantalla de
-    // suscripción (salvo que ya estemos en ella, o sería un bucle).
+    // 402 = suscripción inactiva. Las lecturas siguen pasando (la app queda en
+    // solo lectura), así que un 402 significa siempre que se intentó GUARDAR
+    // algo: no se navega a ningún lado —eso perdería lo que el usuario acaba de
+    // escribir— sino que se explica con el aviso de suscripción y se deja la
+    // página tal cual, con su formulario intacto.
     if (res.status === 402 && data && data.code === 'subscription_required') {
-      if (window.location.pathname !== '/plan.html') {
-        window.location.replace('/plan.html?bloqueo=1');
+      if (typeof window.sdPaywall === 'function') {
+        window.sdPaywall(data.error);
+      } else if (window.location.pathname !== '/plan.html') {
+        window.location.href = '/plan.html?bloqueo=1';
       }
       const err = new Error(data.error || 'Tu suscripción no está activa.');
       err.status = 402;

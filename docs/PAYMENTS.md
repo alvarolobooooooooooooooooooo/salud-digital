@@ -40,8 +40,8 @@ en la interfaz.
 |---|---|---|
 | `PAYMENTS_PROVIDER` | no (por defecto `paypal`) | Procesador activo |
 | `APP_URL` | sí | Base para las URLs de retorno y del webhook |
-| `BILLING_ENFORCEMENT` | no | `off` desactiva el bloqueo por impago |
-| `BILLING_EXEMPT_CLINIC_IDS` | no | Clínicas que nunca se bloquean, p. ej. `1,5` |
+| `BILLING_ENFORCEMENT` | no | `off` desactiva el modo solo lectura por impago |
+| `BILLING_EXEMPT_CLINIC_IDS` | no | Clínicas que nunca se limitan, p. ej. `1,5` |
 | `BILLING_MAX_RETRIES` | no (3) | Intentos antes de dar el cobro por perdido |
 | `BILLING_GRACE_DAYS` | no (3) | Días de acceso tras vencer el periodo sin pagar |
 | `BILLING_RETRY_DAYS` | no (`1,3,5`) | Espera entre reintentos, en días |
@@ -181,7 +181,7 @@ reprocesa webhooks fallidos.
                                       el pago en `payments`
 6. Cada mes: cobro nativo o job     → nuevo `payments` + periodo avanzado
 7. POST /api/billing/cancel         → sin más cobros; acceso hasta fin de periodo
-8. Fin de periodo                   → `expired`, el guardián bloquea la app
+8. Fin de periodo                   → `expired`, el guardián deja la app en solo lectura
 ```
 
 ### Endpoints
@@ -189,7 +189,7 @@ reprocesa webhooks fallidos.
 | Método | Ruta | Quién |
 |---|---|---|
 | GET | `/api/billing/plans` | autenticado |
-| GET | `/api/billing/status` | autenticado (exento del bloqueo) |
+| GET | `/api/billing/status` | autenticado (exento del guardián) |
 | GET | `/api/billing/payments` | dueño de la cuenta |
 | POST | `/api/billing/subscribe` | dueño |
 | POST | `/api/billing/order` | dueño (procesadores 'manual') |

@@ -1234,18 +1234,123 @@
   });
 })();
 
-// ── Guardián de suscripción (frontend) ──
-// El bloqueo real lo hace el servidor (402 en /api). Esto es el complemento
-// visual: si la cuenta no está al día, la página se manda a /plan.html sin
-// esperar a que falle su primera llamada — y cubre las pantallas que casi no
-// consultan la API. La respuesta se cachea 60s en sessionStorage para no pedir
-// el estado en cada navegación.
+// ── Modo solo lectura por suscripción (frontend) ──
+// El servidor es quien manda: sin plan activo deja pasar las lecturas y responde
+// 402 a cualquier escritura. Aquí va la parte visible de ese estado:
+//   · window.sdPaywall(msg) — el aviso que sale cuando una escritura choca con
+//     el 402 (lo dispara common.js). No navega: el formulario queda intacto.
+//   · una cinta permanente arriba de la página avisando de que la cuenta está
+//     en solo lectura, para que nadie descubra el límite recién al guardar.
+// El estado se cachea 60s en sessionStorage para no consultarlo en cada
+// navegación.
 (function () {
   var GATED_ROLES = ['clinic_admin', 'doctor', 'receptionist'];
   var CACHE_KEY = 'sd_billing_ok_until';
   var path = window.location.pathname;
+  var ESTILOS_ID = 'sdReadonlyStyles';
 
-  if (path === '/plan.html' || path === '/login.html' || path === '/' || path === '/index.html') return;
+  // Colores propios, sin heredar --card/--text: muchas páginas redefinen esas
+  // variables en su propio <style> (que va DESPUÉS de theme-dark.css en la
+  // cascada), así que en oscuro la cinta salía blanca. Aquí se declaran los dos
+  // temas a mano y no depende de nadie.
+  function inyectarEstilos() {
+    if (document.getElementById(ESTILOS_ID)) return;
+    var s = document.createElement('style');
+    s.id = ESTILOS_ID;
+    s.textContent = [
+      // Flotante y fuera del flujo: metida dentro de <main> se convertía en
+      // celda del grid de páginas como /patients.html y les descolocaba las
+      // columnas. Así no toca la maquetación de ninguna pantalla.
+      '.sd-ro-bar{position:fixed;z-index:1100;left:50%;transform:translateX(-50%);',
+      'bottom:calc(14px + env(safe-area-inset-bottom, 0px));',
+      'width:max-content;max-width:min(560px, calc(100vw - 24px));',
+      'display:flex;align-items:center;gap:.7rem;',
+      'padding:.5rem .5rem .5rem .95rem;border-radius:999px;',
+      'background:#fff;border:1px solid #e2e8f0;box-shadow:0 10px 30px rgba(15,23,42,.16)}',
+      '.sd-ro-bar .sd-ro-dot{width:7px;height:7px;border-radius:50%;background:#0891b2;flex:none}',
+      '.sd-ro-bar .sd-ro-txt{font-size:.82rem;line-height:1.35;color:#0f172a}',
+      '.sd-ro-bar .sd-ro-txt b{font-weight:600}',
+      '.sd-ro-bar .sd-ro-txt span{color:#64748b}',
+      '.sd-ro-bar .sd-ro-cta{flex:none;padding:.42rem .85rem;border-radius:999px;border:0;cursor:pointer;',
+      'background:#0891b2;color:#fff;font:inherit;font-size:.78rem;font-weight:600;',
+      'text-decoration:none;display:inline-block;white-space:nowrap}',
+      '.sd-ro-bar .sd-ro-cta:hover{background:#0e7490}',
+      '@media (max-width:600px){.sd-ro-bar .sd-ro-txt span{display:none}}',
+      'html[data-theme="dark"] .sd-ro-bar{background:rgba(20,20,22,.82);',
+      '-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);',
+      'border-color:rgba(255,255,255,.1);box-shadow:0 10px 30px rgba(0,0,0,.45)}',
+      'html[data-theme="dark"] .sd-ro-bar .sd-ro-dot{background:#06b6d4}',
+      'html[data-theme="dark"] .sd-ro-bar .sd-ro-txt{color:#f1f5f9}',
+      'html[data-theme="dark"] .sd-ro-bar .sd-ro-txt span{color:#94a3b8}',
+      'html[data-theme="dark"] .sd-ro-bar .sd-ro-cta{background:#06b6d4;color:#04191e}',
+      'html[data-theme="dark"] .sd-ro-bar .sd-ro-cta:hover{background:#22d3ee}',
+
+      '.sd-pw-scrim{position:fixed;inset:0;z-index:9998;background:rgba(15,23,42,.45);',
+      'display:flex;align-items:center;justify-content:center;padding:1.25rem}',
+      'html[data-theme="dark"] .sd-pw-scrim{background:rgba(0,0,0,.62)}',
+      '.sd-pw-card{width:100%;max-width:400px;background:#fff;color:#0f172a;',
+      'border:1px solid #e2e8f0;border-radius:16px;padding:1.5rem;',
+      'box-shadow:0 24px 60px rgba(15,23,42,.22)}',
+      '.sd-pw-card h3{margin:0 0 .5rem;font-size:1.05rem;font-weight:650}',
+      '.sd-pw-card p{margin:0 0 1.25rem;font-size:.875rem;line-height:1.55;color:#64748b}',
+      '.sd-pw-actions{display:flex;gap:.6rem;justify-content:flex-end;flex-wrap:wrap}',
+      '.sd-pw-actions button,.sd-pw-actions a{padding:.55rem 1rem;border-radius:9px;font:inherit;',
+      'font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block}',
+      '.sd-pw-ghost{background:transparent;border:1px solid #e2e8f0;color:#0f172a}',
+      '.sd-pw-solid{background:#0891b2;border:1px solid #0891b2;color:#fff}',
+      '.sd-pw-solid:hover{background:#0e7490}',
+      'html[data-theme="dark"] .sd-pw-card{background:#141416;color:#f1f5f9;',
+      'border-color:rgba(255,255,255,.09);box-shadow:0 24px 60px rgba(0,0,0,.5)}',
+      'html[data-theme="dark"] .sd-pw-card p{color:#94a3b8}',
+      'html[data-theme="dark"] .sd-pw-ghost{border-color:rgba(255,255,255,.14);color:#cbd5e1}',
+      'html[data-theme="dark"] .sd-pw-solid{background:#06b6d4;border-color:#06b6d4;color:#04191e}',
+      'html[data-theme="dark"] .sd-pw-solid:hover{background:#22d3ee;border-color:#22d3ee}'
+    ].join('');
+    document.head.appendChild(s);
+  }
+
+  // Aviso de escritura bloqueada. Se define ya mismo (no espera al fetch de
+  // estado) porque el usuario puede pulsar "Guardar" antes de que resuelva.
+  window.sdPaywall = function (mensaje) {
+    if (document.querySelector('.sd-pw-scrim')) return; // ya hay uno abierto
+    inyectarEstilos();
+    var scrim = document.createElement('div');
+    scrim.className = 'sd-pw-scrim';
+    scrim.innerHTML =
+      '<div class="sd-pw-card" role="dialog" aria-modal="true" aria-label="Suscripción requerida">' +
+        '<h3>Activa tu suscripción para guardar</h3>' +
+        '<p></p>' +
+        '<div class="sd-pw-actions">' +
+          '<button type="button" class="sd-pw-ghost">Seguir explorando</button>' +
+          '<a class="sd-pw-solid" href="/plan.html">Ver suscripción</a>' +
+        '</div>' +
+      '</div>';
+    scrim.querySelector('p').textContent = mensaje ||
+      'Tu cuenta está en modo solo lectura: puedes recorrer la plataforma, pero para registrar pacientes, citas o consultas necesitas el plan activo.';
+    function cerrar() { scrim.remove(); }
+    scrim.querySelector('.sd-pw-ghost').addEventListener('click', cerrar);
+    scrim.addEventListener('click', function (e) { if (e.target === scrim) cerrar(); });
+    document.addEventListener('keydown', function esc(e) {
+      if (e.key === 'Escape') { cerrar(); document.removeEventListener('keydown', esc); }
+    });
+    document.body.appendChild(scrim);
+  };
+
+  function pintarCinta(puedeGestionar) {
+    if (document.querySelector('.sd-ro-bar')) return;
+    inyectarEstilos();
+    var bar = document.createElement('div');
+    bar.className = 'sd-ro-bar';
+    bar.innerHTML =
+      '<span class="sd-ro-dot"></span>' +
+      '<div class="sd-ro-txt"><b>Modo solo lectura.</b> ' +
+      '<span>Aún no se guardan cambios.</span></div>' +
+      (puedeGestionar ? '<a class="sd-ro-cta" href="/plan.html">Activar</a>' : '');
+    document.body.appendChild(bar);
+  }
+
+  if (path === '/plan.html' || path === '/login.html' || path === '/registro.html' ||
+      path === '/' || path === '/index.html') return;
   try {
     if (GATED_ROLES.indexOf(localStorage.getItem('sd_role')) === -1) return;
     var okUntil = parseInt(sessionStorage.getItem(CACHE_KEY) || '0', 10);
@@ -1261,7 +1366,11 @@
         return;
       }
       try { sessionStorage.removeItem(CACHE_KEY); } catch (_) {}
-      window.location.replace('/plan.html?bloqueo=1');
+      window.SD_READONLY = true;
+      document.documentElement.classList.add('sd-readonly');
+      var pintar = function () { pintarCinta(!!data.can_manage); };
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pintar);
+      else pintar();
     })
     .catch(function () { /* sin red: que decida el servidor en la próxima llamada */ });
 })();

@@ -1,7 +1,10 @@
 // ── Guardián de suscripción ──
-// Bloquea la API cuando la clínica no tiene suscripción activa. Se monta una
-// sola vez sobre /api (antes de los routers), así ninguna ruta nueva se olvida
-// de estar protegida.
+// Pone la API en SOLO LECTURA cuando la clínica no tiene suscripción activa: se
+// puede seguir consultando (GET/HEAD) para recorrer la plataforma y ver lo que
+// ya existe, pero cualquier escritura —dar de alta un paciente, guardar una
+// consulta, agendar una cita— responde 402 hasta que el plan esté al día.
+// Se monta una sola vez sobre /api (antes de los routers), así ninguna ruta
+// nueva se olvida de estar protegida.
 //
 // Como corre ANTES de los routers, req.user todavía no existe: aquí se decodifica
 // el JWT por cuenta propia. No se valida la sesión contra user_sessions — de eso
@@ -21,6 +24,11 @@ const EXEMPT_PREFIXES = [
   '/public',                // landing pública + reservas online
   '/confirmations/public',  // enlace de confirmación que ya recibió el paciente
 ];
+
+// Métodos que solo leen. Son los que siguen abiertos sin plan: el doctor recién
+// registrado entra, recorre la app y entiende qué está comprando; el que dejó de
+// pagar conserva la vista de su historial en vez de encontrarse un muro.
+const METODOS_DE_LECTURA = ['GET', 'HEAD', 'OPTIONS'];
 
 function isExemptPath(pathname) {
   return EXEMPT_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'));
@@ -65,8 +73,11 @@ async function gate(req, res, next) {
 
   if (access.active) return next();
 
+  // Sin plan: se mira, no se toca.
+  if (METODOS_DE_LECTURA.includes(req.method)) return next();
+
   res.status(402).json({
-    error: 'Tu suscripción no está activa. Actívala para seguir usando la plataforma.',
+    error: 'Tu cuenta está en modo solo lectura. Activa la suscripción para guardar cambios.',
     code: 'subscription_required',
     subscription_status: access.reason,
   });

@@ -1349,6 +1349,7 @@
     const params = new URLSearchParams(window.location.search);
     const flujo = params.get('checkout');
     const bloqueo = params.get('bloqueo') === '1';
+    const bienvenida = params.get('bienvenida') === '1';
 
     try {
       await load();
@@ -1357,9 +1358,12 @@
       return;
     }
 
-    if (bloqueo && !state.status.access.active) {
-      banner('danger', 'Tu acceso está en pausa',
-        'La plataforma queda bloqueada mientras la suscripción no esté activa. Actívala aquí y todo vuelve a funcionar al instante.');
+    if (bienvenida && !state.status.access.active) {
+      banner('info', 'Tu cuenta ya está creada',
+        'Puedes entrar y recorrer toda la plataforma desde ahora. Para registrar pacientes, citas y consultas, activa la suscripción aquí.');
+    } else if (bloqueo && !state.status.access.active) {
+      banner('warn', 'Tu cuenta está en modo solo lectura',
+        'Mientras la suscripción no esté activa puedes consultar la plataforma, pero no se guardan cambios. Actívala aquí y todo vuelve a funcionar al instante.');
     }
     if (flujo === 'cancel') {
       banner('warn', 'Pago cancelado', 'Saliste de PayPal sin completar la suscripción. No se te ha cobrado nada.');
@@ -1376,7 +1380,7 @@
     }
 
     // La URL se limpia siempre: si el usuario recarga, no se re-dispara el flujo.
-    if (flujo || bloqueo) window.history.replaceState({}, '', '/plan.html');
+    if (flujo || bloqueo || bienvenida) window.history.replaceState({}, '', '/plan.html');
   })();
 </script>
 
