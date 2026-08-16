@@ -95,8 +95,9 @@
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
             // Mensajes desactivado — para reactivar, descomentar esta línea:
             // { href: '/mensajes.html', key: 'mensajes', iconName: 'messageSquare', label: 'Mensajes' },
-            { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
-            { href: '/facturacion.html', key: 'facturacion', iconName: 'fileText', label: 'Facturación' }
+            { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
+            // Facturación desactivada — para reactivar, descomentar esta línea (y añadir la coma arriba):
+            // ,{ href: '/facturacion.html', key: 'facturacion', iconName: 'fileText', label: 'Facturación' }
           ]
         },
         {
@@ -137,8 +138,9 @@
             { href: '/patients.html', key: 'patients', iconName: 'users', label: 'Pacientes' },
             // Mensajes desactivado — para reactivar, descomentar esta línea:
             // { href: '/mensajes.html', key: 'mensajes', iconName: 'messageSquare', label: 'Mensajes' },
-            { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' },
-            { href: '/facturacion.html', key: 'facturacion', iconName: 'fileText', label: 'Facturación' }
+            { href: '/finanzas.html', key: 'finanzas', iconName: 'wallet', label: 'Finanzas' }
+            // Facturación desactivada — para reactivar, descomentar esta línea (y añadir la coma arriba):
+            // ,{ href: '/facturacion.html', key: 'facturacion', iconName: 'fileText', label: 'Facturación' }
           ]
         },
         {
@@ -237,19 +239,21 @@
               <span id="configMenuIcon"></span>
               <span>Configuración</span>
             </a>
-          </div>` : `<div class="sidebar-section">
+          </div>` : `<!-- Sección GENERAL del cajón móvil desactivada: sus dos entradas (Facturación y
+               Calendario Compartido) están desactivadas. Para reactivar, descomentar este bloque
+               y dentro de él solo la entrada que se quiera mostrar:
+          <div class="sidebar-section">
             <div class="sidebar-label">GENERAL</div>
             <a href="/facturacion.html" class="sidebar-menu-link">
               <span id="facturacionMenuIcon"></span>
               <span>Facturación</span>
             </a>
-            <!-- Calendario Compartido desactivado — para reactivar, descomentar este bloque:
             <a href="/calendario-compartido.html" class="sidebar-menu-link">
               <span id="calCompartidoIcon"></span>
               <span>Calendario Compartido</span>
             </a>
-            -->
           </div>
+          -->
           <div class="sidebar-section">
             <div class="sidebar-label">CLÍNICA</div>
             ${isClinicAdmin ? `<a href="/doctors.html" class="sidebar-menu-link">
