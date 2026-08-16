@@ -187,6 +187,23 @@ const initDb = async () => {
         FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE CASCADE
       );
 
+      -- Excepciones de un día concreto sobre el horario semanal: o el día entero
+      -- cerrado, o una lista de horas ("HH:MM") que ese día no se ofrecen. Sin
+      -- fila = el día sigue el horario semanal de doctor_availability.
+      CREATE TABLE IF NOT EXISTS doctor_day_overrides (
+        id SERIAL PRIMARY KEY,
+        doctor_id INTEGER NOT NULL,
+        override_date DATE NOT NULL,
+        closed BOOLEAN NOT NULL DEFAULT FALSE,
+        blocked_times JSONB NOT NULL DEFAULT '[]'::jsonb,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (doctor_id, override_date),
+        FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_doctor_day_overrides_doctor
+        ON doctor_day_overrides(doctor_id, override_date);
+
       CREATE TABLE IF NOT EXISTS clinic_rooms (
         id SERIAL PRIMARY KEY,
         clinic_id INTEGER NOT NULL,

@@ -3,6 +3,7 @@ const router = express.Router();
 const { query } = require('../db');
 const { authenticate } = require('../middleware/auth');
 const { checkRoomCapacity } = require('../lib/room-capacity');
+const { rejectIfBlocked } = require('../lib/availability-blocks');
 
 function getLocalDateString(date = new Date()) {
   const year = date.getFullYear();
@@ -95,6 +96,10 @@ router.put('/:id', authenticate, async (req, res) => {
     // since cancelled appointments don't occupy a room.
     const futureStatus = status !== undefined ? status : null;
     if (futureStatus !== 'cancelled') {
+      // Mover una cita a una hora que el doctor bloqueó tampoco vale.
+      const targetDoctor = doctor_id !== undefined ? doctor_id : appt.current_doctor_id;
+      if (await rejectIfBlocked(res, targetDoctor, scheduled_at)) return;
+
       const cap = await checkRoomCapacity(req.user.clinic_id, scheduled_at, req.params.id);
       if (!cap.ok) {
         return res.status(409).json({
@@ -225,6 +230,10 @@ router.post('/', authenticate, async (req, res) => {
   const doctorResult = await query('SELECT specialty FROM users WHERE id = $1 AND clinic_id = $2 AND role = $3',
     [doctor_id, req.user.clinic_id, 'doctor']);
   if (doctorResult.rows.length === 0) return res.status(404).json({ error: 'Doctor no encontrado' });
+
+  // Lo que el doctor bloqueó en su disponibilidad también vale por dentro: si
+  // cerró el día o quitó esa hora, tampoco se agenda desde recepción.
+  if (await rejectIfBlocked(res, doctor_id, scheduled_at)) return;
 
   const cap = await checkRoomCapacity(req.user.clinic_id, scheduled_at, null);
   if (!cap.ok) {

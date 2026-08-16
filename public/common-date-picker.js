@@ -269,9 +269,24 @@ function replaceWithCalendarDatetimePicker(input, options = {}) {
         btn.style.color = '#475569';
         btn.style.fontFamily = 'inherit';
 
-        const isOccupied = occupiedTimes.some(t => t.h === h && t.m === m);
+        const hit = occupiedTimes.find(t => t.h === h && t.m === m);
+        const isOccupied = !!hit;
+        // 'blocked'/'closed' = el doctor quitó esa hora de su disponibilidad;
+        // sin motivo = ya hay una cita. Se distinguen porque no se arreglan igual.
+        const isBlocked = isOccupied && (hit.reason === 'blocked' || hit.reason === 'closed');
 
-        if (isOccupied) {
+        if (isBlocked) {
+          btn.style.backgroundColor = 'rgba(100, 116, 139, .06)';
+          btn.style.border = '1px dashed rgba(100, 116, 139, .5)';
+          btn.style.color = 'rgba(71, 85, 105, .7)';
+          btn.style.cursor = 'not-allowed';
+          btn.style.textDecoration = 'line-through';
+          btn.style.textDecorationColor = 'rgba(71, 85, 105, .6)';
+          btn.disabled = true;
+          btn.title = hit.reason === 'closed'
+            ? 'El doctor cerró este día'
+            : 'El doctor marcó esta hora como no disponible';
+        } else if (isOccupied) {
           btn.style.backgroundColor = 'rgba(220, 38, 38, .07)';
           btn.style.backgroundImage = 'repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(220, 38, 38, .09) 6px, rgba(220, 38, 38, .09) 12px)';
           btn.style.border = '1px solid rgba(220, 38, 38, .35)';
@@ -284,12 +299,13 @@ function replaceWithCalendarDatetimePicker(input, options = {}) {
           btn.disabled = true;
         }
 
-        if (h === selectedHour && m === selectedMinute) {
+        // Una hora ocupada o bloqueada nunca se pinta como seleccionada: si no,
+        // el azul tapaba el aviso y parecía elegible.
+        if (h === selectedHour && m === selectedMinute && !isOccupied) {
           btn.style.background = '#0891b2';
           btn.style.color = 'white';
           btn.style.borderColor = '#0891b2';
           btn.style.fontWeight = '600';
-          btn.disabled = false;
           btn.style.cursor = 'pointer';
         }
 

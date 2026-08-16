@@ -394,6 +394,7 @@
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
 <script src="/common-date-picker.js"></script>
+<script src="/doctor-blocks.js"></script>
 <script>
   requireAuth(['receptionist', 'clinic_admin']);
 
@@ -543,7 +544,10 @@
         document.getElementById('fSpecialty').value = doctor ? (doctor.specialty || 'Medicina General') : '';
         syncApptTypeOptions(document.getElementById('fSpecialty').value);
         const dt = document.getElementById('fDatetime');
-        if (dt && dt._calendarDatetimePicker) dt._calendarDatetimePicker.renderTimeGrid();
+        const repintar = () => { if (dt && dt._calendarDatetimePicker) dt._calendarDatetimePicker.renderTimeGrid(); };
+        repintar();
+        const docId = parseInt(e.target.value, 10);
+        if (docId) DoctorBlocks.load(docId).then(repintar).catch(() => {});
       });
 
       schedulerReady = true;
@@ -558,9 +562,11 @@
     const getOccupiedHours = (dateStr) => {
       const docId = parseInt(document.getElementById('fDoctor').value, 10);
       if (!docId) return [];
-      return allClinicAppts
+      const ocupadas = allClinicAppts
         .filter(a => a.doctor_id === docId && String(a.scheduled_at).startsWith(dateStr) && a.status !== 'cancelled')
         .map(a => { const d = new Date(a.scheduled_at); return { h: d.getHours(), m: d.getMinutes() }; });
+      // Lo que el doctor cerró o quitó en su disponibilidad también sale bloqueado acá.
+      return ocupadas.concat(DoctorBlocks.cells(docId, dateStr));
     };
     replaceWithCalendarDatetimePicker(dt, { getOccupiedHours });
   }
@@ -577,6 +583,12 @@
     initApptDatePicker();
     const dt = document.getElementById('fDatetime');
     if (dt._calendarDatetimePicker) dt._calendarDatetimePicker.updateFromInput();
+    const docIdAbierto = parseInt(document.getElementById('fDoctor').value, 10);
+    if (docIdAbierto) {
+      DoctorBlocks.load(docIdAbierto)
+        .then(() => { if (dt._calendarDatetimePicker) dt._calendarDatetimePicker.renderTimeGrid(); })
+        .catch(() => {});
+    }
     clearApptMsg();
     document.getElementById('apptOverlay').style.display = 'flex';
   }
@@ -592,6 +604,12 @@
     const scheduledAt = document.getElementById('fDatetime').value;
     if (!patientId || !doctorId || !scheduledAt) {
       msgEl.textContent = 'Completa paciente, doctor y fecha/hora.'; msgEl.className = 'form-msg err';
+      return;
+    }
+    const bloqueo = DoctorBlocks.check(doctorId, scheduledAt);
+    if (bloqueo) {
+      msgEl.textContent = DoctorBlocks.message(bloqueo) + ' Elegí otra hora.';
+      msgEl.className = 'form-msg err';
       return;
     }
     btn.disabled = true; btn.textContent = 'Creando...';
