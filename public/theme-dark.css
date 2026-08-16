@@ -3819,6 +3819,140 @@ html[data-theme="dark"] .mini-btn:hover {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   INICIO (dashboard.html — .inicio-page)
+   ─────────────────────────────────────────────────────────────────
+   Mismo cristal que Citas Online. Va scopeado a .inicio-page a
+   propósito: .card y .stat-card son clases genéricas que salen en ~30
+   páginas (finanzas, inventario, configuracion, plan…), y esto es un
+   cambio de aspecto para Inicio, no para toda la app.
+   ═══════════════════════════════════════════════════════════════════ */
+
+html[data-theme="dark"] .inicio-page .stat-card,
+html[data-theme="dark"] .inicio-page .card,
+html[data-theme="dark"] .inicio-page .welcome-banner {
+  background-image: var(--sd-glass-grain), var(--sd-glass-sheen), var(--sd-glass-tint) !important;
+  background-color: var(--sd-glass-fill) !important;
+  border: 1px solid rgba(255, 255, 255, .055) !important;
+  box-shadow: var(--sd-glass-cast) !important;
+  backdrop-filter: var(--sd-glass-blur);
+  -webkit-backdrop-filter: var(--sd-glass-blur);
+}
+
+/* Filo de cristal: hairline arriba-izquierda que se disuelve antes de
+   llegar abajo-derecha, para que el borde no recorte la tarjeta contra
+   el fondo. En .card se reaprovecha el ::before (era una raya de 1px
+   arriba, y en oscuro estaba apagado); en las demás va por ::after,
+   que estaba libre. El ::before de .welcome-banner NO se toca: es el
+   patrón decorativo de cruces y latidos. */
+html[data-theme="dark"] .inicio-page .card::before,
+html[data-theme="dark"] .inicio-page .stat-card::after,
+html[data-theme="dark"] .inicio-page .welcome-banner::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  top: 0 !important;
+  height: auto !important;
+  border-radius: inherit !important;
+  background: var(--sd-glass-rim) !important;
+  padding: 1px !important;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none !important;
+  opacity: 1 !important;
+  z-index: 0 !important;
+}
+
+/* Las mini-tarjetas del saludo van encima de otro cristal: un pelo más
+   de cuerpo para que no se hundan en el banner */
+html[data-theme="dark"] .inicio-page .welcome-mini-card {
+  background-image: var(--sd-glass-grain), var(--sd-glass-sheen), var(--sd-glass-tint) !important;
+  background-color: rgba(30, 30, 34, .5) !important;
+  border: 1px solid rgba(255, 255, 255, .07) !important;
+  box-shadow:
+    0 14px 34px -20px rgba(0, 0, 0, .6),
+    0 0 34px -18px rgba(8, 145, 178, .2),
+    inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+  backdrop-filter: saturate(150%) blur(18px);
+  -webkit-backdrop-filter: saturate(150%) blur(18px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CRISTAL OSCURO COMPARTIDO (--sd-glass-*)
+   ─────────────────────────────────────────────────────────────────
+   Receta de tarjeta de cristal para tema oscuro. Vive en :root para
+   que la usen varias páginas (Citas Online, Inicio…) en vez de
+   duplicarla —y para que afinarla se haga en un solo sitio.
+   ═══════════════════════════════════════════════════════════════════ */
+html[data-theme="dark"] {
+  /* ── Receta de cristal de las tarjetas ──────────────────────────
+     El tinte cian se ancla FUERA de la tarjeta (at 6% -25%) y muere
+     antes de llegar abajo: así solo se ve la cola suave del degradado
+     y no el borde duro del blob, que era lo que se leía como "pintado
+     encima". El brillo va por el borde superior, no cruzando la
+     tarjeta en diagonal.
+
+     Sobre un fondo casi negro un degradado así recorre ~14 valores de
+     8 bits en 500 px: sale a un escalón cada 36 px y se ve a rayas.
+     Contra eso van dos cosas: (a) muchas paradas intermedias, para
+     que la caída sea rápida arriba y plana abajo en vez de una rampa
+     larguísima de pendiente mínima —los tramos planos no bandean—, y
+     (b) --sd-glass-grain, una capa de ruido que rompe los escalones
+     igual que el dithering de toda la vida. Sin el grano no hay
+     degradado suave posible a estas amplitudes. */
+  --sd-glass-fill: rgba(24, 24, 28, .55);
+  /* Amplitud, no solo suavidad: a .16 el degradado recorría 5 niveles de
+     8 bits en toda la tarjeta, y una rampa tan plana sale a rayas por
+     poco que se estire. Subida a .30 y con la caída más corta, recorre
+     ~18 niveles: los escalones quedan estrechos y el grano se los come. */
+  --sd-glass-tint:
+    radial-gradient(105% 115% at 4% -18%,
+      rgba(8, 145, 178, .30) 0%,
+      rgba(8, 145, 178, .185) 16%,
+      rgba(8, 145, 178, .10) 33%,
+      rgba(8, 145, 178, .045) 52%,
+      rgba(8, 145, 178, .014) 72%,
+      rgba(8, 145, 178, 0) 90%);
+  --sd-glass-sheen:
+    linear-gradient(180deg,
+      rgba(255, 255, 255, .055) 0%,
+      rgba(255, 255, 255, .022) 7%,
+      rgba(255, 255, 255, .008) 17%,
+      rgba(255, 255, 255, .002) 30%,
+      rgba(255, 255, 255, 0) 44%);
+  /* Grano de dither, calibrado a ojo de calculadora y no de diseñador:
+     los escalones del degradado son de 1 nivel de 8 bits, así que el
+     ruido tiene que valer ±1 nivel. Gris medio (127) al 1.4% sobre un
+     fondo de nivel ~15 perturba ±1.1 y sube la media +1.3: justo para
+     romper las rayas sin que se vea grano ni se desluzca la tarjeta.
+     A 3.8% ya se iba a #16181b, y en `overlay` —que sería de media
+     cero— la mezcla contra un fondo translúcido devuelve el gris del
+     ruido tal cual y la tarjeta acaba en #67686c. Por eso: mezcla
+     normal y opacidad muy baja. feFuncA fija alfa a 1 para que la
+     única variable sea la opacidad del rect, y color-interpolation-
+     filters='sRGB' es obligatorio: los filtros SVG trabajan en
+     linearRGB por defecto, con lo que el gris medio del ruido sale a
+     pantalla como nivel ~188 en vez de 127 y aclara el triple de lo
+     que dicen las cuentas. */
+  --sd-glass-grain:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.02'/%3E%3C/svg%3E");
+  --sd-glass-blur: saturate(150%) blur(28px);
+  --sd-glass-rim:
+    linear-gradient(155deg,
+      rgba(255, 255, 255, .18) 0%,
+      rgba(255, 255, 255, .055) 26%,
+      rgba(255, 255, 255, .012) 55%,
+      transparent 82%);
+  --sd-glass-cast:
+    0 22px 56px -26px rgba(0, 0, 0, .62),
+    0 2px 10px -4px rgba(0, 0, 0, .4),
+    0 0 46px -20px rgba(8, 145, 178, .18);
+
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    CITAS ONLINE (agendar-online.html — admin view, .co-page namespace)
    ─────────────────────────────────────────────────────────────────
    Page has its own self-contained tokens scoped to `.co-page` and a
@@ -3867,69 +4001,6 @@ html[data-theme="dark"] .co-page {
     0 -1px 0 rgba(0, 0, 0, .35) inset,
     0 14px 40px -16px rgba(0, 0, 0, .55),
     0 32px 80px -40px rgba(0, 0, 0, .65);
-
-  /* ── Receta de cristal de las tarjetas ──────────────────────────
-     El tinte cian se ancla FUERA de la tarjeta (at 6% -25%) y muere
-     antes de llegar abajo: así solo se ve la cola suave del degradado
-     y no el borde duro del blob, que era lo que se leía como "pintado
-     encima". El brillo va por el borde superior, no cruzando la
-     tarjeta en diagonal.
-
-     Sobre un fondo casi negro un degradado así recorre ~14 valores de
-     8 bits en 500 px: sale a un escalón cada 36 px y se ve a rayas.
-     Contra eso van dos cosas: (a) muchas paradas intermedias, para
-     que la caída sea rápida arriba y plana abajo en vez de una rampa
-     larguísima de pendiente mínima —los tramos planos no bandean—, y
-     (b) --co-glass-grain, una capa de ruido que rompe los escalones
-     igual que el dithering de toda la vida. Sin el grano no hay
-     degradado suave posible a estas amplitudes. */
-  --co-glass-fill: rgba(24, 24, 28, .55);
-  /* Amplitud, no solo suavidad: a .16 el degradado recorría 5 niveles de
-     8 bits en toda la tarjeta, y una rampa tan plana sale a rayas por
-     poco que se estire. Subida a .30 y con la caída más corta, recorre
-     ~18 niveles: los escalones quedan estrechos y el grano se los come. */
-  --co-glass-tint:
-    radial-gradient(105% 115% at 4% -18%,
-      rgba(8, 145, 178, .30) 0%,
-      rgba(8, 145, 178, .185) 16%,
-      rgba(8, 145, 178, .10) 33%,
-      rgba(8, 145, 178, .045) 52%,
-      rgba(8, 145, 178, .014) 72%,
-      rgba(8, 145, 178, 0) 90%);
-  --co-glass-sheen:
-    linear-gradient(180deg,
-      rgba(255, 255, 255, .055) 0%,
-      rgba(255, 255, 255, .022) 7%,
-      rgba(255, 255, 255, .008) 17%,
-      rgba(255, 255, 255, .002) 30%,
-      rgba(255, 255, 255, 0) 44%);
-  /* Grano de dither, calibrado a ojo de calculadora y no de diseñador:
-     los escalones del degradado son de 1 nivel de 8 bits, así que el
-     ruido tiene que valer ±1 nivel. Gris medio (127) al 1.4% sobre un
-     fondo de nivel ~15 perturba ±1.1 y sube la media +1.3: justo para
-     romper las rayas sin que se vea grano ni se desluzca la tarjeta.
-     A 3.8% ya se iba a #16181b, y en `overlay` —que sería de media
-     cero— la mezcla contra un fondo translúcido devuelve el gris del
-     ruido tal cual y la tarjeta acaba en #67686c. Por eso: mezcla
-     normal y opacidad muy baja. feFuncA fija alfa a 1 para que la
-     única variable sea la opacidad del rect, y color-interpolation-
-     filters='sRGB' es obligatorio: los filtros SVG trabajan en
-     linearRGB por defecto, con lo que el gris medio del ruido sale a
-     pantalla como nivel ~188 en vez de 127 y aclara el triple de lo
-     que dicen las cuentas. */
-  --co-glass-grain:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.02'/%3E%3C/svg%3E");
-  --co-glass-blur: saturate(150%) blur(28px);
-  --co-glass-rim:
-    linear-gradient(155deg,
-      rgba(255, 255, 255, .18) 0%,
-      rgba(255, 255, 255, .055) 26%,
-      rgba(255, 255, 255, .012) 55%,
-      transparent 82%);
-  --co-glass-cast:
-    0 22px 56px -26px rgba(0, 0, 0, .62),
-    0 2px 10px -4px rgba(0, 0, 0, .4),
-    0 0 46px -20px rgba(8, 145, 178, .18);
 }
 
 /* Background wash — only the cyan radial tints; transparent base so it
@@ -3940,7 +4011,7 @@ html[data-theme="dark"] .co-page::before {
   /* mismo grano encima: estos lavados cubren toda la página, así que son
      los que peor bandean de todos si se dejan lisos */
   background:
-    var(--co-glass-grain),
+    var(--sd-glass-grain),
     radial-gradient(620px 460px at 8% -6%,
       rgba(8, 145, 178, .09) 0%, rgba(8, 145, 178, .035) 32%,
       rgba(8, 145, 178, .01) 52%, rgba(8, 145, 178, 0) 70%),
@@ -3970,12 +4041,12 @@ html[data-theme="dark"] .co-page::after {
 html[data-theme="dark"] .co-kpi,
 html[data-theme="dark"] .co-insight,
 html[data-theme="dark"] .co-card {
-  background-image: var(--co-glass-grain), var(--co-glass-sheen), var(--co-glass-tint) !important;
-  background-color: var(--co-glass-fill) !important;
+  background-image: var(--sd-glass-grain), var(--sd-glass-sheen), var(--sd-glass-tint) !important;
+  background-color: var(--sd-glass-fill) !important;
   border: 1px solid rgba(255, 255, 255, .055) !important;
-  box-shadow: var(--co-glass-cast) !important;
-  backdrop-filter: var(--co-glass-blur);
-  -webkit-backdrop-filter: var(--co-glass-blur);
+  box-shadow: var(--sd-glass-cast) !important;
+  backdrop-filter: var(--sd-glass-blur);
+  -webkit-backdrop-filter: var(--sd-glass-blur);
 }
 
 /* El ::before deja de ser una banda diagonal y pasa a ser el filo del
@@ -3985,7 +4056,7 @@ html[data-theme="dark"] .co-card {
 html[data-theme="dark"] .co-card::before,
 html[data-theme="dark"] .co-kpi::before,
 html[data-theme="dark"] .co-insight::before {
-  background: var(--co-glass-rim) !important;
+  background: var(--sd-glass-rim) !important;
   padding: 1px !important;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -4574,7 +4645,7 @@ html[data-theme="dark"] .co-icon-btn:hover {
 /* QR card — same dashboard glass + cyan-glow recipe as the other cards; the
    inner QR frame stays white below for scannability. */
 html[data-theme="dark"] .co-qr-card {
-  background-image: var(--co-glass-grain), var(--co-glass-sheen), var(--co-glass-tint) !important;
+  background-image: var(--sd-glass-grain), var(--sd-glass-sheen), var(--sd-glass-tint) !important;
   /* va encima de otro cristal (.co-share): un pelo más de cuerpo para que
      el QR no se hunda en la tarjeta madre */
   background-color: rgba(30, 30, 34, .5) !important;
