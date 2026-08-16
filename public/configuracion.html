@@ -382,30 +382,16 @@
     }
     .loc-coords b { color: #0e7490; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-    .loc-preview-card {
-      border: 1.5px solid #e2e8f0; border-radius: 14px; background: white;
-      padding: 1rem 1.1rem;
+    /* La tarjeta de "Así lo ve tu paciente" (.sdloc) se pinta desde location.js,
+       que solo trae la versión clara (sus otras dos pantallas son del paciente y
+       son claras siempre). Aquí se le dan los colores del tema oscuro. */
+    [data-theme="dark"] .sdloc {
+      --sdloc-bg: rgba(255,255,255,.03);
+      --sdloc-line: var(--sd-border, rgba(255,255,255,.09));
+      --sdloc-ink: var(--sd-text, #f1f5f9);
+      --sdloc-muted: var(--sd-text-muted, #94a3b8);
     }
-    .loc-preview-name { font-weight: 700; font-size: 15px; color: #0f172a; }
-    .loc-preview-addr { font-size: 13.5px; color: #475569; margin-top: 3px; line-height: 1.5; }
-    .loc-preview-notes {
-      font-size: 12.5px; color: #64748b; margin-top: .45rem; line-height: 1.5;
-      padding-left: .7rem; border-left: 2px solid #e2e8f0;
-    }
-    .loc-preview-btns { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .9rem; }
-    .loc-preview-btns[hidden] { display: none; }
-    .loc-btn {
-      display: inline-flex; align-items: center; gap: .4rem;
-      padding: .55rem .85rem; border-radius: 10px;
-      font-size: 13px; font-weight: 600; text-decoration: none;
-      border: 1.5px solid transparent; transition: all .2s;
-    }
-    .loc-btn.gmaps { background: rgba(8, 145, 178, .1); color: #0e7490; border-color: rgba(8, 145, 178, .25); }
-    .loc-btn.waze { background: rgba(51, 204, 255, .12); color: #0369a1; border-color: rgba(3, 105, 161, .22); }
-    .loc-btn.wa { background: rgba(37, 211, 102, .12); color: #15803d; border-color: rgba(22, 163, 74, .25); }
-    .loc-btn:hover { transform: translateY(-1px); filter: brightness(.97); }
-    .loc-preview-empty { font-size: 12.5px; color: #94a3b8; margin-top: .8rem; }
-    .loc-preview-empty[hidden] { display: none; }
+    [data-theme="dark"] .sdloc-map { background: #1a1a1d; }
 
     [data-theme="dark"] .loc-results { background: var(--sd-surface-solid, #131315); border-color: var(--sd-border, rgba(255,255,255,.09)); }
     [data-theme="dark"] .loc-result { color: var(--sd-text-soft, #cbd5e1); border-bottom-color: rgba(255,255,255,.055); }
@@ -426,10 +412,6 @@
     [data-theme="dark"] .loc-map-sub,
     [data-theme="dark"] .loc-coords { color: var(--sd-text-muted, #94a3b8); }
     [data-theme="dark"] .loc-coords b { color: #22d3ee; }
-    [data-theme="dark"] .loc-preview-card { background: rgba(255,255,255,.03); border-color: var(--sd-border, rgba(255,255,255,.09)); }
-    [data-theme="dark"] .loc-preview-name { color: var(--sd-text, #f1f5f9); }
-    [data-theme="dark"] .loc-preview-addr { color: var(--sd-text-soft, #cbd5e1); }
-    [data-theme="dark"] .loc-preview-notes { color: var(--sd-text-muted, #94a3b8); border-left-color: rgba(255,255,255,.12); }
 
     @media (max-width: 640px) {
       .loc-map { height: 260px; }
@@ -1064,27 +1046,7 @@
             </div>
             <!-- data-sd-gate="off": es una maqueta de lo que ve el paciente, no una
                  acción sobre nadie; el modo solo lectura no tiene por qué apagarla. -->
-            <div class="loc-preview" id="locPreview" data-sd-gate="off">
-              <div class="loc-preview-card">
-                <div class="loc-preview-name" id="locPreviewName">—</div>
-                <div class="loc-preview-addr" id="locPreviewAddr">Sin dirección configurada</div>
-                <div class="loc-preview-notes" id="locPreviewNotes" hidden></div>
-                <div class="loc-preview-btns">
-                  <a class="loc-btn gmaps" id="locPreviewGmaps" target="_blank" rel="noopener">
-                    <span data-icon="mapPin" data-size="15"></span>Google Maps
-                  </a>
-                  <a class="loc-btn waze" id="locPreviewWaze" target="_blank" rel="noopener">
-                    <span data-icon="navigation" data-size="15"></span>Waze
-                  </a>
-                  <a class="loc-btn wa" id="locPreviewWa" target="_blank" rel="noopener">
-                    <span data-icon="whatsapp" data-size="15"></span>Enviar por WhatsApp
-                  </a>
-                </div>
-                <div class="loc-preview-empty" id="locPreviewEmpty">
-                  Marca un punto o escribe la dirección para activar los botones.
-                </div>
-              </div>
-            </div>
+            <div class="loc-preview" id="locPreview" data-sd-gate="off"></div>
           </div>
         </section>
 
@@ -1953,33 +1915,23 @@
       });
     }
 
+    // La vista previa se pinta con el MISMO bloque que ven los pacientes
+    // (location.js), para que lo que se enseña aquí no se desincronice de lo real.
+    let locPreviewTimer = null;
     function renderLocationPreview() {
       const loc = currentLocation();
-      const addr = SDLocation.fullAddress(loc);
-      const setText = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-
-      setText('locPreviewName', state.clinic.name || 'Tu clínica');
-      setText('locPreviewAddr', addr || 'Sin dirección configurada');
-
-      const notesEl = document.getElementById('locPreviewNotes');
-      if (notesEl) {
-        notesEl.textContent = state.clinic.locationNotes || '';
-        notesEl.hidden = !state.clinic.locationNotes;
-      }
-
-      const usable = SDLocation.has(loc);
-      const btns = document.querySelector('.loc-preview-btns');
-      const empty = document.getElementById('locPreviewEmpty');
-      if (btns) btns.hidden = !usable;
-      if (empty) empty.hidden = usable;
-
-      if (usable) {
-        const g = document.getElementById('locPreviewGmaps');
-        const w = document.getElementById('locPreviewWaze');
-        const wa = document.getElementById('locPreviewWa');
-        if (g) g.href = SDLocation.googleMapsUrl(loc);
-        if (w) w.href = SDLocation.wazeUrl(loc);
-        if (wa) wa.href = SDLocation.whatsappUrl(SDLocation.shareText({ loc }));
+      const box = document.getElementById('locPreview');
+      if (box) {
+        // Al teclear la dirección, recargar el iframe en cada pulsación haría
+        // parpadear el mapa: se espera a que la escritura pare.
+        clearTimeout(locPreviewTimer);
+        const paint = () => {
+          box.innerHTML = SDLocation.has(loc)
+            ? SDLocation.blockHtml({ loc, title: 'Cómo llegar' })
+            : '<p class="hint" style="margin:0">Marca un punto o escribe la dirección para ver aquí lo mismo que verá tu paciente.</p>';
+        };
+        if (box.innerHTML.trim() === '') paint();
+        else locPreviewTimer = setTimeout(paint, 450);
       }
 
       // Estado del pin
