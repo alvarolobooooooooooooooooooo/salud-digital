@@ -132,3 +132,36 @@ test('createSubscription exige que el plan esté mapeado al procesador', async (
     },
   ).catch(() => { /* si hay PAYPAL_PLAN_ID en el entorno, este caso no aplica */ });
 });
+
+// ── Configuración de qué procesadores se ofrecen ──
+// Confundir PAYMENTS_PROVIDER con PAYMENTS_PROVIDERS dejó una vez la plataforma
+// sin ningún procesador reconocido: no se podía cobrar y la pantalla no decía
+// por qué. Desde entonces la lista se tolera en cualquiera de las dos.
+test('la lista de procesadores tolera la variable equivocada', () => {
+  const previo = {
+    uno: process.env.PAYMENTS_PROVIDER,
+    varios: process.env.PAYMENTS_PROVIDERS,
+  };
+  const P = require('../lib/payments/provider');
+  try {
+    delete process.env.PAYMENTS_PROVIDERS;
+    process.env.PAYMENTS_PROVIDER = 'paypal,paypal_onetime';
+    assert.deepEqual(P.enabledProviderNames(), ['paypal', 'paypal_onetime']);
+    assert.equal(P.nombreProviderPorDefecto(), 'paypal', 'con lista, manda el primero');
+
+    process.env.PAYMENTS_PROVIDERS = 'paypal_onetime , paypal , inventado ,';
+    assert.deepEqual(
+      P.enabledProviderNames(), ['paypal_onetime', 'paypal'],
+      'se limpian espacios, vacíos y nombres que no existen',
+    );
+
+    process.env.PAYMENTS_PROVIDER = 'paypal';
+    delete process.env.PAYMENTS_PROVIDERS;
+    assert.deepEqual(P.enabledProviderNames(), ['paypal']);
+  } finally {
+    if (previo.uno === undefined) delete process.env.PAYMENTS_PROVIDER;
+    else process.env.PAYMENTS_PROVIDER = previo.uno;
+    if (previo.varios === undefined) delete process.env.PAYMENTS_PROVIDERS;
+    else process.env.PAYMENTS_PROVIDERS = previo.varios;
+  }
+});
