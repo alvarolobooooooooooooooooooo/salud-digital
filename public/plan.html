@@ -394,6 +394,21 @@
     }
     .subs-page .btn svg { width: 14px; height: 14px; }
     .subs-page .btn:disabled { opacity: .55; cursor: not-allowed; }
+    /* Segundo botón del checkout de suscripción: pagar con tarjeta. Deliberadamente
+       sobrio — el dorado de PayPal ya pesa bastante en la caja, y este solo tiene
+       que verse igual de pulsable. Misma altura y radio que el <paypal-button>
+       para que la pareja no baile. */
+    /* Sin variables de tema a propósito: vive dentro de .paybox, que es BLANCA en
+       claro y en oscuro. Con el vidrio de la app quedaba gris lavado, con pinta de
+       botón deshabilitado. Negro sobre blanco es además la convención que PayPal
+       usa para "tarjeta", así que se lee de un vistazo. */
+    .subs-page .btn-tarjeta {
+      width: 100%; height: 44px; border: 0; border-radius: 10px; cursor: pointer;
+      background: #2C2E34; color: #fff;
+      font: inherit; font-size: 14px; font-weight: 600; letter-spacing: .01em;
+      transition: background .15s ease;
+    }
+    .subs-page .btn-tarjeta:hover { background: #16171B; }
     .subs-page .btn-primary { background: var(--accent); color: #fff; }
     .subs-page .btn-primary:hover:not(:disabled) { background: var(--accent-ink); }
     [data-theme="dark"] .subs-page .btn-primary { color: #06202A; }
@@ -873,7 +888,7 @@
           </div>
           <div class="pz-hint">${manual
             ? 'Paga con tarjeta de crédito o débito sin salir de esta pantalla. Cada mes te avisaremos para renovar; no se guarda tu tarjeta ni se te cobra solo.'
-            : 'Con tu cuenta de PayPal o con tarjeta de crédito o débito, sin crear cuenta. Todo ocurre en esta misma pantalla.'}</div>
+            : 'Con tu cuenta de PayPal, o con tarjeta de crédito o débito sin crear cuenta. Se cobra automáticamente cada mes y puedes cancelar cuando quieras.'}</div>
           <div class="pz-note" id="pzNote" hidden></div>
         </div>
         ${NOTA_SEGURO}
@@ -1186,7 +1201,23 @@
 
     // <paypal-button> es un componente del SDK, no un iframe: se le puede dar
     // nuestro radio con variables CSS (por eso desaparece el recorte a mano).
-    slots.innerHTML = '<paypal-button type="subscribe" class="paypal-gold" id="ppBtn"></paypal-button>';
+    //
+    // Debajo, un segundo botón para pagar con TARJETA. Hace falta porque el
+    // botón dorado abre el checkout por la puerta de "inicia sesión en PayPal",
+    // y el que no tiene cuenta —la mayoría de los doctores— se da media vuelta
+    // creyendo que necesita una. El enlace de aprobación de la suscripción, en
+    // cambio, abre directamente en el formulario de tarjeta (comprobado contra
+    // la cuenta real: País/región, número, vencimiento y CVV, sin crear cuenta).
+    // Por eso este botón va por el flujo de redirección y no por el SDK: el SDK
+    // v6 de suscripciones no expone la tarjeta como método aparte.
+    slots.innerHTML =
+      '<paypal-button type="subscribe" class="paypal-gold" id="ppBtn"></paypal-button>' +
+      '<button type="button" class="btn-tarjeta" id="btnTarjeta">' +
+      'Pagar con tarjeta de crédito o débito</button>';
+
+    const btnTarjeta = document.getElementById('btnTarjeta');
+    if (btnTarjeta) btnTarjeta.onclick = doSubscribe;
+
     const boton = document.getElementById('ppBtn');
 
     boton.addEventListener('click', () => {
