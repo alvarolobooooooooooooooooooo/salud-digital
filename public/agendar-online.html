@@ -541,7 +541,10 @@
       border-radius: var(--radius-lg);
       background: color-mix(in oklch, var(--surface-2) 65%, transparent);
     }
-    .co-cal { padding: 12px 12px 10px; }
+    /* Un mes no necesita más ancho que esto. Sin tope, en cuanto la tarjeta pasa
+       a una sola columna las celdas (que son cuadradas) se iban a 80-100px y el
+       calendario quedaba gigante con los puntos flotando lejos del número. */
+    .co-cal { padding: 12px 12px 10px; max-width: 380px; }
     .co-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .co-cal-title { font-size: 13.5px; font-weight: 600; }
     .co-cal-nav {
@@ -689,7 +692,6 @@
        (ver el bloque @media de abajo), así que el colapso en móvil se
        re-declara allí. */
     @container (max-width: 980px) {
-      .co-avail-split { grid-template-columns: 1fr; }
       .co-week-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
     .co-switch {
@@ -1117,7 +1119,7 @@
         font-size: 14.5px;
       }
       .co-avail-split { grid-template-columns: 1fr !important; }
-      .co-week-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+      .co-week-grid { grid-template-columns: repeat(auto-fit, minmax(136px, 1fr)) !important; }
       .co-avail-body { padding: 16px 14px 18px !important; }
       .co-avail-head { padding: 16px 14px !important; }
       .co-avail-foot { padding: 12px 14px !important; }
