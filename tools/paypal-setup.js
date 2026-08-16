@@ -70,23 +70,34 @@ async function main() {
   if (planId) {
     log('• PAYPAL_PLAN_ID ya está en .env → no se crea otro plan (' + planId + ')');
   } else {
-    log('• Creando producto…');
-    const product = await paypal.createProduct({
-      name: PRODUCT_NAME,
-      description: 'Plataforma clínica Salud Digital — acceso individual para un profesional.',
-    });
-    log('  producto: ' + product.id);
+    // El plan solo hace falta con suscripciones nativas (PAYMENTS_PROVIDER=paypal).
+    // Hay cuentas que aceptan cobros pero no tienen la función habilitada: en ese
+    // caso NO se aborta, porque el webhook —que sí sirve para ambos cobros— se
+    // crea después y quedarse sin él por esto sería absurdo.
+    try {
+      log('• Creando producto…');
+      const product = await paypal.createProduct({
+        name: PRODUCT_NAME,
+        description: 'Plataforma clínica Salud Digital — acceso individual para un profesional.',
+      });
+      log('  producto: ' + product.id);
 
-    log('• Creando plan mensual…');
-    const plan = await paypal.createPlan({
-      productId: product.id,
-      name: PLAN_NAME,
-      description: 'Acceso completo a Salud Digital. Cobro mensual automático, cancelable en cualquier momento.',
-      amount: price,
-      currencyCode: currency,
-    });
-    planId = plan.id;
-    log('  plan: ' + planId);
+      log('• Creando plan mensual…');
+      const plan = await paypal.createPlan({
+        productId: product.id,
+        name: PLAN_NAME,
+        description: 'Acceso completo a Salud Digital. Cobro mensual automático, cancelable en cualquier momento.',
+        amount: price,
+        currencyCode: currency,
+      });
+      planId = plan.id;
+      log('  plan: ' + planId);
+    } catch (err) {
+      log('• No se pudo crear el plan de suscripción: ' + err.message);
+      log('  Esta cuenta no tiene habilitadas las suscripciones (developer.paypal.com');
+      log('  → Apps & Credentials → Live → tu app → Features → Subscriptions).');
+      log('  Se continúa: sin plan solo se puede cobrar con PAYMENTS_PROVIDER=paypal_onetime.');
+    }
   }
 
   // ── 2. Webhook ──
