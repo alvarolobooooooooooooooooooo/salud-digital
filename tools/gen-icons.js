@@ -9,9 +9,9 @@
  *
  * Se RECORTA la cruz del master (sips -c) para quitar el squircle + sombra (ese
  * "borde de botón" no debe salir). Luego:
- *  • Iconos de app (home screen / PWA / apple-touch / maskable): se RE-ENMARCA
- *    con margen blanco (sips -p) para que la cruz NO toque el borde y respire
- *    como las demás apps del iPhone.
+ *  • Iconos de app (home screen / PWA / apple-touch / maskable): la cruz se
+ *    aplana sobre el NEGRO de la interfaz (#0a0a0c) con margen alrededor, para
+ *    que el icono sea el mismo logo oscuro que se ve al entrar a la plataforma.
  *  • favicon: la cruz llena el marco (la pestaña ya aporta el margen).
  *  • logo-mark.png (marca dentro de la UI): se genera aparte, RECORTADA a la
  *    cruz y con FONDO TRANSPARENTE (ver buildUiMark). Dentro de la app la marca
@@ -29,8 +29,7 @@ const { execFileSync } = require('child_process');
 
 const OUT = path.join(__dirname, '..', 'public', 'icons');
 const MASTER = path.join(__dirname, 'logo-master.png');
-const TIGHT_CROP = 780;  // recorte central de la cruz dentro del master 1254²
-const PAD_SIZE = 1300;   // re-enmarcado: cruz ≈ 780/1300 ≈ 60% (margen como las demás apps)
+const TIGHT_CROP = 780;  // recorte central de la cruz dentro del master 1254² (favicons)
 fs.mkdirSync(OUT, { recursive: true });
 
 if (!fs.existsSync(MASTER)) {
@@ -178,8 +177,12 @@ function encodePng(w, h, rgba) {
  * C = α·F + (1-α)·255. Como la cruz es muy saturada (cian y marino tienen un
  * canal casi a 0) se usa "cuánto se aleja del blanco" como medida de α:
  * los píxeles llenos quedan α=255, los del antialias se despegan del blanco
- * recuperando el color sólido vecino — sin halo blanco sobre fondo oscuro. */
-function buildUiMark(src, dest, size, padRatio = 0.06) {
+ * recuperando el color sólido vecino — sin halo blanco sobre fondo oscuro.
+ *
+ * Con `bg` (terna RGB) el resultado sale OPACO: la cruz se aplana sobre ese
+ * color en vez de quedar transparente. Es lo que usan los iconos de app, que en
+ * iOS no pueden llevar alfa (las zonas transparentes salen negras). */
+function buildUiMark(src, dest, size, padRatio = 0.06, bg = null) {
   const { w, h, bpp, data } = decodePng(src);
   const at = (x, y) => (y * w + x) * bpp;
   const contrast = (x, y) => {
@@ -251,11 +254,25 @@ function buildUiMark(src, dest, size, padRatio = 0.06) {
         }
       }
       const o = (oy * size + ox) * 4;
+      let r = 0, g = 0, b = 0, a = 0;
       if (aa > 0) {
-        rgba[o] = Math.round(ar / aa);       // color sin premultiplicar
-        rgba[o + 1] = Math.round(ag / aa);
-        rgba[o + 2] = Math.round(ab / aa);
-        rgba[o + 3] = Math.round((aa / n) * 255);
+        r = ar / aa;                          // color sin premultiplicar
+        g = ag / aa;
+        b = ab / aa;
+        a = aa / n;
+      }
+      if (bg) {
+        // Aplanado sobre el fondo: el borde antialiasado se funde con él en vez
+        // de arrastrar el blanco del master.
+        rgba[o] = Math.round(r * a + bg[0] * (1 - a));
+        rgba[o + 1] = Math.round(g * a + bg[1] * (1 - a));
+        rgba[o + 2] = Math.round(b * a + bg[2] * (1 - a));
+        rgba[o + 3] = 255;
+      } else if (aa > 0) {
+        rgba[o] = Math.round(r);
+        rgba[o + 1] = Math.round(g);
+        rgba[o + 2] = Math.round(b);
+        rgba[o + 3] = Math.round(a * 255);
       }
     }
   }
@@ -270,19 +287,25 @@ console.log('Generando iconos desde', MASTER);
 const CLEAN = path.join(os.tmpdir(), 'sd-logo-clean.png');
 sips(['-c', String(TIGHT_CROP), String(TIGHT_CROP), MASTER, '--out', CLEAN]);
 
-// 2) Re-enmarcado con margen blanco para los iconos de app: la cruz no toca el
-//    borde, respira como las demás apps del home screen.
-const PADDED = path.join(os.tmpdir(), 'sd-logo-padded.png');
-sips(['-p', String(PAD_SIZE), String(PAD_SIZE), '--padColor', 'FFFFFF', CLEAN, '--out', PADDED]);
+// 2) Maestro de los iconos de app: la MISMA cruz que se ve dentro de la
+//    plataforma, aplanada sobre el negro de la app en vez de sobre blanco. Antes
+//    se re-enmarcaba el recorte con `sips -p --padColor FFFFFF`, pero eso solo
+//    añade margen: el fondo blanco venía dentro del propio master, así que la
+//    baldosa salía blanca sí o sí.
+//    padRatio 1/3 deja la cruz ≈60% del marco, el aire que tienen las demás apps
+//    del iPhone y dentro de la zona segura del recorte maskable de Android.
+const APP_BG = [10, 10, 12]; // #0a0a0c, el negro de la interfaz oscura
+const APP_MASTER = path.join(os.tmpdir(), 'sd-app-icon.png');
+buildUiMark(MASTER, APP_MASTER, 1024, 1 / 3, APP_BG);
 
-// Iconos de app (home screen iOS / PWA / apple-touch / maskable): CON margen.
+// Iconos de app (home screen iOS / PWA / apple-touch / maskable): opacos.
 const appIcons = [
   ['icon-144.png', 144], ['icon-192.png', 192], ['icon-256.png', 256],
   ['icon-384.png', 384], ['icon-512.png', 512],
   ['maskable-192.png', 192], ['maskable-512.png', 512],
   ['apple-touch-icon.png', 180], ['apple-touch-icon-167.png', 167], ['apple-touch-icon-152.png', 152],
 ];
-for (const [n, s] of appIcons) emit(PADDED, n, s);
+for (const [n, s] of appIcons) emit(APP_MASTER, n, s);
 
 // Marca dentro de la app: cruz completa (sin recortar por el marco), fondo
 // TRANSPARENTE y 512² para que se vea nítida en pantallas @2x/@3x aunque se
