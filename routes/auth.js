@@ -82,19 +82,15 @@ router.post('/login', async (req, res) => {
 // atender citas y firmar consultas — que es para lo que se registra — y también
 // está en OWNER_ROLES, así que puede contratar y cancelar la suscripción.
 
-// Las mismas cadenas exactas que usa el resto de la app para enrutar la consulta
-// según especialidad (public/citas.html). Comparar con === es la convención
-// vigente aquí: cualquier variante de acento o minúsculas rompe el enrutado.
-const ESPECIALIDADES = [
-  'Medicina General',
-  'Odontología',
-  'Periodoncia',
-  'Ortodoncia',
-  'Odontopediatría',
-  'Podología',
-  'Nutrición',
-  'Dermatología',
-];
+// El alta por cuenta propia es solo para podología: es la única especialidad
+// que se ofrece en public/registro.html y la única que se acepta aquí, para que
+// nadie cree una cuenta con otra ficha de consulta llamando a la API directo.
+// Las clínicas ya existentes con otra especialidad no se tocan: esta lista solo
+// valida el registro. La cadena es la misma exacta que usa el resto de la app
+// para enrutar la consulta (public/citas.html); comparar con === es la
+// convención vigente aquí, así que cualquier variante de acento o minúsculas
+// rompe el enrutado.
+const ESPECIALIDADES = ['Podología'];
 
 // clinics.name es UNIQUE en el esquema. Dos doctores pueden llamar igual a su
 // consultorio con toda legitimidad ("Clínica Dental"), así que en vez de

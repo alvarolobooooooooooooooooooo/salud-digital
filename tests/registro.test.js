@@ -126,8 +126,8 @@ const ALTA_VALIDA = {
   name: 'Ana Martínez',
   email: 'ana@clinica.hn',
   password: 'contrasena-larga',
-  specialty: 'Odontología',
-  clinic_name: 'Clínica Dental Sonrisa',
+  specialty: 'Podología',
+  clinic_name: 'Clínica Podológica Sonrisa',
   city: 'Tegucigalpa',
   phone: '+504 9999 9999',
 };
@@ -146,10 +146,10 @@ test('el alta crea clínica y doctor, y deja la sesión abierta', async (t) => {
 
   const clinica = bd.clinicas[0];
   const doctor = bd.usuarios[0];
-  assert.equal(clinica.name, 'Clínica Dental Sonrisa');
+  assert.equal(clinica.name, 'Clínica Podológica Sonrisa');
   assert.equal(clinica.city, 'Tegucigalpa');
   assert.equal(doctor.clinic_id, clinica.id);
-  assert.equal(doctor.specialty, 'Odontología', 'la especialidad se guarda tal cual: enruta la ficha de consulta');
+  assert.equal(doctor.specialty, 'Podología', 'la especialidad se guarda tal cual: enruta la ficha de consulta');
   assert.notEqual(doctor.password, ALTA_VALIDA.password, 'la contraseña se guarda hasheada');
 });
 
@@ -175,7 +175,7 @@ test('dos consultorios pueden llamarse igual: el repetido se numera', async (t) 
   });
 
   assert.equal(r.status, 201);
-  assert.equal(bd.clinicas[1].name, 'Clínica Dental Sonrisa (2)');
+  assert.equal(bd.clinicas[1].name, 'Clínica Podológica Sonrisa (2)');
 });
 
 test('el alta rechaza datos incompletos antes de tocar la BD', async (t) => {
@@ -187,6 +187,7 @@ test('el alta rechaza datos incompletos antes de tocar la BD', async (t) => {
     [{ email: 'no-es-correo' }, 'correo inválido'],
     [{ password: 'corta' }, 'contraseña de menos de 8'],
     [{ specialty: 'Astrología' }, 'especialidad fuera de la lista'],
+    [{ specialty: 'Odontología' }, 'el alta por cuenta propia es solo para podología'],
     [{ clinic_name: '' }, 'clínica sin nombre'],
   ];
 

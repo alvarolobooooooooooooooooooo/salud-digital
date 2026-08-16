@@ -215,6 +215,7 @@
 
     /* ── Especialidades ── */
     .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; }
+    .spec-grid.single { grid-template-columns: 1fr; }
     .spec {
       display: flex; align-items: center; gap: .6rem;
       padding: .72rem .8rem;
@@ -446,8 +447,8 @@
 
         <!-- 3 · Especialidad -->
         <section class="step" data-step="2">
-          <h1 class="step-title">¿Cuál es tu especialidad?</h1>
-          <p class="step-sub">Define la ficha de consulta que verás al atender: odontograma, mapa podológico, plan nutricional…</p>
+          <h1 class="step-title">Tu especialidad</h1>
+          <p class="step-sub">Define la ficha de consulta que verás al atender. El alta está abierta para podología: atenderás con el mapa podológico.</p>
           <div class="spec-grid" id="specGrid"></div>
           <div class="field" id="fSpec" style="margin:.9rem 0 0;">
             <div class="field-error">Elige una especialidad para continuar.</div>
@@ -547,17 +548,13 @@
     var ULTIMO_FORMULARIO = 4;   // índice del paso de confirmación
     var PASO_EXITO = 5;
 
-    // Cadenas EXACTAS de especialidad que usa el resto de la app para decidir
-    // qué ficha de consulta abrir (public/citas.html). No tocar los acentos.
+    // El alta por cuenta propia es solo para podología. La lista se mantiene como
+    // array porque el paso funciona igual con una o con varias opciones: para
+    // reabrir otras especialidades basta con añadirlas aquí y en routes/auth.js.
+    // Cadenas EXACTAS: el resto de la app las compara con === para decidir qué
+    // ficha de consulta abrir (public/citas.html). No tocar los acentos.
     var ESPECIALIDADES = [
-      { valor: 'Medicina General', nota: 'Consulta general' },
-      { valor: 'Odontología',      nota: 'Odontograma' },
-      { valor: 'Periodoncia',      nota: 'Periodontograma' },
-      { valor: 'Ortodoncia',       nota: 'Plan de tratamiento' },
-      { valor: 'Odontopediatría',  nota: 'Dentición mixta' },
-      { valor: 'Podología',        nota: 'Mapa podológico' },
-      { valor: 'Nutrición',        nota: 'Plan nutricional' },
-      { valor: 'Dermatología',     nota: 'Mapa de lesiones' }
+      { valor: 'Podología', nota: 'Mapa podológico' }
     ];
 
     var paso = 0;
@@ -583,8 +580,11 @@
     })();
 
     // Especialidades como tarjetas: se elige con un toque, sin desplegable.
+    // Con una sola opción la tarjeta ocupa el ancho completo y queda marcada de
+    // entrada, para que el paso sea una confirmación y no un trámite.
     (function pintarEspecialidades() {
       var grid = $('specGrid');
+      if (ESPECIALIDADES.length === 1) grid.classList.add('single');
       ESPECIALIDADES.forEach(function (e) {
         var b = document.createElement('button');
         b.type = 'button';
@@ -600,6 +600,11 @@
         });
         grid.appendChild(b);
       });
+
+      if (ESPECIALIDADES.length === 1) {
+        datos.specialty = ESPECIALIDADES[0].valor;
+        grid.firstChild.classList.add('sel');
+      }
     })();
 
     function marcar(idCampo, mal) {
