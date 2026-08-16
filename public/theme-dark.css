@@ -3867,6 +3867,36 @@ html[data-theme="dark"] .co-page {
     0 -1px 0 rgba(0, 0, 0, .35) inset,
     0 14px 40px -16px rgba(0, 0, 0, .55),
     0 32px 80px -40px rgba(0, 0, 0, .65);
+
+  /* ── Receta de cristal de las tarjetas ──────────────────────────
+     El tinte cian se ancla FUERA de la tarjeta (at 6% -20%) y muere
+     recién en el 100%: así solo se ve la cola suave del degradado y
+     no el borde duro del blob, que era lo que se leía como "pintado
+     encima". El brillo va por el borde superior, no cruzando la
+     tarjeta en diagonal. */
+  --co-glass-fill: rgba(24, 24, 28, .55);
+  --co-glass-tint:
+    radial-gradient(140% 180% at 6% -20%,
+      rgba(8, 145, 178, .13) 0%,
+      rgba(8, 145, 178, .05) 34%,
+      rgba(8, 145, 178, .015) 62%,
+      transparent 100%);
+  --co-glass-sheen:
+    linear-gradient(180deg,
+      rgba(255, 255, 255, .05) 0%,
+      rgba(255, 255, 255, .012) 16%,
+      transparent 42%);
+  --co-glass-blur: saturate(150%) blur(28px);
+  --co-glass-rim:
+    linear-gradient(155deg,
+      rgba(255, 255, 255, .18) 0%,
+      rgba(255, 255, 255, .055) 26%,
+      rgba(255, 255, 255, .012) 55%,
+      transparent 82%);
+  --co-glass-cast:
+    0 22px 56px -26px rgba(0, 0, 0, .62),
+    0 2px 10px -4px rgba(0, 0, 0, .4),
+    0 0 46px -20px rgba(8, 145, 178, .18);
 }
 
 /* Background wash — only the cyan radial tints; transparent base so it
@@ -3875,55 +3905,60 @@ html[data-theme="dark"] .co-page::before {
   inset: 0 !important;
   border-radius: 0 !important;
   background:
-    radial-gradient(620px 460px at 8% -6%, rgba(8, 145, 178, .06), transparent 65%),
-    radial-gradient(540px 420px at 96% 4%, rgba(14, 165, 233, .05), transparent 65%),
-    radial-gradient(720px 560px at 100% 52%, rgba(59, 130, 246, .03), transparent 70%),
-    radial-gradient(680px 520px at 0% 70%, rgba(6, 182, 212, .04), transparent 68%) !important;
+    radial-gradient(620px 460px at 8% -6%, rgba(8, 145, 178, .09), transparent 65%),
+    radial-gradient(540px 420px at 96% 4%, rgba(14, 165, 233, .07), transparent 65%),
+    radial-gradient(720px 560px at 100% 52%, rgba(59, 130, 246, .045), transparent 70%),
+    radial-gradient(680px 520px at 0% 70%, rgba(6, 182, 212, .06), transparent 68%) !important;
 }
 html[data-theme="dark"] .co-page::after {
   opacity: .25 !important;
   border-radius: 0 !important;
 }
 
-/* Card highlight overlay was a near-white gradient — tone down on dark */
-html[data-theme="dark"] .co-card::before {
-  background: linear-gradient(140deg, rgba(255, 255, 255, .04) 0%, rgba(255, 255, 255, .01) 38%, transparent 60%) !important;
-  opacity: .8 !important;
+/* Citas Online — tarjetas de cristal.
+   Antes: fondo casi opaco (--sd-surface, .72) con un blob cian anclado en la
+   esquina 0% 0% que cortaba en seco al 55% y una banda blanca en diagonal
+   encima. Sobre tarjetas anchas eso no se leía como cristal sino como un
+   degradado pintado. Ahora la tarjeta es de verdad translúcida —el blur del
+   fondo y los lavados cian de la página hacen el trabajo— el tinte entra
+   desde fuera del borde y se apaga sin corte, y el brillo se queda en el
+   borde superior. */
+html[data-theme="dark"] .co-kpi,
+html[data-theme="dark"] .co-insight,
+html[data-theme="dark"] .co-card {
+  background-image: var(--co-glass-sheen), var(--co-glass-tint) !important;
+  background-color: var(--co-glass-fill) !important;
+  border: 1px solid rgba(255, 255, 255, .055) !important;
+  box-shadow: var(--co-glass-cast) !important;
+  backdrop-filter: var(--co-glass-blur);
+  -webkit-backdrop-filter: var(--co-glass-blur);
 }
 
-/* KPI card top-left highlight — was rgba(255,255,255,0.45) with mix-blend-mode:screen
-   which painted a bright white sheen on dark cards. Kill it. */
+/* El ::before deja de ser una banda diagonal y pasa a ser el filo del
+   cristal: hairline brillante arriba-izquierda que se disuelve del todo
+   antes de llegar abajo-derecha, así el borde de la tarjeta desaparece
+   contra el fondo en vez de recortarse. */
+html[data-theme="dark"] .co-card::before,
 html[data-theme="dark"] .co-kpi::before,
 html[data-theme="dark"] .co-insight::before {
-  background: linear-gradient(140deg, rgba(255, 255, 255, .03) 0%, rgba(255, 255, 255, .01) 45%, transparent 70%) !important;
+  background: var(--co-glass-rim) !important;
+  padding: 1px !important;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
   mix-blend-mode: normal !important;
-  opacity: .6 !important;
+  opacity: 1 !important;
 }
 
-/* Kill the cyan radial-gradient glow corners on KPI cards (Citas Online) */
+/* Las esquinas cian del KPI ya vienen en el fondo de la tarjeta */
 html[data-theme="dark"] .co-kpi::after {
   display: none !important;
 }
 
-/* Citas Online cards — same glassmorphism + cyan-glow recipe as the
-   Inicio/dashboard cards (radial cyan corner glow + diagonal white sheen over
-   a translucent surface + layered drop/ambient-cyan shadow + top-edge
-   highlight), so they read as premium raised glass tiles instead of flat black
-   panels. The page's own ::after glow is killed above; this provides the glow
-   via the card's own background-image. */
-html[data-theme="dark"] .co-kpi,
-html[data-theme="dark"] .co-insight,
-html[data-theme="dark"] .co-card {
-  background-image:
-    radial-gradient(130% 150% at 0% 0%, rgba(8, 145, 178, .16) 0%, transparent 55%),
-    linear-gradient(135deg, rgba(255, 255, 255, .045) 0%, rgba(255, 255, 255, .012) 100%) !important;
-  background-color: var(--sd-surface) !important;
-  border: 1px solid rgba(255, 255, 255, .06) !important;
-  box-shadow:
-    0 18px 44px rgba(0, 0, 0, .5),
-    0 4px 30px rgba(8, 145, 178, .14),
-    inset 0 1px 0 rgba(255, 255, 255, .06) !important;
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+/* Bloom cónico de la tarjeta del link — competía con el lavado cian nuevo */
+html[data-theme="dark"] .co-share::after {
+  opacity: .28 !important;
 }
 
 /* Availability footer (legend + Sin cambios button) — kill the white
@@ -4495,16 +4530,17 @@ html[data-theme="dark"] .co-icon-btn:hover {
 /* QR card — same dashboard glass + cyan-glow recipe as the other cards; the
    inner QR frame stays white below for scannability. */
 html[data-theme="dark"] .co-qr-card {
-  background-image:
-    radial-gradient(130% 150% at 0% 0%, rgba(8, 145, 178, .16) 0%, transparent 55%),
-    linear-gradient(135deg, rgba(255, 255, 255, .045) 0%, rgba(255, 255, 255, .012) 100%) !important;
-  background-color: var(--sd-surface) !important;
-  border: 1px solid rgba(255, 255, 255, .06) !important;
+  background-image: var(--co-glass-sheen), var(--co-glass-tint) !important;
+  /* va encima de otro cristal (.co-share): un pelo más de cuerpo para que
+     el QR no se hunda en la tarjeta madre */
+  background-color: rgba(30, 30, 34, .5) !important;
+  border: 1px solid rgba(255, 255, 255, .07) !important;
   box-shadow:
-    0 18px 44px rgba(0, 0, 0, .5),
-    0 4px 30px rgba(8, 145, 178, .14),
+    0 14px 34px -20px rgba(0, 0, 0, .6),
+    0 0 34px -18px rgba(8, 145, 178, .2),
     inset 0 1px 0 rgba(255, 255, 255, .06) !important;
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: saturate(150%) blur(18px);
+  -webkit-backdrop-filter: saturate(150%) blur(18px);
 }
 html[data-theme="dark"] .co-qr-frame {
   background: #ffffff !important;  /* keep — QR codes need light bg */
