@@ -1329,7 +1329,9 @@
                 <div class="co-day-title" id="dayTitle">—</div>
                 <div class="co-day-sub" id="daySub">—</div>
               </div>
-              <div class="co-day-actions" id="dayActions"></div>
+              <!-- data-sd-gate: cerrar/reabrir el día guarda al instante, así que
+                   sin suscripción estos botones van apagados (layout.js). -->
+              <div class="co-day-actions" id="dayActions" data-sd-gate></div>
             </div>
             <div id="daySlots"></div>
           </div>
@@ -2587,7 +2589,10 @@
     try {
       const body = { availability: payload };
       if (userRole === 'clinic_admin' && currentDoctorId) body.doctor_id = currentDoctorId;
-      await api('/api/doctor-availability', { method: 'PUT', body });
+      // `quiet` cuando es el guardado automático del horario por defecto: sin
+      // suscripción ese PUT vuelve 402 y el aviso saldría solo al abrir la
+      // pantalla, sin que nadie hubiera pulsado nada.
+      await api('/api/doctor-availability', { method: 'PUT', body, quiet: silent });
       savedAvailability = JSON.parse(JSON.stringify(availability));
       savedSlotDuration = slotDuration;
       updateSaveBtn();

@@ -1241,10 +1241,14 @@
 // ── Modo solo lectura por suscripción (frontend) ──
 // El servidor es quien manda: sin plan activo deja pasar las lecturas y responde
 // 402 a cualquier escritura. Aquí va la parte visible de ese estado:
-//   · window.sdPaywall(msg) — el aviso que sale cuando una escritura choca con
-//     el 402 (lo dispara common.js). No navega: el formulario queda intacto.
-//   · una cinta permanente arriba de la página avisando de que la cuenta está
-//     en solo lectura, para que nadie descubra el límite recién al guardar.
+//   · los botones que ESCRIBEN (nuevo paciente, guardar consulta, agendar…)
+//     quedan apagados y no abren nada: al pulsarlos sale el aviso. Sin esto el
+//     usuario rellenaba un formulario entero para chocar con el muro al final.
+//   · window.sdPaywall(msg) — ese aviso, que además dispara common.js si alguna
+//     escritura se cuela igual y vuelve con 402. No navega: el formulario queda
+//     intacto.
+//   · una cinta permanente avisando de que la cuenta está en solo lectura, para
+//     que nadie descubra el límite recién al guardar.
 // El estado se cachea 60s en sessionStorage para no consultarlo en cada
 // navegación.
 (function () {
@@ -1308,7 +1312,16 @@
       'html[data-theme="dark"] .sd-pw-card p{color:#94a3b8}',
       'html[data-theme="dark"] .sd-pw-ghost{border-color:rgba(255,255,255,.14);color:#cbd5e1}',
       'html[data-theme="dark"] .sd-pw-solid{background:#06b6d4;border-color:#06b6d4;color:#04191e}',
-      'html[data-theme="dark"] .sd-pw-solid:hover{background:#22d3ee;border-color:#22d3ee}'
+      'html[data-theme="dark"] .sd-pw-solid:hover{background:#22d3ee;border-color:#22d3ee}',
+
+      // Acción bloqueada: se ve apagada (gris, sin sombra) pero SIGUE recibiendo
+      // el clic —de ahí `pointer-events` intacto y `disabled` sin poner—, porque
+      // el clic es lo que abre la explicación. Los hijos sí quedan inertes para
+      // que el evento llegue siempre al propio botón y no a un <span> interior.
+      'html.sd-readonly .sd-gated{opacity:.45;filter:grayscale(.9);cursor:not-allowed;',
+      'box-shadow:none!important;transform:none!important}',
+      'html.sd-readonly .sd-gated:hover{opacity:.45;filter:grayscale(.9);transform:none!important}',
+      'html.sd-readonly .sd-gated *{pointer-events:none}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -1353,7 +1366,147 @@
     document.body.appendChild(bar);
   }
 
+  // ── Bloqueo de las acciones que escriben ──
+  // No hay un inventario de botones que mantener al día: se reconocen por su
+  // etiqueta (el verbo con el que empiezan) y por eso funciona igual en las
+  // pantallas que pintan sus botones desde JS o React. Dos escapes para cuando
+  // la heurística no acierta, ambos vía atributo en el HTML y heredables (valen
+  // para todo lo que haya dentro del elemento que los lleva):
+  //   data-sd-gate      → bloquea esto sí o sí (etiqueta rara, icono sin texto)
+  //   data-sd-gate="off"→ nunca lo bloquees
+  var CONTROLES = 'button, a[href], input[type="submit"], input[type="button"], [role="button"], label[for]';
+  var SELECTOR = CONTROLES + ', [data-sd-gate]';
+
+  // Verbos con los que arranca una acción que guarda algo. Anclado al principio
+  // a propósito: "Agenda y disponibilidad" (una pestaña) no puede caer por
+  // contener "agenda", y "Iniciar sesión" no puede caer por "iniciar".
+  var VERBOS_DE_ESCRITURA = new RegExp('^(?:' + [
+    'nuev[oa]', 'a[ñn]adir', 'agregar', 'crear', 'guardar', 'registrar',
+    'agendar', 'reagendar', 'programar', 'reprogramar', 'reservar',
+    'firmar', 'confirmar firma', 'confirmar cita',
+    'iniciar consulta', 'iniciar conversaci', 'iniciar expediente',
+    'invitar', 'dar de alta', 'dar de baja', 'enviar', 'reenviar', 'subir', 'importar',
+    'editar', 'modificar', 'eliminar', 'borrar', 'archivar', 'desarchivar',
+    'marcar', 'finalizar', 'cobrar', 'facturar', 'duplicar', 'asignar', 'liberar',
+    'cancelar cita', 'anular'
+  ].join('|') + ')', 'i');
+
+  function esEscritura(texto) {
+    if (!texto) return false;
+    // Fuera lo que no sea letra al principio ("＋ Nueva cita", "✓ Marcar…"): así
+    // el ancla no se rompe por un icono. Un "+" pelado queda en cadena vacía y
+    // no dispara nada — los +/− de cantidad son locales, no escriben.
+    var t = String(texto).replace(/^[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/, '').trim();
+    return !!t && VERBOS_DE_ESCRITURA.test(t);
+  }
+
+  function estaBloqueada(el) {
+    if (!el || el.nodeType !== 1 || !el.closest) return false;
+    // Un <label> entra solo si lo piden a mano (el de subir foto, que abre el
+    // selector de archivos): hay etiquetas de campo que empiezan por verbo
+    // —"Nueva contraseña"— y no son ninguna acción.
+    if (el.tagName === 'LABEL' && el.getAttribute('data-sd-gate') === null) return false;
+    // El atributo manda, y se hereda: puesto en un contenedor vale para todo lo
+    // que hay dentro (una zona entera de la pantalla que escribe), y el "off" de
+    // más adentro gana sobre el bloqueo de más afuera.
+    var portador = el.closest('[data-sd-gate]');
+    if (portador) {
+      var marca = portador.getAttribute('data-sd-gate');
+      return !(marca === 'off' || marca === 'false');
+    }
+    if (el.closest('.sd-ro-bar, .sd-pw-scrim')) return false;
+    if (el.tagName === 'A') {
+      var href = el.getAttribute('href') || '';
+      // La salida (pagar, salir, escribirnos) nunca se bloquea a sí misma.
+      if (/^(?:mailto:|tel:|https?:)/i.test(href) || /plan\.html|login\.html/i.test(href)) return false;
+    }
+    return esEscritura(el.getAttribute('aria-label')) ||
+           esEscritura(el.getAttribute('title')) ||
+           esEscritura((el.textContent || '').slice(0, 60));
+  }
+
+  function apagar(el) {
+    if (el.classList.contains('sd-gated')) return;
+    el.classList.add('sd-gated');
+    el.setAttribute('aria-disabled', 'true');
+    // El title solo si no había: es una de las fuentes de la etiqueta y
+    // pisarlo dejaría al botón sin lo que lo identificaba.
+    if (!el.getAttribute('title')) {
+      el.setAttribute('title', 'Necesitas la suscripción activa para guardar cambios');
+    }
+  }
+
+  var observador = null;
+  var repaso = null;
+
+  function repasar() {
+    // Solo se apagan los controles: si el atributo va en un contenedor, lo que
+    // se ve gris son los botones de dentro, no la caja entera (y así tampoco se
+    // acumulan dos opacidades sobre el mismo botón).
+    var nodos = document.querySelectorAll(CONTROLES);
+    for (var i = 0; i < nodos.length; i++) {
+      if (estaBloqueada(nodos[i])) apagar(nodos[i]);
+    }
+    // Descarta las mutaciones que acabamos de provocar nosotros mismos: sin
+    // esto, marcar dispararía otro repaso en bucle.
+    if (observador) observador.takeRecords();
+  }
+
+  function programarRepaso() {
+    if (repaso) return;
+    repaso = setTimeout(function () { repaso = null; repasar(); }, 80);
+  }
+
+  function bloquearAcciones() {
+    // Captura, no burbuja: hay que llegar antes que el onclick del propio botón
+    // (y antes que el handler de transición de página) para poder cancelarlo.
+    document.addEventListener('click', function (e) {
+      if (!window.SD_READONLY) return;
+      var origen = e.target;
+      if (!origen || !origen.closest) return;
+      var el = origen.closest(SELECTOR);
+      if (!el || !estaBloqueada(el)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      apagar(el);
+      window.sdPaywall();
+    }, true);
+
+    // Enviar con Enter en un formulario sin botón de submit visible: el clic
+    // sintético no siempre existe, así que el submit se ataja aparte.
+    document.addEventListener('submit', function (e) {
+      if (!window.SD_READONLY) return;
+      var form = e.target;
+      if (!form || form.tagName !== 'FORM') return;
+      if (form.closest('.sd-pw-scrim')) return;
+      var portador = form.closest('[data-sd-gate]');
+      var marcado = !!portador && portador.getAttribute('data-sd-gate') !== 'off' &&
+                    portador.getAttribute('data-sd-gate') !== 'false';
+      var disparador = form.querySelector('button[type="submit"], input[type="submit"], button:not([type])');
+      if (!marcado && !(disparador && estaBloqueada(disparador))) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      window.sdPaywall();
+    }, true);
+
+    repasar();
+    // Media app pinta sus botones después (fetch, React, modales): hay que
+    // seguir mirando. Solo corre en cuentas sin plan, que son la excepción.
+    if (window.MutationObserver) {
+      observador = new MutationObserver(programarRepaso);
+      observador.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['title', 'aria-label', 'data-sd-gate', 'href', 'class']
+      });
+    }
+  }
+
   if (path === '/plan.html' || path === '/login.html' || path === '/registro.html' ||
+      path === '/landing.html' || path === '/accept-invitation.html' ||
       path === '/' || path === '/index.html') return;
   try {
     if (GATED_ROLES.indexOf(localStorage.getItem('sd_role')) === -1) return;
@@ -1372,7 +1525,8 @@
       try { sessionStorage.removeItem(CACHE_KEY); } catch (_) {}
       window.SD_READONLY = true;
       document.documentElement.classList.add('sd-readonly');
-      var pintar = function () { pintarCinta(!!data.can_manage); };
+      inyectarEstilos();
+      var pintar = function () { pintarCinta(!!data.can_manage); bloquearAcciones(); };
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pintar);
       else pintar();
     })

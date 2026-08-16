@@ -101,7 +101,18 @@ async function api(url, options = {}) {
     // algo: no se navega a ningún lado —eso perdería lo que el usuario acaba de
     // escribir— sino que se explica con el aviso de suscripción y se deja la
     // página tal cual, con su formulario intacto.
+    //
+    // `quiet: true` es para las escrituras que dispara la propia página sin que
+    // nadie pulse nada (autoguardados, semillas al abrir la pantalla): ahí el
+    // aviso saldría solo, sin que el usuario hubiera pedido guardar nada. El
+    // error se sigue lanzando; solo se calla el modal.
     if (res.status === 402 && data && data.code === 'subscription_required') {
+      if (options.quiet) {
+        const err = new Error(data.error || 'Tu suscripción no está activa.');
+        err.status = 402;
+        err.code = 'subscription_required';
+        throw err;
+      }
       if (typeof window.sdPaywall === 'function') {
         window.sdPaywall(data.error);
       } else if (window.location.pathname !== '/plan.html') {

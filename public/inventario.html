@@ -704,7 +704,7 @@
         <p>Gestiona medicamentos, insumos, equipos y productos de tu clínica con control total de stock, vencimientos y proveedores.</p>
       </div>
       <div class="header-actions">
-        <button class="btn btn-secondary" id="btnScan" type="button">
+        <button class="btn btn-secondary" id="btnScan" type="button" data-sd-gate>
           <span data-icon="camera"></span>
           Escanear / tomar foto
         </button>
@@ -1187,7 +1187,7 @@
       <button class="btn btn-ghost" id="detailCloseFooter" type="button">Cerrar</button>
       <div class="right-actions">
         <button class="btn btn-secondary" id="detailEdit" type="button"><span data-icon="edit" data-size="14"></span> Editar</button>
-        <button class="btn btn-primary" id="detailAdjust" type="button"><span data-icon="boxes" data-size="14"></span> Ajustar stock</button>
+        <button class="btn btn-primary" id="detailAdjust" type="button" data-sd-gate><span data-icon="boxes" data-size="14"></span> Ajustar stock</button>
       </div>
     </div>
   </aside>
@@ -1474,7 +1474,7 @@
             <div class="row-actions">
               <button class="icon-btn" title="Ver detalles" data-action="view" data-id="${item.id}"><span data-icon="eye" data-size="16"></span></button>
               <button class="icon-btn" title="Editar" data-action="edit" data-id="${item.id}"><span data-icon="edit" data-size="16"></span></button>
-              <button class="icon-btn" title="Ajustar stock" data-action="adjust" data-id="${item.id}"><span data-icon="boxes" data-size="16"></span></button>
+              <button class="icon-btn" title="Ajustar stock" data-action="adjust" data-id="${item.id}" data-sd-gate><span data-icon="boxes" data-size="16"></span></button>
               <button class="icon-btn" title="Duplicar" data-action="duplicate" data-id="${item.id}"><span data-icon="copy" data-size="16"></span></button>
               <button class="icon-btn danger" title="Archivar" data-action="archive" data-id="${item.id}"><span data-icon="archive" data-size="16"></span></button>
             </div>

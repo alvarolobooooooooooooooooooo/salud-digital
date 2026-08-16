@@ -125,7 +125,26 @@ Sin suscripción activa, la API deja pasar `GET`/`HEAD` y responde `402` a toda
 escritura (`POST`/`PUT`/`PATCH`/`DELETE`). El frontend no navega a ningún lado:
 muestra una pastilla permanente de "Modo solo lectura" y, al chocar con el 402,
 un aviso con enlace a `/plan.html` — el formulario que se estaba rellenando no se
-pierde. Quedan fuera del guardián:
+pierde.
+
+Además, los botones que escriben **no llegan a funcionar**: `layout.js` los deja
+apagados (gris, cursor bloqueado, `aria-disabled`) y el clic abre el aviso en vez
+de la acción, así que nadie rellena un alta entera para chocar con el muro al
+final. Se reconocen por el verbo con el que empieza su etiqueta —`Nuevo…`,
+`Guardar…`, `Agendar…`, `Eliminar…`—, lo que también cubre los botones que las
+pantallas pintan desde JS o React (hay un `MutationObserver`). Cuando eso no
+acierta, en el HTML:
+
+- `data-sd-gate` → bloquéalo igual (icono sin texto, etiqueta rara). Puesto en un
+  contenedor vale para todos los controles de dentro.
+- `data-sd-gate="off"` → no lo bloquees nunca. Gana el más interno.
+
+Y en `common.js`, `api(url, { quiet: true })` calla el aviso para las escrituras
+que dispara la propia pantalla sin que nadie pulse nada (p. ej. el horario por
+defecto que `agendar-online.html` guarda al abrirse la primera vez); el error se
+sigue lanzando, solo no sale el modal.
+
+Quedan fuera del guardián:
 
 - `/api/auth/*` (login, logout, 2FA) y `/api/billing/*` (para poder pagar)
 - `/api/public/*` y `/api/confirmations/public/*` (enlaces ya enviados a pacientes)
