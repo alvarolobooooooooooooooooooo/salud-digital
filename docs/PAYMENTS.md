@@ -40,7 +40,7 @@ en la interfaz.
 |---|---|---|
 | `PAYMENTS_PROVIDER` | no (por defecto `paypal`) | Procesador activo |
 | `APP_URL` | sí | Base para las URLs de retorno y del webhook |
-| `BILLING_ENFORCEMENT` | no | `off` desactiva el modo solo lectura por impago |
+| `BILLING_ENFORCEMENT` | **sí en producción** | `on` bloquea siempre · `off` nunca · vacío solo si hay procesador configurado |
 | `BILLING_EXEMPT_CLINIC_IDS` | no | Clínicas que nunca se limitan, p. ej. `1,5` |
 | `BILLING_MAX_RETRIES` | no (3) | Intentos antes de dar el cobro por perdido |
 | `BILLING_GRACE_DAYS` | no (3) | Días de acceso tras vencer el periodo sin pagar |

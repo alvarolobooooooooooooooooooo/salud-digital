@@ -59,27 +59,18 @@ async function gate(req, res, next) {
   if (!user) return next();
   if (!subscription.ENFORCED_ROLES.includes(user.role)) return next();
   if (!user.clinic_id) return next();
-  if (subscription.isExemptClinic(user.clinic_id)) return next();
 
-  let access;
-  try {
-    access = await subscription.clinicHasAccess(user.clinic_id);
-  } catch (err) {
-    // Fallo de BD → se deja pasar. Un hipo de Postgres no puede dejar al doctor
-    // fuera de su propia consulta; el cobro se revisa en el siguiente request.
-    console.warn('[billing] no se pudo verificar la suscripción:', err.message);
-    return next();
-  }
-
-  if (access.active) return next();
-
-  // Sin plan: se mira, no se toca.
+  // Sin plan: se mira, no se toca. Se comprueba antes de ir a la BD porque las
+  // lecturas pasan siempre — preguntar por la suscripción sería trabajo tirado.
   if (METODOS_DE_LECTURA.includes(req.method)) return next();
+
+  const permiso = await subscription.clinicCanWrite(user.clinic_id);
+  if (permiso.allowed) return next();
 
   res.status(402).json({
     error: 'Tu cuenta está en modo solo lectura. Activa la suscripción para guardar cambios.',
     code: 'subscription_required',
-    subscription_status: access.reason,
+    subscription_status: permiso.reason,
   });
 }
 

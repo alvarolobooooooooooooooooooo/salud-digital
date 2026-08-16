@@ -132,6 +132,14 @@ pierde. Quedan fuera del guardián:
 - el rol `super_admin` (operador de la plataforma) y el rol `patient`
 - clínicas listadas en `BILLING_EXEMPT_CLINIC_IDS`
 
+**Excepción dentro de la excepción:** la reserva pública
+(`POST /api/public/clinic/:id/booking`) da de alta pacientes y citas, así que no
+podía quedar libre solo por colgar de `/api/public`. Comprueba el plan por su
+cuenta —con el mismo criterio, `subscription.clinicCanWrite()`— y responde `403`
+con un mensaje neutro: quien lo lee es un paciente, y el estado de pago de la
+clínica no es asunto suyo. El resto de `/api/public/*` (landing, horarios) sigue
+abierto.
+
 Se considera **con acceso**: `active`/`trialing`, o `past_due`/`cancelled`/`paused`
 mientras el periodo ya pagado siga vigente (el mes cobrado se respeta).
 
@@ -144,9 +152,40 @@ el doctor entra, recorre la plataforma y activa la suscripción cuando quiere.
 ### Palancas de emergencia
 
 ```bash
+BILLING_ENFORCEMENT=on         # bloquea SIEMPRE (lo que debe haber en producción)
 BILLING_ENFORCEMENT=off        # desactiva el guardián por completo
 BILLING_EXEMPT_CLINIC_IDS=1,4  # clínicas que nunca se bloquean
 ```
+
+`on` no es un adorno: con la variable vacía el guardián se apaga solo si el
+procesador no está configurado, así que borrar por error `PAYPAL_CLIENT_ID`
+regalaría la plataforma entera **sin ningún aviso**. Con `on`, si algo falta, se
+bloquea y se nota. Al arrancar, el servidor deja una línea en el log diciendo en
+qué estado está:
+
+```
+[billing] cobro ACTIVO · procesador paypal_onetime (configurado) · entorno PayPal live
+```
+
+---
+
+## 5. Lista de comprobación para salir a producción
+
+Marcar **todo** esto antes de cobrar al primer cliente:
+
+| # | Comprobación | Cómo se verifica |
+|---|---|---|
+| 1 | `BILLING_ENFORCEMENT=on` en Render | `GET /api/billing/status` → `"enforced": true` |
+| 2 | `PAYPAL_ENV=live` + credenciales **live** en Render | `status` → `checkout.environment: "live"` |
+| 3 | `PAYPAL_WEBHOOK_ID` regenerado para live | `node tools/paypal-setup.js` con las credenciales live |
+| 4 | `BILLING_EXEMPT_CLINIC_IDS` solo con las clínicas de cortesía | `status` → `"exempt"` en esas cuentas |
+| 5 | Una cuenta sin plan no puede guardar | intentar dar de alta un paciente → aviso de solo lectura |
+| 6 | Una tarjeta real completa el pago | `status` pasa a `"paid": true` y la cinta desaparece |
+
+Las credenciales de sandbox y las de live son distintas y no se mezclan: al
+cambiar de entorno hay que rehacer el webhook, y el `PAYPAL_PLAN_ID` de sandbox
+no sirve (con `paypal_onetime` ni siquiera se usa: los periodos los lleva la
+plataforma).
 
 ---
 

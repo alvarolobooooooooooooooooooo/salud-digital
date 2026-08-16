@@ -470,6 +470,32 @@ const PORT = process.env.PORT || 3000;
     // cobran solos), caduca lo pagado y reprocesa webhooks fallidos.
     require('./lib/billing/jobs').start();
 
+    // Estado del cobro, bien visible en los logs. Que el guardián esté apagado
+    // no se nota por ningún otro sitio —la app simplemente funciona— así que sin
+    // esta línea es fácil desplegar en producción regalando la plataforma.
+    try {
+      const enforcement = require('./lib/subscription');
+      const { getProvider } = require('./lib/payments/provider');
+      const activo = enforcement.enforcementEnabled();
+      let procesador = 'ninguno';
+      try {
+        const p = getProvider();
+        procesador = `${p.name} (${p.isConfigured() ? 'configurado' : 'SIN CREDENCIALES'})`;
+      } catch (_) {}
+      const exentas = String(process.env.BILLING_EXEMPT_CLINIC_IDS || '').trim();
+      console.log(
+        `[billing] cobro ${activo ? 'ACTIVO' : 'DESACTIVADO'} · procesador ${procesador}` +
+          ` · entorno PayPal ${String(process.env.PAYPAL_ENV || 'sandbox')}` +
+          (exentas ? ` · clínicas exentas ${exentas}` : ''),
+      );
+      if (!activo) {
+        console.warn('[billing] ATENCIÓN: sin guardián, cualquier cuenta puede guardar datos sin pagar.');
+      }
+      if (activo && String(process.env.PAYPAL_ENV || 'sandbox').toLowerCase() !== 'live') {
+        console.warn('[billing] ATENCIÓN: PayPal en SANDBOX — nadie puede pagar de verdad.');
+      }
+    } catch (_) {}
+
     // Geocodifica al arranque las clínicas que aún no tienen lat/lng. Corre en
     // background respetando el rate limit de Nominatim (1 req/s) y no bloquea listen.
     setTimeout(() => {

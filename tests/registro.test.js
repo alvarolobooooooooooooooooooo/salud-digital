@@ -81,6 +81,7 @@ inyectar('../lib/subscription', {
   enforcementEnabled: () => true,
   isExemptClinic: () => false,
   clinicHasAccess: async () => ({ active: accesoActivo, reason: accesoActivo ? 'active' : 'none' }),
+  clinicCanWrite: async () => ({ allowed: accesoActivo, reason: accesoActivo ? 'active' : 'none' }),
   invalidate() {},
   invalidateAll() {},
 });

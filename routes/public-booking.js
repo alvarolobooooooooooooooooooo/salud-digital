@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { query } = require('../db');
 const { checkRoomCapacity } = require('../lib/room-capacity');
+const subscription = require('../lib/subscription');
 
 function timeToMinutes(t) {
   const [h, m] = t.split(':').map(Number);
@@ -133,6 +134,19 @@ router.post('/clinic/:clinicId/booking', async (req, res) => {
 
   const clinicCheck = await query('SELECT id FROM clinics WHERE id = $1', [clinicId]);
   if (clinicCheck.rows.length === 0) return res.status(404).json({ error: 'Clínica no encontrada' });
+
+  // Esta ruta es pública y por tanto NO pasa por middleware/subscription.js, así
+  // que el cobro se comprueba aquí a mano: sin ella, una clínica sin plan seguía
+  // dando de alta pacientes y citas desde su propio enlace de reservas.
+  // El mensaje es neutro a propósito: quien lo lee es un paciente, y el estado de
+  // pago de la clínica no es asunto suyo.
+  const permiso = await subscription.clinicCanWrite(clinicId);
+  if (!permiso.allowed) {
+    return res.status(403).json({
+      error: 'Esta clínica no está recibiendo reservas en línea por el momento. Comunícate con ella directamente.',
+      code: 'booking_unavailable',
+    });
+  }
 
   const doctorCheck = await query(
     `SELECT id, specialty FROM users WHERE id = $1 AND clinic_id = $2 AND role = 'doctor'`,
