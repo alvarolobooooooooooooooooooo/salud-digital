@@ -398,10 +398,17 @@
        sobrio — el dorado de PayPal ya pesa bastante en la caja, y este solo tiene
        que verse igual de pulsable. Misma altura y radio que el <paypal-button>
        para que la pareja no baile. */
-    /* Sin variables de tema a propósito: vive dentro de .paybox, que es BLANCA en
-       claro y en oscuro. Con el vidrio de la app quedaba gris lavado, con pinta de
-       botón deshabilitado. Negro sobre blanco es además la convención que PayPal
-       usa para "tarjeta", así que se lee de un vistazo. */
+    /* Separador entre el botón de PayPal y el de tarjeta. Colores fijos, sin
+       variables de tema: vive dentro de .paybox, que es BLANCA en claro y en
+       oscuro. */
+    .subs-page .pz-o {
+      font-size: 12px; color: #64748B; text-align: center;
+      margin: -1px 0 -2px; line-height: 1.2;
+    }
+
+    /* Botón de tarjeta de respaldo (solo si PayPal no declara elegible el suyo).
+       Sin variables de tema, por lo mismo que .pz-o. Con el vidrio de la app
+       quedaba gris lavado, con pinta de deshabilitado. */
     .subs-page .btn-tarjeta {
       width: 100%; height: 44px; border: 0; border-radius: 10px; cursor: pointer;
       background: #2C2E34; color: #fff;
@@ -1056,26 +1063,37 @@
     }
   }
 
-  // ── SDK v6, modo SUSCRIPCIÓN ──
-  let sdkPromesa = null;
-  function cargarSdk(st) {
-    if (sdkPromesa) return sdkPromesa;
-    sdkPromesa = new Promise((resolve, reject) => {
-      if (window.paypal && window.paypal.createInstance) return resolve(window.paypal);
-      // v6 sí distingue el host por entorno (v5 lo deducía del client id).
-      const host = st.environment === 'live'
-        ? 'https://www.paypal.com'
-        : 'https://www.sandbox.paypal.com';
+  // ── SDK v5, modo SUSCRIPCIÓN ──
+  // vault=true + intent=subscription es lo que activa el motor de suscripciones.
+  // Se usa el v5 y no el v6 porque es el único que pinta la TARJETA como botón
+  // aparte; el v6 solo da el dorado, y quien no tiene cuenta de PayPal se queda
+  // fuera. El host lo deduce el propio SDK del client id, no hace falta decírselo.
+  let sdkSuscripcion = null;
+  function cargarSdkSuscripcion(st) {
+    if (sdkSuscripcion) return sdkSuscripcion;
+    sdkSuscripcion = new Promise((resolve, reject) => {
+      if (window.paypal && window.paypal.Buttons) return resolve(window.paypal);
+      const q = new URLSearchParams({
+        'client-id': st.client_id,
+        vault: 'true',
+        intent: 'subscription',
+        // El v5 quiere el locale con guion BAJO (al revés que el v6). El país
+        // real del checkout lo fija el servidor en application_context.
+        locale: 'es_ES',
+        components: 'buttons',
+        'enable-funding': 'card',
+        'disable-funding': 'paylater',
+      });
       const s = document.createElement('script');
-      s.src = host + '/web-sdk/v6/core';
+      s.src = 'https://www.paypal.com/sdk/js?' + q.toString();
       s.async = true;
-      s.onload = () => (window.paypal && window.paypal.createInstance)
+      s.onload = () => (window.paypal && window.paypal.Buttons)
         ? resolve(window.paypal)
-        : reject(new Error('El SDK cargó sin createInstance'));
+        : reject(new Error('El SDK cargó sin Buttons'));
       s.onerror = () => reject(new Error('No se pudo cargar el SDK de PayPal'));
       document.head.appendChild(s);
     });
-    return sdkPromesa;
+    return sdkSuscripcion;
   }
 
   function notaPago(texto) {
@@ -1113,23 +1131,15 @@
       return;
     }
 
-    let sdk, metodos;
+    // SDK v5, no v6. El v6 de suscripciones solo sabe pintar el botón dorado,
+    // que entra por la puerta de "inicia sesión en PayPal"; y si el navegador ya
+    // tiene sesión abierta de PayPal, esa pantalla ni siquiera ofrece pagar con
+    // tarjeta. Para un doctor sin cuenta de PayPal —la mayoría— eso es un muro.
+    // El v5 expone la TARJETA como método propio (FUNDING.CARD), que abre el
+    // formulario de tarjeta directamente, haya sesión o no.
+    let pp;
     try {
-      const paypal = await cargarSdk(st);
-      sdk = await paypal.createInstance({
-        clientId: st.client_id,
-        // 'paypal-subscriptions' es el que trae createPayPalSubscriptionPaymentSession.
-        // (La documentación lo llama createPayPalSubscriptionSession y el
-        //  componente ni lo menciona; el nombre real salió de inspeccionar el
-        //  SDK cargado. Si algún día deja de existir, el fallback de abajo
-        //  devuelve el pago al flujo de redirección sin romper nada.)
-        components: ['paypal-payments', 'paypal-subscriptions'],
-        pageType: 'checkout',
-        // Sin esto el checkout sale en inglés. El SDK valida el valor: 'es-HN'
-        // sirve, 'es_HN' (con guion bajo) lo rechaza.
-        locale: 'es-HN',
-      });
-      metodos = await sdk.findEligibleMethods({ currencyCode: st.currency });
+      pp = await cargarSdkSuscripcion(st);
     } catch (err) {
       // Sin SDK (red, bloqueador, CSP) se cae al flujo de redirección, que no
       // depende de scripts de terceros.
@@ -1137,12 +1147,13 @@
       return;
     }
 
-    if (!metodos || !metodos.isEligible('paypal')) {
-      fallbackRedireccion(slots, st, 'PayPal no elegible para esta cuenta/moneda');
-      return;
-    }
-
     const acciones = {
+      // La suscripción la crea NUESTRO servidor contra PayPal; al SDK solo se le
+      // entrega el id. Así el plan y el importe nunca vienen del navegador.
+      createSubscription: () =>
+        api('/api/billing/subscribe', { method: 'POST', body: { plan_code: st.plan_code } })
+          .then((r) => r.subscription_id),
+
       onApprove: async (data) => {
         // Ojo: no se re-renderiza la página aquí dentro — eso destruiría el
         // botón que está ejecutando este callback. Solo se toca el texto de la
@@ -1151,7 +1162,9 @@
         try {
           const r = await api('/api/billing/confirm', {
             method: 'POST',
-            body: { subscription_id: data.subscriptionId },
+            // v5 lo llama subscriptionID (con ID en mayúsculas); se acepta la
+            // otra grafía por si algún día cambia el SDK.
+            body: { subscription_id: data.subscriptionID || data.subscriptionId },
           });
           let activa = r.access && r.access.active;
           // La activación puede tardar unos segundos en PayPal.
@@ -1191,45 +1204,64 @@
       },
     };
 
-    let sesion;
-    try {
-      sesion = sdk.createPayPalSubscriptionPaymentSession(acciones);
-    } catch (err) {
-      fallbackRedireccion(slots, st, 'createPayPalSubscriptionPaymentSession: ' + err.message);
+    // Contenedores desnudos, SIN la clase .pz-slot: esa trae font-size:0, máscara
+    // y overflow:hidden (existen para los campos de tarjeta del pago único), y
+    // con ellas PayPal decide pintar sus botones en versión reducida — solo el
+    // logo y el icono, sin el texto "Tarjeta de débito o crédito". Comprobado
+    // lado a lado: mismo estilo, mismo alto, y en un div limpio sí sale el texto.
+    // El hueco entre botones lo pone el grid de .pz-slots.
+    slots.innerHTML = '<div id="pzPaypal"></div><div id="pzCard"></div>';
+
+    let tarjetaPintada = false;
+    let algoPintado = false;
+    for (const [fuente, id, estilo] of [
+      [pp.FUNDING.PAYPAL, 'pzPaypal', { color: 'gold', label: 'subscribe' }],
+      [pp.FUNDING.CARD, 'pzCard', { color: 'black' }],
+    ]) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      let botones;
+      try {
+        botones = pp.Buttons(Object.assign(
+          { fundingSource: fuente, style: Object.assign({ shape: 'rect', height: 44 }, estilo) },
+          acciones,
+        ));
+      } catch (_) { el.remove(); continue; }
+      // isEligible: PayPal decide si esa vía aplica al comprador (país, moneda).
+      if (!botones.isEligible()) { el.remove(); continue; }
+      botones.render(el).catch(() => {});
+      algoPintado = true;
+      if (fuente === pp.FUNDING.CARD) tarjetaPintada = true;
+    }
+
+    if (!algoPintado) {
+      fallbackRedireccion(slots, st, 'ningún método de pago elegible');
       return;
     }
 
-    // <paypal-button> es un componente del SDK, no un iframe: se le puede dar
-    // nuestro radio con variables CSS (por eso desaparece el recorte a mano).
-    //
-    // Debajo, un segundo botón para pagar con TARJETA. Hace falta porque el
-    // botón dorado abre el checkout por la puerta de "inicia sesión en PayPal",
-    // y el que no tiene cuenta —la mayoría de los doctores— se da media vuelta
-    // creyendo que necesita una. El enlace de aprobación de la suscripción, en
-    // cambio, abre directamente en el formulario de tarjeta (comprobado contra
-    // la cuenta real: País/región, número, vencimiento y CVV, sin crear cuenta).
-    // Por eso este botón va por el flujo de redirección y no por el SDK: el SDK
-    // v6 de suscripciones no expone la tarjeta como método aparte.
-    slots.innerHTML =
-      '<paypal-button type="subscribe" class="paypal-gold" id="ppBtn"></paypal-button>' +
-      '<button type="button" class="btn-tarjeta" id="btnTarjeta">' +
-      'Pagar con tarjeta de crédito o débito</button>';
+    // Etiqueta nuestra sobre el botón de tarjeta. No es adorno: PayPal cambia el
+    // rótulo de sus propios botones entre cargas —a veces "Tarjeta de débito o
+    // crédito", a veces solo el icono— y con los MISMOS parámetros (comprobado
+    // lado a lado). Su marca no permite reetiquetar sus botones, así que la
+    // única forma de que el doctor sin cuenta de PayPal entienda que esa vía es
+    // para él es escribirlo fuera del iframe.
+    if (tarjetaPintada) {
+      const card = document.getElementById('pzCard');
+      if (card) card.insertAdjacentHTML('beforebegin',
+        '<div class="pz-o">o paga con tarjeta, sin crear cuenta</div>');
+    }
 
-    const btnTarjeta = document.getElementById('btnTarjeta');
-    if (btnTarjeta) btnTarjeta.onclick = doSubscribe;
-
-    const boton = document.getElementById('ppBtn');
-
-    boton.addEventListener('click', () => {
-      notaPago('');
-      // presentationMode 'modal' = capa sobre ESTA página, sin ventana aparte.
-      // La suscripción la crea nuestro servidor; el SDK solo recibe su id.
-      sesion.start(
-        { presentationMode: 'modal' },
-        api('/api/billing/subscribe', { method: 'POST', body: { plan_code: st.plan_code } })
-          .then((r) => ({ subscriptionId: r.subscription_id })),
-      );
-    });
+    // Red de seguridad: si PayPal no declara elegible su botón de tarjeta, queda
+    // el camino de la redirección, que abre el formulario de tarjeta salvo que el
+    // navegador ya tenga sesión de PayPal. Peor que el botón nativo, pero mucho
+    // mejor que dejar sin salida a quien no tiene cuenta.
+    if (!tarjetaPintada) {
+      slots.insertAdjacentHTML('beforeend',
+        '<button type="button" class="btn-tarjeta" id="btnTarjeta">' +
+        'Pagar con tarjeta de crédito o débito</button>');
+      const btnTarjeta = document.getElementById('btnTarjeta');
+      if (btnTarjeta) btnTarjeta.onclick = doSubscribe;
+    }
   }
 
   function banner(tone, title, text) { state.banner = { tone, title, text }; }
