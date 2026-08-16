@@ -30,6 +30,25 @@ function tokenFromRequest(req) {
   return null;
 }
 
+// Roles que trabajan DENTRO de la clínica y por tanto pueden tocar expedientes.
+// Lo que no está en esta lista no es personal clínico y no tiene nada que hacer
+// en /api salvo su propia sesión (ver middleware/clinical-access.js).
+const CLINICAL_ROLES = ['super_admin', 'clinic_admin', 'doctor', 'receptionist'];
+
+// Decodifica el JWT sin tocar la BD ni validar la sesión. Lo usan los guardianes
+// que corren ANTES de los routers, cuando req.user todavía no existe. Devuelve
+// null si no hay token o no verifica: en ese caso quien responde el 401 es
+// `authenticate`, con su mensaje de siempre.
+function decodeToken(req) {
+  const token = tokenFromRequest(req);
+  if (!token) return null;
+  try {
+    return jwt.verify(token, SECRET);
+  } catch {
+    return null;
+  }
+}
+
 async function authenticate(req, res, next) {
   const token = tokenFromRequest(req);
   if (!token) return res.status(401).json({ error: 'No token provided' });
@@ -70,4 +89,7 @@ function requireRole(...roles) {
   };
 }
 
-module.exports = { authenticate, requireRole, SECRET, COOKIE_NAME, authCookieOptions };
+module.exports = {
+  authenticate, requireRole, decodeToken, CLINICAL_ROLES,
+  SECRET, COOKIE_NAME, authCookieOptions,
+};

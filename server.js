@@ -444,6 +444,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   dotfiles: 'deny',
 }));
 
+// Guardián de acceso clínico: quien no es personal de la clínica (hoy, el rol
+// 'patient') solo alcanza su propia sesión y las rutas públicas; el resto de
+// /api responde 403. Va PRIMERO —antes incluso del cobro— porque una petición
+// que no debería existir no tiene por qué llegar a preguntarse si está pagada.
+app.use('/api', require('./middleware/clinical-access').gate);
+
 // Guardián de suscripción: sin plan activo, la API queda cerrada (402) salvo
 // login, facturación y endpoints públicos. Va ANTES de los routers para que
 // cualquier ruta futura quede cubierta sin acordarse de añadir nada.
@@ -489,8 +495,49 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
+// ── Candado contra arrancar en local sobre la base de datos de producción ──
+// El .env de desarrollo ha apuntado al Postgres de Render, así que un `npm start`
+// en el portátil escribía sobre expedientes de clínicas reales — y como initDb()
+// ejecuta CREATE/ALTER TABLE en cada arranque, además aplicaba DDL sobre ellos.
+// Sin auditoría de accesos (y hoy no la hay), una prueba local es indistinguible
+// de una modificación clínica legítima.
+//
+// Por defecto se niega a arrancar. Si de verdad hace falta apuntar a la base
+// remota desde fuera de producción, hay que decirlo a propósito con
+// ALLOW_REMOTE_DB=true, y el arranque lo deja bien visible en los logs.
+function comprobarBaseDeDatos() {
+  if (process.env.NODE_ENV === 'production') return; // en Render es lo esperado
+
+  let host = '';
+  try { host = new URL(String(process.env.DATABASE_URL || '')).hostname; } catch (_) { return; }
+  const esLocal = ['localhost', '127.0.0.1', '::1', 'postgres', 'db'].includes(host);
+  if (esLocal) return;
+
+  if (process.env.ALLOW_REMOTE_DB === 'true') {
+    console.warn('\n' + '='.repeat(72));
+    console.warn('  ATENCIÓN: NODE_ENV no es production y DATABASE_URL apunta a');
+    console.warn(`  ${host}`);
+    console.warn('  Todo lo que guardes aquí cae en esa base de datos, con sus pacientes reales.');
+    console.warn('='.repeat(72) + '\n');
+    return;
+  }
+
+  console.error('\n' + '='.repeat(72));
+  console.error('  ARRANQUE BLOQUEADO');
+  console.error(`  DATABASE_URL apunta a "${host}", que no es local, y NODE_ENV no es production.`);
+  console.error('');
+  console.error('  Levanta un Postgres local y siémbralo con datos ficticios:');
+  console.error('      npm run seed-dev');
+  console.error('');
+  console.error('  Si de verdad necesitas la base remota desde local, dilo a propósito:');
+  console.error('      ALLOW_REMOTE_DB=true npm start');
+  console.error('='.repeat(72) + '\n');
+  process.exit(1);
+}
+
 (async () => {
   try {
+    comprobarBaseDeDatos();
     await initDb();
 
     // Tarea de retención: audit_logs > 90 días se borran cada 24h.

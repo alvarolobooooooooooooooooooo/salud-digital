@@ -6,6 +6,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "reset-db": "node reset-db.js",
+    "seed-dev": "SEED_DEMO_DATA=true node tools/seed-dev.js",
     "test": "node --test tests/*.test.js",
     "test:db": "BILLING_TEST_DB=1 node --test tests/*.test.js"
   },

@@ -1,5 +1,4 @@
 const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -832,149 +831,20 @@ const initDb = async () => {
       );
     } catch (e) {}
 
-    const existingPatients = await query('SELECT COUNT(*) as count FROM patients');
-    const dbEmpty = parseInt(existingPatients.rows[0].count) === 0;
-    // Seeding solo si la BD está vacía Y el operador opta explícitamente con SEED_DEMO_DATA=true.
-    // Evita que un deploy productivo recree cuentas demo con contraseñas débiles.
-    const shouldInsertTestData = dbEmpty && process.env.SEED_DEMO_DATA === 'true';
-
-    if (shouldInsertTestData) {
-      console.warn('[DB] SEED_DEMO_DATA=true → insertando datos demo. NO usar en producción.');
-      const adminHash = bcrypt.hashSync('admin123', 10);
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id) VALUES ($1, $2, $3, $4, $5)',
-        ['admin@saluddigital.com', adminHash, 'super_admin', 'Super Admin', null]
-      );
-
-      const c1 = await query('INSERT INTO clinics (name) VALUES ($1) RETURNING id', ['Clinica Norte']);
-      const c2 = await query('INSERT INTO clinics (name) VALUES ($1) RETURNING id', ['Clinica Sur']);
-      const clinic1Id = c1.rows[0].id;
-      const clinic2Id = c2.rows[0].id;
-
-      const h = bcrypt.hashSync('clinic123', 10);
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id) VALUES ($1, $2, $3, $4, $5)',
-        ['admin@clinicanorte.com', h, 'clinic_admin', 'Admin Norte', clinic1Id]
-      );
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id) VALUES ($1, $2, $3, $4, $5)',
-        ['admin@clinicasur.com', h, 'clinic_admin', 'Admin Sur', clinic2Id]
-      );
-
-      const dh = bcrypt.hashSync('doctor123', 10);
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-        ['dr.garcia@clinicanorte.com', dh, 'doctor', 'Álvaro Lobo', clinic1Id, 'Medicina General', '31515887']
-      );
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-        ['dr.carlos.lopez@clinicasur.com', dh, 'doctor', 'Carlos Lopez', clinic2Id, 'Pediatría', '18031789']
-      );
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-        ['dr.diego.lopez@clinicanorte.com', dh, 'doctor', 'Diego Lopez', clinic1Id, 'Dermatología', '27479949']
-      );
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-        ['dra.ochoa@clinicanorte.com', dh, 'doctor', 'Ochoa Espinoza', clinic1Id, 'Odontología', '8585494']
-      );
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-        ['dra.karla.moreno@clinicasur.com', dh, 'doctor', 'Karla Moreno', clinic2Id, 'Dermatología', '14824824']
-      );
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-        ['heysselm@clinicanorte.com', dh, 'doctor', 'Heysssel Molina', clinic1Id, 'Odontología', '31248379']
-      );
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-        ['dr.juan@clinicanorte.com', dh, 'doctor', 'Juan Martinez', clinic1Id, 'Medicina General', '31234567']
-      );
-      try {
-        const result = await query(
-          'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-          ['dra.piedra@clinicanorte.com', dh, 'doctor', 'Sandra Piedra', clinic1Id, 'Podología', '31567890']
-        );
-        console.log('[DB] Created podiatry doctor:', result.rows[0]?.id);
-      } catch(e) {
-        console.error('[DB] Error creating podiatry doctor:', e.message);
-      }
-
-      const rh = bcrypt.hashSync('receptionist123', 10);
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id) VALUES ($1, $2, $3, $4, $5)',
-        ['recepcion@clinicanorte.com', rh, 'receptionist', 'Recepcionista Norte', clinic1Id]
-      );
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id) VALUES ($1, $2, $3, $4, $5)',
-        ['recepcion@clinicasur.com', rh, 'receptionist', 'Recepcionista Sur', clinic2Id]
-      );
-
-      const insertPatient = async (name, id, age, dob, gender, phone, clinicId) => {
-        const res = await query(
-          'INSERT INTO patients (name, identity_number, age, birth_date, gender, phone, clinic_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-          [name, id, age, dob, gender, phone, clinicId]
-        );
-        return res.rows[0].id;
-      };
-
-      const p1 = await insertPatient('Maria González',   '0801-1979-12345', 45, '1979-03-15', 'Femenino',   '31515887', clinic1Id);
-      const p2 = await insertPatient('Carlos Rodríguez', '0801-1962-87654', 62, '1962-07-22', 'Masculino',  '31877575', clinic1Id);
-      const p3 = await insertPatient('Ana Martínez',     '0801-1986-11223', 38, '1986-11-05', 'Femenino',   '08439748', clinic2Id);
-      const p4 = await insertPatient('Luis Herrera',     '0801-1990-44556', 34, '1990-06-18', 'Masculino',  '31894252', clinic1Id);
-      const p5 = await insertPatient('Sofia Castro',     '0801-2000-77889', 24, '2000-09-30', 'Femenino',   '31234567', clinic1Id);
-      const p6 = await insertPatient('Pedro Morales',    '0801-1975-99001', 49, '1975-12-01', 'Masculino',  '32112233', clinic1Id);
-      const p7 = await insertPatient('Laura Reyes',      '0801-1995-33221', 29, '1995-04-14', 'Femenino',   '31998877', clinic1Id);
-
-      await query(
-        'INSERT INTO critical_info (patient_id, allergies, medications, conditions) VALUES ($1, $2, $3, $4)',
-        [p1, 'Penicilina, Aspirina', 'Metformina 500mg', 'Diabetes Tipo 2']
-      );
-      await query(
-        'INSERT INTO critical_info (patient_id, allergies, medications, conditions) VALUES ($1, $2, $3, $4)',
-        [p2, '', 'Atorvastatina 20mg, Lisinopril 10mg', 'Hipertensión, Colesterol alto']
-      );
-      await query(
-        'INSERT INTO critical_info (patient_id, allergies, medications, conditions) VALUES ($1, $2, $3, $4)',
-        [p3, 'Sulfas', '', '']
-      );
-      for (const p of [p4, p5, p6, p7]) {
-        await query(
-          'INSERT INTO critical_info (patient_id, allergies, medications, conditions) VALUES ($1, $2, $3, $4)',
-          [p, '', '', '']
-        );
-      }
-
-      await query(
-        'INSERT INTO consultations (patient_id, notes, diagnosis, treatment, clinic_id) VALUES ($1, $2, $3, $4, $5)',
-        [p1, 'Paciente acude por control rutinario', 'Diabetes bajo control', 'Continuar con Metformina', clinic1Id]
-      );
-
-      const today = new Date().toISOString().split('T')[0];
-      const d1Id = d1.rows[0].id;
-      const d2Id = d2.rows[0].id;
-      await query(
-        'INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status) VALUES ($1, $2, $3, $4, $5, $6)',
-        [p1, d1Id, clinic1Id, 'Medicina General', `${today}T10:00:00`, 'waiting']
-      );
-      await query(
-        'INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status) VALUES ($1, $2, $3, $4, $5, $6)',
-        [p2, d1Id, clinic1Id, 'Medicina General', `${today}T11:00:00`, 'pending']
-      );
-      await query(
-        'INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status) VALUES ($1, $2, $3, $4, $5, $6)',
-        [p3, d2Id, clinic2Id, 'Odontología', `${today}T09:30:00`, 'waiting']
-      );
-
-      for (const cId of [clinic1Id, clinic2Id]) {
-        for (let i = 1; i <= 4; i++) {
-          await query(
-            'INSERT INTO clinic_rooms (clinic_id, name, status) VALUES ($1, $2, $3)',
-            [cId, `Sala ${i}`, 'free']
-          );
-        }
-      }
-    }
+    // ── Los datos de demostración ya NO se siembran al arrancar ──
+    // Este bloque vivía aquí y se ejecutaba con solo levantar el servidor. En
+    // el primer despliegue de producción se disparó y dejó en la base de datos
+    // real un 'super_admin' con la contraseña 'admin123', dos clínicas de
+    // mentira y siete pacientes ficticios — y además reventó el arranque a
+    // medio sembrar con un ReferenceError sobre `d1`. Un fichero que crea
+    // credenciales no tiene nada que hacer en la ruta de arranque de una
+    // aplicación que guarda historia clínica.
+    //
+    // Ahora vive en tools/seed-dev.js: hay que invocarlo a mano, se niega a
+    // correr si la conexión no es local o si ya hay pacientes, y genera la
+    // contraseña al azar en vez de llevarla escrita.
+    //
+    //     SEED_DEMO_DATA=true node tools/seed-dev.js
 
     // Initialize conversation tables for NLU assistant
     await query(`
