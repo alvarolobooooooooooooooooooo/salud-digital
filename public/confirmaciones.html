@@ -908,6 +908,51 @@
       color:#e2e8f0;
     }
 
+    /* Maqueta de la tarjeta que abre el paciente. No es un iframe: aquí solo
+       interesa comprobar cómo cae el texto entre la cabecera y los botones.
+       Colores literales a propósito: la tarjeta del paciente es clara SIEMPRE,
+       así que no puede heredar las variables del tema (en oscuro, --ink es casi
+       blanco y el texto desaparecía sobre el fondo blanco de la maqueta). */
+    .card-preview{
+      border:1px solid #e2e8f0; border-radius:var(--r-md);
+      overflow:hidden; background:#fff; color:#0f172a;
+    }
+    .card-preview-head{
+      background:linear-gradient(135deg, #0891b2, #0e7490);
+      color:#fff; text-align:center; padding:14px 16px;
+      font-size:13.5px; font-weight:600;
+    }
+    .card-preview-msg{
+      padding:16px 18px 4px; font-size:13.5px; line-height:1.55;
+      text-align:center; color:#334155; white-space:pre-line;
+      min-height:20px;
+    }
+    .card-preview-msg b{ color:#0f172a; font-weight:600 }
+    .card-preview-msg .cp-empty{ color:#94a3b8; font-style:italic }
+    .card-preview-rows{ padding:12px 18px }
+    .card-preview-rows > div{
+      display:flex; justify-content:space-between; gap:12px;
+      padding:5px 0; font-size:12.5px;
+    }
+    .card-preview-rows > div + div{ border-top:1px dashed #e2e8f0 }
+    .card-preview-rows span{
+      color:#64748b; font-size:10.5px; font-weight:600;
+      text-transform:uppercase; letter-spacing:.07em;
+    }
+    .card-preview-rows b{ color:#0f172a; font-weight:600 }
+    .card-preview-btns{ display:flex; flex-direction:column; gap:7px; padding:6px 18px 16px }
+    .card-preview-btns span{
+      text-align:center; padding:9px; border-radius:10px;
+      font-size:12.5px; font-weight:600;
+    }
+    .card-preview-btns .cp-ok{ background:#16a34a; color:#fff }
+    .card-preview-btns .cp-no{ border:1.5px solid #f43f5e; color:#be123c; background:#fff }
+    /* En dark mode se enmarca para que no parezca un bloque suelto flotando. */
+    html[data-theme="dark"] .card-preview{
+      border-color:rgba(255,255,255,.14);
+      box-shadow:0 8px 26px rgba(0,0,0,.45);
+    }
+
     /* Responsive */
     @media (max-width: 980px){
       .hero{grid-template-columns:1fr}
@@ -1181,7 +1226,7 @@
         <div class="actions">
           <button class="btn btn-ghost" id="openConfigBtn2">
             <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18"/><path d="M3 9h18"/><path d="M9 21V9"/></svg></span>
-            Plantilla
+            Mensaje WhatsApp
           </button>
         </div>
       </div>
@@ -1277,6 +1322,68 @@
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeConfigModal()">Cancelar</button>
       <button class="btn btn-success" onclick="saveConfig()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mensaje de la tarjeta que abre el paciente (/confirmar/<token>) -->
+<div class="modal-overlay" id="cardModal">
+  <div class="modal" role="dialog" aria-labelledby="cardMsgTitle">
+    <div class="modal-head">
+      <h2 id="cardMsgTitle">Mensaje de la tarjeta de confirmación</h2>
+      <button class="modal-close" onclick="closeCardModal()" aria-label="Cerrar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="note">
+        <div class="ic-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        </div>
+        <div>Este es el texto que el paciente lee <b>dentro de la página</b> al abrir el link, encima de los botones «Sí, asistiré» y «No podré asistir». El mensaje de WhatsApp que lleva el link se edita en <b>Configuración WhatsApp</b>.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="cardTemplate">Texto que ve el paciente en la tarjeta</label>
+        <div class="var-chips" role="toolbar" aria-label="Insertar dato en el mensaje">
+          <div class="var-chips-hint">
+            <span>Toca un dato para insertarlo donde está el cursor:</span>
+            <button type="button" class="var-help-btn" id="openVarHelpBtn2" aria-label="¿Cómo funciona?">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+              ¿Cómo funciona?
+            </button>
+          </div>
+          <button type="button" class="var-chip" data-var="patientName"><span class="plus">+</span>Nombre del paciente</button>
+          <button type="button" class="var-chip" data-var="clinicName"><span class="plus">+</span>Clínica</button>
+          <button type="button" class="var-chip" data-var="doctorName"><span class="plus">+</span>Doctor</button>
+          <button type="button" class="var-chip" data-var="appointmentDate"><span class="plus">+</span>Fecha</button>
+          <button type="button" class="var-chip" data-var="appointmentTime"><span class="plus">+</span>Hora</button>
+        </div>
+        <textarea id="cardTemplate" placeholder="Hola {{patientName}}, ¿podrás asistir a esta cita?"></textarea>
+        <small>La fecha, la hora, el doctor y la ubicación ya salen debajo en la propia tarjeta: aquí basta el saludo y lo que quieras pedirle al paciente.</small>
+      </div>
+
+      <div class="form-group">
+        <label>Así se verá la tarjeta</label>
+        <div class="card-preview">
+          <div class="card-preview-head" id="cardPreviewClinic">Clínica</div>
+          <div class="card-preview-msg" id="cardPreviewMsg"></div>
+          <div class="card-preview-rows">
+            <div><span>Fecha</span><b id="cardPreviewDate">—</b></div>
+            <div><span>Hora</span><b id="cardPreviewTime">—</b></div>
+            <div><span>Doctor</span><b id="cardPreviewDoctor">—</b></div>
+          </div>
+          <div class="card-preview-btns">
+            <span class="cp-ok">Sí, asistiré</span>
+            <span class="cp-no">No podré asistir</span>
+          </div>
+        </div>
+        <small>Para verla a tamaño real, abre la <a href="/confirm.html?preview=1" target="_blank" rel="noopener" id="cardPreviewLink">vista previa completa</a>.</small>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeCardModal()">Cancelar</button>
+      <button class="btn btn-success" onclick="saveCardMessage()">Guardar</button>
     </div>
   </div>
 </div>
@@ -2076,7 +2183,7 @@
                 Plantilla: Confirmación de cita
               </div>
               <textarea id="drawerMessage" readonly>${esc(message)}</textarea>
-              <p style="margin:8px 0 0; font-size:11.5px; color:var(--ink-4)">El link real se genera al enviar. Para editar la plantilla usa el botón <b>Plantilla</b> en el header.</p>
+              <p style="margin:8px 0 0; font-size:11.5px; color:var(--ink-4)">El link real se genera al enviar. Para editar este mensaje usa <b>Mensaje WhatsApp</b> en el encabezado de la tabla.</p>
             </div>
           </div>` : ''}
 
@@ -2211,10 +2318,10 @@
   }
   document.getElementById('waTemplate').addEventListener('input', updatePreview);
 
-  // Inserta {{varName}} en la posición del cursor del textarea.
+  // Inserta {{varName}} en la posición del cursor del textarea indicado.
   // Añade un espacio antes si el carácter previo no es espacio/salto de línea.
-  function insertTemplateVar(name){
-    const ta = document.getElementById('waTemplate');
+  function insertTemplateVar(name, textareaId, onDone){
+    const ta = document.getElementById(textareaId);
     if (!ta) return;
     const token = `{{${name}}}`;
     const start = ta.selectionStart ?? ta.value.length;
@@ -2227,16 +2334,82 @@
     const pos = start + piece.length;
     ta.focus();
     ta.setSelectionRange(pos, pos);
-    updatePreview();
+    if (onDone) onDone();
   }
   document.querySelectorAll('#configModal .var-chip').forEach(chip => {
-    chip.addEventListener('click', () => insertTemplateVar(chip.dataset.var));
+    chip.addEventListener('click', () => insertTemplateVar(chip.dataset.var, 'waTemplate', updatePreview));
   });
+  document.querySelectorAll('#cardModal .var-chip').forEach(chip => {
+    chip.addEventListener('click', () => insertTemplateVar(chip.dataset.var, 'cardTemplate', updateCardPreview));
+  });
+
+  // ───────────── Mensaje de la tarjeta de confirmación ─────────────
+  // Es lo que el paciente lee DENTRO de la página del link, no el WhatsApp que
+  // la lleva. Mismos chips de variables, misma mecánica.
+  const CARD_MESSAGE_DEFAULT = 'Hola {{patientName}}, ¿podrás asistir a esta cita?';
+
+  function openCardModal(){
+    document.getElementById('cardTemplate').value =
+      waConfig.confirmation_card_message || CARD_MESSAGE_DEFAULT;
+    updateCardPreview();
+    document.getElementById('cardModal').classList.add('active');
+  }
+  function closeCardModal(){ document.getElementById('cardModal').classList.remove('active'); }
+
+  function updateCardPreview(){
+    const tpl = document.getElementById('cardTemplate').value;
+    const f = WhatsApp.formatAppointmentDateTime(new Date(Date.now() + 86400000).toISOString());
+    const datos = {
+      patientName: 'María González',
+      clinicName: waConfig.name || 'Clínica',
+      doctorName: 'Dr. Álvaro Lobo',
+      appointmentDate: f.date,
+      appointmentTime: f.time
+    };
+    // Mismo orden que confirm.html: se escapa la plantilla entera y DESPUÉS se
+    // sustituyen las variables, para que la previa no pinte HTML que la página
+    // real sí escaparía (y para no abrir un XSS en esta pantalla).
+    const html = esc(tpl).replace(/\{\{\s*(\w+)\s*\}\}/g, (m, k) =>
+      k in datos ? `<b>${esc(datos[k])}</b>` : '');
+
+    document.getElementById('cardPreviewClinic').textContent = datos.clinicName;
+    document.getElementById('cardPreviewMsg').innerHTML =
+      html.trim() ? html : '<span class="cp-empty">(sin mensaje)</span>';
+    document.getElementById('cardPreviewDate').textContent = f.date;
+    document.getElementById('cardPreviewTime').textContent = f.time;
+    document.getElementById('cardPreviewDoctor').textContent = datos.doctorName;
+
+    // La vista previa a tamaño real recibe el texto en la URL: así se ve lo que
+    // se está escribiendo sin tener que guardarlo antes.
+    const link = document.getElementById('cardPreviewLink');
+    if (link) link.href = '/confirm.html?preview=1&msg=' + encodeURIComponent(tpl);
+  }
+  document.getElementById('cardTemplate').addEventListener('input', updateCardPreview);
+  document.getElementById('cardModal').addEventListener('click', (e) => {
+    if (e.target.id === 'cardModal') closeCardModal();
+  });
+
+  async function saveCardMessage(){
+    const texto = document.getElementById('cardTemplate').value.trim();
+    if (!texto) { showToast('El mensaje no puede quedar vacío.'); return; }
+    try {
+      await api('/api/confirmations/card-message', {
+        method: 'PUT',
+        body: { confirmation_card_message: texto }
+      });
+      closeCardModal();
+      showToast('Mensaje de la tarjeta guardado');
+      await loadConfig();
+    } catch (e) {
+      showToast('Error al guardar: ' + (e.message || ''));
+    }
+  }
 
   // Modal de ayuda — explica los chips/variables sin saturar el modal principal.
   function openVarHelpModal(){ document.getElementById('varHelpModal').classList.add('active'); }
   function closeVarHelpModal(){ document.getElementById('varHelpModal').classList.remove('active'); }
   document.getElementById('openVarHelpBtn').addEventListener('click', openVarHelpModal);
+  document.getElementById('openVarHelpBtn2').addEventListener('click', openVarHelpModal);
   document.getElementById('varHelpModal').addEventListener('click', (e) => {
     if (e.target.id === 'varHelpModal') closeVarHelpModal();
   });
@@ -2260,6 +2433,9 @@
   // expose to inline handlers
   window.openConfigModal = openConfigModal;
   window.closeConfigModal = closeConfigModal;
+  window.openCardModal = openCardModal;
+  window.closeCardModal = closeCardModal;
+  window.saveCardMessage = saveCardMessage;
   window.closeVarHelpModal = closeVarHelpModal;
   window.saveConfig = saveConfig;
   window.confirmSent = confirmSent;
@@ -2314,7 +2490,7 @@
 
   document.getElementById('openConfigBtn').addEventListener('click', openConfigModal);
   document.getElementById('openConfigBtn2').addEventListener('click', openConfigModal);
-  document.getElementById('sendPendingBtn').addEventListener('click', openConfigModal);
+  document.getElementById('sendPendingBtn').addEventListener('click', openCardModal);
   document.getElementById('refreshBtn').addEventListener('click', () => loadConfirmations());
   document.getElementById('closeNoteBtn').addEventListener('click', () => {
     document.getElementById('infoNote').style.display = 'none';
@@ -2454,6 +2630,8 @@
       if (vhm.classList.contains('active')) { closeVarHelpModal(); return; }
       const bm = document.getElementById('bulkModal');
       if (bm.classList.contains('active')) { finishBulk(); return; }
+      const cardM = document.getElementById('cardModal');
+      if (cardM.classList.contains('active')) { closeCardModal(); return; }
       if (openRowId !== null) { closeDrawer(); return; }
       if (selected.size > 0) { selected.clear(); render(); return; }
       const cm = document.getElementById('configModal');

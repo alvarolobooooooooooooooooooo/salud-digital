@@ -486,6 +486,10 @@ const initDb = async () => {
       // map_url guarda el enlace de Google Maps que pegó la clínica (se muestra
       // tal cual al paciente si existe, porque suele apuntar al local exacto).
       // location_notes son referencias para llegar ("edificio azul, 2º piso").
+      // Texto que el paciente lee en la tarjeta de /confirmar/<token>, antes de
+      // responder. Es una plantilla con las mismas {{variables}} que el mensaje de
+      // WhatsApp; se edita en Confirmaciones › Configurar plantilla.
+      "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS confirmation_card_message TEXT DEFAULT 'Hola {{patientName}}, ¿podrás asistir a esta cita?'",
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS map_url TEXT DEFAULT ''",
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS location_notes TEXT DEFAULT ''",
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS location_source TEXT'

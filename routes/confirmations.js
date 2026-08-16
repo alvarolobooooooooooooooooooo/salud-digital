@@ -13,14 +13,47 @@ function newToken() {
 
 // ───────────────────────── Configuración WhatsApp ─────────────────────────
 
+// Texto por defecto de la tarjeta: el mismo que la página mostraba fijo antes de
+// que fuera editable, para que una clínica que nunca lo toque no note el cambio.
+const CARD_MESSAGE_DEFAULT = 'Hola {{patientName}}, ¿podrás asistir a esta cita?';
+
 // GET /api/confirmations/whatsapp-config
+// Devuelve también el mensaje de la tarjeta: la pantalla de Confirmaciones edita
+// los dos textos y así los carga en una sola petición.
 router.get('/whatsapp-config', authenticate, async (req, res) => {
   const result = await query(
-    'SELECT whatsapp_enabled, whatsapp_number, whatsapp_confirmation_template, name FROM clinics WHERE id = $1',
+    `SELECT whatsapp_enabled, whatsapp_number, whatsapp_confirmation_template,
+            confirmation_card_message, name
+       FROM clinics WHERE id = $1`,
     [req.user.clinic_id]
   );
   if (result.rows.length === 0) return res.status(404).json({ error: 'Clinic not found' });
-  res.json(result.rows[0]);
+  const row = result.rows[0];
+  if (!row.confirmation_card_message) row.confirmation_card_message = CARD_MESSAGE_DEFAULT;
+  res.json(row);
+});
+
+// PUT /api/confirmations/card-message  (solo clinic_admin)
+// Mensaje que el paciente lee en la tarjeta de confirmación.
+router.put('/card-message', authenticate, async (req, res) => {
+  if (req.user.role !== 'clinic_admin') {
+    return res.status(403).json({ error: 'No autorizado' });
+  }
+  // El texto acaba dentro de una página pública. La página ya escapa antes de
+  // pintar, pero se limpian < y > aquí también: nada de lo que escriba la clínica
+  // tiene por qué ser HTML, y así ni un fallo futuro en el frontend abre un XSS.
+  const raw = String((req.body && req.body.confirmation_card_message) || '')
+    .replace(/[<>]/g, '')
+    .trim()
+    .slice(0, 600);
+  if (!raw) {
+    return res.status(400).json({ error: 'El mensaje no puede quedar vacío.' });
+  }
+  await query(
+    'UPDATE clinics SET confirmation_card_message = $1 WHERE id = $2',
+    [raw, req.user.clinic_id]
+  );
+  res.json({ success: true, confirmation_card_message: raw });
 });
 
 // PUT /api/confirmations/whatsapp-config  (solo clinic_admin)
@@ -231,7 +264,8 @@ router.get('/public/:token', async (req, res) => {
        u.name AS doctor_name,
        cl.name AS clinic_name, cl.phone AS clinic_phone, cl.brand_color,
        cl.address AS clinic_address, cl.city AS clinic_city,
-       cl.latitude, cl.longitude, cl.map_url, cl.location_notes
+       cl.latitude, cl.longitude, cl.map_url, cl.location_notes,
+       cl.confirmation_card_message AS card_message
      FROM appointment_confirmations c
      JOIN appointments a ON c.appointment_id = a.id
      JOIN patients p ON c.patient_id = p.id
@@ -241,7 +275,9 @@ router.get('/public/:token', async (req, res) => {
     [token]
   );
   if (result.rows.length === 0) return res.status(404).json({ error: 'Confirmación no encontrada' });
-  res.json(result.rows[0]);
+  const row = result.rows[0];
+  if (!row.card_message) row.card_message = CARD_MESSAGE_DEFAULT;
+  res.json(row);
 });
 
 // POST /api/confirmations/public/:token  → paciente confirma/declina

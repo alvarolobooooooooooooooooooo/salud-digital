@@ -220,6 +220,29 @@
     }
   }
 
+  // El saludo de la tarjeta lo escribe la clínica en Confirmaciones › Configurar
+  // plantilla, con las mismas {{variables}} que el mensaje de WhatsApp.
+  // Orden importante: primero se escapa la plantilla ENTERA y después se sustituyen
+  // las variables por valores ya escapados. Al revés, un nombre con "<" acabaría
+  // inyectando HTML en una página pública.
+  var CARD_MESSAGE_DEFAULT = 'Hola {{patientName}}, ¿podrás asistir a esta cita?';
+
+  function cardMessage(data){
+    var f = fmtDateTime(data.scheduled_at);
+    var valores = {
+      patientName: data.patient_name || '',
+      clinicName: data.clinic_name || '',
+      doctorName: data.doctor_name || '',
+      appointmentDate: f.full,
+      appointmentTime: f.time
+    };
+    var plantilla = esc(data.card_message || CARD_MESSAGE_DEFAULT);
+    return plantilla.replace(/\{\{\s*(\w+)\s*\}\}/g, function(m, clave){
+      if (!(clave in valores)) return '';           // variable desconocida → fuera
+      return '<b>' + esc(valores[clave]) + '</b>';
+    });
+  }
+
   // Bloque de ubicación: el paciente que acaba de confirmar necesita llegar, así
   // que aquí van el mapa, la dirección, las referencias y los tres accesos —
   // Google Maps, Waze y reenviarse la ubicación por WhatsApp. El HTML y los
@@ -304,9 +327,7 @@
         <p class="sub">${esc(data.clinic_name || 'Clínica')}</p>
       </div>
       <div class="body">
-        <p style="margin:0 0 16px; color:var(--ink-2); font-size:14.5px; line-height:1.55; text-align:center">
-          Hola <b>${esc(data.patient_name)}</b>, ¿podrás asistir a esta cita?
-        </p>
+        <p style="margin:0 0 16px; color:var(--ink-2); font-size:14.5px; line-height:1.55; text-align:center; white-space:pre-line">${cardMessage(data)}</p>
         <div class="info-block">
           <div class="info-row">
             <span class="k">Fecha</span>
@@ -386,7 +407,10 @@
       longitude: -87.1937,
       location_notes: 'Edificio azul frente al parque, segundo piso.',
       scheduled_at: tomorrow.toISOString(),
-      status: 'sent'
+      status: 'sent',
+      // La vista previa acepta ?msg= para que el editor de plantilla enseñe el
+      // texto que se está escribiendo, sin guardarlo antes.
+      card_message: new URLSearchParams(location.search).get('msg') || CARD_MESSAGE_DEFAULT
     };
     // Banner sutil indicando que es preview
     const banner = document.createElement('div');
