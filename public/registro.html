@@ -42,18 +42,30 @@
     html { scrollbar-width: none; -ms-overflow-style: none; }
     html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
+    /* Centrado y zonas seguras.
+       · align-items:center NO se usa: cuando la tarjeta es más alta que la
+         pantalla (paso de especialidad en un móvil pequeño) recorta la parte de
+         arriba y ya no se puede llegar a ella. Con `margin:auto` en el hijo, el
+         centrado es idéntico pero los márgenes automáticos se resuelven a 0 en
+         cuanto falta espacio, así que nada queda fuera de alcance.
+       · El padding respeta el safe-area: instalada como PWA la página se pinta
+         por DEBAJO de la barra de estado (viewport-fit=cover + status bar
+         translúcida), y sin esto la cabecera se metía bajo el notch. */
     body {
       font-family: 'Poppins', sans-serif;
       background: var(--bg-base);
       background-image: linear-gradient(180deg, #050507 0%, #08080a 100%);
       color: var(--text);
       min-height: 100vh;
+      min-height: 100dvh;
       position: relative;
       overflow-x: hidden;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 2rem 1.25rem;
+      padding:
+        max(2rem, env(safe-area-inset-top, 0px)) 1.25rem
+        max(2rem, env(safe-area-inset-bottom, 0px));
       -webkit-font-smoothing: antialiased;
     }
 
@@ -74,6 +86,25 @@
       filter: blur(100px); z-index: 0; pointer-events: none;
     }
 
+    /* Franja del notch. El padding del body evita que la tarjeta NAZCA debajo de
+       la barra de estado, pero en los pasos que no caben en pantalla el
+       contenido sí pasa por debajo al desplazarse (la barra es translúcida).
+       Esta banda fija, opaca arriba y desvanecida al final para que no se vea
+       el corte, deja siempre legible la hora. En un móvil sin notch mide 0 y no
+       existe. */
+    .safe-top {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 5;
+      height: env(safe-area-inset-top, 0px);
+      background: #050507;
+      pointer-events: none;
+    }
+    /* El desvanecido va DEBAJO de la banda, no dentro: dentro dejaba asomar el
+       borde de la tarjeta justo en la zona del notch. */
+    .safe-top::after {
+      content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 14px;
+      background: linear-gradient(180deg, #050507 0%, rgba(5, 5, 7, 0) 100%);
+    }
+
     .grid-overlay {
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background-image:
@@ -85,7 +116,7 @@
     }
 
     /* ── Tarjeta ── */
-    .stage { position: relative; z-index: 2; width: 100%; max-width: 520px; }
+    .stage { position: relative; z-index: 2; width: 100%; max-width: 520px; margin: auto; }
 
     .card {
       background: var(--surface);
@@ -206,6 +237,7 @@
       content: ''; width: 6px; height: 6px; border-radius: 50%;
       background: transparent; transition: background .18s ease;
     }
+    .spec-note { display: block; font-size: .72rem; font-weight: 400; color: var(--text-faint); margin-top: 1px; }
     .spec.sel { border-color: rgba(6, 182, 212, 0.55); background: rgba(6, 182, 212, 0.07); color: var(--text); }
     .spec.sel .tick { border-color: var(--primary); }
     .spec.sel .tick::after { background: var(--primary); }
@@ -297,15 +329,57 @@
     .below a:hover { color: var(--text-soft); }
     .below .sep { margin: 0 .5rem; opacity: .5; }
 
+    /* En móvil todo sube de tamaño: en la mano, la escala de escritorio se leía
+       diminuta. Los campos van a 1rem (16px) también porque por debajo de eso
+       iOS hace zoom automático al enfocarlos y descuadra la pantalla. */
     @media (max-width: 560px) {
-      body { padding: 1.25rem 1rem; align-items: flex-start; }
-      .card { padding: 1.5rem 1.15rem 1.3rem; border-radius: 18px; }
-      .step-title { font-size: 1.18rem; }
-      .spec-grid { grid-template-columns: 1fr; }
+      body {
+        padding:
+          calc(env(safe-area-inset-top, 0px) + 1rem) .85rem
+          calc(env(safe-area-inset-bottom, 0px) + 1rem);
+      }
+      .card { padding: 1.5rem 1.25rem 1.4rem; border-radius: 20px; }
+
+      .brand { margin-bottom: 1.7rem; }
+      .brand-mark { width: 46px; height: 46px; }
+      .brand-name { font-size: 1.05rem; }
+      .brand-name small { font-size: .8rem; }
+
+      .progress-head { font-size: .8rem; }
+      .progress-seg { height: 4px; }
+
+      .step-title { font-size: 1.5rem; margin-bottom: .45rem; }
+      .step-sub { font-size: .95rem; margin-bottom: 1.5rem; }
+
+      .field { margin-bottom: 1.15rem; }
+      .field label { font-size: .85rem; margin-bottom: .5rem; }
+      .field input, .field select { font-size: 1rem; padding: .9rem 1rem; border-radius: 13px; }
+      .field .hint, .field-error { font-size: .8rem; }
+      .meter-label { font-size: .8rem; }
+      .pwd-wrap input { padding-right: 3.2rem; }
+
+      .spec-grid { grid-template-columns: 1fr; gap: .6rem; }
+      .spec { font-size: .95rem; padding: .85rem .95rem; border-radius: 13px; }
+      .spec-note { font-size: .8rem; }
+      .spec .tick { width: 17px; height: 17px; }
+      .spec .tick::after { width: 7px; height: 7px; }
+
+      .summary-row { font-size: .92rem; padding: .8rem 1rem; }
+      .note { font-size: .86rem; padding: .9rem 1rem; }
+
+      .actions { margin-top: 1.7rem; }
+      .btn { font-size: .95rem; padding: .95rem 1.1rem; border-radius: 13px; }
+      .btn-back { padding: .95rem 1.15rem; }
+
+      .done-mark { width: 62px; height: 62px; }
+      .done-list li { font-size: .9rem; padding: .5rem 0; }
+      .foot { font-size: .86rem; }
+      .below { font-size: .8rem; }
     }
   </style>
 </head>
 <body>
+  <div class="safe-top"></div>
   <div class="grid-overlay"></div>
 
   <div class="stage">
@@ -517,7 +591,7 @@
         b.className = 'spec';
         b.setAttribute('data-valor', e.valor);
         b.innerHTML = '<span class="tick"></span><span>' + e.valor +
-          '<br><span style="font-size:.71rem;color:var(--text-faint);font-weight:400;">' + e.nota + '</span></span>';
+          '<span class="spec-note">' + e.nota + '</span></span>';
         b.addEventListener('click', function () {
           datos.specialty = e.valor;
           Array.prototype.forEach.call(grid.children, function (c) { c.classList.remove('sel'); });
