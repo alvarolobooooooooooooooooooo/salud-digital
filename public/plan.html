@@ -394,28 +394,25 @@
     }
     .subs-page .btn svg { width: 14px; height: 14px; }
     .subs-page .btn:disabled { opacity: .55; cursor: not-allowed; }
-    /* Segundo botón del checkout de suscripción: pagar con tarjeta. Deliberadamente
-       sobrio — el dorado de PayPal ya pesa bastante en la caja, y este solo tiene
-       que verse igual de pulsable. Misma altura y radio que el <paypal-button>
-       para que la pareja no baile. */
-    /* Separador entre el botón de PayPal y el de tarjeta. Colores fijos, sin
-       variables de tema: vive dentro de .paybox, que es BLANCA en claro y en
-       oscuro. */
+    /* ── Las dos vías de pago dentro de la caja blanca ──
+       Colores fijos, sin variables de tema: esto vive dentro de .paybox, que es
+       BLANCA en claro y en oscuro. Con el vidrio de la app los rótulos quedaban
+       ilegibles y los botones grises, con pinta de deshabilitados. */
+    .subs-page .pz-via { display: grid; gap: 9px; }
+    .subs-page .pz-cap {
+      font-size: 12px; line-height: 1.35; color: #64748B; text-align: center;
+    }
+    .subs-page .pz-cap b { color: #0F172A; font-weight: 650; }
+    .subs-page .pz-btn + .pz-btn { margin-top: 8px; }
+    /* Separador "o" entre una vía y otra, con su línea a cada lado. */
     .subs-page .pz-o {
-      font-size: 12px; color: #64748B; text-align: center;
-      margin: -1px 0 -2px; line-height: 1.2;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 11.5px; color: #94A3B8; text-transform: lowercase;
+    }
+    .subs-page .pz-o::before, .subs-page .pz-o::after {
+      content: ''; flex: 1; height: 1px; background: #E2E8F0;
     }
 
-    /* Botón de tarjeta de respaldo (solo si PayPal no declara elegible el suyo).
-       Sin variables de tema, por lo mismo que .pz-o. Con el vidrio de la app
-       quedaba gris lavado, con pinta de deshabilitado. */
-    .subs-page .btn-tarjeta {
-      width: 100%; height: 44px; border: 0; border-radius: 10px; cursor: pointer;
-      background: #2C2E34; color: #fff;
-      font: inherit; font-size: 14px; font-weight: 600; letter-spacing: .01em;
-      transition: background .15s ease;
-    }
-    .subs-page .btn-tarjeta:hover { background: #16171B; }
     .subs-page .btn-primary { background: var(--accent); color: #fff; }
     .subs-page .btn-primary:hover:not(:disabled) { background: var(--accent-ink); }
     [data-theme="dark"] .subs-page .btn-primary { color: #06202A; }
@@ -857,8 +854,13 @@
     const puede = st.configured && st.plan_ready;
     const cargando = state.busy === 'subscribe';
 
-    const manual = (st.checkout && st.checkout.capabilities &&
-                    st.checkout.capabilities.recurring === 'manual');
+    // Qué vías de pago hay. Con las dos activas el texto no puede prometer ni
+    // "se cobra solo" ni "pagas cada mes": depende de cuál elija el doctor.
+    const vias = (st.checkouts && st.checkouts.length ? st.checkouts : [st.checkout]).filter(Boolean);
+    const hayAuto = vias.some((c) => c.checkout === 'provider_hosted');
+    const hayManual = vias.some((c) => c.checkout === 'inline_card');
+    const manual = hayManual && !hayAuto;
+    const ambas = hayAuto && hayManual;
 
     const titulo = manual
       ? (e.key === 'suspended' ? 'Renovar · ' + money(st.price, st.currency)
@@ -893,7 +895,9 @@
               <div class="pz-loading" id="pzLoading"><span class="spin"></span> Cargando el pago…</div>
             </div>
           </div>
-          <div class="pz-hint">${manual
+          <div class="pz-hint">${ambas
+            ? 'Con cuenta de PayPal se te cobra solo cada mes. Con tarjeta pagas mes a mes y te avisamos antes de que venza; no guardamos tu tarjeta. En ambos casos cancelas cuando quieras.'
+            : manual
             ? 'Paga con tarjeta de crédito o débito sin salir de esta pantalla. Cada mes te avisaremos para renovar; no se guarda tu tarjeta ni se te cobra solo.'
             : 'Con tu cuenta de PayPal, o con tarjeta de crédito o débito sin crear cuenta. Se cobra automáticamente cada mes y puedes cancelar cuando quieras.'}</div>
           <div class="pz-note" id="pzNote" hidden></div>
@@ -957,66 +961,89 @@
     return !!(window.__TAURI__ || window.__TAURI_INTERNALS__);
   }
 
-  // ── SDK v5, modo PAGO ÚNICO ──
-  // Es el que despliega el formulario de tarjeta DENTRO de la página. Solo se
-  // usa con procesadores de renovación manual (checkout: 'inline_card').
-  let sdkPagoUnico = null;
-  function cargarSdkPagoUnico(st) {
-    if (sdkPagoUnico) return sdkPagoUnico;
-    sdkPagoUnico = new Promise((resolve, reject) => {
-      if (window.paypal && window.paypal.Buttons) return resolve(window.paypal);
-      const q = new URLSearchParams({
-        'client-id': st.client_id,
-        currency: st.currency,
-        intent: 'capture',
+  // ── Cargador del SDK v5 ──
+  // La página ofrece las DOS formas de pagar, y cada una necesita el SDK con
+  // parámetros distintos (suscripción: vault+subscription · pago único:
+  // capture). Cargarlo dos veces solo funciona con data-namespace: sin él, el
+  // segundo script pisa window.paypal del primero y una de las dos deja de
+  // responder. Por eso cada modo vive en su propia variable global.
+  const sdks = {};
+  function cargarSdk({ clientId, namespace, params }) {
+    if (sdks[namespace]) return sdks[namespace];
+    sdks[namespace] = new Promise((resolve, reject) => {
+      if (window[namespace] && window[namespace].Buttons) return resolve(window[namespace]);
+      const q = new URLSearchParams(Object.assign({
+        'client-id': clientId,
         locale: 'es_ES',
         components: 'buttons',
         'enable-funding': 'card',
         'disable-funding': 'paylater',
-      });
+      }, params));
       const s = document.createElement('script');
       s.src = 'https://www.paypal.com/sdk/js?' + q.toString();
       s.async = true;
-      s.onload = () => (window.paypal && window.paypal.Buttons)
-        ? resolve(window.paypal)
-        : reject(new Error('El SDK cargó sin Buttons'));
+      s.setAttribute('data-namespace', namespace);
+      s.onload = () => (window[namespace] && window[namespace].Buttons)
+        ? resolve(window[namespace])
+        : reject(new Error('El SDK cargó sin Buttons (' + namespace + ')'));
       s.onerror = () => reject(new Error('No se pudo cargar el SDK de PayPal'));
       document.head.appendChild(s);
     });
-    return sdkPagoUnico;
+    return sdks[namespace];
   }
 
-  async function montarPagoUnico(slots, st) {
+  /**
+   * Pinta los botones de UNA vía de pago. Devuelve cuántos quedaron en pie.
+   * Cada vía enseña solo el botón que le corresponde: el dorado en la
+   * suscripción y el de tarjeta en el pago mes a mes. Enseñar los dos en ambas
+   * era ofrecer cuatro botones para dos decisiones, y el rótulo de cada bloque
+   * dejaba de significar nada.
+   */
+  function pintarBotones(pp, contenedorId, fuentes, acciones) {
+    const cont = document.getElementById(contenedorId);
+    if (!cont) return 0;
+    cont.innerHTML = fuentes.map((_, i) => '<div class="pz-btn" data-i="' + i + '"></div>').join('');
+    let pintados = 0;
+    for (const [i, [fuente, estilo]] of fuentes.entries()) {
+      const el = cont.querySelector('[data-i="' + i + '"]');
+      if (!el) continue;
+      let botones;
+      try {
+        botones = pp.Buttons(Object.assign(
+          { fundingSource: fuente, style: Object.assign({ shape: 'rect', height: 44 }, estilo) },
+          acciones,
+        ));
+      } catch (_) { el.remove(); continue; }
+      // isEligible: PayPal decide si esa vía aplica al comprador (país, moneda).
+      if (!botones.isEligible()) { el.remove(); continue; }
+      botones.render(el).catch(() => {});
+      pintados++;
+    }
+    return pintados;
+  }
+
+  // ── Vía B: PAGO ÚNICO del periodo (tarjeta sin crear cuenta) ──
+  // La orden se crea AL PULSAR, no al cargar la página: cada llamada a /order
+  // puede dar de alta una suscripción nueva en la base de datos, y crear una
+  // fila por cada visita a la pantalla llenaba la tabla de intentos muertos.
+  async function montarPagoUnico(st, cfg) {
     let pp;
     try {
-      pp = await cargarSdkPagoUnico(st);
+      pp = await cargarSdk({
+        clientId: cfg.client_id,
+        namespace: 'ppUnico',
+        params: { intent: 'capture', currency: st.currency },
+      });
     } catch (err) {
-      fallbackRedireccion(slots, st, err.message);
-      return;
+      console.warn('[pago único]', err.message);
+      return 0;
     }
 
-    // La orden se pide ANTES de pintar los botones, y createOrder devuelve el
-    // id ya resuelto. Es la diferencia entre que el formulario de tarjeta se
-    // despliegue aquí dentro o que PayPal abra una ventana: si createOrder
-    // tuviera que esperar a nuestro servidor, el SDK abriría la ventana en el
-    // mismo clic para no perder el gesto del usuario. Medido: con la llamada
-    // asíncrona el bloque se quedaba en 51px; con la orden lista, crece.
-    let orden;
-    try {
-      orden = await api('/api/billing/order', { method: 'POST', body: { plan_code: st.plan_code } });
-    } catch (err) {
-      fallbackRedireccion(slots, st, 'no se pudo crear la orden: ' + err.message);
-      return;
-    }
-
-    // El SDK v5 pinta cada botón en un iframe propio, y el formulario de
-    // tarjeta se despliega dentro del suyo: por eso cada uno necesita su
-    // contenedor.
-    slots.innerHTML = '<div class="pz-slot" id="pzPaypal"></div><div class="pz-slot" id="pzCard"></div>';
-
-    const acciones = {
-      // El importe NO viaja desde aquí: lo puso el servidor según el plan.
-      createOrder: () => orden.order_id,
+    return pintarBotones(pp, 'pzManual', [[pp.FUNDING.CARD, { color: 'black' }]], {
+      // El importe NO viaja desde aquí: lo pone el servidor según el plan.
+      createOrder: () =>
+        api('/api/billing/order', { method: 'POST', body: { plan_code: st.plan_code, provider: cfg.provider } })
+          .then((r) => r.order_id),
 
       onApprove: async (data) => {
         // Sin re-render aquí dentro: destruiría el iframe que ejecuta esto.
@@ -1024,7 +1051,7 @@
         try {
           const r = await api('/api/billing/capture', {
             method: 'POST',
-            body: { order_id: data.orderID },
+            body: { order_id: data.orderID, provider: cfg.provider },
           });
           await load();
           const hasta = r.subscription && r.subscription.current_period_end;
@@ -1041,59 +1068,11 @@
       onCancel: () => { notaPago(''); render(); },
 
       onError: (err) => {
-        console.error('[pago]', err);
+        console.error('[pago único]', err);
         banner('danger', 'No se pudo procesar el pago', 'Revisa los datos e inténtalo de nuevo.');
         render();
       },
-    };
-
-    for (const [fuente, id, estilo] of [
-      [pp.FUNDING.PAYPAL, 'pzPaypal', { color: 'gold' }],
-      [pp.FUNDING.CARD, 'pzCard', { color: 'black' }],
-    ]) {
-      const el = document.getElementById(id);
-      if (!el) continue;
-      let botones;
-      try {
-        botones = pp.Buttons(Object.assign({ fundingSource: fuente, style: Object.assign({ shape: 'rect', height: 44 }, estilo) }, acciones));
-      } catch (_) { el.remove(); continue; }
-      // isEligible: PayPal decide si esa vía aplica al comprador (país, moneda).
-      if (!botones.isEligible()) { el.remove(); continue; }
-      botones.render(el).catch(() => {});
-    }
-  }
-
-  // ── SDK v5, modo SUSCRIPCIÓN ──
-  // vault=true + intent=subscription es lo que activa el motor de suscripciones.
-  // Se usa el v5 y no el v6 porque es el único que pinta la TARJETA como botón
-  // aparte; el v6 solo da el dorado, y quien no tiene cuenta de PayPal se queda
-  // fuera. El host lo deduce el propio SDK del client id, no hace falta decírselo.
-  let sdkSuscripcion = null;
-  function cargarSdkSuscripcion(st) {
-    if (sdkSuscripcion) return sdkSuscripcion;
-    sdkSuscripcion = new Promise((resolve, reject) => {
-      if (window.paypal && window.paypal.Buttons) return resolve(window.paypal);
-      const q = new URLSearchParams({
-        'client-id': st.client_id,
-        vault: 'true',
-        intent: 'subscription',
-        // El v5 quiere el locale con guion BAJO (al revés que el v6). El país
-        // real del checkout lo fija el servidor en application_context.
-        locale: 'es_ES',
-        components: 'buttons',
-        'enable-funding': 'card',
-        'disable-funding': 'paylater',
-      });
-      const s = document.createElement('script');
-      s.src = 'https://www.paypal.com/sdk/js?' + q.toString();
-      s.async = true;
-      s.onload = () => (window.paypal && window.paypal.Buttons)
-        ? resolve(window.paypal)
-        : reject(new Error('El SDK cargó sin Buttons'));
-      s.onerror = () => reject(new Error('No se pudo cargar el SDK de PayPal'));
-      document.head.appendChild(s);
     });
-    return sdkSuscripcion;
   }
 
   function notaPago(texto) {
@@ -1111,53 +1090,29 @@
     notaPago('El pago se abrirá en otra pantalla de PayPal.');
   }
 
-  async function montarPaypal() {
-    const st = state.status;
-    const slots = document.getElementById('pzSlots');
-    if (!slots || slots.dataset.montado) return;
-    slots.dataset.montado = '1';
-
-    // Cada procesador declara qué tipo de checkout usa. Añadir PixelPay o
-    // Tilopay es añadir una rama aquí; el resto de la página no cambia.
-    const tipo = (state.status.checkout && state.status.checkout.checkout) || 'none';
-
-    if (tipo === 'inline_card') {
-      // Formulario de tarjeta dentro de esta misma página (pago único).
-      await montarPagoUnico(slots, st);
-      return;
-    }
-    if (tipo !== 'provider_hosted') {
-      fallbackRedireccion(slots, st, 'checkout no soportado: ' + tipo);
-      return;
-    }
-
-    // SDK v5, no v6. El v6 de suscripciones solo sabe pintar el botón dorado,
-    // que entra por la puerta de "inicia sesión en PayPal"; y si el navegador ya
-    // tiene sesión abierta de PayPal, esa pantalla ni siquiera ofrece pagar con
-    // tarjeta. Para un doctor sin cuenta de PayPal —la mayoría— eso es un muro.
-    // El v5 expone la TARJETA como método propio (FUNDING.CARD), que abre el
-    // formulario de tarjeta directamente, haya sesión o no.
+  // ── Vía A: SUSCRIPCIÓN automática (PayPal cobra cada mes) ──
+  async function montarSuscripcion(st, cfg) {
     let pp;
     try {
-      pp = await cargarSdkSuscripcion(st);
+      pp = await cargarSdk({
+        clientId: cfg.client_id,
+        namespace: 'ppSuscripcion',
+        params: { vault: 'true', intent: 'subscription' },
+      });
     } catch (err) {
-      // Sin SDK (red, bloqueador, CSP) se cae al flujo de redirección, que no
-      // depende de scripts de terceros.
-      fallbackRedireccion(slots, st, err.message);
-      return;
+      console.warn('[suscripción]', err.message);
+      return 0;
     }
 
-    const acciones = {
+    return pintarBotones(pp, 'pzAuto', [[pp.FUNDING.PAYPAL, { color: 'gold', label: 'subscribe' }]], {
       // La suscripción la crea NUESTRO servidor contra PayPal; al SDK solo se le
       // entrega el id. Así el plan y el importe nunca vienen del navegador.
       createSubscription: () =>
-        api('/api/billing/subscribe', { method: 'POST', body: { plan_code: st.plan_code } })
+        api('/api/billing/subscribe', { method: 'POST', body: { plan_code: st.plan_code, provider: cfg.provider } })
           .then((r) => r.subscription_id),
 
       onApprove: async (data) => {
-        // Ojo: no se re-renderiza la página aquí dentro — eso destruiría el
-        // botón que está ejecutando este callback. Solo se toca el texto de la
-        // nota hasta que termina todo.
+        // Sin re-render aquí dentro: destruiría el iframe que ejecuta esto.
         notaPago('Confirmando el pago con PayPal…');
         try {
           const r = await api('/api/billing/confirm', {
@@ -1197,71 +1152,66 @@
       },
 
       onError: (err) => {
-        console.error('[paypal]', err);
+        console.error('[suscripción]', err);
         banner('danger', 'PayPal no pudo procesar el pago',
           'Intenta de nuevo en unos minutos; si sigue fallando, escríbenos.');
         render();
       },
-    };
+    });
+  }
 
-    // Contenedores desnudos, SIN la clase .pz-slot: esa trae font-size:0, máscara
-    // y overflow:hidden (existen para los campos de tarjeta del pago único), y
-    // con ellas PayPal decide pintar sus botones en versión reducida — solo el
-    // logo y el icono, sin el texto "Tarjeta de débito o crédito". Comprobado
-    // lado a lado: mismo estilo, mismo alto, y en un div limpio sí sale el texto.
-    // El hueco entre botones lo pone el grid de .pz-slots.
-    slots.innerHTML = '<div id="pzPaypal"></div><div id="pzCard"></div>';
+  // ── Zona de pago: las DOS vías, una debajo de otra ──
+  //
+  // PayPal no da las dos cosas a la vez y hay que decirlo claro en la pantalla:
+  //   · Suscripción → cobra solo cada mes, pero EXIGE cuenta de PayPal.
+  //   · Pago único  → acepta cualquier tarjeta sin crear cuenta, pero cada mes
+  //                   lo tiene que pagar el cliente a mano.
+  // Ofrecer solo una dejaba fuera a media clientela: al doctor sin cuenta de
+  // PayPal, o al que no quiere estar pendiente de renovar. Los rótulos van en
+  // NUESTRO html porque PayPal cambia el texto de sus botones entre cargas —a
+  // veces "Tarjeta de débito o crédito", a veces solo el icono— y su marca no
+  // permite reetiquetarlos.
+  async function montarPaypal() {
+    const st = state.status;
+    const slots = document.getElementById('pzSlots');
+    if (!slots || slots.dataset.montado) return;
+    slots.dataset.montado = '1';
 
-    let tarjetaPintada = false;
-    let algoPintado = false;
-    for (const [fuente, id, estilo] of [
-      [pp.FUNDING.PAYPAL, 'pzPaypal', { color: 'gold', label: 'subscribe' }],
-      [pp.FUNDING.CARD, 'pzCard', { color: 'black' }],
-    ]) {
-      const el = document.getElementById(id);
-      if (!el) continue;
-      let botones;
-      try {
-        botones = pp.Buttons(Object.assign(
-          { fundingSource: fuente, style: Object.assign({ shape: 'rect', height: 44 }, estilo) },
-          acciones,
-        ));
-      } catch (_) { el.remove(); continue; }
-      // isEligible: PayPal decide si esa vía aplica al comprador (país, moneda).
-      if (!botones.isEligible()) { el.remove(); continue; }
-      botones.render(el).catch(() => {});
-      algoPintado = true;
-      if (fuente === pp.FUNDING.CARD) tarjetaPintada = true;
-    }
+    const vias = (st.checkouts && st.checkouts.length ? st.checkouts : [st.checkout]).filter(Boolean);
+    const auto = vias.find((c) => c && c.checkout === 'provider_hosted');
+    const manual = vias.find((c) => c && c.checkout === 'inline_card');
 
-    if (!algoPintado) {
-      fallbackRedireccion(slots, st, 'ningún método de pago elegible');
+    if (!auto && !manual) {
+      fallbackRedireccion(slots, st, 'ningún método de pago configurado');
       return;
     }
 
-    // Etiqueta nuestra sobre el botón de tarjeta. No es adorno: PayPal cambia el
-    // rótulo de sus propios botones entre cargas —a veces "Tarjeta de débito o
-    // crédito", a veces solo el icono— y con los MISMOS parámetros (comprobado
-    // lado a lado). Su marca no permite reetiquetar sus botones, así que la
-    // única forma de que el doctor sin cuenta de PayPal entienda que esa vía es
-    // para él es escribirlo fuera del iframe.
-    if (tarjetaPintada) {
-      const card = document.getElementById('pzCard');
-      if (card) card.insertAdjacentHTML('beforebegin',
-        '<div class="pz-o">o paga con tarjeta, sin crear cuenta</div>');
+    slots.innerHTML =
+      (auto ? '<div class="pz-via" id="viaAuto">' +
+        '<div class="pz-cap"><b>Cobro automático</b> · necesitas cuenta de PayPal</div>' +
+        '<div id="pzAuto"></div></div>' : '') +
+      (auto && manual ? '<div class="pz-o"><span>o</span></div>' : '') +
+      (manual ? '<div class="pz-via" id="viaManual">' +
+        '<div class="pz-cap"><b>Pago mes a mes</b> · con tarjeta, sin crear cuenta</div>' +
+        '<div id="pzManual"></div></div>' : '');
+
+    const pintados =
+      (auto ? await montarSuscripcion(st, auto) : 0) +
+      (manual ? await montarPagoUnico(st, manual) : 0);
+
+    // Una vía que no pintó ni un botón se retira entera, con su rótulo: dejar el
+    // título de una opción que no existe es peor que no ofrecerla.
+    for (const [id, cont] of [['viaAuto', 'pzAuto'], ['viaManual', 'pzManual']]) {
+      const bloque = document.getElementById(id);
+      const dentro = document.getElementById(cont);
+      if (bloque && (!dentro || !dentro.querySelector('.pz-btn'))) bloque.remove();
+    }
+    if (document.querySelectorAll('.pz-via').length < 2) {
+      const o = slots.querySelector('.pz-o');
+      if (o) o.remove();
     }
 
-    // Red de seguridad: si PayPal no declara elegible su botón de tarjeta, queda
-    // el camino de la redirección, que abre el formulario de tarjeta salvo que el
-    // navegador ya tenga sesión de PayPal. Peor que el botón nativo, pero mucho
-    // mejor que dejar sin salida a quien no tiene cuenta.
-    if (!tarjetaPintada) {
-      slots.insertAdjacentHTML('beforeend',
-        '<button type="button" class="btn-tarjeta" id="btnTarjeta">' +
-        'Pagar con tarjeta de crédito o débito</button>');
-      const btnTarjeta = document.getElementById('btnTarjeta');
-      if (btnTarjeta) btnTarjeta.onclick = doSubscribe;
-    }
+    if (!pintados) fallbackRedireccion(slots, st, 'ningún método de pago elegible');
   }
 
   function banner(tone, title, text) { state.banner = { tone, title, text }; }

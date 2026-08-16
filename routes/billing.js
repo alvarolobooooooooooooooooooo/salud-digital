@@ -8,7 +8,7 @@ const express = require('express');
 const router = express.Router();
 const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
-const { getProvider, PaymentError } = require('../lib/payments/provider');
+const { getProvider, enabledProviderNames, PaymentError } = require('../lib/payments/provider');
 const subs = require('../lib/billing/subscription-service');
 const billing = require('../lib/billing/billing-service');
 const webhooks = require('../lib/billing/webhook-service');
@@ -60,6 +60,22 @@ function publicSubscription(s) {
   };
 }
 
+/**
+ * Procesador que pide el navegador, validado contra los habilitados. Devolver
+ * `null` significa "el que toque por defecto". Un nombre que no esté habilitado
+ * NO se ignora en silencio: cobrar por un procesador distinto del que el usuario
+ * eligió sería una sorpresa desagradable, así que se responde 400.
+ */
+function providerPedido(req) {
+  const pedido = String((req.body && req.body.provider) || '').trim().toLowerCase();
+  if (!pedido) return null;
+  if (!enabledProviderNames().includes(pedido)) {
+    const err = new PaymentError('Ese método de pago no está disponible.', { code: 'provider_not_enabled' });
+    throw err;
+  }
+  return pedido;
+}
+
 function manejarError(res, err, mensajeGenerico) {
   if (err instanceof PaymentError) {
     const mapa = {
@@ -67,6 +83,7 @@ function manejarError(res, err, mensajeGenerico) {
       unknown_plan: 400,
       inactive_plan: 400,
       no_clinic: 403,
+      provider_not_enabled: 400,
       provider_not_configured: 503,
       plan_not_mapped: 503,
       unsupported_operation: 501,
@@ -109,6 +126,21 @@ router.get('/status', authenticate, async (req, res) => {
     /* procesador desconocido: se informa como no configurado */
   }
 
+  // Todos los procesadores ofrecidos, uno por forma de pagar. La pantalla pinta
+  // una opción por cada uno: con PayPal el cobro es automático pero exige cuenta
+  // PayPal; con pago único se acepta cualquier tarjeta pero cada mes lo paga el
+  // cliente a mano. `checkout` (singular) se conserva por compatibilidad.
+  const checkouts = [];
+  for (const nombre of enabledProviderNames()) {
+    try {
+      const p = getProvider(nombre);
+      if (!p.isConfigured()) continue;
+      checkouts.push({ ...p.publicConfig(), configured: true, capabilities: p.capabilities });
+    } catch (_) {
+      /* procesador desconocido o sin credenciales: no se ofrece */
+    }
+  }
+
   const planes = await subs.listPlans();
 
   res.json({
@@ -117,6 +149,7 @@ router.get('/status', authenticate, async (req, res) => {
     exempt: exento,
     can_manage: OWNER_ROLES.includes(req.user.role),
     checkout,
+    checkouts,
     plans: planes.map(publicPlan),
     access: {
       active: acceso.active || exento || !enforcement.enforcementEnabled(),
@@ -162,6 +195,7 @@ router.post('/subscribe', authenticate, requireRole(...OWNER_ROLES), async (req,
       name: yo.name || '',
       returnUrl: appUrl() + '/plan.html?checkout=return',
       cancelUrl: appUrl() + '/plan.html?checkout=cancel',
+      providerName: providerPedido(req) || undefined,
     });
 
     res.json({
@@ -187,7 +221,8 @@ router.post('/order', authenticate, requireRole(...OWNER_ROLES), async (req, res
 
     let sub = await subs.getForClinic(clinicId);
     const acceso = subs.access(sub);
-    const activo = getProvider();
+    const pedido = providerPedido(req);
+    const activo = getProvider(pedido || undefined);
 
     // Sin suscripción utilizable se crea una nueva antes de cobrar. Cuenta como
     // inutilizable:
@@ -207,6 +242,7 @@ router.post('/order', authenticate, requireRole(...OWNER_ROLES), async (req, res
         userId: req.user.id,
         planCode: String((req.body && req.body.plan_code) || 'individual-monthly'),
         email: req.user.email,
+        providerName: pedido || undefined,
       });
       sub = alta.subscription;
     }
@@ -253,9 +289,10 @@ router.post('/capture', authenticate, requireRole(...OWNER_ROLES), async (req, r
   }
 
   try {
-    // La orden la creó el procesador ACTIVO, así que es el que debe capturarla
-    // (no el de una suscripción antigua que pudiera quedar por ahí).
-    const provider = getProvider();
+    // La captura la hace el MISMO procesador que creó la orden — el navegador lo
+    // manda de vuelta y se valida contra los habilitados; si no lo manda, el de
+    // por defecto. Nunca el de una suscripción antigua que pudiera quedar por ahí.
+    const provider = getProvider(providerPedido(req) || undefined);
     const captura = await provider.captureOrder({ orderId, idempotencyKey: 'cap-' + orderId });
 
     // A qué suscripción pertenece: manda el custom_id que puso el servidor al
