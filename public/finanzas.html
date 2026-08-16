@@ -1190,6 +1190,68 @@
       color: #67e8f9;
     }
     [data-theme="dark"] .fin-sortlabel { color: var(--sd-text-muted, #94a3b8); }
+
+    /* ── Scroll infinito: fila centinela al pie de la tabla ──
+       Es una fila real del tbody (no un div hermano) para no romper la tabla; el
+       observador la vigila y pide la siguiente página cuando se acerca al viewport. */
+    tr.fin-more-row td {
+      padding: 0.9rem;
+      border-bottom: 0;
+      text-align: center;
+    }
+    tbody tr.fin-more-row:hover { transform: none; }
+    tbody tr.fin-more-row:hover td { background: transparent; }
+    .fin-more {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+    .fin-more-btn {
+      padding: 0.5rem 1.1rem;
+      border: 1px solid rgba(8, 145, 178, 0.2);
+      border-radius: 8px;
+      background: rgba(8, 145, 178, 0.08);
+      color: #0891b2;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .fin-more-btn:hover { background: rgba(8, 145, 178, 0.16); }
+    .fin-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(8, 145, 178, 0.25);
+      border-top-color: #0891b2;
+      border-radius: 50%;
+      animation: finSpin 0.7s linear infinite;
+    }
+    @keyframes finSpin { to { transform: rotate(360deg); } }
+    @media (max-width: 768px) {
+      /* En móvil las filas se dibujan como tarjetas: la centinela no debe serlo. */
+      .section tbody tr.fin-more-row {
+        background: transparent;
+        border: 0;
+        padding: 0;
+        margin: 0.2rem 0 0.4rem;
+      }
+      .section tbody tr.fin-more-row td {
+        display: block;
+        text-align: center;
+        border: 0;
+        padding: 0.5rem 0;
+      }
+      .section tbody tr.fin-more-row td::before { display: none; }
+    }
+    [data-theme="dark"] .fin-more-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: #67e8f9;
+    }
   </style>
 </head>
 <body>
@@ -1488,12 +1550,27 @@
     }
     let rows = [];
     let truncated = false;
+    // Modo paginado por servidor (scroll infinito). Cuando está activo, filtrar,
+    // buscar y ordenar se resuelven en la BD y `rows` es solo lo que se ha cargado.
+    const serverPage = cfg.serverPage || null;
+    const pageSize = serverPage ? (serverPage.pageSize || 50) : 0;
+    let pageState = { hasMore: false, loading: false, seq: 0, totals: null, count: null, error: false };
+    let moreObserver = null;
+    let searchTimer = null;
     const state = {
       preset: 'all', cStart: '', cEnd: '', search: '', sels: {},
       sortKey: cfg.sortDefault ? cfg.sortDefault.key : null,
       sortDir: cfg.sortDefault ? cfg.sortDefault.dir : 'desc'
     };
     (cfg.selects || []).forEach(s => { state.sels[s.key] = ''; });
+
+    // Punto único de entrada al cambiar cualquier filtro/orden: según el modo de la
+    // tabla vuelve a pedir la primera página, recarga del servidor, o refiltra local.
+    function onFilterChange() {
+      if (serverPage) loadPage(true, true);
+      else if (cfg.onDateReload) reloadFromServer();
+      else apply();
+    }
 
     if (bar) {
       let html = '';
@@ -1525,27 +1602,34 @@
             bar.querySelectorAll('.fin-preset').forEach(b => b.classList.toggle('is-active', b === btn));
             const custom = bar.querySelector('.fin-custom');
             if (custom) custom.classList.toggle('show', state.preset === 'custom');
-            if (cfg.onDateReload) reloadFromServer(); else apply();
+            onFilterChange();
           });
         });
         const cs = bar.querySelector('.fin-cstart'), ce = bar.querySelector('.fin-cend');
-        if (cs) cs.addEventListener('change', () => { state.cStart = cs.value; if (cfg.onDateReload) reloadFromServer(); else apply(); });
-        if (ce) ce.addEventListener('change', () => { state.cEnd = ce.value; if (cfg.onDateReload) reloadFromServer(); else apply(); });
+        if (cs) cs.addEventListener('change', () => { state.cStart = cs.value; onFilterChange(); });
+        if (ce) ce.addEventListener('change', () => { state.cEnd = ce.value; onFilterChange(); });
       }
       const searchEl = bar.querySelector('.fin-search');
-      searchEl.addEventListener('input', () => { state.search = searchEl.value.trim().toLowerCase(); apply(); });
+      searchEl.addEventListener('input', () => {
+        state.search = searchEl.value.trim().toLowerCase();
+        // Con paginación cada tecla sería una consulta a la BD: esperamos a que pare.
+        if (serverPage) {
+          clearTimeout(searchTimer);
+          searchTimer = setTimeout(onFilterChange, 300);
+        } else apply();
+      });
       bar.querySelectorAll('.fin-select[data-selkey]').forEach(sel => {
-        sel.addEventListener('change', () => { state.sels[sel.dataset.selkey] = sel.value; apply(); });
+        sel.addEventListener('change', () => { state.sels[sel.dataset.selkey] = sel.value; onFilterChange(); });
       });
       const sortSel = bar.querySelector('.fin-sortsel');
       if (sortSel) {
         if (state.sortKey) sortSel.value = state.sortKey;
-        sortSel.addEventListener('change', () => { state.sortKey = sortSel.value; apply(); });
+        sortSel.addEventListener('change', () => { state.sortKey = sortSel.value; onFilterChange(); });
       }
       const sortDirBtn = bar.querySelector('.fin-sortdir');
       if (sortDirBtn) {
         sortDirBtn.textContent = state.sortDir === 'asc' ? '▲' : '▼';
-        sortDirBtn.addEventListener('click', () => { state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc'; apply(); });
+        sortDirBtn.addEventListener('click', () => { state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc'; onFilterChange(); });
       }
       bar.querySelector('.fin-clear').addEventListener('click', resetFilters);
     }
@@ -1559,9 +1643,110 @@
           const key = th.dataset.sort;
           if (state.sortKey === key) state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
           else { state.sortKey = key; state.sortDir = 'desc'; }
-          apply();
+          onFilterChange();
         });
       });
+    }
+
+    // ── Paginación por servidor + scroll infinito ──
+    // Pide una página, la agrega al final de la tabla y deja una fila centinela al
+    // pie; cuando el usuario se acerca a ella (IntersectionObserver), pide la
+    // siguiente. `seq` descarta respuestas viejas si el usuario cambia el filtro
+    // mientras una petición está en vuelo.
+    async function loadPage(reset, fromFilter) {
+      if (!serverPage) return;
+      if (pageState.loading && !reset) return;
+      const seq = ++pageState.seq;
+      pageState.loading = true;
+      pageState.error = false;
+      if (reset) {
+        // Si el usuario cambió un filtro estando al fondo de la tabla, la lista se
+        // acorta pero él sigue abajo: la centinela quedaría a la vista y el scroll
+        // infinito recargaría todo de corrido. Lo devolvemos al inicio de la tabla.
+        if (fromFilter && table && table.getBoundingClientRect().top < 0) {
+          (table.closest('.section') || table).scrollIntoView({ block: 'start' });
+        }
+        rows = [];
+        pageState.hasMore = false;
+        pageState.totals = null;
+        pageState.count = null;
+        tbody.innerHTML = `<tr><td colspan="${cfg.colspan}" class="empty-table">Cargando…</td></tr>`;
+        if (bar) { const t = bar.querySelector('.fin-total'); if (t) t.innerHTML = ''; }
+      } else {
+        renderMoreRow();
+      }
+
+      const { start, end } = finPresetRange(state.preset, state.cStart, state.cEnd);
+      const toISO = ms => ms == null ? '' : new Date(ms).toISOString().split('T')[0];
+      try {
+        const res = await serverPage.fetch({
+          startDate: toISO(start), endDate: toISO(end),
+          search: state.search, sels: Object.assign({}, state.sels),
+          sortKey: state.sortKey, sortDir: state.sortDir,
+          limit: pageSize, offset: reset ? 0 : rows.length
+        });
+        if (seq !== pageState.seq) return; // respuesta obsoleta: la ignoramos
+        const newRows = (res && res.rows) || [];
+        const from = reset ? 0 : rows.length;
+        rows = reset ? newRows : rows.concat(newRows);
+        pageState.hasMore = !!(res && res.hasMore);
+        if (res && res.totals) pageState.totals = res.totals;
+        if (res && res.count != null) pageState.count = res.count;
+        apply({ appendFrom: reset ? 0 : from });
+      } catch (e) {
+        if (seq !== pageState.seq) return;
+        console.error('fin page', e);
+        pageState.error = true;
+        if (reset) {
+          tbody.innerHTML = `<tr><td colspan="${cfg.colspan}" class="empty-table">No se pudieron cargar los datos.</td></tr>`;
+        }
+        renderMoreRow();
+      } finally {
+        // Se limpia ANTES de repintar la centinela: mientras `loading` siga en true
+        // esta no vuelve a observarse y el scroll infinito quedaría muerto tras la
+        // primera página.
+        if (seq === pageState.seq) {
+          pageState.loading = false;
+          renderMoreRow();
+        }
+      }
+    }
+
+    // Fila al pie: spinner mientras carga, botón de reintento si falló, o botón
+    // "Cargar más" como respaldo si el observador no dispara (navegador viejo).
+    function renderMoreRow() {
+      if (!serverPage || !tbody) return;
+      const existing = tbody.querySelector('tr.fin-more-row');
+      if (!pageState.hasMore && !pageState.loading && !pageState.error) {
+        if (existing) existing.remove();
+        if (moreObserver) moreObserver.disconnect();
+        return;
+      }
+      let inner;
+      if (pageState.loading) inner = '<span class="fin-spinner"></span><span>Cargando más…</span>';
+      else if (pageState.error) inner = '<button type="button" class="fin-more-btn">Reintentar</button>';
+      else inner = '<button type="button" class="fin-more-btn">Cargar más</button>';
+
+      let tr = existing;
+      if (!tr) {
+        tr = document.createElement('tr');
+        tr.className = 'fin-more-row';
+        tr.innerHTML = `<td colspan="${cfg.colspan}"><div class="fin-more"></div></td>`;
+        tbody.appendChild(tr);
+      } else if (tr !== tbody.lastElementChild) {
+        tbody.appendChild(tr); // mantenerla siempre al final tras agregar filas
+      }
+      tr.querySelector('.fin-more').innerHTML = inner;
+      const btn = tr.querySelector('.fin-more-btn');
+      if (btn) btn.addEventListener('click', () => loadPage(false));
+
+      if (moreObserver) moreObserver.disconnect();
+      if (pageState.hasMore && !pageState.loading && !pageState.error && 'IntersectionObserver' in window) {
+        moreObserver = moreObserver || new IntersectionObserver(entries => {
+          if (entries.some(en => en.isIntersecting) && pageState.hasMore && !pageState.loading) loadPage(false);
+        }, { rootMargin: '400px 0px' }); // precargar antes de tocar el fondo
+        moreObserver.observe(tr);
+      }
     }
 
     function reloadFromServer() {
@@ -1584,6 +1769,21 @@
           vals.map(v => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(v)}</option>`).join('');
         if (cur && !vals.includes(cur)) state.sels[s.key] = '';
       });
+    }
+
+    // En modo paginado las opciones no se pueden deducir de las filas cargadas (solo
+    // se ve una página): llegan del servidor como [{value, label}].
+    function setSelectOptions(key, options) {
+      if (!bar) return;
+      const sel = bar.querySelector(`.fin-select[data-selkey="${key}"]`);
+      if (!sel) return;
+      const s = (cfg.selects || []).find(x => x.key === key) || {};
+      const cur = state.sels[key];
+      sel.innerHTML = `<option value="">${esc(s.placeholder || s.label || '')}</option>` +
+        (options || []).map(o => {
+          const v = String(o.value);
+          return `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(o.label)}</option>`;
+        }).join('');
     }
 
     function getFiltered() {
@@ -1621,35 +1821,68 @@
       return out;
     }
 
-    function apply() {
-      const filtered = getFiltered();
+    // Marca las celdas recién insertadas con data-label / clase de título: es lo que
+    // el CSS móvil usa para dibujar cada fila como tarjeta.
+    function decorateRows(trs) {
+      if (!headerLabels.length) return;
+      const titleCol = cfg.titleCol || 0;
+      trs.forEach(tr => {
+        const cells = tr.children;
+        for (let i = 0; i < cells.length; i++) {
+          if (cells[i].hasAttribute('colspan')) continue;
+          if (i === titleCol) cells[i].classList.add('fin-card-title');
+          else if (headerLabels[i]) cells[i].setAttribute('data-label', headerLabels[i]);
+        }
+      });
+    }
+
+    // opts.appendFrom: índice a partir del cual las filas son nuevas (scroll infinito).
+    // Solo se pinta ese tramo, así una tabla con 500 filas cargadas no se redibuja
+    // entera cada vez que llega una página.
+    function apply(opts) {
+      const appendFrom = opts && opts.appendFrom;
+      const filtered = serverPage ? rows : getFiltered();
       if (!filtered.length) {
         tbody.innerHTML = `<tr><td colspan="${cfg.colspan}" class="empty-table">${esc(cfg.emptyMsg || 'Sin resultados')}</td></tr>`;
       } else {
-        tbody.innerHTML = filtered.map(cfg.renderRow).join('');
-        // data-label en cada celda → usado por el layout de tarjeta en móvil.
-        // La celda título (titleCol) se marca para hoistearla como encabezado de la tarjeta.
-        if (headerLabels.length) {
-          const titleCol = cfg.titleCol || 0;
-          tbody.querySelectorAll('tr').forEach(tr => {
-            const cells = tr.children;
-            for (let i = 0; i < cells.length; i++) {
-              if (cells[i].hasAttribute('colspan')) continue;
-              if (i === titleCol) cells[i].classList.add('fin-card-title');
-              else if (headerLabels[i]) cells[i].setAttribute('data-label', headerLabels[i]);
-            }
-          });
+        const isAppend = appendFrom > 0;
+        const slice = isAppend ? filtered.slice(appendFrom) : filtered;
+        const html = slice.map(cfg.renderRow).join('');
+        let newTrs;
+        if (isAppend) {
+          const moreRow = tbody.querySelector('tr.fin-more-row');
+          const before = tbody.querySelectorAll('tr:not(.fin-more-row)').length;
+          if (moreRow) moreRow.insertAdjacentHTML('beforebegin', html);
+          else tbody.insertAdjacentHTML('beforeend', html);
+          newTrs = Array.from(tbody.querySelectorAll('tr:not(.fin-more-row)')).slice(before);
+        } else {
+          tbody.innerHTML = html;
+          newTrs = Array.from(tbody.querySelectorAll('tr'));
         }
-        if (cfg.onRowsRendered) cfg.onRowsRendered(tbody, filtered);
+        decorateRows(newTrs);
+        if (cfg.onRowsRendered) cfg.onRowsRendered(tbody, filtered, newTrs);
       }
+      if (serverPage) renderMoreRow();
       if (bar) {
         const totalEl = bar.querySelector('.fin-total');
         if (totalEl) {
-          const parts = (cfg.totals || []).map(t => {
-            const sum = filtered.reduce((acc, r) => acc + (Number(t.accessor(r)) || 0), 0);
-            return `${esc(t.label)}: <strong>${t.money ? finMoney(sum) : sum.toLocaleString('es-HN')}</strong>`;
-          });
-          parts.push(`${filtered.length} ${filtered.length === 1 ? 'fila' : 'filas'}`);
+          // Con paginación los totales los calcula la BD sobre TODO el filtro, no
+          // sobre lo cargado: si no, el total cambiaría a medida que se scrollea.
+          const parts = serverPage
+            ? ((pageState.totals || []).map(t =>
+                `${esc(t.label)}: <strong>${t.money ? finMoney(t.value) : Number(t.value || 0).toLocaleString('es-HN')}</strong>`))
+            : (cfg.totals || []).map(t => {
+                const sum = filtered.reduce((acc, r) => acc + (Number(t.accessor(r)) || 0), 0);
+                return `${esc(t.label)}: <strong>${t.money ? finMoney(sum) : sum.toLocaleString('es-HN')}</strong>`;
+              });
+          if (serverPage) {
+            const count = pageState.count != null ? pageState.count : filtered.length;
+            parts.push(filtered.length < count
+              ? `${filtered.length} de ${count} filas`
+              : `${count} ${count === 1 ? 'fila' : 'filas'}`);
+          } else {
+            parts.push(`${filtered.length} ${filtered.length === 1 ? 'fila' : 'filas'}`);
+          }
           if (truncated) {
             parts.unshift(`<span style="color:#b45309;font-weight:600;" title="Se alcanzó el máximo de registros cargados. Filtrá por fecha o archivá datos antiguos para ver totales completos.">⚠ máximo ${cfg.truncateAt} cargados</span>`);
           }
@@ -1685,7 +1918,8 @@
         const se = bar.querySelector('.fin-search'); if (se) se.value = '';
         bar.querySelectorAll('.fin-select[data-selkey]').forEach(s => { s.value = ''; });
       }
-      if (cfg.onDateReload) reloadFromServer(); else apply();
+      clearTimeout(searchTimer);
+      onFilterChange();
     }
 
     return {
@@ -1695,8 +1929,9 @@
         populateSelects();
         apply();
       },
+      setSelectOptions,
       apply,
-      reload() { if (cfg.onDateReload) reloadFromServer(); else apply(); }
+      reload() { onFilterChange(); }
     };
   }
 
@@ -1707,7 +1942,8 @@
       const isAdmin = role === 'clinic_admin';
       const stats = await api('/api/consultations/finances/summary');
       const pending = await api('/api/consultations/finances/pending');
-      const paid = await api('/api/consultations/finances/paid').catch(() => []);
+      // Consultas pagadas ya no se trae completa: paidFilter pide su primera página
+      // más abajo y el resto llega por scroll.
       const weekly = await api('/api/consultations/finances/weekly');
       const prodSummary = await api('/api/inventory/sales/summary').catch(() => null);
       const prodSales = await api('/api/inventory/sales/list?limit=2000').catch(() => []);
@@ -1815,32 +2051,53 @@
             <td>${esc(c.phone || '—')}</td>
           </tr>`;
         },
-        onRowsRendered: (tb) => {
-          tb.querySelectorAll('tr[data-id]').forEach(tr => {
+        // newTrs = solo las filas recién insertadas: si esta tabla se pagina algún día,
+        // el listener no se duplica en las que ya estaban.
+        onRowsRendered: (tb, list, newTrs) => {
+          (newTrs || Array.from(tb.querySelectorAll('tr'))).forEach(tr => {
+            if (!tr.dataset.id) return;
             tr.addEventListener('click', () => openPaymentModal(parseInt(tr.dataset.id, 10), tr.dataset.name, tr.dataset.date, tr.dataset.cost));
           });
         },
       });
 
+      // Consultas pagadas: la única tabla que crece sin techo (todo el historial de la
+      // clínica). Va paginada contra la BD y se completa con scroll infinito, así que
+      // no hay `truncateAt` ni filtrado en el cliente.
       const paidFilter = createFinFilter({
-        barId: 'paidFilter', bodyId: 'paidTable', colspan: 5, truncateAt: 1000, titleCol: 1,
+        barId: 'paidFilter', bodyId: 'paidTable', colspan: 5, titleCol: 1,
         emptyMsg: 'No hay consultas pagadas en este período',
         searchPlaceholder: 'Buscar paciente o doctor…',
-        date: { accessor: r => r.created_at },
-        search: { accessor: r => `${r.patient_name || ''} ${r.doctor_name || ''} ${r.phone || ''}` },
+        date: { server: true },
         selects: [
-          { key: 'doctor', label: 'Doctor', placeholder: 'Todos los doctores', accessor: r => r.doctor_name || '', visible: isAdmin },
-          { key: 'specialty', label: 'Especialidad', placeholder: 'Todas las especialidades', accessor: r => r.specialty || '', visible: isAdmin },
+          { key: 'doctor', label: 'Doctor', placeholder: 'Todos los doctores', visible: isAdmin },
+          { key: 'specialty', label: 'Especialidad', placeholder: 'Todas las especialidades', visible: isAdmin },
         ],
         sortable: [
-          { key: 'date', accessor: r => finTs(r.created_at), type: 'num' },
-          { key: 'patient', accessor: r => (r.patient_name || '').toLowerCase(), type: 'text' },
-          { key: 'doctor', accessor: r => (r.doctor_name || '').toLowerCase(), type: 'text' },
-          { key: 'amount', accessor: r => Number(r.cost) || 0, type: 'num' },
-          { key: 'phone', accessor: r => (r.phone || '').toLowerCase(), type: 'text' },
+          { key: 'date' }, { key: 'patient' }, { key: 'doctor' }, { key: 'amount' }, { key: 'phone' },
         ],
         sortDefault: { key: 'date', dir: 'desc' },
-        totals: [ { label: 'Total pagado', accessor: r => Number(r.cost) || 0, money: true } ],
+        serverPage: {
+          pageSize: 50,
+          fetch: async ({ startDate, endDate, search, sels, sortKey, sortDir, limit, offset }) => {
+            const qs = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+            if (startDate) qs.append('startDate', startDate);
+            if (endDate) qs.append('endDate', endDate);
+            if (search) qs.append('search', search);
+            if (sels.doctor) qs.append('doctor', sels.doctor);
+            if (sels.specialty) qs.append('specialty', sels.specialty);
+            if (sortKey) qs.append('sort', sortKey);
+            if (sortDir) qs.append('dir', sortDir);
+            const res = await api('/api/consultations/finances/paid?' + qs.toString());
+            return {
+              rows: res.rows,
+              hasMore: res.hasMore,
+              // total/total_amount solo vienen en la primera página (offset 0).
+              count: res.total,
+              totals: res.total_amount == null ? null : [{ label: 'Total pagado', value: res.total_amount, money: true }]
+            };
+          }
+        },
         renderRow: c => `<tr>
             <td>${finDate(c.created_at)}</td>
             <td>${esc(c.patient_name)}</td>
@@ -1849,6 +2106,16 @@
             <td>${esc(c.phone || '—')}</td>
           </tr>`,
       });
+      paidFilter.reload();
+
+      // Opciones de doctor/especialidad: con paginación no se pueden deducir de las
+      // filas visibles, así que las trae un endpoint aparte (una sola vez).
+      if (isAdmin) {
+        api('/api/consultations/finances/paid/facets').then(f => {
+          paidFilter.setSelectOptions('doctor', (f.doctors || []).map(d => ({ value: d.id, label: d.name })));
+          paidFilter.setSelectOptions('specialty', (f.specialties || []).map(s => ({ value: s, label: s })));
+        }).catch(e => console.error('paid facets', e));
+      }
 
       const salesFilter = createFinFilter({
         barId: 'salesFilter', bodyId: 'productSalesTable', colspan: 7, truncateAt: 2000, titleCol: 1,
@@ -1950,7 +2217,6 @@
       }
 
       pendingFilter.setData(pending);
-      paidFilter.setData(paid);
 
       // (Antes había un calendario "Desde/Hasta" a medida que pedía al servidor por
       // rango de fechas. Ahora el filtro de fechas es parte de la barra de filtros de
@@ -2029,10 +2295,9 @@
 
       async function refreshFinances() {
         try {
-          const [stats, pending, paid, weekly, prodSummary, prodSales] = await Promise.all([
+          const [stats, pending, weekly, prodSummary, prodSales] = await Promise.all([
             api('/api/consultations/finances/summary'),
             api('/api/consultations/finances/pending'),
-            api('/api/consultations/finances/paid').catch(() => []),
             api(`/api/consultations/finances/weekly?range=${encodeURIComponent(currentRange)}`),
             api('/api/inventory/sales/summary').catch(() => null),
             api('/api/inventory/sales/list?limit=2000').catch(() => [])
@@ -2049,7 +2314,9 @@
           renderChart(weekly);
 
           pendingFilter.setData(pending);
-          paidFilter.setData(paid);
+          // Pagadas se pagina en el servidor: vuelve a la primera página con los
+          // filtros activos (la consulta recién cobrada aparece arriba).
+          paidFilter.reload();
 
           // by-doctor filtra fechas en el servidor: re-ejecuta su consulta con el rango activo.
           if (isAdmin && byDoctorFilter) byDoctorFilter.reload();

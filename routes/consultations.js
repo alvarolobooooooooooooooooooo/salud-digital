@@ -154,36 +154,104 @@ router.get('/finances/pending', authenticate, async (req, res) => {
   res.json(result.rows);
 });
 
+// Consultas pagadas. Con `limit` en la query devuelve una página (scroll infinito en
+// Finanzas): la BD hace filtro, orden y corte, así que una clínica con 10 años de
+// historial transfiere ~50 filas por petición en vez de todo el historial.
+// Sin `limit` mantiene la respuesta vieja (arreglo, tope 1000) para no romper una
+// pestaña abierta con la versión anterior del HTML durante un deploy.
 router.get('/finances/paid', authenticate, async (req, res) => {
   const { startDate, endDate } = req.query;
   if (startDate && !FINANCE_DATE_RE.test(startDate)) return res.status(400).json({ error: 'startDate inválido (use YYYY-MM-DD)' });
   if (endDate && !FINANCE_DATE_RE.test(endDate)) return res.status(400).json({ error: 'endDate inválido (use YYYY-MM-DD)' });
 
-  let queryStr = 'SELECT c.id, c.created_at, p.name as patient_name, p.phone, c.cost, c.doctor_id, c.specialty, u.name as doctor_name FROM consultations c JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id WHERE c.clinic_id = $1 AND c.payment_status = \'paid\'';
   const params = [req.user.clinic_id];
-  let paramIndex = 2;
+  const bind = value => { params.push(value); return '$' + params.length; };
+  const where = ['c.clinic_id = $1', "c.payment_status = 'paid'"];
 
-  if (startDate) {
-    queryStr += ` AND c.created_at::date >= $${paramIndex}`;
-    params.push(startDate);
-    paramIndex++;
+  if (startDate) where.push(`c.created_at::date >= ${bind(startDate)}`);
+  if (endDate) where.push(`c.created_at::date <= ${bind(endDate)}`);
+  if (req.user.role === 'doctor') where.push(`c.doctor_id = ${bind(req.user.id)}`);
+
+  const FROM = 'FROM consultations c JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id';
+  const COLS = 'c.id, c.created_at, p.name as patient_name, p.phone, c.cost, c.doctor_id, c.specialty, u.name as doctor_name';
+
+  if (req.query.limit === undefined) {
+    const legacy = await query(`SELECT ${COLS} ${FROM} WHERE ${where.join(' AND ')} ORDER BY c.created_at DESC LIMIT 1000`, params);
+    return res.json(legacy.rows);
   }
 
-  if (endDate) {
-    queryStr += ` AND c.created_at::date <= $${paramIndex}`;
-    params.push(endDate);
-    paramIndex++;
+  // Filtros que solo existen en modo paginado (antes se aplicaban en el cliente sobre
+  // el arreglo completo; ahora tienen que viajar a la BD).
+  const search = String(req.query.search || '').trim();
+  if (search) {
+    // \ es el escape por defecto de LIKE/ILIKE en Postgres: neutralizamos % y _ para
+    // que una búsqueda literal no se convierta en comodín.
+    const like = '%' + search.replace(/[\\%_]/g, m => '\\' + m) + '%';
+    const s = bind(like);
+    where.push(`(p.name ILIKE ${s} OR u.name ILIKE ${s} OR p.phone ILIKE ${s})`);
   }
+  const doctorId = parseInt(req.query.doctor, 10);
+  if (Number.isInteger(doctorId)) where.push(`c.doctor_id = ${bind(doctorId)}`);
+  const specialty = String(req.query.specialty || '').trim();
+  if (specialty) where.push(`c.specialty = ${bind(specialty)}`);
 
+  const SORT_COLUMNS = {
+    date: 'c.created_at', patient: 'p.name', doctor: 'u.name',
+    amount: 'c.cost', phone: 'p.phone'
+  };
+  const sortCol = SORT_COLUMNS[req.query.sort] || 'c.created_at';
+  const sortDir = String(req.query.dir || '').toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 200);
+  const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+  const whereSql = 'WHERE ' + where.join(' AND ');
+  const filterParams = params.slice(); // sin limit/offset: los reusa el agregado
+
+  // Pedimos una fila de más para saber si hay siguiente página sin contar todo.
+  // c.id como desempate mantiene el orden estable entre páginas (fechas repetidas).
+  const rowsSql = `SELECT ${COLS} ${FROM} ${whereSql} ORDER BY ${sortCol} ${sortDir} NULLS LAST, c.id DESC LIMIT ${bind(limit + 1)} OFFSET ${bind(offset)}`;
+
+  // Los totales solo se calculan en la primera página (el cliente los conserva
+  // mientras hace scroll): son un scan de todas las filas que casan y no tiene
+  // sentido repetirlo en cada página.
+  const [rowsResult, aggResult] = await Promise.all([
+    query(rowsSql, params),
+    offset === 0
+      ? query(`SELECT COUNT(*)::int as total, COALESCE(SUM(c.cost), 0) as total_amount ${FROM} ${whereSql}`, filterParams)
+      : Promise.resolve(null)
+  ]);
+
+  const hasMore = rowsResult.rows.length > limit;
+  const agg = aggResult ? aggResult.rows[0] : null;
+  res.json({
+    rows: hasMore ? rowsResult.rows.slice(0, limit) : rowsResult.rows,
+    hasMore,
+    limit,
+    offset,
+    total: agg ? agg.total : null,
+    total_amount: agg ? Number(agg.total_amount) : null
+  });
+});
+
+// Valores para los selects de "Consultas Pagadas". En modo paginado el cliente ya no
+// ve todas las filas, así que las opciones no se pueden derivar de lo cargado.
+router.get('/finances/paid/facets', authenticate, async (req, res) => {
+  const params = [req.user.clinic_id];
+  let scope = '';
   if (req.user.role === 'doctor') {
-    queryStr += ` AND c.doctor_id = $${paramIndex}`;
+    scope = ' AND c.doctor_id = $2';
     params.push(req.user.id);
-    paramIndex++;
   }
 
-  queryStr += ' ORDER BY c.created_at DESC LIMIT 1000';
-  const result = await query(queryStr, params);
-  res.json(result.rows);
+  const [doctors, specialties] = await Promise.all([
+    query(`SELECT DISTINCT c.doctor_id as id, u.name FROM consultations c JOIN users u ON c.doctor_id = u.id WHERE c.clinic_id = $1 AND c.payment_status = 'paid'${scope} ORDER BY u.name`, params),
+    query(`SELECT DISTINCT c.specialty FROM consultations c WHERE c.clinic_id = $1 AND c.payment_status = 'paid' AND COALESCE(c.specialty, '') <> ''${scope} ORDER BY c.specialty`, params)
+  ]);
+
+  res.json({
+    doctors: doctors.rows,
+    specialties: specialties.rows.map(r => r.specialty)
+  });
 });
 
 router.get('/finances/by-doctor', authenticate, async (req, res) => {

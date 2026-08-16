@@ -391,6 +391,11 @@ const initDb = async () => {
       // El índice sobre doctor_id va aquí (no en el CREATE) porque la columna se
       // agrega por ALTER: en una BD nueva el índice fallaría si corriera antes.
       'CREATE INDEX IF NOT EXISTS idx_consultations_doctor ON consultations(doctor_id)',
+      // Mismo motivo (payment_status es ALTER). Sostiene las tablas de Finanzas
+      // (pagadas/pendientes) que filtran por clínica + estado y ordenan por fecha:
+      // con paginación el motor puede leer solo la página pedida en vez de escanear
+      // todo el historial de la clínica.
+      'CREATE INDEX IF NOT EXISTS idx_consultations_clinic_status_created ON consultations(clinic_id, payment_status, created_at DESC)',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS visit_reason TEXT DEFAULT \'\'',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS appointment_id INTEGER',
       'ALTER TABLE patients ADD COLUMN IF NOT EXISTS odontogram_state TEXT DEFAULT \'{}\'',
