@@ -40,7 +40,7 @@ async function abrirSesion(user, req, res) {
 router.post('/login', async (req, res) => {
   const { email, password, code } = req.body || {};
   if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
-    return res.status(400).json({ error: 'Email and password required' });
+    return res.status(400).json({ error: 'Escribe tu correo y tu contraseña.' });
   }
   const normalizedEmail = email.trim().toLowerCase();
 
@@ -51,11 +51,11 @@ router.post('/login', async (req, res) => {
   const hashToCheck = user ? user.password : DUMMY_HASH;
   const ok = await bcrypt.compare(password, hashToCheck);
   if (!user || !ok) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return res.status(401).json({ error: 'Correo o contraseña incorrectos.' });
   }
 
   if (!user.clinic_id && user.role === 'doctor') {
-    return res.status(403).json({ error: 'Your account has been deactivated. Contact your clinic administrator.' });
+    return res.status(403).json({ error: 'Tu cuenta está desactivada. Contacta al administrador de tu clínica.' });
   }
 
   if (user.two_factor_enabled) {
