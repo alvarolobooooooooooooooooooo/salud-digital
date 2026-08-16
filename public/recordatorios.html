@@ -321,6 +321,21 @@
     }
     .date-group .head .relative{color:var(--teal-700); font-weight:600}
 
+    /* Archivadas: citas cuyo día ya pasó */
+    .table tbody tr.past td{opacity:.68}
+    .table tbody tr.past:hover td{opacity:.92}
+    .row-past-note{font-size:12px; color:var(--ink-3); white-space:nowrap}
+    tr.load-more td{padding:16px; text-align:center; border-bottom:none}
+    .lm-btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 16px; border-radius:10px; cursor:pointer;
+      border:1px solid var(--line); background:var(--surface-2);
+      color:var(--ink-2); font-size:13px; font-weight:600; font-family:inherit;
+      transition:border-color .15s, color .15s;
+    }
+    .lm-btn:hover{border-color:var(--line-strong); color:var(--ink)}
+    .lm-hint{display:block; margin-top:6px; font-size:11.5px; color:var(--ink-3)}
+
     .cb{
       width:18px; height:18px; border-radius:5px;
       border:1.5px solid var(--line-strong); background:#fff;
@@ -923,6 +938,11 @@
       .table tbody tr:not(.date-group) > td:nth-child(5){grid-area:status}
       .table tbody tr:not(.date-group) > td:nth-child(6){grid-area:action; align-self:center}
 
+      /* Filas de una sola celda (estado vacío / cargar más): fuera de la rejilla */
+      .table tbody tr.load-more, .table tbody tr.empty-row{display:block; padding:0; border-bottom:none}
+      .table tbody tr.load-more > td{display:block; padding:16px; text-align:center}
+      .table tbody tr.empty-row > td{display:block; padding:28px 16px}
+
       .row-actions{justify-content:flex-end; gap:4px}
       .mini-btn{display:none}
       .btn-send, .btn-add{white-space:nowrap; padding:7px 12px; font-size:12.5px}
@@ -1094,18 +1114,19 @@
         <button data-tab="manual_sent">Enviados <span class="pill" data-count="manual_sent">0</span></button>
         <button data-tab="no_whatsapp_number">Sin WhatsApp <span class="pill" data-count="no_whatsapp_number">0</span></button>
         <button data-tab="today">Hoy <span class="pill" data-count="today">0</span></button>
+        <button data-tab="archived">Archivadas <span class="pill" data-count="archived">0</span></button>
       </div>
       <div class="spacer"></div>
       <span class="chip" id="rangeChip">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
-        Próximos 14 días
+        <span id="rangeChipLabel">Próximas citas</span>
       </span>
     </div>
 
     <!-- Card with table -->
     <div class="card">
       <div class="card-head">
-        <h3>Recordatorios próximos</h3>
+        <h3 id="cardTitle">Recordatorios próximos</h3>
         <span class="meta" id="resultMeta">Cargando…</span>
         <div class="actions">
           <button class="btn btn-ghost" id="openConfigBtn2">
@@ -1131,7 +1152,7 @@
             </tr>
           </thead>
           <tbody id="remindersBody">
-            <tr><td colspan="6" class="empty"><h4>Cargando recordatorios…</h4></td></tr>
+            <tr class="empty-row"><td colspan="6" class="empty"><h4>Cargando recordatorios…</h4></td></tr>
           </tbody>
         </table>
       </div>
@@ -1390,13 +1411,19 @@
   ];
   const DOCTOR_PALETTE = ['#0891B2','#6366F1','#F59E0B','#EC4899','#10B981','#A855F7','#F43F5E'];
 
-  let allReminders = [];
+  const PAGE_SIZE = 25;
+
+  let allReminders = [];      // todas (activas + archivadas), para búsquedas por id
+  let activeReminders = [];   // citas de hoy en adelante, de la más próxima a la más lejana
+  let archivedReminders = []; // citas cuyo día ya pasó, de la más reciente a la más antigua
   let waConfig = { whatsapp_enabled: false, whatsapp_number: '', whatsapp_template: '', name: '' };
   let currentTab = 'all';
   let selected = new Set();
   let openRowId = null;
   let pendingConfirm = null;
   let doctorColors = {};
+  let visibleCount = PAGE_SIZE;
+  let moreObserver = null;
 
   // ───────────── Helpers ─────────────
   function hashStr(s){
@@ -1462,6 +1489,14 @@
     if (diff < 0 && diff > -7) return `Hace ${-diff} días`;
     return '';
   }
+  // Una cita se archiva cuando su día ya terminó: recordarla no sirve de nada.
+  // El corte es por día (no por hora) para que las citas de hoy sigan visibles
+  // toda la jornada, aunque su hora ya haya pasado.
+  function isArchived(iso){
+    const p = toLocalParts(iso); if (!p) return false;
+    const today = new Date(); today.setHours(0,0,0,0);
+    return new Date(p.y, p.m-1, p.d) < today;
+  }
   function fmtSentAt(iso){
     if (!iso) return '';
     const p = toLocalParts(iso); if (!p) return '';
@@ -1517,9 +1552,14 @@
     document.getElementById('syncStatus').textContent = 'Sistema activo · Sincronizando…';
     try {
       const data = await api('/api/reminders');
-      allReminders = (data || []).slice().sort((a,b) => {
-        return new Date(b.scheduled_at) - new Date(a.scheduled_at);
-      });
+      const rows = (data || []).slice();
+      // Próximas: la más cercana primero. Archivadas: la más reciente primero.
+      activeReminders = rows.filter(r => !isArchived(r.scheduled_at))
+        .sort((a,b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
+      archivedReminders = rows.filter(r => isArchived(r.scheduled_at))
+        .sort((a,b) => new Date(b.scheduled_at) - new Date(a.scheduled_at));
+      allReminders = activeReminders.concat(archivedReminders);
+      visibleCount = PAGE_SIZE;
       render();
       const now = new Date();
       const tt = now.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
@@ -1527,14 +1567,15 @@
     } catch (e) {
       console.error(e);
       document.getElementById('remindersBody').innerHTML =
-        '<tr><td colspan="6" class="empty"><h4>Error al cargar recordatorios</h4><p>'+esc(e.message || '')+'</p></td></tr>';
+        '<tr class="empty-row"><td colspan="6" class="empty"><h4>Error al cargar recordatorios</h4><p>'+esc(e.message || '')+'</p></td></tr>';
       document.getElementById('syncStatus').textContent = 'Error de sincronización';
     }
   }
 
   // ───────────── Filtering / rendering ─────────────
   function filteredRows(){
-    let rows = allReminders.slice();
+    if (currentTab === 'archived') return archivedReminders.slice();
+    let rows = activeReminders.slice();
     if (currentTab === 'today') {
       rows = rows.filter(r => relativeDay(r.scheduled_at) === 'Hoy');
     } else if (currentTab !== 'all') {
@@ -1544,16 +1585,20 @@
   }
 
   function updateKpis(){
-    const total = allReminders.length;
-    const pending = allReminders.filter(r => getState(r) === 'pending').length;
-    const sent = allReminders.filter(r => getState(r) === 'manual_sent').length;
-    const noWhats = allReminders.filter(r => getState(r) === 'no_whatsapp_number').length;
-    const today = allReminders.filter(r => relativeDay(r.scheduled_at) === 'Hoy').length;
-    const pendingToday = allReminders.filter(r =>
+    // Los KPIs miran solo las citas próximas; las archivadas ya no son accionables.
+    const total = activeReminders.length;
+    const archived = archivedReminders.length;
+    const pending = activeReminders.filter(r => getState(r) === 'pending').length;
+    const sent = activeReminders.filter(r => getState(r) === 'manual_sent').length;
+    const noWhats = activeReminders.filter(r => getState(r) === 'no_whatsapp_number').length;
+    const today = activeReminders.filter(r => relativeDay(r.scheduled_at) === 'Hoy').length;
+    const pendingToday = activeReminders.filter(r =>
       getState(r) === 'pending' && relativeDay(r.scheduled_at) === 'Hoy'
     ).length;
 
-    document.getElementById('kpiTotal').innerHTML = `${total}<span class="unit">recordatorios</span>`;
+    document.getElementById('kpiTotal').innerHTML = `${total}<span class="unit">próximas</span>`;
+    document.getElementById('kpiTotalTrend').textContent =
+      archived > 0 ? `${archived} archivada${archived === 1 ? '' : 's'}` : 'Total recordatorios';
     document.getElementById('kpiPending').textContent = pending;
     document.getElementById('kpiPendingTodayLabel').textContent = `${pendingToday} para hoy`;
     document.getElementById('kpiSent').innerHTML = `${sent}<span class="unit" id="kpiSentUnit">/ ${total}</span>`;
@@ -1566,7 +1611,8 @@
       pending,
       manual_sent: sent,
       no_whatsapp_number: noWhats,
-      today
+      today,
+      archived
     };
     document.querySelectorAll('[data-count]').forEach(el => {
       const k = el.getAttribute('data-count');
@@ -1578,14 +1624,18 @@
     const state = getState(r);
     const stat = statusInfo(state);
     const isSel = selected.has(r.appointment_id);
+    const past = isArchived(r.scheduled_at);
     const isUrgent = state === 'pending' && relativeDay(r.scheduled_at) === 'Hoy';
     const grad = gradPair(r.patient_name || '');
     const docCol = doctorColor(r.doctor_name);
     const f = fmtDate(r.scheduled_at);
-    const canSelect = state === 'pending' || state === 'manual_sent';
+    const canSelect = !past && (state === 'pending' || state === 'manual_sent');
 
     let actions;
-    if (state === 'whatsapp_disabled') {
+    if (past) {
+      // Cita vencida: solo consulta, ya no se envía nada.
+      actions = `<span class="row-past-note">${state === 'manual_sent' ? 'Se envió' : 'No se envió'}</span>`;
+    } else if (state === 'whatsapp_disabled') {
       actions = `<button class="btn-add" data-act="config">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33 1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Configurar
@@ -1612,7 +1662,7 @@
       : '';
 
     return `
-      <tr data-id="${esc(String(r.appointment_id))}" class="${isSel?'selected':''} ${isUrgent?'urgent':''}">
+      <tr data-id="${esc(String(r.appointment_id))}" class="${isSel?'selected':''} ${isUrgent?'urgent':''} ${past?'past':''}">
         <td style="padding-right:0" data-act="cb">
           ${canSelect ? `<div class="cb ${isSel?'on':''}" role="checkbox" aria-checked="${isSel}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg></div>` : ''}
         </td>
@@ -1653,30 +1703,44 @@
     `;
   }
 
+  function updateViewChrome(){
+    const isArchive = currentTab === 'archived';
+    document.getElementById('cardTitle').textContent =
+      isArchive ? 'Citas archivadas' : 'Recordatorios próximos';
+    document.getElementById('rangeChipLabel').textContent =
+      isArchive ? 'Citas ya pasadas' : 'Próximas citas';
+  }
+
   function render(){
     updateKpis();
+    updateViewChrome();
     const rows = filteredRows();
+    const shown = Math.min(visibleCount, rows.length);
     document.getElementById('resultMeta').textContent =
-      `Mostrando ${rows.length} de ${allReminders.length} citas`;
+      rows.length === 0
+        ? 'Sin citas en esta vista'
+        : `Mostrando ${shown} de ${rows.length} citas`;
 
     const tbody = document.getElementById('remindersBody');
     if (rows.length === 0) {
+      const archive = currentTab === 'archived';
       tbody.innerHTML = `
-        <tr><td colspan="6" class="empty">
+        <tr class="empty-row"><td colspan="6" class="empty">
           <div class="ic-wrap">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
           </div>
-          <h4>No hay recordatorios que coincidan</h4>
-          <p>Prueba con otro filtro o ajusta el rango de fechas.</p>
+          <h4>${archive ? 'No hay citas archivadas' : 'No hay recordatorios que coincidan'}</h4>
+          <p>${archive ? 'Aquí se guardan las citas cuyo día ya pasó.' : 'Prueba con otro filtro o revisa las citas archivadas.'}</p>
         </td></tr>`;
+      observeMore();
       updateBulk();
       updateCbAll();
       return;
     }
 
-    // Group by date key
+    // Group by date key — solo el tramo visible (el resto se carga al hacer scroll)
     const groups = new Map();
-    rows.forEach(r => {
+    rows.slice(0, shown).forEach(r => {
       const k = dateKey(r.scheduled_at);
       if (!groups.has(k)) groups.set(k, []);
       groups.get(k).push(r);
@@ -1698,13 +1762,49 @@
       `);
       items.forEach(r => html.push(renderRow(r)));
     }
+
+    const remaining = rows.length - shown;
+    if (remaining > 0) {
+      html.push(`
+        <tr class="load-more" id="loadMoreRow"><td colspan="6">
+          <button class="lm-btn" id="loadMoreBtn" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+            Cargar ${Math.min(PAGE_SIZE, remaining)} más
+          </button>
+          <span class="lm-hint">Quedan ${remaining} cita${remaining === 1 ? '' : 's'}</span>
+        </td></tr>
+      `);
+    }
+
     tbody.innerHTML = html.join('');
+    observeMore();
     updateBulk();
     updateCbAll();
   }
 
+  // ───────────── Carga por tramos ─────────────
+  function loadMore(){
+    const total = filteredRows().length;
+    if (visibleCount >= total) return;
+    visibleCount += PAGE_SIZE;
+    render();
+  }
+
+  function observeMore(){
+    if (moreObserver) moreObserver.disconnect();
+    const row = document.getElementById('loadMoreRow');
+    if (!row || !('IntersectionObserver' in window)) return; // sin soporte queda el botón
+    if (!moreObserver) {
+      moreObserver = new IntersectionObserver((entries) => {
+        if (entries.some(e => e.isIntersecting)) loadMore();
+      }, { rootMargin: '400px 0px' });
+    }
+    moreObserver.observe(row);
+  }
+
   function updateCbAll(){
     const selectable = filteredRows().filter(r => {
+      if (isArchived(r.scheduled_at)) return false;
       const s = getState(r);
       return s === 'pending' || s === 'manual_sent';
     });
@@ -1733,6 +1833,7 @@
 
   function toggleSelectAll(){
     const selectable = filteredRows().filter(r => {
+      if (isArchived(r.scheduled_at)) return false;
       const s = getState(r);
       return s === 'pending' || s === 'manual_sent';
     });
@@ -1747,6 +1848,11 @@
   function sendReminder(appointmentId){
     const r = allReminders.find(x => x.appointment_id === appointmentId);
     if (!r) return;
+
+    if (isArchived(r.scheduled_at)) {
+      showToast('Esta cita ya pasó — está archivada.');
+      return;
+    }
 
     const state = getState(r);
     if (state === 'whatsapp_disabled') {
@@ -1815,7 +1921,7 @@
     const grad = gradPair(r.patient_name || '');
     const docCol = doctorColor(r.doctor_name);
     const message = buildMessage(r);
-    const messageEditable = state === 'pending' || state === 'manual_sent';
+    const messageEditable = !isArchived(r.scheduled_at) && (state === 'pending' || state === 'manual_sent');
 
     const drawer = document.getElementById('drawer');
     drawer.innerHTML = `
@@ -2077,10 +2183,22 @@
     document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('on'));
     btn.classList.add('on');
     currentTab = btn.getAttribute('data-tab');
+    visibleCount = PAGE_SIZE;
     render();
+    scrollToTable();
   });
 
+  // Al cambiar de pestaña volvemos al inicio de la tabla: si el usuario venía
+  // scrolleado abajo, el observador seguiría pidiendo tramos sin parar.
+  function scrollToTable(){
+    const card = document.querySelector('.card');
+    if (!card) return;
+    const top = Math.max(0, card.getBoundingClientRect().top + window.scrollY - 90);
+    if (window.scrollY > top) window.scrollTo(0, top);
+  }
+
   document.getElementById('remindersBody').addEventListener('click', (e) => {
+    if (e.target.closest('#loadMoreBtn')) { loadMore(); return; }
     const cell = e.target.closest('[data-act]');
     const tr = e.target.closest('tr[data-id]');
     if (!tr) return;
@@ -2089,6 +2207,7 @@
     if (!r) return;
 
     if (cell && cell.getAttribute('data-act') === 'cb') {
+      if (isArchived(r.scheduled_at)) return;
       const state = getState(r);
       if (state === 'pending' || state === 'manual_sent') toggleSelect(id);
       return;
@@ -2132,6 +2251,7 @@
     for (const id of selected) {
       const r = allReminders.find(x => x.appointment_id === id);
       if (!r) continue;
+      if (isArchived(r.scheduled_at)) { invalid++; continue; }
       const state = getState(r);
       if (state !== 'pending' && state !== 'manual_sent') { invalid++; continue; }
       const phone = WhatsApp.normalizePhone(r.phone);
