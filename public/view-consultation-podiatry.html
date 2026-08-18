@@ -1490,7 +1490,7 @@ async function loadConsultation() {
   try {
     const me = await api('/api/auth/me');
     
-    if (me.role === 'doctor' && isWrongConsultationPage(me.specialty, 'Podología')) {
+    if (me.role === 'doctor' && me.specialty !== 'Podología') {
       window.location.href = '/citas.html';
       return;
     }
