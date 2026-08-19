@@ -387,7 +387,9 @@
 <script src="/common.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
+<!-- Inventario desactivado — para reactivar, descomentar esta línea:
 <script src="/consultation-inventory.js"></script>
+-->
 <script src="/consultation-draft.js"></script>
 <script src="/derma-bodymap.js"></script>
 <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
@@ -949,7 +951,9 @@ function Cobro({ data, set }) {
           <Input placeholder="Método, factura, observaciones…" value={data.notas} onChange={(e) => set({ notas: e.target.value })} />
         </Field>
       </div>
+      {/* Inventario desactivado — para reactivar, descomentar esta línea:
       <div className="dz-subsection"><div id="inventoryUsageSection"></div></div>
+      */}
     </Card>
   );
 }

@@ -1328,8 +1328,10 @@
       </div>
     </div>
 
-    <!-- Inventario usado en esta consulta (read-only) -->
+    <!-- Inventario desactivado — para reactivar, descomentar este bloque:
+    Inventario usado en esta consulta (read-only)
     <div id="inventoryUsageSection"></div>
+    -->
 
     <!-- ─── Sección 5: Pago ─── -->
     <div class="pod-group is-collapsed" data-group-idx="4">
@@ -1372,7 +1374,9 @@
 <script src="/common.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
+<!-- Inventario desactivado — para reactivar, descomentar esta línea:
 <script src="/consultation-inventory.js"></script>
+-->
 <script src="/podogram-container.js"></script>
 <script>
 requireAuth(['clinic_admin', 'doctor']);

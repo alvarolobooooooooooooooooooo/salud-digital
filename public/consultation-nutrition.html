@@ -135,7 +135,7 @@
       box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06), 0 8px 24px -8px rgba(15, 23, 42, 0.08);
       border: 1px solid rgba(15, 23, 42, 0.06);
       /* Altura del iframe: ocupa ~75% del viewport para que las 3 secciones
-         (consentimiento, inventario, pago) sean visibles haciendo scroll. */
+         (consentimiento, pago) sean visibles haciendo scroll. */
       height: 75dvh;
       min-height: 540px;
     }
@@ -398,7 +398,9 @@
       </div>
     </div>
 
-    <!-- ── 3. Inventario utilizado ── -->
+    <!-- ── 3. Inventario utilizado — DESACTIVADO ──
+         Para reactivar, descomentar este bloque y renumerar de nuevo las
+         secciones siguientes (Información de pago vuelve a ser la 4).
     <div class="form-section">
       <div class="section-head" onclick="toggleSection(this)">
         <span class="section-num">3</span>
@@ -412,11 +414,12 @@
       </div>
       <div id="inventoryUsageSection"></div>
     </div>
+    -->
 
-    <!-- ── 4. Información de pago ── -->
+    <!-- ── 3. Información de pago ── -->
     <div class="form-section">
       <div class="section-head" onclick="toggleSection(this)">
-        <span class="section-num">4</span>
+        <span class="section-num">3</span>
         <div style="flex:1;">
           <h3>Información de Pago</h3>
           <div class="section-help">Costo y estado de cobro de la consulta.</div>
@@ -454,7 +457,9 @@
 <script src="/common.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
+<!-- Inventario desactivado — para reactivar, descomentar esta línea:
 <script src="/consultation-inventory.js"></script>
+-->
 <script src="/consultation-draft.js"></script>
 
 <script>

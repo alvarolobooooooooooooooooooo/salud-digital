@@ -36,7 +36,8 @@
     '/clinical-record.html': '',
     '/medical-record.html': '',
     '/admin.html': 'admin',
-    '/inventario.html': 'inventario',
+    // Inventario desactivado — para reactivar, descomentar esta línea:
+    // '/inventario.html': 'inventario',
     '/configuracion.html': 'configuracion',
     '/recepcion-inicio.html': 'rec-inicio',
     '/recepcion-citas.html': 'rec-citas',
@@ -111,12 +112,14 @@
             { href: '/mi-sitio.html', key: 'mi-sitio', iconName: 'globe', label: 'Mi Sitio Web' }
           ]
         },
-        {
-          label: 'OPERACIONES',
-          items: [
-            { href: '/inventario.html', key: 'inventario', iconName: 'package', label: 'Inventario' }
-          ]
-        },
+        // Inventario desactivado — la sección OPERACIONES solo contenía esa entrada.
+        // Para reactivar, descomentar este bloque:
+        // {
+        //   label: 'OPERACIONES',
+        //   items: [
+        //     { href: '/inventario.html', key: 'inventario', iconName: 'package', label: 'Inventario' }
+        //   ]
+        // },
         {
           label: 'AJUSTES',
           items: [
@@ -281,13 +284,17 @@
               <span>Mi Sitio Web</span>
             </a>` : ''}
           </div>
-          ${isClinicAdmin ? `<div class="sidebar-section">
-            <div class="sidebar-label">OPERACIONES</div>
-            <a href="/inventario.html" class="sidebar-menu-link">
-              <span id="inventarioMenuIcon"></span>
-              <span>Inventario</span>
-            </a>
-          </div>` : ''}
+          <!-- Sección OPERACIONES del cajón móvil desactivada: su única entrada
+               (Inventario) está desactivada. Para reactivar, descomentar este bloque
+               y volver a interpolarlo con \${isClinicAdmin ? \`…\` : ''}:
+            <div class="sidebar-section">
+              <div class="sidebar-label">OPERACIONES</div>
+              <a href="/inventario.html" class="sidebar-menu-link">
+                <span id="inventarioMenuIcon"></span>
+                <span>Inventario</span>
+              </a>
+            </div>
+          -->
           <div class="sidebar-section">
             <div class="sidebar-label">AJUSTES</div>
             <a href="/configuracion.html" class="sidebar-menu-link">
@@ -464,9 +471,9 @@
     const confirmsIcon = document.querySelector('#confirmsIcon');
     if (confirmsIcon && !confirmsIcon.innerHTML.trim()) confirmsIcon.innerHTML = Icons.render('check', 16);
 
-    // Inventario menu icon
-    const inventarioMenuIcon = document.querySelector('#inventarioMenuIcon');
-    if (inventarioMenuIcon && !inventarioMenuIcon.innerHTML.trim()) inventarioMenuIcon.innerHTML = Icons.render('package', 16);
+    // Inventario desactivado — para reactivar, descomentar estas líneas:
+    // const inventarioMenuIcon = document.querySelector('#inventarioMenuIcon');
+    // if (inventarioMenuIcon && !inventarioMenuIcon.innerHTML.trim()) inventarioMenuIcon.innerHTML = Icons.render('package', 16);
 
     // Mi Sitio Web menu icon (drawer móvil)
     const miSitioMenuIcon = document.querySelector('#miSitioMenuIcon');

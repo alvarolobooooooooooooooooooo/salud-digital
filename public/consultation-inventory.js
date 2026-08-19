@@ -25,6 +25,16 @@
 (function (global) {
   'use strict';
 
+  // ── Inventario desactivado ────────────────────────────────────────────────
+  // Interruptor único de toda la función de inventario dentro de las historias
+  // clínicas. Al no publicar window.ConsultationInventory, las páginas de
+  // consulta (general, odontología, ortodoncia, periodoncia, podología,
+  // dermatología, nutrición) y las vistas de solo lectura se saltan la sección
+  // por sí solas: todas la montan detrás de `if (window.ConsultationInventory)`.
+  // Para reactivar, borrar este return.
+  return;
+  // ──────────────────────────────────────────────────────────────────────────
+
   if (global.ConsultationInventory) return;
 
   // ── Style injection (idempotent) ──

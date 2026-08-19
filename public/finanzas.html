@@ -1327,7 +1327,7 @@
     </div>
   </div>
 
-  <!-- Product profits -->
+  <!-- Ganancias por productos — DESACTIVADO con el inventario. Para reactivar, descomentar este bloque:
   <div class="section">
     <h3>Ganancias por productos</h3>
     <div class="product-profit-grid">
@@ -1367,6 +1367,7 @@
       <div style="padding:1rem;color:#94a3b8;font-size:.92rem;">Cargando…</div>
     </div>
   </div>
+  -->
 
   <!-- Breakdown by Doctor (Clinic Admin Only) -->
   <div class="section" id="byDoctorSection" style="display: none;">
@@ -1431,7 +1432,7 @@
     </table>
   </div>
 
-  <!-- Product Sales Table -->
+  <!-- Ventas de productos — DESACTIVADO con el inventario. Para reactivar, descomentar este bloque:
   <div class="section">
     <h3>Ventas de productos</h3>
     <div class="fin-filterbar" id="salesFilter"></div>
@@ -1452,6 +1453,7 @@
       </tbody>
     </table>
   </div>
+  -->
 </main>
 
 <!-- Payment Status Modal -->
@@ -1945,8 +1947,9 @@
       // Consultas pagadas ya no se trae completa: paidFilter pide su primera página
       // más abajo y el resto llega por scroll.
       const weekly = await api('/api/consultations/finances/weekly');
-      const prodSummary = await api('/api/inventory/sales/summary').catch(() => null);
-      const prodSales = await api('/api/inventory/sales/list?limit=2000').catch(() => []);
+      // Inventario desactivado — para reactivar, descomentar estas dos líneas:
+      // const prodSummary = await api('/api/inventory/sales/summary').catch(() => null);
+      // const prodSales = await api('/api/inventory/sales/list?limit=2000').catch(() => []);
 
       const fmtNum = n => Number(n || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       const todayKey = new Date().toISOString().split('T')[0];
@@ -2117,43 +2120,44 @@
         }).catch(e => console.error('paid facets', e));
       }
 
-      const salesFilter = createFinFilter({
-        barId: 'salesFilter', bodyId: 'productSalesTable', colspan: 7, truncateAt: 2000, titleCol: 1,
-        emptyMsg: 'No hay ventas de productos registradas',
-        searchPlaceholder: 'Buscar producto…',
-        date: { accessor: r => r.created_at },
-        search: { accessor: r => `${r.item_name || ''}` },
-        selects: [
-          { key: 'user', label: 'Registrado por', placeholder: 'Todos', accessor: r => r.user_name || '' },
-        ],
-        sortable: [
-          { key: 'date', accessor: r => finTs(r.created_at), type: 'num' },
-          { key: 'product', accessor: r => (r.item_name || '').toLowerCase(), type: 'text' },
-          { key: 'qty', accessor: r => Number(r.quantity) || 0, type: 'num' },
-          { key: 'cost', accessor: r => Number(r.unit_cost_at_sale) || 0, type: 'num' },
-          { key: 'price', accessor: r => Number(r.unit_sale_price) || 0, type: 'num' },
-          { key: 'profit', accessor: r => Number(r.profit) || 0, type: 'num' },
-          { key: 'user', accessor: r => (r.user_name || '').toLowerCase(), type: 'text' },
-        ],
-        sortDefault: { key: 'date', dir: 'desc' },
-        totals: [
-          { label: 'Ganancia', accessor: r => Number(r.profit) || 0, money: true },
-          { label: 'Ingreso', accessor: r => Number(r.revenue != null ? r.revenue : (Number(r.unit_sale_price) || 0) * (Number(r.quantity) || 0)), money: true },
-        ],
-        renderRow: s => {
-          const profit = Number(s.profit || 0);
-          const profitColor = profit >= 0 ? '#15803d' : '#b91c1c';
-          return `<tr>
-            <td>${finDate(s.created_at)}</td>
-            <td><strong>${esc(s.item_name)}</strong></td>
-            <td>${Number(s.quantity).toLocaleString('es-HN')} ${esc(s.item_unit || '')}</td>
-            <td>${finMoney(s.unit_cost_at_sale || 0)}</td>
-            <td>${finMoney(s.unit_sale_price || 0)}</td>
-            <td><strong style="color:${profitColor}">${finMoney(profit)}</strong></td>
-            <td>${esc(s.user_name || '—')}</td>
-          </tr>`;
-        },
-      });
+      // Inventario desactivado — para reactivar, descomentar este bloque:
+      // const salesFilter = createFinFilter({
+        // barId: 'salesFilter', bodyId: 'productSalesTable', colspan: 7, truncateAt: 2000, titleCol: 1,
+        // emptyMsg: 'No hay ventas de productos registradas',
+        // searchPlaceholder: 'Buscar producto…',
+        // date: { accessor: r => r.created_at },
+        // search: { accessor: r => `${r.item_name || ''}` },
+        // selects: [
+          // { key: 'user', label: 'Registrado por', placeholder: 'Todos', accessor: r => r.user_name || '' },
+        // ],
+        // sortable: [
+          // { key: 'date', accessor: r => finTs(r.created_at), type: 'num' },
+          // { key: 'product', accessor: r => (r.item_name || '').toLowerCase(), type: 'text' },
+          // { key: 'qty', accessor: r => Number(r.quantity) || 0, type: 'num' },
+          // { key: 'cost', accessor: r => Number(r.unit_cost_at_sale) || 0, type: 'num' },
+          // { key: 'price', accessor: r => Number(r.unit_sale_price) || 0, type: 'num' },
+          // { key: 'profit', accessor: r => Number(r.profit) || 0, type: 'num' },
+          // { key: 'user', accessor: r => (r.user_name || '').toLowerCase(), type: 'text' },
+        // ],
+        // sortDefault: { key: 'date', dir: 'desc' },
+        // totals: [
+          // { label: 'Ganancia', accessor: r => Number(r.profit) || 0, money: true },
+          // { label: 'Ingreso', accessor: r => Number(r.revenue != null ? r.revenue : (Number(r.unit_sale_price) || 0) * (Number(r.quantity) || 0)), money: true },
+        // ],
+        // renderRow: s => {
+          // const profit = Number(s.profit || 0);
+          // const profitColor = profit >= 0 ? '#15803d' : '#b91c1c';
+          // return `<tr>
+            // <td>${finDate(s.created_at)}</td>
+            // <td><strong>${esc(s.item_name)}</strong></td>
+            // <td>${Number(s.quantity).toLocaleString('es-HN')} ${esc(s.item_unit || '')}</td>
+            // <td>${finMoney(s.unit_cost_at_sale || 0)}</td>
+            // <td>${finMoney(s.unit_sale_price || 0)}</td>
+            // <td><strong style="color:${profitColor}">${finMoney(profit)}</strong></td>
+            // <td>${esc(s.user_name || '—')}</td>
+          // </tr>`;
+        // },
+      // });
 
       let byDoctorFilter = null;
       if (isAdmin) {
@@ -2197,7 +2201,8 @@
         });
       }
 
-      renderProductSales(prodSummary, prodSales);
+      // Inventario desactivado — para reactivar, descomentar esta línea:
+      // renderProductSales(prodSummary, prodSales);
 
       pageLoader.classList.add('hidden');
 
@@ -2249,63 +2254,69 @@
         pmCurrentId = null;
       };
 
-      function renderProductSales(summary, sales) {
-        const m = summary?.month || {};
-        const h = summary?.historic || {};
-        const top = summary?.top_products || [];
-        document.getElementById('prodProfitMonth').textContent = 'L. ' + fmtNum(m.profit || 0);
-        document.getElementById('prodRevenueMonth').textContent = 'L. ' + fmtNum(m.revenue || 0);
-        document.getElementById('prodProfitHistoric').textContent = 'L. ' + fmtNum(h.profit || 0);
-        const monthSub = document.getElementById('prodProfitMonthSub');
-        if (monthSub) {
-          const count = Number(m.sales_count || 0);
-          const units = Number(m.units || 0);
-          monthSub.textContent = `${count} venta${count === 1 ? '' : 's'} · ${units} unidad${units === 1 ? '' : 'es'}`;
-        }
-        const histSub = document.getElementById('prodProfitHistoricSub');
-        if (histSub) {
-          const count = Number(h.sales_count || 0);
-          histSub.textContent = count > 0 ? `${count} ventas acumuladas` : 'Acumulado total';
-        }
+      // Inventario desactivado — para reactivar, descomentar esta función:
+      // function renderProductSales(summary, sales) {
+        // const m = summary?.month || {};
+        // const h = summary?.historic || {};
+        // const top = summary?.top_products || [];
+        // document.getElementById('prodProfitMonth').textContent = 'L. ' + fmtNum(m.profit || 0);
+        // document.getElementById('prodRevenueMonth').textContent = 'L. ' + fmtNum(m.revenue || 0);
+        // document.getElementById('prodProfitHistoric').textContent = 'L. ' + fmtNum(h.profit || 0);
+        // const monthSub = document.getElementById('prodProfitMonthSub');
+        // if (monthSub) {
+          // const count = Number(m.sales_count || 0);
+          // const units = Number(m.units || 0);
+          // monthSub.textContent = `${count} venta${count === 1 ? '' : 's'} · ${units} unidad${units === 1 ? '' : 'es'}`;
+        // }
+        // const histSub = document.getElementById('prodProfitHistoricSub');
+        // if (histSub) {
+          // const count = Number(h.sales_count || 0);
+          // histSub.textContent = count > 0 ? `${count} ventas acumuladas` : 'Acumulado total';
+        // }
 
-        const topEl = document.getElementById('topProductsList');
-        if (top.length === 0) {
-          topEl.innerHTML = '<div style="padding:1rem;color:#94a3b8;font-size:.92rem;">Aún no hay ventas registradas este mes.</div>';
-        } else {
-          topEl.innerHTML = top.map(p => {
-            const thumb = p.image_url
-              ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}">`
-              : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>';
-            const profitColor = Number(p.profit || 0) >= 0 ? '#15803d' : '#b91c1c';
-            return `
-              <div class="top-product-row">
-                <div class="top-product-thumb">${thumb}</div>
-                <div class="top-product-info">
-                  <div class="top-product-name">${esc(p.name)}</div>
-                  <div class="top-product-meta">${Number(p.units || 0)} u · Ingreso L. ${fmtNum(p.revenue || 0)}</div>
-                </div>
-                <div class="top-product-profit" style="color:${profitColor}">L. ${fmtNum(p.profit || 0)}</div>
-              </div>`;
-          }).join('');
-        }
+        // const topEl = document.getElementById('topProductsList');
+        // if (top.length === 0) {
+          // topEl.innerHTML = '<div style="padding:1rem;color:#94a3b8;font-size:.92rem;">Aún no hay ventas registradas este mes.</div>';
+        // } else {
+          // topEl.innerHTML = top.map(p => {
+            // const thumb = p.image_url
+              // ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}">`
+              // : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>';
+            // const profitColor = Number(p.profit || 0) >= 0 ? '#15803d' : '#b91c1c';
+            // return `
+              // <div class="top-product-row">
+                // <div class="top-product-thumb">${thumb}</div>
+                // <div class="top-product-info">
+                  // <div class="top-product-name">${esc(p.name)}</div>
+                  // <div class="top-product-meta">${Number(p.units || 0)} u · Ingreso L. ${fmtNum(p.revenue || 0)}</div>
+                // </div>
+                // <div class="top-product-profit" style="color:${profitColor}">L. ${fmtNum(p.profit || 0)}</div>
+              // </div>`;
+          // }).join('');
+        // }
 
-        // La tabla de ventas se renderiza/filtra mediante salesFilter (barra de filtros).
-        salesFilter.setData(sales || []);
-      }
+        // // La tabla de ventas se renderiza/filtra mediante salesFilter (barra de filtros).
+        // salesFilter.setData(sales || []);
+      // }
 
       async function refreshFinances() {
         try {
-          const [stats, pending, weekly, prodSummary, prodSales] = await Promise.all([
+          // Inventario desactivado — para reactivar, volver a pedir prodSummary/prodSales:
+          //   const [stats, pending, weekly, prodSummary, prodSales] = await Promise.all([
+          //     …,
+          //     api('/api/inventory/sales/summary').catch(() => null),
+          //     api('/api/inventory/sales/list?limit=2000').catch(() => [])
+          //   ]);
+          const [stats, pending, weekly] = await Promise.all([
             api('/api/consultations/finances/summary'),
             api('/api/consultations/finances/pending'),
-            api(`/api/consultations/finances/weekly?range=${encodeURIComponent(currentRange)}`),
-            api('/api/inventory/sales/summary').catch(() => null),
-            api('/api/inventory/sales/list?limit=2000').catch(() => [])
+            api(`/api/consultations/finances/weekly?range=${encodeURIComponent(currentRange)}`)
           ]);
 
           // Las tablas conservan los filtros activos: setData solo reemplaza los datos y
           // re-aplica el filtro/orden actual.
-          renderProductSales(prodSummary, prodSales);
+          // Inventario desactivado — para reactivar, descomentar esta línea:
+          // renderProductSales(prodSummary, prodSales);
 
           document.getElementById('monthRevenue').textContent = 'L. ' + fmtNum(stats.month_revenue);
           document.getElementById('totalRevenue').textContent = 'L. ' + fmtNum(stats.total_revenue);

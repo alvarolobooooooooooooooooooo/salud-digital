@@ -274,6 +274,10 @@ app.get('/manifest.webmanifest', (req, res) => {
   res.send(MANIFEST_VERSIONED);
 });
 
+// Inventario desactivado: la página sigue en public/inventario.html pero ya no se
+// sirve. Para reactivar, borrar este redirect.
+app.get('/inventario.html', (req, res) => res.redirect(302, '/dashboard.html'));
+
 // Intercept *.html requests before express.static so we can inject ?v=… into asset URLs
 app.use((req, res, next) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') return next();
@@ -473,8 +477,12 @@ app.use('/api/public', require('./routes/public-booking'));
 app.use('/api/doctor-availability', require('./routes/doctor-availability'));
 app.use('/api/rooms', require('./routes/rooms'));
 app.use('/api/reception', require('./routes/reception'));
-app.use('/api/inventory', require('./routes/inventory'));
-app.use('/api/inventory-usage', require('./routes/inventory-usage'));
+// Inventario desactivado — para reactivar, descomentar estas dos líneas y borrar
+// el 404 de abajo (los datos siguen intactos en la base):
+// app.use('/api/inventory', require('./routes/inventory'));
+// app.use('/api/inventory-usage', require('./routes/inventory-usage'));
+app.use(['/api/inventory', '/api/inventory-usage'], (req, res) =>
+  res.status(404).json({ error: 'El inventario está desactivado.' }));
 app.use('/api/audit', require('./routes/audit'));
 app.use('/api/growth', require('./routes/growth'));
 app.use('/api/integrations', require('./routes/integrations'));
