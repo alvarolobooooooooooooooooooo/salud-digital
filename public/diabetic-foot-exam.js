@@ -1,9 +1,11 @@
 /**
  * DiabeticFootExam — Tamizaje neurológico y vascular del pie diabético.
  *
- * Renderiza un acordeón con 9 maniobras + Monofilamento + ITB dentro del
- * contenedor `#dfeRoot` y serializa el estado en `#consDFEState` para que
- * ConsultationDraft autoguarde y submitConsult() lo incluya en el payload.
+ * Renderiza un acordeón de 9 pasos dentro del contenedor `#dfeRoot`: las 7
+ * maniobras neurológicas (con vibración y monofilamento integrados en la
+ * sensibilidad profunda), el índice tobillo-brazo y la termografía. Serializa
+ * el estado en `#consDFEState` para que ConsultationDraft autoguarde y
+ * submitConsult() lo incluya en el payload.
  *
  * API:
  *   DiabeticFootExam.init();        // monta una vez (idempotente)
@@ -97,6 +99,29 @@
       subtitle: 'Medir presión sistólica en ambos brazos y en ambos tobillos (DP y TP) con Doppler portátil. ITB = presión tobillo ÷ presión brazo de referencia (la más alta de los dos brazos).',
       alarm: 'ITB < 0.91 o > 1.30',
       interactive: 'itb'
+    },
+    {
+      id: 'termografia', num: 9, title: 'Termografía', eyebrow: 'Tamizaje · Vascular',
+      subtitle: 'Registrar la temperatura de cada zona y compararla con el punto simétrico del pie contralateral. La asimetría térmica sostenida mayor a 2.2 °C anticipa ulceración aun con la piel íntegra.',
+      alarm: 'Asimetría térmica > 2.2 °C entre zonas simétricas',
+      abnormalLabel: 'Fuera de rango',
+      scale: {
+        values: ['<30', '30-32', '32-35', '35-37', '>37'],
+        normalValue: '32-35',
+        unit: ' °C',
+        short: 'Temp'
+      },
+      reference: {
+        eye: 'Patrones térmicos',
+        title: 'Lectura de la termografía plantar',
+        body: 'Rangos: muy fría <30 °C · fría 30-32 °C · normal 32-35 °C · cálida 35-37 °C · muy cálida >37 °C. Patrones descritos: mariposa, alto completo, alto interno, antepié bajo, bajo completo y dedos bajos. Una zona caliente sugiere inflamación o neuroartropatía de Charcot; una zona fría sugiere isquemia.'
+      },
+      substeps: [
+        { id: 'A', name: 'Dedos — hallux y pulpejos', hint: 'Comparar cada dedo con su simétrico contralateral.' },
+        { id: 'B', name: 'Antepié — cabezas metatarsianas', hint: 'Zona de mayor presión plantar y de úlcera más frecuente.' },
+        { id: 'C', name: 'Mediopié — arco', hint: 'El calor localizado aquí obliga a descartar Charcot.' },
+        { id: 'D', name: 'Talón — retropié', hint: 'Comparar con el talón contralateral.' }
+      ]
     }
   ];
 
