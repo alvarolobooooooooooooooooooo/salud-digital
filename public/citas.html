@@ -796,6 +796,20 @@
 
     /* ════════════ List view ════════════ */
     .list-view { display: flex; flex-direction: column; gap: 16px; }
+    .list-more-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 11px 14px;
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--ink-200);
+      border-radius: 12px;
+      color: var(--ink-700);
+      font-size: 13px; font-weight: 600; font-family: inherit;
+      cursor: pointer;
+      transition: border-color 120ms, color 120ms;
+    }
+    .list-more-btn:hover { border-color: var(--teal-500); color: var(--teal-700); }
+    .list-more-rest { font-size: 11.5px; font-weight: 500; color: var(--ink-500); }
+    .list-sentinel { height: 1px; }
     .list-day-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; padding: 0 4px; }
     .list-day-pill {
       display: flex; align-items: center; gap: 8px;
@@ -811,14 +825,16 @@
     .list-day-line { flex: 1; height: 1px; background: var(--ink-150); }
     .list-day-count { font-size: 12px; color: var(--ink-500); font-weight: 500; }
     .list-rows { display: flex; flex-direction: column; gap: 6px; }
+    /* Sin backdrop-filter a propósito: aquí hay cientos de filas a la vez y cada
+       desenfoque es una capa de composición con su propio búfer. En el móvil eso
+       agotaba la memoria del navegador. El fondo casi opaco da el mismo aspecto
+       sobre el tinte de la página, sin coste. */
     .list-row {
       display: grid;
       grid-template-columns: 76px 1fr auto auto;
       gap: 14px;
       padding: 12px 14px;
-      background: rgba(255,255,255,.7);
-      backdrop-filter: blur(16px) saturate(180%);
-      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      background: rgba(255,255,255,.92);
       border: 1px solid rgba(255,255,255,.7);
       border-radius: 12px;
       box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 4px 12px -4px rgba(8,51,68,.06);
@@ -976,6 +992,17 @@
       cursor: pointer;
       transition: all 120ms;
     }
+    .kanban-more-btn {
+      width: 100%; padding: 8px 10px;
+      background: white;
+      border: 1px dashed var(--ink-300);
+      border-radius: 8px;
+      color: var(--ink-600);
+      font-size: 12px; font-weight: 600; font-family: inherit;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .kanban-more-btn:hover { border-color: var(--teal-500); color: var(--teal-700); }
     .kanban-card.s-pending { border-top: 2px solid var(--warn-500); }
     .kanban-card.s-waiting { border-top: 2px solid var(--info-500); }
     .kanban-card.s-completed { border-top: 2px solid var(--ok-500); }
@@ -2623,6 +2650,8 @@ function kpiGoTo(idx) {
 
 /* ─────────── View toolbar / nav ─────────── */
 function setView(v) {
+  // Entrar a la lista la abre otra vez por hoy, no por donde quedó la anterior.
+  if (v === 'list' && calView !== 'list') listWindow = { adelante: LIST_CHUNK, atras: 0, firma: '' };
   calView = v;
   document.querySelectorAll('#viewSwitcher .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.v === v));
   renderEverything();
@@ -2684,33 +2713,70 @@ function renderEverything() {
   else if (calView === 'list')   body.innerHTML = renderListView(filtered);
   else if (calView === 'kanban') body.innerHTML = renderKanbanView(filtered);
   attachAptClickHandlers();
+  wireListMore();
 }
 
+// Un único listener delegado en #viewBody, que es el nodo que sobrevive a los
+// repintados. Antes se enganchaba uno por cita: en la vista de lista eran más de
+// mil listeners cada vez que se pintaba.
+let aptHandlersReady = false;
 function attachAptClickHandlers() {
-  document.querySelectorAll('[data-apt-id]').forEach(el => {
-    el.addEventListener('click', (e) => {
+  if (aptHandlersReady) return;
+  aptHandlersReady = true;
+
+  document.getElementById('viewBody').addEventListener('click', (e) => {
+    // Los botones de acción de cada fila van primero: comparten el data-apt-id
+    // con la fila que los contiene, y lo que se pidió es la acción, no el
+    // detalle. Antes vivían en un listener sobre document al que nunca llegaba
+    // el clic —.list-actions lo cortaba con un stopPropagation en línea— así
+    // que "Confirmar" y "Ver consulta" no hacían nada en la vista de lista.
+    const accion = e.target.closest('[data-apt-action]');
+    if (accion) {
       e.stopPropagation();
-      const id = parseInt(el.dataset.aptId);
-      openDrawer(id);
-    });
-  });
-  document.querySelectorAll('[data-month-day]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      if (e.target.closest('.month-apt')) return;
-      const ds = el.dataset.monthDay;
-      calDate = new Date(ds + 'T00:00:00');
-      setView('day');
-    });
-  });
-  document.querySelectorAll('.day-pill[data-day-idx]').forEach(el => {
-    el.addEventListener('click', () => {
-      const idx = parseInt(el.dataset.dayIdx);
+      const id = parseInt(accion.dataset.aptId);
+      if (!allAppts.some(a => a.id === id)) return;
+      const que = accion.dataset.aptAction;
+      if (que === 'confirm') changeStatus(id, 'waiting');
+      else if (que === 'register') window.location.href = `${consultationPathForSpecialty(currentUser && currentUser.specialty)}?id=${id}`;
+      else if (que === 'view') viewConsultation(id);
+      else if (que === 'edit' || que === 'reschedule' || que === 'reagendar') openEdit(id);
+      return;
+    }
+    const masTablero = e.target.closest('[data-kanban-more]');
+    if (masTablero) {
+      const k = masTablero.dataset.kanbanMore;
+      kanbanShown[k] = (kanbanShown[k] || KANBAN_CHUNK) + KANBAN_CHUNK;
+      renderEverything();
+      return;
+    }
+
+    // Un clic en el hueco de la barra de acciones no abre el detalle.
+    if (e.target.closest('.list-actions')) return;
+
+    const pill = e.target.closest('.day-pill[data-day-idx]');
+    if (pill) {
+      const idx = parseInt(pill.dataset.dayIdx);
       weekActiveDayIdx = idx;
       document.querySelectorAll('.day-pill[data-day-idx]').forEach(p =>
         p.classList.toggle('active', parseInt(p.dataset.dayIdx) === idx));
       document.querySelectorAll('.week-day-col[data-day-idx]').forEach(c =>
         c.classList.toggle('is-active', parseInt(c.dataset.dayIdx) === idx));
-    });
+      return;
+    }
+
+    const apt = e.target.closest('[data-apt-id]');
+    if (apt) {
+      e.stopPropagation();
+      openDrawer(parseInt(apt.dataset.aptId));
+      return;
+    }
+
+    const dia = e.target.closest('[data-month-day]');
+    if (dia) {
+      if (e.target.closest('.month-apt')) return;
+      calDate = new Date(dia.dataset.monthDay + 'T00:00:00');
+      setView('day');
+    }
   });
 }
 
@@ -2985,6 +3051,17 @@ function renderMonthView(filtered) {
 }
 
 /* ─────────── List view ─────────── */
+/* La lista es la única vista que no recorta por fecha: con la agenda de un año
+   son cientos de citas. Pintarlas todas de golpe metía ~26.000 nodos y 1.500
+   listeners en el DOM, y en el teléfono el navegador se quedaba sin memoria —
+   la pantalla se ponía en blanco y la PWA recargaba a la agenda. Ahora se pinta
+   por tramos, arrancando en HOY (que es lo que se viene a mirar) y estirando
+   hacia abajo con un centinela, como la tabla de Finanzas. Lo anterior a hoy no
+   desaparece: se trae con el botón de arriba, también por tramos. */
+const LIST_CHUNK = 40;
+let listWindow = { adelante: LIST_CHUNK, atras: 0, firma: '' };
+let listMoreObserver = null;
+
 function renderListView(filtered) {
   if (!filtered.length) {
     return `
@@ -2994,9 +3071,30 @@ function renderListView(filtered) {
         <div class="empty-sub">Prueba ajustando los criterios de búsqueda</div>
       </div>`;
   }
+
+  // Cambiar un filtro es empezar una lista nueva: vuelve a arrancar en hoy.
+  const firma = JSON.stringify(filterState);
+  if (firma !== listWindow.firma) {
+    listWindow = { adelante: LIST_CHUNK, atras: 0, firma };
+  }
+
+  const orden = filtered.slice().sort((a,b) => aptDate(a) - aptDate(b));
+  const hoy = startOfDay(new Date());
+  let corte = orden.findIndex(a => aptDate(a) >= hoy);
+  // Si no queda ninguna de hoy en adelante, la lista es todo pasado: se abre por
+  // el final, no vacía con un botón.
+  const soloPasado = corte === -1;
+  if (soloPasado) corte = orden.length;
+  const atras = soloPasado && listWindow.atras === 0 ? LIST_CHUNK : listWindow.atras;
+
+  const desde = Math.max(0, corte - atras);
+  const hasta = Math.min(orden.length, corte + listWindow.adelante);
+  const quedanAtras = desde;
+  const quedanAdelante = orden.length - hasta;
+
   // Group by day
   const groups = new Map();
-  filtered.slice().sort((a,b) => aptDate(a) - aptDate(b)).forEach(a => {
+  orden.slice(desde, hasta).forEach(a => {
     const key = dateStr(aptDate(a));
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(a);
@@ -3004,6 +3102,10 @@ function renderListView(filtered) {
   const today = new Date();
   return `
     <div class="list-view">
+      ${quedanAtras ? `<button type="button" class="list-more-btn" id="listPrevBtn">
+        Ver ${Math.min(LIST_CHUNK, quedanAtras)} citas anteriores
+        <span class="list-more-rest">quedan ${quedanAtras}</span>
+      </button>` : ''}
       ${[...groups.entries()].map(([key, apts]) => {
         const d = new Date(key + 'T00:00:00');
         const isT = sameDay(d, today);
@@ -3023,7 +3125,40 @@ function renderListView(filtered) {
             </div>
           </div>`;
       }).join('')}
+      ${quedanAdelante ? `<div id="listSentinel" class="list-sentinel"></div>
+      <button type="button" class="list-more-btn" id="listNextBtn">
+        Ver ${Math.min(LIST_CHUNK, quedanAdelante)} citas más
+        <span class="list-more-rest">quedan ${quedanAdelante}</span>
+      </button>` : ''}
     </div>`;
+}
+
+// Botones y centinela de la lista. El observador se recrea en cada pintada
+// porque el nodo centinela es nuevo cada vez.
+function wireListMore() {
+  if (listMoreObserver) { listMoreObserver.disconnect(); listMoreObserver = null; }
+  if (calView !== 'list') return;
+
+  const prev = document.getElementById('listPrevBtn');
+  if (prev) prev.addEventListener('click', () => {
+    // La lista crece hacia arriba: compensamos el scroll para no perder el sitio.
+    const antes = document.documentElement.scrollHeight;
+    listWindow.atras += LIST_CHUNK;
+    renderEverything();
+    window.scrollBy(0, document.documentElement.scrollHeight - antes);
+  });
+
+  const estirar = () => { listWindow.adelante += LIST_CHUNK; renderEverything(); };
+  const next = document.getElementById('listNextBtn');
+  if (next) next.addEventListener('click', estirar);
+
+  const sentinela = document.getElementById('listSentinel');
+  if (sentinela && 'IntersectionObserver' in window) {
+    listMoreObserver = new IntersectionObserver((entradas) => {
+      if (entradas.some(e => e.isIntersecting)) estirar();
+    }, { rootMargin: '600px 0px' }); // estirar antes de tocar el fondo
+    listMoreObserver.observe(sentinela);
+  }
 }
 
 function listRowHtml(a) {
@@ -3070,29 +3205,21 @@ function listRowHtml(a) {
         </div>
       </div>
       ${statusBadgeHtml(status)}
-      <div class="list-actions" onclick="event.stopPropagation()">
+      <div class="list-actions">
         ${actions}
         <button class="btn-sm btn-ghost" data-apt-action="edit" data-apt-id="${a.id}" data-tip="Editar">${SVG.edit}</button>
       </div>
     </div>`;
 }
 
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-apt-action]');
-  if (!btn) return;
-  e.stopPropagation();
-  const action = btn.dataset.aptAction;
-  const id = parseInt(btn.dataset.aptId);
-  const apt = allAppts.find(a => a.id === id);
-  if (!apt) return;
-  if (action === 'confirm') changeStatus(id, 'waiting');
-  else if (action === 'register') window.location.href = `${consultationPathForSpecialty(currentUser && currentUser.specialty)}?id=${id}`;
-  else if (action === 'view') viewConsultation(id);
-  else if (action === 'edit') openEdit(id);
-  else if (action === 'reschedule' || action === 'reagendar') openEdit(id);
-});
-
 /* ─────────── Kanban view ─────────── */
+/* Mismo problema que la lista: el tablero tampoco recorta por fecha y pintaba
+   una tarjeta por cada cita del año. Se enseñan las más cercanas a hoy, que es
+   lo que se viene a mirar a un tablero, y cada columna estira por su cuenta. */
+const KANBAN_CHUNK = 30;
+let kanbanShown = {};
+let kanbanFirma = '';
+
 function renderKanbanView(filtered) {
   const cols = [
     { k:'pending',   title:'Pendiente',  accent:'var(--warn-500)' },
@@ -3100,16 +3227,25 @@ function renderKanbanView(filtered) {
     { k:'completed', title:'Atendido',   accent:'var(--ok-500)' },
     { k:'cancelled', title:'Cancelado',  accent:'var(--bad-500)' },
   ];
+  const firma = JSON.stringify(filterState);
+  if (firma !== kanbanFirma) { kanbanShown = {}; kanbanFirma = firma; }
+  const ahora = Date.now();
   return `
     <div class="kanban-view">
       ${cols.map(col => {
-        const apts = filtered.filter(a => (a.status||'pending') === col.k).sort((a,b) => aptDate(a) - aptDate(b));
+        const todas = filtered.filter(a => (a.status||'pending') === col.k);
+        const tope = kanbanShown[col.k] || KANBAN_CHUNK;
+        const apts = todas.slice()
+          .sort((a,b) => Math.abs(aptDate(a) - ahora) - Math.abs(aptDate(b) - ahora))
+          .slice(0, tope)
+          .sort((a,b) => aptDate(a) - aptDate(b));
+        const quedan = todas.length - apts.length;
         return `
           <div class="kanban-col glass">
             <div class="kanban-col-head">
               <span class="kanban-col-dot" style="background:${col.accent}"></span>
               <span class="kanban-col-title">${col.title}</span>
-              <span class="kanban-col-count">${apts.length}</span>
+              <span class="kanban-col-count">${todas.length}</span>
             </div>
             <div class="kanban-cards">
               ${apts.length === 0 ? `<div class="kanban-empty">Sin citas</div>` : ''}
@@ -3127,6 +3263,9 @@ function renderKanbanView(filtered) {
                     <div style="margin-top:6px">${apptTypeBadgeHtml(a)}</div>
                   </div>`;
               }).join('')}
+              ${quedan ? `<button type="button" class="kanban-more-btn" data-kanban-more="${col.k}">
+                Ver ${Math.min(KANBAN_CHUNK, quedan)} más <span class="list-more-rest">quedan ${quedan}</span>
+              </button>` : ''}
             </div>
           </div>`;
       }).join('')}
