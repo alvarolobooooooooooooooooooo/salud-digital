@@ -18,6 +18,12 @@ function minutesToTime(mins) {
   return `${h}:${m}`;
 }
 
+// Un DNI de puros ceros/guiones no identifica a nadie: es el relleno de quien no
+// tiene el número a mano. No sirve para reconocer a un paciente que vuelve.
+function isFillerIdentity(identity) {
+  return /^[0\s-]+$/.test(identity);
+}
+
 router.get('/clinic/:clinicId', async (req, res) => {
   const result = await query(
     `SELECT id, name, address, city, phone, brand_color, logo_url, landing_data,
@@ -215,14 +221,26 @@ router.post('/clinic/:clinicId/booking', async (req, res) => {
   // IMPORTANTE: nunca sobrescribir nombre/teléfono de un paciente existente desde el endpoint
   // público — permitiría que un atacante con un DNI conocido secuestre PII del paciente real.
   // Si el DNI ya existe, asociamos la cita al registro existente sin tocar sus campos.
+  //
+  // Eso solo vale si el DNI identifica de verdad a UNA persona. En la práctica
+  // "0000-0000-00000" es lo que se escribe cuando no se tiene el número a mano, y
+  // acaba compartido por cientos de expedientes de la misma clínica. Reutilizar
+  // "el primero que devuelva Postgres" —el SELECT ni siquiera ordenaba, así que
+  // cambiaba solo— metía cada reserva nueva en el expediente de otra persona, y
+  // encima enseñando su nombre y su teléfono, porque a propósito no los tocamos.
+  // Regla: si el DNI es de relleno, o está repetido en la clínica, se abre
+  // expediente nuevo. Un duplicado se junta después; una cita metida en el
+  // expediente equivocado no se deshace.
   let patientId;
-  const existingPatient = await query(
-    `SELECT id FROM patients WHERE identity_number = $1 AND clinic_id = $2`,
-    [identity, clinicId]
-  );
+  const candidates = isFillerIdentity(identity)
+    ? []
+    : (await query(
+        `SELECT id FROM patients WHERE identity_number = $1 AND clinic_id = $2 ORDER BY id LIMIT 2`,
+        [identity, clinicId]
+      )).rows;
 
-  if (existingPatient.rows.length > 0) {
-    patientId = existingPatient.rows[0].id;
+  if (candidates.length === 1) {
+    patientId = candidates[0].id;
   } else {
     const newPatient = await query(
       `INSERT INTO patients (name, identity_number, phone, clinic_id, age) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
