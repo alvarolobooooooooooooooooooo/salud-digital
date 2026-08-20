@@ -1308,13 +1308,14 @@
   .wf-phone-bubble strong { color: #0891b2; }
   .wf-confirm {
     display: grid;
-    grid-template-columns: 1.3fr 1fr;
+    grid-template-columns: 1fr 1.15fr;
     gap: 0.5rem;
   }
   .wf-confirm button {
-    padding: 0.6rem;
+    padding: 0.6rem 0.4rem;
     border-radius: 10px;
-    font-size: 0.7rem;
+    font-size: 0.66rem;
+    white-space: nowrap;
     font-weight: 800;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -1902,32 +1903,25 @@
     text-align: center;
     margin-bottom: 4rem;
   }
+  /* Etiqueta de sección: plana y tipográfica, sin "chip" */
   .pipeline-eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.85rem;
     font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
+    font-weight: 800;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--primary);
-    padding: 0.45rem 0.95rem;
-    background: rgba(8, 145, 178, 0.08);
-    border: 1px solid rgba(8, 145, 178, 0.18);
-    border-radius: 999px;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.1rem;
   }
-  .pipeline-eyebrow .dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--primary);
-    box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.7);
-    animation: pulse-dot 2s infinite;
-  }
-  @keyframes pulse-dot {
-    0% { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.7); }
-    70% { box-shadow: 0 0 0 8px rgba(8, 145, 178, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0); }
+  .pipeline-eyebrow::before,
+  .pipeline-eyebrow::after {
+    content: "";
+    width: 26px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.35;
   }
   .pipeline-title {
     font-size: clamp(2rem, 4vw, 3rem);
@@ -3263,7 +3257,7 @@
       radial-gradient(ellipse 1200px 600px at 50% 0%, rgba(6, 182, 212, 0.10), transparent 70%),
       radial-gradient(ellipse 800px 400px at 20% 80%, rgba(8, 145, 178, 0.07), transparent 70%);
   }
-  html[data-theme="dark"] .pipeline-eyebrow,
+  html[data-theme="dark"] .pipeline-eyebrow { color: #22d3ee; }
   html[data-theme="dark"] .pipe-info-tag {
     color: #22d3ee;
     background: rgba(6, 182, 212, 0.10);
@@ -3586,6 +3580,185 @@
     color: var(--muted);
     border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
+
+  /* ─────────────────────────────────────────────────────────
+     Paso 3 · Historial clínico (tarjeta del flujo)
+     ───────────────────────────────────────────────────────── */
+  .wf-hist-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.45rem;
+    flex-shrink: 0;
+  }
+  .wf-hist-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 0.5rem 0.6rem;
+    border-radius: 10px;
+    background: rgba(8, 145, 178, 0.05);
+    border: 1px solid rgba(8, 145, 178, 0.12);
+  }
+  .wf-hist-stat .lbl {
+    font-size: 0.55rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--muted);
+  }
+  .wf-hist-stat .val {
+    font-size: 0.82rem;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  .wf-hist-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-height: 0;
+  }
+  .wf-hist-item {
+    position: relative;
+    padding: 0.6rem 0.75rem 0.55rem 0.9rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(8, 145, 178, 0.14);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .wf-hist-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.6rem;
+    bottom: 0.6rem;
+    width: 3px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #0891b2, #22d3ee);
+  }
+  .workflow-step.active .wf-hist-item { opacity: 1; transform: none; }
+  .workflow-step.active .wf-hist-item:nth-child(1) { transition-delay: 0.15s; }
+  .workflow-step.active .wf-hist-item:nth-child(2) { transition-delay: 0.3s; }
+  .workflow-step.active .wf-hist-item:nth-child(3) { transition-delay: 0.45s; }
+  .wf-hist-date {
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+  .wf-hist-date span { color: var(--muted); font-weight: 700; }
+  .wf-hist-field { margin-top: 0.3rem; }
+  .wf-hist-field .k {
+    display: block;
+    font-size: 0.55rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--primary);
+  }
+  .wf-hist-field .v {
+    display: block;
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+  .wf-hist-foot {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.45rem;
+  }
+  .wf-hist-amount { font-size: 0.78rem; font-weight: 900; color: var(--text); }
+  .wf-hist-paid {
+    font-size: 0.55rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #15803d;
+    background: rgba(34, 197, 94, 0.12);
+    border-radius: 999px;
+    padding: 0.16rem 0.45rem;
+  }
+
+  /* Paso 2 · rótulo de la tarjeta de confirmación */
+  .wf-conf-label {
+    margin-top: 0.7rem;
+    font-size: 0.55rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* ── Pipeline · lista de puntos (sustituye a las métricas) ── */
+  .pipe-points {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  .pipe-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  .pipe-point svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    margin-top: 4px;
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Dark mode de los bloques nuevos */
+  html[data-theme="dark"] .wf-hist-stat {
+    background: rgba(6, 182, 212, 0.07);
+    border-color: rgba(6, 182, 212, 0.18);
+  }
+  html[data-theme="dark"] .wf-hist-stat .val,
+  html[data-theme="dark"] .wf-hist-date,
+  html[data-theme="dark"] .wf-hist-amount { color: var(--text); }
+  html[data-theme="dark"] .wf-hist-stat .lbl,
+  html[data-theme="dark"] .wf-hist-date span,
+  html[data-theme="dark"] .wf-hist-field .v,
+  html[data-theme="dark"] .wf-conf-label,
+  html[data-theme="dark"] .pipe-point { color: var(--muted); }
+  html[data-theme="dark"] .wf-hist-item {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(6, 182, 212, 0.18);
+  }
+  html[data-theme="dark"] .wf-hist-field .k,
+  html[data-theme="dark"] .pipe-point svg { color: #22d3ee; stroke: #22d3ee; }
+  html[data-theme="dark"] .wf-hist-paid {
+    color: #34d399;
+    background: rgba(52, 211, 153, 0.12);
+  }
+
+  /* Compactado en pantallas pequeñas */
+  @media (max-width: 720px) {
+    .wf-hist-stats { gap: 0.3rem; }
+    .wf-hist-stat { padding: 0.35rem 0.45rem; }
+    .wf-hist-stat .lbl { font-size: 0.5rem; }
+    .wf-hist-stat .val { font-size: 0.72rem; }
+    .wf-hist-list { gap: 0.35rem; overflow: hidden; }
+    .wf-hist-item { padding: 0.5rem 0.6rem 0.45rem 0.75rem; }
+    .wf-hist-date { font-size: 0.68rem; }
+    .wf-hist-field .v { font-size: 0.66rem; }
+    .wf-hist-item:nth-child(n+2) { display: none; }
+    .pipe-point { font-size: 0.85rem; }
+  }
 </style>
 </head>
 <body>
@@ -3632,12 +3805,12 @@
       <span class="word"><span class="cycle-word" id="cycleWord"><span class="cw-ghost" aria-hidden="true">inteligente</span><span class="cw-item">simple</span></span></span>
       <br/>
       <span class="word"><span>para</span></span>
-      <span class="word"><span>clínicas</span></span>
-      <span class="word"><span>modernas.</span></span>
+      <span class="word"><span>el</span></span>
+      <span class="word"><span>médico.</span></span>
     </h1>
     <p class="hero-sub" id="heroSub">
-      Una plataforma profesional para administrar pacientes, citas e historia clínica.
-      Diseñada para que médicos, recepcionistas y administradores trabajen mejor.
+      Tu agenda, tus pacientes y tu historia clínica en un solo lugar.
+      Una cuenta por médico: la abres desde la compu del consultorio o desde el celular.
     </p>
     <div class="hero-cta" id="heroCta">
       <a href="/registro.html" class="btn btn-primary btn-large">
@@ -3663,7 +3836,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><path d="M1 10h22"/></svg>
         </div>
         <div>
-          <div>Pago recibido</div>
+          <div>Pago registrado</div>
           <div class="hn-meta">L. 1,250.00 · Ahora</div>
         </div>
       </div>
@@ -3694,7 +3867,7 @@
           </div>
           <div>
             <div class="label">Pacientes</div>
-            <div class="value" id="counterPacientes">1,284</div>
+            <div class="value" id="counterPacientes">428</div>
           </div>
         </div>
         <div class="preview-stat">
@@ -3706,18 +3879,19 @@
           </div>
           <div>
             <div class="label">Citas hoy</div>
-            <div class="value" id="counterCitas">42</div>
+            <div class="value" id="counterCitas">9</div>
           </div>
         </div>
         <div class="preview-stat">
           <div class="icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              <rect x="1" y="4" width="22" height="16" rx="2"/>
+              <path d="M1 10h22"/>
             </svg>
           </div>
           <div>
-            <div class="label">Productividad</div>
-            <div class="value" id="counterProductividad">+38%</div>
+            <div class="label">Por cobrar</div>
+            <div class="value" id="counterProductividad">L. 3,400</div>
           </div>
         </div>
 
@@ -3747,7 +3921,7 @@
 <div class="workflow-pin" id="workflowPin">
   <div class="workflow-sticky">
     <div class="workflow-header" id="flujo">
-      <span class="workflow-eyebrow">El flujo de tu clínica</span>
+      <span class="workflow-eyebrow">El flujo de tu consulta</span>
       <h2 class="workflow-title">De la cita al pago, <span class="grad">en 4 pasos</span></h2>
     </div>
     <div class="workflow-progress">
@@ -3765,14 +3939,14 @@
           <div class="workflow-content">
             <span class="workflow-tag">Paso 1 · Reserva</span>
             <h3>El paciente reserva <span class="grad">en línea</span></h3>
-            <p>Disponibilidad en tiempo real, confirmación instantánea y recordatorios automáticos por WhatsApp y email.</p>
+            <p>Compartes tu enlace público de agenda. El paciente ve solo las horas que tú dejaste libres, elige la suya y la cita entra directo en tu día.</p>
           </div>
         </div>
         <div class="workflow-visual">
           <div class="wf-card-head">
             <div>
-              <div class="wf-card-title">Reservas online · Hoy</div>
-              <div class="wf-card-sub">Martes, 12 de Mayo</div>
+              <div class="wf-card-title">Citas online · Hoy</div>
+              <div class="wf-card-sub">Martes, 8 de septiembre</div>
             </div>
             <div class="wf-live"><span class="wf-live-dot"></span>En vivo</div>
           </div>
@@ -3791,7 +3965,7 @@
               <div class="wf-avatar">AC</div>
               <div class="wf-info">
                 <div class="wf-name">Ana Castro</div>
-                <div class="wf-sub">Cardiología · 09:00</div>
+                <div class="wf-sub">Nuevo paciente · 09:00</div>
               </div>
               <span class="wf-status">Nueva</span>
             </div>
@@ -3799,7 +3973,7 @@
               <div class="wf-avatar">LO</div>
               <div class="wf-info">
                 <div class="wf-name">Luis Ortega</div>
-                <div class="wf-sub">Pediatría · 09:30</div>
+                <div class="wf-sub">Control · 09:30</div>
               </div>
               <span class="wf-status">Nueva</span>
             </div>
@@ -3807,7 +3981,7 @@
               <div class="wf-avatar">MR</div>
               <div class="wf-info">
                 <div class="wf-name">María Ruiz</div>
-                <div class="wf-sub">General · 10:15</div>
+                <div class="wf-sub">Seguimiento · 10:15</div>
               </div>
               <span class="wf-status">Nueva</span>
             </div>
@@ -3815,15 +3989,15 @@
               <div class="wf-avatar">JS</div>
               <div class="wf-info">
                 <div class="wf-name">Juan Soto</div>
-                <div class="wf-sub">Dermatología · 11:00</div>
+                <div class="wf-sub">Procedimiento · 11:00</div>
               </div>
               <span class="wf-status">Nueva</span>
             </div>
           </div>
 
           <div class="wf-card-foot">
-            <span class="stat"><strong>4</strong> nuevas en 15 min</span>
-            <span class="grow">↑ +28% vs ayer</span>
+            <span class="stat"><strong>4</strong> reservas nuevas hoy</span>
+            <span class="grow">Desde tu enlace público</span>
           </div>
         </div>
       </div>
@@ -3834,8 +4008,8 @@
           <span class="workflow-num">02</span>
           <div class="workflow-content">
             <span class="workflow-tag">Paso 2 · Confirmación</span>
-            <h3>Recordatorio <span class="grad">automático</span></h3>
-            <p>El paciente recibe un mensaje el día previo y confirma con un clic. Así llegan menos pacientes sin avisar y la agenda se mantiene al día.</p>
+            <h3>Confirma o cancela <span class="grad">con un clic</span></h3>
+            <p>Escribes el mensaje una sola vez y lo mandas por WhatsApp desde la app. El paciente abre su enlace, responde, y su cita se marca sola en tu agenda.</p>
           </div>
         </div>
         <div class="workflow-visual centered">
@@ -3851,11 +4025,12 @@
                 <div class="ts">Ahora</div>
               </div>
               <div class="wf-phone-bubble">
-                Hola <strong>Ana</strong>, te recordamos tu cita de <strong>Cardiología</strong> mañana a las <strong>09:00 AM</strong>. ¿Confirmas tu asistencia?
+                Hola <strong>Ana</strong>, confirma tu cita del <strong>martes 8 de septiembre</strong> a las <strong>09:00 a.m.</strong>: portalsaluddigital.com/confirmar/a4f2c1
               </div>
+              <div class="wf-conf-label">Lo que abre el paciente</div>
               <div class="wf-confirm">
                 <button class="ok">✓ Confirmar</button>
-                <button class="cancel">Reagendar</button>
+                <button class="cancel">No podré asistir</button>
               </div>
             </div>
           </div>
@@ -3867,59 +4042,85 @@
         <div class="workflow-side">
           <span class="workflow-num">03</span>
           <div class="workflow-content">
-            <span class="workflow-tag">Paso 3 · Consulta</span>
-            <h3>Atención <span class="grad">sin distracciones</span></h3>
-            <p>Historia clínica, recetas digitales y exámenes — todo en una sola pantalla mientras hablas con tu paciente.</p>
+            <span class="workflow-tag">Paso 3 · Historial</span>
+            <h3>Todo el historial <span class="grad">en una pantalla</span></h3>
+            <p>Cada consulta que guardas queda en la ficha del paciente con su diagnóstico, su tratamiento y su cobro. Abres al paciente y ves su historia completa, de la más reciente a la más antigua.</p>
           </div>
         </div>
         <div class="workflow-visual">
-          <div class="wf-patient">
-            <div class="photo">AC</div>
-            <div class="info">
-              <div class="name">Ana Castro · 38 años</div>
-              <div class="meta">Cardiología · Consulta #13</div>
+          <div class="wf-card-head">
+            <div>
+              <div class="wf-card-title">Historial clínico · Ana Castro</div>
+              <div class="wf-card-sub">Consultas registradas del paciente</div>
             </div>
-            <div class="diag">En curso</div>
           </div>
 
-          <div class="wf-rows">
-            <div class="wf-row confirmed">
-              <div class="wf-avatar">HC</div>
-              <div class="wf-info">
-                <div class="wf-name">Historia clínica</div>
-                <div class="wf-sub">12 consultas anteriores</div>
-              </div>
-              <span class="wf-status">Listo</span>
+          <div class="wf-hist-stats">
+            <div class="wf-hist-stat">
+              <span class="lbl">Consultas</span>
+              <span class="val" id="wfHistCount">5</span>
             </div>
-            <div class="wf-row confirmed">
-              <div class="wf-avatar">RX</div>
-              <div class="wf-info">
-                <div class="wf-name">Receta digital</div>
-                <div class="wf-sub">Firmada y enviada</div>
-              </div>
-              <span class="wf-status">Listo</span>
+            <div class="wf-hist-stat">
+              <span class="lbl">Última</span>
+              <span class="val">5 ago 2026</span>
             </div>
-            <div class="wf-row confirmed">
-              <div class="wf-avatar">EX</div>
-              <div class="wf-info">
-                <div class="wf-name">Exámenes solicitados</div>
-                <div class="wf-sub">Laboratorio + imagen</div>
-              </div>
-              <span class="wf-status">Listo</span>
+            <div class="wf-hist-stat">
+              <span class="lbl">Primera</span>
+              <span class="val">29 may 2026</span>
             </div>
-            <div class="wf-row confirmed">
-              <div class="wf-avatar">PC</div>
-              <div class="wf-info">
-                <div class="wf-name">Próxima cita</div>
-                <div class="wf-sub">Agendada en 2 semanas</div>
+          </div>
+
+          <div class="wf-hist-list">
+            <div class="wf-hist-item">
+              <div class="wf-hist-date">5 de agosto de 2026 <span>· 10:20</span></div>
+              <div class="wf-hist-field">
+                <span class="k">Diagnóstico</span>
+                <span class="v">Faringitis aguda</span>
               </div>
-              <span class="wf-status">Listo</span>
+              <div class="wf-hist-field">
+                <span class="k">Tratamiento</span>
+                <span class="v">Amoxicilina 500 mg c/8 h por 7 días · Control en 10 días</span>
+              </div>
+              <div class="wf-hist-foot">
+                <span class="wf-hist-amount">L. 900.00</span>
+                <span class="wf-hist-paid">Pagado</span>
+              </div>
+            </div>
+            <div class="wf-hist-item">
+              <div class="wf-hist-date">15 de julio de 2026 <span>· 09:15</span></div>
+              <div class="wf-hist-field">
+                <span class="k">Diagnóstico</span>
+                <span class="v">Hipertensión arterial en control</span>
+              </div>
+              <div class="wf-hist-field">
+                <span class="k">Tratamiento</span>
+                <span class="v">Continuar losartán 50 mg · Dieta baja en sal</span>
+              </div>
+              <div class="wf-hist-foot">
+                <span class="wf-hist-amount">L. 700.00</span>
+                <span class="wf-hist-paid">Pagado</span>
+              </div>
+            </div>
+            <div class="wf-hist-item">
+              <div class="wf-hist-date">23 de junio de 2026 <span>· 16:40</span></div>
+              <div class="wf-hist-field">
+                <span class="k">Diagnóstico</span>
+                <span class="v">Lumbalgia mecánica</span>
+              </div>
+              <div class="wf-hist-field">
+                <span class="k">Tratamiento</span>
+                <span class="v">Ibuprofeno 400 mg c/8 h · Terapia física</span>
+              </div>
+              <div class="wf-hist-foot">
+                <span class="wf-hist-amount">L. 700.00</span>
+                <span class="wf-hist-paid">Pagado</span>
+              </div>
             </div>
           </div>
 
           <div class="wf-card-foot">
-            <span class="stat"><strong>4</strong> tareas completadas</span>
-            <span class="grow">⏱ 12 min</span>
+            <span class="stat"><strong>5</strong> consultas guardadas</span>
+            <span class="grow">PDF de cada consulta</span>
           </div>
         </div>
       </div>
@@ -3929,16 +4130,16 @@
         <div class="workflow-side">
           <span class="workflow-num">04</span>
           <div class="workflow-content">
-            <span class="workflow-tag">Paso 4 · Insights</span>
-            <h3>Reportes <span class="grad">en vivo</span></h3>
-            <p>Cada consulta alimenta tu tablero: ingresos, ocupación, tendencias. Decisiones con datos reales.</p>
+            <span class="workflow-tag">Paso 4 · Finanzas</span>
+            <h3>Lo cobrado, <span class="grad">al día</span></h3>
+            <p>El cobro que registras en la consulta cae solo en Finanzas: ingresos del mes, últimos días y lo que todavía está por cobrar.</p>
           </div>
         </div>
         <div class="workflow-visual">
           <div class="wf-card-head">
             <div>
-              <div class="wf-card-title">Ingresos · Esta semana</div>
-              <div class="wf-card-sub">Actualizado hace 1 min</div>
+              <div class="wf-card-title">Ingresos · Últimos días</div>
+              <div class="wf-card-sub">Se actualiza con cada consulta</div>
             </div>
             <div class="wf-live"><span class="wf-live-dot"></span>En vivo</div>
           </div>
@@ -3958,8 +4159,8 @@
           </div>
 
           <div class="wf-card-foot">
-            <span class="stat">Total semana · <strong>L. 142,580</strong></span>
-            <span class="grow">↑ +23% vs sem. anterior</span>
+            <span class="stat">Total · <strong>L. 38,400</strong></span>
+            <span class="grow">18 consultas pagadas</span>
           </div>
         </div>
       </div>
@@ -3973,8 +4174,8 @@
   <div class="container">
     <div class="section-head reveal">
       <span class="section-eyebrow">Producto</span>
-      <h2 class="section-title">Todo lo que tu clínica <span class="grad">necesita</span></h2>
-      <p class="section-sub">Herramientas profesionales pensadas para el día a día sanitario.</p>
+      <h2 class="section-title">Todo lo que un médico <span class="grad">necesita</span></h2>
+      <p class="section-sub">Lo que de verdad usas en la consulta del día a día. Nada de módulos que nunca vas a abrir.</p>
     </div>
 
     <div class="features">
@@ -3985,8 +4186,8 @@
             <path d="M16 2v4M8 2v4M3 10h18"/>
           </svg>
         </div>
-        <h3 class="feature-title">Agenda inteligente</h3>
-        <p class="feature-desc">Reservas en línea 24/7, recordatorios automáticos y disponibilidad en tiempo real.</p>
+        <h3 class="feature-title">Agenda y citas online</h3>
+        <p class="feature-desc">Tu día completo en una pantalla y un enlace público donde tus pacientes reservan en las horas que tú abriste.</p>
       </div>
 
       <div class="feature-card reveal" data-d="1" data-magnetic>
@@ -3997,7 +4198,7 @@
           </svg>
         </div>
         <h3 class="feature-title">Historia clínica</h3>
-        <p class="feature-desc">HCE estructurada, recetas digitales, adjuntos y trazabilidad completa por consulta.</p>
+        <p class="feature-desc">Motivo, signos vitales, exploración, diagnóstico y plan. Cada consulta queda guardada y se descarga en PDF.</p>
       </div>
 
       <div class="feature-card reveal" data-d="2" data-magnetic>
@@ -4008,8 +4209,8 @@
             <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
           </svg>
         </div>
-        <h3 class="feature-title">Gestión de pacientes</h3>
-        <p class="feature-desc">Ficha completa, historial, contactos y comunicaciones — todo en un solo lugar.</p>
+        <h3 class="feature-title">Ficha del paciente</h3>
+        <p class="feature-desc">Datos personales, ficha médica, fotos de la consulta y el historial completo — todo en un solo lugar.</p>
       </div>
 
       <div class="feature-card reveal" data-magnetic>
@@ -4019,29 +4220,31 @@
             <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
           </svg>
         </div>
-        <h3 class="feature-title">Reportes en vivo</h3>
-        <p class="feature-desc">Tableros con métricas clínicas, financieras y operativas para tomar mejores decisiones.</p>
+        <h3 class="feature-title">Finanzas</h3>
+        <p class="feature-desc">Ingresos del mes, últimos días, consultas pagadas y las que quedan pendientes de cobro.</p>
       </div>
 
       <div class="feature-card reveal" data-d="1" data-magnetic>
         <div class="feature-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
-            <path d="M12 6v6l4 2"/>
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            <path d="M8.5 11.5l2.5 2.5 4.5-4.5"/>
           </svg>
         </div>
-        <h3 class="feature-title">Recordatorios</h3>
-        <p class="feature-desc">Confirmaciones automáticas por email y WhatsApp que ayudan a reducir el ausentismo y a llenar los espacios que quedan libres.</p>
+        <h3 class="feature-title">Confirmaciones</h3>
+        <p class="feature-desc">Escribes el mensaje una vez y lo envías por WhatsApp. El paciente confirma o cancela desde su enlace y la cita se actualiza sola.</p>
       </div>
 
       <div class="feature-card reveal" data-d="2" data-magnetic>
         <div class="feature-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <path d="M14 2v6h6"/>
+            <path d="M8 17c1.2-2.5 2.2-3.8 3-3.8s.8 2.4 1.6 2.4c.6 0 1-.7 1.5-1.6"/>
           </svg>
         </div>
-        <h3 class="feature-title">Seguridad de los datos</h3>
-        <p class="feature-desc">Cifrado en tránsito y en reposo, accesos por rol (médico, recepción, administración) y respaldos automáticos en la nube.</p>
+        <h3 class="feature-title">Consentimientos</h3>
+        <p class="feature-desc">Tus plantillas guardadas, el paciente firma en pantalla y el consentimiento queda en PDF junto a su consulta.</p>
       </div>
     </div>
   </div>
@@ -4067,9 +4270,9 @@
 <section class="pipeline-section" id="pipeline">
   <div class="container pipeline-wrap">
     <div class="pipeline-head reveal">
-      <span class="pipeline-eyebrow"><span class="dot"></span>Sistema en vivo · 99.9% uptime</span>
-      <h2 class="pipeline-title">Una jornada clínica,<br/><span class="grad">perfectamente orquestada</span></h2>
-      <p class="pipeline-sub">Cada paciente recorre un pipeline diseñado por ingenieros sanitarios. Observa el flujo en tiempo real.</p>
+      <span class="pipeline-eyebrow">Así se ve por dentro</span>
+      <h2 class="pipeline-title">Del primer paciente<br/><span class="grad">al cierre del día</span></h2>
+      <p class="pipeline-sub">Las cuatro pantallas por las que pasa un paciente tuyo, tal como funcionan hoy en la app.</p>
     </div>
 
     <!-- Pipeline track con línea animada y orbe que recorre el flujo -->
@@ -4140,43 +4343,43 @@
       <!-- Stage 0: Ingreso del paciente -->
       <div class="pipe-panel" data-panel="0">
         <div class="pipe-info">
-          <span class="pipe-info-tag">Etapa 01 · Intake</span>
-          <h3>El médico <span class="grad">ingresa al paciente</span> en segundos</h3>
-          <p>Captura inteligente de datos clínicos con autocompletado, validación HL7 y verificación de identidad. Historia clínica creada al instante.</p>
-          <div class="pipe-metrics">
-            <div class="pipe-metric"><span class="pipe-metric-val">42s</span><span class="pipe-metric-lbl">Tiempo medio</span></div>
-            <div class="pipe-metric"><span class="pipe-metric-val">100%</span><span class="pipe-metric-lbl">Datos validados</span></div>
-            <div class="pipe-metric"><span class="pipe-metric-val">0</span><span class="pipe-metric-lbl">Errores</span></div>
+          <span class="pipe-info-tag">Etapa 01 · Alta del paciente</span>
+          <h3>Das de alta al paciente <span class="grad">en un minuto</span></h3>
+          <p>Nombre, número de identidad, fecha de nacimiento, sexo y teléfono. Con eso el paciente ya tiene ficha y le puedes agendar su primera cita.</p>
+          <div class="pipe-points">
+            <div class="pipe-point"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Datos personales y contacto</div>
+            <div class="pipe-point"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Ficha médica: alergias, condiciones y medicación</div>
+            <div class="pipe-point"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Fotos guardadas dentro de su expediente</div>
           </div>
         </div>
         <div class="pipe-visual">
           <div class="pipe-visual-hdr">
             <span class="pipe-visual-title">Nuevo paciente</span>
-            <span class="pipe-visual-pill">EN VIVO</span>
+            <span class="pipe-visual-pill">GUARDANDO</span>
           </div>
           <div class="form-fields">
             <div class="form-field" style="--ftw:20ch;--fdelay:.35s;--fdur:.85s">
               <span class="form-label">Nombre completo</span>
               <div class="form-input"><span class="ftype">María González Rivas</span></div>
             </div>
-            <div class="form-field" style="--ftw:12ch;--fdelay:1.3s;--fdur:.65s">
-              <span class="form-label">Documento</span>
-              <div class="form-input"><span class="ftype">12.345.678-9</span></div>
+            <div class="form-field" style="--ftw:15ch;--fdelay:1.3s;--fdur:.65s">
+              <span class="form-label">Número de identidad</span>
+              <div class="form-input"><span class="ftype">0801-1987-04521</span></div>
             </div>
             <div class="form-field" style="--ftw:14ch;--fdelay:2.05s;--fdur:.7s">
               <span class="form-label">Fecha de nacimiento</span>
               <div class="form-input"><span class="ftype">14 / 03 / 1987</span></div>
             </div>
-            <div class="form-field" style="--ftw:2ch;--fdelay:2.85s;--fdur:.2s">
-              <span class="form-label">Tipo sanguíneo</span>
-              <div class="form-input"><span class="ftype">O+</span></div>
+            <div class="form-field" style="--ftw:9ch;--fdelay:2.85s;--fdur:.5s">
+              <span class="form-label">Teléfono</span>
+              <div class="form-input"><span class="ftype">9876-5432</span></div>
             </div>
           </div>
           <div class="form-saved">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-            Historia clínica creada — ID #PT-4827
+            Paciente guardado — su ficha ya está lista
           </div>
         </div>
       </div>
@@ -4184,19 +4387,19 @@
       <!-- Stage 1: Agendamiento -->
       <div class="pipe-panel" data-panel="1">
         <div class="pipe-info">
-          <span class="pipe-info-tag">Etapa 02 · Scheduling</span>
-          <h3>Agenda inteligente con <span class="grad">disponibilidad real</span></h3>
-          <p>Algoritmo de optimización que sugiere los mejores slots según especialidad, urgencia y patrones históricos. Confirmación automática por WhatsApp.</p>
-          <div class="pipe-metrics">
-            <div class="pipe-metric"><span class="pipe-metric-val">‹2s</span><span class="pipe-metric-lbl">Para reservar</span></div>
-            <div class="pipe-metric"><span class="pipe-metric-val">94%</span><span class="pipe-metric-lbl">Asistencia</span></div>
-            <div class="pipe-metric"><span class="pipe-metric-val">24/7</span><span class="pipe-metric-lbl">Disponible</span></div>
+          <span class="pipe-info-tag">Etapa 02 · Agenda</span>
+          <h3>Agendas viendo <span class="grad">tus horas libres</span></h3>
+          <p>Tú defines qué días atiendes y qué horas abres. La agenda muestra lo que queda libre de verdad, y si el paciente reservó desde tu enlace, la cita ya está puesta.</p>
+          <div class="pipe-points">
+            <div class="pipe-point"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Horario por día, con días cerrados y horas quitadas</div>
+            <div class="pipe-point"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Enlace público y código QR para tus pacientes</div>
+            <div class="pipe-point"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Tipo de cita: nuevo paciente, control, procedimiento</div>
           </div>
         </div>
         <div class="pipe-visual">
           <div class="pipe-visual-hdr">
-            <span class="pipe-visual-title">Marzo 2026</span>
-            <span class="pipe-visual-pill">SLOT ELEGIDO</span>
+            <span class="pipe-visual-title">Septiembre 2026</span>
+            <span class="pipe-visual-pill">HORA ELEGIDA</span>
           </div>
           <div class="cal-mock">
             <div class="cal-mock-cell">L</div>
@@ -4206,20 +4409,20 @@
             <div class="cal-mock-cell">V</div>
             <div class="cal-mock-cell">S</div>
             <div class="cal-mock-cell">D</div>
-            <div class="cal-mock-cell">3</div>
-            <div class="cal-mock-cell has-appt">4</div>
-            <div class="cal-mock-cell">5</div>
-            <div class="cal-mock-cell">6</div>
-            <div class="cal-mock-cell has-appt">7</div>
-            <div class="cal-mock-cell">8</div>
+            <div class="cal-mock-cell">7</div>
+            <div class="cal-mock-cell selected">8</div>
             <div class="cal-mock-cell">9</div>
-            <div class="cal-mock-cell">10</div>
+            <div class="cal-mock-cell has-appt">10</div>
             <div class="cal-mock-cell">11</div>
-            <div class="cal-mock-cell selected">12</div>
-            <div class="cal-mock-cell has-appt">13</div>
+            <div class="cal-mock-cell">12</div>
+            <div class="cal-mock-cell">13</div>
             <div class="cal-mock-cell">14</div>
-            <div class="cal-mock-cell">15</div>
+            <div class="cal-mock-cell has-appt">15</div>
             <div class="cal-mock-cell">16</div>
+            <div class="cal-mock-cell has-appt">17</div>
+            <div class="cal-mock-cell">18</div>
+            <div class="cal-mock-cell">19</div>
+            <div class="cal-mock-cell">20</div>
           </div>
           <div class="slot-list">
             <div class="slot">09:00</div>
@@ -4233,18 +4436,18 @@
       <!-- Stage 2: Consulta -->
       <div class="pipe-panel" data-panel="2">
         <div class="pipe-info">
-          <span class="pipe-info-tag">Etapa 03 · Encounter</span>
-          <h3>Consulta con <span class="grad">asistente clínico IA</span></h3>
-          <p>Vitales en vivo, transcripción automática, sugerencias diagnósticas basadas en evidencia y plantillas SOAP que se completan mientras hablas.</p>
-          <div class="pipe-metrics">
-            <div class="pipe-metric"><span class="pipe-metric-val">68%</span><span class="pipe-metric-lbl">Menos burocracia</span></div>
-            <div class="pipe-metric"><span class="pipe-metric-val">3.2x</span><span class="pipe-metric-lbl">Más detalle</span></div>
-            <div class="pipe-metric"><span class="pipe-metric-val">∞</span><span class="pipe-metric-lbl">Plantillas</span></div>
+          <span class="pipe-info-tag">Etapa 03 · Consulta</span>
+          <h3>La consulta entera <span class="grad">en una sola pantalla</span></h3>
+          <p>Signos vitales, motivo, exploración física, diagnóstico y plan. Escribes mientras hablas con el paciente y se guarda todo junto, sin saltar de ventana.</p>
+          <div class="pipe-points">
+            <div class="pipe-point"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Signos vitales: FC, FR, presión, SpO₂, peso y talla</div>
+            <div class="pipe-point"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Diagnóstico, medicamentos recetados y plan</div>
+            <div class="pipe-point"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Consentimiento firmado en pantalla cuando toca</div>
           </div>
         </div>
         <div class="pipe-visual">
           <div class="pipe-visual-hdr">
-            <span class="pipe-visual-title">Encuentro #4827</span>
+            <span class="pipe-visual-title">Consulta · Ana Castro</span>
             <span class="pipe-visual-pill">EN CURSO</span>
           </div>
           <div class="vital-row">
@@ -4262,11 +4465,11 @@
             </div>
           </div>
           <div class="notes-block">
-            <div class="notes-tag"><span class="notes-dot"></span>Transcripción IA · SOAP</div>
-            <div class="notes-line" style="--ntw:32ch;--ndelay:.8s;--ndur:1.1s"><span class="ntype">S: Paciente refiere dolor de garganta</span></div>
-            <div class="notes-line" style="--ntw:24ch;--ndelay:1.7s;--ndur:.9s"><span class="ntype">O: Eritema faríngeo, fiebre 38.2°C</span></div>
-            <div class="notes-line" style="--ntw:28ch;--ndelay:2.4s;--ndur:1s"><span class="ntype">A: Faringitis aguda probable</span></div>
-            <div class="notes-line" style="--ntw:20ch;--ndelay:3.2s;--ndur:.7s"><span class="ntype">P: Amoxicilina 500mg c/8h</span></div>
+            <div class="notes-tag"><span class="notes-dot"></span>Notas de la consulta</div>
+            <div class="notes-line" style="--ntw:32ch;--ndelay:.8s;--ndur:1.1s"><span class="ntype">Motivo: dolor de garganta hace 3 días</span></div>
+            <div class="notes-line" style="--ntw:24ch;--ndelay:1.7s;--ndur:.9s"><span class="ntype">Exploración: eritema faríngeo</span></div>
+            <div class="notes-line" style="--ntw:28ch;--ndelay:2.4s;--ndur:1s"><span class="ntype">Diagnóstico: faringitis aguda</span></div>
+            <div class="notes-line" style="--ntw:20ch;--ndelay:3.2s;--ndur:.7s"><span class="ntype">Plan: amoxicilina 500 mg c/8 h</span></div>
           </div>
         </div>
       </div>
@@ -4274,41 +4477,41 @@
       <!-- Stage 3: Cierre -->
       <div class="pipe-panel" data-panel="3">
         <div class="pipe-info">
-          <span class="pipe-info-tag">Etapa 04 · Closeout</span>
-          <h3>Cierre y registro <span class="grad">automatizado</span></h3>
-          <p>Diagnóstico CIE-10 vinculado, recetas digitales firmadas, factura emitida e historia archivada con cifrado en tránsito y en reposo. Todo en un solo gesto.</p>
-          <div class="pipe-metrics">
-            <div class="pipe-metric"><span class="pipe-metric-val">5s</span><span class="pipe-metric-lbl">Para cerrar</span></div>
-            <div class="pipe-metric"><span class="pipe-metric-val">AES-256</span><span class="pipe-metric-lbl">Cifrado</span></div>
-            <div class="pipe-metric"><span class="pipe-metric-val">100%</span><span class="pipe-metric-lbl">Trazable</span></div>
+          <span class="pipe-info-tag">Etapa 04 · Cierre</span>
+          <h3>Guardas una vez y <span class="grad">queda todo en su lugar</span></h3>
+          <p>Al guardar la consulta se registra el cobro, la consulta entra en el historial del paciente y el ingreso aparece en Finanzas. Sin volver a escribir nada.</p>
+          <div class="pipe-points">
+            <div class="pipe-point"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Costo de la consulta y estado de pago</div>
+            <div class="pipe-point"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>La consulta queda en el historial del paciente</div>
+            <div class="pipe-point"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>PDF de la consulta listo para descargar</div>
           </div>
         </div>
         <div class="pipe-visual">
           <div class="pipe-visual-hdr">
-            <span class="pipe-visual-title">Resumen del encuentro</span>
-            <span class="pipe-visual-pill">FINALIZADO</span>
+            <span class="pipe-visual-title">Consulta guardada</span>
+            <span class="pipe-visual-pill">FINALIZADA</span>
           </div>
           <div class="summary-checks">
             <div class="check-row">
               <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-              <div class="check-text">Diagnóstico CIE-10 registrado<br/><span class="check-meta">J06.9 · Infección aguda vía superior</span></div>
+              <div class="check-text">Diagnóstico y plan guardados<br/><span class="check-meta">Faringitis aguda · CIE-10 J06.9</span></div>
             </div>
             <div class="check-row">
               <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-              <div class="check-text">Receta digital firmada<br/><span class="check-meta">2 medicamentos · Enviada al paciente</span></div>
+              <div class="check-text">Medicamentos recetados<br/><span class="check-meta">2 medicamentos · En el PDF de la consulta</span></div>
             </div>
             <div class="check-row">
               <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-              <div class="check-text">Factura emitida<br/><span class="check-meta">FA-2026-0427 · Pago confirmado</span></div>
+              <div class="check-text">Cobro registrado<br/><span class="check-meta">L. 900.00 · Marcado como pagado</span></div>
             </div>
             <div class="check-row">
               <div class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-              <div class="check-text">Historia archivada<br/><span class="check-meta">Cifrado AES-256 · Auditable</span></div>
+              <div class="check-text">Guardada en el historial<br/><span class="check-meta">Visible en la ficha de Ana Castro</span></div>
             </div>
           </div>
           <div class="summary-total">
-            <span class="summary-total-lbl">Tiempo total del flujo</span>
-            <span class="summary-total-val">12 min 34 s</span>
+            <span class="summary-total-lbl">Ingreso reflejado en Finanzas</span>
+            <span class="summary-total-val">L. 900.00</span>
           </div>
         </div>
       </div>
@@ -4324,8 +4527,8 @@
       <span class="cta-orb cta-orb-1"></span>
       <span class="cta-orb cta-orb-2"></span>
       <span class="cta-orb cta-orb-3"></span>
-      <h2>Lleva tu clínica al siguiente nivel</h2>
-      <p>Crea tu cuenta en un par de minutos y recorre la plataforma por dentro: el expediente, la agenda y los pacientes de tu clínica, con tus datos siempre protegidos.</p>
+      <h2>Lleva tu consulta en digital</h2>
+      <p>Crea tu cuenta en un par de minutos y recorre la plataforma por dentro: tu agenda, tus pacientes y su historia clínica, con tus datos siempre protegidos.</p>
       <a href="/registro.html" class="btn btn-primary btn-large">Crear mi cuenta</a>
       <p class="cta-contact" style="margin: 1.25rem auto 0; font-size: 0.95rem; font-weight: 600; opacity: 0.9;">¿Prefieres escribir? <a href="mailto:saluddigitalhn@gmail.com" style="color: inherit; text-decoration: underline; text-underline-offset: 3px;">saluddigitalhn@gmail.com</a></p>
     </div>
@@ -4341,13 +4544,13 @@
           <img class="logo-mark" src="/icons/logo-mark.png?v=2" alt="" width="32" height="32" loading="lazy" decoding="async" />
           <span>Salud Digital</span>
         </a>
-        <p>Plataforma sanitaria profesional. Diseñada para equipos clínicos modernos.</p>
+        <p>Plataforma sanitaria profesional para médicos independientes.</p>
       </div>
       <div class="foot-col">
         <h4>Producto</h4>
-        <a href="#producto">Agenda</a>
+        <a href="#producto">Agenda y citas online</a>
         <a href="#producto">Historia clínica</a>
-        <a href="#producto">Reportes</a>
+        <a href="#producto">Finanzas</a>
       </div>
       <div class="foot-col">
         <h4>Empresa</h4>
@@ -4485,8 +4688,8 @@
 
   // ─── Live data ping: nudge stat numbers periodically ───
   (function liveStatNudge() {
-    let pacientes = 1284;
-    let citas = 42;
+    let pacientes = 428;
+    let citas = 9;
     const elP = document.getElementById('counterPacientes');
     const elC = document.getElementById('counterCitas');
     if (!elP || !elC) return;
@@ -4565,7 +4768,7 @@
       const currentNum = Math.floor(eased * numValue);
       if (format === 'pacientes') el.textContent = currentNum.toLocaleString('es-HN');
       else if (format === 'citas') el.textContent = currentNum;
-      else if (format === 'productividad') el.textContent = '+' + currentNum + '%';
+      else if (format === 'productividad') el.textContent = 'L. ' + currentNum.toLocaleString('es-HN');
       else if (format === 'clinicas') el.textContent = currentNum + '+';
       else if (format === 'disponibilidad') el.textContent = (eased * 99.9).toFixed(1) + '%';
       else if (format === 'noshows') el.textContent = currentNum + '%';
@@ -4577,9 +4780,9 @@
 
   window.addEventListener('load', () => {
     setTimeout(() => {
-      animateCounter('counterPacientes', 1284, 2000, 'pacientes');
-      animateCounter('counterCitas', 42, 2000, 'citas');
-      animateCounter('counterProductividad', 38, 2000, 'productividad');
+      animateCounter('counterPacientes', 428, 2000, 'pacientes');
+      animateCounter('counterCitas', 9, 2000, 'citas');
+      animateCounter('counterProductividad', 3400, 2000, 'productividad');
     }, 300);
 
   });
@@ -4745,10 +4948,10 @@
 
         // Periodically drop a new row at the top, remove the last
         const newPatients = [
-          { ini: 'PS', name: 'Pedro Sánchez', meta: 'Cardiología · 11:15' },
-          { ini: 'EM', name: 'Elena Mendoza', meta: 'Ginecología · 11:30' },
-          { ini: 'RV', name: 'Roberto Valle', meta: 'Pediatría · 11:45' },
-          { ini: 'CT', name: 'Carmen Tovar', meta: 'General · 12:00' }
+          { ini: 'PS', name: 'Pedro Sánchez', meta: 'Nuevo paciente · 11:15' },
+          { ini: 'EM', name: 'Elena Mendoza', meta: 'Control · 11:30' },
+          { ini: 'RV', name: 'Roberto Valle', meta: 'Seguimiento · 11:45' },
+          { ini: 'CT', name: 'Carmen Tovar', meta: 'Procedimiento · 12:00' }
         ];
         let pIdx = 0;
         every(() => {
@@ -4783,12 +4986,12 @@
       if (stepIdx === 1) {
         const bubble = step.querySelector('.wf-phone-bubble');
         if (bubble) {
-          const finalHTML = 'Hola <strong>Ana</strong>, te recordamos tu cita de <strong>Cardiología</strong> mañana a las <strong>09:00 AM</strong>. ¿Confirmas tu asistencia?';
+          const finalHTML = 'Hola <strong>Ana</strong>, confirma tu cita del <strong>martes 8 de septiembre</strong> a las <strong>09:00 a.m.</strong>: portalsaluddigital.com/confirmar/a4f2c1';
           // Strip tags to get plain text, then type char-by-char and re-render at end
           bubble.classList.add('typing');
           bubble.innerHTML = '<span class="typing-cursor"></span>';
           const cursor = bubble.querySelector('.typing-cursor');
-          const plain = 'Hola Ana, te recordamos tu cita de Cardiología mañana a las 09:00 AM. ¿Confirmas tu asistencia?';
+          const plain = 'Hola Ana, confirma tu cita del martes 8 de septiembre a las 09:00 a.m.: portalsaluddigital.com/confirmar/a4f2c1';
           let i = 0;
           const typeLoop = every(() => {
             if (i >= plain.length) {
@@ -4806,16 +5009,15 @@
         }
       }
 
-      // STEP 3 · Consulta — animate the "12 min" timer counting up
+      // STEP 3 · Historial — cuenta las consultas guardadas (0 → 5)
       if (stepIdx === 2) {
-        const grow = step.querySelector('.wf-card-foot .grow');
-        if (grow) {
-          grow.textContent = '⏱ 0 min';
-          defer(() => animateCount(
-            (v) => { grow.textContent = '⏱ ' + Math.round(v) + ' min'; },
-            0, 12, 1100
-          ), 500);
-        }
+        const histCount = step.querySelector('#wfHistCount');
+        const footStrong = step.querySelector('.wf-card-foot .stat strong');
+        [histCount, footStrong].forEach(el => {
+          if (!el) return;
+          el.textContent = '0';
+          defer(() => animateCount(el, 0, 5, 900, v => Math.round(v).toString()), 400);
+        });
       }
 
       // STEP 4 · Insights — count up the total L. 142,580
@@ -4823,7 +5025,7 @@
         const footStrong = step.querySelector('.wf-card-foot .stat strong');
         if (footStrong) {
           footStrong.textContent = 'L. 0';
-          defer(() => animateCount(footStrong, 0, 142580, 1400,
+          defer(() => animateCount(footStrong, 0, 38400, 1400,
             v => 'L. ' + Math.round(v).toLocaleString('es-HN')), 400);
         }
       }
