@@ -3800,24 +3800,6 @@
     pointer-events: none;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
   }
-  .hero-film-quality {
-    position: absolute;
-    right: 0.9rem;
-    bottom: 0.9rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 999px;
-    font-size: 0.6rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    color: #22d3ee;
-    background: rgba(6, 182, 212, 0.14);
-    border: 1px solid rgba(6, 182, 212, 0.28);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    pointer-events: none;
-  }
-  .hero-film-quality[hidden] { display: none; }
-
   /* En claro el film sigue siendo oscuro (es una pantalla): solo se
      suaviza el borde para que no corte contra el fondo claro. */
   html[data-theme="light"] .hero-film,
@@ -3926,7 +3908,6 @@
         preload="none"
         aria-label="Salud Digital en movimiento: agenda, historial y finanzas en un solo lugar."
       ></video>
-      <span class="hero-film-quality" id="heroFilmQuality" hidden>4K</span>
     </figure>
 
     <div class="hero-preview" id="heroPreview">
@@ -5330,7 +5311,6 @@
   (function heroFilm() {
     const wrap = document.getElementById('heroFilm');
     const video = document.getElementById('heroFilmVideo');
-    const badge = document.getElementById('heroFilmQuality');
     if (!wrap || !video) return;
 
     const SRC = {
@@ -5364,7 +5344,6 @@
     let downgraded = false;
     if (tier === 2160 && SRC[2160]) {
       video.src = SRC[2160];
-      if (badge) badge.hidden = false;
     }
 
     // ── Bajar a 1080p conservando el punto de reproducción ──
@@ -5376,7 +5355,6 @@
       video.src = SRC[1080];
       video.currentTime = t || 0;
       video.play().catch(() => {});
-      if (badge) badge.hidden = true;
       if (window.__sdDebug) console.info('[hero] a 1080p:', motivo);
     }
 
