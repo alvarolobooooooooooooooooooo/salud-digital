@@ -37,12 +37,30 @@ async function doctorTieneAcceso(req, patient) {
 
 const SIN_ACCESO = { error: 'Access denied' };
 
+// Columnas del LISTADO. Explícitas, y sin `odontogram_state`, que es el
+// diagrama dental completo del paciente guardado como texto. Con `SELECT *`
+// cada carga del listado traía ese diagrama de TODOS los pacientes para pintar
+// una tabla de nombres y teléfonos: con odontogramas de 8 KB y dos años de
+// clínica son unos 34 MB por carga, y creciendo.
+//
+// La pantalla de detalle sigue teniendo el diagrama: lo pide por su cuenta a
+// /api/patients/:id (patients.html), que sí devuelve la fila entera.
+//
+// Regla para el futuro: en un listado, columnas explícitas. Un `SELECT *` es la
+// promesa de que el día que alguien añada una columna grande, todas las
+// pantallas se vuelvan más lentas sin que nadie las toque.
+const COLUMNAS_LISTADO = [
+  'id', 'name', 'identity_number', 'age', 'birth_date', 'gender', 'phone',
+  'clinic_id', 'created_by', 'whatsapp_number',
+];
+
 router.get('/', authenticate, async (req, res) => {
   let queryStr;
   let params;
 
   if (req.user.role === 'doctor') {
-    queryStr = `SELECT DISTINCT p.* FROM patients p
+    const cols = COLUMNAS_LISTADO.map((c) => 'p.' + c).join(', ');
+    queryStr = `SELECT DISTINCT ${cols} FROM patients p
       WHERE p.clinic_id = $1 AND (
         p.created_by = $2 OR
         p.id IN (SELECT DISTINCT patient_id FROM appointments WHERE doctor_id = $3 AND clinic_id = $4)
@@ -50,7 +68,7 @@ router.get('/', authenticate, async (req, res) => {
       ORDER BY p.name`;
     params = [req.user.clinic_id, req.user.id, req.user.id, req.user.clinic_id];
   } else {
-    queryStr = 'SELECT * FROM patients WHERE clinic_id = $1 ORDER BY name';
+    queryStr = `SELECT ${COLUMNAS_LISTADO.join(', ')} FROM patients WHERE clinic_id = $1 ORDER BY name`;
     params = [req.user.clinic_id];
   }
 

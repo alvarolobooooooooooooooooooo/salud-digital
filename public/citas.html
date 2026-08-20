@@ -1830,6 +1830,7 @@
 <script src="/layout.js"></script>
 <script src="/whatsapp.js"></script>
 <script src="/common-date-picker.js"></script>
+<script src="/appointment-types.js"></script>
 <script src="/doctor-blocks.js"></script>
 <script src="/odontogram.types.js"></script>
 <script src="/odontogram.data.js"></script>
@@ -1921,33 +1922,14 @@ let filterState = {
   patient: [],
 };
 
-const APPT_TYPE_META = {
-  nuevo_paciente: { label: 'Nuevo paciente', color: '#8b5cf6' },
-  seguimiento:    { label: 'Seguimiento',    color: '#06b6d4' },
-  control:        { label: 'Control',        color: '#10b981' },
-  urgencia:       { label: 'Urgencia',       color: '#ef4444' },
-  procedimiento:  { label: 'Procedimiento',  color: '#f59e0b' },
-  // Exclusivos de Podología
-  pedicure_clinico:         { label: 'Pedicure Clínico',         color: '#14b8a6' },
-  onicocriptosis:           { label: 'Onicocriptosis',           color: '#f43f5e' },
-  pedicure_onicomicosis:    { label: 'Pedicure Onicomicosis',    color: '#84cc16' },
-  pedicure_hiperqueratosis: { label: 'Pedicure Hiperqueratosis', color: '#6366f1' },
-  pedicure_spa:             { label: 'Pedicure Spa',             color: '#ec4899' },
-};
-
-// Tipos de cita por especialidad: Podología no usa "Control" y suma sus propios pedicures
-const APPT_TYPES_DEFAULT  = ['nuevo_paciente','seguimiento','control','urgencia','procedimiento'];
-const APPT_TYPES_PODIATRY = ['nuevo_paciente','seguimiento','urgencia','procedimiento',
-                             'pedicure_clinico','onicocriptosis','pedicure_onicomicosis',
-                             'pedicure_hiperqueratosis','pedicure_spa'];
-// Tolerante a cómo quedó guardada la especialidad: 'Podología', 'Podologia' o 'podologia'
-function isPodiatrySpecialty(specialty) {
-  return String(specialty || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase().trim().startsWith('podolog');
-}
-function apptTypesForSpecialty(specialty) {
-  return isPodiatrySpecialty(specialty) ? APPT_TYPES_PODIATRY : APPT_TYPES_DEFAULT;
-}
+// Catálogo compartido con recepción y con la reserva pública (agendar.html):
+// public/appointment-types.js. El tipo de consulta que elige un paciente por el
+// enlace público es exactamente el mismo que el de este modal.
+const APPT_TYPE_META      = ApptTypes.META;
+const APPT_TYPES_DEFAULT  = ApptTypes.COMMON;
+const APPT_TYPES_PODIATRY = ApptTypes.forSpecialty('Podología');
+const isPodiatrySpecialty = ApptTypes.isPodiatry;
+const apptTypesForSpecialty = ApptTypes.forSpecialty;
 // Repuebla el <select> de tipo de cita según la especialidad del doctor elegido.
 // keepUnlisted: al editar una cita ya guardada conservamos su tipo histórico
 // aunque la especialidad ya no lo ofrezca (p. ej. una podología antigua con 'Control').
@@ -2292,10 +2274,7 @@ function renderFilters() {
   }
 
   // Tipo de cita (appointment_type)
-  const apptTypeOrder = ['nuevo_paciente','seguimiento','control','urgencia','procedimiento',
-                         'pedicure_clinico','onicocriptosis','pedicure_onicomicosis',
-                         'pedicure_hiperqueratosis','pedicure_spa'];
-  const apptTypeOpts = apptTypeOrder
+  const apptTypeOpts = ApptTypes.ALL
     .map(v => ({
       value: v,
       label: APPT_TYPE_META[v].label,

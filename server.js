@@ -675,6 +675,16 @@ function comprobarBaseDeDatos() {
     setTimeout(runRetention, 60 * 1000);
     setInterval(runRetention, 24 * 60 * 60 * 1000);
 
+    // Comprobación única, de solo lectura: los paneles del día filtran por rango
+    // de texto sobre scheduled_at, así que una cita guardada con otro formato no
+    // aparecería en la agenda. Si quedan filas antiguas así, que se vea en los
+    // logs en vez de descubrirse porque un paciente no estaba en la lista.
+    setTimeout(() => {
+      const { comprobarFormatoDeCitas } = require('./lib/dia-local');
+      const { query } = require('./db');
+      comprobarFormatoDeCitas(query).catch(() => {});
+    }, 15 * 1000);
+
     // Ciclo de facturación: cobra lo vencido (solo con procesadores que no
     // cobran solos), caduca lo pagado y reprocesa webhooks fallidos.
     require('./lib/billing/jobs').start();

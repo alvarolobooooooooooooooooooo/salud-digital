@@ -3,9 +3,11 @@ const router = express.Router();
 const { query } = require('../db');
 const { checkRoomCapacity } = require('../lib/room-capacity');
 const { blockedReason } = require('../lib/availability-blocks');
+const apptTypes = require('../lib/appointment-types');
 const subscription = require('../lib/subscription');
 const { searchAddress } = require('../lib/geocoding');
 const { parseMapsUrl, resolveMapsShortLink } = require('../lib/maps-links');
+const { normalizarFechaHora, rangoDelMinuto, rangoDelDia } = require('../lib/dia-local');
 
 function timeToMinutes(t) {
   const [h, m] = t.split(':').map(Number);
@@ -122,10 +124,16 @@ router.get('/clinic/:clinicId/doctors/:doctorId/slots', async (req, res) => {
     }
   }
 
+  // Mismo criterio que en recepción: rango en vez de `scheduled_at::date`, que
+  // envuelve la columna y anula el índice (doctor_id, scheduled_at). Aquí pesa
+  // el doble porque la ruta es PÚBLICA y el paciente la dispara cada vez que
+  // toca un día en el calendario de reservas.
+  const dia = rangoDelDia(date);
   const occupiedResult = await query(
     `SELECT scheduled_at FROM appointments
-     WHERE doctor_id = $1 AND scheduled_at::date = $2 AND status != 'cancelled'`,
-    [req.params.doctorId, date]
+     WHERE doctor_id = $1 AND status != 'cancelled'
+       AND scheduled_at >= $2 AND scheduled_at < $3`,
+    [req.params.doctorId, dia.desde, dia.hasta]
   );
 
   const occupiedTimes = new Set(occupiedResult.rows.map(r => {
@@ -144,7 +152,8 @@ router.get('/clinic/:clinicId/doctors/:doctorId/slots', async (req, res) => {
 });
 
 router.post('/clinic/:clinicId/booking', async (req, res) => {
-  const { doctor_id, scheduled_at, patient_name, patient_identity, patient_phone, reason } = req.body || {};
+  const { doctor_id, scheduled_at, patient_name, patient_identity, patient_phone, reason,
+          appointment_type } = req.body || {};
 
   if (!doctor_id || !scheduled_at || !patient_name || !patient_identity || !patient_phone) {
     return res.status(400).json({ error: 'Faltan campos requeridos' });
@@ -167,6 +176,14 @@ router.post('/clinic/:clinicId/booking', async (req, res) => {
   if (isNaN(apptDate.getTime()) || apptDate.getTime() < Date.now() - 5 * 60 * 1000) {
     return res.status(400).json({ error: 'La fecha de la cita debe ser futura' });
   }
+
+  // A partir de aquí se usa SIEMPRE `cuando`, nunca `scheduled_at`. La detección
+  // de choque de horario compara cadenas (`scheduled_at = $2`), así que si se
+  // comprobara con el valor crudo y se guardara el normalizado, dos reservas de
+  // la misma hora escritas de forma distinta no se reconocerían como conflicto
+  // y quedarían solapadas. Lo mismo vale para blockedReason y checkRoomCapacity.
+  const cuando = normalizarFechaHora(scheduled_at);
+  if (!cuando) return res.status(400).json({ error: 'Fecha/hora inválida' });
 
   const clinicId = parseInt(req.params.clinicId, 10);
   if (!clinicId) return res.status(400).json({ error: 'Clínica inválida' });
@@ -195,22 +212,47 @@ router.post('/clinic/:clinicId/booking', async (req, res) => {
   );
   if (doctorCheck.rows.length === 0) return res.status(404).json({ error: 'Doctor no encontrado' });
 
+  // Tipo de consulta: el mismo catálogo que el modal de nueva cita de la agenda,
+  // filtrado por la especialidad del doctor (lib/appointment-types.js). Antes la
+  // reserva pública no lo guardaba —lo pegaba al principio de la razón, en texto—
+  // y la cita llegaba a la agenda con el tipo por defecto.
+  const permitidos = apptTypes.forSpecialty(doctorCheck.rows[0].specialty);
+  const aptType = appointment_type === undefined || appointment_type === null || appointment_type === ''
+    ? apptTypes.DEFAULT_TYPE
+    : String(appointment_type);
+  if (!permitidos.includes(aptType)) {
+    return res.status(400).json({ error: 'Tipo de consulta inválido' });
+  }
+
   // El listado de horas ya oculta lo que el doctor marcó como no disponible, pero
   // esta ruta es pública: sin comprobarlo aquí, un POST directo reservaba igual.
   // El paciente no tiene por qué saber el motivo, así que el mensaje es neutro.
-  if (await blockedReason(doctorId, scheduled_at)) {
+  if (await blockedReason(doctorId, cuando)) {
     return res.status(409).json({ error: 'Este horario ya no está disponible' });
   }
 
+  // Choque de horario por MINUTO, no por cadena exacta. La igualdad de texto
+  // fallaba en cuanto dos filas escribían la misma hora de forma distinta
+  // ('…T10:00' frente a '…T10:00:00'): se daban por horarios diferentes y las
+  // dos citas quedaban solapadas. El rango las reconoce como la misma, y de
+  // paso usa el índice (doctor_id, scheduled_at).
+  //
+  // Queda un caso que esto no cubre: filas antiguas guardadas en hora UTC con Z,
+  // que son el mismo instante escrito de otra forma. Se resuelve al migrar la
+  // columna a timestamptz; la normalización al escribir impide que aparezcan
+  // nuevas.
+  const minuto = rangoDelMinuto(cuando);
   const conflictCheck = await query(
-    `SELECT id FROM appointments WHERE doctor_id = $1 AND scheduled_at = $2 AND status != 'cancelled'`,
-    [doctorId, scheduled_at]
+    `SELECT id FROM appointments
+      WHERE doctor_id = $1 AND status != 'cancelled'
+        AND scheduled_at >= $2 AND scheduled_at < $3`,
+    [doctorId, minuto.desde, minuto.hasta]
   );
   if (conflictCheck.rows.length > 0) {
     return res.status(409).json({ error: 'Este horario ya no está disponible' });
   }
 
-  const cap = await checkRoomCapacity(clinicId, scheduled_at, null);
+  const cap = await checkRoomCapacity(clinicId, cuando, null);
   if (!cap.ok) {
     return res.status(409).json({
       error: 'Este horario ya no está disponible',
@@ -250,9 +292,10 @@ router.post('/clinic/:clinicId/booking', async (req, res) => {
   }
 
   const result = await query(
-    `INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status, source, reason)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-    [patientId, doctorId, clinicId, doctorCheck.rows[0].specialty || '', scheduled_at, 'pending', 'public_link', reasonText]
+    `INSERT INTO appointments (patient_id, doctor_id, clinic_id, specialty, scheduled_at, status, source, reason, appointment_type)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+    [patientId, doctorId, clinicId, doctorCheck.rows[0].specialty || '', cuando, 'pending', 'public_link',
+     reasonText, aptType]
   );
 
   res.json({ appointment_id: result.rows[0].id, success: true });

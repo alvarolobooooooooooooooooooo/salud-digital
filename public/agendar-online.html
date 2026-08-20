@@ -1458,6 +1458,7 @@
   </div>
 </div>
 
+<script src="/appointment-types.js"></script>
 <script src="/icons.js"></script>
 <script src="/common.js"></script>
 <script src="/layout.js"></script>
@@ -2480,6 +2481,7 @@
             <div class="co-field"><div class="lbl">Estado</div><div><span class="co-status ${tone.cls}">${tone.label}</span></div></div>
             <div class="co-field"><div class="lbl">Teléfono</div><div class="val mono" style="font-size:13px;font-family:var(--font-mono);">${esc(selected.patient_phone || '—')}</div></div>
             <div class="co-field"><div class="lbl">Edad</div><div class="val">${selected.patient_age ? esc(selected.patient_age + ' años') : '—'}</div></div>
+            <div class="co-field" style="grid-column:1 / -1;"><div class="lbl">Tipo de consulta</div><div class="val">${esc(ApptTypes.label(selected.appointment_type))}</div></div>
           </div>
           <div class="co-field">
             <div class="lbl">Razón de consulta</div>

@@ -4,6 +4,15 @@ const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { checkRoomCapacity } = require('../lib/room-capacity');
 const { blockedReason, BLOCK_MESSAGES } = require('../lib/availability-blocks');
+const { normalizarFechaHora, rangoDelDia } = require('../lib/dia-local');
+
+// Cómo se lo decimos por voz. Los motivos los pone lib/availability-blocks.js.
+const SPOKEN_BLOCK = {
+  closed:   () => `Ese día lo tenés cerrado en tu disponibilidad. Elegí otro día.`,
+  blocked:  (time) => `Marcaste las ${time} como no disponible. Elegí otra hora.`,
+  dayoff:   () => `Ese día no lo atendés según tu horario de atención. Elegí otro día.`,
+  offhours: (time) => `Las ${time} quedan fuera de tu horario de atención. Elegí otra hora.`,
+};
 
 // Helper — obtiene la fecha local en formato YYYY-MM-DD según la zona horaria del servidor
 function getLocalDateString() {
@@ -17,6 +26,7 @@ function getLocalDateString() {
 router.get('/today-appointments', authenticate, requireRole('doctor'), async (req, res) => {
   try {
     const today = getLocalDateString();
+    const dia = rangoDelDia(today);
     const doctorId  = req.user.id;
     const clinicId  = req.user.clinic_id;
 
@@ -31,10 +41,10 @@ router.get('/today-appointments', authenticate, requireRole('doctor'), async (re
       JOIN patients p ON a.patient_id = p.id
       WHERE a.doctor_id  = $1
         AND a.clinic_id  = $2
-        AND a.scheduled_at::date = $3
+        AND a.scheduled_at >= $3 AND a.scheduled_at < $4
         AND a.status != 'cancelled'
       ORDER BY a.scheduled_at ASC
-    `, [doctorId, clinicId, today]);
+    `, [doctorId, clinicId, dia.desde, dia.hasta]);
 
     const appointments = result.rows.map(row => ({
       appointment_id: row.appointment_id,
@@ -173,11 +183,12 @@ router.get('/availability', authenticate, requireRole('doctor'), async (req, res
       }
     }
 
+    const dia = rangoDelDia(date);
     const result = await query(`
       SELECT scheduled_at FROM appointments
       WHERE doctor_id = $1 AND clinic_id = $2
-        AND scheduled_at::date = $3 AND status != 'cancelled'
-    `, [req.user.id, req.user.clinic_id, date]);
+        AND scheduled_at >= $3 AND scheduled_at < $4 AND status != 'cancelled'
+    `, [req.user.id, req.user.clinic_id, dia.desde, dia.hasta]);
 
     const bookedTimes = result.rows.map(row =>
       new Date(row.scheduled_at).toLocaleTimeString('es-HN', {
@@ -235,21 +246,34 @@ router.post('/schedule', authenticate, requireRole('doctor'), async (req, res) =
     }
 
     const patient = patientResult.rows[0];
-    const scheduledAt = new Date(`${date}T${time}:00-06:00`);
+
+    // Una sola representación para todo el handler. Antes había tres: se
+    // comprobaba el bloqueo con la hora de pared, la sala con la hora UTC, y se
+    // guardaba un objeto Date que el driver serializaba con desfase horario
+    // (`…-06:00`). Tres formas distintas del mismo instante en catorce líneas, y
+    // ninguna coincidía con lo que escriben las demás rutas.
+    const cuando = normalizarFechaHora(`${date}T${time}`);
+    if (!cuando) {
+      return res.json({
+        success: false,
+        error: 'Fecha u hora inválidas',
+        spoken_response: 'No entendí bien la fecha o la hora. ¿Me las repetís?',
+      });
+    }
 
     // Lo que el doctor bloqueó en su disponibilidad vale también por voz.
-    const bloqueo = await blockedReason(req.user.id, `${date}T${time}`);
+    const bloqueo = await blockedReason(req.user.id, cuando);
     if (bloqueo) {
       return res.json({
         success: false,
         error: BLOCK_MESSAGES[bloqueo],
-        spoken_response: bloqueo === 'closed'
-          ? `Ese día lo tenés cerrado en tu disponibilidad. Elegí otro día.`
-          : `Marcaste las ${time} como no disponible. Elegí otra hora.`
+        spoken_response: SPOKEN_BLOCK[bloqueo]
+          ? SPOKEN_BLOCK[bloqueo](time)
+          : SPOKEN_BLOCK.blocked(time)
       });
     }
 
-    const cap = await checkRoomCapacity(req.user.clinic_id, scheduledAt.toISOString(), null);
+    const cap = await checkRoomCapacity(req.user.clinic_id, cuando, null);
     if (!cap.ok) {
       return res.json({
         success: false,
@@ -261,7 +285,7 @@ router.post('/schedule', authenticate, requireRole('doctor'), async (req, res) =
     const result = await query(`
       INSERT INTO appointments (doctor_id, patient_id, clinic_id, scheduled_at, status)
       VALUES ($1, $2, $3, $4, 'scheduled') RETURNING id
-    `, [req.user.id, patient.id, req.user.clinic_id, scheduledAt]);
+    `, [req.user.id, patient.id, req.user.clinic_id, cuando]);
 
     res.json({
       success: true, intent: 'schedule_appointment',

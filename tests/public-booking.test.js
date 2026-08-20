@@ -47,7 +47,8 @@ function ejecutar(text, params) {
     return { rows: [{ id: fila.id }], rowCount: 1 };
   }
   if (/^INSERT INTO appointments/i.test(sql)) {
-    const fila = { id: bd.citas.length + 1, patient_id: params[0], doctor_id: params[1], clinic_id: params[2] };
+    const fila = { id: bd.citas.length + 1, patient_id: params[0], doctor_id: params[1], clinic_id: params[2],
+                   reason: params[7], appointment_type: params[8] };
     bd.citas.push(fila);
     return { rows: [{ id: fila.id }], rowCount: 1 };
   }
@@ -174,4 +175,82 @@ test('un DNI real y único sí reutiliza el expediente, sin pisar nombre ni tel�
   assert.strictEqual(bd.citas[0].patient_id, 1);
   assert.strictEqual(bd.pacientes[0].name, 'Daisy Marina Flores');
   assert.strictEqual(bd.pacientes[0].phone, '95202023');
+});
+
+// ── Tipo de consulta ──
+// El enlace público ofrece los mismos tipos que el modal de nueva cita de la
+// agenda, filtrados por la especialidad del doctor. Antes no se guardaba: se
+// pegaba al principio de la razón en texto ("[Primera vez] dolor") y la cita
+// llegaba a la clínica con el tipo por defecto.
+
+test('el tipo de consulta elegido en el enlace público se guarda en la cita', async (t) => {
+  reiniciar();
+  const { srv, url } = await levantar();
+  t.after(() => srv.close());
+
+  const r = await reservar(url, {
+    patient_name: 'Rosa Elena Cruz', patient_identity: '0801-1990-11223', patient_phone: '99112233',
+    appointment_type: 'nuevo_paciente',
+  });
+
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(bd.citas[0].appointment_type, 'nuevo_paciente');
+  // La razón ya no lleva el tipo pegado delante.
+  assert.strictEqual(bd.citas[0].reason, 'dolor');
+});
+
+test('sin tipo de consulta la cita queda como seguimiento', async (t) => {
+  reiniciar();
+  const { srv, url } = await levantar();
+  t.after(() => srv.close());
+
+  const r = await reservar(url, {
+    patient_name: 'Hilda Zelaya', patient_identity: '0801-1988-33445', patient_phone: '99334455',
+  });
+
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(bd.citas[0].appointment_type, 'seguimiento');
+});
+
+test('un tipo exclusivo de Podología vale si el doctor es podólogo', async (t) => {
+  reiniciar();
+  const { srv, url } = await levantar();
+  t.after(() => srv.close());
+
+  // El doble devuelve specialty: 'Podología' para cualquier doctor.
+  const r = await reservar(url, {
+    patient_name: 'Mario Lanza', patient_identity: '0801-1975-55667', patient_phone: '99556677',
+    appointment_type: 'pedicure_spa',
+  });
+
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(bd.citas[0].appointment_type, 'pedicure_spa');
+});
+
+test('un tipo que la especialidad no ofrece se rechaza (Podología no usa "control")', async (t) => {
+  reiniciar();
+  const { srv, url } = await levantar();
+  t.after(() => srv.close());
+
+  const r = await reservar(url, {
+    patient_name: 'Ilsa Portillo', patient_identity: '0801-1992-77889', patient_phone: '99778899',
+    appointment_type: 'control',
+  });
+
+  assert.strictEqual(r.status, 400);
+  assert.strictEqual(bd.citas.length, 0);
+});
+
+test('un tipo inventado se rechaza', async (t) => {
+  reiniciar();
+  const { srv, url } = await levantar();
+  t.after(() => srv.close());
+
+  const r = await reservar(url, {
+    patient_name: 'Óscar Padilla', patient_identity: '0801-1980-99001', patient_phone: '99990011',
+    appointment_type: 'consulta_gratis',
+  });
+
+  assert.strictEqual(r.status, 400);
+  assert.strictEqual(bd.citas.length, 0);
 });

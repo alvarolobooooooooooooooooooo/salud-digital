@@ -948,6 +948,26 @@ const initDb = async () => {
       // Purga de eventos de pago (el webhook es público: guarda hasta lo que llega
       // con la firma mal, y eso hay que poder recortarlo por fecha).
       'CREATE INDEX IF NOT EXISTS idx_payment_events_received ON payment_events (received_at)',
+
+      // ── Caja del día ──
+      // `paid_at` no tenía NINGÚN índice, y es por donde filtra la pantalla de
+      // pagos de recepción, que se refresca cada tres segundos: cada refresco
+      // era un recorrido completo de las citas de la clínica.
+      'CREATE INDEX IF NOT EXISTS idx_appointments_clinic_paid ON appointments (clinic_id, paid_at)',
+
+      // ── Tablas que no tenían ni un índice ──
+      // Ni siquiera por clinic_id. Sin él, preguntar "los de mi clínica" obliga
+      // a Postgres a leer las filas de TODAS las clínicas de la plataforma y
+      // descartar las ajenas una a una. Es el único coste de la aplicación que
+      // crece con el número de clientes: cada clínica nueva hacía más lentas las
+      // pantallas de todas las demás.
+      'CREATE INDEX IF NOT EXISTS idx_confirmations_clinic ON appointment_confirmations (clinic_id)',
+      'CREATE INDEX IF NOT EXISTS idx_confirmations_appointment ON appointment_confirmations (appointment_id)',
+      'CREATE INDEX IF NOT EXISTS idx_reminders_clinic ON appointment_reminders (clinic_id)',
+      'CREATE INDEX IF NOT EXISTS idx_reminders_appointment ON appointment_reminders (appointment_id)',
+      'CREATE INDEX IF NOT EXISTS idx_patient_consents_clinic ON patient_consents (clinic_id, created_at DESC)',
+      'CREATE INDEX IF NOT EXISTS idx_patient_consents_patient ON patient_consents (patient_id)',
+      'CREATE INDEX IF NOT EXISTS idx_consent_templates_clinic ON consent_templates (clinic_id, doctor_id)',
     ];
     for (const sql of indicesExtra) {
       try {

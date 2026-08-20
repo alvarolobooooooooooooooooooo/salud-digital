@@ -238,6 +238,15 @@ function replaceWithCalendarDatetimePicker(input, options = {}) {
   ampmNextBtn.style.fontSize = '.8rem';
   ampmNextBtn.type = 'button';
 
+  // Motivos por los que el doctor no atiende esa casilla — los que devuelve
+  // DoctorBlocks. Lo que no esté aquí se pinta como "ya hay una cita".
+  const BLOCK_TITLES = {
+    closed:   'El doctor cerró este día',
+    blocked:  'El doctor marcó esta hora como no disponible',
+    dayoff:   'El doctor no atiende este día según su horario de atención',
+    offhours: 'Fuera del horario de atención del doctor',
+  };
+
   const timeGrid = document.createElement('div');
   timeGrid.style.display = 'grid';
   timeGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
@@ -271,9 +280,10 @@ function replaceWithCalendarDatetimePicker(input, options = {}) {
 
         const hit = occupiedTimes.find(t => t.h === h && t.m === m);
         const isOccupied = !!hit;
-        // 'blocked'/'closed' = el doctor quitó esa hora de su disponibilidad;
-        // sin motivo = ya hay una cita. Se distinguen porque no se arreglan igual.
-        const isBlocked = isOccupied && (hit.reason === 'blocked' || hit.reason === 'closed');
+        // Con motivo = el doctor no atiende a esa hora (la quitó de ese día, o
+        // queda fuera de su horario de atención); sin motivo = ya hay una cita.
+        // Se distinguen porque no se arreglan igual.
+        const isBlocked = isOccupied && !!BLOCK_TITLES[hit.reason];
 
         if (isBlocked) {
           btn.style.backgroundColor = 'rgba(100, 116, 139, .06)';
@@ -283,9 +293,7 @@ function replaceWithCalendarDatetimePicker(input, options = {}) {
           btn.style.textDecoration = 'line-through';
           btn.style.textDecorationColor = 'rgba(71, 85, 105, .6)';
           btn.disabled = true;
-          btn.title = hit.reason === 'closed'
-            ? 'El doctor cerró este día'
-            : 'El doctor marcó esta hora como no disponible';
+          btn.title = BLOCK_TITLES[hit.reason];
         } else if (isOccupied) {
           btn.style.backgroundColor = 'rgba(220, 38, 38, .07)';
           btn.style.backgroundImage = 'repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(220, 38, 38, .09) 6px, rgba(220, 38, 38, .09) 12px)';

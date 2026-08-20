@@ -462,8 +462,10 @@
       box-shadow: 0 0 0 4px rgba(14,165,196,.12), inset 0 1px 2px rgba(8,58,76,.03);
     }
     .textarea { resize: vertical; line-height: 1.5; }
-    .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .seg { display: flex; flex-wrap: wrap; gap: 8px; }
     .seg-btn {
+      flex: 1 1 calc(33.333% - 6px);
+      min-width: 104px;
       padding: 10px 6px;
       border-radius: 10px; font-size: 13px; font-weight: 600;
       cursor: pointer;
@@ -830,11 +832,9 @@
                 Tipo de consulta
               </span>
             </div>
-            <div class="seg" id="kindSeg">
-              <button type="button" class="seg-btn active" data-kind="Primera vez">Primera vez</button>
-              <button type="button" class="seg-btn" data-kind="Seguimiento">Seguimiento</button>
-              <button type="button" class="seg-btn" data-kind="Urgencia">Urgencia</button>
-            </div>
+            <!-- Se llena con los tipos que ofrece la especialidad del doctor elegido,
+                 los mismos del modal de nueva cita de la agenda (appointment-types.js). -->
+            <div class="seg" id="kindSeg"></div>
           </div>
 
           <label class="field">
@@ -949,6 +949,7 @@
   </div>
 </div>
 
+<script src="/appointment-types.js"></script>
 <script src="/location.js"></script>
 <script>
 /* ============================================================
@@ -976,6 +977,10 @@ const SPECIALTY_ACCENT = {
   'General': '#086d88',
 };
 
+// Por el enlace público casi siempre reserva alguien que viene por primera vez,
+// así que ese es el tipo preseleccionado (antes lo era el botón "Primera vez").
+const DEFAULT_APPT_TYPE = 'nuevo_paciente';
+
 const state = {
   clinic: null,
   doctors: [],
@@ -984,7 +989,7 @@ const state = {
   time: null,
   slots: [],
   view: { y: 0, m: 0 }, // currently viewed calendar month
-  kind: 'Primera vez',
+  apptType: DEFAULT_APPT_TYPE,
   consent: false,
   loadedSlotsKey: null, // to avoid refetch
 };
@@ -1119,6 +1124,22 @@ function renderDoctors() {
   });
 }
 
+// Tipos de consulta del doctor elegido. Salen del mismo catálogo que usa la
+// agenda por dentro, así que lo que marca el paciente aquí llega a la clínica
+// como el tipo de cita de siempre — no como texto pegado en la razón.
+function renderApptTypes() {
+  const box = document.getElementById('kindSeg');
+  if (!box) return;
+  const values = ApptTypes.forSpecialty(state.doctor ? state.doctor.specialty : '');
+  if (!values.includes(state.apptType)) {
+    state.apptType = values.includes(DEFAULT_APPT_TYPE) ? DEFAULT_APPT_TYPE : values[0];
+  }
+  box.innerHTML = values.map(v => `
+    <button type="button" class="seg-btn ${v === state.apptType ? 'active' : ''}" data-kind="${esc(v)}">
+      ${esc(ApptTypes.label(v))}
+    </button>`).join('');
+}
+
 function selectDoctor(id) {
   const d = state.doctors.find(x => x.id === id);
   if (!d) return;
@@ -1128,6 +1149,7 @@ function selectDoctor(id) {
   state.slots = [];
   state.loadedSlotsKey = null;
   renderDoctors();
+  renderApptTypes();
   showCard(2);
   showCard(3, false);
   showCard(4, false);
@@ -1373,7 +1395,7 @@ document.getElementById('consent').addEventListener('change', renderSummary);
 document.getElementById('kindSeg').addEventListener('click', (e) => {
   const btn = e.target.closest('.seg-btn');
   if (!btn) return;
-  state.kind = btn.dataset.kind;
+  state.apptType = btn.dataset.kind;
   document.querySelectorAll('#kindSeg .seg-btn').forEach(b => b.classList.toggle('active', b === btn));
 });
 
@@ -1384,15 +1406,14 @@ document.getElementById('confirmBtn').addEventListener('click', async () => {
   btn.innerHTML = 'Procesando…';
 
   try {
-    const reasonRaw = document.getElementById('reason').value.trim();
-    const reasonWithKind = state.kind ? `[${state.kind}] ${reasonRaw}` : reasonRaw;
     const payload = {
       doctor_id: state.doctor.id,
       scheduled_at: `${state.date}T${state.time}:00`,
       patient_name: document.getElementById('patientName').value.trim(),
       patient_identity: document.getElementById('patientIdentity').value.trim(),
       patient_phone: document.getElementById('patientPhone').value.trim(),
-      reason: reasonWithKind,
+      appointment_type: state.apptType,
+      reason: document.getElementById('reason').value.trim(),
     };
     await api(`/api/public/clinic/${clinicId}/booking`, {
       method: 'POST',
@@ -1457,12 +1478,11 @@ function closeConfirm() {
   state.time = null;
   state.slots = [];
   state.loadedSlotsKey = null;
-  state.kind = 'Primera vez';
+  state.apptType = DEFAULT_APPT_TYPE;
   state.consent = false;
   const form = document.getElementById('bookingForm');
   if (form) form.reset();
-  document.querySelectorAll('#kindSeg .seg-btn').forEach(b =>
-    b.classList.toggle('active', b.dataset.kind === 'Primera vez'));
+  renderApptTypes();
   showCard(2, false);
   showCard(3, false);
   showCard(4, false);
@@ -1565,6 +1585,7 @@ function hslToRgb({ h, s, l }) {
 ============================================================ */
 async function init() {
   renderStepper();
+  renderApptTypes();
   renderSummary();
 
   if (!clinicId) {
