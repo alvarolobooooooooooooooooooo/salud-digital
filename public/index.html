@@ -3830,6 +3830,309 @@
   @media (prefers-reduced-motion: reduce) {
     .hero-film { transition: none; opacity: 1; transform: none; }
   }
+
+  /* ═══════════════════════════════════════════════════════
+     ESPECIALIDADES — selector + ficha de cada una
+     ═══════════════════════════════════════════════════════ */
+  .spec { padding: 1rem 0 5rem; }
+
+  /* ── Selector ── */
+  .spec-picker {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-bottom: 3rem;
+  }
+  .spec-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.15rem;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid rgba(8, 145, 178, 0.20);
+    cursor: pointer;
+    transition: color 0.25s ease, background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+  }
+  .spec-chip:hover { transform: translateY(-1px); border-color: rgba(8, 145, 178, 0.45); }
+  .spec-chip.is-active {
+    color: #fff;
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    border-color: transparent;
+    box-shadow: 0 10px 24px rgba(8, 145, 178, 0.28);
+  }
+  /* El punto solo lo lleva la que está abierta: marca "esta sí se puede usar hoy". */
+  .spec-chip-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
+  }
+  .spec-chip.is-picked {
+    color: var(--primary);
+    border-color: rgba(8, 145, 178, 0.55);
+    background: rgba(8, 145, 178, 0.07);
+  }
+  .spec-chip.is-picked .spec-soon { background: rgba(8, 145, 178, 0.14); color: var(--primary); }
+  .spec-soon {
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.12rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(100, 116, 139, 0.14);
+    color: var(--muted);
+  }
+
+  /* ── Panel ── */
+  .spec-panel { display: none; }
+  .spec-panel.is-active { display: block; }
+  .spec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+  .spec-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--primary);
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(8, 145, 178, 0.08);
+    border: 1px solid rgba(8, 145, 178, 0.18);
+    margin-bottom: 1.1rem;
+  }
+  .spec-side h3 {
+    font-size: clamp(1.7rem, 3vw, 2.4rem);
+    font-weight: 800;
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    color: var(--text);
+    margin-bottom: 0.9rem;
+  }
+  .spec-side h3 .grad {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 50%, #22d3ee 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .spec-lead {
+    color: var(--muted);
+    font-size: 1.02rem;
+    line-height: 1.6;
+    margin-bottom: 1.75rem;
+  }
+  .spec-list { list-style: none; display: flex; flex-direction: column; gap: 1.05rem; }
+  .spec-list li {
+    position: relative;
+    padding-left: 1.4rem;
+  }
+  .spec-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0891b2, #22d3ee);
+  }
+  .spec-list-k {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .spec-list-v {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--muted);
+    margin-top: 0.15rem;
+  }
+
+  /* ── Tarjeta del tamizaje ── */
+  .spec-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid rgba(8, 145, 178, 0.14);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 0 70px rgba(8, 145, 178, 0.10), 0 20px 50px rgba(0, 0, 0, 0.07);
+  }
+  .spec-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(8, 145, 178, 0.10);
+  }
+  .spec-card-title { font-size: 0.98rem; font-weight: 900; color: var(--text); letter-spacing: -0.02em; }
+  .spec-card-sub { font-size: 0.75rem; font-weight: 600; color: var(--muted); margin-top: 3px; }
+  .spec-card-count {
+    flex-shrink: 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .spec-card-count strong { color: var(--primary); font-weight: 900; font-size: 0.95rem; }
+
+  /* Los nueve pasos, en un raíl que se va encendiendo. */
+  .spec-steps {
+    list-style: none;
+    position: relative;
+    margin: 1.15rem 0 0;
+    padding-left: 0;
+  }
+  .spec-steps::before {
+    content: "";
+    position: absolute;
+    left: 13px;
+    top: 14px;
+    bottom: 14px;
+    width: 2px;
+    background: rgba(8, 145, 178, 0.14);
+    border-radius: 2px;
+  }
+  .spec-step {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.32rem 0;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+  }
+  .spec-panel.is-active .spec-step.on { opacity: 1; transform: none; }
+  .spec-step-n {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: var(--primary);
+    background: #fff;
+    border: 1.5px solid rgba(8, 145, 178, 0.30);
+    transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+  }
+  .spec-step.on .spec-step-n {
+    color: #fff;
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    border-color: transparent;
+    box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.10);
+  }
+  .spec-step-t { font-size: 0.86rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+  .spec-card-foot {
+    margin-top: 1.15rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(8, 145, 178, 0.10);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  /* ── Panel de "pronto" ── */
+  .spec-soon-panel {
+    max-width: 620px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 3rem 2rem;
+    border-radius: 20px;
+    border: 1px dashed rgba(8, 145, 178, 0.28);
+    background: rgba(8, 145, 178, 0.03);
+  }
+  .spec-soon-panel h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.02em;
+  }
+  .spec-soon-panel p {
+    color: var(--muted);
+    line-height: 1.65;
+    margin-bottom: 1.5rem;
+  }
+  .spec-soon-panel strong { color: var(--primary); font-weight: 800; }
+
+  /* ── Modo oscuro ── */
+  html[data-theme="dark"] .spec-chip { color: var(--muted); border-color: rgba(6, 182, 212, 0.22); }
+  html[data-theme="dark"] .spec-chip.is-active { color: #fff; }
+  html[data-theme="dark"] .spec-chip.is-picked {
+    color: #22d3ee;
+    border-color: rgba(6, 182, 212, 0.55);
+    background: rgba(6, 182, 212, 0.08);
+  }
+  html[data-theme="dark"] .spec-chip.is-picked .spec-soon { background: rgba(6, 182, 212, 0.16); color: #22d3ee; }
+  html[data-theme="dark"] .spec-soon { background: rgba(148, 163, 184, 0.12); }
+  html[data-theme="dark"] .spec-tag {
+    color: #22d3ee;
+    background: rgba(6, 182, 212, 0.10);
+    border-color: rgba(6, 182, 212, 0.22);
+  }
+  html[data-theme="dark"] .spec-side h3,
+  html[data-theme="dark"] .spec-list-k,
+  html[data-theme="dark"] .spec-step-t,
+  html[data-theme="dark"] .spec-card-title,
+  html[data-theme="dark"] .spec-soon-panel h3 { color: var(--text); }
+  html[data-theme="dark"] .spec-lead,
+  html[data-theme="dark"] .spec-list-v,
+  html[data-theme="dark"] .spec-card-sub,
+  html[data-theme="dark"] .spec-card-foot,
+  html[data-theme="dark"] .spec-soon-panel p { color: var(--muted); }
+  html[data-theme="dark"] .spec-card {
+    background: linear-gradient(180deg, rgba(22, 22, 26, 0.92) 0%, rgba(16, 16, 19, 0.92) 100%);
+    border-color: rgba(6, 182, 212, 0.18);
+    box-shadow: 0 0 80px rgba(6, 182, 212, 0.10), 0 20px 50px rgba(0, 0, 0, 0.45);
+  }
+  html[data-theme="dark"] .spec-step-n {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(6, 182, 212, 0.32);
+    color: #22d3ee;
+  }
+  html[data-theme="dark"] .spec-step.on .spec-step-n { color: #fff; }
+  html[data-theme="dark"] .spec-soon-panel {
+    border-color: rgba(6, 182, 212, 0.24);
+    background: rgba(6, 182, 212, 0.04);
+  }
+  html[data-theme="dark"] .spec-card-count strong,
+  html[data-theme="dark"] .spec-soon-panel strong { color: #22d3ee; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .spec-grid { grid-template-columns: 1fr; gap: 2.25rem; }
+  }
+  @media (max-width: 720px) {
+    .spec { padding: 0 0 3.5rem; }
+    .spec-picker { gap: 0.45rem; margin-bottom: 2rem; }
+    .spec-chip { padding: 0.5rem 0.85rem; font-size: 0.78rem; }
+    .spec-card { padding: 1.15rem; }
+    .spec-step-t { font-size: 0.8rem; }
+    .spec-soon-panel { padding: 2.25rem 1.25rem; }
+  }
+
+  /* Sin animación: los pasos ya están puestos, sin encenderse en cascada. */
+  @media (prefers-reduced-motion: reduce) {
+    .spec-step { opacity: 1; transform: none; transition: none; }
+  }
 </style>
 </head>
 <body>
@@ -4360,6 +4663,121 @@
       <p class="partner-tagline">"pies sanos, cuerpo en armonía"</p>
       <p class="partner-meta">Clínica aliada en Honduras</p>
     </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     ESPECIALIDADES — qué trae la ficha de cada una
+     ═══════════════════════════════════════════════════════
+     Hoy solo podología está abierta para alta por cuenta propia
+     (ver ESPECIALIDADES en registro.html). Las demás fichas existen en la
+     app pero su registro está cerrado, así que aquí aparecen como
+     "pronto" en vez de esconderse: el selector es la promesa de que esto
+     crece, y añadir una es agregar su chip y su panel.
+     ═══════════════════════════════════════════════════════ -->
+<section class="spec" id="especialidades">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="section-eyebrow">Por especialidad</span>
+      <h2 class="section-title">La ficha es de tu <span class="grad">especialidad</span></h2>
+      <p class="section-sub">No un formulario genérico con el nombre de tu área encima. Elige la tuya y mira exactamente qué trae.</p>
+    </div>
+
+    <!-- Selector -->
+    <div class="spec-picker reveal" role="tablist" aria-label="Elegir especialidad">
+      <button class="spec-chip is-active" role="tab" aria-selected="true" aria-controls="spec-podologia" id="chip-podologia" data-spec="podologia" type="button">
+        <span class="spec-chip-dot" aria-hidden="true"></span>
+        Podología
+      </button>
+      <button class="spec-chip is-soon" role="tab" aria-selected="false" aria-controls="spec-pronto" data-spec="pronto" type="button">
+        Nutrición <span class="spec-soon">pronto</span>
+      </button>
+      <button class="spec-chip is-soon" role="tab" aria-selected="false" aria-controls="spec-pronto" data-spec="pronto" type="button">
+        Ortodoncia <span class="spec-soon">pronto</span>
+      </button>
+      <button class="spec-chip is-soon" role="tab" aria-selected="false" aria-controls="spec-pronto" data-spec="pronto" type="button">
+        Periodoncia <span class="spec-soon">pronto</span>
+      </button>
+      <button class="spec-chip is-soon" role="tab" aria-selected="false" aria-controls="spec-pronto" data-spec="pronto" type="button">
+        Medicina general <span class="spec-soon">pronto</span>
+      </button>
+    </div>
+
+    <!-- Panel · Podología -->
+    <div class="spec-panel is-active reveal" id="spec-podologia" role="tabpanel" aria-labelledby="chip-podologia" data-panel="podologia">
+      <div class="spec-grid">
+
+        <!-- Columna izquierda: qué trae la ficha -->
+        <div class="spec-side">
+          <span class="spec-tag">Ficha de consulta podológica</span>
+          <h3>Todo lo que ya escribes,<br/><span class="grad">en su sitio</span></h3>
+          <p class="spec-lead">Abres la consulta y encuentras los campos de podología, no los de medicina general con un hueco para improvisar.</p>
+
+          <ul class="spec-list">
+            <li>
+              <span class="spec-list-k">Podograma interactivo</span>
+              <span class="spec-list-v">Tipo de pie —griego, romano, germánico, celta, espiguio— y huella plantar, marcados sobre el mapa.</span>
+            </li>
+            <li>
+              <span class="spec-list-k">Exploración dermatológica</span>
+              <span class="spec-list-v">Onicomicosis, onicocriptosis, onicogrifosis, onicólisis, onicorrexis, paroniquia y retroniquia, pie por pie.</span>
+            </li>
+            <li>
+              <span class="spec-list-k">Antecedentes completos</span>
+              <span class="spec-list-v">Patológicos, no patológicos y ginecoobstétricos, más la historia de la enfermedad actual.</span>
+            </li>
+            <li>
+              <span class="spec-list-k">Tipo de calzado</span>
+              <span class="spec-list-v">Cerrado, deportivo, tacón o flat — porque en podología el zapato es parte del diagnóstico.</span>
+            </li>
+            <li>
+              <span class="spec-list-k">Fotos, plan y cobro</span>
+              <span class="spec-list-v">Imágenes de la consulta, diagnóstico y plan de manejo, consentimiento firmado y el cobro que cae en Finanzas.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Columna derecha: el tamizaje, paso a paso -->
+        <div class="spec-visual">
+          <div class="spec-card">
+            <div class="spec-card-head">
+              <div>
+                <div class="spec-card-title">Tamizaje de pie diabético</div>
+                <div class="spec-card-sub">Nueve pasos, en orden, dentro de la consulta</div>
+              </div>
+              <span class="spec-card-count"><strong id="specStepCount">9</strong> pasos</span>
+            </div>
+
+            <ol class="spec-steps" id="specSteps">
+              <li class="spec-step"><span class="spec-step-n">1</span><span class="spec-step-t">Marcha</span></li>
+              <li class="spec-step"><span class="spec-step-n">2</span><span class="spec-step-t">Fuerza muscular</span></li>
+              <li class="spec-step"><span class="spec-step-n">3</span><span class="spec-step-t">Sensibilidad superficial</span></li>
+              <li class="spec-step"><span class="spec-step-n">4</span><span class="spec-step-t">Sensibilidad profunda</span></li>
+              <li class="spec-step"><span class="spec-step-n">5</span><span class="spec-step-t">Trofismo muscular</span></li>
+              <li class="spec-step"><span class="spec-step-n">6</span><span class="spec-step-t">Reflejos osteotendinosos</span></li>
+              <li class="spec-step"><span class="spec-step-n">7</span><span class="spec-step-t">Respuesta plantar</span></li>
+              <li class="spec-step"><span class="spec-step-n">8</span><span class="spec-step-t">Índice Tobillo-Brazo</span></li>
+              <li class="spec-step"><span class="spec-step-n">9</span><span class="spec-step-t">Termografía y termometría</span></li>
+            </ol>
+
+            <div class="spec-card-foot">
+              <span>Cada paso guarda hallazgo por pie y queda en el historial</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Panel · las que todavía no abren -->
+    <div class="spec-panel" id="spec-pronto" role="tabpanel" data-panel="pronto" hidden>
+      <div class="spec-soon-panel">
+        <h3>Esa todavía no está abierta</h3>
+        <p>Hoy el alta por cuenta propia es solo para <strong>podología</strong>. Las demás fichas ya existen dentro de la app y se van abriendo de a poco — cuando le toque a la tuya, aparecerá aquí con el mismo detalle.</p>
+        <a href="mailto:saluddigitalhn@gmail.com?subject=Me%20interesa%20mi%20especialidad" class="btn btn-ghost">Avísame cuando abra la mía</a>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -5484,6 +5902,80 @@
       clearInterval(framesTimer);
       if (bootWatchdog) clearTimeout(bootWatchdog);
     });
+  })();
+
+
+  // ═══════════════════════════════════════════════════════
+  // ESPECIALIDADES — selector + los nueve pasos del tamizaje
+  //
+  // El panel de podología está en el HTML (se ve sin JS y lo indexa el
+  // buscador). Esto solo cambia de panel y enciende los pasos en cascada
+  // cuando la sección entra en pantalla. Añadir una especialidad = añadir
+  // su chip con data-spec y un .spec-panel con ese data-panel.
+  // ═══════════════════════════════════════════════════════
+  (function especialidades() {
+    const seccion = document.getElementById('especialidades');
+    if (!seccion) return;
+
+    const chips = Array.from(seccion.querySelectorAll('.spec-chip'));
+    const paneles = Array.from(seccion.querySelectorAll('.spec-panel'));
+    const pasos = Array.from(seccion.querySelectorAll('.spec-step'));
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function mostrar(spec, pulsado) {
+      chips.forEach((c) => {
+        const esEste = pulsado ? c === pulsado : c.dataset.spec === spec;
+        // La abierta se rellena; una de "pronto" solo se resalta, para que se
+        // note cuál tocaste sin prometer que ya se puede usar.
+        c.classList.toggle('is-active', esEste && spec !== 'pronto');
+        c.classList.toggle('is-picked', esEste && spec === 'pronto');
+        c.setAttribute('aria-selected', esEste ? 'true' : 'false');
+      });
+      paneles.forEach((p) => {
+        const activo = p.dataset.panel === spec;
+        p.classList.toggle('is-active', activo);
+        p.hidden = !activo;
+      });
+      // Al volver a podología, los pasos se vuelven a encender.
+      if (spec === 'podologia') encender();
+    }
+
+    chips.forEach((c) => {
+      c.addEventListener('click', () => mostrar(c.dataset.spec, c));
+    });
+
+    // Cascada de los nueve pasos: 90ms entre uno y otro.
+    let temporizadores = [];
+    let yaCorrio = false;
+    function encender() {
+      temporizadores.forEach(clearTimeout);
+      temporizadores = [];
+      if (reduced) {
+        pasos.forEach((p) => p.classList.add('on'));
+        return;
+      }
+      pasos.forEach((p) => p.classList.remove('on'));
+      pasos.forEach((p, i) => {
+        temporizadores.push(setTimeout(() => p.classList.add('on'), 220 + i * 90));
+      });
+    }
+
+    // No se enciende hasta que se ve; si no, el usuario llega y ya pasó todo.
+    // Se vigila la LISTA de pasos, no la sección entera: en un teléfono la
+    // sección mide más de tres pantallas y nunca llegaba a mostrar el 25% que
+    // pedía el umbral, así que la cascada no arrancaba nunca.
+    const diana = seccion.querySelector('#specSteps') || seccion;
+    const io = new IntersectionObserver((entradas) => {
+      entradas.forEach((e) => {
+        if (e.isIntersecting && !yaCorrio) {
+          yaCorrio = true;
+          encender();
+        }
+      });
+    }, { threshold: 0.2 });
+    io.observe(diana);
+
+    window.addEventListener('pagehide', () => temporizadores.forEach(clearTimeout));
   })();
 
 </script>
