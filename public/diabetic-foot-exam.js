@@ -7,10 +7,15 @@
  * el estado en `#consDFEState` para que ConsultationDraft autoguarde y
  * submitConsult() lo incluya en el payload.
  *
+ * El paso 9 (termografía) no es suyo: su widget vive en la página y el módulo
+ * solo le presta la ranura del paso. Ver registerExternal().
+ *
  * API:
  *   DiabeticFootExam.init();        // monta una vez (idempotente)
  *   DiabeticFootExam.getState();    // estado serializable
  *   DiabeticFootExam.setState(s);   // restaurar desde borrador
+ *   DiabeticFootExam.registerExternal(stepId, { node, status });
+ *   DiabeticFootExam.sync();        // repintar tras cambiar un widget externo
  *
  * Diseño: ver `Exploración del pie diabético.html` (Claude Design).
  */
@@ -101,27 +106,10 @@
       interactive: 'itb'
     },
     {
-      id: 'termografia', num: 9, title: 'Termografía', eyebrow: 'Tamizaje · Vascular',
-      subtitle: 'Registrar la temperatura de cada zona y compararla con el punto simétrico del pie contralateral. La asimetría térmica sostenida mayor a 2.2 °C anticipa ulceración aun con la piel íntegra.',
+      id: 'termografia', num: 9, title: 'Termografía y termometría', eyebrow: 'Tamizaje · Vascular',
+      subtitle: 'Marcar la zona sobre el mapa plantar y registrar su temperatura. Comparar siempre con el punto simétrico del pie contralateral: una asimetría térmica sostenida mayor a 2.2 °C anticipa ulceración aun con la piel íntegra.',
       alarm: 'Asimetría térmica > 2.2 °C entre zonas simétricas',
-      abnormalLabel: 'Fuera de rango',
-      scale: {
-        values: ['<30', '30-32', '32-35', '35-37', '>37'],
-        normalValue: '32-35',
-        unit: ' °C',
-        short: 'Temp'
-      },
-      reference: {
-        eye: 'Patrones térmicos',
-        title: 'Lectura de la termografía plantar',
-        body: 'Rangos: muy fría <30 °C · fría 30-32 °C · normal 32-35 °C · cálida 35-37 °C · muy cálida >37 °C. Patrones descritos: mariposa, alto completo, alto interno, antepié bajo, bajo completo y dedos bajos. Una zona caliente sugiere inflamación o neuroartropatía de Charcot; una zona fría sugiere isquemia.'
-      },
-      substeps: [
-        { id: 'A', name: 'Dedos — hallux y pulpejos', hint: 'Comparar cada dedo con su simétrico contralateral.' },
-        { id: 'B', name: 'Antepié — cabezas metatarsianas', hint: 'Zona de mayor presión plantar y de úlcera más frecuente.' },
-        { id: 'C', name: 'Mediopié — arco', hint: 'El calor localizado aquí obliga a descartar Charcot.' },
-        { id: 'D', name: 'Talón — retropié', hint: 'Comparar con el talón contralateral.' }
-      ]
+      interactive: 'thermo'
     }
   ];
 
@@ -195,6 +183,63 @@
   let openStepId = null;
   let mounted = false;
 
+  // ─── Widgets externos ──────────────────────────────────────────────────
+  // Un paso puede delegar su cuerpo en un nodo que vive fuera del módulo (hoy,
+  // la termografía: su SVG, sus listeners y su estado son de la página, que
+  // además los guarda en su propio payload). El módulo solo lo re-inserta en la
+  // ranura del paso después de cada render y le pregunta su estado para pintar
+  // la píldora y el progreso. Se guarda la referencia al nodo, no su id: cada
+  // renderSteps() lo saca del DOM y volvería a perderse un getElementById.
+  const externals = Object.create(null);
+
+  function externalNode(stepId) {
+    const ex = externals[stepId];
+    if (!ex) return null;
+    if (!ex.el) {
+      try { ex.el = ex.node(); } catch (e) { ex.el = null; }
+      // Dónde vivía antes de que el módulo se lo llevara: si algún día el paso
+      // dejara de renderizar su ranura, el widget vuelve ahí en vez de
+      // quedarse suelto fuera del documento.
+      if (ex.el) ex.home = ex.el.parentNode;
+    }
+    return ex.el || null;
+  }
+
+  const EXT_BLANK = { touched: false, alarm: false, detail: '', findings: [] };
+
+  function externalStatus(stepId) {
+    const ex = externals[stepId];
+    if (!ex || typeof ex.status !== 'function') return EXT_BLANK;
+    try {
+      const s = ex.status() || {};
+      return {
+        touched: !!s.touched,
+        alarm: !!s.alarm,
+        detail: s.detail || '',
+        findings: Array.isArray(s.findings) ? s.findings : []
+      };
+    } catch (e) {
+      return EXT_BLANK;
+    }
+  }
+
+  function detachExternals() {
+    Object.keys(externals).forEach(id => {
+      const el = externalNode(id);
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+    });
+  }
+
+  function mountExternals() {
+    Object.keys(externals).forEach(id => {
+      const el = externalNode(id);
+      if (!el) return;
+      const slot = document.querySelector('#dfeSteps .dfe-ext-slot[data-ext="' + id + '"]');
+      const target = slot || externals[id].home;
+      if (target && el.parentNode !== target) target.appendChild(el);
+    });
+  }
+
   function blankState() {
     return { sub: {}, mono: {}, vib: {}, itb: { vR: 'DP', vL: 'DP' } };
   }
@@ -258,6 +303,11 @@
       const missL = FOOT_POINTS.filter(p => state.mono['L-' + p.id] === 'miss').length;
       if (missR >= 4 || missL >= 4) alarm = true;
     }
+    if (hasInteractive(step, 'thermo')) {
+      const ext = externalStatus(step.id);
+      if (ext.touched) touched = true;
+      if (ext.alarm) alarm = true;
+    }
     if (hasInteractive(step, 'itb')) {
       const itb = state.itb || {};
       if (itb.armR != null && itb.armL != null) touched = true;
@@ -300,6 +350,12 @@
         const missL = FOOT_POINTS.filter(p => state.mono['L-' + p.id] === 'miss').length;
         if (missR >= 4) alarms += 1;
         if (missL >= 4) alarms += 1;
+      }
+      if (hasInteractive(s, 'thermo')) {
+        total += 1;
+        const ext = externalStatus(s.id);
+        if (ext.touched) filled += 1;
+        if (ext.alarm) alarms += 1;
       }
       if (hasInteractive(s, 'itb')) {
         total += 1;
@@ -731,6 +787,7 @@
   }
 
   function renderStepBody(step) {
+    if (hasInteractive(step, 'thermo')) return '<div class="dfe-ext-slot" data-ext="' + step.id + '"></div>';
     if (hasInteractive(step, 'itb')) return renderITBHTML();
     let html = '';
     if (step.substeps) html += renderSubstepsHTML(step);
@@ -784,6 +841,10 @@
   function collectFindings() {
     const out = [];
     STEPS.forEach(step => {
+      const ext = externals[step.id] ? externalStatus(step.id) : null;
+      if (ext) {
+        ext.findings.forEach(txt => out.push({ src: step.title, txt: txt, severity: 'alarm' }));
+      }
       if (!step.substeps) return;
       step.substeps.forEach(sub => {
         const v = state.sub[step.id + '.' + sub.id];
@@ -863,6 +924,18 @@
   function renderSummary() {
     const tiles = [];
     STEPS.forEach(s => {
+      if (hasInteractive(s, 'thermo')) {
+        const ext = externalStatus(s.id);
+        tiles.push({
+          title: s.title,
+          det: ext.detail || 'Sin realizar.',
+          pill: ext.alarm ? 'alarm' : (ext.touched ? 'ok' : ''),
+          pillTxt: ext.alarm
+            ? (ext.findings.length + ' hallazgo' + (ext.findings.length === 1 ? '' : 's'))
+            : (ext.touched ? 'Normal' : 'Pendiente')
+        });
+        return;
+      }
       if (hasInteractive(s, 'itb')) {
         const itb = state.itb || {};
         const armRef = Math.max(itb.armR || 0, itb.armL || 0);
@@ -949,7 +1022,9 @@
   function renderSteps() {
     const container = document.getElementById('dfeSteps');
     if (!container) return;
+    detachExternals();
     container.innerHTML = STEPS.map(renderStepHTML).join('');
+    mountExternals();
   }
 
   function renderHeader() {
@@ -959,19 +1034,22 @@
     const pctEl = document.getElementById('dfeProgressPct');
     if (bar) bar.style.width = pct + '%';
     if (pctEl) pctEl.textContent = pct + '%';
+    // El <span> lleva su id de vuelta en cada render: antes se reescribía sin él
+    // y, a partir del segundo repintado, getElementById('dfeAlarmsText') era null
+    // y la condición saltaba el bloque entero — el banner se quedaba clavado en
+    // "Sin alarmas" aunque el tamizaje tuviera hallazgos.
     const alarmEl = document.getElementById('dfeAlarmsPill');
-    const alarmTxt = document.getElementById('dfeAlarmsText');
-    if (alarmEl && alarmTxt) {
+    if (alarmEl) {
       if (counts.alarms > 0) {
         alarmEl.classList.add('has-alarms');
         alarmEl.innerHTML =
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
-          '<span>' + counts.alarms + ' alarma' + (counts.alarms === 1 ? '' : 's') + '</span>';
+          '<span id="dfeAlarmsText">' + counts.alarms + ' alarma' + (counts.alarms === 1 ? '' : 's') + '</span>';
       } else {
         alarmEl.classList.remove('has-alarms');
         alarmEl.innerHTML =
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
-          '<span>Sin alarmas</span>';
+          '<span id="dfeAlarmsText">Sin alarmas</span>';
       }
     }
   }
@@ -1155,7 +1233,23 @@
     refresh();
   }
 
-  window.DiabeticFootExam = { init: init, getState: getState, setState: setState, reset: reset };
+  // Declara el widget externo de un paso. `node()` devuelve su nodo (se consulta
+  // una sola vez y se cachea) y `status()` un { touched, alarm } para la píldora
+  // del paso y el progreso. La página llama a sync() cuando su estado cambia.
+  function registerExternal(stepId, cfg) {
+    if (!stepId || !cfg || typeof cfg.node !== 'function') return;
+    externals[stepId] = { node: cfg.node, status: cfg.status, el: null, home: null };
+    if (mounted) refresh();
+  }
+
+  window.DiabeticFootExam = {
+    init: init,
+    getState: getState,
+    setState: setState,
+    reset: reset,
+    registerExternal: registerExternal,
+    sync: function () { if (mounted) refresh(); }
+  };
 
   // Auto-init when DOM is ready (idempotent).
   if (document.readyState === 'loading') {

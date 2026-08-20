@@ -267,6 +267,9 @@
     .form-section[data-icon="pulse"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12h4l3-9 4 18 3-9h4'/%3E%3C/svg%3E"); }
     .form-section[data-icon="diagnosis"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='16' y1='13' x2='8' y2='13'/%3E%3Cline x1='16' y1='17' x2='8' y2='17'/%3E%3C/svg%3E"); }
     .form-section[data-icon="tools"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E"); }
+    /* Icono de la sección "Termografía y Termometría" de Historia Clínica, que
+       ya no existe: la termografía es ahora el paso 9 del tamizaje y su cabecera
+       la pinta el acordeón. Se conserva por si el bloque volviera a usarse. */
     .form-section[data-icon="thermo"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z'/%3E%3C/svg%3E"); }
     .form-section[data-icon="image"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E"); }
     .form-section[data-icon="signature"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 17.5c2-2 6-4 9-2s4 4 9 0'/%3E%3Cpath d='M3 21h18'/%3E%3C/svg%3E"); }
@@ -580,6 +583,11 @@
     #thermoFeetContainer .foot-path.temp-measured {
       fill: var(--temp-color, rgba(8, 145, 178, 0.2)) !important;
     }
+    /* La termografía es el cuerpo del paso 9 del acordeón. Sus márgenes venían
+       de cuando era una sección suelta de Historia Clínica: dentro del paso
+       sobran, porque .dfe-step-body ya pone el suyo. */
+    #dfeSteps #thermoWidget .thermography-grid { margin-bottom: 0; }
+    #dfeSteps #thermoWidget .color-legend { margin-top: 1.25rem; }
 
     /* ── Image Drop Zone (Premium) ── */
     .pod-drop {
@@ -1980,85 +1988,6 @@
       </table>
     </div>
 
-    <!-- Termografía y Termometría -->
-    <div class="form-section" data-icon="thermo">
-      <h3>Termografía y Termometría</h3>
-      <div class="thermography-grid">
-        <!-- SVG de Pies -->
-        <div class="feet-section">
-          <span class="feet-label">Visualización de Pies</span>
-          <div class="feet-svg" id="thermoFeetContainer"></div>
-        </div>
-
-        <!-- Controles -->
-        <div class="controls-section">
-          <div class="control-group">
-            <label class="control-label">Tipo de Termografía</label>
-            <div class="thermography-types" id="thermoTypeSelector">
-              <button type="button" class="type-option" data-type="type1">Tipo 1<br>Mariposa</button>
-              <button type="button" class="type-option" data-type="type2">Tipo 2<br>Alto</button>
-              <button type="button" class="type-option" data-type="type3">Tipo 3<br>Interno</button>
-              <button type="button" class="type-option" data-type="type4">Tipo 4<br>Bajo</button>
-              <button type="button" class="type-option" data-type="type5">Tipo 5<br>Bajo</button>
-              <button type="button" class="type-option" data-type="type6">Tipo 6<br>Antepié</button>
-              <button type="button" class="type-option" data-type="type7">Tipo 7<br>Dedos</button>
-            </div>
-          </div>
-
-          <div class="control-group">
-            <label class="control-label">Zona a Medir</label>
-            <div class="temperature-input">
-              <input type="text" id="thermo-zoneInput" placeholder="Ej: Talón, Metatarsiano..." style="flex: 1;">
-            </div>
-          </div>
-
-          <div class="control-group">
-            <label class="control-label">Temperatura (°C)</label>
-            <div class="temperature-input">
-              <input type="number" id="thermo-temperatureInput" placeholder="Ej: 32.5" step="0.1" min="20" max="45" style="flex: 1;">
-              <button type="button" onclick="thermoAddMeasurement()">Registrar</button>
-            </div>
-          </div>
-
-          <div class="control-group">
-            <label class="control-label">Mediciones Registradas</label>
-            <div class="measurements-list" id="thermo-measurementsList">
-              <p style="color: #94a3b8; font-size: 0.85rem; padding: 0.75rem; text-align: center;">Sin mediciones aún</p>
-            </div>
-          </div>
-
-          <div class="control-group">
-            <label class="control-label">Observaciones Generales</label>
-            <textarea id="thermo-observations" placeholder="Notas sobre los patrones térmicos observados..." style="padding: 0.75rem 0.85rem; border: 1.5px solid var(--pod-border); border-radius: 10px; font-family: inherit; font-size: 0.88rem; background: white; min-height: 80px; resize: vertical; transition: all 0.2s;" onfocus="this.style.borderColor='var(--pod-primary)';this.style.boxShadow='0 0 0 3px rgba(8,145,178,0.12)';" onblur="this.style.borderColor='var(--pod-border)';this.style.boxShadow='none';"></textarea>
-          </div>
-        </div>
-      </div>
-
-      <!-- Leyenda de Colores -->
-      <div class="color-legend">
-        <div class="legend-item">
-          <div class="legend-color" style="background: #3b82f6;"></div>
-          <span>Muy Fría (&lt;30°C)</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background: #06b6d4;"></div>
-          <span>Fría (30-32°C)</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background: #10b981;"></div>
-          <span>Normal (32-35°C)</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background: #f59e0b;"></div>
-          <span>Cálida (35-37°C)</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background: #ef4444;"></div>
-          <span>Muy Cálida (&gt;37°C)</span>
-        </div>
-      </div>
-    </div>
-
     <!-- ─── Sección 4: Exploración del Pie Diabético ─── -->
     <div class="pod-group is-collapsed" data-group-idx="3">
       <div class="pod-group-num">4</div>
@@ -2096,6 +2025,88 @@
 
         <!-- Steps accordion -->
         <div id="dfeSteps"></div>
+
+        <!-- Termografía y termometría — es el cuerpo del paso 9 del acordeón.
+             Vive aquí, fuera de #dfeSteps, porque cada render del acordeón
+             reescribe sus pasos y se lo llevaría por delante; el propio módulo
+             lo mueve a la ranura del paso 9 vía registerExternal(). Si el módulo
+             no llegara a montar, el widget se sigue viendo y usando en este sitio. -->
+        <div id="thermoWidget">
+          <div class="thermography-grid">
+            <!-- SVG de Pies -->
+            <div class="feet-section">
+              <span class="feet-label">Visualización de Pies</span>
+              <div class="feet-svg" id="thermoFeetContainer"></div>
+            </div>
+
+            <!-- Controles -->
+            <div class="controls-section">
+              <div class="control-group">
+                <label class="control-label">Tipo de Termografía</label>
+                <div class="thermography-types" id="thermoTypeSelector">
+                  <button type="button" class="type-option" data-type="type1">Tipo 1<br>Mariposa</button>
+                  <button type="button" class="type-option" data-type="type2">Tipo 2<br>Alto</button>
+                  <button type="button" class="type-option" data-type="type3">Tipo 3<br>Interno</button>
+                  <button type="button" class="type-option" data-type="type4">Tipo 4<br>Bajo</button>
+                  <button type="button" class="type-option" data-type="type5">Tipo 5<br>Bajo</button>
+                  <button type="button" class="type-option" data-type="type6">Tipo 6<br>Antepié</button>
+                  <button type="button" class="type-option" data-type="type7">Tipo 7<br>Dedos</button>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Zona a Medir</label>
+                <div class="temperature-input">
+                  <input type="text" id="thermo-zoneInput" placeholder="Ej: Talón, Metatarsiano..." style="flex: 1;">
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Temperatura (°C)</label>
+                <div class="temperature-input">
+                  <input type="number" id="thermo-temperatureInput" placeholder="Ej: 32.5" step="0.1" min="20" max="45" style="flex: 1;">
+                  <button type="button" onclick="thermoAddMeasurement()">Registrar</button>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Mediciones Registradas</label>
+                <div class="measurements-list" id="thermo-measurementsList">
+                  <p style="color: #94a3b8; font-size: 0.85rem; padding: 0.75rem; text-align: center;">Sin mediciones aún</p>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Observaciones Generales</label>
+                <textarea id="thermo-observations" placeholder="Notas sobre los patrones térmicos observados..." style="padding: 0.75rem 0.85rem; border: 1.5px solid var(--pod-border); border-radius: 10px; font-family: inherit; font-size: 0.88rem; background: white; min-height: 80px; resize: vertical; transition: all 0.2s;" onfocus="this.style.borderColor='var(--pod-primary)';this.style.boxShadow='0 0 0 3px rgba(8,145,178,0.12)';" onblur="this.style.borderColor='var(--pod-border)';this.style.boxShadow='none';"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Leyenda de Colores -->
+          <div class="color-legend">
+            <div class="legend-item">
+              <div class="legend-color" style="background: #3b82f6;"></div>
+              <span>Muy Fría (&lt;30°C)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #06b6d4;"></div>
+              <span>Fría (30-32°C)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #10b981;"></div>
+              <span>Normal (32-35°C)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #f59e0b;"></div>
+              <span>Cálida (35-37°C)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #ef4444;"></div>
+              <span>Muy Cálida (&gt;37°C)</span>
+            </div>
+          </div>
+        </div>
 
         <!-- Findings summary -->
         <div class="dfe-summary">
@@ -2475,6 +2486,12 @@ async function loadAppointment() {
               try {
                 if (typeof thermoRenderMeasurements === 'function') thermoRenderMeasurements();
                 if (typeof updateSVGColors === 'function') updateSVGColors();
+                // El tipo se restauraba en la variable pero no en el botón, así que
+                // el borrador volvía sin ninguna tarjeta marcada.
+                document.querySelectorAll('#thermoTypeSelector .type-option').forEach(b => {
+                  b.classList.toggle('active', !!thermoSelectedType && b.dataset.type === thermoSelectedType);
+                });
+                if (typeof thermoSyncStep === 'function') thermoSyncStep();
               } catch (e) { console.warn('thermo restore', e); }
             }
           },
@@ -2844,6 +2861,65 @@ function updateSVGColors() {
   });
 }
 
+const THERMO_TYPE_LABELS = {
+  type1: 'Tipo 1 · Mariposa', type2: 'Tipo 2 · Alto', type3: 'Tipo 3 · Interno',
+  type4: 'Tipo 4 · Bajo', type5: 'Tipo 5 · Bajo', type6: 'Tipo 6 · Antepié', type7: 'Tipo 7 · Dedos'
+};
+
+// Lo que el acordeón pinta en el paso 9: la píldora del paso, su tarjeta del
+// resumen y los hallazgos de la conclusión. Alarma: asimetría térmica > 2.2 °C
+// entre zonas simétricas — solo se puede calcular con las mediciones tomadas
+// sobre el mapa (las que traen pie y zona); una etiqueta escrita a mano no dice
+// de qué pie es.
+function thermoStepStatus() {
+  const porZona = {};
+  thermoMeasurements.forEach(m => {
+    const res = thermoResolveZone(m);
+    const t = Number(m.temp);
+    if (!res || isNaN(t)) return;
+    porZona[res.zone] = porZona[res.zone] || {};
+    porZona[res.zone][res.foot] = t;
+  });
+
+  const pares = Object.keys(porZona)
+    .filter(z => porZona[z].left != null && porZona[z].right != null)
+    .map(z => ({
+      zona: THERMO_ZONE_LABELS[z] || z,
+      izq: porZona[z].left,
+      der: porZona[z].right,
+      delta: Math.abs(porZona[z].left - porZona[z].right)
+    }));
+
+  const findings = pares
+    .filter(p => p.delta > 2.2)
+    .map(p => `${p.zona}: ${p.izq} °C izq vs ${p.der} °C der — Δ ${p.delta.toFixed(1)} °C`);
+
+  const n = thermoMeasurements.length;
+  const partes = [];
+  if (thermoSelectedType) partes.push(THERMO_TYPE_LABELS[thermoSelectedType] || thermoSelectedType);
+  if (n) partes.push(`${n} zona${n === 1 ? '' : 's'} medida${n === 1 ? '' : 's'}`);
+  if (pares.length) {
+    const maxDelta = Math.max(...pares.map(p => p.delta));
+    partes.push(findings.length
+      ? `asimetría máxima ${maxDelta.toFixed(1)} °C`
+      : 'sin asimetrías > 2.2 °C');
+  }
+
+  return {
+    touched: n > 0 || !!thermoSelectedType,
+    alarm: findings.length > 0,
+    detail: partes.length ? partes.join(' · ') : 'Sin realizar.',
+    findings
+  };
+}
+
+// Repinta la píldora del paso 9 y el progreso del tamizaje. No se llama al
+// teclear las observaciones: cada sync() re-renderiza los pasos y movería el
+// textarea, con lo que se perdería el foco a media palabra.
+function thermoSyncStep() {
+  if (window.DiabeticFootExam && DiabeticFootExam.sync) DiabeticFootExam.sync();
+}
+
 function thermoAddMeasurement() {
   const zone = document.getElementById('thermo-zoneInput').value.trim();
   const temp = parseFloat(document.getElementById('thermo-temperatureInput').value);
@@ -2867,6 +2943,7 @@ function thermoAddMeasurement() {
   thermoMeasurements.push(measurement);
   thermoRenderMeasurements();
   updateSVGColors();
+  thermoSyncStep();
 
   thermoPendingZone = null;
   document.getElementById('thermo-temperatureInput').value = '';
@@ -2877,6 +2954,7 @@ function thermoDeleteMeasurement(index) {
   thermoMeasurements.splice(index, 1);
   thermoRenderMeasurements();
   updateSVGColors();
+  thermoSyncStep();
 }
 
 function thermoRenderMeasurements() {
@@ -2916,6 +2994,7 @@ document.querySelectorAll('#thermoTypeSelector .type-option').forEach(btn => {
     document.querySelectorAll('#thermoTypeSelector .type-option').forEach(b => b.classList.remove('active'));
     this.classList.add('active');
     thermoSelectedType = this.dataset.type;
+    thermoSyncStep();
   });
 });
 
@@ -2929,6 +3008,15 @@ document.getElementById('thermo-zoneInput').addEventListener('input', function()
 document.getElementById('thermo-temperatureInput').addEventListener('keypress', function(e) {
   if (e.key === 'Enter') thermoAddMeasurement();
 });
+
+// La termografía es el cuerpo del paso 9 del acordeón: el módulo mueve
+// #thermoWidget a la ranura del paso en cada render y pregunta aquí su estado.
+if (window.DiabeticFootExam && DiabeticFootExam.registerExternal) {
+  DiabeticFootExam.registerExternal('termografia', {
+    node: () => document.getElementById('thermoWidget'),
+    status: thermoStepStatus
+  });
+}
 
 // ── Consentimiento y Firma ──
 let consentTemplates = [];
