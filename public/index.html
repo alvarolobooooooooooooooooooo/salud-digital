@@ -3813,9 +3813,14 @@
       0 30px 80px rgba(0, 0, 0, 0.55);
   }
 
+  /* En un teléfono el 16:9 se queda en ~220px de alto y el film no se lee.
+     El marco pasa a 4:5 y se carga una versión vertical con su propia
+     maquetación de texto — recortar la apaisada no servía: a 4:5 solo cabría
+     el 45% del ancho y partiría los titulares por la mitad. */
   @media (max-width: 720px) {
     .hero-film {
       max-width: 100%;
+      aspect-ratio: 4 / 5;
       border-radius: 18px;
       margin-bottom: 2rem;
     }
@@ -3899,6 +3904,8 @@
         src="/video/hero-1080.mp4?v=1"
         data-src-hd="/video/hero-1080.mp4?v=1"
         data-src-uhd="/video/hero-2160.mp4?v=1"
+        data-src-portrait="/video/hero-portrait.mp4?v=1"
+        data-poster-portrait="/video/hero-portrait-poster.jpg"
         poster="/video/hero-poster.jpg"
         muted
         loop
@@ -5317,6 +5324,11 @@
       1080: video.dataset.srcHd,
       2160: video.dataset.srcUhd,
     };
+    // El corte vertical (4:5) es una pieza aparte, no un recorte de la
+    // apaisada: su texto está maquetado para el cuadro estrecho.
+    const PORTRAIT = video.dataset.srcPortrait;
+    const portraitQuery = window.matchMedia('(max-width: 720px)');
+    const usaVertical = () => portraitQuery.matches && !!PORTRAIT;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // ── ¿Vale la pena el 4K? ──
@@ -5327,9 +5339,11 @@
       if (net) {
         if (net.saveData) return 1080;
         if (/^(slow-2g|2g|3g)$/.test(net.effectiveType || '')) return 1080;
-        // downlink es una estimación gruesa: solo se usa cuando delata una
-        // conexión claramente mala, no para vetar el 4K en un wifi normal.
-        if (typeof net.downlink === 'number' && net.downlink > 0 && net.downlink < 1.5) return 1080;
+        // Aquí NO se mira net.downlink: Chrome lo reporta oscilando alrededor
+        // de 1.5 Mbit/s incluso en wifi bueno, así que cualquier umbral lo
+        // convierte en un volado. Si la red de verdad no da, lo detectan el
+        // watchdog de arranque y el contador de frames perdidos de abajo, que
+        // miden lo que pasa en vez de adivinarlo.
       }
       if (typeof navigator.deviceMemory === 'number' && navigator.deviceMemory < 4) return 1080;
       if ((navigator.hardwareConcurrency || 8) < 4) return 1080;
@@ -5342,13 +5356,20 @@
 
     let tier = pickTier();
     let downgraded = false;
-    if (tier === 2160 && SRC[2160]) {
+
+    if (usaVertical()) {
+      // En vertical no hay escalón de 4K: la pieza ya viene a 1440×1800, de
+      // sobra para un teléfono, y una segunda calidad solo sumaría megas.
+      tier = 1080;
+      video.src = PORTRAIT;
+      if (video.dataset.posterPortrait) video.poster = video.dataset.posterPortrait;
+    } else if (tier === 2160 && SRC[2160]) {
       video.src = SRC[2160];
     }
 
     // ── Bajar a 1080p conservando el punto de reproducción ──
     function downgrade(motivo) {
-      if (downgraded || tier === 1080) return;
+      if (downgraded || tier === 1080 || usaVertical()) return;
       downgraded = true;
       tier = 1080;
       const t = video.currentTime;
@@ -5431,6 +5452,25 @@
     }
     if (document.readyState === 'complete') boot();
     else window.addEventListener('load', boot);
+
+    // Girar el teléfono o redimensionar cambia de pieza, conservando el punto
+    // de reproducción para que no se note el salto.
+    const onOrientation = () => {
+      const quiere = usaVertical() ? PORTRAIT : SRC[1080];
+      const actual = (video.getAttribute('src') || '');
+      if (quiere && actual !== quiere) {
+        const t = video.currentTime;
+        video.src = quiere;
+        video.poster = usaVertical() && video.dataset.posterPortrait
+          ? video.dataset.posterPortrait
+          : '/video/hero-poster.jpg';
+        if (started) {
+          video.currentTime = t || 0;
+          video.play().catch(() => {});
+        }
+      }
+    };
+    if (portraitQuery.addEventListener) portraitQuery.addEventListener('change', onOrientation);
 
     // Al cambiar de red (wifi → datos) se reevalúa hacia abajo.
     const net = navigator.connection;
