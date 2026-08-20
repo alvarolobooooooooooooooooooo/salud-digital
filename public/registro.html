@@ -572,33 +572,34 @@
 
           <div class="note">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            <div><b>Entras sin pagar nada.</b> Podrás recorrer toda la plataforma en modo solo lectura;
-            para registrar pacientes, citas y consultas se activa la suscripción cuando quieras.</div>
+            <div><b>Tu cuenta pasa por una revisión.</b> Salud Digital guarda historia clínica, así que
+            el equipo aprueba cada alta a mano antes de abrir el acceso. Te escribimos al correo en
+            cuanto esté lista — normalmente el mismo día hábil.</div>
           </div>
 
           <div class="form-error" id="formError"></div>
         </section>
 
-        <!-- 7 · Éxito -->
+        <!-- 7 · Solicitud enviada -->
         <section class="step" data-step="6">
           <div class="done-mark">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
-          <h1 class="step-title">Cuenta creada</h1>
-          <p class="step-sub" id="doneSub">Ya tienes sesión iniciada. Esto es lo que puedes hacer ahora mismo:</p>
+          <h1 class="step-title">Solicitud enviada</h1>
+          <p class="step-sub" id="doneSub">Tu consultorio ya quedó registrado y está esperando la aprobación del equipo de Salud Digital.</p>
 
           <ul class="done-list">
             <li class="on">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              Recorrer el panel, la agenda, las fichas y los reportes.
-            </li>
-            <li class="on">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              Ver cómo es la consulta de tu especialidad por dentro.
+              Guardamos tus datos y tu contraseña. No hay que repetir nada.
             </li>
             <li>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              Registrar pacientes, agendar citas y guardar consultas — al activar la suscripción.
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              Revisamos la solicitud a mano — normalmente el mismo día hábil.
+            </li>
+            <li>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+              Te avisamos por correo en cuanto puedas iniciar sesión.
             </li>
           </ul>
         </section>
@@ -632,7 +633,7 @@
     // Todo el estado vive aquí; el POST a /api/auth/register solo ocurre en el
     // último paso, cuando el doctor ya vio el resumen completo.
 
-    var PASOS = ['Tus datos', 'Contraseña', 'Especialidad', 'Consultorio', 'Ubicación', 'Confirmar', 'Listo'];
+    var PASOS = ['Tus datos', 'Contraseña', 'Especialidad', 'Consultorio', 'Ubicación', 'Confirmar', 'Enviado'];
     var PASO_UBICACION = 4;
     var ULTIMO_FORMULARIO = 5;   // índice del paso de confirmación
     var PASO_EXITO = 6;
@@ -795,7 +796,7 @@
       $('progress').style.display = n >= PASO_EXITO ? 'none' : '';
 
       $('btnBack').style.display = (n === 0 || n >= PASO_EXITO) ? 'none' : '';
-      $('btnLabel').textContent = n === ULTIMO_FORMULARIO ? 'Crear mi cuenta' : 'Continuar';
+      $('btnLabel').textContent = n === ULTIMO_FORMULARIO ? 'Enviar solicitud' : 'Continuar';
       $('btnIcon').style.display = n === ULTIMO_FORMULARIO ? 'none' : '';
 
       if (n === ULTIMO_FORMULARIO) pintarResumen();
@@ -930,9 +931,11 @@
     function pintarExito() {
       $('progress').style.display = 'none';
       $('foot').style.display = 'none';
+      // Ningún enlace lleva a la plataforma: la cuenta todavía no puede entrar y
+      // mandarla al login solo para que rebote sería una promesa falsa.
       $('actions').innerHTML =
-        '<a class="btn btn-ghost" href="/dashboard.html">Explorar la plataforma</a>' +
-        '<a class="btn btn-next" href="/plan.html?bienvenida=1" style="flex:1;">Activar suscripción</a>';
+        '<a class="btn btn-ghost" href="/">Volver al inicio</a>' +
+        '<a class="btn btn-next" href="/login.html" style="flex:1;">Ir a iniciar sesión</a>';
       ir(PASO_EXITO, false);
     }
 
@@ -943,7 +946,7 @@
       var etiqueta = $('btnLabel');
       var previo = etiqueta.textContent;
       btn.disabled = true;
-      etiqueta.textContent = 'Creando tu espacio…';
+      etiqueta.textContent = 'Enviando tu solicitud…';
       $('formError').classList.remove('show');
 
       try {
@@ -983,13 +986,18 @@
           return;
         }
 
-        // El servidor ya dejó la cookie HttpOnly. localStorage solo guarda
-        // metadata de interfaz (misma convención que el login).
-        if (data && data.token) localStorage.setItem('sd_token', data.token);
-        if (data && data.role) localStorage.setItem('sd_role', data.role);
-        if (data && data.clinic_id != null) localStorage.setItem('sd_clinic_id', data.clinic_id);
-        try { sessionStorage.removeItem('sd_billing_ok_until'); } catch (_) {}
+        // El alta ya no abre sesión: la cuenta queda pendiente de que el
+        // administrador de la plataforma la apruebe. Se limpia cualquier resto
+        // de una sesión anterior en este navegador para que no quede metadata
+        // apuntando a una cuenta que ahora mismo no puede entrar.
+        try {
+          localStorage.removeItem('sd_token');
+          localStorage.removeItem('sd_role');
+          localStorage.removeItem('sd_clinic_id');
+          sessionStorage.removeItem('sd_billing_ok_until');
+        } catch (_) {}
 
+        if (data && data.message) $('doneSub').textContent = data.message;
         pintarExito();
       } catch (e) {
         $('formError').textContent = 'Error de conexión. Revisa tu internet e intenta de nuevo.';

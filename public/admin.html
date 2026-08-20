@@ -4,623 +4,628 @@
   <script src="/theme.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SaludDigital — Panel Administrativo</title>
+  <title>SaludDigital — Administración</title>
   <link rel="stylesheet" href="/layout.css">
-  <link rel="stylesheet" href="/style.css">
   <style>
-    .admin-shell {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem 2.5rem;
+    /* ── Panel de administración de la plataforma ────────────────────────────
+       Interfaz de producto, no de venta: superficie plana, una sola tinta de
+       acento (cian) reservada para lo accionable, y la jerarquía la marca el
+       tamaño del número, no el degradado del fondo.
+
+       DOS REGLAS DE HIGIENE, las dos aprendidas midiendo la página en el
+       navegador:
+
+       1. Todo se llama `ad-*`. theme-dark.css lleva overrides globales para
+          nombres corrientes —.card, .kpi, .empty, .seg, .search, .modal,
+          .field, .btn-primary— y varios con !important. Reutilizar esos
+          nombres significaba que la mitad del diseño oscuro de esta página lo
+          decidía otro fichero. Con el prefijo, aquí manda esta hoja.
+
+       2. Los contenedores son <div>, no <section>: [data-theme="dark"] section
+          pinta una tarjeta de cristal CON backdrop-filter, y eso —además de no
+          pintar aquí— es justo el efecto que arrastra el rendimiento en la app
+          de escritorio.
+
+       Los colores salen todos de estas variables, que van en :root y no en el
+       contenedor porque los modales y los avisos cuelgan del <body>:
+       .layout-main deja puesto un transform al acabar su animación de entrada,
+       así que un position:fixed dentro de él se colocaría respecto a main en
+       lugar de respecto a la ventana. */
+    :root {
+      --ad-s: #ffffff;                        /* superficie de tarjeta */
+      --ad-s-2: #f8fafc;                      /* superficie hundida (cabeceras, filas) */
+      --ad-s-3: #f1f5f9;                      /* realce suave */
+      --ad-b: #e6ebf1;                        /* filo */
+      --ad-b-2: #dbe3ec;                      /* filo marcado */
+      --ad-t: #0f172a;                        /* texto */
+      --ad-t-2: #55637a;                      /* texto secundario */
+      --ad-t-3: #8a97ac;                      /* texto tenue */
+      --ad-ac: #0891b2;                       /* acento */
+      --ad-ac-soft: rgba(8, 145, 178, .09);
+      --ad-ac-line: rgba(8, 145, 178, .22);
+      --ad-ok: #0f9d64;
+      --ad-ok-soft: rgba(16, 185, 129, .12);
+      --ad-warn: #b45309;
+      --ad-warn-soft: rgba(245, 158, 11, .14);
+      --ad-bad: #dc2626;
+      --ad-bad-soft: rgba(220, 38, 38, .10);
+      --ad-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 8px 24px rgba(15, 23, 42, .05);
     }
-    .admin-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 2rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid rgba(8, 145, 178, 0.1);
-    }
-    .admin-title {
-      font-size: 2rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #0f172a 0%, #0891b2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      letter-spacing: -0.02em;
-      margin: 0;
-    }
-    .admin-subtitle {
-      color: #64748b;
-      font-size: 0.95rem;
-      margin-top: 0.4rem;
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.25rem;
-      margin-bottom: 2.5rem;
-    }
-    .stat-card-premium {
-      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-      border: 1px solid rgba(8, 145, 178, 0.12);
-      border-radius: 20px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 20px rgba(8, 145, 178, 0.06);
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .stat-card-premium::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #0891b2 0%, #06b6d4 100%);
-    }
-    .stat-card-premium:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(8, 145, 178, 0.15);
-      border-color: rgba(8, 145, 178, 0.3);
-    }
-    .stat-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #64748b;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-    .stat-value {
-      font-size: 2.5rem;
-      font-weight: 900;
-      color: #0f172a;
-      line-height: 1;
-    }
-    .stat-icon {
-      position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, rgba(8, 145, 178, 0.12), rgba(6, 182, 212, 0.08));
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-    }
-    .panel-card {
-      background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
-      border: 1px solid rgba(8, 145, 178, 0.1);
-      border-radius: 24px;
-      padding: 2rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 16px rgba(8, 145, 178, 0.04), 0 24px 48px rgba(8, 145, 178, 0.04);
-    }
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(8, 145, 178, 0.08);
-    }
-    .panel-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-    .panel-title-icon {
-      width: 32px;
-      height: 32px;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 1rem;
-      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25);
-    }
-    .clinics-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 1rem;
-    }
-    .clinic-card {
-      background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
-      border: 1px solid rgba(8, 145, 178, 0.15);
-      border-radius: 16px;
-      padding: 1.25rem;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-    .clinic-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(8, 145, 178, 0.12);
-      border-color: rgba(8, 145, 178, 0.3);
-    }
-    .clinic-card-name {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 0.4rem;
-    }
-    .clinic-card-info {
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-      font-size: 0.85rem;
-      color: #475569;
-      margin-top: 0.75rem;
-    }
-    .clinic-card-info-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .clinic-card-info-icon {
-      color: #0891b2;
-      width: 14px;
-      flex-shrink: 0;
-    }
-    .clinic-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: 100px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      margin-top: 0.75rem;
-    }
-    .clinic-status.active {
-      background: rgba(16, 185, 129, 0.1);
-      color: #059669;
-    }
-    .clinic-status.pending {
-      background: rgba(234, 179, 8, 0.1);
-      color: #ca8a04;
-    }
-    .invite-btn {
-      width: 100%;
-      margin-top: 0.75rem;
-      padding: 0.55rem;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.2);
-    }
-    .invite-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(8, 145, 178, 0.3);
-    }
-    .invite-btn:disabled {
-      background: #e5e7eb;
-      color: #9ca3af;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-    .empty-state {
-      text-align: center;
-      padding: 3rem 1.5rem;
-      color: #94a3b8;
-      font-size: 0.95rem;
-    }
-    .empty-state-icon {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      opacity: 0.5;
+    [data-theme="dark"] {
+      --ad-s: #131316;
+      --ad-s-2: #17171b;
+      --ad-s-3: #1e1e23;
+      --ad-b: rgba(255, 255, 255, .08);
+      --ad-b-2: rgba(255, 255, 255, .14);
+      --ad-t: #f1f5f9;
+      --ad-t-2: #9aa7b8;
+      --ad-t-3: #6b7686;
+      --ad-ac: #22d3ee;
+      --ad-ac-soft: rgba(34, 211, 238, .10);
+      --ad-ac-line: rgba(34, 211, 238, .26);
+      --ad-ok: #34d399;
+      --ad-ok-soft: rgba(52, 211, 153, .13);
+      --ad-warn: #fbbf24;
+      --ad-warn-soft: rgba(251, 191, 36, .13);
+      --ad-bad: #f87171;
+      --ad-bad-soft: rgba(248, 113, 113, .13);
+      --ad-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px rgba(0, 0, 0, .35);
     }
 
-    /* Modal premium */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(8px);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 1.5rem;
-      animation: fadeIn 0.25s ease;
+    .ad-wrap { color: var(--ad-t); max-width: 1360px; margin: 0 auto; }
+    /* Los modales y los avisos cuelgan del <body>, así que la herencia de
+       tipografía hay que dársela aparte del contenedor. */
+    .ad-wrap button, .ad-wrap input, .ad-wrap select, .ad-wrap textarea,
+    .ad-ov button, .ad-ov input, .ad-ov select, .ad-ov textarea { font-family: inherit; }
+
+    /* ── Cabecera ── */
+    .ad-head {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.5rem;
     }
-    .modal-overlay.active {
-      display: flex;
+    .ad-eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--ad-ac); margin-bottom: .35rem;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    .ad-h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 700; letter-spacing: -.025em; margin: 0; line-height: 1.15; }
+    .ad-lead { color: var(--ad-t-2); font-size: 13.5px; margin: .3rem 0 0; max-width: 60ch; }
+    .ad-head-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+    .ad-btn {
+      display: inline-flex; align-items: center; gap: .45rem;
+      padding: .58rem .9rem; border-radius: 10px;
+      border: 1px solid var(--ad-b-2); background-color: var(--ad-s); color: var(--ad-t);
+      font-size: 13px; font-weight: 600; cursor: pointer; line-height: 1.2;
+      transition: background-color .15s, border-color .15s, color .15s, opacity .15s;
+      white-space: nowrap;
     }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(30px) scale(0.96); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+    .ad-btn:hover { background-color: var(--ad-s-3); border-color: var(--ad-ac-line); }
+    .ad-btn svg { flex-shrink: 0; }
+    .ad-btn--primary { background-color: var(--ad-ac); border-color: var(--ad-ac); color: #fff; }
+    [data-theme="dark"] .ad-btn--primary { color: #04222b; }
+    .ad-btn--primary:hover { background-color: var(--ad-ac); border-color: var(--ad-ac); filter: brightness(1.08); }
+    .ad-btn--ok { background-color: var(--ad-ok-soft); border-color: transparent; color: var(--ad-ok); }
+    .ad-btn--ok:hover { background-color: var(--ad-ok-soft); border-color: var(--ad-ok); }
+    .ad-btn--bad { background-color: transparent; border-color: var(--ad-b-2); color: var(--ad-bad); }
+    .ad-btn--bad:hover { background-color: var(--ad-bad-soft); border-color: var(--ad-bad); }
+    .ad-btn--sm { padding: .42rem .7rem; font-size: 12px; border-radius: 8px; }
+    .ad-btn:disabled { opacity: .5; cursor: not-allowed; }
+    /* El <select> del filtro se disfraza de botón. Empatan en especificidad con
+       [data-theme="dark"] select, y esta hoja va después del <link>, así que gana. */
+    select.ad-btn { background-color: var(--ad-s); border-color: var(--ad-b-2); color: var(--ad-t); }
+
+    /* ── Pestañas ── */
+    .ad-tabs {
+      display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: none;
+      border-bottom: 1px solid var(--ad-b); margin-bottom: 1.5rem;
     }
-    .modal-card {
-      background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
-      border-radius: 28px;
-      padding: 2.5rem;
-      max-width: 640px;
-      width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 32px 64px rgba(8, 145, 178, 0.2);
-      animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      position: relative;
+    .ad-tabs::-webkit-scrollbar { display: none; }
+    .ad-tab {
+      appearance: none; background: none; border: 0; cursor: pointer;
+      padding: .7rem .9rem; font-size: 13.5px; font-weight: 600; color: var(--ad-t-2);
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap;
+      transition: color .15s, border-color .15s;
     }
-    .modal-close {
-      position: absolute;
-      top: 1.25rem;
-      right: 1.25rem;
-      width: 36px;
-      height: 36px;
-      background: rgba(8, 145, 178, 0.08);
-      border: none;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 1.25rem;
-      color: #475569;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
+    .ad-tab:hover { color: var(--ad-t); }
+    .ad-tab[aria-selected="true"] { color: var(--ad-ac); border-bottom-color: var(--ad-ac); }
+    .ad-count {
+      min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px;
+      background: var(--ad-ac); color: #fff; font-size: 11px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
     }
-    .modal-close:hover {
-      background: rgba(8, 145, 178, 0.15);
-      transform: rotate(90deg);
+    [data-theme="dark"] .ad-count { color: #04222b; }
+    .ad-count--zero { display: none; }
+
+    .ad-panel { display: none; }
+    .ad-panel--on { display: block; animation: adIn .22s ease both; }
+    @keyframes adIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* ── Tarjetas ── */
+    .ad-card {
+      background-color: var(--ad-s); border: 1px solid var(--ad-b); border-radius: 14px;
+      box-shadow: var(--ad-shadow);
     }
-    .modal-header {
-      margin-bottom: 1.75rem;
+    .ad-card-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      padding: 1rem 1.15rem; border-bottom: 1px solid var(--ad-b); flex-wrap: wrap;
     }
-    .modal-title {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: #0f172a;
-      margin: 0 0 0.4rem;
-      letter-spacing: -0.01em;
+    .ad-card-h { font-size: 14px; font-weight: 700; letter-spacing: -.01em; margin: 0; color: var(--ad-t); }
+    .ad-card-note { font-size: 12px; color: var(--ad-t-3); margin: .2rem 0 0; max-width: 68ch; }
+    .ad-card-body { padding: 1.15rem; }
+    .ad-card-body--flush { padding: 0; }
+    .ad-card + .ad-card, .ad-cols + .ad-card, .ad-card + .ad-cols { margin-top: 1rem; }
+
+    /* ── Rejilla de indicadores ── */
+    .ad-kpis { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(172px, 1fr)); margin-bottom: 1.25rem; }
+    .ad-kpi {
+      background-color: var(--ad-s); border: 1px solid var(--ad-b); border-radius: 14px;
+      padding: 1rem 1.05rem; box-shadow: var(--ad-shadow);
     }
-    .modal-subtitle {
-      color: #64748b;
-      font-size: 0.9rem;
-      margin: 0;
+    .ad-kpi-label {
+      font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+      color: var(--ad-t-3);
     }
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
+    .ad-kpi-value { font-size: 27px; font-weight: 700; letter-spacing: -.03em; margin-top: .45rem; line-height: 1; font-variant-numeric: tabular-nums; color: var(--ad-t); }
+    .ad-kpi-note { font-size: 12px; color: var(--ad-t-2); margin-top: .35rem; }
+    .ad-kpi--accent { border-color: var(--ad-ac-line); }
+    .ad-kpi--accent .ad-kpi-value { color: var(--ad-ac); }
+    .ad-kpi--alert { border-color: var(--ad-warn); }
+    .ad-kpi--alert .ad-kpi-value { color: var(--ad-warn); }
+
+    .ad-cols { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+    @media (min-width: 1080px) { .ad-cols { grid-template-columns: 1.35fr 1fr; } }
+
+    /* ── Gráfica de visitas ── */
+    .ad-chart { display: flex; align-items: flex-end; gap: 3px; height: 148px; padding-top: .5rem; }
+    .ad-chart-col { flex: 1 1 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; position: relative; min-width: 3px; }
+    .ad-chart-bar {
+      width: 100%; border-radius: 3px 3px 2px 2px;
+      background: linear-gradient(180deg, var(--ad-ac), var(--ad-ac-line));
+      min-height: 2px; transition: filter .15s;
     }
-    .form-grid.full-row {
-      grid-template-columns: 1fr;
+    .ad-chart-col:hover .ad-chart-bar { filter: brightness(1.25); }
+    .ad-chart-col--zero .ad-chart-bar { background: var(--ad-b-2); }
+    .ad-chart-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--ad-t-3); margin-top: .55rem; }
+    .ad-chart-tip {
+      position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+      background-color: var(--ad-t); color: var(--ad-s); font-size: 11px; font-weight: 600;
+      padding: .28rem .5rem; border-radius: 6px; white-space: nowrap; opacity: 0;
+      pointer-events: none; transition: opacity .12s; z-index: 3;
     }
-    .form-field {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
+    .ad-chart-col:hover .ad-chart-tip { opacity: 1; }
+
+    /* ── Barras de reparto (orígenes, dispositivos) ── */
+    .ad-split { display: flex; flex-direction: column; gap: .7rem; }
+    .ad-split-row { display: grid; grid-template-columns: 1fr auto; gap: .3rem .75rem; align-items: baseline; }
+    .ad-split-name { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ad-split-val { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .ad-split-pct { color: var(--ad-t-3); font-weight: 500; }
+    .ad-split-track { grid-column: 1 / -1; height: 5px; border-radius: 3px; background-color: var(--ad-s-3); overflow: hidden; }
+    .ad-split-fill { display: block; height: 100%; border-radius: 3px; background-color: var(--ad-ac); }
+
+    /* ── Solicitudes ── */
+    .ad-reqs { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+    .ad-req {
+      background-color: var(--ad-s); border: 1px solid var(--ad-b); border-radius: 14px;
+      padding: 1.05rem 1.1rem; box-shadow: var(--ad-shadow); display: flex; flex-direction: column;
     }
-    .form-field.full {
-      grid-column: 1 / -1;
+    .ad-req--pend { border-left: 3px solid var(--ad-ac); }
+    .ad-req-head { display: flex; align-items: flex-start; gap: .75rem; }
+    .ad-req-avatar {
+      width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+      background-color: var(--ad-ac-soft); color: var(--ad-ac);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px; letter-spacing: -.02em;
     }
-    .form-field label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #475569;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+    .ad-req-avatar--sm { width: 30px; height: 30px; border-radius: 9px; font-size: 12px; }
+    .ad-req-id { min-width: 0; flex: 1; }
+    .ad-req-name { font-size: 14.5px; font-weight: 650; letter-spacing: -.015em; line-height: 1.25; }
+    .ad-req-mail { font-size: 12.5px; color: var(--ad-t-2); word-break: break-all; }
+    .ad-req-facts { display: grid; grid-template-columns: auto 1fr; gap: .3rem .7rem; margin: .9rem 0 0; font-size: 12.5px; }
+    .ad-req-facts dt { color: var(--ad-t-3); }
+    .ad-req-facts dd { margin: 0; color: var(--ad-t); font-weight: 500; }
+    .ad-req-foot { margin-top: 1rem; padding-top: .85rem; border-top: 1px solid var(--ad-b); display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+    .ad-req-when { font-size: 12px; color: var(--ad-t-3); margin-left: auto; }
+    .ad-req-reason {
+      margin-top: .8rem; font-size: 12.5px; color: var(--ad-t-2);
+      background-color: var(--ad-s-2); border-left: 2px solid var(--ad-b-2);
+      padding: .55rem .7rem; border-radius: 0 8px 8px 0;
     }
-    .form-field input,
-    .form-field textarea,
-    .form-field select {
-      width: 100%;
-      padding: 0.75rem 0.95rem;
-      border: 1.5px solid rgba(8, 145, 178, 0.15);
-      border-radius: 10px;
-      background: white;
-      font-size: 0.95rem;
-      color: #0f172a;
-      font-family: inherit;
-      transition: all 0.2s ease;
-      box-sizing: border-box;
+
+    .ad-pill {
+      display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .55rem;
+      border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .02em;
+      text-transform: uppercase; white-space: nowrap;
     }
-    .form-field input:focus,
-    .form-field textarea:focus,
-    .form-field select:focus {
-      outline: none;
-      border-color: #0891b2;
-      box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.12);
+    .ad-pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .ad-pill--ok { background-color: var(--ad-ok-soft); color: var(--ad-ok); }
+    .ad-pill--wait { background-color: var(--ad-warn-soft); color: var(--ad-warn); }
+    .ad-pill--bad { background-color: var(--ad-bad-soft); color: var(--ad-bad); }
+    .ad-pill--mute { background-color: var(--ad-s-3); color: var(--ad-t-3); }
+
+    /* ── Segmentos y búsqueda ── */
+    .ad-seg { display: inline-flex; background-color: var(--ad-s-2); border: 1px solid var(--ad-b); border-radius: 10px; padding: 3px; gap: 2px; }
+    .ad-seg button {
+      appearance: none; border: 0; background: none; cursor: pointer; color: var(--ad-t-2);
+      font-size: 12.5px; font-weight: 600; padding: .35rem .7rem; border-radius: 7px; white-space: nowrap;
     }
-    .form-field textarea {
-      resize: vertical;
-      min-height: 70px;
+    .ad-seg button[aria-pressed="true"] { background-color: var(--ad-s); color: var(--ad-t); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+
+    .ad-search {
+      display: flex; align-items: center; gap: .5rem; background-color: var(--ad-s-2);
+      border: 1px solid var(--ad-b); border-radius: 10px; padding: .42rem .7rem; min-width: 210px;
     }
-    .modal-actions {
-      display: flex;
-      gap: 0.75rem;
-      margin-top: 1.75rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid rgba(8, 145, 178, 0.08);
+    /* La clase en el propio input sube la especificidad por encima de la regla
+       genérica input[type="search"] de theme-dark.css, que si no le pinta un
+       segundo fondo dentro del que ya tiene el envoltorio. */
+    .ad-search input.ad-search-in {
+      border: 0; background-color: transparent; outline: none;
+      color: var(--ad-t); font-size: 13px; width: 100%;
     }
-    .btn-cancel,
-    .btn-primary {
-      flex: 1;
-      padding: 0.85rem 1.25rem;
-      border: none;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
+    .ad-search svg { color: var(--ad-t-3); flex-shrink: 0; }
+
+    /* ── Tablas ── */
+    .ad-scroll { overflow-x: auto; }
+    .ad-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 720px; }
+    .ad-table th {
+      text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+      color: var(--ad-t-3); padding: .7rem 1rem; background-color: var(--ad-s-2);
+      border-bottom: 1px solid var(--ad-b); white-space: nowrap; position: sticky; top: 0; z-index: 1;
     }
-    .btn-cancel {
-      background: rgba(100, 116, 139, 0.08);
-      color: #475569;
+    .ad-table td { padding: .8rem 1rem; border-bottom: 1px solid var(--ad-b); vertical-align: middle; }
+    .ad-table tbody tr:last-child td { border-bottom: 0; }
+    .ad-table tbody tr:hover td { background-color: var(--ad-s-2); }
+    .ad-table .ad-num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .ad-cell-main { font-weight: 650; letter-spacing: -.01em; }
+    .ad-cell-sub { font-size: 12px; color: var(--ad-t-3); margin-top: .15rem; font-weight: 400; }
+
+    /* ── Bitácora ── */
+    .ad-feed { display: flex; flex-direction: column; }
+    .ad-feed-day {
+      font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--ad-t-3); padding: .9rem 1.15rem .5rem; background-color: var(--ad-s-2);
+      border-bottom: 1px solid var(--ad-b);
     }
-    .btn-cancel:hover {
-      background: rgba(100, 116, 139, 0.15);
+    .ad-ev { display: flex; gap: .8rem; padding: .8rem 1.15rem; border-bottom: 1px solid var(--ad-b); align-items: center; }
+    .ad-ev:last-child { border-bottom: 0; }
+    .ad-ev-ico {
+      width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background-color: var(--ad-s-3); color: var(--ad-t-2);
     }
-    .btn-primary {
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      color: white;
-      box-shadow: 0 6px 16px rgba(8, 145, 178, 0.25);
+    .ad-ev-ico--ac { background-color: var(--ad-ac-soft); color: var(--ad-ac); }
+    .ad-ev-ico--ok { background-color: var(--ad-ok-soft); color: var(--ad-ok); }
+    .ad-ev-ico--warn { background-color: var(--ad-warn-soft); color: var(--ad-warn); }
+    .ad-ev-ico--bad { background-color: var(--ad-bad-soft); color: var(--ad-bad); }
+    .ad-ev-body { flex: 1; min-width: 0; }
+    .ad-ev-text { font-size: 13.5px; line-height: 1.45; }
+    .ad-ev-text b { font-weight: 650; }
+    .ad-ev-meta { font-size: 12px; color: var(--ad-t-3); margin-top: .15rem; }
+    .ad-ev-time { font-size: 12px; color: var(--ad-t-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+    /* ── Estados vacíos y carga ── */
+    .ad-empty { text-align: center; padding: 3rem 1.5rem; color: var(--ad-t-3); font-size: 13.5px; }
+    .ad-empty-ico {
+      width: 44px; height: 44px; border-radius: 13px; margin: 0 auto .85rem;
+      background-color: var(--ad-s-3); color: var(--ad-t-3);
+      display: flex; align-items: center; justify-content: center;
     }
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.35);
+    .ad-empty b { display: block; color: var(--ad-t-2); font-size: 14px; margin-bottom: .3rem; font-weight: 650; }
+    .ad-skel { background-color: var(--ad-s-3); border-radius: 8px; height: 14px; animation: adPulse 1.3s ease-in-out infinite; }
+    .ad-skels { padding: 1.15rem; display: flex; flex-direction: column; gap: .55rem; }
+    @keyframes adPulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+    /* ── Modales ── */
+    .ad-ov {
+      display: none; position: fixed; inset: 0; z-index: 1000; padding: 1.25rem;
+      background: rgba(8, 12, 20, .55);
+      align-items: center; justify-content: center;
     }
-    .btn-primary:disabled {
-      background: #cbd5e1;
-      cursor: not-allowed;
-      box-shadow: none;
+    .ad-ov--on { display: flex; }
+    .ad-modal {
+      background-color: var(--ad-s); border: 1px solid var(--ad-b); border-radius: 16px;
+      width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+      padding: 1.5rem; box-shadow: 0 24px 60px rgba(0, 0, 0, .3);
+      animation: adIn .2s ease both; position: relative; color: var(--ad-t);
     }
-    .toast {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      padding: 1rem 1.5rem;
-      border-radius: 12px;
-      color: white;
-      font-weight: 600;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-      z-index: 2000;
-      animation: slideUp 0.3s ease;
+    .ad-modal-x {
+      position: absolute; top: .9rem; right: .9rem; width: 30px; height: 30px;
+      border-radius: 8px; border: 0; background-color: var(--ad-s-3); color: var(--ad-t-2);
+      cursor: pointer; font-size: 17px; line-height: 1; display: flex; align-items: center; justify-content: center;
     }
-    .toast.success {
-      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    .ad-modal-x:hover { background-color: var(--ad-b); color: var(--ad-t); }
+    .ad-modal-h { font-size: 17px; font-weight: 700; margin: 0 0 .3rem; letter-spacing: -.02em; padding-right: 2rem; color: var(--ad-t); }
+    .ad-modal-lead { font-size: 13px; color: var(--ad-t-2); margin: 0 0 1.25rem; }
+    .ad-fields { display: grid; gap: .85rem; }
+    .ad-field label {
+      display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--ad-t-2); margin-bottom: .35rem;
     }
-    .toast.error {
-      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    /* Igual que en la búsqueda: la clase sube la especificidad por encima de la
+       regla genérica de theme-dark.css para input/select/textarea. */
+    .ad-field input.ad-in, .ad-field select.ad-in, .ad-field textarea.ad-in {
+      width: 100%; padding: .62rem .75rem; border-radius: 9px;
+      border: 1px solid var(--ad-b-2); background-color: var(--ad-s-2); color: var(--ad-t);
+      font-size: 13.5px; outline: none; transition: border-color .15s, box-shadow .15s;
     }
-    .new-clinic-btn {
-      padding: 0.65rem 1.2rem;
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 0.9rem;
-      cursor: pointer;
-      box-shadow: 0 6px 16px rgba(8, 145, 178, 0.25);
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
+    .ad-field textarea.ad-in { resize: vertical; min-height: 74px; }
+    .ad-field input.ad-in:focus, .ad-field select.ad-in:focus, .ad-field textarea.ad-in:focus {
+      border-color: var(--ad-ac); box-shadow: 0 0 0 3px var(--ad-ac-soft);
     }
-    .new-clinic-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 20px rgba(8, 145, 178, 0.35);
+    .ad-modal-foot { display: flex; gap: .6rem; margin-top: 1.4rem; }
+    .ad-modal-foot .ad-btn { flex: 1; justify-content: center; padding: .7rem 1rem; }
+
+    /* ── Avisos ── */
+    #adToasts { position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 2000; display: flex; flex-direction: column; gap: .5rem; align-items: flex-end; }
+    .ad-toast {
+      background-color: var(--ad-s); border: 1px solid var(--ad-b-2); border-left: 3px solid var(--ad-ac);
+      color: var(--ad-t); font-size: 13px; font-weight: 500; padding: .75rem 1rem;
+      border-radius: 10px; box-shadow: 0 12px 32px rgba(0, 0, 0, .18); max-width: 340px;
+      animation: adIn .2s ease both;
     }
-    .step-indicator {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.75rem;
-      padding: 1rem;
-      background: rgba(8, 145, 178, 0.04);
-      border-radius: 12px;
-    }
-    .step {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-    }
-    .step.active {
-      background: white;
-      box-shadow: 0 2px 8px rgba(8, 145, 178, 0.1);
-    }
-    .step-num {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: rgba(8, 145, 178, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.75rem;
-      color: #64748b;
-      flex-shrink: 0;
-    }
-    .step.active .step-num {
-      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-      color: white;
-    }
-    .step.complete .step-num {
-      background: #10b981;
-      color: white;
-    }
-    .step-label {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: #475569;
-    }
-    .step.active .step-label {
-      color: #0891b2;
+    .ad-toast--ok { border-left-color: var(--ad-ok); }
+    .ad-toast--bad { border-left-color: var(--ad-bad); }
+
+    @media (max-width: 720px) {
+      .ad-head-actions { width: 100%; }
+      .ad-head-actions .ad-btn { flex: 1; justify-content: center; }
+      .ad-kpis { grid-template-columns: repeat(auto-fit, minmax(144px, 1fr)); }
+      .ad-kpi-value { font-size: 23px; }
+      .ad-reqs { grid-template-columns: 1fr; }
+      #adToasts { left: 1rem; right: 1rem; align-items: stretch; }
+      .ad-toast { max-width: none; }
     }
   </style>
 </head>
 <body>
-  <main class="admin-shell">
-    <div class="admin-header">
-      <div>
-        <h1 class="admin-title">Panel Administrativo</h1>
-        <p class="admin-subtitle">Gestiona las clínicas y administra los accesos a la plataforma</p>
-      </div>
-      <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-        <button class="new-clinic-btn" onclick="openInviteClinicOwnerModal()">
-          <span style="font-size:1.1rem;">+</span> Invitar dueño de clínica
-        </button>
-        <button class="new-clinic-btn" onclick="openInviteDoctorModal()" style="background:linear-gradient(135deg,#059669 0%,#10b981 100%); box-shadow:0 6px 16px rgba(16,185,129,0.25);">
-          <span style="font-size:1.1rem;">+</span> Invitar doctor
-        </button>
-      </div>
-    </div>
+  <main>
+    <div class="ad-wrap">
 
-    <div class="stats-grid">
-      <div class="stat-card-premium">
-        <div class="stat-icon">🏥</div>
-        <div class="stat-label">Clínicas registradas</div>
-        <div class="stat-value" id="sTotal">—</div>
-      </div>
-      <div class="stat-card-premium">
-        <div class="stat-icon">👥</div>
-        <div class="stat-label">Pacientes</div>
-        <div class="stat-value" id="sPat">—</div>
-      </div>
-      <div class="stat-card-premium">
-        <div class="stat-icon">⚕️</div>
-        <div class="stat-label">Doctores</div>
-        <div class="stat-value" id="sDoc">—</div>
-      </div>
-    </div>
+      <header class="ad-head">
+        <div>
+          <div class="ad-eyebrow">Salud Digital</div>
+          <h1 class="ad-h1">Administración de la plataforma</h1>
+          <p class="ad-lead">Aprueba las cuentas nuevas, sigue la actividad de las clínicas y mira cuánta gente llega a la web.</p>
+        </div>
+        <div class="ad-head-actions">
+          <button class="ad-btn" id="adRefresh" onclick="recargarTodo()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+            Actualizar
+          </button>
+          <button class="ad-btn" onclick="abrirInvitarDoctor()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+            Invitar doctor
+          </button>
+          <button class="ad-btn ad-btn--primary" onclick="abrirInvitarDueno()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M10 21v-5h4v5"/></svg>
+            Invitar clínica
+          </button>
+        </div>
+      </header>
 
-    <div class="panel-card">
-      <div class="panel-header">
-        <h2 class="panel-title">
-          <span class="panel-title-icon">🏢</span>
-          Clínicas
-        </h2>
+      <nav class="ad-tabs" role="tablist" id="adTabs">
+        <button class="ad-tab" role="tab" data-tab="resumen" aria-selected="true">Resumen</button>
+        <button class="ad-tab" role="tab" data-tab="solicitudes" aria-selected="false">
+          Solicitudes <span class="ad-count ad-count--zero" id="adCount">0</span>
+        </button>
+        <button class="ad-tab" role="tab" data-tab="clinicas" aria-selected="false">Clínicas</button>
+        <button class="ad-tab" role="tab" data-tab="actividad" aria-selected="false">Actividad</button>
+        <button class="ad-tab" role="tab" data-tab="visitas" aria-selected="false">Visitas</button>
+      </nav>
+
+      <!-- ══ Resumen ══ -->
+      <div class="ad-panel ad-panel--on" data-panel="resumen">
+        <div class="ad-kpis" id="adKpis"></div>
+        <div class="ad-cols">
+          <div class="ad-card">
+            <div class="ad-card-head">
+              <div>
+                <h2 class="ad-card-h">Visitas a la página principal</h2>
+                <p class="ad-card-note" id="adVisitasNota">Últimos 30 días</p>
+              </div>
+              <button class="ad-btn ad-btn--sm" onclick="irA('visitas')">Ver detalle</button>
+            </div>
+            <div class="ad-card-body" id="adMiniVisitas"><div class="ad-skel" style="height:148px"></div></div>
+          </div>
+          <div class="ad-card">
+            <div class="ad-card-head">
+              <div>
+                <h2 class="ad-card-h">Solicitudes en espera</h2>
+                <p class="ad-card-note">Cuentas creadas desde la web que aún no pueden entrar</p>
+              </div>
+            </div>
+            <div class="ad-card-body ad-card-body--flush" id="adMiniSolicitudes"></div>
+          </div>
+        </div>
+        <div class="ad-card">
+          <div class="ad-card-head">
+            <div>
+              <h2 class="ad-card-h">Últimos movimientos</h2>
+              <p class="ad-card-note">Lo que ha pasado en las clínicas, más reciente primero</p>
+            </div>
+            <button class="ad-btn ad-btn--sm" onclick="irA('actividad')">Ver todo</button>
+          </div>
+          <div class="ad-card-body ad-card-body--flush" id="adMiniActividad"></div>
+        </div>
       </div>
-      <div id="clinicsList"><div class="empty-state">Cargando...</div></div>
+
+      <!-- ══ Solicitudes ══ -->
+      <div class="ad-panel" data-panel="solicitudes">
+        <div class="ad-card">
+          <div class="ad-card-head">
+            <div>
+              <h2 class="ad-card-h">Solicitudes de cuenta</h2>
+              <p class="ad-card-note">Una cuenta aprobada ya puede iniciar sesión. Para guardar pacientes y consultas necesita además su suscripción activa.</p>
+            </div>
+            <div class="ad-seg" id="adSegEstado">
+              <button data-estado="pending" aria-pressed="true">En espera</button>
+              <button data-estado="approved" aria-pressed="false">Aprobadas</button>
+              <button data-estado="rejected" aria-pressed="false">Rechazadas</button>
+            </div>
+          </div>
+          <div class="ad-card-body" id="adSolicitudes"></div>
+        </div>
+      </div>
+
+      <!-- ══ Clínicas ══ -->
+      <div class="ad-panel" data-panel="clinicas">
+        <div class="ad-card">
+          <div class="ad-card-head">
+            <div>
+              <h2 class="ad-card-h">Clínicas de la plataforma</h2>
+              <p class="ad-card-note">Volumen de uso de cada consultorio. No se muestra ningún dato de pacientes.</p>
+            </div>
+            <div class="ad-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input type="search" class="ad-search-in" id="adBuscar" placeholder="Buscar clínica…" autocomplete="off">
+            </div>
+          </div>
+          <div class="ad-card-body ad-card-body--flush" id="adClinicas"></div>
+        </div>
+      </div>
+
+      <!-- ══ Actividad ══ -->
+      <div class="ad-panel" data-panel="actividad">
+        <div class="ad-card">
+          <div class="ad-card-head">
+            <div>
+              <h2 class="ad-card-h">Bitácora de la plataforma</h2>
+              <p class="ad-card-note">Se arma con las fechas que ya guardan las propias tablas; lo anterior a esta versión no tiene fecha registrada.</p>
+            </div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+              <select class="ad-btn" id="adFiltroClinica"><option value="">Todas las clínicas</option></select>
+              <div class="ad-seg" id="adSegDias">
+                <button data-dias="7" aria-pressed="false">7 días</button>
+                <button data-dias="30" aria-pressed="true">30 días</button>
+                <button data-dias="90" aria-pressed="false">90 días</button>
+              </div>
+            </div>
+          </div>
+          <div class="ad-card-body ad-card-body--flush" id="adActividad"></div>
+        </div>
+      </div>
+
+      <!-- ══ Visitas ══ -->
+      <div class="ad-panel" data-panel="visitas">
+        <div class="ad-kpis" id="adVisitasKpis"></div>
+        <div class="ad-card">
+          <div class="ad-card-head">
+            <div>
+              <h2 class="ad-card-h">Visitas por día</h2>
+              <p class="ad-card-note">Cargas de la página principal. No se guarda ninguna IP ni se usa ningún rastreador externo.</p>
+            </div>
+            <div class="ad-seg" id="adSegVisitas">
+              <button data-dias="7" aria-pressed="false">7 días</button>
+              <button data-dias="30" aria-pressed="true">30 días</button>
+              <button data-dias="90" aria-pressed="false">90 días</button>
+            </div>
+          </div>
+          <div class="ad-card-body" id="adGrafica"><div class="ad-skel" style="height:148px"></div></div>
+        </div>
+        <div class="ad-cols">
+          <div class="ad-card">
+            <div class="ad-card-head"><h2 class="ad-card-h">De dónde llegan</h2></div>
+            <div class="ad-card-body" id="adOrigenes"></div>
+          </div>
+          <div class="ad-card">
+            <div class="ad-card-head"><h2 class="ad-card-h">Con qué entran</h2></div>
+            <div class="ad-card-body" id="adDispositivos"></div>
+          </div>
+        </div>
+        <div class="ad-card">
+          <div class="ad-card-head"><h2 class="ad-card-h">Páginas públicas</h2></div>
+          <div class="ad-card-body ad-card-body--flush" id="adPaginas"></div>
+        </div>
+      </div>
+
     </div>
   </main>
 
-  <!-- Modal: Nueva Clínica + Invitar Admin -->
-  <!-- Modal: Invitar dueño de clínica -->
-  <div class="modal-overlay" id="inviteClinicOwnerModal">
-    <div class="modal-card">
-      <button class="modal-close" onclick="closeInviteClinicOwnerModal()">×</button>
-      <div class="modal-header">
-        <h2 class="modal-title">Invitar dueño de clínica</h2>
-        <p class="modal-subtitle">Envía una invitación para crear y administrar una nueva clínica</p>
-      </div>
-      <div class="form-grid">
-        <div class="form-field full">
-          <label>Nombre completo *</label>
-          <input type="text" id="ownerName" placeholder="Dr. Juan Pérez">
-        </div>
-        <div class="form-field full">
-          <label>Correo electrónico *</label>
-          <input type="email" id="ownerEmail" placeholder="owner@clinica.com">
+  <div id="adToasts"></div>
+
+  <!-- ── Modal: rechazar solicitud ── -->
+  <div class="ad-ov" id="adOvRechazo">
+    <div class="ad-modal">
+      <button class="ad-modal-x" onclick="cerrar('adOvRechazo')">×</button>
+      <h2 class="ad-modal-h">Rechazar solicitud</h2>
+      <p class="ad-modal-lead">La cuenta no podrá iniciar sesión y cualquier sesión abierta se cierra. Puedes aprobarla más adelante.</p>
+      <div class="ad-fields">
+        <div class="ad-field">
+          <label for="adMotivo">Motivo (se le envía por correo)</label>
+          <textarea class="ad-in" id="adMotivo" placeholder="Ej.: no pudimos verificar el número de colegiación."></textarea>
         </div>
       </div>
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeInviteClinicOwnerModal()">Cancelar</button>
-        <button class="btn-primary" id="sendOwnerInviteBtn" onclick="sendClinicOwnerInvitation()">Enviar invitación</button>
+      <div class="ad-modal-foot">
+        <button class="ad-btn" onclick="cerrar('adOvRechazo')">Cancelar</button>
+        <button class="ad-btn ad-btn--bad" id="adBtnRechazo" onclick="confirmarRechazo()">Rechazar cuenta</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal: Invitar Admin existente -->
-  <div class="modal-overlay" id="inviteAdminModal">
-    <div class="modal-card">
-      <button class="modal-close" onclick="closeInviteModal()">×</button>
-      <div class="modal-header">
-        <h2 class="modal-title">Invitar administrador</h2>
-        <p class="modal-subtitle" id="inviteSubtitle">Envía una invitación al administrador de la clínica</p>
+  <!-- ── Modal: invitar dueño de clínica ── -->
+  <div class="ad-ov" id="adOvDueno">
+    <div class="ad-modal">
+      <button class="ad-modal-x" onclick="cerrar('adOvDueno')">×</button>
+      <h2 class="ad-modal-h">Invitar clínica</h2>
+      <p class="ad-modal-lead">Recibe un enlace para crear su cuenta y registrar los datos de su clínica. Una invitación no pasa por aprobación: ya la estás dando tú.</p>
+      <div class="ad-fields">
+        <div class="ad-field"><label for="adDuenoNombre">Nombre completo</label><input class="ad-in" type="text" id="adDuenoNombre" placeholder="Dra. Fabiola Mejía"></div>
+        <div class="ad-field"><label for="adDuenoEmail">Correo electrónico</label><input class="ad-in" type="email" id="adDuenoEmail" placeholder="doctora@clinica.hn"></div>
       </div>
-      <div class="form-grid">
-        <div class="form-field full">
-          <label>Nombre completo *</label>
-          <input type="text" id="invName" placeholder="Dr. Juan Pérez">
-        </div>
-        <div class="form-field full">
-          <label>Correo electrónico *</label>
-          <input type="email" id="invEmail" placeholder="admin@clinica.com">
-        </div>
-        <div class="form-field full">
-          <label>Teléfono (opcional)</label>
-          <input type="tel" id="invPhone" placeholder="+506 0000-0000">
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeInviteModal()">Cancelar</button>
-        <button class="btn-primary" id="sendInviteBtn" onclick="sendInvitation()">Enviar invitación</button>
+      <div class="ad-modal-foot">
+        <button class="ad-btn" onclick="cerrar('adOvDueno')">Cancelar</button>
+        <button class="ad-btn ad-btn--primary" id="adBtnDueno" onclick="enviarInvitacionDueno()">Enviar invitación</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal: Invitar Doctor (super admin: elige la clínica) -->
-  <div class="modal-overlay" id="inviteDoctorModal">
-    <div class="modal-card">
-      <button class="modal-close" onclick="closeInviteDoctorModal()">×</button>
-      <div class="modal-header">
-        <h2 class="modal-title">Invitar doctor</h2>
-        <p class="modal-subtitle">Envía una invitación a un doctor y asígnalo a una clínica de la plataforma.</p>
+  <!-- ── Modal: invitar administrador de una clínica existente ── -->
+  <div class="ad-ov" id="adOvAdmin">
+    <div class="ad-modal">
+      <button class="ad-modal-x" onclick="cerrar('adOvAdmin')">×</button>
+      <h2 class="ad-modal-h">Invitar administrador</h2>
+      <p class="ad-modal-lead" id="adAdminLead"></p>
+      <div class="ad-fields">
+        <div class="ad-field"><label for="adAdminNombre">Nombre completo</label><input class="ad-in" type="text" id="adAdminNombre" placeholder="Dr. Juan Pérez"></div>
+        <div class="ad-field"><label for="adAdminEmail">Correo electrónico</label><input class="ad-in" type="email" id="adAdminEmail" placeholder="admin@clinica.hn"></div>
+        <div class="ad-field"><label for="adAdminTel">Teléfono (opcional)</label><input class="ad-in" type="tel" id="adAdminTel" placeholder="+504 0000-0000"></div>
       </div>
-      <div class="form-grid">
-        <div class="form-field full">
-          <label>Clínica destino *</label>
-          <select id="docClinicId">
-            <option value="">Cargando clínicas…</option>
+      <div class="ad-modal-foot">
+        <button class="ad-btn" onclick="cerrar('adOvAdmin')">Cancelar</button>
+        <button class="ad-btn ad-btn--primary" id="adBtnAdmin" onclick="enviarInvitacionAdmin()">Enviar invitación</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: invitar doctor ── -->
+  <div class="ad-ov" id="adOvDoctor">
+    <div class="ad-modal">
+      <button class="ad-modal-x" onclick="cerrar('adOvDoctor')">×</button>
+      <h2 class="ad-modal-h">Invitar doctor</h2>
+      <p class="ad-modal-lead">Se le asigna a una clínica que ya existe en la plataforma.</p>
+      <div class="ad-fields">
+        <div class="ad-field"><label for="adDocClinica">Clínica destino</label><select class="ad-in" id="adDocClinica"></select></div>
+        <div class="ad-field"><label for="adDocNombre">Nombre completo</label><input class="ad-in" type="text" id="adDocNombre" placeholder="Dr. Juan Pérez"></div>
+        <div class="ad-field"><label for="adDocEmail">Correo electrónico</label><input class="ad-in" type="email" id="adDocEmail" placeholder="doctor@clinica.hn"></div>
+        <div class="ad-field">
+          <label for="adDocEspecialidad">Especialidad</label>
+          <select class="ad-in" id="adDocEspecialidad">
+            <option value="">Seleccionar…</option>
+            <option>Odontología</option>
+            <option>Periodoncia</option>
+            <option>Ortodoncia</option>
+            <option>Odontopediatría</option>
+            <option>Podología</option>
+            <option>Nutrición</option>
+            <option>Dermatología</option>
           </select>
         </div>
-        <div class="form-field full">
-          <label>Nombre completo *</label>
-          <input type="text" id="docName" placeholder="Ej: Dr. Juan Pérez">
-        </div>
-        <div class="form-field full">
-          <label>Correo electrónico *</label>
-          <input type="email" id="docEmail" placeholder="doctor@clinica.com">
-        </div>
-        <div class="form-field full">
-          <label>Especialidad *</label>
-          <select id="docSpecialty">
-            <option value="">Seleccionar especialidad…</option>
-            <option value="Odontología">Odontología</option>
-            <option value="Periodoncia">Periodoncia</option>
-            <option value="Ortodoncia">Ortodoncia</option>
-            <option value="Odontopediatría">Odontopediatría</option>
-            <option value="Podología">Podología</option>
-            <option value="Nutrición">Nutrición</option>
-            <option value="Dermatología">Dermatología</option>
-          </select>
-        </div>
-        <div class="form-field full">
-          <label>Teléfono (opcional)</label>
-          <input type="tel" id="docPhone" placeholder="Ej: 50488888888">
-        </div>
+        <div class="ad-field"><label for="adDocTel">Teléfono (opcional)</label><input class="ad-in" type="tel" id="adDocTel" placeholder="50488888888"></div>
       </div>
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeInviteDoctorModal()">Cancelar</button>
-        <button class="btn-primary" id="sendDoctorInviteBtn" onclick="sendDoctorInvitation()">Enviar invitación</button>
+      <div class="ad-modal-foot">
+        <button class="ad-btn" onclick="cerrar('adOvDoctor')">Cancelar</button>
+        <button class="ad-btn ad-btn--primary" id="adBtnDoctor" onclick="enviarInvitacionDoctor()">Enviar invitación</button>
       </div>
     </div>
   </div>
@@ -629,193 +634,620 @@
   <script>
     requireAuth(['super_admin']);
 
-    let inviteClinicId = null;
-    let clinicsCache = [];
+    var estado = {
+      tab: 'resumen',
+      solicitudes: 'pending',
+      dias: 30,
+      diasVisitas: 30,
+      clinicaActividad: '',
+      busqueda: '',
+      clinicas: [],
+      rechazando: null,
+      invitandoClinica: null,
+    };
 
-    function showToast(message, type = 'success') {
-      const t = document.createElement('div');
-      t.className = `toast ${type}`;
-      t.textContent = message;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 3500);
-    }
+    var NUM = new Intl.NumberFormat('es-HN');
+    var num = function (v) { return NUM.format(Number(v) || 0); };
+    var $ = function (id) { return document.getElementById(id); };
 
-    async function loadStats() {
-      try {
-        const s = await api('/api/clinics/stats');
-        document.getElementById('sTotal').textContent = s.clinics;
-        document.getElementById('sPat').textContent = s.patients;
-        document.getElementById('sDoc').textContent = s.doctors;
-      } catch {}
-    }
-
-    async function loadClinics() {
-      try {
-        const clinics = await api('/api/clinics');
-        clinicsCache = clinics;
-        const list = document.getElementById('clinicsList');
-        if (clinics.length === 0) {
-          list.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state-icon">🏥</div>
-              <p>No hay clínicas registradas aún.</p>
-              <p style="font-size:0.85rem;margin-top:0.5rem;">Crea la primera clínica con el botón superior.</p>
-            </div>`;
-          return;
-        }
-        list.innerHTML = `<div class="clinics-list">${clinics.map(c => `
-          <div class="clinic-card">
-            <div class="clinic-card-name">${esc(c.name)}</div>
-            <div class="clinic-card-info">
-              ${c.address ? `<div class="clinic-card-info-row"><span class="clinic-card-info-icon">📍</span>${esc(c.address)}</div>` : ''}
-              ${c.chairs ? `<div class="clinic-card-info-row"><span class="clinic-card-info-icon">🪑</span>${c.chairs} silla${c.chairs > 1 ? 's' : ''} disponible${c.chairs > 1 ? 's' : ''}</div>` : ''}
-              ${c.specialties ? `<div class="clinic-card-info-row"><span class="clinic-card-info-icon">⚕️</span>${esc(c.specialties)}</div>` : ''}
-              ${c.phone ? `<div class="clinic-card-info-row"><span class="clinic-card-info-icon">📞</span>${esc(c.phone)}</div>` : ''}
-            </div>
-            ${c.has_admin > 0
-              ? `<div class="clinic-status active">● Admin activo · ${esc(c.admin_email || '')}</div>`
-              : `<div class="clinic-status pending">● Sin administrador</div>
-                 <button class="invite-btn" onclick="openInviteModal(${c.id}, '${esc(c.name)}')">Invitar administrador</button>`
-            }
-          </div>
-        `).join('')}</div>`;
-      } catch (e) {
-        document.getElementById('clinicsList').innerHTML = `<div class="empty-state">Error al cargar clínicas</div>`;
-      }
+    function aviso(texto, tipo) {
+      var t = document.createElement('div');
+      t.className = 'ad-toast ad-toast--' + (tipo === 'bad' ? 'bad' : 'ok');
+      t.textContent = texto;
+      $('adToasts').appendChild(t);
+      setTimeout(function () { t.remove(); }, 4000);
     }
 
-    function openInviteClinicOwnerModal() {
-      document.getElementById('inviteClinicOwnerModal').classList.add('active');
-      document.getElementById('ownerName').value = '';
-      document.getElementById('ownerEmail').value = '';
+    // ── Fechas ──
+    // El panel se mira de un vistazo: lo reciente se lee mejor en relativo
+    // ("hace 20 min") y lo viejo en fecha corta.
+    function cuando(iso) {
+      if (!iso) return '—';
+      var d = new Date(iso);
+      if (isNaN(d)) return '—';
+      var seg = Math.floor((Date.now() - d.getTime()) / 1000);
+      if (seg < 60) return 'ahora mismo';
+      if (seg < 3600) return 'hace ' + Math.floor(seg / 60) + ' min';
+      if (seg < 86400) return 'hace ' + Math.floor(seg / 3600) + ' h';
+      if (seg < 604800) return 'hace ' + Math.floor(seg / 86400) + ' d';
+      return d.toLocaleDateString('es-HN', { day: 'numeric', month: 'short', year: 'numeric' });
     }
-    function closeInviteClinicOwnerModal() {
-      document.getElementById('inviteClinicOwnerModal').classList.remove('active');
+    function hora(iso) {
+      var d = new Date(iso);
+      return isNaN(d) ? '' : d.toLocaleTimeString('es-HN', { hour: '2-digit', minute: '2-digit' });
     }
-
-    async function sendClinicOwnerInvitation() {
-      const name = document.getElementById('ownerName').value.trim();
-      const email = document.getElementById('ownerEmail').value.trim();
-      if (!name || !email) {
-        showToast('Nombre y correo son requeridos', 'error');
-        return;
-      }
-      const btn = document.getElementById('sendOwnerInviteBtn');
-      btn.disabled = true;
-      btn.textContent = 'Enviando...';
-      try {
-        await api('/api/invitations', {
-          method: 'POST',
-          body: { email, name, role: 'clinic_admin' }
-        });
-        showToast('Invitación enviada. El dueño registrará los datos de su clínica al aceptar.');
-        closeInviteClinicOwnerModal();
-        loadStats();
-        loadClinics();
-      } catch (e) {
-        showToast(e.message || 'Error al enviar invitación', 'error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Enviar invitación';
-      }
+    function diaLargo(iso) {
+      var d = new Date(iso);
+      if (isNaN(d)) return '';
+      var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+      var suyo = new Date(d); suyo.setHours(0, 0, 0, 0);
+      var delta = Math.round((hoy - suyo) / 86400000);
+      if (delta === 0) return 'Hoy';
+      if (delta === 1) return 'Ayer';
+      return d.toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long' });
     }
 
-    function openInviteModal(clinicId, clinicName) {
-      inviteClinicId = clinicId;
-      document.getElementById('inviteSubtitle').textContent = `Envía una invitación al administrador de ${clinicName}`;
-      document.getElementById('invName').value = '';
-      document.getElementById('invEmail').value = '';
-      document.getElementById('invPhone').value = '';
-      document.getElementById('inviteAdminModal').classList.add('active');
-    }
-    function closeInviteModal() {
-      document.getElementById('inviteAdminModal').classList.remove('active');
-      inviteClinicId = null;
+    function iniciales(nombre) {
+      var p = String(nombre || '?').trim().split(/\s+/);
+      return ((p[0] || '?')[0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase();
     }
 
-    async function sendInvitation() {
-      const name = document.getElementById('invName').value.trim();
-      const email = document.getElementById('invEmail').value.trim();
-      const phone = document.getElementById('invPhone').value.trim();
-      if (!name || !email) {
-        showToast('Nombre y correo son requeridos', 'error');
-        return;
-      }
-      const btn = document.getElementById('sendInviteBtn');
-      btn.disabled = true;
-      btn.textContent = 'Enviando...';
-      try {
-        await api('/api/invitations', {
-          method: 'POST',
-          body: { email, name, phone, clinic_id: inviteClinicId, role: 'clinic_admin' }
-        });
-        showToast('Invitación enviada exitosamente');
-        closeInviteModal();
-        loadClinics();
-      } catch (e) {
-        showToast(e.message || 'Error al enviar invitación', 'error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Enviar invitación';
-      }
+    function vacio(titulo, texto) {
+      return '<div class="ad-empty">' +
+        '<div class="ad-empty-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h10"/></svg></div>' +
+        '<b>' + esc(titulo) + '</b>' + esc(texto || '') + '</div>';
+    }
+    function cargando(alto) {
+      return '<div class="ad-skels">' +
+        new Array(4).fill('<div class="ad-skel" style="height:' + (alto || 16) + 'px"></div>').join('') + '</div>';
     }
 
-    function openInviteDoctorModal() {
-      const select = document.getElementById('docClinicId');
-      if (!clinicsCache.length) {
-        select.innerHTML = '<option value="">No hay clínicas registradas</option>';
-      } else {
-        select.innerHTML = '<option value="">Seleccionar clínica…</option>' +
-          clinicsCache.map(c => `<option value="${c.id}">${esc(c.name)}${c.has_admin > 0 ? '' : ' · (sin admin)'}</option>`).join('');
-      }
-      document.getElementById('docName').value = '';
-      document.getElementById('docEmail').value = '';
-      document.getElementById('docSpecialty').value = '';
-      document.getElementById('docPhone').value = '';
-      document.getElementById('inviteDoctorModal').classList.add('active');
-    }
-    function closeInviteDoctorModal() {
-      document.getElementById('inviteDoctorModal').classList.remove('active');
+    function tarjetaKpi(t) {
+      return '<div class="ad-kpi' + (t.mod ? ' ad-kpi--' + t.mod : '') + '">' +
+        '<div class="ad-kpi-label">' + esc(t.etiqueta) + '</div>' +
+        '<div class="ad-kpi-value">' + (typeof t.valor === 'number' ? num(t.valor) : esc(t.valor)) + '</div>' +
+        (t.nota ? '<div class="ad-kpi-note">' + esc(t.nota) + '</div>' : '') + '</div>';
     }
 
-    async function sendDoctorInvitation() {
-      const clinicId = document.getElementById('docClinicId').value;
-      const name = document.getElementById('docName').value.trim();
-      const email = document.getElementById('docEmail').value.trim();
-      const specialty = document.getElementById('docSpecialty').value;
-      const phone = document.getElementById('docPhone').value.trim();
-      if (!clinicId) { showToast('Selecciona una clínica destino', 'error'); return; }
-      if (!name || !email || !specialty) {
-        showToast('Nombre, correo y especialidad son requeridos', 'error');
-        return;
-      }
-      const btn = document.getElementById('sendDoctorInviteBtn');
-      btn.disabled = true;
-      btn.textContent = 'Enviando...';
-      try {
-        await api('/api/invitations', {
-          method: 'POST',
-          body: { email, name, specialty, phone, clinic_id: Number(clinicId), role: 'doctor' }
-        });
-        showToast('Invitación enviada al doctor');
-        closeInviteDoctorModal();
-        loadStats();
-      } catch (e) {
-        showToast(e.message || 'Error al enviar invitación', 'error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Enviar invitación';
-      }
-    }
-
-    [document.getElementById('inviteClinicOwnerModal'), document.getElementById('inviteAdminModal'), document.getElementById('inviteDoctorModal')].forEach(m => {
-      m.addEventListener('click', e => {
-        if (e.target === m) m.classList.remove('active');
+    // ── Pestañas ──
+    function irA(tab) {
+      estado.tab = tab;
+      document.querySelectorAll('.ad-tab').forEach(function (b) {
+        b.setAttribute('aria-selected', String(b.dataset.tab === tab));
       });
+      document.querySelectorAll('.ad-panel').forEach(function (p) {
+        p.classList.toggle('ad-panel--on', p.dataset.panel === tab);
+      });
+      if (location.hash.slice(1) !== tab) history.replaceState(null, '', '#' + tab);
+      if (tab === 'solicitudes') cargarSolicitudes();
+      if (tab === 'clinicas') cargarClinicas();
+      if (tab === 'actividad') cargarActividad();
+      if (tab === 'visitas') cargarVisitas();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    $('adTabs').addEventListener('click', function (e) {
+      var b = e.target.closest('.ad-tab');
+      if (b) irA(b.dataset.tab);
     });
 
-    loadStats();
-    loadClinics();
+    function marcarSegmento(contenedor, boton) {
+      Array.prototype.forEach.call(contenedor.children, function (x) {
+        x.setAttribute('aria-pressed', String(x === boton));
+      });
+    }
+    function pintarPendientes(n) {
+      $('adCount').textContent = n;
+      $('adCount').classList.toggle('ad-count--zero', !n);
+    }
+
+    // ══════════════ Resumen ══════════════
+
+    async function cargarResumen() {
+      try {
+        var d = await api('/api/admin/overview');
+        var p = d.plataforma, v = d.visitas;
+        $('adKpis').innerHTML = [
+          { etiqueta: 'En espera', valor: p.pendientes, mod: p.pendientes ? 'alert' : '',
+            nota: p.pendientes ? 'Requieren tu decisión' : 'Todo al día' },
+          { etiqueta: 'Visitas · 30 d', valor: v ? v.landing.ultimos_30 : '—', mod: 'accent',
+            nota: v ? num(v.landing.personas_30) + ' personas distintas' : 'Sin datos todavía' },
+          { etiqueta: 'Clínicas', valor: p.clinicas, nota: num(p.personal) + ' personas con acceso' },
+          { etiqueta: 'Doctores', valor: p.doctores, nota: num(p.suscripciones_activas) + ' suscripciones activas' },
+          { etiqueta: 'Pacientes', valor: p.pacientes, nota: 'En todas las clínicas' },
+          { etiqueta: 'Consultas · 30 d', valor: p.consultas_30, nota: num(p.consultas) + ' desde el inicio' },
+        ].map(tarjetaKpi).join('');
+
+        pintarPendientes(p.pendientes);
+        $('adMiniVisitas').innerHTML = v ? grafica(v.serie)
+          : vacio('Aún sin visitas', 'Se empiezan a contar desde este despliegue.');
+        if (v) {
+          $('adVisitasNota').textContent = num(v.landing.ultimos_30) + ' visitas · ' +
+            num(v.landing.personas_30) + ' personas · últimos 30 días';
+        }
+      } catch (e) {
+        $('adKpis').innerHTML = '';
+        aviso(e.message || 'No se pudo cargar el resumen', 'bad');
+      }
+
+      try {
+        var r = await api('/api/admin/registrations?status=pending&limit=4');
+        $('adMiniSolicitudes').innerHTML = r.solicitudes.length
+          ? r.solicitudes.map(filaMini).join('') +
+            (r.totales.pending > r.solicitudes.length
+              ? '<div style="padding:.9rem 1.15rem"><button class="ad-btn ad-btn--sm" onclick="irA(\'solicitudes\')">Ver las ' + r.totales.pending + '</button></div>'
+              : '')
+          : vacio('Sin solicitudes pendientes', 'Las cuentas nuevas aparecerán aquí para que las apruebes.');
+      } catch (e) {
+        $('adMiniSolicitudes').innerHTML = vacio('No se pudieron cargar', '');
+      }
+
+      try {
+        var ev = await api('/api/admin/activity?limit=8&days=90');
+        $('adMiniActividad').innerHTML = ev.length
+          ? '<div class="ad-feed">' + ev.map(evento).join('') + '</div>'
+          : vacio('Todavía no hay movimientos', 'Aquí irá apareciendo lo que hagan las clínicas.');
+      } catch (e) {
+        $('adMiniActividad').innerHTML = vacio('No se pudo cargar la actividad', '');
+      }
+    }
+
+    function filaMini(s) {
+      return '<div class="ad-ev">' +
+        '<div class="ad-req-avatar ad-req-avatar--sm">' + esc(iniciales(s.name)) + '</div>' +
+        '<div class="ad-ev-body"><div class="ad-ev-text"><b>' + esc(s.name) + '</b></div>' +
+        '<div class="ad-ev-meta">' + esc(s.clinic_name || 'Sin clínica') + ' · ' + esc(s.specialty || '—') + '</div></div>' +
+        '<button class="ad-btn ad-btn--sm ad-btn--ok" onclick="aprobar(' + s.id + ')">Aprobar</button></div>';
+    }
+
+    // ══════════════ Solicitudes ══════════════
+
+    $('adSegEstado').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      estado.solicitudes = b.dataset.estado;
+      marcarSegmento(this, b);
+      cargarSolicitudes();
+    });
+
+    var VACIOS = {
+      pending: ['Sin solicitudes en espera', 'Cuando alguien se registre desde la web, aparecerá aquí.'],
+      approved: ['Todavía no has aprobado ninguna', 'Las cuentas que aceptes se listarán aquí.'],
+      rejected: ['Ninguna solicitud rechazada', 'Aquí quedan las que no aceptaste, con su motivo.'],
+    };
+
+    async function cargarSolicitudes() {
+      $('adSolicitudes').innerHTML = cargando(60);
+      try {
+        var r = await api('/api/admin/registrations?status=' + estado.solicitudes);
+        pintarPendientes(r.totales.pending);
+        if (!r.solicitudes.length) {
+          var v = VACIOS[estado.solicitudes];
+          $('adSolicitudes').innerHTML = vacio(v[0], v[1]);
+          return;
+        }
+        $('adSolicitudes').innerHTML = '<div class="ad-reqs">' + r.solicitudes.map(tarjetaSolicitud).join('') + '</div>';
+      } catch (e) {
+        $('adSolicitudes').innerHTML = vacio('No se pudieron cargar', e.message || '');
+      }
+    }
+
+    function tarjetaSolicitud(s) {
+      var pendiente = s.approval_status === 'pending';
+      var pill = pendiente
+        ? '<span class="ad-pill ad-pill--wait">En espera</span>'
+        : s.approval_status === 'approved'
+          ? '<span class="ad-pill ad-pill--ok">Aprobada</span>'
+          : '<span class="ad-pill ad-pill--bad">Rechazada</span>';
+
+      var dato = function (k, v) { return v ? '<dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd>' : ''; };
+
+      var acciones = pendiente
+        ? '<button class="ad-btn ad-btn--sm ad-btn--ok" onclick="aprobar(' + s.id + ')">Aprobar</button>' +
+          '<button class="ad-btn ad-btn--sm ad-btn--bad" onclick="abrirRechazo(' + s.id + ')">Rechazar</button>'
+        : s.approval_status === 'rejected'
+          ? '<button class="ad-btn ad-btn--sm ad-btn--ok" onclick="aprobar(' + s.id + ')">Aprobar de todos modos</button>'
+          : '<button class="ad-btn ad-btn--sm ad-btn--bad" onclick="abrirRechazo(' + s.id + ')">Revocar acceso</button>';
+
+      var fecha = pendiente ? s.approval_requested_at : s.approval_decided_at;
+
+      return '<article class="ad-req' + (pendiente ? ' ad-req--pend' : '') + '">' +
+        '<div class="ad-req-head">' +
+          '<div class="ad-req-avatar">' + esc(iniciales(s.name)) + '</div>' +
+          '<div class="ad-req-id">' +
+            '<div class="ad-req-name">' + esc(s.name || 'Sin nombre') + '</div>' +
+            '<div class="ad-req-mail">' + esc(s.email) + '</div>' +
+          '</div>' + pill +
+        '</div>' +
+        '<dl class="ad-req-facts">' +
+          dato('Consultorio', s.clinic_name) +
+          dato('Especialidad', s.specialty) +
+          dato('Ciudad', s.clinic_city) +
+          dato('Teléfono', s.phone) +
+          dato('Decidió', s.decided_by_name) +
+        '</dl>' +
+        (s.approval_status === 'rejected' && s.approval_notes
+          ? '<div class="ad-req-reason">' + esc(s.approval_notes) + '</div>' : '') +
+        '<div class="ad-req-foot">' + acciones +
+          '<span class="ad-req-when">' + esc(cuando(fecha)) + '</span></div>' +
+      '</article>';
+    }
+
+    async function aprobar(id) {
+      if (!confirm('¿Aprobar esta cuenta? Podrá iniciar sesión de inmediato y se le avisará por correo.')) return;
+      try {
+        var r = await api('/api/admin/registrations/' + id + '/approve', { method: 'POST' });
+        aviso(r.notificado ? 'Cuenta aprobada y avisada por correo.' : 'Cuenta aprobada. No se pudo enviar el correo.');
+        await cargarSolicitudes();
+        await cargarResumen();
+      } catch (e) {
+        aviso(e.message || 'No se pudo aprobar', 'bad');
+      }
+    }
+
+    function abrirRechazo(id) {
+      estado.rechazando = id;
+      $('adMotivo').value = '';
+      abrir('adOvRechazo');
+    }
+
+    async function confirmarRechazo() {
+      var b = $('adBtnRechazo');
+      b.disabled = true;
+      try {
+        var r = await api('/api/admin/registrations/' + estado.rechazando + '/reject', {
+          method: 'POST',
+          body: { reason: $('adMotivo').value.trim() },
+        });
+        cerrar('adOvRechazo');
+        aviso(r.notificado ? 'Solicitud rechazada y avisada por correo.' : 'Solicitud rechazada. No se pudo enviar el correo.');
+        await cargarSolicitudes();
+        await cargarResumen();
+      } catch (e) {
+        aviso(e.message || 'No se pudo rechazar', 'bad');
+      } finally {
+        b.disabled = false;
+      }
+    }
+
+    // ══════════════ Clínicas ══════════════
+
+    $('adBuscar').addEventListener('input', function () {
+      estado.busqueda = this.value.trim().toLowerCase();
+      pintarClinicas();
+    });
+
+    async function traerClinicas() {
+      if (estado.clinicas.length) return estado.clinicas;
+      estado.clinicas = await api('/api/admin/clinics-report');
+      $('adFiltroClinica').innerHTML = '<option value="">Todas las clínicas</option>' +
+        estado.clinicas.map(function (c) {
+          return '<option value="' + c.id + '">' + esc(c.name) + '</option>';
+        }).join('');
+      $('adFiltroClinica').value = estado.clinicaActividad;
+      return estado.clinicas;
+    }
+
+    async function cargarClinicas() {
+      if (!estado.clinicas.length) $('adClinicas').innerHTML = cargando();
+      try {
+        await traerClinicas();
+        pintarClinicas();
+      } catch (e) {
+        $('adClinicas').innerHTML = vacio('No se pudieron cargar las clínicas', e.message || '');
+      }
+    }
+
+    function pillPlan(p) {
+      if (p === 'active') return '<span class="ad-pill ad-pill--ok">Activa</span>';
+      if (p === 'trialing') return '<span class="ad-pill ad-pill--ok">Prueba</span>';
+      if (p === 'past_due' || p === 'payment_failed') return '<span class="ad-pill ad-pill--wait">Impago</span>';
+      if (p === 'cancelled' || p === 'expired') return '<span class="ad-pill ad-pill--bad">Cancelada</span>';
+      return '<span class="ad-pill ad-pill--mute">Sin plan</span>';
+    }
+
+    function pintarClinicas() {
+      var q = estado.busqueda;
+      var filas = estado.clinicas.filter(function (c) {
+        if (!q) return true;
+        return (c.name + ' ' + (c.city || '') + ' ' + (c.specialties || '')).toLowerCase().indexOf(q) !== -1;
+      });
+
+      if (!filas.length) {
+        $('adClinicas').innerHTML = vacio(
+          q ? 'Ninguna clínica coincide' : 'Todavía no hay clínicas',
+          q ? 'Prueba con otro nombre o ciudad.' : 'Invita a la primera con el botón de arriba.');
+        return;
+      }
+
+      $('adClinicas').innerHTML =
+        '<div class="ad-scroll"><table class="ad-table"><thead><tr>' +
+          '<th>Clínica</th><th>Personal</th><th class="ad-num">Pacientes</th>' +
+          '<th class="ad-num">Consultas 30 d</th><th class="ad-num">Citas 30 d</th>' +
+          '<th>Última consulta</th><th>Suscripción</th>' +
+        '</tr></thead><tbody>' +
+        filas.map(function (c) {
+          return '<tr>' +
+            '<td><div class="ad-cell-main">' + esc(c.name) + '</div>' +
+              '<div class="ad-cell-sub">' + esc([c.city, c.specialties].filter(Boolean).join(' · ') || 'Sin datos') + '</div></td>' +
+            '<td>' + num(c.personal) +
+              (c.personal_pendiente ? ' <span class="ad-pill ad-pill--wait">' + c.personal_pendiente + ' en espera</span>' : '') +
+              (c.personal === 0 && !c.personal_pendiente
+                ? '<div style="margin-top:.35rem"><button class="ad-btn ad-btn--sm" onclick="abrirInvitarAdmin(' + c.id + ')">Invitar admin</button></div>'
+                : '') +
+            '</td>' +
+            '<td class="ad-num">' + num(c.pacientes) + '</td>' +
+            '<td class="ad-num">' + num(c.consultas_30) + '<div class="ad-cell-sub">' + num(c.consultas) + ' total</div></td>' +
+            '<td class="ad-num">' + num(c.citas_30) + '</td>' +
+            '<td>' + esc(cuando(c.ultima_consulta)) + '</td>' +
+            '<td>' + pillPlan(c.plan_status) + '</td>' +
+          '</tr>';
+        }).join('') +
+        '</tbody></table></div>';
+    }
+
+    // ══════════════ Actividad ══════════════
+
+    var EVENTOS = {
+      solicitud: { ico: 'user', mod: 'ac', texto: function (e) { return '<b>' + esc(e.actor) + '</b> pidió una cuenta'; } },
+      aprobada:  { ico: 'check', mod: 'ok', texto: function (e) { return 'Cuenta de <b>' + esc(e.actor) + '</b> aprobada'; } },
+      rechazada: { ico: 'x', mod: 'bad', texto: function (e) { return 'Cuenta de <b>' + esc(e.actor) + '</b> rechazada'; } },
+      clinica:   { ico: 'home', mod: 'ac', texto: function (e) { return 'Nueva clínica <b>' + esc(e.clinica) + '</b>'; } },
+      consulta:  { ico: 'file', mod: '', texto: function (e) { return 'Consulta registrada' + (e.actor ? ' por <b>' + esc(e.actor) + '</b>' : ''); } },
+      cita:      { ico: 'calendar', mod: '', texto: function (e) { return 'Cita agendada' + (e.detalle === 'online' ? ' desde la web' : ''); } },
+      paciente:  { ico: 'user', mod: '', texto: function () { return 'Paciente registrado'; } },
+      contacto:  { ico: 'mail', mod: 'warn', texto: function () { return 'Nuevo contacto desde el sitio de la clínica'; } },
+      pago:      { ico: 'card', mod: 'ok', texto: function (e) {
+        var monto = e.importe != null ? ' · $' + Number(e.importe).toFixed(2) : '';
+        return 'Pago ' + (e.detalle === 'succeeded' ? 'recibido' : esc(e.detalle)) + monto; } },
+    };
+
+    var ICONOS = {
+      user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      check: '<polyline points="20 6 9 17 4 12"/>',
+      x: '<path d="M18 6 6 18M6 6l12 12"/>',
+      home: '<path d="M3 21h18M5 21V7l7-4 7 4v14"/>',
+      file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+      calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+      mail: '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/>',
+      card: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+    };
+
+    function evento(e) {
+      var def = EVENTOS[e.tipo] || { ico: 'file', mod: '', texto: function () { return esc(e.tipo); } };
+      return '<div class="ad-ev">' +
+        '<div class="ad-ev-ico' + (def.mod ? ' ad-ev-ico--' + def.mod : '') + '">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONOS[def.ico] + '</svg></div>' +
+        '<div class="ad-ev-body">' +
+          '<div class="ad-ev-text">' + def.texto(e) + '</div>' +
+          '<div class="ad-ev-meta">' + esc(e.clinica || 'Plataforma') +
+            (e.detalle && e.tipo === 'consulta' ? ' · ' + esc(e.detalle) : '') + '</div>' +
+        '</div>' +
+        '<div class="ad-ev-time">' + esc(hora(e.cuando)) + '</div>' +
+      '</div>';
+    }
+
+    $('adSegDias').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      estado.dias = Number(b.dataset.dias);
+      marcarSegmento(this, b);
+      cargarActividad();
+    });
+    $('adFiltroClinica').addEventListener('change', function () {
+      estado.clinicaActividad = this.value;
+      cargarActividad();
+    });
+
+    async function cargarActividad() {
+      $('adActividad').innerHTML = cargando();
+      try { await traerClinicas(); } catch (e) { /* el filtro es opcional */ }
+      try {
+        var url = '/api/admin/activity?limit=200&days=' + estado.dias +
+          (estado.clinicaActividad ? '&clinic_id=' + estado.clinicaActividad : '');
+        var ev = await api(url);
+        if (!ev.length) {
+          $('adActividad').innerHTML = vacio('Sin movimientos en este periodo',
+            'Prueba con un rango más amplio o quita el filtro de clínica.');
+          return;
+        }
+        var html = '<div class="ad-feed">';
+        var dia = null;
+        ev.forEach(function (e) {
+          var k = String(e.cuando).slice(0, 10);
+          if (k !== dia) { dia = k; html += '<div class="ad-feed-day">' + esc(diaLargo(e.cuando)) + '</div>'; }
+          html += evento(e);
+        });
+        $('adActividad').innerHTML = html + '</div>';
+      } catch (e) {
+        $('adActividad').innerHTML = vacio('No se pudo cargar la bitácora', e.message || '');
+      }
+    }
+
+    // ══════════════ Visitas ══════════════
+
+    function grafica(serie) {
+      if (!serie || !serie.length) return vacio('Sin visitas todavía', '');
+      var max = Math.max.apply(null, serie.map(function (d) { return d.visitas; }).concat([1]));
+      var fmt = { day: 'numeric', month: 'short' };
+      var barras = serie.map(function (d) {
+        var fecha = new Date(d.dia + 'T12:00:00');
+        var etiqueta = fecha.toLocaleDateString('es-HN', fmt);
+        var alto = d.visitas ? Math.max(Math.round((d.visitas / max) * 100), 4) : 0;
+        return '<div class="ad-chart-col' + (d.visitas ? '' : ' ad-chart-col--zero') + '">' +
+          '<div class="ad-chart-tip">' + esc(etiqueta) + ': ' + num(d.visitas) + ' visita' + (d.visitas === 1 ? '' : 's') + '</div>' +
+          '<div class="ad-chart-bar" style="height:' + alto + '%"></div></div>';
+      }).join('');
+      return '<div class="ad-chart">' + barras + '</div>' +
+        '<div class="ad-chart-axis">' +
+          '<span>' + esc(new Date(serie[0].dia + 'T12:00:00').toLocaleDateString('es-HN', fmt)) + '</span>' +
+          '<span>máximo ' + num(max) + '/día</span>' +
+          '<span>' + esc(new Date(serie[serie.length - 1].dia + 'T12:00:00').toLocaleDateString('es-HN', fmt)) + '</span>' +
+        '</div>';
+    }
+
+    function reparto(filas, campo, etiquetas) {
+      if (!filas || !filas.length) return vacio('Sin datos todavía', '');
+      var total = filas.reduce(function (a, f) { return a + f.visitas; }, 0) || 1;
+      return '<div class="ad-split">' + filas.map(function (f) {
+        var nombre = (etiquetas && etiquetas[f[campo]]) || f[campo];
+        var pct = Math.round((f.visitas / total) * 100);
+        return '<div class="ad-split-row">' +
+          '<span class="ad-split-name">' + esc(nombre) + '</span>' +
+          '<span class="ad-split-val">' + num(f.visitas) + ' <span class="ad-split-pct">· ' + pct + '%</span></span>' +
+          '<span class="ad-split-track"><span class="ad-split-fill" style="width:' + pct + '%"></span></span>' +
+        '</div>';
+      }).join('') + '</div>';
+    }
+
+    $('adSegVisitas').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      estado.diasVisitas = Number(b.dataset.dias);
+      marcarSegmento(this, b);
+      cargarVisitas();
+    });
+
+    var NOMBRE_PAGINA = {
+      landing: 'Página principal', registro: 'Crear cuenta',
+      login: 'Iniciar sesión', plan: 'Suscripción', mapa: 'Mapa de clínicas',
+    };
+
+    async function cargarVisitas() {
+      $('adGrafica').innerHTML = '<div class="ad-skel" style="height:148px"></div>';
+      try {
+        var v = await api('/api/admin/visits?days=' + estado.diasVisitas);
+        var l = v.landing;
+        var conversion = l.personas_30 ? ((v.registro.ultimos_30 / l.personas_30) * 100).toFixed(1) + '%' : '—';
+        $('adVisitasKpis').innerHTML = [
+          { etiqueta: 'Hoy', valor: l.hoy, mod: 'accent', nota: 'Visitas a la página principal' },
+          { etiqueta: 'Últimos 7 días', valor: l.ultimos_7 },
+          { etiqueta: 'Últimos 30 días', valor: l.ultimos_30, nota: num(l.personas_30) + ' personas distintas' },
+          { etiqueta: 'Desde el inicio', valor: l.total, nota: num(l.personas) + ' personas en total' },
+          { etiqueta: 'Fueron a crear cuenta', valor: v.registro.ultimos_30, nota: conversion + ' de las del mes' },
+        ].map(tarjetaKpi).join('');
+
+        $('adGrafica').innerHTML = grafica(v.serie);
+        $('adOrigenes').innerHTML = reparto(v.referentes, 'origen', { directo: 'Entrada directa' });
+        $('adDispositivos').innerHTML = reparto(v.dispositivos, 'dispositivo',
+          { movil: 'Teléfono', escritorio: 'Computadora', tablet: 'Tableta' });
+
+        $('adPaginas').innerHTML = v.por_pagina.length
+          ? '<div class="ad-scroll"><table class="ad-table" style="min-width:420px"><thead><tr>' +
+            '<th>Página</th><th class="ad-num">Visitas</th><th class="ad-num">Personas</th></tr></thead><tbody>' +
+            v.por_pagina.map(function (p) {
+              return '<tr><td class="ad-cell-main">' + esc(NOMBRE_PAGINA[p.page] || p.page) + '</td>' +
+                '<td class="ad-num">' + num(p.visitas) + '</td><td class="ad-num">' + num(p.personas) + '</td></tr>';
+            }).join('') + '</tbody></table></div>'
+          : vacio('Sin visitas registradas', '');
+      } catch (e) {
+        $('adGrafica').innerHTML = vacio('No se pudieron cargar las visitas', e.message || '');
+      }
+    }
+
+    // ══════════════ Invitaciones ══════════════
+
+    function abrir(id) { $(id).classList.add('ad-ov--on'); }
+    function cerrar(id) { $(id).classList.remove('ad-ov--on'); }
+    document.querySelectorAll('.ad-ov').forEach(function (o) {
+      o.addEventListener('click', function (e) { if (e.target === o) o.classList.remove('ad-ov--on'); });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.ad-ov--on').forEach(function (o) { o.classList.remove('ad-ov--on'); });
+      }
+    });
+
+    async function enviarInvitacion(boton, cuerpo, overlay, exito) {
+      var b = $(boton);
+      var previo = b.textContent;
+      b.disabled = true; b.textContent = 'Enviando…';
+      try {
+        await api('/api/invitations', { method: 'POST', body: cuerpo });
+        cerrar(overlay);
+        aviso(exito);
+        estado.clinicas = [];
+        cargarResumen();
+      } catch (e) {
+        aviso(e.message || 'No se pudo enviar la invitación', 'bad');
+      } finally {
+        b.disabled = false; b.textContent = previo;
+      }
+    }
+
+    function abrirInvitarDueno() {
+      $('adDuenoNombre').value = ''; $('adDuenoEmail').value = '';
+      abrir('adOvDueno');
+    }
+    function enviarInvitacionDueno() {
+      var nombre = $('adDuenoNombre').value.trim();
+      var email = $('adDuenoEmail').value.trim();
+      if (!nombre || !email) return aviso('Nombre y correo son obligatorios', 'bad');
+      enviarInvitacion('adBtnDueno', { name: nombre, email: email, role: 'clinic_admin' }, 'adOvDueno',
+        'Invitación enviada. Registrará los datos de su clínica al aceptarla.');
+    }
+
+    function abrirInvitarAdmin(clinicId) {
+      var c = estado.clinicas.find(function (x) { return x.id === clinicId; });
+      estado.invitandoClinica = clinicId;
+      $('adAdminLead').textContent = 'Se enviará una invitación para administrar ' + (c ? c.name : 'la clínica') + '.';
+      $('adAdminNombre').value = ''; $('adAdminEmail').value = ''; $('adAdminTel').value = '';
+      abrir('adOvAdmin');
+    }
+    function enviarInvitacionAdmin() {
+      var nombre = $('adAdminNombre').value.trim();
+      var email = $('adAdminEmail').value.trim();
+      if (!nombre || !email) return aviso('Nombre y correo son obligatorios', 'bad');
+      enviarInvitacion('adBtnAdmin', {
+        name: nombre, email: email, phone: $('adAdminTel').value.trim(),
+        clinic_id: estado.invitandoClinica, role: 'clinic_admin',
+      }, 'adOvAdmin', 'Invitación enviada al administrador.');
+    }
+
+    async function abrirInvitarDoctor() {
+      try { await traerClinicas(); } catch (e) {}
+      $('adDocClinica').innerHTML = estado.clinicas.length
+        ? '<option value="">Seleccionar clínica…</option>' + estado.clinicas.map(function (c) {
+            return '<option value="' + c.id + '">' + esc(c.name) + '</option>';
+          }).join('')
+        : '<option value="">No hay clínicas registradas</option>';
+      $('adDocNombre').value = ''; $('adDocEmail').value = '';
+      $('adDocEspecialidad').value = ''; $('adDocTel').value = '';
+      abrir('adOvDoctor');
+    }
+    function enviarInvitacionDoctor() {
+      var clinica = $('adDocClinica').value;
+      var nombre = $('adDocNombre').value.trim();
+      var email = $('adDocEmail').value.trim();
+      var especialidad = $('adDocEspecialidad').value;
+      if (!clinica) return aviso('Elige la clínica destino', 'bad');
+      if (!nombre || !email || !especialidad) return aviso('Nombre, correo y especialidad son obligatorios', 'bad');
+      enviarInvitacion('adBtnDoctor', {
+        name: nombre, email: email, specialty: especialidad,
+        phone: $('adDocTel').value.trim(), clinic_id: Number(clinica), role: 'doctor',
+      }, 'adOvDoctor', 'Invitación enviada al doctor.');
+    }
+
+    // ══════════════ Arranque ══════════════
+
+    async function recargarTodo() {
+      var b = $('adRefresh');
+      b.disabled = true;
+      estado.clinicas = [];
+      try {
+        await cargarResumen();
+        if (estado.tab === 'solicitudes') await cargarSolicitudes();
+        if (estado.tab === 'clinicas') await cargarClinicas();
+        if (estado.tab === 'actividad') await cargarActividad();
+        if (estado.tab === 'visitas') await cargarVisitas();
+      } finally {
+        b.disabled = false;
+      }
+    }
+
+    var VALIDAS = ['resumen', 'solicitudes', 'clinicas', 'actividad', 'visitas'];
+    var inicial = (location.hash || '').slice(1);
+    cargarResumen();
+    if (VALIDAS.indexOf(inicial) !== -1 && inicial !== 'resumen') irA(inicial);
   </script>
   <script src="/layout.js"></script>
 </body>

@@ -629,6 +629,16 @@
       color: #fca5a5;
       font-weight: 500;
     }
+    /* Una cuenta en revisión no es un fallo del usuario: no hay nada que
+       corregir ni que reintentar, así que el aviso se pinta como información
+       (cian, con su tarjeta) y no como el rojo de "contraseña incorrecta". */
+    .error.aviso {
+      color: var(--text);
+      background: rgba(6, 182, 212, 0.09);
+      border: 1px solid rgba(6, 182, 212, 0.28);
+      border-radius: 12px;
+      padding: 0.8rem 0.95rem;
+    }
 
     .trust {
       margin-top: 1.5rem;
@@ -942,7 +952,18 @@
           body: JSON.stringify(body)
         });
         const data = await res.json();
+        err.classList.remove('aviso');
         if (!res.ok) {
+          // Cuenta pendiente o rechazada: el mensaje del servidor ya lo explica
+          // entero y no hay reintento posible, así que se muestra como aviso y
+          // el botón vuelve a su estado en vez de invitar a probar de nuevo.
+          if (data.code === 'approval_pending' || data.code === 'approval_rejected') {
+            err.textContent = data.error;
+            err.classList.add('aviso');
+            btnLabel.textContent = originalText;
+            btn.disabled = false;
+            return;
+          }
           if (data.requires_2fa) {
             twoFaActive = true;
             codeField.style.display = '';

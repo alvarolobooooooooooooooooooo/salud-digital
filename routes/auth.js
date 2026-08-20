@@ -8,6 +8,26 @@ const { authenticate, SECRET, COOKIE_NAME, authCookieOptions } = require('../mid
 const { generateSecret, verifyTotp, otpauthUrl } = require('../lib/totp');
 const vault = require('../lib/secret-vault');
 const { isValidLatLng } = require('../lib/maps-links');
+const presupuesto = require('../lib/password-budget');
+const mailer = require('../utils/mailer');
+
+// ── Hash señuelo para nivelar los tiempos del login ──
+//
+// Cuando el correo no existe se compara igualmente contra un hash, para que
+// acertar un usuario y fallarlo tarden lo mismo. La idea estaba bien; la cadena
+// que había escrita a mano no era un hash bcrypt válido (66 caracteres en vez
+// de 60), así que `bcrypt.compare` la rechazaba de entrada:
+//
+//     correo inexistente → 0,1 ms
+//     correo existente   → 118,8 ms
+//
+// Mil veces de diferencia, medible desde cualquier conexión: era un enumerador
+// de usuarios. Y en una plataforma médica, la lista de quién tiene cuenta ya
+// dice de más.
+//
+// Generarlo al arrancar garantiza que sea válido y del mismo coste que los
+// reales. Cuesta ~100 ms una sola vez, al cargar el módulo.
+const HASH_SENUELO = bcrypt.hashSync(crypto.randomBytes(32).toString('hex'), 10);
 
 function getClientIp(req) {
   const fwd = req.headers['x-forwarded-for'];
@@ -44,11 +64,17 @@ router.post('/login', async (req, res) => {
   }
   const normalizedEmail = email.trim().toLowerCase();
 
+  // El presupuesto se pide ANTES de mirar la base y antes de hashear. Dos
+  // motivos: no gastar CPU en una petición que se va a rechazar, y que la
+  // respuesta sea idéntica exista o no la cuenta — comprobarlo después
+  // convertiría el 503 en un enumerador de usuarios.
+  if (!presupuesto.intentarGastar({ autenticado: false })) {
+    return presupuesto.responderSinPresupuesto(res);
+  }
+
   const result = await query('SELECT * FROM users WHERE LOWER(email) = $1', [normalizedEmail]);
   const user = result.rows[0];
-  // Hash dummy del mismo costo para nivelar tiempos cuando el usuario no existe
-  const DUMMY_HASH = '$2a$10$abcdefghijklmnopqrstuv1234567890ABCDEFGHIJKLMNOPQRSTUV12345';
-  const hashToCheck = user ? user.password : DUMMY_HASH;
+  const hashToCheck = user ? user.password : HASH_SENUELO;
   const ok = await bcrypt.compare(password, hashToCheck);
   if (!user || !ok) {
     return res.status(401).json({ error: 'Correo o contraseña incorrectos.' });
@@ -56,6 +82,24 @@ router.post('/login', async (req, res) => {
 
   if (!user.clinic_id && user.role === 'doctor') {
     return res.status(403).json({ error: 'Tu cuenta está desactivada. Contacta al administrador de tu clínica.' });
+  }
+
+  // Aprobación de la plataforma. Se comprueba DESPUÉS de validar la contraseña
+  // a propósito: si respondiéramos antes, cualquiera podría averiguar qué
+  // correos tienen una solicitud abierta sin conocer la clave.
+  if (user.approval_status === 'pending') {
+    return res.status(403).json({
+      error: 'Tu cuenta todavía está en revisión. Te avisamos por correo en cuanto quede aprobada.',
+      code: 'approval_pending',
+    });
+  }
+  if (user.approval_status === 'rejected') {
+    return res.status(403).json({
+      error: user.approval_notes
+        ? `Tu solicitud no fue aprobada: ${user.approval_notes}`
+        : 'Tu solicitud de cuenta no fue aprobada. Escríbenos si crees que es un error.',
+      code: 'approval_rejected',
+    });
   }
 
   if (user.two_factor_enabled) {
@@ -75,9 +119,13 @@ router.post('/login', async (req, res) => {
 // ── Alta de cuenta (registro público de doctores) ──
 //
 // El doctor crea su propio espacio: en una sola transacción nacen la clínica y
-// su usuario, y queda con la sesión abierta. La cuenta nace SIN suscripción, así
-// que la plataforma se abre en modo solo lectura hasta que pague
-// (ver middleware/subscription.js).
+// su usuario. La cuenta NO queda utilizable de inmediato: nace 'pending' y
+// espera a que el administrador de Salud Digital la acepte desde /admin.html.
+// Hasta entonces el login responde 403 y no se abre ninguna sesión — quien se
+// registra no llega a entrar, así que aquí tampoco se firma un JWT.
+//
+// Una vez aprobada, la cuenta sigue SIN suscripción, así que la plataforma se
+// abre en modo solo lectura hasta que pague (ver middleware/subscription.js).
 //
 // El rol es 'doctor' y no 'clinic_admin' a propósito: es el único que puede
 // atender citas y firmar consultas — que es para lo que se registra — y también
@@ -143,9 +191,11 @@ router.post('/register', async (req, res) => {
     return res.status(409).json({ error: 'Ya existe una cuenta con ese correo. Inicia sesión o usa otro.' });
   }
 
+  if (!presupuesto.intentarGastar({ autenticado: false })) {
+    return presupuesto.responderSinPresupuesto(res);
+  }
   const hash = await bcrypt.hash(password, 10);
   const client = await pool.connect();
-  let usuario;
   try {
     await client.query('BEGIN');
     const nombreClinica = await nombreDeClinicaLibre(client, clinica);
@@ -165,13 +215,12 @@ router.post('/register', async (req, res) => {
       ]
     );
     const clinicId = c.rows[0].id;
-    const u = await client.query(
-      `INSERT INTO users (email, password, role, name, clinic_id, specialty, phone)
-       VALUES ($1, $2, 'doctor', $3, $4, $5, $6)
-       RETURNING id, email, role, clinic_id`,
+    await client.query(
+      `INSERT INTO users (email, password, role, name, clinic_id, specialty, phone,
+                          approval_status, approval_requested_at)
+       VALUES ($1, $2, 'doctor', $3, $4, $5, $6, 'pending', CURRENT_TIMESTAMP)`,
       [email, hash, nombre, clinicId, especialidad, telefono]
     );
-    usuario = u.rows[0];
     await client.query('COMMIT');
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
@@ -191,12 +240,23 @@ router.post('/register', async (req, res) => {
     client.release();
   }
 
-  const token = await abrirSesion(usuario, req, res);
-  res.status(201).json({
-    token,
-    role: usuario.role,
-    clinic_id: usuario.clinic_id,
-    next: '/plan.html?bienvenida=1',
+  // Aviso al administrador de la plataforma. Best-effort: la solicitud ya está
+  // guardada y aparece igual en su bandeja, así que un fallo del correo no puede
+  // devolver un error a quien acaba de registrarse.
+  mailer
+    .sendSignupPendingAlert({
+      doctorName: nombre,
+      clinicName: clinica,
+      email,
+      specialty: especialidad,
+      city: ciudad,
+    })
+    .catch(() => {});
+
+  res.status(202).json({
+    pending: true,
+    status: 'pending_approval',
+    message: 'Recibimos tu solicitud. Te avisaremos por correo en cuanto el equipo de Salud Digital la apruebe.',
   });
 });
 
@@ -267,6 +327,15 @@ router.post('/change-password', authenticate, async (req, res) => {
   if (!current || !new_password) return res.status(400).json({ error: 'Faltan campos requeridos.' });
   if (typeof new_password !== 'string' || new_password.length < 8) {
     return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres.' });
+  }
+
+  // Esta ruta gasta DOS operaciones (comprobar la actual y hashear la nueva),
+  // así que pide dos fichas. Va con `autenticado`, que puede echar mano de la
+  // reserva: quien ya está dentro tiene que poder cambiar su contraseña incluso
+  // mientras una avalancha de inicios de sesión anónimos consume el resto.
+  if (!presupuesto.intentarGastar({ autenticado: true }) ||
+      !presupuesto.intentarGastar({ autenticado: true })) {
+    return presupuesto.responderSinPresupuesto(res);
   }
 
   const result = await query('SELECT id, password FROM users WHERE id = $1', [req.user.id]);
@@ -344,6 +413,11 @@ router.post('/2fa/disable', authenticate, async (req, res) => {
 
   let verified = false;
   if (password) {
+    // Otro punto que gasta bcrypt, así que también pasa por el presupuesto.
+    // Va como `autenticado`: quien está desactivando su 2FA ya tiene sesión.
+    if (!presupuesto.intentarGastar({ autenticado: true })) {
+      return presupuesto.responderSinPresupuesto(res);
+    }
     verified = await bcrypt.compare(password, user.password);
   }
   if (!verified && code) {

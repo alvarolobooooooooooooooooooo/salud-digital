@@ -14,13 +14,22 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Rechazo de tipo de archivo con un código propio. Sin él, multer entrega un
+// Error pelado y el manejador global lo trata como fallo del servidor: el
+// usuario veía "Internal server error" al subir un PDF donde iba una foto.
+function tipoNoPermitido(mensaje) {
+  const err = new Error(mensaje);
+  err.code = 'INVALID_FILE_TYPE';
+  return err;
+}
+
 const logoUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp'];
     if (allowed.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('Solo se permiten imágenes (JPEG, PNG, WebP)'));
+    else cb(tipoNoPermitido('Solo se permiten imágenes (JPEG, PNG, WebP)'));
   },
 });
 
@@ -165,10 +174,22 @@ router.put('/me/location', authenticate, requireRole(...LOCATION_ROLES), async (
 // GET /api/clinics/geo/search?q=… — autocompletado de direcciones (Nominatim vía
 // servidor, para no exponer al navegador ni saltarse el rate limit de su ToS).
 router.get('/geo/search', authenticate, requireRole(...LOCATION_ROLES), async (req, res) => {
-  const q = String(req.query.q || '').trim();
+  const q = String(req.query.q || '').trim().slice(0, 200);
   if (q.length < 3) return res.json({ results: [] });
-  const results = await searchAddress(q, 6);
-  res.json({ results });
+  try {
+    const results = await searchAddress(q, 6);
+    res.json({ results });
+  } catch (err) {
+    // Cola de Nominatim llena (ver lib/geocoding.js): contestamos y soltamos la
+    // conexión en vez de dejar al cliente esperando su turno durante minutos.
+    if (err && err.colaLlena) {
+      return res.status(503).json({
+        error: 'El buscador de direcciones está ocupado. Intenta de nuevo en unos segundos.',
+        code: 'geocoder_busy',
+      });
+    }
+    throw err;
+  }
 });
 
 // GET /api/clinics/geo/resolve?url=… — convierte un enlace de Google Maps (incluidos

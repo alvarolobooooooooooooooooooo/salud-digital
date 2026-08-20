@@ -18,3 +18,13 @@ skills-lock.json
 # Ad-hoc test scripts
 test-confirmations.js
 test-confirmations-auth.js
+
+# App de escritorio (Tauri): el código vive en desktop/src y desktop/src-tauri,
+# pero los artefactos de compilación pesan gigas y no van al repo.
+desktop/node_modules/
+desktop/src-tauri/target/
+desktop/*.dmg
+
+# Capturas y scripts de un solo uso
+tools/shots/
+tools/_*

@@ -3,6 +3,40 @@ const router = express.Router();
 const { query } = require('../db');
 const { authenticate } = require('../middleware/auth');
 
+// ── Relación médico-paciente en las ESCRITURAS ──
+//
+// Las tres rutas de abajo comprobaban la clínica pero no si el doctor tiene algo
+// que ver con ese paciente: bastaba cambiar el id de la URL para editar el
+// expediente, las alergias o el odontograma de cualquier paciente de la clínica.
+// El `GET` equivalente sí lo comprobaba, así que la lectura estaba cerrada y la
+// escritura abierta — que es el peor reparto posible.
+//
+// La regla es a propósito UN PUNTO MÁS PERMISIVA que la de lectura (que solo
+// admite "tiene cita conmigo"): aquí vale también "lo di de alta yo". Así queda
+// cubierto el caso del doctor que registra a un paciente nuevo y corrige sus
+// datos antes de que exista la cita, sin abrir la puerta al resto del padrón.
+// Como toda pantalla que edita carga antes al paciente, y esa carga ya exige
+// relación, esto no puede cerrar ningún flujo que hoy funcione.
+//
+// Recepción y administración no pasan por aquí: su alcance es la clínica entera
+// por diseño.
+async function doctorTieneAcceso(req, patient) {
+  if (req.user.role !== 'doctor') return true;
+  const r = await query(
+    `SELECT 1 FROM patients p
+      WHERE p.id = $1 AND p.clinic_id = $2
+        AND (p.created_by = $3
+             OR EXISTS (SELECT 1 FROM appointments a
+                         WHERE a.patient_id = p.id AND a.doctor_id = $3
+                           AND a.clinic_id = $2))
+      LIMIT 1`,
+    [patient.id, req.user.clinic_id, req.user.id],
+  );
+  return r.rowCount > 0;
+}
+
+const SIN_ACCESO = { error: 'Access denied' };
+
 router.get('/', authenticate, async (req, res) => {
   let queryStr;
   let params;
@@ -43,7 +77,13 @@ router.get('/:id', authenticate, async (req, res) => {
 
   let consultations = [];
   if (req.user.role !== 'clinic_admin') {
-    let queryStr = 'SELECT c.id, c.patient_id, c.notes, c.diagnosis, c.treatment, c.specialty, c.odontogram_state, c.cost, c.payment_status, c.lifestyle, c.procedures, c.radiography_notes, c.observations, c.doctor_id, c.visit_reason, c.created_at, c.clinic_id, u.name as doctor_name FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = $1 AND c.clinic_id = $2';
+    // `odontogram_state` NO viaja aquí a propósito. En Ortodoncia ese campo lleva
+    // las fotos clínicas embebidas en base64 y puede pesar megabytes por consulta;
+    // incluirlo convertía la ficha de un paciente con historial en una respuesta de
+    // cientos de MB que el proceso tiene que materializar entera en memoria. Nadie
+    // en el frontend lo lee desde aquí: las pantallas que necesitan el diagrama lo
+    // piden a /api/consultations/:id, y las fotos a /:id/photo-index.
+    let queryStr = 'SELECT c.id, c.patient_id, c.notes, c.diagnosis, c.treatment, c.specialty, c.cost, c.payment_status, c.lifestyle, c.procedures, c.radiography_notes, c.observations, c.doctor_id, c.visit_reason, c.created_at, c.clinic_id, u.name as doctor_name FROM consultations c LEFT JOIN users u ON c.doctor_id = u.id WHERE c.patient_id = $1 AND c.clinic_id = $2';
     const params = [patient.id, req.user.clinic_id];
     let paramIndex = 3;
 
@@ -52,7 +92,10 @@ router.get('/:id', authenticate, async (req, res) => {
       params.push(req.user.id);
     }
 
-    queryStr += ' ORDER BY c.created_at DESC';
+    // Techo de seguridad. Quinientas consultas son más visitas de las que acumula
+    // un paciente en toda su vida; existe para que la respuesta no pueda crecer
+    // sin freno, no para recortar historiales reales.
+    queryStr += ' ORDER BY c.created_at DESC LIMIT 500';
     const consResult = await query(queryStr, params);
     consultations = consResult.rows;
   }
@@ -89,7 +132,13 @@ router.get('/:id/photo-index', authenticate, async (req, res) => {
     WHERE c.patient_id = $1 AND c.clinic_id = $2`;
   const params = [patient.id, req.user.clinic_id];
   if (req.user.role === 'doctor') { queryStr += ' AND c.doctor_id = $3'; params.push(req.user.id); }
-  queryStr += ' GROUP BY c.id, u.name ORDER BY c.created_at DESC';
+  // LIMIT obligatorio: más abajo se hace JSON.parse de `ortho_state`, que puede
+  // ser un blob de varios MB por consulta. JSON.parse bloquea el hilo mientras
+  // dura, y este proceso solo tiene uno: sin tope, un paciente con historial
+  // largo dejaba al servidor entero sin responder durante segundos, y bastaban
+  // unas cuantas peticiones a la vez para que no volviera. Doscientos grupos de
+  // fotos es más de lo que muestra el acordeón.
+  queryStr += ' GROUP BY c.id, u.name ORDER BY c.created_at DESC LIMIT 200';
 
   const result = await query(queryStr, params);
 
@@ -152,6 +201,7 @@ router.put('/:id', authenticate, async (req, res) => {
     [req.params.id, req.user.clinic_id]);
   const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
+  if (!(await doctorTieneAcceso(req, patient))) return res.status(403).json(SIN_ACCESO);
 
   const { name, identity_number, birth_date, gender, phone } = req.body;
 
@@ -188,6 +238,8 @@ router.put('/:id/critical-info', authenticate, async (req, res) => {
   const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
+  if (!(await doctorTieneAcceso(req, patient))) return res.status(403).json(SIN_ACCESO);
+
   const { allergies = '', medications = '', conditions = '' } = req.body;
   const existingResult = await query('SELECT id FROM critical_info WHERE patient_id = $1', [patient.id]);
 
@@ -215,8 +267,13 @@ router.get('/:id/consultations', authenticate, async (req, res) => {
     if (parseInt(accessResult.rows[0].count) === 0) return res.status(403).json({ error: 'Access denied' });
   }
 
-  const offset = parseInt(req.query.offset) || 0;
-  const limit = parseInt(req.query.limit) || 5;
+  // El tope importa: estas filas son `c.*`, e incluyen `odontogram_state`, que en
+  // Ortodoncia lleva las fotos clínicas embebidas en base64 (hasta 25 MB por
+  // consulta). Sin cap, `?limit=100000` traía el historial entero a memoria de
+  // golpe —cientos de MB en una sola respuesta— y bastaba repetirlo para tumbar
+  // el proceso por falta de RAM. La pantalla que más pide usa limit=100.
+  const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 5, 1), 200);
 
   let countQueryStr = 'SELECT COUNT(*) as count FROM consultations WHERE patient_id = $1 AND clinic_id = $2';
   let params = [patient.id, req.user.clinic_id];
@@ -295,6 +352,8 @@ router.put('/:id/odontogram', authenticate, async (req, res) => {
     [req.params.id, req.user.clinic_id]);
   const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
+
+  if (!(await doctorTieneAcceso(req, patient))) return res.status(403).json(SIN_ACCESO);
 
   const { odontogram_state } = req.body;
   const odontoStr = typeof odontogram_state === 'string' ? odontogram_state : JSON.stringify(odontogram_state || {});

@@ -40,7 +40,16 @@ function getClient() {
     if (!process.env.OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY no configurado');
     }
-    _client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    // Plazo y reintentos explícitos. Por defecto el SDK espera 10 minutos y
+    // reintenta dos veces: si OpenAI se pone lento, cada petición del asistente
+    // se queda media hora sujetando un socket y multiplicando la carga saliente
+    // por tres. Con 15 s y un reintento, un mal día de OpenAI es una respuesta
+    // de error rápida en vez de una cola creciente de peticiones colgadas.
+    _client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      timeout: parseInt(process.env.OPENAI_TIMEOUT_MS || '15000', 10),
+      maxRetries: 1,
+    });
   }
   return _client;
 }

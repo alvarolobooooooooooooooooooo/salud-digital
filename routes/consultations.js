@@ -456,6 +456,15 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// Rechazo de tipo de archivo con un código propio. Sin él, multer entrega un
+// Error pelado y el manejador global lo trata como fallo del servidor: el
+// usuario veía "Internal server error" al subir un PDF donde iba una foto.
+function tipoNoPermitido(mensaje) {
+  const err = new Error(mensaje);
+  err.code = 'INVALID_FILE_TYPE';
+  return err;
+}
+
 const imageUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -464,7 +473,7 @@ const imageUpload = multer({
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Solo se permiten imágenes (JPEG, PNG, WebP)'));
+      cb(tipoNoPermitido('Solo se permiten imágenes (JPEG, PNG, WebP)'));
     }
   }
 });

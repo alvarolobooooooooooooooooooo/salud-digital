@@ -1,8 +1,48 @@
 const { Pool } = require('pg');
 
+// ── Configuración del pool ──
+//
+// Sin ninguno de estos límites, `new Pool({connectionString})` se comporta así:
+// diez conexiones como mucho (el default de pg) y una espera INFINITA cuando
+// las diez están ocupadas. Basta con que unas cuantas consultas se queden
+// atascadas —una tabla bloqueada, un pico en la base, la red de Render con
+// hipo— para que todas las peticiones siguientes se queden esperando un turno
+// que no llega. El proceso no se cae: deja de contestar, que para el doctor que
+// está en consulta es exactamente lo mismo, y encima sin nada en los logs.
+//
+// Cada valor está para cortar un modo de fallo concreto:
+//   connectionTimeoutMillis  → si el pool está lleno, la petición falla rápido
+//                              en vez de encolarse para siempre.
+//   statement_timeout        → ninguna consulta puede tener secuestrada una
+//                              conexión indefinidamente (lo corta Postgres).
+//   idle_in_transaction…     → una transacción abierta y olvidada mantiene
+//                              locks vivos; Postgres la cierra sola.
+//   keepAlive                → el free tier de Render corta conexiones ociosas
+//                              sin avisar; el keepalive las detecta antes.
+//
+// Los topes son holgados a propósito: cortan el abuso y el atasco, no el uso
+// normal (la consulta más lenta de la app tarda milisegundos). Se pueden
+// ajustar por entorno sin tocar código.
+const num = (nombre, porDefecto) => {
+  const v = parseInt(process.env[nombre] || '', 10);
+  return Number.isFinite(v) && v > 0 ? v : porDefecto;
+};
+
+const DB_STATEMENT_TIMEOUT_MS = num('DB_STATEMENT_TIMEOUT_MS', 30_000);
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
+  max: num('DB_POOL_MAX', 10),
+  idleTimeoutMillis: num('DB_IDLE_TIMEOUT_MS', 30_000),
+  connectionTimeoutMillis: num('DB_CONNECT_TIMEOUT_MS', 8_000),
+  // Server-side: lo aplica Postgres y limpia bien la conexión al vencer.
+  statement_timeout: DB_STATEMENT_TIMEOUT_MS,
+  idle_in_transaction_session_timeout: num('DB_IDLE_TX_TIMEOUT_MS', 30_000),
+  // Client-side, algo por encima del anterior: solo actúa si el servidor no
+  // llega ni a contestar (la conexión murió en el camino).
+  query_timeout: DB_STATEMENT_TIMEOUT_MS + 5_000,
+  keepAlive: true,
 });
 
 // El free tier de Render Postgres corta conexiones idle. Si pg detecta una
@@ -889,6 +929,100 @@ const initDb = async () => {
       CREATE INDEX IF NOT EXISTS idx_conversation_messages_session ON conversation_messages(session_id);
       CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs(user_id);
       CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
+    `);
+
+    // ── Índices de disponibilidad ──
+    // Van en su propio bloque, cada uno con su try, porque son mejoras de
+    // rendimiento: si uno falla (permisos, versión de Postgres) el arranque debe
+    // seguir. Un índice que falta hace la app lenta; un arranque roto la deja fuera.
+    const indicesExtra = [
+      // El login busca `WHERE LOWER(email) = $1`. El UNIQUE de la columna está
+      // sobre `email` tal cual, así que LOWER() no puede usarlo: cada intento de
+      // login, incluidos los de un atacante, era un recorrido completo de `users`.
+      // Un índice funcional lo convierte en una búsqueda directa.
+      'CREATE INDEX IF NOT EXISTS idx_users_lower_email ON users (LOWER(email))',
+      // Filtrar los usuarios de una clínica es de las consultas más repetidas.
+      'CREATE INDEX IF NOT EXISTS idx_users_clinic ON users (clinic_id)',
+      // Purga de sesiones: barre por antigüedad, no por usuario.
+      'CREATE INDEX IF NOT EXISTS idx_sessions_created ON user_sessions (created_at)',
+      // Purga de eventos de pago (el webhook es público: guarda hasta lo que llega
+      // con la firma mal, y eso hay que poder recortarlo por fecha).
+      'CREATE INDEX IF NOT EXISTS idx_payment_events_received ON payment_events (received_at)',
+    ];
+    for (const sql of indicesExtra) {
+      try {
+        await query(sql);
+      } catch (err) {
+        console.warn('[db] índice opcional no creado:', err.message);
+      }
+    }
+
+    // ── Alta de cuenta sujeta a aprobación ──
+    //
+    // Una cuenta creada desde /registro.html nace 'pending' y NO puede iniciar
+    // sesión hasta que el administrador de la plataforma la acepta. El valor por
+    // defecto de la columna es 'approved' a propósito: las filas que ya existen
+    // —y las que nacen de una invitación, que ya venían revisadas por un
+    // administrador— siguen entrando sin que nadie tenga que aprobarlas a mano.
+    // Solo el endpoint de alta pública escribe 'pending' de forma explícita.
+    // ── Fecha de alta de las filas que nunca la guardaron ──
+    //
+    // clinics, users, patients y appointments nacieron sin created_at, así que
+    // la bitácora del panel no tenía por dónde ordenar nada de eso. La columna
+    // se añade SIN valor por defecto y el default se pone DESPUÉS: así las filas
+    // que ya existen quedan en NULL —no sabemos cuándo se crearon— en vez de
+    // aparecer todas como creadas el día del despliegue. Las nuevas sí lo traen.
+    for (const tabla of ['clinics', 'users', 'patients', 'appointments']) {
+      await query(`ALTER TABLE ${tabla} ADD COLUMN IF NOT EXISTS created_at TIMESTAMP`);
+      await query(`ALTER TABLE ${tabla} ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP`);
+    }
+    await query('CREATE INDEX IF NOT EXISTS idx_clinics_created ON clinics(created_at DESC)');
+    await query('CREATE INDEX IF NOT EXISTS idx_appointments_created ON appointments(created_at DESC)');
+
+    const altasAprobacion = [
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS approval_status TEXT NOT NULL DEFAULT 'approved'",
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS approval_requested_at TIMESTAMP',
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS approval_decided_at TIMESTAMP',
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS approval_decided_by INTEGER',
+      "ALTER TABLE users ADD COLUMN IF NOT EXISTS approval_notes TEXT DEFAULT ''",
+      // La bandeja de solicitudes filtra por 'pending', que es un puñado de filas
+      // dentro de una tabla que solo crece: índice parcial en vez de completo.
+      "CREATE INDEX IF NOT EXISTS idx_users_pending ON users(approval_status) WHERE approval_status <> 'approved'",
+    ];
+    for (const cmd of altasAprobacion) await query(cmd);
+
+    await query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'users_approval_status_check') THEN
+          ALTER TABLE users ADD CONSTRAINT users_approval_status_check
+            CHECK (approval_status IN ('pending', 'approved', 'rejected'));
+        END IF;
+      END $$;
+    `);
+
+    // ── Visitas a las páginas públicas ──
+    //
+    // Una fila por carga de página pública (landing, alta, login). Es la única
+    // medición de tráfico que tiene la plataforma, y se guarda aquí —y no en un
+    // servicio de terceros— porque el mismo dominio sirve historia clínica: no
+    // hay ningún script externo cargándose junto al expediente.
+    //
+    // Nunca se guarda la IP. visitor_hash es un SHA-256 de IP + user-agent + una
+    // sal que cambia cada día, así que sirve para contar personas distintas
+    // dentro de un mismo día y deja de ser reversible al día siguiente.
+    await query(`
+      CREATE TABLE IF NOT EXISTS landing_visits (
+        id BIGSERIAL PRIMARY KEY,
+        page TEXT NOT NULL DEFAULT 'landing',
+        path TEXT NOT NULL DEFAULT '/',
+        referrer TEXT DEFAULT '',
+        visitor_hash TEXT DEFAULT '',
+        device TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_landing_visits_created ON landing_visits(created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_landing_visits_page ON landing_visits(page, created_at DESC);
     `);
 
     console.log('Database initialized successfully');

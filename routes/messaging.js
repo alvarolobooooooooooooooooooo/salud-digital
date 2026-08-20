@@ -19,13 +19,22 @@ cloudinary.config({
 
 // Estudios clínicos: imágenes (rayos X, fotos de labs) y PDFs. resource_type
 // 'auto' deja que Cloudinary maneje imagen o documento según el archivo.
+// Rechazo de tipo de archivo con un código propio. Sin él, multer entrega un
+// Error pelado y el manejador global lo trata como fallo del servidor: el
+// usuario veía "Internal server error" al subir un PDF donde iba una foto.
+function tipoNoPermitido(mensaje) {
+  const err = new Error(mensaje);
+  err.code = 'INVALID_FILE_TYPE';
+  return err;
+}
+
 const studyUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 15 * 1024 * 1024 }, // 15 MB
   fileFilter: (req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
     if (allowed.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('Formato no permitido. Usa JPEG, PNG, WebP o PDF.'));
+    else cb(tipoNoPermitido('Formato no permitido. Usa JPEG, PNG, WebP o PDF.'));
   },
 });
 
@@ -400,6 +409,12 @@ router.get('/conversations/:id/messages', authenticate, async (req, res) => {
   const conv = await getAccessibleConv(convId, req.user);
   if (!conv) return res.status(404).json({ error: 'Conversación no encontrada' });
 
+  // El LIMIT va SIEMPRE, también en el modo incremental. Antes, pasar `?after=1`
+  // quitaba el tope por completo y devolvía la conversación entera: el mismo
+  // endpoint que el cliente usa para traer "lo nuevo" servía para pedir todo el
+  // historial de golpe, tantas veces como se quisiera. El cliente avanza `after`
+  // con el id del último mensaje recibido, así que si alguna vez hubiera más de
+  // 500 pendientes los recoge en la siguiente vuelta del sondeo.
   const after = parseInt(req.query.after, 10) || 0;
   const r = await query(
     `SELECT msg.id, msg.kind, msg.body, msg.payload, msg.sender_id, ${TS('msg.created_at')} AS created_at,
@@ -407,7 +422,7 @@ router.get('/conversations/:id/messages', authenticate, async (req, res) => {
        FROM chat_messages msg LEFT JOIN users u ON u.id = msg.sender_id
       WHERE msg.conversation_id = $1 ${after ? 'AND msg.id > $2' : ''}
       ORDER BY msg.id ASC
-      ${after ? '' : 'LIMIT 300'}`,
+      ${after ? 'LIMIT 500' : 'LIMIT 300'}`,
     after ? [convId, after] : [convId]
   );
   res.json(r.rows.map(shapeMessage));

@@ -377,8 +377,21 @@ router.get('/clinics/map', async (req, res) => {
 router.get('/geo/search', async (req, res) => {
   const q = String(req.query.q || '').trim().slice(0, 200);
   if (q.length < 3) return res.json({ results: [] });
-  const results = await searchAddress(q, 6);
-  res.json({ results });
+  try {
+    const results = await searchAddress(q, 6);
+    res.json({ results });
+  } catch (err) {
+    // La cola de Nominatim tiene fondo (ver lib/geocoding.js). Cuando está
+    // llena preferimos contestar y soltar la conexión antes que dejar al
+    // cliente esperando minutos por una búsqueda de direcciones.
+    if (err && err.colaLlena) {
+      return res.status(503).json({
+        error: 'El buscador de direcciones está ocupado. Intenta de nuevo en unos segundos.',
+        code: 'geocoder_busy',
+      });
+    }
+    throw err;
+  }
 });
 
 router.get('/geo/resolve', async (req, res) => {

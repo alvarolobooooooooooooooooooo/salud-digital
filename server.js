@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const { initDb } = require('./db');
+const analytics = require('./lib/analytics');
 
 process.env.TZ = 'America/Tegucigalpa'; // Zona horaria de Honduras (CST, UTC-6, sin horario de verano)
 
@@ -251,6 +252,7 @@ app.get(/^\/c\/[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/i, (req, res) => {
 
 // Mapa público de clínicas registradas. Sin auth: cualquiera puede entrar y ver pines.
 app.get('/mapa', (req, res) => {
+  analytics.registrarVisita(req, 'mapa', '/mapa');
   serveHtmlWithVersion(path.join(PUBLIC_DIR, 'mapa.html'), res);
 });
 
@@ -291,6 +293,15 @@ app.use((req, res, next) => {
   }
   fs.access(filePath, fs.constants.F_OK, (err) => {
     if (err) return next();
+    // Conteo de visitas de las páginas públicas (landing, alta, login). Va aquí
+    // porque es el único punto por el que pasan TODAS las cargas de HTML: el
+    // servidor las sirve con no-cache, así que cada visita real llega hasta
+    // aquí aunque el navegador tenga la página guardada. No bloquea la
+    // respuesta ni puede fallarla (ver lib/analytics.js).
+    if (req.method === 'GET') {
+      const pagina = analytics.paginaDe(urlPath);
+      if (pagina) analytics.registrarVisita(req, pagina, urlPath);
+    }
     serveHtmlWithVersion(filePath, res);
   });
 });
@@ -391,6 +402,52 @@ const publicGeoLimiter = rateLimit({
 });
 app.use('/api/public/geo', publicGeoLimiter);
 
+// ── Límites por operación ──
+//
+// Los de arriba son por IP y protegen la puerta de entrada. Los de aquí son por
+// CUENTA (ver middleware/rate-limits.js) y protegen los recursos: hay
+// operaciones que cuestan cientos de veces más que un GET normal y a todas se
+// llegaba dentro del mismo presupuesto de 300/min. Se montan antes de los
+// routers para que ninguna ruta nueva se quede fuera por olvido.
+const limites = require('./middleware/rate-limits');
+
+// Autenticación: cada una de estas peticiones cuesta uno o dos bcrypt, que en
+// un proceso de un solo hilo se pagan bloqueando a todo el mundo.
+app.use('/api/auth/login', limites.loginTecho);
+app.use('/api/auth/change-password', limites.credenciales);
+app.use('/api/auth/2fa', limites.credenciales);
+
+// Imagen y archivos: reservan el archivo entero en memoria y salen a Cloudinary.
+app.use('/api/media', limites.conversionHeic);
+app.use('/api/messaging/upload', limites.subidas);
+app.use('/api/consultations/:id/images', limites.subidas);
+app.use('/api/users/me/photo', limites.subidas);
+app.use('/api/clinics/me/logo', limites.subidas);
+app.use('/api/clinics/me/landing/image', limites.subidas);
+
+// Escritura clínica: /api/consultations acepta cuerpos de 25 MB (las fotos de
+// ortodoncia viajan embebidas), así que es la vía más rápida para llenar el
+// disco de la base. Solo se cuentan las escrituras: las lecturas siguen libres.
+app.use('/api/consultations', limites.soloEscrituras(limites.escrituraClinica));
+
+// Lecturas caras: recorren la clínica entera o traen imágenes embebidas.
+app.use('/api/consultations/finances', limites.lecturaPesada);
+app.use('/api/consultations/:id/diagram-photos', limites.lecturaPesada);
+app.use('/api/patients/:id/photo-index', limites.lecturaPesada);
+app.use('/api/growth', limites.lecturaPesada);
+
+// Asistente: cada llamada se paga a OpenAI y deja un socket esperando.
+app.use('/api/assistant', limites.ia);
+app.use('/api/conversation', limites.ia);
+
+// Geocodificación autenticada: comparte con el alta pública la cola serializada
+// de Nominatim (1 req/s para todo el proceso).
+app.use('/api/clinics/geo', limites.geocodificacion);
+
+// Webhook de pagos: público por definición. Cada evento con firma inválida deja
+// igualmente una fila en payment_events y gasta una verificación contra PayPal.
+app.use('/api/billing/webhook', limites.webhookPagos);
+
 // Static files: hint browsers to cache JS/CSS for a day, HTML always revalidated
 const ONE_DAY = 24 * 60 * 60;
 
@@ -464,35 +521,45 @@ app.use('/api', require('./middleware/clinical-access').gate);
 // cualquier ruta futura quede cubierta sin acordarse de añadir nada.
 app.use('/api', require('./middleware/subscription').gate);
 
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/billing', require('./routes/billing'));
-app.use('/api/invitations', require('./routes/invitations'));
-app.use('/api/clinics', require('./routes/clinics'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/patients', require('./routes/patients'));
-app.use('/api/consultations', require('./routes/consultations'));
-app.use('/api/appointments', require('./routes/appointments'));
-app.use('/api/consents', require('./routes/consents'));
-app.use('/api/reminders', require('./routes/reminders'));
-app.use('/api/confirmations', require('./routes/confirmations'));
-app.use('/api/assistant', require('./routes/assistant'));
-app.use('/api/assistant', require('./routes/assistant-intent'));
-app.use('/api/conversation', require('./routes/conversation'));
-app.use('/api/public', require('./routes/public-booking'));
-app.use('/api/doctor-availability', require('./routes/doctor-availability'));
-app.use('/api/rooms', require('./routes/rooms'));
-app.use('/api/reception', require('./routes/reception'));
+// ── Handlers async: que un error no se lleve por delante el proceso ──
+// Express 4 no recoge las promesas rechazadas de un handler `async`, y Node mata
+// el proceso ante una promesa rechazada sin dueño. Sin esto, CUALQUIER error de
+// base de datos en cualquier ruta —la mayoría no tiene try/catch— tira el
+// servidor entero: no falla esa petición, se caen todas las clínicas a la vez.
+// `capturar` reencamina esos errores al manejador global de más abajo.
+const { capturar, instalarRedDeSeguridad } = require('./middleware/async-errors');
+instalarRedDeSeguridad();
+
+app.use('/api/auth', capturar(require('./routes/auth')));
+app.use('/api/billing', capturar(require('./routes/billing')));
+app.use('/api/invitations', capturar(require('./routes/invitations')));
+app.use('/api/clinics', capturar(require('./routes/clinics')));
+app.use('/api/admin', capturar(require('./routes/admin')));
+app.use('/api/users', capturar(require('./routes/users')));
+app.use('/api/patients', capturar(require('./routes/patients')));
+app.use('/api/consultations', capturar(require('./routes/consultations')));
+app.use('/api/appointments', capturar(require('./routes/appointments')));
+app.use('/api/consents', capturar(require('./routes/consents')));
+app.use('/api/reminders', capturar(require('./routes/reminders')));
+app.use('/api/confirmations', capturar(require('./routes/confirmations')));
+app.use('/api/assistant', capturar(require('./routes/assistant')));
+app.use('/api/assistant', capturar(require('./routes/assistant-intent')));
+app.use('/api/conversation', capturar(require('./routes/conversation')));
+app.use('/api/public', capturar(require('./routes/public-booking')));
+app.use('/api/doctor-availability', capturar(require('./routes/doctor-availability')));
+app.use('/api/rooms', capturar(require('./routes/rooms')));
+app.use('/api/reception', capturar(require('./routes/reception')));
 // Inventario desactivado — para reactivar, descomentar estas dos líneas y borrar
 // el 404 de abajo (los datos siguen intactos en la base):
-// app.use('/api/inventory', require('./routes/inventory'));
-// app.use('/api/inventory-usage', require('./routes/inventory-usage'));
+// app.use('/api/inventory', capturar(require('./routes/inventory')));
+// app.use('/api/inventory-usage', capturar(require('./routes/inventory-usage')));
 app.use(['/api/inventory', '/api/inventory-usage'], (req, res) =>
   res.status(404).json({ error: 'El inventario está desactivado.' }));
-app.use('/api/audit', require('./routes/audit'));
-app.use('/api/growth', require('./routes/growth'));
-app.use('/api/integrations', require('./routes/integrations'));
-app.use('/api/media', require('./routes/media'));
-app.use('/api/messaging', require('./routes/messaging'));
+app.use('/api/audit', capturar(require('./routes/audit')));
+app.use('/api/growth', capturar(require('./routes/growth')));
+app.use('/api/integrations', capturar(require('./routes/integrations')));
+app.use('/api/media', capturar(require('./routes/media')));
+app.use('/api/messaging', capturar(require('./routes/messaging')));
 
 app.get('*', (req, res) => {
   serveHtmlWithVersion(path.join(PUBLIC_DIR, 'index.html'), res);
@@ -502,6 +569,38 @@ app.get('*', (req, res) => {
 app.use((err, req, res, next) => {
   console.error('Unhandled route error:', err);
   if (res.headersSent) return next(err);
+
+  // Multer rechaza el archivo ANTES de leerlo entero cuando pasa del límite;
+  // eso no es un fallo del servidor, es la protección haciendo su trabajo. Sin
+  // este caso el usuario veía "Internal server error" al subir una foto grande
+  // y no tenía forma de saber que bastaba con reducirla.
+  if (err && err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ error: 'El archivo es demasiado grande.', code: 'file_too_large' });
+  }
+  if (err && (err.code === 'LIMIT_UNEXPECTED_FILE' || err.code === 'LIMIT_FILE_COUNT')) {
+    return res.status(400).json({ error: 'Demasiados archivos o campo inesperado.', code: 'upload_rejected' });
+  }
+  if (err && err.code === 'INVALID_FILE_TYPE') {
+    return res.status(415).json({ error: err.message, code: 'invalid_file_type' });
+  }
+  if (err && err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'El contenido enviado es demasiado grande.', code: 'payload_too_large' });
+  }
+
+  // Base de datos saturada o consulta cortada por tiempo. Devolver 500 lo
+  // confundía con un bug; 503 dice la verdad —"vuelve a intentarlo"— y deja que
+  // el cliente reintente en vez de dar el dato por perdido.
+  const mensajePg = String((err && err.message) || '');
+  const saturada =
+    /timeout exceeded when trying to connect|Connection terminated due to connection timeout/i.test(mensajePg) ||
+    (err && (err.code === '57014' || err.code === '53300'));
+  if (saturada) {
+    return res.status(503).json({
+      error: 'El servicio está saturado en este momento. Intenta de nuevo en unos segundos.',
+      code: 'service_busy',
+    });
+  }
+
   const exposeDetail = process.env.NODE_ENV !== 'production';
   res.status(500).json({ error: exposeDetail ? (err.message || 'Internal server error') : 'Internal server error' });
 });
@@ -567,6 +666,15 @@ function comprobarBaseDeDatos() {
     setTimeout(runPurge, 30 * 1000);                // primera corrida 30s después del arranque
     setInterval(runPurge, 24 * 60 * 60 * 1000);     // cada 24 horas
 
+    // Misma idea para las tablas que crecen con cada petición y que nadie
+    // vaciaba: sesiones y eventos de pago (ver lib/retention.js). Un disco de
+    // Postgres lleno es el único fallo de la lista del que no se sale
+    // reiniciando, así que conviene que se recorte solo.
+    const retention = require('./lib/retention');
+    const runRetention = () => { retention.purgar().catch(() => {}); };
+    setTimeout(runRetention, 60 * 1000);
+    setInterval(runRetention, 24 * 60 * 60 * 1000);
+
     // Ciclo de facturación: cobra lo vencido (solo con procesadores que no
     // cobran solos), caduca lo pagado y reprocesa webhooks fallidos.
     require('./lib/billing/jobs').start();
@@ -604,9 +712,24 @@ function comprobarBaseDeDatos() {
         .catch(err => console.warn('[geocode-backfill]', err.message));
     }, 5 * 1000);
 
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`\nSaludDigital running → http://localhost:${PORT}\n`);
     });
+
+    // ── Tiempos límite del servidor HTTP ──
+    // Node ya trae plazos por defecto para las cabeceras (60 s) y para el
+    // cuerpo (300 s), así que el slowloris clásico no es infinito de fábrica.
+    // Lo que se hace aquí es apretar el del cuerpo y, sobre todo, ordenar los
+    // tres valores entre sí, que es donde se rompe en la práctica:
+    //   · keepAliveTimeout por encima del plazo de inactividad del balanceador
+    //     de Render, para que cierre el cliente y no aparezcan 502 sueltos.
+    //   · headersTimeout SIEMPRE por encima de keepAliveTimeout: al revés, Node
+    //     mata las conexiones reutilizadas antes de que lleguen a reutilizarse.
+    //   · requestTimeout holgado a propósito: una consulta de ortodoncia sube
+    //     25 MB de fotos y, con datos móviles en una clínica, eso tarda.
+    server.keepAliveTimeout = parseInt(process.env.HTTP_KEEPALIVE_TIMEOUT_MS || '65000', 10);
+    server.headersTimeout = parseInt(process.env.HTTP_HEADERS_TIMEOUT_MS || '70000', 10);
+    server.requestTimeout = parseInt(process.env.HTTP_REQUEST_TIMEOUT_MS || '180000', 10);
   } catch (err) {
     console.error('Failed to start server:', err);
     process.exit(1);

@@ -7,7 +7,7 @@
     "dev": "nodemon server.js",
     "reset-db": "node reset-db.js",
     "seed-dev": "SEED_DEMO_DATA=true node tools/seed-dev.js",
-    "test": "node --test tests/*.test.js",
+    "test": "PASSWORD_BUDGET_BURST=100000 PASSWORD_BUDGET_PER_SECOND=100000 node --test tests/*.test.js",
     "test:db": "BILLING_TEST_DB=1 node --test tests/*.test.js"
   },
   "dependencies": {
