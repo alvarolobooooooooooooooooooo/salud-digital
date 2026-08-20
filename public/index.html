@@ -3759,6 +3759,90 @@
     .wf-hist-item:nth-child(n+2) { display: none; }
     .pipe-point { font-size: 0.85rem; }
   }
+
+  /* ─────────────────────────────────────────────────────────
+     Film del hero — mismo lenguaje que la ventana de preview:
+     esquinas de 24px, halo cian y borde tenue. Se reserva el
+     16/9 desde el primer pintado para que no salte el layout.
+     ───────────────────────────────────────────────────────── */
+  .hero-film {
+    position: relative;
+    max-width: 1136px;
+    margin: 0 auto 3rem;
+    aspect-ratio: 16 / 9;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #0b1424;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow:
+      0 0 100px rgba(8, 145, 178, 0.18),
+      0 30px 80px rgba(0, 0, 0, 0.28);
+    /* Entra con el mismo retardo que los botones y la preview. */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s 0.85s ease, transform 0.8s 0.85s ease;
+  }
+  .hero-film.in { opacity: 1; transform: none; }
+  .hero-film-video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* El póster tapa el hueco mientras el archivo llega. */
+    background: #0b1424 center / cover no-repeat;
+  }
+  /* Halo interior para fundir el borde del video con la página. */
+  .hero-film::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  }
+  .hero-film-quality {
+    position: absolute;
+    right: 0.9rem;
+    bottom: 0.9rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: #22d3ee;
+    background: rgba(6, 182, 212, 0.14);
+    border: 1px solid rgba(6, 182, 212, 0.28);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    pointer-events: none;
+  }
+  .hero-film-quality[hidden] { display: none; }
+
+  /* En claro el film sigue siendo oscuro (es una pantalla): solo se
+     suaviza el borde para que no corte contra el fondo claro. */
+  html[data-theme="light"] .hero-film,
+  :root:not([data-theme="dark"]) .hero-film {
+    border-color: rgba(8, 145, 178, 0.18);
+  }
+  html[data-theme="dark"] .hero-film {
+    border-color: rgba(255, 255, 255, 0.10);
+    box-shadow:
+      0 0 110px rgba(6, 182, 212, 0.20),
+      0 30px 80px rgba(0, 0, 0, 0.55);
+  }
+
+  @media (max-width: 720px) {
+    .hero-film {
+      max-width: 100%;
+      border-radius: 18px;
+      margin-bottom: 2rem;
+    }
+  }
+
+  /* Sin animación: el video se queda en su póster, quieto. */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-film { transition: none; opacity: 1; transform: none; }
+  }
 </style>
 </head>
 <body>
@@ -3819,6 +3903,31 @@
       </a>
       <a href="#flujo" class="btn btn-ghost btn-large">Ver el flujo</a>
     </div>
+
+    <!-- ── Film del hero ──
+         Bucle mudo renderizado en Remotion (composición HeroLoop). El src
+         de arranque es el de 1080p: si no hay JS, o el equipo o la red no
+         dan para más, eso es lo que se ve. El bloque heroFilm() de abajo lo
+         sube a 4K cuando la pantalla y la conexión lo justifican, y lo baja
+         de nuevo si detecta frames perdidos. Nunca baja de 1080p. -->
+    <figure class="hero-film" id="heroFilm">
+      <video
+        id="heroFilmVideo"
+        class="hero-film-video"
+        src="/video/hero-1080.mp4?v=1"
+        data-src-hd="/video/hero-1080.mp4?v=1"
+        data-src-uhd="/video/hero-2160.mp4?v=1"
+        poster="/video/hero-poster.jpg"
+        muted
+        loop
+        playsinline
+        webkit-playsinline
+        disablepictureinpicture
+        preload="none"
+        aria-label="Salud Digital en movimiento: agenda, historial y finanzas en un solo lugar."
+      ></video>
+      <span class="hero-film-quality" id="heroFilmQuality" hidden>4K</span>
+    </figure>
 
     <div class="hero-preview" id="heroPreview">
       <!-- Floating motion notifications -->
@@ -5209,6 +5318,156 @@
     // Re-measure once layout settles (fonts, images)
     window.addEventListener('load', () => moveOrbTo(currentStage));
   })();
+  // ═══════════════════════════════════════════════════════
+  // FILM DEL HERO — 4K cuando se puede, 1080p cuando no
+  //
+  // El <video> arranca apuntando a 1080p (lo seguro sin JS). Aquí
+  // decidimos si sube a 4K antes de que empiece a descargar nada
+  // (preload="none", así que hasta el play no se pide un solo byte), y
+  // vigilamos la reproducción para bajarlo si el equipo no da abasto.
+  // El suelo es 1080p: nunca se baja de ahí.
+  // ═══════════════════════════════════════════════════════
+  (function heroFilm() {
+    const wrap = document.getElementById('heroFilm');
+    const video = document.getElementById('heroFilmVideo');
+    const badge = document.getElementById('heroFilmQuality');
+    if (!wrap || !video) return;
+
+    const SRC = {
+      1080: video.dataset.srcHd,
+      2160: video.dataset.srcUhd,
+    };
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ── ¿Vale la pena el 4K? ──
+    // Tres razones para no pedirlo: la conexión, el equipo, o que la
+    // pantalla no tenga píxeles suficientes para notar la diferencia.
+    function pickTier() {
+      const net = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (net) {
+        if (net.saveData) return 1080;
+        if (/^(slow-2g|2g|3g)$/.test(net.effectiveType || '')) return 1080;
+        // downlink es una estimación gruesa: solo se usa cuando delata una
+        // conexión claramente mala, no para vetar el 4K en un wifi normal.
+        if (typeof net.downlink === 'number' && net.downlink > 0 && net.downlink < 1.5) return 1080;
+      }
+      if (typeof navigator.deviceMemory === 'number' && navigator.deviceMemory < 4) return 1080;
+      if ((navigator.hardwareConcurrency || 8) < 4) return 1080;
+      // Píxeles reales que va a ocupar el film en esta pantalla.
+      const dpr = Math.min(window.devicePixelRatio || 1, 3);
+      const shown = wrap.getBoundingClientRect().width * dpr;
+      if (shown <= 1920) return 1080; // por debajo de eso el 4K no se nota
+      return 2160;
+    }
+
+    let tier = pickTier();
+    let downgraded = false;
+    if (tier === 2160 && SRC[2160]) {
+      video.src = SRC[2160];
+      if (badge) badge.hidden = false;
+    }
+
+    // ── Bajar a 1080p conservando el punto de reproducción ──
+    function downgrade(motivo) {
+      if (downgraded || tier === 1080) return;
+      downgraded = true;
+      tier = 1080;
+      const t = video.currentTime;
+      video.src = SRC[1080];
+      video.currentTime = t || 0;
+      video.play().catch(() => {});
+      if (badge) badge.hidden = true;
+      if (window.__sdDebug) console.info('[hero] a 1080p:', motivo);
+    }
+
+    // Frames perdidos: la señal más honesta de que el 4K no le entra.
+    let lastDropped = 0;
+    let lastTotal = 0;
+    let strikes = 0;
+    function watchFrames() {
+      if (tier !== 2160 || !video.getVideoPlaybackQuality) return;
+      const q = video.getVideoPlaybackQuality();
+      const dropped = q.droppedVideoFrames - lastDropped;
+      const total = q.totalVideoFrames - lastTotal;
+      lastDropped = q.droppedVideoFrames;
+      lastTotal = q.totalVideoFrames;
+      if (total > 20 && dropped / total > 0.08) {
+        strikes++;
+        if (strikes >= 2) downgrade('frames perdidos');
+      } else if (dropped === 0) {
+        strikes = 0;
+      }
+    }
+    const framesTimer = setInterval(watchFrames, 2500);
+
+    // Si tarda demasiado en tener algo que enseñar, tampoco insistimos.
+    let stalls = 0;
+    video.addEventListener('waiting', () => {
+      if (++stalls >= 2) downgrade('buffer vacío dos veces');
+    });
+    video.addEventListener('error', () => downgrade('error de carga'));
+
+    // ── Arranque: solo cuando está a la vista y sin robarle ancho de
+    //    banda al primer pintado de la página. ──
+    // Con "ahorro de datos" activo no se arranca nada: se queda el póster.
+    // Es una preferencia explícita del usuario y el suelo de calidad es
+    // 1080p, así que no hay una versión más liviana que ofrecerle.
+    const saveData = !!(navigator.connection && navigator.connection.saveData);
+
+    let started = false;
+    let bootWatchdog = null;
+    function start() {
+      if (started || reduced || saveData) return;
+      started = true;
+      video.load();
+      const p = video.play();
+      if (p && p.catch) p.catch(() => { /* autoplay bloqueado: queda el póster */ });
+      // Si el 4K tarda demasiado en arrancar, la red no da: se baja sin
+      // esperar a contar frames perdidos.
+      if (tier === 2160) {
+        bootWatchdog = setTimeout(() => {
+          if (video.readyState < 3) downgrade('el 4K tardaba en arrancar');
+        }, 6000);
+      }
+    }
+    video.addEventListener('playing', () => {
+      if (bootWatchdog) { clearTimeout(bootWatchdog); bootWatchdog = null; }
+    }, { once: true });
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          start();
+          // Fuera de pantalla se pausa: no hay razón para decodificar 4K
+          // mientras el usuario lee el resto de la página.
+          if (started && video.paused && !reduced) video.play().catch(() => {});
+        } else if (started) {
+          video.pause();
+        }
+      });
+    }, { threshold: 0.15 });
+
+    function boot() {
+      wrap.classList.add('in');
+      io.observe(wrap);
+    }
+    if (document.readyState === 'complete') boot();
+    else window.addEventListener('load', boot);
+
+    // Al cambiar de red (wifi → datos) se reevalúa hacia abajo.
+    const net = navigator.connection;
+    if (net && net.addEventListener) {
+      net.addEventListener('change', () => {
+        if (net.saveData || /^(slow-2g|2g|3g)$/.test(net.effectiveType || '')) downgrade('cambió la red');
+      });
+    }
+
+    window.addEventListener('pagehide', () => {
+      clearInterval(framesTimer);
+      if (bootWatchdog) clearTimeout(bootWatchdog);
+    });
+  })();
+
 </script>
 
 </body>

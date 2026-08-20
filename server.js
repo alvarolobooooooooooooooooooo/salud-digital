@@ -431,6 +431,11 @@ app.use(express.static(path.join(__dirname, 'public'), {
     } else if (/\.webmanifest$/i.test(filePath)) {
       res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
       res.setHeader('Cache-Control', 'public, max-age=3600');
+    } else if (/\.(?:mp4|webm|m4v)$/i.test(filePath)) {
+      // El film del hero pesa entre 6 y 17 MB según la calidad: se referencia
+      // con ?v= en el HTML, así que el archivo en sí puede cachearse de forma
+      // inmutable y no volver a descargarse en cada visita.
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     } else if (/\.(?:js|css|svg|woff2?|ttf|otf|png|jpe?g|webp|gif|ico)$/i.test(filePath)) {
       res.setHeader('Cache-Control', 'public, max-age=' + ONE_DAY + ', stale-while-revalidate=' + ONE_DAY);
     } else if (/\.html$/i.test(filePath)) {
