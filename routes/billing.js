@@ -141,6 +141,23 @@ router.get('/status', authenticate, async (req, res) => {
     }
   }
 
+  // Especialidad de la clínica: la pantalla de suscripción enseña las funciones
+  // que este consultorio de verdad usa (podología, odontología…) y no una lista
+  // genérica. Se prefiere la del propio usuario y, si no tiene (recepción o
+  // administración de clínica), la del primer doctor de la clínica. Es texto
+  // libre, así que el navegador la normaliza para elegir el bloque de funciones.
+  let specialty = '';
+  if (clinicId) {
+    const esp = await query(
+      `SELECT specialty FROM users
+        WHERE clinic_id = $1 AND COALESCE(specialty, '') <> ''
+        ORDER BY (id = $2) DESC, (role = 'doctor') DESC, id ASC
+        LIMIT 1`,
+      [clinicId, req.user.id],
+    );
+    specialty = esp.rows[0] ? String(esp.rows[0].specialty).trim() : '';
+  }
+
   const planes = await subs.listPlans();
 
   res.json({
@@ -148,6 +165,7 @@ router.get('/status', authenticate, async (req, res) => {
     enforced: enforcement.enforcementEnabled(),
     exempt: exento,
     can_manage: OWNER_ROLES.includes(req.user.role),
+    specialty,
     checkout,
     checkouts,
     plans: planes.map(publicPlan),

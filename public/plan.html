@@ -448,6 +448,14 @@
       font-size: 13px; color: var(--text-2); line-height: 1.45;
     }
     .subs-page .checks svg { width: 13px; height: 13px; color: var(--accent); flex-shrink: 0; margin-top: 3px; }
+    /* Subtítulo de grupo dentro de "Qué incluye" (especialidad / plataforma). */
+    .subs-page .checks-head {
+      font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--faint); margin: 0 0 12px;
+    }
+    .subs-page .checks + .checks-head {
+      margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line-soft);
+    }
 
     /* ── Tabla de cobros ── */
     .subs-page table { width: 100%; border-collapse: collapse; }
@@ -612,12 +620,17 @@
 
   const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
-  /* ── Lo que incluye la plataforma (una sola suscripción, todo dentro) ── */
-  const FEATURES = [
+  /* ── Lo que incluye la suscripción (una sola, todo dentro) ──
+     La lista se arma en dos partes: primero lo propio de la especialidad de la
+     clínica —lo que el doctor abre en cada consulta— y debajo lo general de la
+     plataforma, que es igual para todos. La especialidad la manda
+     /api/billing/status (la del usuario o, si no tiene, la del doctor de la
+     clínica); si no se reconoce, solo se pinta la parte general en vez de
+     prometer funciones de otra especialidad. */
+  const FEATURES_BASE = [
     'Expediente clínico digital ilimitado',
     'Agenda de citas y calendario',
     'Recordatorios y confirmaciones por WhatsApp',
-    'Odontograma, periodontograma y mapas clínicos',
     'Consentimientos informados con firma',
     'Finanzas y facturación',
     // Inventario desactivado — para reactivar, descomentar esta línea:
@@ -628,6 +641,95 @@
     'Respaldo en la nube y auditoría',
     'Actualizaciones y soporte incluidos'
   ];
+
+  // Las especialidades se guardan como texto libre y con mil variantes
+  // ('Podología', 'podologia', 'odontologia'…), así que se reconocen por
+  // prefijo sobre la cadena sin acentos ni mayúsculas, en orden: la primera
+  // regla que case manda. Añadir una especialidad nueva = añadir una entrada.
+  const FEATURES_ESPECIALIDAD = [
+    {
+      re: /^podolog/, nombre: 'Podología',
+      items: [
+        'Ficha clínica podológica completa',
+        'Podograma: tipo y forma de pie por lado',
+        'Exploración dermatológica y ungueal del pie',
+        'Exploración del pie diabético con monofilamento',
+        'Índice tobillo-brazo (ITB) y termografía plantar',
+        'Registro de calzado y antecedentes del paciente',
+        'Citas de pedicure clínico, onicocriptosis y onicomicosis',
+        'Fotos clínicas y procedimientos por consulta'
+      ]
+    },
+    {
+      re: /^odontopediatr/, nombre: 'Odontopediatría',
+      items: [
+        'Odontograma de dentición mixta (temporal y permanente)',
+        'Índices ceo-d y CPO-D calculados solos',
+        'Procedimientos por diente y por superficie',
+        'Radiografías e imágenes de la consulta'
+      ]
+    },
+    {
+      re: /^periodon/, nombre: 'Periodoncia',
+      items: [
+        'Periodontograma interactivo con diagnóstico',
+        'Odontograma interactivo por superficie',
+        'Procedimientos por diente y control de evolución',
+        'Radiografías e imágenes de la consulta'
+      ]
+    },
+    {
+      re: /^ortodon/, nombre: 'Ortodoncia',
+      items: [
+        'Diagrama ortodóncico del tratamiento',
+        'Odontograma interactivo por superficie',
+        'Control de citas y avance por fases',
+        'Radiografías e imágenes de la consulta'
+      ]
+    },
+    {
+      re: /^(odontolog|dental)/, nombre: 'Odontología',
+      items: [
+        'Odontograma interactivo por superficie',
+        'Periodontograma con diagnóstico',
+        'Procedimientos por diente y presupuesto',
+        'Radiografías e imágenes de la consulta'
+      ]
+    },
+    {
+      re: /^dermatolog/, nombre: 'Dermatología',
+      items: [
+        'Mapa corporal de lesiones por zona',
+        'Seguimiento fotográfico de cada lesión',
+        'Diagnóstico y plan de manejo por consulta'
+      ]
+    },
+    {
+      re: /^nutric/, nombre: 'Nutrición',
+      items: [
+        'Historia clínica nutricional y antropometría',
+        'Plan alimentario con alimentos hondureños',
+        'Seguimiento de peso y medidas por consulta'
+      ]
+    },
+    {
+      re: /^(general|medicina)/, nombre: 'Medicina general',
+      items: [
+        'Ficha de consulta con signos vitales',
+        'Exploración física, diagnóstico y plan',
+        'Imágenes y adjuntos de la consulta'
+      ]
+    }
+  ];
+
+  function normalizarEspecialidad(v) {
+    return String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  }
+  function featuresDeEspecialidad(v) {
+    const n = normalizarEspecialidad(v);
+    if (!n) return null;
+    return FEATURES_ESPECIALIDAD.find(e => e.re.test(n)) || null;
+  }
 
   let state = { status: null, payments: [], banner: null, busy: '' };
 
@@ -738,10 +840,7 @@
 
       <div class="cols in d2">
         <section class="card panel">
-          <h2>Qué incluye</h2>
-          <ul class="checks">
-            ${FEATURES.map(f => `<li>${I.check}<span>${esc(f)}</span></li>`).join('')}
-          </ul>
+          ${renderIncluye(st.specialty)}
         </section>
 
         <section class="card panel">
@@ -905,6 +1004,20 @@
         </div>
         ${NOTA_SEGURO}
       </div>`;
+  }
+
+  // "Qué incluye": lo de la especialidad de la clínica arriba (es lo que
+  // diferencia a esta cuenta) y lo general de la plataforma debajo. Sin
+  // especialidad reconocida se pinta solo la parte general.
+  function renderIncluye(specialty) {
+    const esp = featuresDeEspecialidad(specialty);
+    const lista = items => `<ul class="checks">${items.map(f => `<li>${I.check}<span>${esc(f)}</span></li>`).join('')}</ul>`;
+    return `
+      <h2>Qué incluye</h2>
+      ${esp ? `<div class="checks-head">Para ${esc(esp.nombre.toLowerCase())}</div>${lista(esp.items)}
+      <div class="checks-head">En toda la plataforma</div>` : ''}
+      ${lista(FEATURES_BASE)}
+    `;
   }
 
   function renderPayments() {
@@ -1309,6 +1422,11 @@
       currency: (sub && sub.currency) || plan.currency || 'USD',
       plan_name: (sub && sub.plan_name) || plan.name || 'Plan Individual',
       plan_code: (sub && sub.plan_code) || plan.code || 'individual-monthly',
+      // Especialidad de la clínica para la lista de funciones. La manda el
+      // servidor; el localStorage (que llena layout.js) es solo la red de
+      // seguridad por si la respuesta viniera SIN el campo. Cadena vacía del
+      // servidor es una respuesta válida ("no la sabemos") y gana al caché.
+      specialty: api.specialty != null ? api.specialty : (localStorage.getItem('sd_user_specialty') || ''),
       // Datos del checkout del procesador que toque (hoy PayPal).
       configured: !!api.configured,
       plan_ready: !!(api.checkout && api.checkout.configured),
