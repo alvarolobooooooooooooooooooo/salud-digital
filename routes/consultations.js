@@ -6,9 +6,27 @@ const multer = require('multer');
 const { v4: uuid } = require('uuid');
 const cloudinary = require('cloudinary').v2;
 
+const { rangoDelDia } = require('../lib/dia-local');
+
 // Filtros de fecha de Finanzas: solo aceptamos YYYY-MM-DD para evitar que un valor
-// malformado llegue al cast ::date de Postgres y dispare un 500 (devolvemos 400).
+// malformado llegue a Postgres y dispare un 500 (devolvemos 400).
 const FINANCE_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+// ── Por qué estos filtros son por RANGO y no por `created_at::date` ──
+// Mismo motivo que en routes/reception.js: envolver la columna en un cast la deja
+// fuera del índice, así que `idx_consultations_clinic_status_created` solo servía
+// para el prefijo (clinic_id, payment_status) y a partir de ahí Postgres tenía que
+// leer y castear TODAS las consultas pagadas de la clínica, año tras año. Finanzas
+// se abre desde el panel de inicio, así que el coste crecía con el historial.
+//
+// Las equivalencias son exactas, no aproximadas:
+//     created_at::date >= 'D'   ⟺   created_at >= 'D 00:00'
+//     created_at::date <= 'D'   ⟺   created_at <  'D+1 00:00'
+// De ahí que el tope superior sea el día SIGUIENTE y la comparación sea `<`.
+// `finDeDia` lo calcula con el mismo helper que usa la agenda.
+function finDeDia(dia) {
+  return rangoDelDia(dia).hasta;
+}
 
 function getLocalDateString(date = new Date()) {
   const year = date.getFullYear();
@@ -22,11 +40,12 @@ router.get('/finances/summary', authenticate, async (req, res) => {
   const monthStart = getLocalDateString(new Date(now.getFullYear(), now.getMonth(), 1));
   const monthEnd = getLocalDateString(new Date(now.getFullYear(), now.getMonth() + 1, 0));
 
-  let monthQuery = 'SELECT COALESCE(SUM(cost), 0) as total FROM consultations WHERE clinic_id = $1 AND payment_status = \'paid\' AND created_at::date >= $2 AND created_at::date <= $3';
+  let monthQuery = 'SELECT COALESCE(SUM(cost), 0) as total FROM consultations WHERE clinic_id = $1 AND payment_status = \'paid\' AND created_at >= $2 AND created_at < $3';
   let totalQuery = 'SELECT COALESCE(SUM(cost), 0) as total FROM consultations WHERE clinic_id = $1 AND payment_status = \'paid\'';
   let pendingQuery = 'SELECT COUNT(*) as count FROM consultations WHERE clinic_id = $1 AND payment_status = \'pending\'';
 
-  const monthParams = [req.user.clinic_id, monthStart, monthEnd];
+  // monthEnd es el último día del mes; el tope del rango es el día siguiente.
+  const monthParams = [req.user.clinic_id, monthStart, finDeDia(monthEnd)];
   const totalParams = [req.user.clinic_id];
   const pendingParams = [req.user.clinic_id];
 
@@ -87,7 +106,10 @@ router.get('/finances/weekly', authenticate, async (req, res) => {
     queryStr += ` GROUP BY bucket ORDER BY bucket ASC`;
   } else {
     const startDate = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
-    queryStr = `SELECT created_at::date as date, COALESCE(SUM(cost), 0) as total FROM consultations WHERE clinic_id = $1 AND payment_status = 'paid' AND created_at::date >= $2`;
+    // El ::date del SELECT y del GROUP BY se queda: agrupar por día es una
+    // proyección, no un filtro, y no estorba al índice. Lo que se quita es el
+    // cast del WHERE, que era lo que lo anulaba.
+    queryStr = `SELECT created_at::date as date, COALESCE(SUM(cost), 0) as total FROM consultations WHERE clinic_id = $1 AND payment_status = 'paid' AND created_at >= $2`;
     params = [req.user.clinic_id, getLocalDateString(startDate)];
     paramIndex = 3;
     if (req.user.role === 'doctor') {
@@ -168,8 +190,8 @@ router.get('/finances/paid', authenticate, async (req, res) => {
   const bind = value => { params.push(value); return '$' + params.length; };
   const where = ['c.clinic_id = $1', "c.payment_status = 'paid'"];
 
-  if (startDate) where.push(`c.created_at::date >= ${bind(startDate)}`);
-  if (endDate) where.push(`c.created_at::date <= ${bind(endDate)}`);
+  if (startDate) where.push(`c.created_at >= ${bind(startDate)}`);
+  if (endDate) where.push(`c.created_at < ${bind(finDeDia(endDate))}`);
   if (req.user.role === 'doctor') where.push(`c.doctor_id = ${bind(req.user.id)}`);
 
   const FROM = 'FROM consultations c JOIN patients p ON c.patient_id = p.id LEFT JOIN users u ON c.doctor_id = u.id';
@@ -268,13 +290,13 @@ router.get('/finances/by-doctor', authenticate, async (req, res) => {
   let dateFilter = '';
   let paramIndex = 4;
   if (startDate) {
-    dateFilter += ` AND c.created_at::date >= $${paramIndex}`;
+    dateFilter += ` AND c.created_at >= $${paramIndex}`;
     params.push(startDate);
     paramIndex++;
   }
   if (endDate) {
-    dateFilter += ` AND c.created_at::date <= $${paramIndex}`;
-    params.push(endDate);
+    dateFilter += ` AND c.created_at < $${paramIndex}`;
+    params.push(finDeDia(endDate));
     paramIndex++;
   }
 

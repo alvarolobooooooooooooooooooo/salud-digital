@@ -49,6 +49,43 @@ function decodeToken(req) {
   }
 }
 
+// ── Comprobar la sesión sin escribir en cada petición ──
+// Antes, CADA petición autenticada ejecutaba un UPDATE de last_seen. Una sola
+// pantalla de recepción son ~51 peticiones/min, así que la plataforma escribía
+// en Postgres tantas veces como leía: WAL, autovacuum y una fila caliente por
+// sesión, por cada refresco de cada pantalla abierta.
+//
+// La comprobación de REVOCACIÓN sí tiene que ir en cada petición: es lo que hace
+// que cerrar sesión surta efecto al instante. La marca de ACTIVIDAD no. Esta
+// sentencia hace las dos cosas de una vez y solo escribe si la marca está vieja;
+// cuando no lo está el UPDATE no toca ninguna fila y Postgres cierra la
+// transacción sin escribir WAL, así que sale casi tan barato como un SELECT.
+//
+// El intervalo tiene que quedar POR DEBAJO de la ventana de presencia del chat
+// (routes/messaging.js: "online" = last_seen en los últimos 5 minutos), o los
+// doctores parpadearían entre conectado y desconectado. Con 60 s la marca nunca
+// se queda más de un minuto vieja y desaparece el ~98% de las escrituras.
+const SESSION_TOUCH_SECONDS = Math.max(
+  0,
+  parseInt(process.env.SESSION_TOUCH_SECONDS || '60', 10) || 0,
+);
+
+const SQL_SESION_VIVA = `
+  WITH viva AS (
+    SELECT id, last_seen
+      FROM user_sessions
+     WHERE jti = $1 AND revoked_at IS NULL
+  ), refrescada AS (
+    UPDATE user_sessions u
+       SET last_seen = CURRENT_TIMESTAMP
+      FROM viva
+     WHERE u.id = viva.id
+       AND (viva.last_seen IS NULL
+            OR viva.last_seen < CURRENT_TIMESTAMP - ($2 || ' seconds')::interval)
+    RETURNING u.id
+  )
+  SELECT id FROM viva`;
+
 async function authenticate(req, res, next) {
   const token = tokenFromRequest(req);
   if (!token) return res.status(401).json({ error: 'No token provided' });
@@ -61,13 +98,7 @@ async function authenticate(req, res, next) {
 
   if (payload.jti) {
     try {
-      const r = await query(
-        `UPDATE user_sessions
-            SET last_seen = CURRENT_TIMESTAMP
-          WHERE jti = $1 AND revoked_at IS NULL
-          RETURNING id`,
-        [payload.jti]
-      );
+      const r = await query(SQL_SESION_VIVA, [payload.jti, SESSION_TOUCH_SECONDS]);
       if (r.rowCount === 0) {
         return res.status(401).json({ error: 'Session revoked' });
       }

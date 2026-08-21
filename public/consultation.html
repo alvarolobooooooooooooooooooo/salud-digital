@@ -921,8 +921,12 @@ async function loadAppointment() {
       return;
     }
 
-    const appts = await api('/api/appointments');
-    const appt = appts.find(a => a.id === appointmentId);
+    // Una sola cita, pedida por id. Antes se descargaba el historial ENTERO
+    // del doctor para quedarse con esta fila, y encima al abrir la consulta
+    // con el paciente delante. El 404 se traduce a null para conservar la
+    // rama de "cita no encontrada"; cualquier otro error sigue subiendo.
+    const appt = await api(`/api/appointments/${appointmentId}`)
+      .catch((e) => { if (e && e.status === 404) return null; throw e; });
 
     if (!appt) {
       alert('Cita no encontrada');

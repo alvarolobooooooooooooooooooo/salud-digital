@@ -962,6 +962,18 @@ const initDb = async () => {
       // crece con el número de clientes: cada clínica nueva hacía más lentas las
       // pantallas de todas las demás.
       'CREATE INDEX IF NOT EXISTS idx_confirmations_clinic ON appointment_confirmations (clinic_id)',
+
+      // La campana de notificaciones sondea cada 20 s, en TODAS las páginas y por
+      // cada doctor conectado. Pregunta por las confirmaciones respondidas en las
+      // últimas 48 h, pero con el índice de arriba (solo clinic_id) Postgres tenía
+      // que leer TODAS las confirmaciones históricas de la clínica y descartar a
+      // mano las viejas: un sondeo cuyo coste crecía cada mes. Con clinic_id +
+      // responded_at DESC recorre desde la más reciente y para en 30. El índice es
+      // parcial porque las no respondidas (responded_at NULL) nunca se consultan
+      // aquí y son la mayoría.
+      `CREATE INDEX IF NOT EXISTS idx_confirmations_clinic_responded
+         ON appointment_confirmations (clinic_id, responded_at DESC)
+       WHERE responded_at IS NOT NULL`,
       'CREATE INDEX IF NOT EXISTS idx_confirmations_appointment ON appointment_confirmations (appointment_id)',
       'CREATE INDEX IF NOT EXISTS idx_reminders_clinic ON appointment_reminders (clinic_id)',
       'CREATE INDEX IF NOT EXISTS idx_reminders_appointment ON appointment_reminders (appointment_id)',

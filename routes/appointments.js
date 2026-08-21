@@ -29,10 +29,45 @@ function desplazarDias(dias) {
   return fechaLocal(d);
 }
 
+// Ventana de fechas OPCIONAL (?from=&to=, ambos inclusive). Sin parámetros
+// devuelve el historial completo, igual que siempre.
+//
+// ── Por qué opcional y no por defecto ──
+// Esta ruta traía TODAS las citas de la historia del doctor con dos joins encima:
+// a los dos años de consulta son miles de filas en cada carga de la agenda, y el
+// coste crecía sin freno. Lo correcto es pedir solo lo que se pinta, y eso hace
+// ahora citas.html. Pero poner la ventana por DEFECTO truncaría la respuesta de
+// cualquier pestaña que siguiera abierta con el HTML anterior durante un
+// despliegue —el usuario vería su agenda medio vacía sin saber por qué—, así que
+// se sigue el mismo criterio que /finances/paid: comportamiento nuevo solo si se
+// pide. Ver también la ventana de /calendar, más arriba.
 router.get('/', authenticate, async (req, res) => {
+  const from = DIA_RE.test(String(req.query.from || '')) ? req.query.from : null;
+  const to = DIA_RE.test(String(req.query.to || '')) ? req.query.to : null;
+  if (from && to && from > to) {
+    return res.status(400).json({ error: 'El rango de fechas está invertido.' });
+  }
+
+  // `a.*` se queda a propósito: son 20 columnas cortas (ningún TEXT grande), así
+  // que enumerarlas ahorraría poco y bastaría olvidar una para romper la agenda.
+  // Lo que pesaba era el NÚMERO de filas, y eso es lo que corrige la ventana.
   let queryStr = `SELECT a.*, p.name AS patient_name, p.phone AS patient_phone, u.name AS doctor_name, u.email AS doctor_email FROM appointments a JOIN patients p ON a.patient_id = p.id JOIN users u ON a.doctor_id = u.id WHERE a.clinic_id = $1`;
   const params = [req.user.clinic_id];
   let paramIndex = 2;
+
+  // Rango sobre la columna desnuda: usa el índice (clinic_id, scheduled_at).
+  // scheduled_at es TEXT, pero en ISO-8601 el orden alfabético es el cronológico.
+  if (from) {
+    queryStr += ` AND a.scheduled_at >= $${paramIndex}`;
+    params.push(from);
+    paramIndex++;
+  }
+  if (to) {
+    // El tope es exclusivo; quien pide ?to=2026-08-31 espera que ese día entre.
+    queryStr += ` AND a.scheduled_at < $${paramIndex}`;
+    params.push(rangoDelDia(to).hasta);
+    paramIndex++;
+  }
 
   if (req.user.role === 'doctor') {
     queryStr += ` AND a.doctor_id = $${paramIndex}`;
@@ -250,6 +285,33 @@ router.get('/today', authenticate, async (req, res) => {
   queryStr += ' ORDER BY a.scheduled_at';
   const result = await query(queryStr, params);
   res.json(result.rows);
+});
+
+// Una sola cita. Las siete páginas de consulta hacían
+// `api('/api/appointments').find(a => a.id === X)`: se descargaba el historial
+// entero del doctor para quedarse con UNA fila, y encima en el momento más caro
+// (abrir una consulta con el paciente delante).
+//
+// El patrón `:id(\\d+)` la deja fuera del camino de /today, /calendar y
+// /public-bookings/stats aunque alguien cambie el orden de las rutas más adelante.
+//
+// Mantiene la misma regla de visibilidad que la lista: un doctor solo ve sus
+// citas, así que pedir la de otro devuelve 404 igual que antes devolvía "no
+// encontrada" al no estar en el arreglo.
+router.get('/:id(\\d+)', authenticate, async (req, res) => {
+  const params = [req.params.id, req.user.clinic_id];
+  let queryStr = `SELECT a.*, p.name AS patient_name, p.phone AS patient_phone, u.name AS doctor_name, u.email AS doctor_email
+                    FROM appointments a
+                    JOIN patients p ON a.patient_id = p.id
+                    JOIN users u ON a.doctor_id = u.id
+                   WHERE a.id = $1 AND a.clinic_id = $2`;
+  if (req.user.role === 'doctor') {
+    queryStr += ' AND a.doctor_id = $3';
+    params.push(req.user.id);
+  }
+  const result = await query(queryStr, params);
+  if (result.rows.length === 0) return res.status(404).json({ error: 'Cita no encontrada' });
+  res.json(result.rows[0]);
 });
 
 router.post('/', authenticate, async (req, res) => {
