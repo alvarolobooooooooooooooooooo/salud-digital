@@ -1288,7 +1288,21 @@
         <div class="ic-wrap">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
         </div>
-        <div>El número de WhatsApp y el switch on/off se configuran en <b>Recordatorios → Configuración WhatsApp</b>. Aquí solo editas la plantilla del mensaje de confirmación.</div>
+        <div>Esta configuración es referencial. Los mensajes se envían desde la sesión de WhatsApp Web abierta en tu navegador.</div>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <strong>Confirmaciones por WhatsApp</strong>
+          <span>Habilitar el botón «Enviar» en las citas</span>
+        </div>
+        <div class="toggle-switch" id="waEnabledToggle" onclick="toggleEnabled()" role="switch" aria-checked="false"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="waNumber">Número oficial de la clínica</label>
+        <input type="text" id="waNumber" placeholder="Ej: 50488888888" inputmode="numeric">
+        <small>Formato internacional sin +, espacios, guiones ni paréntesis. Ejemplo Honduras: 50488888888</small>
       </div>
 
       <div class="form-group">
@@ -2206,7 +2220,7 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
               WhatsApp desactivado
             </div>
-            <p style="margin:0; font-size:13.5px; color:var(--ink-2); line-height:1.55">Activa WhatsApp en <b>Recordatorios → Configuración</b> para poder enviar.</p>
+            <p style="margin:0; font-size:13.5px; color:var(--ink-2); line-height:1.55">Activa WhatsApp en <b>Configuración</b>, arriba a la derecha, para poder enviar.</p>
           </div>` : ''}
 
         <div>
@@ -2295,8 +2309,21 @@
   }
 
   // ───────────── Config modal (solo plantilla) ─────────────
+  // El interruptor vive en el modal, no en waConfig, hasta que se guarda: así
+  // cancelar deja la clínica como estaba.
+  let waEnabledDraft = false;
+
+  function renderEnabledToggle(){
+    const el = document.getElementById('waEnabledToggle');
+    el.classList.toggle('active', waEnabledDraft);
+    el.setAttribute('aria-checked', waEnabledDraft ? 'true' : 'false');
+  }
+
   function openConfigModal(){
     document.getElementById('waTemplate').value = waConfig.whatsapp_confirmation_template || '';
+    document.getElementById('waNumber').value = waConfig.whatsapp_number || '';
+    waEnabledDraft = !!waConfig.whatsapp_enabled;
+    renderEnabledToggle();
     updatePreview();
     document.getElementById('configModal').classList.add('active');
   }
@@ -2416,13 +2443,18 @@
 
   async function saveConfig(){
     const template = document.getElementById('waTemplate').value;
+    const numero = (document.getElementById('waNumber').value || '').replace(/\D/g, '');
     try {
       await api('/api/confirmations/whatsapp-config', {
         method: 'PUT',
-        body: { whatsapp_confirmation_template: template }
+        body: {
+          whatsapp_confirmation_template: template,
+          whatsapp_enabled: waEnabledDraft,
+          whatsapp_number: numero,
+        }
       });
       closeConfigModal();
-      showToast('Plantilla guardada');
+      showToast('Configuración guardada');
       await loadConfig();
       render();
     } catch (e) {
@@ -2441,7 +2473,7 @@
   window.confirmSent = confirmSent;
   window.closeConfirmModal = closeConfirmModal;
   window.copyCurrentMessage = copyCurrentMessage;
-  window.toggleEnabled = () => {}; // no usado en esta página
+  window.toggleEnabled = () => { waEnabledDraft = !waEnabledDraft; renderEnabledToggle(); };
 
   // ───────────── Events ─────────────
   document.getElementById('tabs').addEventListener('click', (e) => {

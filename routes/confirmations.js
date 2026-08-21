@@ -57,14 +57,44 @@ router.put('/card-message', authenticate, async (req, res) => {
 });
 
 // PUT /api/confirmations/whatsapp-config  (solo clinic_admin)
+// Antes solo guardaba la plantilla: el interruptor y el número vivían en
+// Recordatorios. Al desactivar esa pantalla se quedaban sin sitio donde
+// editarse, así que ahora los tres campos se guardan desde aquí. Los campos
+// son opcionales: si la petición no los trae, se dejan como están (la pantalla
+// de Confirmaciones los manda siempre, pero así ninguna llamada vieja apaga
+// WhatsApp sin querer).
 router.put('/whatsapp-config', authenticate, async (req, res) => {
   if (req.user.role !== 'clinic_admin') {
     return res.status(403).json({ error: 'No autorizado' });
   }
-  const { whatsapp_confirmation_template } = req.body;
+  const body = req.body || {};
+  const { whatsapp_confirmation_template } = body;
+
+  const sets = ['whatsapp_confirmation_template = $1'];
+  const params = [whatsapp_confirmation_template || ''];
+
+  const traeEnabled = Object.prototype.hasOwnProperty.call(body, 'whatsapp_enabled');
+  const traeNumero = Object.prototype.hasOwnProperty.call(body, 'whatsapp_number');
+
+  // Solo dígitos, igual que hacía Recordatorios: el número acaba en un enlace
+  // wa.me, donde los espacios y guiones rompen el link.
+  const numero = (body.whatsapp_number || '').replace(/\D/g, '');
+  if (traeNumero && numero && !/^\d{8,15}$/.test(numero)) {
+    return res.status(400).json({ error: 'Número de WhatsApp inválido. Use formato internacional sin +, espacios ni guiones.' });
+  }
+  // Encender sin número deja la clínica con el botón activo y ningún sitio
+  // desde donde escribir: se corta aquí en vez de fallar al enviar.
+  if (traeEnabled && body.whatsapp_enabled && traeNumero && !numero) {
+    return res.status(400).json({ error: 'Escribe el número de WhatsApp de la clínica antes de activarlo.' });
+  }
+
+  if (traeEnabled) { params.push(!!body.whatsapp_enabled); sets.push(`whatsapp_enabled = $${params.length}`); }
+  if (traeNumero) { params.push(numero); sets.push(`whatsapp_number = $${params.length}`); }
+
+  params.push(req.user.clinic_id);
   await query(
-    'UPDATE clinics SET whatsapp_confirmation_template = $1 WHERE id = $2',
-    [whatsapp_confirmation_template || '', req.user.clinic_id]
+    `UPDATE clinics SET ${sets.join(', ')} WHERE id = $${params.length}`,
+    params
   );
   res.json({ success: true });
 });

@@ -24,7 +24,8 @@
     '/facturacion.html': 'facturacion',
     '/doctors.html': 'doctors',
     '/consentimientos.html': 'consentimientos',
-    '/recordatorios.html': 'recordatorios',
+    // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar esta línea:
+    // '/recordatorios.html': 'recordatorios',
     '/confirmaciones.html': 'confirmaciones',
     '/agendar-online.html': 'agendar-online',
     '/mi-sitio.html': 'mi-sitio',
@@ -106,7 +107,8 @@
           items: [
             { href: '/doctors.html', key: 'doctors', iconName: 'staff', label: 'Personal' },
             { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
-            { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
+            // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar esta línea:
+            // { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
             { href: '/confirmaciones.html', key: 'confirmaciones', iconName: 'check', label: 'Confirmaciones' },
             { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' },
             { href: '/mi-sitio.html', key: 'mi-sitio', iconName: 'globe', label: 'Mi Sitio Web' }
@@ -150,7 +152,8 @@
           label: 'CLÍNICA',
           items: [
             { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
-            { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
+            // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar esta línea:
+            // { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
             { href: '/confirmaciones.html', key: 'confirmaciones', iconName: 'check', label: 'Confirmaciones' },
             { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' }
           ]
@@ -267,10 +270,12 @@
               <span id="consentsIcon"></span>
               <span>Consentimientos</span>
             </a>
+            <!-- Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar este bloque:
             <a href="/recordatorios.html" class="sidebar-menu-link">
               <span id="remindersIcon"></span>
               <span>Recordatorios</span>
             </a>
+            -->
             <a href="/confirmaciones.html" class="sidebar-menu-link">
               <span id="confirmsIcon"></span>
               <span>Confirmaciones</span>
@@ -464,8 +469,9 @@
     if (consentsIcon && !consentsIcon.innerHTML.trim()) consentsIcon.innerHTML = Icons.render('fileText', 16);
 
     // Reminders menu icon
-    const remindersIcon = document.querySelector('#remindersIcon');
-    if (remindersIcon && !remindersIcon.innerHTML.trim()) remindersIcon.innerHTML = Icons.render('bell', 16);
+    // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar estas dos líneas:
+    // const remindersIcon = document.querySelector('#remindersIcon');
+    // if (remindersIcon && !remindersIcon.innerHTML.trim()) remindersIcon.innerHTML = Icons.render('bell', 16);
 
     // Confirmations menu icon
     const confirmsIcon = document.querySelector('#confirmsIcon');
