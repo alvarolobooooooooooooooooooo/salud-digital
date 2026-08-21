@@ -1,0 +1,2231 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consulta podológica — Salud Digital</title>
+<meta name="robots" content="noindex">
+
+<!-- ─────────────────────────────────────────────────────────────
+     GENERADO — no editar a mano.
+     Se produce desde consultation-podiatry.html con
+     tools/gen-demo-podologia.py: mismo CSS y mismo marcado de la ficha real.
+     Lo único que se quita es lo que necesita servidor: sesión, carga
+     del paciente, API y guardado. Por eso aquí no hay nada que
+     guardar: no existe el código que guarda.
+
+     Se embebe en la landing (#especialidades) dentro de un iframe.
+     ───────────────────────────────────────────────────────────── -->
+
+<link rel="stylesheet" href="/layout.css">
+<style>
+
+    /* ─────────────────────────────────────────────────────────────
+       Podiatry Module — Premium Clinical Design System
+       ───────────────────────────────────────────────────────────── */
+    :root {
+      --pod-primary: #0891b2;
+      --pod-primary-dark: #0369a1;
+      --pod-primary-light: #06b6d4;
+      --pod-primary-soft: rgba(8, 145, 178, 0.08);
+      --pod-text: #0f172a;
+      --pod-text-2: #334155;
+      --pod-muted: #64748b;
+      --pod-muted-2: #94a3b8;
+      --pod-border: #e2e8f0;
+      --pod-border-soft: #f1f5f9;
+      --pod-bg: #f8fafc;
+      --pod-surface: #ffffff;
+      --pod-success: #16a34a;
+      --pod-success-bg: #f0fdf4;
+      --pod-warning: #f59e0b;
+      --pod-danger: #dc2626;
+      --pod-danger-bg: #fef2f2;
+      --pod-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04);
+      --pod-shadow-md: 0 10px 30px rgba(8, 145, 178, 0.08);
+      --pod-shadow-lg: 0 24px 60px rgba(8, 145, 178, 0.14);
+      --pod-radius-sm: 10px;
+      --pod-radius-md: 16px;
+      --pod-radius-lg: 22px;
+      --pod-radius-xl: 28px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; margin: 0; padding: 0; overflow-x: visible; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
+      color: var(--pod-text);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated Background Orbs ── */
+    @keyframes floatBg {
+      0%, 100% { transform: translateY(0) translateX(0); }
+      50% { transform: translateY(50px) translateX(30px); }
+    }
+    body::before {
+      content: ''; position: fixed; width: 1000px; height: 1000px;
+      background: radial-gradient(circle, rgba(8, 145, 178, 0.10) 0%, transparent 70%);
+      top: -200px; right: -300px; border-radius: 50%; z-index: 0;
+      animation: floatBg 22s ease-in-out infinite;
+      filter: blur(60px); pointer-events: none;
+    }
+    body::after {
+      content: ''; position: fixed; width: 800px; height: 800px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
+      bottom: -200px; left: -200px; border-radius: 50%; z-index: 0;
+      animation: floatBg 28s ease-in-out infinite reverse;
+      filter: blur(60px); pointer-events: none;
+    }
+
+    main { width: 100%; margin: 0; padding: 1.75rem 1.25rem 6rem; overflow-x: visible; position: relative; z-index: 1; }
+    @keyframes floatSlow { from { transform: translateY(0); } to { transform: translateY(20px); } }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Premium Hero Header ── */
+    .pod-hero {
+      position: relative;
+      background: linear-gradient(135deg, #0891b2 0%, #0369a1 45%, #06b6d4 100%);
+      padding: 2.5rem 3rem;
+      border-radius: var(--pod-radius-xl);
+      box-shadow: 0 30px 80px rgba(8, 145, 178, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+      margin-bottom: 1.75rem;
+      animation: fadeUp 0.6s ease-out;
+    }
+    .pod-hero::before {
+      content: ''; position: absolute; top: -60%; right: -20%;
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.14), transparent 60%);
+      border-radius: 50%; animation: floatSlow 8s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    .pod-hero::after {
+      content: ''; position: absolute; bottom: -50%; left: -15%;
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.20), transparent 60%);
+      border-radius: 50%; animation: floatSlow 11s ease-in-out infinite alternate-reverse;
+      pointer-events: none;
+    }
+    .pod-hero-grid {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1fr auto;
+      gap: 2rem; align-items: start;
+    }
+    .pod-hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.7rem; font-weight: 800; letter-spacing: 0.15em;
+      color: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.15);
+      padding: 0.4rem 0.85rem; border-radius: 999px;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      text-transform: uppercase; margin-bottom: 0.85rem;
+    }
+    .pod-hero-eyebrow svg { width: 14px; height: 14px; }
+    .pod-hero h1 {
+      font-size: 2.6rem; font-weight: 900; color: white;
+      letter-spacing: -0.04em; line-height: 1.05; margin-bottom: 0.5rem;
+    }
+    .pod-hero-desc {
+      color: rgba(255, 255, 255, 0.92); font-size: 1.02rem;
+      line-height: 1.55; font-weight: 500; max-width: 640px;
+    }
+    .pod-hero-pills {
+      display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 1.4rem;
+    }
+    .pod-hero-pill {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      font-size: 0.78rem; font-weight: 700;
+      color: white; background: rgba(255, 255, 255, 0.14);
+      padding: 0.5rem 0.9rem; border-radius: 999px;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      transition: all 0.25s ease;
+    }
+    .pod-hero-pill:hover {
+      background: rgba(255, 255, 255, 0.22);
+      transform: translateY(-1px);
+    }
+    .pod-hero-pill svg { width: 14px; height: 14px; }
+    .pod-hero-side {
+      display: flex; flex-direction: column; gap: 0.85rem; align-items: flex-end;
+    }
+    .btn-back {
+      position: relative; z-index: 2;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.65rem 1.25rem;
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.12);
+      color: white; border-radius: 12px;
+      font-size: 0.88rem; font-weight: 600; font-family: inherit;
+      cursor: pointer; transition: all 0.2s;
+      backdrop-filter: blur(12px);
+    }
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateX(-2px);
+    }
+    .pod-hero-patient {
+      display: flex; flex-direction: column; gap: 0.25rem;
+      padding: 0.85rem 1.15rem;
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(14px);
+      min-width: 220px;
+    }
+    .pod-hero-patient-label {
+      font-size: 0.65rem; font-weight: 800; letter-spacing: 0.12em;
+      color: rgba(255, 255, 255, 0.82); text-transform: uppercase;
+    }
+    .pod-hero-patient-name {
+      font-size: 1.02rem; font-weight: 800; color: white; letter-spacing: -0.01em;
+    }
+
+    /* ── Section Group Headings ── */
+    .pod-group {
+      display: flex; align-items: center; gap: 0.85rem;
+      margin: 2.5rem 0 1.25rem; padding-left: 0.25rem;
+      cursor: pointer; user-select: none;
+      transition: opacity .2s;
+    }
+    .pod-group:hover { opacity: .85; }
+    .pod-group:first-of-type { margin-top: 0.5rem; }
+    .pod-group-num {
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--pod-primary) 0%, var(--pod-primary-light) 100%);
+      color: white; font-weight: 900; font-size: 0.9rem;
+      box-shadow: 0 6px 18px rgba(8, 145, 178, 0.3);
+    }
+    .pod-group-title {
+      font-size: 1.1rem; font-weight: 800; color: var(--pod-text);
+      letter-spacing: -0.02em;
+    }
+    .pod-group-line {
+      flex: 1; height: 2px;
+      background: linear-gradient(90deg, rgba(8,145,178,0.2), transparent);
+      border-radius: 2px;
+    }
+    .pod-group-chev {
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--pod-primary);
+      transition: transform .25s ease;
+      flex-shrink: 0;
+    }
+    .pod-group-chev svg { width: 18px; height: 18px; }
+    .pod-group.is-collapsed .pod-group-chev { transform: rotate(-90deg); }
+    .is-hidden-by-group { display: none !important; }
+
+    /* ── Premium Form Section Cards ── */
+    .form-section {
+      position: relative;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 100%);
+      backdrop-filter: blur(20px);
+      border-radius: var(--pod-radius-lg);
+      box-shadow: var(--pod-shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      padding: 1.85rem 2rem;
+      margin-bottom: 1.4rem;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      animation: fadeUp 0.55s ease-out backwards;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+    .form-section:hover {
+      box-shadow: var(--pod-shadow-lg);
+    }
+    .form-section::before {
+      content: ''; position: absolute; top: -1px; left: 24px; right: 24px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(8, 145, 178, 0.18), transparent);
+    }
+    .form-section h3 {
+      display: flex; align-items: center; gap: 0.85rem;
+      font-size: 1.05rem; font-weight: 800; color: var(--pod-text);
+      letter-spacing: -0.02em;
+      margin-bottom: 1.4rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--pod-border-soft);
+    }
+    .form-section h3::before {
+      content: ''; flex-shrink: 0;
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--pod-primary-soft) 0%, rgba(6, 182, 212, 0.10) 100%);
+      border: 1px solid rgba(8, 145, 178, 0.15);
+      color: var(--pod-primary);
+      display: flex; align-items: center; justify-content: center;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 12l2 2 4-4'/%3E%3Cpath d='M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: center;
+    }
+    /* Section icon variants — applied via data-icon attribute */
+    .form-section[data-icon="user"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="dna"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 15c6.667-6 13.333 0 20-6'/%3E%3Cpath d='M2 9c6.667 6 13.333 0 20 6'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="history"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="lifestyle"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="shoe"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 18h20'/%3E%3Cpath d='M3 14c0-2 1-4 4-4s4 1 6 1 4-1 6-1 2 1 2 3v3H3v-2z'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="alert"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z'/%3E%3Cline x1='12' y1='9' x2='12' y2='13'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="exam"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 11H5a2 2 0 0 0-2 2v7h6v-9z'/%3E%3Cpath d='M19 11h-4v9h6v-7a2 2 0 0 0-2-2z'/%3E%3Cpath d='M11 4h2a2 2 0 0 1 2 2v15h-6V6a2 2 0 0 1 2-2z'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="skin"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2c-3 4-6 7-6 11a6 6 0 0 0 12 0c0-4-3-7-6-11z'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="brain"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 2a4 4 0 0 0-4 4v2a4 4 0 0 0-2 6 4 4 0 0 0 2 6v2a4 4 0 0 0 8 0v-1'/%3E%3Cpath d='M15 2a4 4 0 0 1 4 4v2a4 4 0 0 1 2 6 4 4 0 0 1-2 6v2a4 4 0 0 1-7 1'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="heart"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 12h-4l-3 9L9 3l-3 9H2'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="pulse"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12h4l3-9 4 18 3-9h4'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="diagnosis"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='16' y1='13' x2='8' y2='13'/%3E%3Cline x1='16' y1='17' x2='8' y2='17'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="tools"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E"); }
+    /* Icono de la sección "Termografía y Termometría" de Historia Clínica, que
+       ya no existe: la termografía es ahora el paso 9 del tamizaje y su cabecera
+       la pinta el acordeón. Se conserva por si el bloque volviera a usarse. */
+    .form-section[data-icon="thermo"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="image"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="signature"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 17.5c2-2 6-4 9-2s4 4 9 0'/%3E%3Cpath d='M3 21h18'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="package"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/%3E%3Cpolyline points='3.27 6.96 12 12.01 20.73 6.96'/%3E%3Cline x1='12' y1='22.08' x2='12' y2='12'/%3E%3C/svg%3E"); }
+    .form-section[data-icon="payment"] h3::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='1' y='4' width='22' height='16' rx='2' ry='2'/%3E%3Cline x1='1' y1='10' x2='23' y2='10'/%3E%3C/svg%3E"); }
+
+    /* Optional secondary description under section title */
+    .form-section h3 .h3-desc {
+      margin-left: auto;
+      font-size: 0.7rem; font-weight: 700; color: var(--pod-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 0.3rem 0.7rem; border-radius: 999px;
+      background: var(--pod-bg); border: 1px solid var(--pod-border-soft);
+    }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+    .form-grid:last-child { margin-bottom: 0; }
+    .form-grid.full { grid-template-columns: 1fr; }
+    .form-grid.two { grid-template-columns: 1fr 1fr; }
+
+    .form-group { display: flex; flex-direction: column; gap: 0.45rem; }
+    .form-group label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--pod-text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      padding: 0.85rem 0.95rem;
+      border: 1.5px solid var(--pod-border);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--pod-text);
+      background: white;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 1px 0 rgba(0,0,0,0.01);
+    }
+    .form-group input:hover,
+    .form-group textarea:hover,
+    .form-group select:hover { border-color: #cbd5e1; }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--pod-primary);
+      box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.12);
+      background: white;
+    }
+    .form-group input::placeholder,
+    .form-group textarea::placeholder { color: var(--pod-muted-2); }
+    .form-group select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.85rem center;
+      padding-right: 2.5rem;
+      cursor: pointer;
+    }
+    .form-group textarea { resize: vertical; min-height: 90px; line-height: 1.55; }
+
+    .radio-group {
+      display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;
+    }
+    .radio-group label {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      font-size: 0.88rem; font-weight: 600;
+      color: var(--pod-text-2);
+      text-transform: none; letter-spacing: 0;
+      padding: 0.5rem 0.85rem;
+      border: 1.5px solid var(--pod-border);
+      border-radius: 10px;
+      background: white;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .radio-group label:hover {
+      border-color: var(--pod-primary);
+      color: var(--pod-primary);
+      background: var(--pod-primary-soft);
+    }
+    .radio-group input[type="radio"],
+    .radio-group input[type="checkbox"] {
+      cursor: pointer; width: 16px; height: 16px;
+      accent-color: var(--pod-primary);
+    }
+    html[data-theme="dark"] .radio-group label {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.10);
+      color: #cbd5e1;
+    }
+    html[data-theme="dark"] .radio-group label:hover {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: #06b6d4;
+      color: #67e8f9;
+    }
+
+    /* ── Form messages ── */
+    .form-msg {
+      padding: 0.95rem 1.1rem;
+      border-radius: 12px;
+      margin-bottom: 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: none;
+      border-left: 4px solid;
+      backdrop-filter: blur(10px);
+    }
+    .form-msg.err {
+      color: #991b1b;
+      background: rgba(239, 68, 68, 0.08);
+      border-left-color: var(--pod-danger);
+    }
+    .form-msg.ok {
+      color: #14532d;
+      background: rgba(22, 163, 74, 0.08);
+      border-left-color: var(--pod-success);
+    }
+
+    /* ── Premium Clinical Tables ── */
+    .clinical-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 0.5rem 0;
+      border: 1px solid var(--pod-border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+    }
+    .clinical-table thead {
+      background: linear-gradient(135deg, #f8fafc 0%, #ecf9fc 100%);
+    }
+    .clinical-table th {
+      padding: 0.85rem 0.9rem;
+      text-align: left;
+      font-weight: 800;
+      font-size: 0.78rem;
+      color: var(--pod-primary-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 2px solid var(--pod-border);
+    }
+    .clinical-table td {
+      padding: 0.7rem 0.9rem;
+      border-bottom: 1px solid var(--pod-border-soft);
+      font-size: 0.9rem;
+      color: var(--pod-text-2);
+      vertical-align: middle;
+    }
+    .clinical-table tbody tr:last-child td { border-bottom: none; }
+    .clinical-table tbody tr:hover { background: rgba(8, 145, 178, 0.02); }
+    .clinical-table input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: var(--pod-primary);
+      cursor: pointer;
+    }
+    .clinical-table input[type="text"],
+    .clinical-table input[type="number"] {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      border: 1.5px solid var(--pod-border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      transition: all 0.2s;
+      background: white;
+    }
+    .clinical-table input[type="text"]:focus,
+    .clinical-table input[type="number"]:focus {
+      outline: none;
+      border-color: var(--pod-primary);
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12);
+    }
+    .clinical-table textarea {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      border: 1.5px solid var(--pod-border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      min-height: 52px;
+      max-height: 120px;
+      resize: vertical;
+      background: white;
+      transition: all 0.2s;
+      line-height: 1.5;
+    }
+    .clinical-table textarea:focus {
+      outline: none;
+      border-color: var(--pod-primary);
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12);
+    }
+
+    /* ── Thermography (Premium) ── */
+    .thermography-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 1.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .feet-section {
+      display: flex; flex-direction: column; align-items: center; gap: 0.85rem;
+      padding: 1.25rem;
+      background: linear-gradient(135deg, #f8fafc 0%, rgba(236, 254, 255, 0.6) 100%);
+      border-radius: 16px;
+      border: 1px solid var(--pod-border);
+    }
+    .feet-svg {
+      width: 100%; max-width: 320px; height: 360px; cursor: crosshair;
+    }
+    .feet-svg svg { width: 100%; height: 100%; object-fit: contain; }
+    .feet-label {
+      font-size: 0.9rem; font-weight: 800; color: var(--pod-primary);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .controls-section { display: flex; flex-direction: column; gap: 1rem; }
+    .control-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .control-label {
+      font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--pod-primary);
+    }
+    .thermography-types {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(82px, 1fr)); gap: 0.5rem;
+    }
+    .type-option {
+      padding: 0.6rem 0.5rem; border: 1.5px solid var(--pod-border);
+      border-radius: 10px; background: white; cursor: pointer;
+      transition: all 0.25s ease; text-align: center;
+      font-size: 0.72rem; font-weight: 700; color: var(--pod-text-2);
+      line-height: 1.25; font-family: inherit;
+    }
+    .type-option:hover {
+      border-color: var(--pod-primary); background: var(--pod-primary-soft);
+      transform: translateY(-2px);
+    }
+    .type-option.active {
+      background: linear-gradient(135deg, var(--pod-primary) 0%, var(--pod-primary-light) 100%);
+      color: white; border-color: var(--pod-primary);
+      box-shadow: 0 6px 18px rgba(8, 145, 178, 0.3);
+    }
+    .temperature-input { display: flex; gap: 0.5rem; }
+    .temperature-input input {
+      flex: 1; padding: 0.7rem 0.85rem;
+      border: 1.5px solid var(--pod-border); border-radius: 10px;
+      font-family: inherit; font-size: 0.88rem; background: white;
+      transition: all 0.2s;
+    }
+    .temperature-input input:focus {
+      outline: none; border-color: var(--pod-primary);
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12);
+    }
+    .temperature-input button {
+      padding: 0.7rem 1rem;
+      background: linear-gradient(135deg, var(--pod-primary) 0%, var(--pod-primary-light) 100%);
+      color: white; border: none; border-radius: 10px;
+      font-weight: 800; font-size: 0.78rem; cursor: pointer;
+      transition: all 0.2s ease; white-space: nowrap; font-family: inherit;
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.25);
+    }
+    .temperature-input button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(8, 145, 178, 0.35);
+    }
+    .measurements-list {
+      display: flex; flex-direction: column; gap: 0.4rem;
+      max-height: 250px; overflow-y: auto;
+      padding: 0.4rem; background: var(--pod-bg);
+      border-radius: 10px; border: 1px solid var(--pod-border-soft);
+    }
+    .measurement-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.55rem 0.7rem; background: white;
+      border-radius: 8px; font-size: 0.82rem;
+      border-left: 3px solid var(--pod-primary);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+    .measurement-item-temp {
+      font-weight: 800; color: var(--pod-primary); margin-right: 0.4rem;
+    }
+    .measurement-item-delete {
+      background: var(--pod-danger-bg); color: var(--pod-danger);
+      border: none; border-radius: 6px;
+      padding: 0.3rem 0.55rem;
+      cursor: pointer; font-size: 0.7rem; font-weight: 700;
+      transition: all 0.2s; font-family: inherit;
+    }
+    .measurement-item-delete:hover {
+      background: #fecaca; transform: translateY(-1px);
+    }
+
+    .color-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.55rem; padding: 1rem 1.15rem;
+      background: linear-gradient(135deg, #f8fafc 0%, rgba(236, 254, 255, 0.6) 100%);
+      border-radius: 12px;
+      border: 1px solid var(--pod-border);
+      margin-top: 1rem;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.78rem; font-weight: 600; color: var(--pod-text-2);
+    }
+    .legend-color {
+      width: 14px; height: 14px; border-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    #thermoFeetContainer .foot-path.temp-measured {
+      fill: var(--temp-color, rgba(8, 145, 178, 0.2)) !important;
+    }
+    /* La termografía es el cuerpo del paso 9 del acordeón. Sus márgenes venían
+       de cuando era una sección suelta de Historia Clínica: dentro del paso
+       sobran, porque .dfe-step-body ya pone el suyo. */
+    #dfeSteps #thermoWidget .thermography-grid { margin-bottom: 0; }
+    #dfeSteps #thermoWidget .color-legend { margin-top: 1.25rem; }
+
+    /* ── Image Drop Zone (Premium) ── */
+    .pod-drop {
+      position: relative;
+      border: 2px dashed rgba(8, 145, 178, 0.4);
+      border-radius: 16px; padding: 2.25rem 1.5rem;
+      text-align: center;
+      background: linear-gradient(135deg, var(--pod-primary-soft) 0%, rgba(6, 182, 212, 0.04) 100%);
+      cursor: pointer; transition: all 0.25s ease;
+    }
+    .pod-drop:hover {
+      border-color: var(--pod-primary);
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.10) 0%, rgba(6, 182, 212, 0.08) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(8, 145, 178, 0.10);
+    }
+    .pod-drop-icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: linear-gradient(135deg, var(--pod-primary) 0%, var(--pod-primary-light) 100%);
+      color: white; margin: 0 auto 0.85rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 10px 24px rgba(8, 145, 178, 0.25);
+    }
+    .pod-drop-icon svg { width: 24px; height: 24px; }
+    .pod-drop-title {
+      font-size: 0.95rem; font-weight: 800;
+      color: var(--pod-primary-dark); margin-bottom: 0.3rem;
+    }
+    .pod-drop-sub {
+      font-size: 0.82rem; color: var(--pod-muted); font-weight: 500;
+    }
+
+    /* ── Consent Action Bar ── */
+    .pod-consent-bar {
+      display: none; margin-top: 1.25rem;
+      padding: 1.1rem 1.25rem;
+      background: linear-gradient(135deg, var(--pod-success-bg) 0%, #ecfdf5 100%);
+      border: 1.5px solid rgba(22, 163, 74, 0.3);
+      border-left: 4px solid var(--pod-success);
+      border-radius: 14px;
+      align-items: center; gap: 0.85rem; flex-wrap: wrap;
+    }
+    .pod-consent-bar.show { display: flex; }
+    .pod-consent-btn {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.75rem 1.35rem;
+      border: none; border-radius: 10px;
+      color: white; font-weight: 800; font-size: 0.85rem;
+      cursor: pointer; font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .pod-consent-btn:hover { transform: translateY(-2px); }
+    .pod-consent-btn.success {
+      background: linear-gradient(135deg, var(--pod-success) 0%, #22c55e 100%);
+      box-shadow: 0 6px 16px rgba(22, 163, 74, 0.25);
+    }
+    .pod-consent-btn.primary {
+      background: linear-gradient(135deg, var(--pod-primary) 0%, var(--pod-primary-light) 100%);
+      box-shadow: 0 6px 16px rgba(8, 145, 178, 0.25);
+    }
+    .pod-consent-btn svg { width: 16px; height: 16px; }
+    .pod-consent-signed {
+      display: none; margin-left: auto;
+      padding: 0.55rem 0.95rem;
+      background: #dcfce7; color: #15803d;
+      border-radius: 999px; font-weight: 800; font-size: 0.78rem;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .pod-consent-signed.show { display: inline-flex; align-items: center; gap: 0.4rem; }
+    html[data-theme="dark"] .pod-consent-bar {
+      background: linear-gradient(135deg, rgba(22, 163, 74, 0.14) 0%, rgba(34, 197, 94, 0.08) 100%);
+      border-color: rgba(34, 197, 94, 0.35);
+      border-left-color: #22c55e;
+    }
+    html[data-theme="dark"] .pod-consent-signed {
+      background: rgba(34, 197, 94, 0.18);
+      color: #86efac;
+    }
+
+    /* ── Image Grid ── */
+    .pod-image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.85rem; margin-top: 1.25rem;
+    }
+    .pod-image-card {
+      position: relative; border-radius: 12px;
+      overflow: hidden; aspect-ratio: 1;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+      transition: transform 0.2s ease;
+    }
+    .pod-image-card:hover { transform: translateY(-2px); }
+    .pod-image-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pod-image-remove {
+      position: absolute; top: 0.5rem; right: 0.5rem;
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--pod-danger); color: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-weight: 800; font-size: 1.1rem;
+      border: none; transition: all 0.2s;
+    }
+    .pod-image-remove:hover { background: #b91c1c; transform: scale(1.05); }
+    .pod-image-status {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 0.4rem 0.55rem;
+      background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.65) 100%);
+      color: white; font-size: 0.7rem; font-weight: 700;
+      text-align: center; letter-spacing: 0.04em;
+    }
+
+    /* ── Pressure Table (Custom) ── */
+    .pressure-image-wrap {
+      display: flex; justify-content: center; margin: 0 0 1.25rem;
+      padding: 1rem; background: var(--pod-bg);
+      border-radius: 14px; border: 1px solid var(--pod-border);
+    }
+    .pressure-image-wrap img {
+      max-width: 420px; width: 100%; height: auto; display: block;
+    }
+    .clinical-table.pressure td {
+      padding: 0.65rem 0.9rem;
+      font-size: 0.85rem;
+    }
+    .clinical-table.pressure input[type="text"] {
+      border: none; border-bottom: 1.5px solid var(--pod-border);
+      border-radius: 0; padding: 0.4rem 0.5rem;
+      background: transparent; font-size: 0.9rem;
+    }
+    .clinical-table.pressure input[type="text"]:focus {
+      box-shadow: none; border-color: var(--pod-primary);
+      background: rgba(8, 145, 178, 0.04);
+    }
+
+    /* ── Medical Alert (Premium) ── */
+    .medical-alert {
+      position: relative;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, rgba(220, 38, 38, 0.03) 100%);
+      border: 1.5px solid rgba(239, 68, 68, 0.25);
+      border-left: 4px solid #ef4444;
+      border-radius: 16px;
+      padding: 1.15rem 1.25rem;
+      margin: 0 0 1.5rem 0;
+      backdrop-filter: blur(10px);
+      animation: slideDown 0.35s ease-out;
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.06);
+    }
+    .medical-alert-content {
+      display: flex; gap: 0.85rem; align-items: flex-start;
+    }
+    .medical-alert-icon {
+      width: 36px; height: 36px; flex-shrink: 0;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      box-shadow: 0 6px 14px rgba(239, 68, 68, 0.25);
+    }
+    .medical-alert-info { flex: 1; display: flex; flex-direction: column; gap: 0.45rem; }
+    .medical-alert-title {
+      font-size: 0.92rem; font-weight: 800;
+      color: #991b1b; letter-spacing: -0.01em;
+    }
+    .medical-alert-text { font-size: 0.85rem; color: #7f1d1d; line-height: 1.55; }
+    .medical-alert-item { display: flex; gap: 0.5rem; align-items: flex-start; margin-bottom: 0.4rem; }
+    .medical-alert-item:last-child { margin-bottom: 0; }
+    .medical-alert-item-label { font-weight: 700; color: #991b1b; min-width: 100px; }
+    .medical-alert-item-value { color: #7f1d1d; }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Sticky Action Bar ── */
+    .footer {
+      position: sticky; bottom: 1rem; z-index: 50;
+      display: flex; justify-content: flex-end; align-items: center;
+      gap: 0.85rem; padding: 1.1rem 1.5rem;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--pod-border);
+      border-radius: 16px;
+      margin-top: 2rem;
+      box-shadow: 0 -4px 18px rgba(15, 23, 42, 0.08), 0 20px 40px rgba(8, 145, 178, 0.10);
+    }
+    .footer-spacer { flex: 1; font-size: 0.82rem; color: var(--pod-muted); font-weight: 600; }
+    .btn-cancel {
+      padding: 0.75rem 1.5rem;
+      border: 1.5px solid var(--pod-border);
+      background: white; color: var(--pod-text-2);
+      border-radius: 12px; cursor: pointer;
+      font-family: inherit; font-size: 0.88rem; font-weight: 700;
+      transition: all 0.2s;
+    }
+    .btn-cancel:hover {
+      background: var(--pod-bg);
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
+    .btn-save {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.78rem 1.85rem;
+      background: linear-gradient(135deg, var(--pod-primary) 0%, var(--pod-primary-light) 100%);
+      color: white; border: none; border-radius: 12px;
+      cursor: pointer; font-family: inherit;
+      font-size: 0.9rem; font-weight: 800;
+      transition: all 0.25s ease;
+      box-shadow: 0 8px 22px rgba(8, 145, 178, 0.28);
+    }
+    .btn-save:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0e7490 0%, var(--pod-primary) 100%);
+      box-shadow: 0 14px 30px rgba(8, 145, 178, 0.40);
+      transform: translateY(-2px);
+    }
+    .btn-save:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-save svg { width: 16px; height: 16px; }
+
+    /* ──────────────────────────────────────────────────────────
+       Exploración del Pie Diabético — Tamizaje neurológico/vascular
+       ────────────────────────────────────────────────────────── */
+    .dfe-wrap { display: grid; gap: 1.25rem; }
+    /* Cards 1..N de los pasos del tamizaje. Sin esta regla, los .dfe-step
+       son hermanos directos dentro de #dfeSteps sin gap y se ven pegados. */
+    #dfeSteps { display: grid; gap: 0.85rem; }
+    .dfe-banner {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center;
+      padding: 1rem 1.25rem; border-radius: var(--pod-radius-md);
+      background: linear-gradient(135deg, rgba(8,145,178,0.06) 0%, rgba(6,182,212,0.04) 100%);
+      border: 1px solid rgba(8,145,178,0.18);
+    }
+    .dfe-banner-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--pod-primary) 0%, var(--pod-primary-light) 100%);
+      color: #fff; display: grid; place-items: center;
+      box-shadow: 0 6px 16px rgba(8,145,178,0.25);
+    }
+    .dfe-banner-icon svg { width: 22px; height: 22px; }
+    .dfe-banner-title { font-size: 0.95rem; font-weight: 600; color: var(--pod-text); letter-spacing: -0.01em; }
+    .dfe-banner-sub { font-size: 0.78rem; color: var(--pod-muted); margin-top: 2px; line-height: 1.4; }
+    .dfe-banner-stat {
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .dfe-progress {
+      width: 140px; height: 6px; border-radius: 999px;
+      background: rgba(8,145,178,0.12); overflow: hidden;
+    }
+    .dfe-progress > i {
+      display: block; height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--pod-primary), var(--pod-primary-light));
+      transition: width .25s;
+    }
+    .dfe-progress-pct { font-size: 0.8rem; font-weight: 600; color: var(--pod-primary-dark); min-width: 34px; text-align: right; }
+    .dfe-alarms-pill {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.35rem 0.7rem; border-radius: 999px;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em;
+      background: var(--pod-success-bg); color: var(--pod-success);
+      border: 1px solid rgba(22,163,74,0.2);
+    }
+    .dfe-alarms-pill.has-alarms { background: var(--pod-danger-bg); color: var(--pod-danger); border-color: rgba(220,38,38,0.2); }
+    .dfe-alarms-pill svg { width: 12px; height: 12px; }
+
+    /* Steps accordion */
+    .dfe-step {
+      border: 1px solid var(--pod-border); border-radius: var(--pod-radius-md);
+      background: #fff; overflow: hidden;
+      transition: box-shadow .2s, border-color .2s;
+    }
+    .dfe-step:hover { border-color: rgba(8,145,178,0.3); }
+    .dfe-step.is-open { box-shadow: var(--pod-shadow-md); border-color: rgba(8,145,178,0.25); }
+    .dfe-step.is-alarm { border-color: rgba(220,38,38,0.35); }
+    .dfe-step.is-alarm.is-open { box-shadow: 0 12px 28px -10px rgba(220,38,38,0.25); }
+    .dfe-step-head {
+      width: 100%; display: grid;
+      grid-template-columns: 36px 1fr auto auto;
+      align-items: center; gap: 0.85rem;
+      padding: 1.15rem 1.35rem; cursor: pointer; user-select: none;
+      background: transparent; border: 0; text-align: left; font-family: inherit;
+    }
+    .dfe-step-num {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: var(--pod-bg); color: var(--pod-text-2);
+      display: grid; place-items: center;
+      font-weight: 600; font-size: 0.82rem;
+      border: 1px solid var(--pod-border);
+      transition: background .2s, color .2s;
+    }
+    .dfe-step.is-touched .dfe-step-num {
+      background: linear-gradient(135deg, var(--pod-primary), var(--pod-primary-light));
+      color: #fff; border-color: transparent;
+    }
+    .dfe-step.is-alarm .dfe-step-num {
+      background: linear-gradient(135deg, var(--pod-danger), #ef4444);
+      color: #fff; border-color: transparent;
+    }
+    .dfe-step-titles { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .dfe-step-eye {
+      font-size: 0.62rem; font-weight: 600; color: var(--pod-muted);
+      text-transform: uppercase; letter-spacing: 0.12em;
+    }
+    .dfe-step-title { font-size: 0.95rem; font-weight: 600; color: var(--pod-text); letter-spacing: -0.01em; }
+    .dfe-step-status {
+      font-size: 0.7rem; font-weight: 600;
+      padding: 0.28rem 0.65rem; border-radius: 999px;
+      background: var(--pod-bg); color: var(--pod-muted);
+      border: 1px solid var(--pod-border-soft);
+      white-space: nowrap;
+    }
+    .dfe-step-status.ok { background: var(--pod-success-bg); color: var(--pod-success); border-color: rgba(22,163,74,0.2); }
+    .dfe-step-status.alarm { background: var(--pod-danger-bg); color: var(--pod-danger); border-color: rgba(220,38,38,0.2); }
+    .dfe-step-chev {
+      width: 26px; height: 26px; display: grid; place-items: center;
+      color: var(--pod-muted); transition: transform .25s;
+    }
+    .dfe-step.is-open .dfe-step-chev { transform: rotate(180deg); color: var(--pod-primary); }
+    .dfe-step-body {
+      padding: 0 1.35rem 1.35rem; border-top: 1px solid var(--pod-border-soft);
+      display: none;
+    }
+    .dfe-step.is-open .dfe-step-body { display: block; }
+    .dfe-step-subtitle {
+      font-size: 0.82rem; color: var(--pod-muted); line-height: 1.5;
+      padding: 1.1rem 0 0.9rem;
+    }
+    .dfe-step-alarm-tag {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      margin-top: 0.4rem; padding: 0.3rem 0.6rem;
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.01em;
+      border-radius: 999px;
+      background: rgba(220,38,38,0.08); color: var(--pod-danger);
+      border: 1px solid rgba(220,38,38,0.2);
+    }
+    .dfe-step-alarm-tag svg { width: 12px; height: 12px; }
+
+    /* Substep row */
+    .dfe-sub {
+      display: grid; grid-template-columns: 1fr auto; gap: 0.85rem;
+      align-items: start; padding: 0.95rem 0;
+      border-top: 1px dashed var(--pod-border-soft);
+    }
+    .dfe-sub:first-of-type { border-top: 0; }
+    .dfe-sub-name { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .dfe-sub-id { font-family: 'JetBrains Mono', ui-monospace, monospace; color: var(--pod-muted); font-size: 0.75rem; }
+    .dfe-sub-label { font-size: 0.88rem; font-weight: 600; color: var(--pod-text); }
+    .dfe-sub-tag {
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.04em;
+      padding: 0.2rem 0.5rem; border-radius: 6px;
+      background: rgba(8,145,178,0.08); color: var(--pod-primary-dark);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+    }
+    .dfe-sub-hint { font-size: 0.78rem; color: var(--pod-muted); line-height: 1.45; margin-top: 3px; }
+    .dfe-sub-note {
+      margin-top: 0.6rem; padding: 0.7rem 0.85rem;
+      background: var(--pod-bg); border: 1px solid var(--pod-border);
+      border-radius: 10px;
+    }
+    .dfe-sub-note-lbl { font-size: 0.68rem; font-weight: 600; color: var(--pod-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem; }
+    .dfe-sub-note textarea {
+      width: 100%; min-height: 56px; resize: vertical;
+      padding: 0.55rem 0.7rem; border-radius: 8px;
+      border: 1px solid var(--pod-border); background: #fff;
+      font-family: inherit; font-size: 0.85rem; color: var(--pod-text);
+    }
+    .dfe-sub-note textarea:focus { outline: none; border-color: var(--pod-primary); box-shadow: 0 0 0 3px rgba(8,145,178,0.12); }
+
+    /* Tri-state control */
+    .dfe-tri { display: inline-flex; border-radius: 10px; overflow: hidden; border: 1px solid var(--pod-border); background: #fff; }
+    .dfe-tri button {
+      appearance: none; border: 0; background: transparent;
+      padding: 0.45rem 0.75rem; font-family: inherit;
+      font-size: 0.78rem; font-weight: 600; color: var(--pod-text-2);
+      cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;
+      transition: background .15s, color .15s;
+      border-right: 1px solid var(--pod-border);
+    }
+    .dfe-tri button:last-child { border-right: 0; }
+    .dfe-tri button:hover { background: var(--pod-bg); }
+    .dfe-tri button svg { width: 12px; height: 12px; }
+    .dfe-tri button.on-normal { background: var(--pod-success-bg); color: var(--pod-success); }
+    .dfe-tri button.on-abnormal { background: var(--pod-danger-bg); color: var(--pod-danger); }
+    .dfe-tri button.on-skip { background: #f1f5f9; color: var(--pod-muted); }
+    .dfe-tri.is-scale button { min-width: 36px; padding: 0.45rem 0.55rem; justify-content: center; font-variant-numeric: tabular-nums; }
+    .dfe-tri.is-scale button[data-action="status"] { min-width: auto; padding: 0.45rem 0.75rem; }
+
+    /* Monofilament */
+    .dfe-mono { display: grid; grid-template-columns: 1fr 320px; gap: 1.25rem; align-items: start; }
+    .dfe-mono-foot {
+      background: var(--pod-bg); border: 1px solid var(--pod-border);
+      border-radius: var(--pod-radius-md); padding: 0.85rem;
+    }
+    .dfe-mono-foot svg { width: 100%; height: auto; max-height: 480px; }
+    .dfe-mono-legend {
+      display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap;
+      padding: 0.5rem 0 0.25rem; font-size: 0.72rem; color: var(--pod-muted);
+    }
+    .dfe-mono-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .dfe-mono-legend i {
+      width: 12px; height: 12px; border-radius: 50%; display: inline-block;
+      border: 1.5px solid currentColor;
+    }
+    .dfe-mono-side {
+      background: var(--pod-bg); border: 1px solid var(--pod-border);
+      border-radius: var(--pod-radius-md); padding: 0.85rem 1rem;
+    }
+    .dfe-mono-side-head {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+      padding-bottom: 0.65rem; border-bottom: 1px solid var(--pod-border-soft); margin-bottom: 0.5rem;
+    }
+    .dfe-mono-side-head .lbl { font-size: 0.7rem; color: var(--pod-muted); letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600; }
+    .dfe-mono-side-head .v {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 1.3rem; font-weight: 700; color: var(--pod-text);
+    }
+    .dfe-mono-side-head .v em { font-style: normal; font-size: 0.7rem; font-weight: 500; color: var(--pod-muted); margin-left: 2px; }
+    .dfe-mono-side-head .v.danger { color: var(--pod-danger); }
+    .dfe-mono-side-head .right { text-align: right; }
+    .dfe-mp-row {
+      display: grid; grid-template-columns: 24px 1fr auto; gap: 0.5rem;
+      align-items: center; padding: 0.38rem 0;
+      border-top: 1px dashed var(--pod-border-soft); font-size: 0.78rem;
+    }
+    .dfe-mp-row:first-of-type { border-top: 0; }
+    .dfe-mp-row.miss { background: rgba(220,38,38,0.04); border-radius: 6px; padding-left: 0.35rem; }
+    .dfe-mp-ix {
+      width: 22px; height: 22px; border-radius: 6px;
+      background: #fff; border: 1px solid var(--pod-border);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-weight: 600; font-size: 0.72rem; color: var(--pod-text-2);
+      display: grid; place-items: center;
+    }
+    .dfe-mp-name { color: var(--pod-text); font-weight: 500; }
+    .dfe-mp-side { display: inline-flex; gap: 4px; }
+    .dfe-mp-side button {
+      appearance: none; border: 1px solid var(--pod-border);
+      background: #fff; border-radius: 6px;
+      width: 30px; height: 26px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.7rem; font-weight: 600; color: var(--pod-text-2);
+      cursor: pointer; transition: all .12s;
+    }
+    .dfe-mp-side button.on-y { background: var(--pod-success); color: #fff; border-color: var(--pod-success); }
+    .dfe-mp-side button.on-n { background: var(--pod-danger); color: #fff; border-color: var(--pod-danger); }
+
+    /* ITB */
+    .dfe-itb { display: grid; grid-template-columns: 360px 1fr; gap: 1.25rem; align-items: start; }
+    .dfe-itb-body { position: relative; background: var(--pod-bg); border-radius: var(--pod-radius-md); border: 1px solid var(--pod-border); padding: 0.85rem; min-height: 540px; }
+    .dfe-itb-body svg { width: 100%; height: auto; display: block; }
+    .dfe-bp {
+      position: absolute;
+      background: #fff; border-radius: 10px;
+      padding: 0.45rem 0.6rem;
+      border: 1px solid var(--pod-border);
+      box-shadow: 0 4px 12px rgba(15,23,42,0.06);
+      min-width: 118px;
+    }
+    .dfe-bp .lbl {
+      font-size: 0.62rem; font-weight: 600; color: var(--pod-muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;
+      display: flex; align-items: center; gap: 0.4rem; justify-content: space-between;
+    }
+    .dfe-bp input {
+      width: 56px; padding: 0.2rem 0.35rem;
+      border: 1px solid var(--pod-border); border-radius: 6px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 1rem; font-weight: 600; color: var(--pod-text);
+    }
+    .dfe-bp input:focus { outline: none; border-color: var(--pod-primary); box-shadow: 0 0 0 2px rgba(8,145,178,0.15); }
+    .dfe-bp .unit { font-size: 0.7rem; color: var(--pod-muted); font-weight: 500; }
+    .dfe-bp .sw { display: inline-flex; gap: 2px; }
+    .dfe-bp .sw button {
+      appearance: none; border: 1px solid var(--pod-border);
+      background: #fff; border-radius: 4px; padding: 2px 6px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.65rem; font-weight: 600; color: var(--pod-muted); cursor: pointer;
+    }
+    .dfe-bp .sw button.on { background: var(--pod-primary); color: #fff; border-color: var(--pod-primary); }
+    .dfe-bp .meta { font-size: 0.62rem; color: var(--pod-muted); margin-top: 3px; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .dfe-itb-armref {
+      position: absolute; top: 270px; left: 50%; transform: translateX(-50%);
+      background: rgba(255,255,255,0.94);
+      border: 1px solid var(--pod-border); border-radius: 6px;
+      padding: 3px 10px; white-space: nowrap;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 0.7rem; color: var(--pod-muted);
+    }
+    .dfe-itb-result { display: grid; gap: 0.85rem; }
+    .dfe-itb-card {
+      background: #fff; border: 1px solid var(--pod-border);
+      border-radius: var(--pod-radius-md); padding: 1rem 1.1rem;
+    }
+    .dfe-itb-card .side {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 0.45rem;
+    }
+    .dfe-itb-card .side b { font-size: 0.85rem; font-weight: 600; color: var(--pod-text-2); letter-spacing: -0.01em; }
+    .dfe-itb-card .v { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 1.55rem; font-weight: 700; color: var(--pod-text); }
+    .dfe-itb-card .v.placeholder { color: var(--pod-muted-2); }
+    .dfe-itb-card .interp {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.28rem 0.7rem; border-radius: 999px;
+      font-size: 0.72rem; font-weight: 600;
+      background: var(--pod-bg); color: var(--pod-muted);
+    }
+    .dfe-itb-card .interp.ok   { background: var(--pod-success-bg); color: var(--pod-success); }
+    .dfe-itb-card .interp.warn { background: rgba(245,158,11,0.12); color: #b45309; }
+    .dfe-itb-card .interp.crit { background: var(--pod-danger-bg); color: var(--pod-danger); }
+    .dfe-itb-card .interp .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; }
+    .dfe-itb-card .formula { font-size: 0.7rem; color: var(--pod-muted); font-family: 'JetBrains Mono', ui-monospace, monospace; margin-top: 0.4rem; }
+    .dfe-itb-card .note { font-size: 0.78rem; color: var(--pod-muted); margin-top: 0.5rem; line-height: 1.45; }
+    .dfe-itb-key {
+      background: var(--pod-bg); border: 1px solid var(--pod-border);
+      border-radius: var(--pod-radius-md); padding: 0.85rem 1rem;
+    }
+    .dfe-itb-key h4 { font-size: 0.78rem; font-weight: 600; color: var(--pod-text-2); margin-bottom: 0.5rem; letter-spacing: 0.02em; }
+    .dfe-itb-key .row {
+      display: grid; grid-template-columns: 110px 1fr 14px;
+      gap: 0.5rem; align-items: center; padding: 0.3rem 0;
+      font-size: 0.78rem; border-top: 1px dashed var(--pod-border-soft);
+    }
+    .dfe-itb-key .row:first-of-type { border-top: 0; }
+    .dfe-itb-key .row .rng { font-family: 'JetBrains Mono', ui-monospace, monospace; color: var(--pod-text-2); font-weight: 600; }
+    .dfe-itb-key .row .nm { color: var(--pod-text); }
+    .dfe-itb-key .row .pip {
+      width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+      background: var(--pod-muted-2); opacity: 0.4;
+    }
+    .dfe-itb-key .row.ok .pip { background: var(--pod-success); opacity: 1; }
+    .dfe-itb-key .row.warn .pip { background: #f59e0b; opacity: 1; }
+    .dfe-itb-key .row.crit .pip { background: var(--pod-danger); opacity: 1; }
+    .dfe-itb-key .row.active { background: rgba(8,145,178,0.06); border-radius: 6px; padding-left: 0.4rem; padding-right: 0.4rem; }
+
+    /* Reference card */
+    .dfe-ref {
+      display: grid; grid-template-columns: 36px 1fr; gap: 0.85rem;
+      padding: 0.85rem 1rem; margin-top: 0.85rem;
+      background: rgba(8,145,178,0.04); border: 1px solid rgba(8,145,178,0.15);
+      border-radius: var(--pod-radius-md);
+    }
+    .dfe-ref-icon {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: rgba(8,145,178,0.12); color: var(--pod-primary);
+      display: grid; place-items: center;
+    }
+    .dfe-ref-eye { font-size: 0.65rem; font-weight: 600; color: var(--pod-primary-dark); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
+    .dfe-ref h4 { font-size: 0.85rem; font-weight: 600; color: var(--pod-text); margin: 0 0 0.35rem; letter-spacing: -0.01em; }
+    .dfe-ref p { font-size: 0.78rem; color: var(--pod-muted); line-height: 1.5; margin: 0; }
+
+    /* Alarm banner inside step */
+    .dfe-alarm-banner {
+      display: grid; grid-template-columns: 28px 1fr; gap: 0.7rem;
+      padding: 0.75rem 0.95rem; margin-top: 0.85rem;
+      background: var(--pod-danger-bg); border: 1px solid rgba(220,38,38,0.2);
+      border-radius: 10px;
+    }
+    .dfe-alarm-banner.info { background: rgba(8,145,178,0.05); border-color: rgba(8,145,178,0.18); }
+    .dfe-alarm-banner svg { color: var(--pod-danger); width: 20px; height: 20px; margin-top: 1px; }
+    .dfe-alarm-banner.info svg { color: var(--pod-primary); }
+    .dfe-alarm-banner b { display: block; font-size: 0.85rem; font-weight: 600; color: var(--pod-text); margin-bottom: 2px; }
+    .dfe-alarm-banner span { font-size: 0.78rem; color: var(--pod-text-2); line-height: 1.45; }
+
+    /* Findings summary card (bottom) */
+    .dfe-summary {
+      margin-top: 0.5rem;
+      border: 1px solid var(--pod-border); border-radius: var(--pod-radius-md);
+      background: linear-gradient(180deg, #ffffff 0%, var(--pod-bg) 100%);
+      padding: 1.1rem 1.25rem;
+    }
+    .dfe-summary-h {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.85rem; margin-bottom: 0.85rem;
+    }
+    .dfe-summary-h h4 { font-size: 0.92rem; font-weight: 600; color: var(--pod-text); letter-spacing: -0.01em; margin: 0; }
+    .dfe-summary-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.65rem;
+    }
+    .dfe-summary-tile {
+      padding: 0.7rem 0.8rem; border-radius: 10px;
+      background: #fff; border: 1px solid var(--pod-border-soft);
+    }
+    .dfe-summary-tile .h {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 0.5rem; margin-bottom: 0.3rem;
+    }
+    .dfe-summary-tile .h b { font-size: 0.82rem; font-weight: 600; color: var(--pod-text); }
+    .dfe-summary-tile .det { font-size: 0.74rem; color: var(--pod-muted); line-height: 1.4; }
+    .dfe-pill {
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.02em;
+      padding: 0.18rem 0.55rem; border-radius: 999px;
+      background: var(--pod-bg); color: var(--pod-muted);
+      border: 1px solid var(--pod-border-soft);
+    }
+    .dfe-pill.ok    { background: var(--pod-success-bg); color: var(--pod-success); border-color: rgba(22,163,74,0.18); }
+    .dfe-pill.warn  { background: rgba(245,158,11,0.12); color: #b45309; border-color: rgba(245,158,11,0.25); }
+    .dfe-pill.alarm { background: var(--pod-danger-bg); color: var(--pod-danger); border-color: rgba(220,38,38,0.22); }
+
+    .dfe-conclusion { margin-top: 1rem; padding-top: 0.85rem; border-top: 1px dashed var(--pod-border); }
+    .dfe-conclusion p { font-size: 0.85rem; color: var(--pod-text-2); margin-bottom: 0.4rem; }
+    .dfe-conclusion ul { padding-left: 1.1rem; margin: 0.4rem 0 0; }
+    .dfe-conclusion li { font-size: 0.78rem; color: var(--pod-text-2); line-height: 1.5; margin-bottom: 0.2rem; }
+    .dfe-conclusion li b { font-weight: 600; color: var(--pod-text); }
+    .dfe-conclusion p b { font-weight: 600; }
+    .dfe-conclusion li i { color: var(--pod-muted); font-style: italic; }
+
+    /* Section-level form-section icon for foot exam */
+    .form-section[data-icon="foot-exam"] h3::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 11.5c0-2.5 1-5.5 3-7.5 1.5-1.5 4-1.5 5 .5 1 2.5-.5 5-1.5 7-.5 1-.5 2 0 3 .5 1.5 2 2.5 2 4 0 1.5-1.5 3-3.5 3s-3-1-3.5-2.5c-.5-1.5-.5-3.5-1.5-5-.5-.5-1-1-1-2.5z'/%3E%3Ccircle cx='6.5' cy='9' r='1'/%3E%3Ccircle cx='6' cy='12.5' r='.8'/%3E%3Ccircle cx='7' cy='15.5' r='.8'/%3E%3C/svg%3E");
+    }
+
+    @media (max-width: 1100px) {
+      .dfe-mono { grid-template-columns: 1fr; }
+      .dfe-itb { grid-template-columns: 1fr; }
+      .dfe-itb-body { min-height: 520px; }
+    }
+    @media (max-width: 700px) {
+      .dfe-banner { grid-template-columns: auto 1fr; }
+      .dfe-banner-stat { grid-column: 1 / -1; justify-content: flex-end; }
+      .dfe-step-head { grid-template-columns: 32px 1fr auto; padding: 0.8rem 0.85rem; }
+      .dfe-step-status { display: none; }
+      .dfe-sub { grid-template-columns: 1fr; }
+      .dfe-tri { width: 100%; justify-content: stretch; }
+      .dfe-tri button { flex: 1; justify-content: center; }
+    }
+
+    /* ── Dark mode ────────────────────────────────────────────── */
+    html[data-theme="dark"] .dfe-banner {
+      background: linear-gradient(135deg, rgba(6,182,212,0.10) 0%, rgba(8,145,178,0.06) 100%);
+      border-color: rgba(6,182,212,0.22);
+    }
+    html[data-theme="dark"] .dfe-banner-title { color: var(--sd-text); }
+    html[data-theme="dark"] .dfe-banner-sub { color: var(--sd-text-muted); }
+    html[data-theme="dark"] .dfe-progress { background: rgba(255,255,255,0.08); }
+    html[data-theme="dark"] .dfe-progress-pct { color: #67e8f9; }
+    html[data-theme="dark"] .dfe-alarms-pill {
+      background: rgba(34,197,94,0.12); color: #4ade80;
+      border-color: rgba(34,197,94,0.25);
+    }
+    html[data-theme="dark"] .dfe-alarms-pill.has-alarms {
+      background: rgba(239,68,68,0.14); color: #fca5a5;
+      border-color: rgba(239,68,68,0.32);
+    }
+
+    html[data-theme="dark"] .dfe-step {
+      background: rgba(20,20,22,0.6);
+      border-color: rgba(255,255,255,0.09);
+    }
+    html[data-theme="dark"] .dfe-step:hover { border-color: rgba(6,182,212,0.3); }
+    html[data-theme="dark"] .dfe-step.is-open {
+      border-color: rgba(6,182,212,0.3);
+      box-shadow: 0 12px 28px -10px rgba(0,0,0,0.5);
+    }
+    html[data-theme="dark"] .dfe-step.is-alarm { border-color: rgba(239,68,68,0.4); }
+    html[data-theme="dark"] .dfe-step-num {
+      background: rgba(255,255,255,0.05); color: var(--sd-text-soft);
+      border-color: rgba(255,255,255,0.1);
+    }
+    html[data-theme="dark"] .dfe-step.is-touched .dfe-step-num {
+      background: linear-gradient(135deg, #06b6d4, #0891b2); color: #052e36;
+    }
+    html[data-theme="dark"] .dfe-step.is-alarm .dfe-step-num {
+      background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff;
+    }
+    html[data-theme="dark"] .dfe-step-eye { color: var(--sd-text-muted); }
+    html[data-theme="dark"] .dfe-step-title { color: var(--sd-text); }
+    html[data-theme="dark"] .dfe-step-status {
+      background: rgba(255,255,255,0.05); color: var(--sd-text-muted);
+      border-color: rgba(255,255,255,0.08);
+    }
+    html[data-theme="dark"] .dfe-step-status.ok {
+      background: rgba(34,197,94,0.12); color: #4ade80; border-color: rgba(34,197,94,0.25);
+    }
+    html[data-theme="dark"] .dfe-step-status.alarm {
+      background: rgba(239,68,68,0.14); color: #fca5a5; border-color: rgba(239,68,68,0.3);
+    }
+    html[data-theme="dark"] .dfe-step-chev { color: var(--sd-text-faint); }
+    html[data-theme="dark"] .dfe-step.is-open .dfe-step-chev { color: #67e8f9; }
+    html[data-theme="dark"] .dfe-step-body { border-top-color: rgba(255,255,255,0.06); }
+    html[data-theme="dark"] .dfe-step-subtitle { color: var(--sd-text-muted); }
+    html[data-theme="dark"] .dfe-step-alarm-tag {
+      background: rgba(239,68,68,0.12); color: #fca5a5; border-color: rgba(239,68,68,0.28);
+    }
+
+    html[data-theme="dark"] .dfe-sub { border-top-color: rgba(255,255,255,0.06); }
+    html[data-theme="dark"] .dfe-sub-id { color: var(--sd-text-faint); }
+    html[data-theme="dark"] .dfe-sub-label { color: var(--sd-text); }
+    html[data-theme="dark"] .dfe-sub-tag {
+      background: rgba(6,182,212,0.12); color: #67e8f9;
+    }
+    html[data-theme="dark"] .dfe-sub-hint { color: var(--sd-text-muted); }
+    html[data-theme="dark"] .dfe-sub-note {
+      background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08);
+    }
+    html[data-theme="dark"] .dfe-sub-note-lbl { color: var(--sd-text-muted); }
+    html[data-theme="dark"] .dfe-sub-note textarea {
+      background: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.1);
+      color: var(--sd-text);
+    }
+    html[data-theme="dark"] .dfe-sub-note textarea:focus {
+      border-color: #06b6d4; box-shadow: 0 0 0 3px rgba(6,182,212,0.18);
+    }
+
+    html[data-theme="dark"] .dfe-tri {
+      background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.1);
+    }
+    html[data-theme="dark"] .dfe-tri button {
+      color: var(--sd-text-soft); border-right-color: rgba(255,255,255,0.08);
+    }
+    html[data-theme="dark"] .dfe-tri button:hover { background: rgba(255,255,255,0.05); }
+    html[data-theme="dark"] .dfe-tri button.on-normal {
+      background: rgba(34,197,94,0.18); color: #4ade80;
+    }
+    html[data-theme="dark"] .dfe-tri button.on-abnormal {
+      background: rgba(239,68,68,0.2); color: #fca5a5;
+    }
+    html[data-theme="dark"] .dfe-tri button.on-skip {
+      background: rgba(255,255,255,0.06); color: var(--sd-text-muted);
+    }
+
+    html[data-theme="dark"] .dfe-mono-foot,
+    html[data-theme="dark"] .dfe-mono-side {
+      background: rgba(255,255,255,0.025); border-color: rgba(255,255,255,0.08);
+    }
+    html[data-theme="dark"] .dfe-mono-legend { color: var(--sd-text-muted); }
+    html[data-theme="dark"] .dfe-mono-side-head { border-bottom-color: rgba(255,255,255,0.06); }
+    html[data-theme="dark"] .dfe-mono-side-head .lbl { color: var(--sd-text-muted); }
+    html[data-theme="dark"] .dfe-mono-side-head .v { color: var(--sd-text); }
+    html[data-theme="dark"] .dfe-mono-side-head .v.danger { color: #fca5a5; }
+    html[data-theme="dark"] .dfe-mp-row { border-top-color: rgba(255,255,255,0.06); }
+    html[data-theme="dark"] .dfe-mp-row.miss { background: rgba(239,68,68,0.08); }
+    html[data-theme="dark"] .dfe-mp-ix {
+      background: rgba(255,255,255,0.04); color: var(--sd-text-soft);
+      border-color: rgba(255,255,255,0.08);
+    }
+    html[data-theme="dark"] .dfe-mp-name { color: var(--sd-text-soft); }
+    html[data-theme="dark"] .dfe-mp-side button {
+      background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.1);
+      color: var(--sd-text-soft);
+    }
+    html[data-theme="dark"] .dfe-mp-side button.on-y {
+      background: #16a34a; border-color: #16a34a; color: #fff;
+    }
+    html[data-theme="dark"] .dfe-mp-side button.on-n {
+      background: #dc2626; border-color: #dc2626; color: #fff;
+    }
+
+    html[data-theme="dark"] .dfe-itb-body {
+      background: rgba(255,255,255,0.025); border-color: rgba(255,255,255,0.08);
+    }
+    html[data-theme="dark"] .dfe-bp {
+      background: rgba(20,20,22,0.92); border-color: rgba(255,255,255,0.12);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+    }
+    html[data-theme="dark"] .dfe-bp .lbl { color: var(--sd-text-muted); }
+    html[data-theme="dark"] .dfe-bp input {
+      background: rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.12); color: var(--sd-text);
+    }
+    html[data-theme="dark"] .dfe-bp input:focus {
+      border-color: #06b6d4; box-shadow: 0 0 0 2px rgba(6,182,212,0.22);
+    }
+    html[data-theme="dark"] .dfe-bp .unit { color: var(--sd-text-faint); }
+    html[data-theme="dark"] .dfe-bp .sw button {
+      background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.12);
+      color: var(--sd-text-muted);
+    }
+    html[data-theme="dark"] .dfe-bp .sw button.on {
+      background: #06b6d4; border-color: #06b6d4; color: #052e36;
+    }
+    html[data-theme="dark"] .dfe-bp .meta { color: var(--sd-text-faint); }
+    html[data-theme="dark"] .dfe-itb-armref {
+      background: rgba(20,20,22,0.92); border-color: rgba(255,255,255,0.12);
+      color: var(--sd-text-muted);
+    }
+    html[data-theme="dark"] .dfe-itb-card {
+      background: rgba(20,20,22,0.6); border-color: rgba(255,255,255,0.09);
+    }
+    html[data-theme="dark"] .dfe-itb-card .side b { color: var(--sd-text-soft); }
+    html[data-theme="dark"] .dfe-itb-card .v { color: var(--sd-text); }
+    html[data-theme="dark"] .dfe-itb-card .v.placeholder { color: var(--sd-text-faint); }
+    html[data-theme="dark"] .dfe-itb-card .interp {
+      background: rgba(255,255,255,0.04); color: var(--sd-text-muted);
+    }
+    html[data-theme="dark"] .dfe-itb-card .interp.ok   { background: rgba(34,197,94,0.16); color: #4ade80; }
+    html[data-theme="dark"] .dfe-itb-card .interp.warn { background: rgba(245,158,11,0.18); color: #fbbf24; }
+    html[data-theme="dark"] .dfe-itb-card .interp.crit { background: rgba(239,68,68,0.2);  color: #fca5a5; }
+    html[data-theme="dark"] .dfe-itb-card .formula { color: var(--sd-text-faint); }
+    html[data-theme="dark"] .dfe-itb-card .note { color: var(--sd-text-muted); }
+    html[data-theme="dark"] .dfe-itb-key {
+      background: rgba(255,255,255,0.025); border-color: rgba(255,255,255,0.08);
+    }
+    html[data-theme="dark"] .dfe-itb-key h4 { color: var(--sd-text-soft); }
+    html[data-theme="dark"] .dfe-itb-key .row { border-top-color: rgba(255,255,255,0.06); }
+    html[data-theme="dark"] .dfe-itb-key .row .rng { color: var(--sd-text-soft); }
+    html[data-theme="dark"] .dfe-itb-key .row .nm { color: var(--sd-text); }
+    html[data-theme="dark"] .dfe-itb-key .row.active { background: rgba(6,182,212,0.1); }
+
+    html[data-theme="dark"] .dfe-ref {
+      background: rgba(6,182,212,0.06); border-color: rgba(6,182,212,0.22);
+    }
+    html[data-theme="dark"] .dfe-ref-icon { background: rgba(6,182,212,0.18); color: #67e8f9; }
+    html[data-theme="dark"] .dfe-ref-eye { color: #67e8f9; }
+    html[data-theme="dark"] .dfe-ref h4 { color: var(--sd-text); }
+    html[data-theme="dark"] .dfe-ref p { color: var(--sd-text-muted); }
+
+    html[data-theme="dark"] .dfe-alarm-banner {
+      background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3);
+    }
+    html[data-theme="dark"] .dfe-alarm-banner.info {
+      background: rgba(6,182,212,0.08); border-color: rgba(6,182,212,0.25);
+    }
+    html[data-theme="dark"] .dfe-alarm-banner svg { color: #fca5a5; }
+    html[data-theme="dark"] .dfe-alarm-banner.info svg { color: #67e8f9; }
+    html[data-theme="dark"] .dfe-alarm-banner b { color: var(--sd-text); }
+    html[data-theme="dark"] .dfe-alarm-banner span { color: var(--sd-text-soft); }
+
+    html[data-theme="dark"] .dfe-summary {
+      background: linear-gradient(180deg, rgba(20,20,22,0.5) 0%, rgba(255,255,255,0.02) 100%);
+      border-color: rgba(255,255,255,0.09);
+    }
+    html[data-theme="dark"] .dfe-summary-h h4 { color: var(--sd-text); }
+    html[data-theme="dark"] .dfe-summary-tile {
+      background: rgba(20,20,22,0.55); border-color: rgba(255,255,255,0.07);
+    }
+    html[data-theme="dark"] .dfe-summary-tile .h b { color: var(--sd-text); }
+    html[data-theme="dark"] .dfe-summary-tile .det { color: var(--sd-text-muted); }
+    html[data-theme="dark"] .dfe-pill {
+      background: rgba(255,255,255,0.05); color: var(--sd-text-muted);
+      border-color: rgba(255,255,255,0.08);
+    }
+    html[data-theme="dark"] .dfe-pill.ok    { background: rgba(34,197,94,0.16); color: #4ade80; border-color: rgba(34,197,94,0.25); }
+    html[data-theme="dark"] .dfe-pill.warn  { background: rgba(245,158,11,0.18); color: #fbbf24; border-color: rgba(245,158,11,0.3); }
+    html[data-theme="dark"] .dfe-pill.alarm { background: rgba(239,68,68,0.2);  color: #fca5a5; border-color: rgba(239,68,68,0.3); }
+    html[data-theme="dark"] .dfe-conclusion { border-top-color: rgba(255,255,255,0.08); }
+    html[data-theme="dark"] .dfe-conclusion p { color: var(--sd-text-soft); }
+    html[data-theme="dark"] .dfe-conclusion li { color: var(--sd-text-soft); }
+    html[data-theme="dark"] .dfe-conclusion li b,
+    html[data-theme="dark"] .dfe-conclusion p b { color: var(--sd-text); }
+    html[data-theme="dark"] .dfe-conclusion li i { color: var(--sd-text-muted); }
+
+    /* Foot SVG legend bullets — borders need lighter contrast */
+    html[data-theme="dark"] .dfe-mono-legend i { border-color: rgba(255,255,255,0.45); }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .thermography-grid { grid-template-columns: 1fr; }
+      .feet-section { order: -1; }
+      .feet-svg { max-width: 100%; height: auto; min-height: 380px; }
+      .pod-hero { padding: 2rem 2rem; }
+      .pod-hero h1 { font-size: 2.2rem; }
+    }
+
+    @media (max-width: 860px) {
+      main, .layout-main { width: 100% !important; padding: 1rem 1rem 6rem !important; margin: 0 !important; padding-top: 80px !important; overflow-x: visible !important; }
+
+      .pod-hero { padding: 1.85rem 1.5rem; }
+      .pod-hero-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+      .pod-hero-side { flex-direction: row; align-items: center; flex-wrap: wrap; }
+      .pod-hero-patient { width: 100%; }
+      .pod-hero h1 { font-size: 1.85rem; }
+      .pod-hero-desc { font-size: 0.95rem; }
+
+      .form-section { padding: 1.25rem 1.1rem !important; }
+      .form-section h3 { font-size: 0.95rem; gap: 0.6rem; }
+      .form-section h3::before { width: 30px; height: 30px; background-size: 16px 16px; }
+
+      .form-grid { grid-template-columns: 1fr; gap: 0.85rem; }
+      .form-grid.two { grid-template-columns: 1fr; }
+
+      .clinical-table { font-size: 0.82rem; }
+      .clinical-table th { padding: 0.5rem 0.4rem; font-size: 0.7rem; }
+      .clinical-table td { padding: 0.45rem 0.4rem; font-size: 0.82rem; vertical-align: middle; }
+      .clinical-table textarea { min-height: 40px; max-height: 80px; font-size: 0.78rem; padding: 0.35rem; }
+      .clinical-table input { font-size: 0.78rem; padding: 0.3rem; }
+
+      .pod-group { margin: 1.75rem 0 0.85rem; }
+      .pod-group-num { width: 28px; height: 28px; font-size: 0.78rem; }
+      .pod-group-title { font-size: 0.95rem; }
+
+      .footer { flex-wrap: wrap; padding: 0.85rem 1rem; gap: 0.6rem; }
+      .footer-spacer { width: 100%; flex: none; order: -1; text-align: center; }
+      .btn-cancel, .btn-save { flex: 1; justify-content: center; padding: 0.75rem 1rem; font-size: 0.85rem; }
+    }
+
+    @media (max-width: 480px) {
+      main { padding: 1rem 0.65rem 6rem; padding-top: 80px !important; }
+      .pod-hero { padding: 1.5rem 1.15rem; border-radius: 22px; }
+      .pod-hero h1 { font-size: 1.5rem; }
+      .pod-hero-desc { font-size: 0.88rem; }
+      .pod-hero-eyebrow { font-size: 0.62rem; padding: 0.3rem 0.7rem; }
+      .pod-hero-pill { font-size: 0.72rem; padding: 0.4rem 0.75rem; }
+      .pod-hero-patient { padding: 0.7rem 0.95rem; min-width: 0; }
+
+      .form-section { padding: 1.1rem 0.95rem !important; border-radius: 16px; }
+      .form-section h3 { font-size: 0.88rem; padding-bottom: 0.85rem; margin-bottom: 1rem; }
+      .form-grid { gap: 0.75rem; }
+      .form-group label { font-size: 0.66rem; }
+      .form-group input, .form-group textarea, .form-group select {
+        padding: 0.7rem 0.8rem; font-size: 16px;
+      }
+      .clinical-table th { padding: 0.4rem 0.3rem; font-size: 0.66rem; }
+      .clinical-table td { padding: 0.4rem 0.3rem; font-size: 0.78rem; }
+      .pod-drop { padding: 1.5rem 1rem; }
+      .pod-drop-icon { width: 48px; height: 48px; }
+    }
+  
+</style>
+<style>
+  /* Ajustes propios del demo: sin el armazón de la app (barra lateral,
+     cabecera), la ficha va sola sobre el lienzo. */
+  html, body { background: var(--pod-bg, #f1f5f9); }
+  body { margin: 0; padding: 1.5rem 1rem 3rem; }
+  .demo-wrap { max-width: 980px; margin: 0 auto; }
+  /* El cursor delata que las cabeceras se abren, igual que en la app. */
+  .pod-group { cursor: pointer; }
+  @media (max-width: 720px) { body { padding: 1rem 0.75rem 2rem; } }
+</style>
+</head>
+<body>
+<div class="demo-wrap">
+  <form id="consultationForm" autocomplete="off" onsubmit="return false;">
+<div class="pod-group" data-group-idx="0">
+      <div class="pod-group-num">1</div>
+      <div class="pod-group-title">Información del Paciente</div>
+      <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+
+    <!-- Datos Personales -->
+    <div class="form-section" data-icon="user">
+      <h3>Datos Personales</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Tipo de consulta</label>
+          <select id="consVisitType">
+            <option value="primera_vez">Primera vez (paciente nuevo)</option>
+            <option value="seguimiento">Seguimiento / control</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>¿Ha visto a un podólogo antes?</label>
+          <select id="consSeenPodologistBefore">
+            <option value="">Seleccione…</option>
+            <option value="no">No, es la primera vez</option>
+            <option value="si_aqui">Sí, en esta clínica</option>
+            <option value="si_otro">Sí, en otra clínica</option>
+            <option value="no_recuerda">No recuerda</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Edad</label>
+          <input type="number" id="consAge" placeholder="Ej: 45">
+        </div>
+        <div class="form-group">
+          <label>Profesión / Ocupación</label>
+          <input type="text" id="consOccupation" placeholder="Ej: Ingeniero">
+        </div>
+      </div>
+      <div class="form-group" id="consPrevPodologistDetailsWrap" style="display:none; margin-top: 1rem;">
+        <label>Detalles de podólogo anterior (cuándo, motivo, tratamientos previos)</label>
+        <textarea id="consPrevPodologistDetails" rows="2" placeholder="Ej: hace 8 meses por uña encarnada, tratamiento de cirugía menor"></textarea>
+      </div>
+      </div>
+
+    <!-- ─── Sección 2: Antecedentes patológicos y no patológicos ─── -->
+    <div class="pod-group is-collapsed" data-group-idx="1">
+      <div class="pod-group-num">2</div>
+      <div class="pod-group-title">Antecedentes patológicos y no patológicos</div>
+      <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+
+    <!-- Antecedentes Personales Patológicos -->
+    <div class="form-section" data-icon="history">
+      <h3>Antecedentes Personales Patológicos</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th colspan="2">Antecedente</th>
+            <th style="width: 80px;">Sí</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="2">Diabetes Mellitus</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerDiabetes"></td>
+            <td><textarea id="consPerDiabetesObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Hipertensión</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerHypertension"></td>
+            <td><textarea id="consPerHypertensionObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Cardiopatías</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerCardiopathy"></td>
+            <td><textarea id="consPerCardioppathyObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Enfermedad Vascular</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerVascular"></td>
+            <td><textarea id="consPerVascularObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Psoriasis</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerPsoriasis"></td>
+            <td><textarea id="consPerPsoriasisObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Artritis</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerArthritis"></td>
+            <td><textarea id="consPerArthritisObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Cáncer</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerCancer"></td>
+            <td><textarea id="consPerCancerObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Enfermedades Dermatológicas</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerDermatological"></td>
+            <td><textarea id="consPerDermatologicalObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">VIH</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerHIV"></td>
+            <td><textarea id="consPerHIVObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Enfermedad Renal</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerRenal"></td>
+            <td><textarea id="consPerRenalObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Otros</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerOtros"></td>
+            <td><textarea id="consPerOtrosObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Alergias</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerAllergies"></td>
+            <td><textarea id="consPerAllergiesObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Toma Aspirina o Anticoagulante</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerAspirin"></td>
+            <td><textarea id="consPerAspirinObs" placeholder="Frecuencia:"></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Antecedentes Personales No Patológicos -->
+    <div class="form-section" data-icon="lifestyle">
+      <h3>Antecedentes Personales No Patológicos</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th colspan="2">Antecedente</th>
+            <th style="width: 80px;">Sí</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="2">Fuma</td>
+            <td style="text-align: center;"><input type="checkbox" id="consNonPathFuma"></td>
+            <td><textarea id="consNonPathFumaObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Alcohol</td>
+            <td style="text-align: center;"><input type="checkbox" id="consNonPathAlcohol"></td>
+            <td><textarea id="consNonPathAlcoholObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Toxicomanías</td>
+            <td style="text-align: center;"><input type="checkbox" id="consNonPathToxins"></td>
+            <td><textarea id="consNonPathToxinsObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Otros</td>
+            <td style="text-align: center;"><input type="checkbox" id="consNonPathOtros"></td>
+            <td><textarea id="consNonPathOtrosObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Realiza algún tipo de ejercicio</td>
+            <td style="text-align: center;"><input type="checkbox" id="consNonPathExercise"></td>
+            <td><textarea id="consNonPathExerciseObs"></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Antecedentes Ginecoobstétricos -->
+    <div class="form-section" data-icon="history">
+      <h3>Antecedentes Ginecoobstétricos</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th colspan="2">Antecedente</th>
+            <th style="width: 80px;">Sí</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="2">Embarazo</td>
+            <td style="text-align: center;"><input type="checkbox" id="consPerPregnancy"></td>
+            <td><textarea id="consPerPregnancyObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">SG (Semanas de gestación)</td>
+            <td colspan="2"><textarea id="consPerSG" style="width: 100%;"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">TX (Tratamiento)</td>
+            <td colspan="2"><textarea id="consPerPregnancyTx" style="width: 100%;"></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tipo de Calzado -->
+    <div class="form-section" data-icon="shoe">
+      <h3>Tipo de Calzado</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th colspan="2">Tipo</th>
+            <th style="width: 80px;">Sí</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="2">Deportivo</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzDeportivo"></td>
+            <td><textarea id="consCalzDeportivoObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Tacones</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzTacones"></td>
+            <td><textarea id="consCalzTaconesObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Zapatillas tipo flat</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzFlat"></td>
+            <td><textarea id="consCalzFlatObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Cerrados</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzCerrados"></td>
+            <td><textarea id="consCalzCerradosObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Sandalias</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzSandalias"></td>
+            <td><textarea id="consCalzSandaliasObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Botas</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzBotas"></td>
+            <td><textarea id="consCalzBotasObs"></textarea></td>
+          </tr>
+          <tr>
+            <td colspan="2">Otros</td>
+            <td style="text-align: center;"><input type="checkbox" id="consCalzOtros"></td>
+            <td><textarea id="consCalzOtrosObs"></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ─── Sección 3: Historia Clínica ─── -->
+    <div class="pod-group is-collapsed" data-group-idx="2">
+      <div class="pod-group-num">3</div>
+      <div class="pod-group-title">Historia Clínica</div>
+      <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+
+    <!-- Historia de Enfermedad Actual -->
+    <div class="form-section" data-icon="alert">
+      <h3>Historia de Enfermedad Actual (HEA)</h3>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Queja Principal y Duración</label>
+          <textarea id="consMainComplaint" placeholder="Describa la razón principal de la consulta"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exploración Física -->
+    <div class="form-section" data-icon="exam">
+      <h3>Exploración Física</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Peso (kg)</label>
+          <input type="number" id="consWeight" step="0.1" placeholder="Ej: 70.5">
+        </div>
+        <div class="form-group">
+          <label>Talla (cm)</label>
+          <input type="number" id="consHeight" step="0.1" placeholder="Ej: 175">
+        </div>
+        <div class="form-group">
+          <label>IMC</label>
+          <input type="number" id="consIMC" step="0.1" placeholder="Calculado">
+        </div>
+      </div>
+
+      <!-- Podogram Interactivo -->
+      <div id="podogram1"></div>
+    </div>
+
+    <!-- Exploración Dermatológica -->
+    <div class="form-section" data-icon="skin">
+      <h3>Exploración Dermatológica</h3>
+      <table class="clinical-table">
+        <thead>
+          <tr>
+            <th>Hallazgo</th>
+            <th>Derecho</th>
+            <th>Izquierdo</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Hiperqueratosis / Helomas</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Onicocriptosis</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Onicomicosis</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Hiperq. Subungueal</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Onicolisis</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Onicogrífosis</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Onicorrexis</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Paronquia</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Retroniquia</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Tiñas</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Verrugas</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Onicofagia</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Coiloniquia</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+          <tr>
+            <td>Otros</td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><textarea></textarea></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ─── Sección 4: Exploración del Pie Diabético ─── -->
+    <div class="pod-group is-collapsed" data-group-idx="3">
+      <div class="pod-group-num">4</div>
+      <div class="pod-group-title">Exploración del Pie Diabético</div>
+      <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+
+    <!-- Diabetic Foot Exam (DFE) -->
+    <div class="form-section" data-icon="foot-exam">
+      <h3>
+        Exploración del Pie Diabético
+        <span class="h3-desc">Tamizaje neurológico y vascular · 7 maniobras (incluye monofilamento) + ITB y termografía</span>
+      </h3>
+
+      <div id="dfeRoot" class="dfe-wrap">
+        <!-- Banner -->
+        <div class="dfe-banner">
+          <div class="dfe-banner-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5c0-2.5 1-5.5 3-7.5 1.5-1.5 4-1.5 5 .5 1 2.5-.5 5-1.5 7-.5 1-.5 2 0 3 .5 1.5 2 2.5 2 4 0 1.5-1.5 3-3.5 3s-3-1-3.5-2.5c-.5-1.5-.5-3.5-1.5-5-.5-.5-1-1-1-2.5z"/><circle cx="6.5" cy="9" r="1"/><circle cx="6" cy="12.5" r=".8"/><circle cx="7" cy="15.5" r=".8"/></svg>
+          </div>
+          <div>
+            <div class="dfe-banner-title">Tamizaje del pie diabético</div>
+            <div class="dfe-banner-sub">Protocolo recomendado anualmente o ante síntomas. Comprende 7 maniobras neurológicas (con monofilamento 10 g integrado en la sensibilidad profunda), el índice tobillo-brazo (ITB) y la termografía plantar.</div>
+          </div>
+          <div class="dfe-banner-stat">
+            <div class="dfe-progress" aria-hidden="true"><i id="dfeProgressBar"></i></div>
+            <div class="dfe-progress-pct" id="dfeProgressPct">0%</div>
+            <div id="dfeAlarmsPill" class="dfe-alarms-pill">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="dfeAlarmsText">Sin alarmas</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Steps accordion -->
+        <div id="dfeSteps"></div>
+
+        <!-- Termografía y termometría — es el cuerpo del paso 9 del acordeón.
+             Vive aquí, fuera de #dfeSteps, porque cada render del acordeón
+             reescribe sus pasos y se lo llevaría por delante; el propio módulo
+             lo mueve a la ranura del paso 9 vía registerExternal(). Si el módulo
+             no llegara a montar, el widget se sigue viendo y usando en este sitio. -->
+        <div id="thermoWidget">
+          <div class="thermography-grid">
+            <!-- SVG de Pies -->
+            <div class="feet-section">
+              <span class="feet-label">Visualización de Pies</span>
+              <div class="feet-svg" id="thermoFeetContainer"></div>
+            </div>
+
+            <!-- Controles -->
+            <div class="controls-section">
+              <div class="control-group">
+                <label class="control-label">Tipo de Termografía</label>
+                <div class="thermography-types" id="thermoTypeSelector">
+                  <button type="button" class="type-option" data-type="type1">Tipo 1<br>Mariposa</button>
+                  <button type="button" class="type-option" data-type="type2">Tipo 2<br>Alto</button>
+                  <button type="button" class="type-option" data-type="type3">Tipo 3<br>Interno</button>
+                  <button type="button" class="type-option" data-type="type4">Tipo 4<br>Bajo</button>
+                  <button type="button" class="type-option" data-type="type5">Tipo 5<br>Bajo</button>
+                  <button type="button" class="type-option" data-type="type6">Tipo 6<br>Antepié</button>
+                  <button type="button" class="type-option" data-type="type7">Tipo 7<br>Dedos</button>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Zona a Medir</label>
+                <div class="temperature-input">
+                  <input type="text" id="thermo-zoneInput" placeholder="Ej: Talón, Metatarsiano..." style="flex: 1;">
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Temperatura (°C)</label>
+                <div class="temperature-input">
+                  <input type="number" id="thermo-temperatureInput" placeholder="Ej: 32.5" step="0.1" min="20" max="45" style="flex: 1;">
+                  <button type="button" onclick="thermoAddMeasurement()">Registrar</button>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Mediciones Registradas</label>
+                <div class="measurements-list" id="thermo-measurementsList">
+                  <p style="color: #94a3b8; font-size: 0.85rem; padding: 0.75rem; text-align: center;">Sin mediciones aún</p>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label class="control-label">Observaciones Generales</label>
+                <textarea id="thermo-observations" placeholder="Notas sobre los patrones térmicos observados..." style="padding: 0.75rem 0.85rem; border: 1.5px solid var(--pod-border); border-radius: 10px; font-family: inherit; font-size: 0.88rem; background: white; min-height: 80px; resize: vertical; transition: all 0.2s;" onfocus="this.style.borderColor='var(--pod-primary)';this.style.boxShadow='0 0 0 3px rgba(8,145,178,0.12)';" onblur="this.style.borderColor='var(--pod-border)';this.style.boxShadow='none';"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Leyenda de Colores -->
+          <div class="color-legend">
+            <div class="legend-item">
+              <div class="legend-color" style="background: #3b82f6;"></div>
+              <span>Muy Fría (&lt;30°C)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #06b6d4;"></div>
+              <span>Fría (30-32°C)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #10b981;"></div>
+              <span>Normal (32-35°C)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #f59e0b;"></div>
+              <span>Cálida (35-37°C)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #ef4444;"></div>
+              <span>Muy Cálida (&gt;37°C)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Findings summary -->
+        <div class="dfe-summary">
+          <div class="dfe-summary-h">
+            <h4>Resumen de la exploración</h4>
+            <span class="dfe-pill" id="dfeSummaryPill">Pendiente</span>
+          </div>
+          <div class="dfe-summary-grid" id="dfeSummaryGrid"></div>
+          <div class="dfe-conclusion" id="dfeConclusion"></div>
+        </div>
+      </div>
+
+      <!-- Hidden serialized payload, captured by ConsultationDraft + submitConsult() -->
+      <input type="hidden" id="consDFEState" name="consDFEState" value="">
+    </div>
+
+    <!-- ─── Sección 5: Diagnóstico y Tratamiento ─── -->
+    <div class="pod-group is-collapsed" data-group-idx="4">
+      <div class="pod-group-num">5</div>
+      <div class="pod-group-title">Diagnóstico y Tratamiento</div>
+      <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+
+    <!-- Diagnóstico y Plan -->
+    <div class="form-section" data-icon="diagnosis">
+      <h3>Diagnóstico y Plan de Manejo</h3>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Diagnóstico</label>
+          <textarea id="consDiagnosis" placeholder="Describa el diagnóstico"></textarea>
+        </div>
+      </div>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Plan y Manejo</label>
+          <textarea id="consTreatmentPlan" placeholder="Describa el plan de tratamiento"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Procedimientos -->
+    <div class="form-section" data-icon="tools">
+      <h3>Procedimientos Realizados</h3>
+      <div class="form-grid full">
+        <div class="form-group">
+          <textarea id="consProcedures" placeholder="Describa los procedimientos realizados"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Imágenes de la Consulta -->
+    <div class="form-section" data-icon="image">
+      <h3>Imágenes de la Consulta</h3>
+      <div id="imgDropZone" class="pod-drop">
+        <div class="pod-drop-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="pod-drop-title">Arrastra imágenes aquí o haz clic para seleccionar</div>
+        <div class="pod-drop-sub">Máx 10 imágenes, 10MB cada una (JPEG, PNG, WebP)</div>
+      </div>
+      <input id="imgFileInput" type="file" accept="image/*" multiple hidden onchange="handleImageSelect()">
+      <div id="imgGrid" class="pod-image-grid"></div>
+    </div>
+
+    <!-- Consentimiento Informado -->
+    <div class="form-section" data-icon="signature">
+      <h3>Consentimiento Informado</h3>
+      <div class="form-grid full">
+        <div class="form-group">
+          <label>Seleccionar Plantilla de Consentimiento</label>
+          <select id="consTemplateSelect" onchange="updateConsentInfo()">
+            <option value="">-- Seleccione un consentimiento --</option>
+          </select>
+        </div>
+      </div>
+      <div id="consConsentInfo" class="pod-consent-bar">
+        <button type="button" class="pod-consent-btn success" onclick="openSignatureModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17.5c2-2 6-4 9-2s4 4 9 0"/><path d="M3 21h18"/></svg>
+          Ver y Firmar
+        </button>
+        <button type="button" class="pod-consent-btn primary" onclick="downloadConsentPDF()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar PDF
+        </button>
+        <span id="consSignedIndicator" class="pod-consent-signed">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Consentimiento Firmado
+        </span>
+      </div>
+    </div>
+
+    <!-- Inventario desactivado — para reactivar, descomentar este bloque:
+    Inventario utilizado
+    <div id="inventoryUsageSection"></div>
+    -->
+
+    <!-- ─── Sección 6: Pago ─── -->
+    <div class="pod-group is-collapsed" data-group-idx="5">
+      <div class="pod-group-num">6</div>
+      <div class="pod-group-title">Información de Pago</div>
+      <div class="pod-group-line"></div>
+      <div class="pod-group-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+
+    <!-- Costos y Pago -->
+    <div class="form-section" data-icon="payment">
+      <h3>Información de Pago</h3>
+      <div class="form-grid two">
+        <div class="form-group">
+          <label>Costo de la Consulta (L.)</label>
+          <input type="text" id="consCost" placeholder="0.00" inputmode="decimal">
+        </div>
+        <div class="form-group">
+          <label>Estado de Pago</label>
+          <select id="consPayment">
+            <option value="pending">Pendiente</option>
+            <option value="paid">Pagado</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Descripción del Pago (descuentos, paquetes, etc.)</label>
+        <textarea id="consPaymentNotes" placeholder="Ej: Descuento 10%, Paquete 2 procedimientos..." style="min-height: 80px;"></textarea>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span class="footer-spacer">Asegúrese de revisar todos los campos antes de guardar.</span>
+      <button type="button" class="btn-cancel" onclick="window.ConsultationDraft ? ConsultationDraft.exit(()=>history.back()) : history.back()">Cancelar</button>
+      <button type="submit" class="btn-save">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Guardar Consulta
+      </button>
+    </div>
+  </form>
+</main>
+
+<!-- Inventario desactivado — para reactivar, descomentar esta línea:
+-->
+
+  </form>
+</div>
+
+<script src="/icons.js"></script>
+<script src="/podogram-container.js"></script>
+<script src="/diabetic-foot-exam.js"></script>
+<script>
+  // El podograma, en modo solo lectura (tercer argumento del componente).
+  try { new PodogramContainer('podogram1', {}, true); } catch (e) {}
+
+  // Los acordeones: mismo comportamiento que en la ficha real — la cabecera
+  // pliega todo lo que va hasta el siguiente grupo.
+  (function acordeones() {
+    const form = document.getElementById('consultationForm');
+    if (!form) return;
+    function hermanos(grupo) {
+      const out = [];
+      let el = grupo.nextElementSibling;
+      while (el && !el.classList.contains('pod-group')) {
+        if (el.nodeType === 1) out.push(el);
+        el = el.nextElementSibling;
+      }
+      return out;
+    }
+    function aplicar(grupo) {
+      const plegado = grupo.classList.contains('is-collapsed');
+      hermanos(grupo).forEach((s) => s.classList.toggle('is-hidden-by-group', plegado));
+    }
+    form.querySelectorAll('.pod-group').forEach((g) => {
+      aplicar(g);
+      g.addEventListener('click', () => { g.classList.toggle('is-collapsed'); aplicar(g); });
+    });
+  })();
+
+  // Avisar a la landing de cuánto mide, para que el iframe crezca con el
+  // contenido en vez de dejar una barra de scroll interna.
+  (function avisarAlto() {
+    let ultimo = 0;
+    function medir() {
+      const alto = Math.ceil(document.querySelector('.demo-wrap').getBoundingClientRect().height) + 48;
+      if (alto !== ultimo) {
+        ultimo = alto;
+        parent.postMessage({ tipo: 'alto-consulta', alto: alto }, '*');
+      }
+    }
+    new ResizeObserver(medir).observe(document.body);
+    document.addEventListener('click', () => setTimeout(medir, 420));
+    window.addEventListener('load', medir);
+    medir();
+  })();
+</script>
+</body>
+</html>

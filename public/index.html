@@ -3832,422 +3832,61 @@
   }
 
   /* ═══════════════════════════════════════════════════════
-     ESPECIALIDADES — la ficha podológica, abrible
-     Los acordeones replican los .pod-group de
-     consultation-podiatry.html: número, título, línea y galón.
-     Aquí son de solo lectura.
+     ESPECIALIDADES — la ficha podológica real, embebida
      ═══════════════════════════════════════════════════════ */
   .spec { padding: 1rem 0 5rem; }
 
-  .spec-ficha {
-    max-width: 860px;
+  .spec-app {
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 1.75rem 1.75rem 1.25rem;
-    border-radius: 22px;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    border: 1px solid rgba(8, 145, 178, 0.14);
-    box-shadow: 0 0 80px rgba(8, 145, 178, 0.10), 0 24px 60px rgba(0, 0, 0, 0.08);
-  }
-
-  .spec-acc + .spec-acc { border-top: 1px solid rgba(8, 145, 178, 0.10); }
-
-  .spec-acc-head {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    width: 100%;
-    padding: 1.1rem 0;
-    background: none;
-    border: 0;
-    cursor: pointer;
-    font-family: inherit;
-    text-align: left;
-    transition: opacity 0.2s ease;
-  }
-  .spec-acc-head:hover { opacity: 0.82; }
-  .spec-acc-num {
-    flex-shrink: 0;
-    width: 34px; height: 34px;
-    display: grid;
-    place-items: center;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-    color: #fff;
-    font-weight: 900;
-    font-size: 0.9rem;
-    box-shadow: 0 6px 18px rgba(8, 145, 178, 0.3);
-  }
-  .spec-acc-title {
-    font-size: 1.06rem;
-    font-weight: 800;
-    color: var(--text);
-    letter-spacing: -0.02em;
-  }
-  .spec-acc-line {
-    flex: 1;
-    height: 2px;
-    border-radius: 2px;
-    background: linear-gradient(90deg, rgba(8, 145, 178, 0.2), transparent);
-  }
-  .spec-acc-chev {
-    flex-shrink: 0;
-    width: 22px; height: 22px;
-    display: grid;
-    place-items: center;
-    color: var(--primary);
-    transform: rotate(-90deg);
-    transition: transform 0.25s ease;
-  }
-  .spec-acc-chev svg { width: 18px; height: 18px; }
-  .spec-acc.is-open .spec-acc-chev { transform: none; }
-
-  /* El cuerpo se abre con grid-template-rows: anima sin saber la altura. */
-  .spec-acc-body {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.32s ease, opacity 0.32s ease;
-    opacity: 0;
-  }
-  .spec-acc-body > * { min-height: 0; }
-  .spec-acc.is-open .spec-acc-body { grid-template-rows: 1fr; opacity: 1; }
-  /* El padding solo cuando está abierto: si vive siempre, sobrevive al
-     colapso (grid-template-rows:0fr encoge el contenido, no el relleno) y
-     cada grupo cerrado deja 22px muertos. */
-  .spec-acc-inner { overflow: hidden; }
-  .spec-acc.is-open .spec-acc-inner { padding-bottom: 1.35rem; }
-
-  .spec-sub {
-    font-size: 0.68rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--primary);
-    margin: 0.5rem 0 0.7rem;
-  }
-  .spec-sub:first-child { margin-top: 0; }
-
-  .spec-fields { display: flex; flex-wrap: wrap; gap: 0.45rem; }
-  .spec-field {
-    display: inline-block;
-    padding: 0.42rem 0.8rem;
-    border-radius: 9px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--muted);
-    background: rgba(8, 145, 178, 0.05);
-    border: 1px solid rgba(8, 145, 178, 0.14);
-  }
-
-  .spec-hint {
-    margin-top: 0.85rem;
-    font-size: 0.8rem;
-    font-weight: 500;
-    line-height: 1.5;
-    color: var(--muted);
-  }
-
-  /* Tabla de hallazgos: nombre + un punto por pie, como en la ficha. */
-  .spec-derma { display: flex; flex-direction: column; gap: 0.3rem; }
-  .spec-derma-head,
-  .spec-derma-row {
-    display: grid;
-    grid-template-columns: 1fr 46px 46px;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .spec-derma-head {
-    font-size: 0.62rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    padding-bottom: 0.3rem;
-    border-bottom: 1px solid rgba(8, 145, 178, 0.10);
-  }
-  .spec-derma-head span:not(:first-child),
-  .spec-derma-row span:not(:first-child) { text-align: center; justify-self: center; }
-  .spec-derma-row {
-    padding: 0.4rem 0;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .spec-dot {
-    width: 15px; height: 15px;
-    border-radius: 5px;
-    border: 1.5px solid rgba(8, 145, 178, 0.28);
-    background: rgba(8, 145, 178, 0.04);
-  }
-
-  /* ── Los nueve pasos: cada uno se abre a su instrucción, sus sub-pruebas
-     y su hallazgo de alarma, igual que en diabetic-foot-exam.js ── */
-  .spec-steps { display: flex; flex-direction: column; gap: 0.4rem; }
-
-  .spec-step-acc {
-    border: 1px solid rgba(8, 145, 178, 0.14);
-    border-radius: 12px;
-    background: rgba(8, 145, 178, 0.03);
+    border-radius: 20px;
     overflow: hidden;
-    transition: border-color 0.25s ease, background 0.25s ease;
-  }
-  .spec-step-acc.is-open {
-    border-color: rgba(8, 145, 178, 0.30);
-    background: rgba(8, 145, 178, 0.05);
-  }
-  .spec-step-head {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    width: 100%;
-    padding: 0.65rem 0.8rem;
-    background: none;
-    border: 0;
-    cursor: pointer;
-    font-family: inherit;
-    text-align: left;
-    transition: opacity 0.2s ease;
-  }
-  .spec-step-head:hover { opacity: 0.85; }
-  .spec-step-n {
-    flex-shrink: 0;
-    width: 27px; height: 27px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    font-size: 0.72rem;
-    font-weight: 900;
-    color: var(--primary);
-    background: #fff;
-    border: 1.5px solid rgba(8, 145, 178, 0.30);
-    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-  }
-  .spec-step-acc.is-open .spec-step-n {
-    color: #fff;
-    background: linear-gradient(135deg, #0891b2, #06b6d4);
-    border-color: transparent;
-  }
-  .spec-step-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-  .spec-step-t { font-size: 0.86rem; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
-  .spec-step-eye {
-    font-size: 0.62rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-  }
-  .spec-step-chev {
-    flex-shrink: 0;
-    width: 18px; height: 18px;
-    display: grid;
-    place-items: center;
-    color: var(--primary);
-    transform: rotate(-90deg);
-    transition: transform 0.25s ease;
-  }
-  .spec-step-chev svg { width: 15px; height: 15px; }
-  .spec-step-acc.is-open .spec-step-chev { transform: none; }
-
-  .spec-step-body {
-    display: grid;
-    grid-template-rows: 0fr;
-    opacity: 0;
-    transition: grid-template-rows 0.3s ease, opacity 0.3s ease;
-  }
-  .spec-step-body > * { min-height: 0; }
-  .spec-step-acc.is-open .spec-step-body { grid-template-rows: 1fr; opacity: 1; }
-  .spec-step-inner { overflow: hidden; padding: 0 0.85rem 0 3.35rem; }
-  .spec-step-acc.is-open .spec-step-inner { padding-bottom: 0.85rem; }
-
-  .spec-step-sub {
-    font-size: 0.79rem;
-    font-weight: 500;
-    line-height: 1.5;
-    color: var(--muted);
-    margin-bottom: 0.7rem;
-  }
-  .spec-items { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
-  .spec-items li {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.5rem;
-    padding: 0.34rem 0.6rem;
-    border-radius: 8px;
-    background: rgba(8, 145, 178, 0.05);
-  }
-  .spec-item-n { font-size: 0.79rem; font-weight: 700; color: var(--text); }
-  .spec-item-h { font-size: 0.73rem; font-weight: 500; color: var(--muted); }
-
-  .spec-alarm {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.7rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #b45309;
-  }
-  .spec-alarm span {
-    font-size: 0.58rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    padding: 0.15rem 0.45rem;
-    border-radius: 999px;
-    background: rgba(245, 158, 11, 0.14);
-    color: #b45309;
-  }
-
-
-  /* ── Mapa plantar y podograma: los gráficos reales de la ficha ── */
-  .spec-pie {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    gap: 1.1rem;
-    align-items: center;
-    margin: 0.85rem 0;
-    padding: 0.9rem;
-    border-radius: 12px;
-    background: rgba(8, 145, 178, 0.04);
-    border: 1px solid rgba(8, 145, 178, 0.12);
-  }
-  .spec-pie-svg { width: 100%; height: auto; display: block; color: var(--muted); }
-  .spec-pie-leyenda {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.28rem;
-    margin: 0;
-  }
-  .spec-pie-leyenda li {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.73rem;
-    font-weight: 600;
-    color: var(--muted);
-  }
-  .spec-pie-n {
-    flex-shrink: 0;
-    width: 19px; height: 19px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    font-size: 0.6rem;
-    font-weight: 900;
-    color: #fff;
-    background: linear-gradient(135deg, #0891b2, #06b6d4);
-  }
-
-  .spec-pod { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-bottom: 0.4rem; }
-  .spec-pod-item {
-    margin: 0;
-    width: 88px;
-    border-radius: 10px;
-    overflow: hidden;
-    background: #fff;
     border: 1px solid rgba(8, 145, 178, 0.16);
-    text-align: center;
+    background: #f1f5f9;
+    box-shadow:
+      0 0 90px rgba(8, 145, 178, 0.12),
+      0 26px 64px rgba(0, 0, 0, 0.12);
   }
-  .spec-pod-item img { display: block; width: 100%; height: auto; }
-  .spec-pod-item figcaption {
-    padding: 0.28rem 0.2rem 0.32rem;
-    font-size: 0.63rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--primary);
-    background: rgba(8, 145, 178, 0.06);
+  .spec-app-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.65rem 0.9rem;
+    background: #e2e8f0;
+    border-bottom: 1px solid rgba(8, 145, 178, 0.12);
+  }
+  .spec-app-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .spec-app-dot.r { background: #f87171; }
+  .spec-app-dot.y { background: #fbbf24; }
+  .spec-app-dot.g { background: #4ade80; }
+  .spec-app-url {
+    margin-left: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: -0.01em;
+  }
+  .spec-app-frame {
+    display: block;
+    width: 100%;
+    height: 760px;      /* arranque; el propio demo avisa su alto real */
+    border: 0;
+    background: #f1f5f9;
   }
 
-  html[data-theme="dark"] .spec-pie {
-    background: rgba(6, 182, 212, 0.05);
-    border-color: rgba(6, 182, 212, 0.16);
-  }
-  html[data-theme="dark"] .spec-pie-leyenda li { color: var(--muted); }
-  html[data-theme="dark"] .spec-pod-item {
+  html[data-theme="dark"] .spec-app {
     border-color: rgba(6, 182, 212, 0.22);
-  }
-  html[data-theme="dark"] .spec-pod-item figcaption {
-    color: #22d3ee;
-    background: rgba(6, 182, 212, 0.10);
-  }
-
-  @media (max-width: 720px) {
-    .spec-pie { grid-template-columns: 1fr; gap: 0.75rem; }
-    .spec-pod-item { width: 72px; }
+    box-shadow:
+      0 0 100px rgba(6, 182, 212, 0.14),
+      0 26px 64px rgba(0, 0, 0, 0.5);
   }
 
-  /* ── Modo oscuro ── */
-  html[data-theme="dark"] .spec-ficha {
-    background: linear-gradient(180deg, rgba(22, 22, 26, 0.92) 0%, rgba(16, 16, 19, 0.92) 100%);
-    border-color: rgba(6, 182, 212, 0.18);
-    box-shadow: 0 0 90px rgba(6, 182, 212, 0.10), 0 24px 60px rgba(0, 0, 0, 0.45);
-  }
-  html[data-theme="dark"] .spec-acc + .spec-acc { border-top-color: rgba(6, 182, 212, 0.14); }
-  html[data-theme="dark"] .spec-acc-title,
-  html[data-theme="dark"] .spec-derma-row,
-  html[data-theme="dark"] .spec-step-t { color: var(--text); }
-  html[data-theme="dark"] .spec-field,
-  html[data-theme="dark"] .spec-hint,
-  html[data-theme="dark"] .spec-derma-head { color: var(--muted); }
-  html[data-theme="dark"] .spec-sub { color: #22d3ee; }
-  html[data-theme="dark"] .spec-acc-chev { color: #22d3ee; }
-  html[data-theme="dark"] .spec-field {
-    background: rgba(6, 182, 212, 0.07);
-    border-color: rgba(6, 182, 212, 0.18);
-  }
-  html[data-theme="dark"] .spec-dot {
-    border-color: rgba(6, 182, 212, 0.32);
-    background: rgba(6, 182, 212, 0.05);
-  }
-  html[data-theme="dark"] .spec-step-acc {
-    border-color: rgba(6, 182, 212, 0.16);
-    background: rgba(6, 182, 212, 0.04);
-  }
-  html[data-theme="dark"] .spec-step-acc.is-open {
-    border-color: rgba(6, 182, 212, 0.34);
-    background: rgba(6, 182, 212, 0.06);
-  }
-  html[data-theme="dark"] .spec-step-n {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(6, 182, 212, 0.32);
-    color: #22d3ee;
-  }
-  html[data-theme="dark"] .spec-step-acc.is-open .spec-step-n { color: #fff; }
-  html[data-theme="dark"] .spec-step-chev { color: #22d3ee; }
-  html[data-theme="dark"] .spec-step-eye,
-  html[data-theme="dark"] .spec-step-sub,
-  html[data-theme="dark"] .spec-item-h { color: var(--muted); }
-  html[data-theme="dark"] .spec-item-n { color: var(--text); }
-  html[data-theme="dark"] .spec-items li { background: rgba(6, 182, 212, 0.06); }
-  html[data-theme="dark"] .spec-alarm,
-  html[data-theme="dark"] .spec-alarm span { color: #fbbf24; }
-  html[data-theme="dark"] .spec-alarm span { background: rgba(251, 191, 36, 0.14); }
-  html[data-theme="dark"] .spec-acc-line {
-    background: linear-gradient(90deg, rgba(6, 182, 212, 0.28), transparent);
-  }
-
-  /* ── Responsive ── */
   @media (max-width: 720px) {
     .spec { padding: 0 0 3.5rem; }
-    .spec-ficha { padding: 1.1rem 1.1rem 0.75rem; border-radius: 18px; }
-    .spec-acc-head { gap: 0.65rem; padding: 0.95rem 0; }
-    .spec-acc-num { width: 28px; height: 28px; font-size: 0.78rem; }
-    .spec-acc-title { font-size: 0.95rem; }
-    .spec-field { font-size: 0.76rem; padding: 0.35rem 0.6rem; }
-    .spec-derma-head, .spec-derma-row { grid-template-columns: 1fr 38px 38px; }
-    .spec-derma-row { font-size: 0.78rem; }
-    .spec-step-t { font-size: 0.8rem; }
-    .spec-step-inner { padding-left: 0.85rem; }
-    .spec-step-head { gap: 0.6rem; padding: 0.6rem 0.65rem; }
+    .spec-app { border-radius: 14px; }
+    .spec-app-frame { height: 640px; }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .spec-acc-body,
-    .spec-step-body { transition: none; }
-  }
 </style>
 </head>
 <body>
@@ -4794,370 +4433,30 @@
   <div class="container">
     <div class="section-head reveal">
       <span class="section-eyebrow">Podología</span>
-      <h2 class="section-title">Así es la consulta <span class="grad">podológica</span></h2>
-      <p class="section-sub">Los mismos seis bloques que abres en la app, con sus campos reales. Ábrelos y míralos por dentro.</p>
+      <h2 class="section-title">Esta es la consulta <span class="grad">podológica</span></h2>
+      <p class="section-sub">No una maqueta: es la ficha que abres en la app, con sus seis bloques, su podograma y su tamizaje de pie diabético. Ábrela y recórrela.</p>
     </div>
 
-
-    <!-- ── La ficha ──
-         Seis grupos, en el mismo orden y con los mismos títulos que
-         consultation-podiatry.html. Para añadir otra especialidad más
-         adelante: otra .spec-ficha con sus grupos. -->
-    <div class="spec-ficha reveal" id="specFicha">
-
-      <!-- 1 -->
-      <div class="spec-acc is-open" data-acc="0">
-        <button class="spec-acc-head" type="button" aria-expanded="true" aria-controls="acc-0">
-          <span class="spec-acc-num">1</span>
-          <span class="spec-acc-title">Información del Paciente</span>
-          <span class="spec-acc-line" aria-hidden="true"></span>
-          <span class="spec-acc-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-        </button>
-        <div class="spec-acc-body" id="acc-0">
-          <div class="spec-acc-inner">
-          <div class="spec-fields">
-            <span class="spec-field">Tipo de consulta</span>
-            <span class="spec-field">¿Ha visto a un podólogo antes?</span>
-            <span class="spec-field">Edad</span>
-            <span class="spec-field">Profesión / Ocupación</span>
-          </div></div>
-        
-        </div>
+    <!-- La ficha real, servida desde /demo/consulta-podologica.html — mismo
+         marcado y mismo CSS que consultation-podiatry.html, sin sesión, sin
+         API y sin guardado. Va en un iframe para que el sistema de diseño
+         del módulo (claro, sus propios tokens) no se mezcle con el de la
+         landing (oscuro), que es justo lo que pasaría al incrustarlo. -->
+    <div class="spec-app reveal">
+      <div class="spec-app-bar" aria-hidden="true">
+        <span class="spec-app-dot r"></span>
+        <span class="spec-app-dot y"></span>
+        <span class="spec-app-dot g"></span>
+        <span class="spec-app-url">Consulta podológica</span>
       </div>
-
-      <!-- 2 -->
-      <div class="spec-acc" data-acc="1">
-        <button class="spec-acc-head" type="button" aria-expanded="false" aria-controls="acc-1">
-          <span class="spec-acc-num">2</span>
-          <span class="spec-acc-title">Antecedentes patológicos y no patológicos</span>
-          <span class="spec-acc-line" aria-hidden="true"></span>
-          <span class="spec-acc-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-        </button>
-        <div class="spec-acc-body" id="acc-1">
-          <div class="spec-acc-inner">
-          <div class="spec-sub">Personales patológicos</div>
-          <div class="spec-fields">
-            <span class="spec-field">Diabetes Mellitus</span>
-            <span class="spec-field">Hipertensión</span>
-            <span class="spec-field">Cardiopatías</span>
-            <span class="spec-field">Enfermedad Vascular</span>
-            <span class="spec-field">Psoriasis</span>
-            <span class="spec-field">Artritis</span>
-            <span class="spec-field">Cáncer</span>
-            <span class="spec-field">Enfermedades Dermatológicas</span>
-            <span class="spec-field">VIH</span>
-            <span class="spec-field">Enfermedad Renal</span>
-            <span class="spec-field">Alergias</span>
-            <span class="spec-field">Toma Aspirina o Anticoagulante</span>
-          </div>
-          <div class="spec-sub">No patológicos</div>
-          <div class="spec-fields">
-            <span class="spec-field">Fuma</span>
-            <span class="spec-field">Alcohol</span>
-            <span class="spec-field">Toxicomanías</span>
-            <span class="spec-field">Ejercicio</span>
-          </div>
-          <div class="spec-sub">Ginecoobstétricos y calzado</div>
-          <div class="spec-fields">
-            <span class="spec-field">Embarazo</span>
-            <span class="spec-field">Semanas de gestación</span>
-            <span class="spec-field">Tratamiento</span>
-            <span class="spec-field">Tipo de calzado</span>
-          </div>
-          <p class="spec-hint">Cada antecedente guarda su propia observación.</p></div>
-        
-        </div>
-      </div>
-
-      <!-- 3 -->
-      <div class="spec-acc" data-acc="2">
-        <button class="spec-acc-head" type="button" aria-expanded="false" aria-controls="acc-2">
-          <span class="spec-acc-num">3</span>
-          <span class="spec-acc-title">Historia Clínica</span>
-          <span class="spec-acc-line" aria-hidden="true"></span>
-          <span class="spec-acc-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-        </button>
-        <div class="spec-acc-body" id="acc-2">
-          <div class="spec-acc-inner">
-          <div class="spec-sub">Historia de enfermedad actual y exploración física</div>
-          <div class="spec-fields">
-            <span class="spec-field">Queja principal y duración</span>
-            <span class="spec-field">Peso (kg)</span>
-            <span class="spec-field">Talla (cm)</span>
-            <span class="spec-field">IMC</span>
-          </div>
-          <div class="spec-sub">Podograma — fórmula digital</div>
-          <div class="spec-pod"><figure class="spec-pod-item"><img src="/assets/foot-types/tipo-griego.png" alt="Tipo de pie griego" loading="lazy" width="120" height="150"/><figcaption>Griego</figcaption></figure><figure class="spec-pod-item"><img src="/assets/foot-types/tipo-romano.png" alt="Tipo de pie romano" loading="lazy" width="120" height="150"/><figcaption>Romano</figcaption></figure><figure class="spec-pod-item"><img src="/assets/foot-types/tipo-germanico.png" alt="Tipo de pie germánico" loading="lazy" width="120" height="150"/><figcaption>Germánico</figcaption></figure><figure class="spec-pod-item"><img src="/assets/foot-types/tipo-celta.png" alt="Tipo de pie celta" loading="lazy" width="120" height="150"/><figcaption>Celta</figcaption></figure><figure class="spec-pod-item"><img src="/assets/foot-types/tipo-espiguio.png" alt="Tipo de pie espiguio" loading="lazy" width="120" height="150"/><figcaption>Espiguio</figcaption></figure></div>
-          <div class="spec-sub">Podograma — huella plantar</div>
-          <div class="spec-pod"><figure class="spec-pod-item"><img src="/assets/foot-types/pie-normal.png" alt="Tipo de pie normal" loading="lazy" width="120" height="150"/><figcaption>Normal</figcaption></figure><figure class="spec-pod-item"><img src="/assets/foot-types/pie-cavo.png" alt="Tipo de pie cavo" loading="lazy" width="120" height="150"/><figcaption>Cavo</figcaption></figure><figure class="spec-pod-item"><img src="/assets/foot-types/pie-plano.png" alt="Tipo de pie plano" loading="lazy" width="120" height="150"/><figcaption>Plano</figcaption></figure></div>
-          <div class="spec-sub">Exploración dermatológica — hallazgo por pie</div>
-          <div class="spec-derma">
-            <div class="spec-derma-head">
-              <span>Hallazgo</span><span>Der.</span><span>Izq.</span>
-            </div>
-            <div class="spec-derma-row"><span>Hiperqueratosis / Helomas</span><span class="spec-dot"></span><span class="spec-dot"></span></div>
-            <div class="spec-derma-row"><span>Onicocriptosis</span><span class="spec-dot"></span><span class="spec-dot"></span></div>
-            <div class="spec-derma-row"><span>Onicomicosis</span><span class="spec-dot"></span><span class="spec-dot"></span></div>
-            <div class="spec-derma-row"><span>Hiperq. subungueal</span><span class="spec-dot"></span><span class="spec-dot"></span></div>
-            <div class="spec-derma-row"><span>Onicólisis</span><span class="spec-dot"></span><span class="spec-dot"></span></div>
-            <div class="spec-derma-row"><span>Onicogrifosis</span><span class="spec-dot"></span><span class="spec-dot"></span></div>
-          </div>
-          <p class="spec-hint">Y siguen onicorrexis, paroniquia, retroniquia, tiñas, verrugas, onicofagia y coiloniquia.</p></div>
-        
-        </div>
-      </div>
-
-      <!-- 4 -->
-      <div class="spec-acc" data-acc="3">
-        <button class="spec-acc-head" type="button" aria-expanded="false" aria-controls="acc-3">
-          <span class="spec-acc-num">4</span>
-          <span class="spec-acc-title">Exploración del Pie Diabético</span>
-          <span class="spec-acc-line" aria-hidden="true"></span>
-          <span class="spec-acc-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-        </button>
-        <div class="spec-acc-body" id="acc-3">
-          <div class="spec-acc-inner">
-          <div class="spec-sub">Tamizaje en nueve pasos</div>
-          <div class="spec-steps" id="specSteps">
-          <div class="spec-step-acc" data-step="1">
-            <button class="spec-step-head" type="button" aria-expanded="false" aria-controls="paso-1">
-              <span class="spec-step-n">1</span>
-              <span class="spec-step-main">
-                <span class="spec-step-t">Marcha</span>
-                <span class="spec-step-eye">Neurológico · 1 de 7</span>
-              </span>
-              <span class="spec-step-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-            </button>
-            <div class="spec-step-body" id="paso-1">
-              <div class="spec-step-inner">
-                <p class="spec-step-sub">Evaluar equilibrio, coordinación, fuerza y sensibilidad globales mientras el paciente camina.</p>
-                <ul class="spec-items">
-              <li><span class="spec-item-n">Normal</span><span class="spec-item-h">Equilibrio, coordinación, fuerza y sensibilidad — observación general.</span></li>
-              <li><span class="spec-item-n">Marcha en puntas</span><span class="spec-item-h">Fuerza de músculos gastrocnemios.</span></li>
-              <li><span class="spec-item-n">Marcha en talones</span><span class="spec-item-h">Fuerza de músculos tibiales anteriores.</span></li>
-              <li><span class="spec-item-n">Marcha en tándem</span><span class="spec-item-h">Coordinación y equilibrio.</span></li>
-                </ul>
-                <p class="spec-alarm"><span>Alarma</span>Incapacidad y dolor</p>
-              </div>
-            </div>
-          </div>
-          <div class="spec-step-acc" data-step="2">
-            <button class="spec-step-head" type="button" aria-expanded="false" aria-controls="paso-2">
-              <span class="spec-step-n">2</span>
-              <span class="spec-step-main">
-                <span class="spec-step-t">Fuerza muscular</span>
-                <span class="spec-step-eye">Neurológico · 2 de 7</span>
-              </span>
-              <span class="spec-step-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-            </button>
-            <div class="spec-step-body" id="paso-2">
-              <div class="spec-step-inner">
-                <p class="spec-step-sub">Escala MRC (0-5). Comparar siempre con el lado contralateral.</p>
-                <ul class="spec-items">
-              <li><span class="spec-item-n">Bíceps crural</span><span class="spec-item-h">L2 – L3</span></li>
-              <li><span class="spec-item-n">Cuádriceps</span><span class="spec-item-h">L3 – L4</span></li>
-              <li><span class="spec-item-n">Tibiales anteriores</span><span class="spec-item-h">L4 – L5</span></li>
-              <li><span class="spec-item-n">Gastrocnemios</span><span class="spec-item-h">L5 – S1</span></li>
-                </ul>
-                <p class="spec-alarm"><span>Alarma</span>Debilidad muscular focal o difusa</p>
-              </div>
-            </div>
-          </div>
-          <div class="spec-step-acc" data-step="3">
-            <button class="spec-step-head" type="button" aria-expanded="false" aria-controls="paso-3">
-              <span class="spec-step-n">3</span>
-              <span class="spec-step-main">
-                <span class="spec-step-t">Sensibilidad superficial</span>
-                <span class="spec-step-eye">Neurológico · 3 de 7</span>
-              </span>
-              <span class="spec-step-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-            </button>
-            <div class="spec-step-body" id="paso-3">
-              <div class="spec-step-inner">
-                <p class="spec-step-sub">Comparar zonas simétricas. Frecuente en diabetes mellitus.</p>
-                <ul class="spec-items">
-              <li><span class="spec-item-n">Tacto</span><span class="spec-item-h">Algodón o pincel suave en zonas simétricas.</span></li>
-              <li><span class="spec-item-n">Dolor</span><span class="spec-item-h">Estímulo punzante sin lesionar la piel.</span></li>
-              <li><span class="spec-item-n">Temperatura</span><span class="spec-item-h">Frío vs tibio en tubos de ensayo o lateral del diapasón.</span></li>
-                </ul>
-                <p class="spec-alarm"><span>Alarma</span>Hipoestesia / hiperestesia / hiperalgesia</p>
-              </div>
-            </div>
-          </div>
-          <div class="spec-step-acc" data-step="4">
-            <button class="spec-step-head" type="button" aria-expanded="false" aria-controls="paso-4">
-              <span class="spec-step-n">4</span>
-              <span class="spec-step-main">
-                <span class="spec-step-t">Sensibilidad profunda</span>
-                <span class="spec-step-eye">Neurológico · 4 de 7</span>
-              </span>
-              <span class="spec-step-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-            </button>
-            <div class="spec-step-body" id="paso-4">
-              <div class="spec-step-inner">
-                <p class="spec-step-sub">Vibración con diapasón 128 Hz y monofilamento 5.07 (10 g).</p>
-                <ul class="spec-items">
-              <li><span class="spec-item-n">Hallux — falange distal</span><span class="spec-item-h">Punto de diapasón</span></li>
-              <li><span class="spec-item-n">1.ª cabeza metatarsiana</span><span class="spec-item-h">Punto de diapasón</span></li>
-                </ul>
-                <div class="spec-pie">
-                  <svg class="spec-pie-svg" viewBox="0 -190 1280 1380" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa plantar con los diez puntos de exploración con monofilamento"><defs><linearGradient id="pieSkin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE7CF"/><stop offset="0.65" stop-color="#F4CFA8"/><stop offset="1" stop-color="#E2B284"/></linearGradient></defs><text x="320" y="-90" text-anchor="middle" font-family="Poppins, sans-serif" font-size="46" font-weight="800" fill="currentColor" letter-spacing="5" opacity="0.6">PIE IZQUIERDO</text><text x="960" y="-90" text-anchor="middle" font-family="Poppins, sans-serif" font-size="46" font-weight="800" fill="currentColor" letter-spacing="5" opacity="0.6">PIE DERECHO</text><g transform="translate(0,1190) scale(0.1,-0.1)"><path d="M4406 11884 c-207 -50 -395 -235 -497 -490 -172 -430 -103 -959 166 -1272 70 -82 127 -127 220 -173 334 -165 707 47 868 496 54 152 70 255 70 450 0 194 -16 297 -70 450 -141 393 -450 613 -757 539z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M8200 11890 c-131 -20 -246 -85 -355 -201 -123 -130 -211 -309 -256 -519 -29 -134 -32 -399 -7 -525 66 -325 227 -578 438 -689 404 -213 834 105 946 699 23 121 23 349 0 475 -67 374 -285 672 -546 743 -74 21 -154 27 -220 17z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M3078 11410 c-173 -29 -323 -193 -385 -420 -26 -95 -26 -377 1 -475 62 -228 192 -407 353 -487 63 -31 74 -33 168 -33 93 0 105 2 167 33 176 86 292 305 305 572 22 463 -280 865 -609 810z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M9545 11392 c-194 -68 -341 -256 -407 -518 -18 -72 -22 -117 -22 -234 0 -173 14 -241 81 -378 98 -200 268 -304 445 -272 104 19 164 54 258 149 71 71 94 103 132 181 67 135 89 227 95 391 6 150 -4 227 -42 340 -50 148 -148 268 -264 323 -83 39 -197 47 -276 18z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M1888 10941 c-71 -29 -113 -57 -162 -112 -185 -206 -194 -608 -19 -919 60 -106 182 -232 269 -278 34 -17 90 -39 125 -48 217 -56 422 96 495 366 23 86 24 296 1 398 -58 253 -217 479 -401 567 -70 34 -90 38 -170 42 -72 3 -101 0 -138 -16z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M10696 10950 c-21 -6 -69 -26 -106 -46 -179 -94 -316 -289 -381 -541 -32 -125 -32 -315 0 -428 62 -220 199 -351 376 -363 313 -20 610 342 632 768 14 273 -96 507 -274 587 -65 28 -181 39 -247 23z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M964 10303 c-146 -63 -236 -207 -251 -404 -21 -269 133 -590 352 -731 164 -107 345 -102 470 13 56 52 86 101 117 194 19 59 23 90 22 195 -1 105 -5 139 -28 213 -71 237 -211 414 -393 499 -58 28 -81 33 -158 35 -68 2 -100 -1 -131 -14z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M11600 10302 c-200 -66 -370 -264 -446 -519 -37 -122 -40 -304 -7 -409 42 -131 129 -232 234 -269 62 -22 177 -19 246 6 205 76 369 280 439 545 25 95 25 286 0 369 -25 84 -51 131 -103 186 -91 97 -235 133 -363 91z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M3714 9830 c-654 -59 -1441 -341 -2014 -723 -475 -317 -758 -638 -903 -1027 -107 -288 -123 -556 -51 -848 62 -250 168 -452 438 -826 126 -175 133 -189 226 -422 169 -422 308 -840 489 -1474 125 -439 163 -620 297 -1425 184 -1106 264 -1484 374 -1761 242 -608 891 -1175 1490 -1300 116 -24 291 -22 441 5 385 68 663 240 865 537 204 297 287 629 287 1139 0 492 -50 695 -376 1530 -257 658 -278 734 -321 1155 -30 287 -39 470 -39 780 -1 320 8 472 44 750 26 205 46 298 129 590 128 449 161 638 210 1190 18 200 31 590 25 735 -15 352 -57 578 -140 752 -104 221 -245 349 -542 493 -147 72 -263 112 -393 134 -111 20 -403 28 -536 16z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M8707 9829 c-212 -15 -346 -53 -562 -159 -169 -83 -247 -134 -338 -219 -170 -160 -260 -357 -303 -658 -45 -324 -36 -837 26 -1408 32 -291 76 -508 169 -838 87 -305 117 -439 141 -630 68 -544 62 -1108 -20 -1732 -33 -252 -77 -392 -316 -1002 -155 -397 -262 -710 -298 -874 -89 -401 -81 -927 19 -1298 100 -370 340 -684 645 -845 204 -108 513 -176 730 -162 281 18 624 169 927 408 106 84 299 274 387 383 136 166 258 372 322 540 104 276 190 676 349 1635 171 1031 196 1144 421 1895 144 480 297 917 439 1254 36 85 70 144 136 235 307 421 431 658 491 939 31 147 31 400 0 544 -48 222 -146 448 -270 623 -96 137 -353 391 -522 517 -638 475 -1512 804 -2268 853 -81 5 -158 9 -172 8 -14 0 -74 -4 -133 -9z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M196 9480 c-271 -109 -255 -555 31 -832 117 -113 233 -164 362 -156 91 6 140 28 198 90 59 65 86 142 87 253 1 106 -14 173 -60 273 -72 158 -181 274 -322 344 -73 37 -92 42 -165 45 -64 3 -93 -1 -131 -17z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M12413 9490 c-335 -71 -589 -544 -450 -839 67 -144 238 -203 402 -141 190 73 332 232 407 456 32 96 32 254 0 335 -58 147 -201 223 -359 189z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/></g><g><title>Pulpejo 1er dedo (hallux)</title><circle cx="456" cy="110" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="456" y="110" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">1</text></g><g><title>Pulpejo 1er dedo (hallux)</title><circle cx="824" cy="110" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="824" y="110" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">1</text></g><g><title>Pulpejo 3er dedo</title><circle cx="216" cy="180" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="216" y="180" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">2</text></g><g><title>Pulpejo 3er dedo</title><circle cx="1064" cy="180" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="1064" y="180" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">2</text></g><g><title>Pulpejo 5to dedo</title><circle cx="60" cy="350" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="60" y="350" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">3</text></g><g><title>Pulpejo 5to dedo</title><circle cx="1220" cy="350" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="1220" y="350" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">3</text></g><g><title>Cabeza 1er metatarsiano</title><circle cx="500" cy="400" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="500" y="400" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">4</text></g><g><title>Cabeza 1er metatarsiano</title><circle cx="780" cy="400" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="780" y="400" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">4</text></g><g><title>Cabeza 3er metatarsiano</title><circle cx="340" cy="430" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="340" y="430" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">5</text></g><g><title>Cabeza 3er metatarsiano</title><circle cx="940" cy="430" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="940" y="430" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">5</text></g><g><title>Cabeza 5to metatarsiano</title><circle cx="140" cy="470" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="140" y="470" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">6</text></g><g><title>Cabeza 5to metatarsiano</title><circle cx="1140" cy="470" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="1140" y="470" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">6</text></g><g><title>Mediopié — borde lateral</title><circle cx="130" cy="760" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="130" y="760" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">7</text></g><g><title>Mediopié — borde lateral</title><circle cx="1150" cy="760" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="1150" y="760" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">7</text></g><g><title>Mediopié — borde medial</title><circle cx="480" cy="760" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="480" y="760" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">8</text></g><g><title>Mediopié — borde medial</title><circle cx="800" cy="760" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="800" y="760" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">8</text></g><g><title>Talón — central</title><circle cx="330" cy="1080" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="330" y="1080" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">9</text></g><g><title>Talón — central</title><circle cx="950" cy="1080" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="950" y="1080" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">9</text></g><g><title>Dorso — 1er–2do espacio</title><circle cx="386" cy="200" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="386" y="200" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">10</text></g><g><title>Dorso — 1er–2do espacio</title><circle cx="894" cy="200" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="894" y="200" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">10</text></g></svg>
-                  <ol class="spec-pie-leyenda"><li><span class="spec-pie-n">1</span>Pulpejo 1er dedo (hallux)</li><li><span class="spec-pie-n">2</span>Pulpejo 3er dedo</li><li><span class="spec-pie-n">3</span>Pulpejo 5to dedo</li><li><span class="spec-pie-n">4</span>Cabeza 1er metatarsiano</li><li><span class="spec-pie-n">5</span>Cabeza 3er metatarsiano</li><li><span class="spec-pie-n">6</span>Cabeza 5to metatarsiano</li><li><span class="spec-pie-n">7</span>Mediopié — borde lateral</li><li><span class="spec-pie-n">8</span>Mediopié — borde medial</li><li><span class="spec-pie-n">9</span>Talón — central</li><li><span class="spec-pie-n">10</span>Dorso — 1er–2do espacio</li></ol>
-                </div>
-                <p class="spec-alarm"><span>Alarma</span>Compromiso de fibras largas en neuropatía diabética</p>
-              </div>
-            </div>
-          </div>
-          <div class="spec-step-acc" data-step="5">
-            <button class="spec-step-head" type="button" aria-expanded="false" aria-controls="paso-5">
-              <span class="spec-step-n">5</span>
-              <span class="spec-step-main">
-                <span class="spec-step-t">Trofismo muscular</span>
-                <span class="spec-step-eye">Neurológico · 5 de 7</span>
-              </span>
-              <span class="spec-step-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-            </button>
-            <div class="spec-step-body" id="paso-5">
-              <div class="spec-step-inner">
-                <p class="spec-step-sub">Palpar las masas musculares y compararlas con el lado contralateral.</p>
-                <ul class="spec-items">
-              <li><span class="spec-item-n">Palpar masas musculares</span><span class="spec-item-h">Gemelos, sóleo y cuádriceps — comparar bulto y consistencia.</span></li>
-                </ul>
-                <p class="spec-alarm"><span>Alarma</span>Hipotrofia / atrofia / hipertrofia</p>
-              </div>
-            </div>
-          </div>
-          <div class="spec-step-acc" data-step="6">
-            <button class="spec-step-head" type="button" aria-expanded="false" aria-controls="paso-6">
-              <span class="spec-step-n">6</span>
-              <span class="spec-step-main">
-                <span class="spec-step-t">Reflejos osteotendinosos</span>
-                <span class="spec-step-eye">Neurológico · 6 de 7</span>
-              </span>
-              <span class="spec-step-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-            </button>
-            <div class="spec-step-body" id="paso-6">
-              <div class="spec-step-inner">
-                <p class="spec-step-sub">Escala 0-4+. Comparar derecha con izquierda.</p>
-                <ul class="spec-items">
-              <li><span class="spec-item-n">Patelar (rotuliano)</span><span class="spec-item-h">L3 – L4</span></li>
-              <li><span class="spec-item-n">Aquíleo</span><span class="spec-item-h">S1</span></li>
-                </ul>
-                <p class="spec-alarm"><span>Alarma</span>La arreflexia aquílea bilateral es signo temprano de neuropatía</p>
-              </div>
-            </div>
-          </div>
-          <div class="spec-step-acc" data-step="7">
-            <button class="spec-step-head" type="button" aria-expanded="false" aria-controls="paso-7">
-              <span class="spec-step-n">7</span>
-              <span class="spec-step-main">
-                <span class="spec-step-t">Respuesta plantar</span>
-                <span class="spec-step-eye">Neurológico · 7 de 7</span>
-              </span>
-              <span class="spec-step-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-            </button>
-            <div class="spec-step-body" id="paso-7">
-              <div class="spec-step-inner">
-                <p class="spec-step-sub">Estimular el borde lateral de la planta. Respuesta normal: flexión.</p>
-                <ul class="spec-items">
-              <li><span class="spec-item-n">Reflejo cutáneo-plantar — pie derecho</span><span class="spec-item-h">Esperar flexión. Extensión = Babinski +.</span></li>
-              <li><span class="spec-item-n">Reflejo cutáneo-plantar — pie izquierdo</span><span class="spec-item-h">Esperar flexión. Extensión = Babinski +.</span></li>
-                </ul>
-                <p class="spec-alarm"><span>Alarma</span>Babinski positivo — extensión del 1.er dedo</p>
-              </div>
-            </div>
-          </div>
-          <div class="spec-step-acc" data-step="8">
-            <button class="spec-step-head" type="button" aria-expanded="false" aria-controls="paso-8">
-              <span class="spec-step-n">8</span>
-              <span class="spec-step-main">
-                <span class="spec-step-t">Índice Tobillo-Brazo</span>
-                <span class="spec-step-eye">Tamizaje · Vascular</span>
-              </span>
-              <span class="spec-step-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-            </button>
-            <div class="spec-step-body" id="paso-8">
-              <div class="spec-step-inner">
-                <p class="spec-step-sub">Presión sistólica en ambos brazos y ambos tobillos (pedia y tibial posterior) con Doppler portátil.</p>
-                <ul class="spec-items">
-              <li><span class="spec-item-n">ITB = presión tobillo ÷ presión brazo</span><span class="spec-item-h">Se toma el brazo con la presión más alta como referencia.</span></li>
-                </ul>
-                <p class="spec-alarm"><span>Alarma</span>ITB menor a 0.91 o mayor a 1.30</p>
-              </div>
-            </div>
-          </div>
-          <div class="spec-step-acc" data-step="9">
-            <button class="spec-step-head" type="button" aria-expanded="false" aria-controls="paso-9">
-              <span class="spec-step-n">9</span>
-              <span class="spec-step-main">
-                <span class="spec-step-t">Termografía y termometría</span>
-                <span class="spec-step-eye">Tamizaje · Vascular</span>
-              </span>
-              <span class="spec-step-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-            </button>
-            <div class="spec-step-body" id="paso-9">
-              <div class="spec-step-inner">
-                <p class="spec-step-sub">Marcar la zona sobre el mapa plantar y registrar su temperatura. Comparar siempre con el punto simétrico del pie contrario.</p>
-                <ul class="spec-items">
-              <li><span class="spec-item-n">Mapa plantar</span><span class="spec-item-h">La zona se marca sobre el mapa y guarda su temperatura.</span></li>
-              <li><span class="spec-item-n">Punto simétrico</span><span class="spec-item-h">Una asimetría sostenida anticipa ulceración aun con la piel íntegra.</span></li>
-                </ul>
-                <p class="spec-alarm"><span>Alarma</span>Asimetría térmica sostenida mayor a 2.2 °C</p>
-              </div>
-            </div>
-          </div>
-          </div>
-          <div class="spec-sub">Termografía</div>
-          <div class="spec-fields">
-            <span class="spec-field">Tipo de termografía</span>
-            <span class="spec-field">Zona a medir</span>
-            <span class="spec-field">Temperatura (°C)</span>
-            <span class="spec-field">Mediciones registradas</span>
-          </div></div>
-        
-        </div>
-      </div>
-
-      <!-- 5 -->
-      <div class="spec-acc" data-acc="4">
-        <button class="spec-acc-head" type="button" aria-expanded="false" aria-controls="acc-4">
-          <span class="spec-acc-num">5</span>
-          <span class="spec-acc-title">Diagnóstico y Tratamiento</span>
-          <span class="spec-acc-line" aria-hidden="true"></span>
-          <span class="spec-acc-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-        </button>
-        <div class="spec-acc-body" id="acc-4">
-          <div class="spec-acc-inner">
-          <div class="spec-fields">
-            <span class="spec-field">Diagnóstico</span>
-            <span class="spec-field">Plan y manejo</span>
-            <span class="spec-field">Plantilla de consentimiento</span>
-            <span class="spec-field">Imágenes de la consulta</span>
-          </div>
-          <p class="spec-hint">El consentimiento se firma en pantalla y queda en PDF junto a la consulta.</p></div>
-        
-        </div>
-      </div>
-
-      <!-- 6 -->
-      <div class="spec-acc" data-acc="5">
-        <button class="spec-acc-head" type="button" aria-expanded="false" aria-controls="acc-5">
-          <span class="spec-acc-num">6</span>
-          <span class="spec-acc-title">Información de Pago</span>
-          <span class="spec-acc-line" aria-hidden="true"></span>
-          <span class="spec-acc-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
-        </button>
-        <div class="spec-acc-body" id="acc-5">
-          <div class="spec-acc-inner">
-          <div class="spec-fields">
-            <span class="spec-field">Costo de la consulta (L.)</span>
-            <span class="spec-field">Estado de pago</span>
-          </div>
-          <p class="spec-hint">Lo que marques aquí es lo que aparece en Finanzas.</p></div>
-        
-        </div>
-      </div>
-
+      <iframe
+        id="specApp"
+        class="spec-app-frame"
+        src="/demo/consulta-podologica.html"
+        title="Ficha de consulta podológica de Salud Digital"
+        loading="lazy"
+        referrerpolicy="same-origin"
+      ></iframe>
     </div>
   </div>
 </section>
@@ -6287,33 +5586,25 @@
 
 
   // ═══════════════════════════════════════════════════════
-  // FICHA PODOLÓGICA — acordeones de solo lectura, en dos niveles
+  // FICHA PODOLÓGICA — el iframe crece con su contenido
   //
-  // Fuera: los seis grupos de consultation-podiatry.html. Dentro del
-  // cuarto: los nueve pasos del tamizaje de diabetic-foot-exam.js, cada uno
-  // con su instrucción, sus sub-pruebas y su hallazgo de alarma. Aquí no
-  // hay campos ni guardado; es para que un podólogo reconozca su ficha.
+  // El demo mide su propia altura y la manda por postMessage cada vez que
+  // se abre o se cierra un bloque. Sin esto quedaría una barra de scroll
+  // dentro del marco, que se siente a página metida dentro de otra.
   // ═══════════════════════════════════════════════════════
   (function fichaPodologica() {
-    const ficha = document.getElementById('specFicha');
-    if (!ficha) return;
+    const marco = document.getElementById('specApp');
+    if (!marco) return;
 
-    // Cada nivel se conecta por separado. Los .spec-step-acc viven DENTRO
-    // del cuerpo del grupo 4, así que un clic en un paso no toca su grupo:
-    // el listener está en su propia cabecera, no en el contenedor.
-    function conectar(caja, cabecera) {
-      ficha.querySelectorAll(caja).forEach((el) => {
-        const head = el.querySelector(cabecera);
-        if (!head) return;
-        head.addEventListener('click', () => {
-          const abierto = el.classList.toggle('is-open');
-          head.setAttribute('aria-expanded', abierto ? 'true' : 'false');
-        });
-      });
-    }
-
-    conectar('.spec-acc', '.spec-acc-head');
-    conectar('.spec-step-acc', '.spec-step-head');
+    window.addEventListener('message', (e) => {
+      // Solo mensajes de nuestro propio iframe y con la forma esperada.
+      if (e.source !== marco.contentWindow) return;
+      const d = e.data;
+      if (!d || d.tipo !== 'alto-consulta') return;
+      const alto = Number(d.alto);
+      if (!Number.isFinite(alto) || alto < 200 || alto > 20000) return;
+      marco.style.height = alto + 'px';
+    });
   })();
 
 </script>
