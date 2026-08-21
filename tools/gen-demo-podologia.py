@@ -53,6 +53,19 @@ PAGINA = """<!DOCTYPE html>
      MISMO data-theme: la ficha se ve clara o en modo oscuro exactamente igual
      que la página que la contiene, sin que nadie tenga que sincronizar nada. -->
 <script src="/theme.js"></script>
+
+<!-- Fondo del PRIMER frame. Va aquí, antes de cualquier <link>, porque el
+     navegador pinta el lienzo del iframe —blanco por defecto— mientras las
+     hojas de estilo todavía cargan. Con loading="lazy" eso ocurre justo
+     mientras el usuario scrollea, y en tema oscuro el fogonazo blanco se ve
+     fatal. theme.js ya dejó puesto data-theme una línea antes, así que estas
+     dos reglas aciertan sin esperar a nadie. color-scheme, además, le dice al
+     navegador de qué color pintar el lienzo y los controles nativos. -->
+<style>
+  html { color-scheme: light; background: #f8fafc; }
+  html[data-theme="dark"] { color-scheme: dark; background: #050507; }
+</style>
+
 <title>Consulta podológica — Salud Digital</title>
 <meta name="robots" content="noindex">
 
