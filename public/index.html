@@ -4099,6 +4099,86 @@
     color: #b45309;
   }
 
+
+  /* ── Mapa plantar y podograma: los gráficos reales de la ficha ── */
+  .spec-pie {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 1.1rem;
+    align-items: center;
+    margin: 0.85rem 0;
+    padding: 0.9rem;
+    border-radius: 12px;
+    background: rgba(8, 145, 178, 0.04);
+    border: 1px solid rgba(8, 145, 178, 0.12);
+  }
+  .spec-pie-svg { width: 100%; height: auto; display: block; color: var(--muted); }
+  .spec-pie-leyenda {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+    margin: 0;
+  }
+  .spec-pie-leyenda li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .spec-pie-n {
+    flex-shrink: 0;
+    width: 19px; height: 19px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.6rem;
+    font-weight: 900;
+    color: #fff;
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+  }
+
+  .spec-pod { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-bottom: 0.4rem; }
+  .spec-pod-item {
+    margin: 0;
+    width: 88px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(8, 145, 178, 0.16);
+    text-align: center;
+  }
+  .spec-pod-item img { display: block; width: 100%; height: auto; }
+  .spec-pod-item figcaption {
+    padding: 0.28rem 0.2rem 0.32rem;
+    font-size: 0.63rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--primary);
+    background: rgba(8, 145, 178, 0.06);
+  }
+
+  html[data-theme="dark"] .spec-pie {
+    background: rgba(6, 182, 212, 0.05);
+    border-color: rgba(6, 182, 212, 0.16);
+  }
+  html[data-theme="dark"] .spec-pie-leyenda li { color: var(--muted); }
+  html[data-theme="dark"] .spec-pod-item {
+    border-color: rgba(6, 182, 212, 0.22);
+  }
+  html[data-theme="dark"] .spec-pod-item figcaption {
+    color: #22d3ee;
+    background: rgba(6, 182, 212, 0.10);
+  }
+
+  @media (max-width: 720px) {
+    .spec-pie { grid-template-columns: 1fr; gap: 0.75rem; }
+    .spec-pod-item { width: 72px; }
+  }
+
   /* ── Modo oscuro ── */
   html[data-theme="dark"] .spec-ficha {
     background: linear-gradient(180deg, rgba(22, 22, 26, 0.92) 0%, rgba(16, 16, 19, 0.92) 100%);
@@ -4806,6 +4886,10 @@
             <span class="spec-field">Talla (cm)</span>
             <span class="spec-field">IMC</span>
           </div>
+          <div class="spec-sub">Podograma — fórmula digital</div>
+          <div class="spec-pod"><figure class="spec-pod-item"><img src="/assets/foot-types/tipo-griego.png" alt="Tipo de pie griego" loading="lazy" width="120" height="150"/><figcaption>Griego</figcaption></figure><figure class="spec-pod-item"><img src="/assets/foot-types/tipo-romano.png" alt="Tipo de pie romano" loading="lazy" width="120" height="150"/><figcaption>Romano</figcaption></figure><figure class="spec-pod-item"><img src="/assets/foot-types/tipo-germanico.png" alt="Tipo de pie germánico" loading="lazy" width="120" height="150"/><figcaption>Germánico</figcaption></figure><figure class="spec-pod-item"><img src="/assets/foot-types/tipo-celta.png" alt="Tipo de pie celta" loading="lazy" width="120" height="150"/><figcaption>Celta</figcaption></figure><figure class="spec-pod-item"><img src="/assets/foot-types/tipo-espiguio.png" alt="Tipo de pie espiguio" loading="lazy" width="120" height="150"/><figcaption>Espiguio</figcaption></figure></div>
+          <div class="spec-sub">Podograma — huella plantar</div>
+          <div class="spec-pod"><figure class="spec-pod-item"><img src="/assets/foot-types/pie-normal.png" alt="Tipo de pie normal" loading="lazy" width="120" height="150"/><figcaption>Normal</figcaption></figure><figure class="spec-pod-item"><img src="/assets/foot-types/pie-cavo.png" alt="Tipo de pie cavo" loading="lazy" width="120" height="150"/><figcaption>Cavo</figcaption></figure><figure class="spec-pod-item"><img src="/assets/foot-types/pie-plano.png" alt="Tipo de pie plano" loading="lazy" width="120" height="150"/><figcaption>Plano</figcaption></figure></div>
           <div class="spec-sub">Exploración dermatológica — hallazgo por pie</div>
           <div class="spec-derma">
             <div class="spec-derma-head">
@@ -4916,6 +5000,10 @@
               <li><span class="spec-item-n">Hallux — falange distal</span><span class="spec-item-h">Punto de diapasón</span></li>
               <li><span class="spec-item-n">1.ª cabeza metatarsiana</span><span class="spec-item-h">Punto de diapasón</span></li>
                 </ul>
+                <div class="spec-pie">
+                  <svg class="spec-pie-svg" viewBox="0 -190 1280 1380" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa plantar con los diez puntos de exploración con monofilamento"><defs><linearGradient id="pieSkin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE7CF"/><stop offset="0.65" stop-color="#F4CFA8"/><stop offset="1" stop-color="#E2B284"/></linearGradient></defs><text x="320" y="-90" text-anchor="middle" font-family="Poppins, sans-serif" font-size="46" font-weight="800" fill="currentColor" letter-spacing="5" opacity="0.6">PIE IZQUIERDO</text><text x="960" y="-90" text-anchor="middle" font-family="Poppins, sans-serif" font-size="46" font-weight="800" fill="currentColor" letter-spacing="5" opacity="0.6">PIE DERECHO</text><g transform="translate(0,1190) scale(0.1,-0.1)"><path d="M4406 11884 c-207 -50 -395 -235 -497 -490 -172 -430 -103 -959 166 -1272 70 -82 127 -127 220 -173 334 -165 707 47 868 496 54 152 70 255 70 450 0 194 -16 297 -70 450 -141 393 -450 613 -757 539z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M8200 11890 c-131 -20 -246 -85 -355 -201 -123 -130 -211 -309 -256 -519 -29 -134 -32 -399 -7 -525 66 -325 227 -578 438 -689 404 -213 834 105 946 699 23 121 23 349 0 475 -67 374 -285 672 -546 743 -74 21 -154 27 -220 17z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M3078 11410 c-173 -29 -323 -193 -385 -420 -26 -95 -26 -377 1 -475 62 -228 192 -407 353 -487 63 -31 74 -33 168 -33 93 0 105 2 167 33 176 86 292 305 305 572 22 463 -280 865 -609 810z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M9545 11392 c-194 -68 -341 -256 -407 -518 -18 -72 -22 -117 -22 -234 0 -173 14 -241 81 -378 98 -200 268 -304 445 -272 104 19 164 54 258 149 71 71 94 103 132 181 67 135 89 227 95 391 6 150 -4 227 -42 340 -50 148 -148 268 -264 323 -83 39 -197 47 -276 18z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M1888 10941 c-71 -29 -113 -57 -162 -112 -185 -206 -194 -608 -19 -919 60 -106 182 -232 269 -278 34 -17 90 -39 125 -48 217 -56 422 96 495 366 23 86 24 296 1 398 -58 253 -217 479 -401 567 -70 34 -90 38 -170 42 -72 3 -101 0 -138 -16z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M10696 10950 c-21 -6 -69 -26 -106 -46 -179 -94 -316 -289 -381 -541 -32 -125 -32 -315 0 -428 62 -220 199 -351 376 -363 313 -20 610 342 632 768 14 273 -96 507 -274 587 -65 28 -181 39 -247 23z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M964 10303 c-146 -63 -236 -207 -251 -404 -21 -269 133 -590 352 -731 164 -107 345 -102 470 13 56 52 86 101 117 194 19 59 23 90 22 195 -1 105 -5 139 -28 213 -71 237 -211 414 -393 499 -58 28 -81 33 -158 35 -68 2 -100 -1 -131 -14z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M11600 10302 c-200 -66 -370 -264 -446 -519 -37 -122 -40 -304 -7 -409 42 -131 129 -232 234 -269 62 -22 177 -19 246 6 205 76 369 280 439 545 25 95 25 286 0 369 -25 84 -51 131 -103 186 -91 97 -235 133 -363 91z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M3714 9830 c-654 -59 -1441 -341 -2014 -723 -475 -317 -758 -638 -903 -1027 -107 -288 -123 -556 -51 -848 62 -250 168 -452 438 -826 126 -175 133 -189 226 -422 169 -422 308 -840 489 -1474 125 -439 163 -620 297 -1425 184 -1106 264 -1484 374 -1761 242 -608 891 -1175 1490 -1300 116 -24 291 -22 441 5 385 68 663 240 865 537 204 297 287 629 287 1139 0 492 -50 695 -376 1530 -257 658 -278 734 -321 1155 -30 287 -39 470 -39 780 -1 320 8 472 44 750 26 205 46 298 129 590 128 449 161 638 210 1190 18 200 31 590 25 735 -15 352 -57 578 -140 752 -104 221 -245 349 -542 493 -147 72 -263 112 -393 134 -111 20 -403 28 -536 16z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M8707 9829 c-212 -15 -346 -53 -562 -159 -169 -83 -247 -134 -338 -219 -170 -160 -260 -357 -303 -658 -45 -324 -36 -837 26 -1408 32 -291 76 -508 169 -838 87 -305 117 -439 141 -630 68 -544 62 -1108 -20 -1732 -33 -252 -77 -392 -316 -1002 -155 -397 -262 -710 -298 -874 -89 -401 -81 -927 19 -1298 100 -370 340 -684 645 -845 204 -108 513 -176 730 -162 281 18 624 169 927 408 106 84 299 274 387 383 136 166 258 372 322 540 104 276 190 676 349 1635 171 1031 196 1144 421 1895 144 480 297 917 439 1254 36 85 70 144 136 235 307 421 431 658 491 939 31 147 31 400 0 544 -48 222 -146 448 -270 623 -96 137 -353 391 -522 517 -638 475 -1512 804 -2268 853 -81 5 -158 9 -172 8 -14 0 -74 -4 -133 -9z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M196 9480 c-271 -109 -255 -555 31 -832 117 -113 233 -164 362 -156 91 6 140 28 198 90 59 65 86 142 87 253 1 106 -14 173 -60 273 -72 158 -181 274 -322 344 -73 37 -92 42 -165 45 -64 3 -93 -1 -131 -17z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/><path d="M12413 9490 c-335 -71 -589 -544 -450 -839 67 -144 238 -203 402 -141 190 73 332 232 407 456 32 96 32 254 0 335 -58 147 -201 223 -359 189z" fill="url(#pieSkin)" stroke="#9E6B3E" stroke-width="40"/></g><g><title>Pulpejo 1er dedo (hallux)</title><circle cx="456" cy="110" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="456" y="110" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">1</text></g><g><title>Pulpejo 1er dedo (hallux)</title><circle cx="824" cy="110" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="824" y="110" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">1</text></g><g><title>Pulpejo 3er dedo</title><circle cx="216" cy="180" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="216" y="180" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">2</text></g><g><title>Pulpejo 3er dedo</title><circle cx="1064" cy="180" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="1064" y="180" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">2</text></g><g><title>Pulpejo 5to dedo</title><circle cx="60" cy="350" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="60" y="350" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">3</text></g><g><title>Pulpejo 5to dedo</title><circle cx="1220" cy="350" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="1220" y="350" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">3</text></g><g><title>Cabeza 1er metatarsiano</title><circle cx="500" cy="400" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="500" y="400" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">4</text></g><g><title>Cabeza 1er metatarsiano</title><circle cx="780" cy="400" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="780" y="400" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">4</text></g><g><title>Cabeza 3er metatarsiano</title><circle cx="340" cy="430" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="340" y="430" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">5</text></g><g><title>Cabeza 3er metatarsiano</title><circle cx="940" cy="430" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="940" y="430" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">5</text></g><g><title>Cabeza 5to metatarsiano</title><circle cx="140" cy="470" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="140" y="470" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">6</text></g><g><title>Cabeza 5to metatarsiano</title><circle cx="1140" cy="470" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="1140" y="470" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">6</text></g><g><title>Mediopié — borde lateral</title><circle cx="130" cy="760" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="130" y="760" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">7</text></g><g><title>Mediopié — borde lateral</title><circle cx="1150" cy="760" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="1150" y="760" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">7</text></g><g><title>Mediopié — borde medial</title><circle cx="480" cy="760" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="480" y="760" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">8</text></g><g><title>Mediopié — borde medial</title><circle cx="800" cy="760" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="800" y="760" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">8</text></g><g><title>Talón — central</title><circle cx="330" cy="1080" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="330" y="1080" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">9</text></g><g><title>Talón — central</title><circle cx="950" cy="1080" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="950" y="1080" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">9</text></g><g><title>Dorso — 1er–2do espacio</title><circle cx="386" cy="200" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="386" y="200" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">10</text></g><g><title>Dorso — 1er–2do espacio</title><circle cx="894" cy="200" r="42" fill="#ffffff" stroke="#0891b2" stroke-width="9"/><text x="894" y="200" text-anchor="middle" dominant-baseline="central" font-family="Poppins, sans-serif" font-size="42" font-weight="800" fill="#0891b2">10</text></g></svg>
+                  <ol class="spec-pie-leyenda"><li><span class="spec-pie-n">1</span>Pulpejo 1er dedo (hallux)</li><li><span class="spec-pie-n">2</span>Pulpejo 3er dedo</li><li><span class="spec-pie-n">3</span>Pulpejo 5to dedo</li><li><span class="spec-pie-n">4</span>Cabeza 1er metatarsiano</li><li><span class="spec-pie-n">5</span>Cabeza 3er metatarsiano</li><li><span class="spec-pie-n">6</span>Cabeza 5to metatarsiano</li><li><span class="spec-pie-n">7</span>Mediopié — borde lateral</li><li><span class="spec-pie-n">8</span>Mediopié — borde medial</li><li><span class="spec-pie-n">9</span>Talón — central</li><li><span class="spec-pie-n">10</span>Dorso — 1er–2do espacio</li></ol>
+                </div>
                 <p class="spec-alarm"><span>Alarma</span>Compromiso de fibras largas en neuropatía diabética</p>
               </div>
             </div>
