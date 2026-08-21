@@ -463,10 +463,18 @@
   }
 
   load();
-  // Live updates: refresh every 3s and immediately when the tab regains focus
-  setInterval(load, 3000);
+  // Refresco en vivo cada 3 s que ahora se DETIENE con la pestaña oculta: antes
+  // el intervalo seguía corriendo en segundo plano (20 peticiones/min por cada
+  // pantalla olvidada). Al volver se reanuda y se pide de inmediato.
+  let sdTimerSondeo = setInterval(load, 3000);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') load();
+    if (document.visibilityState === 'visible') {
+      if (!sdTimerSondeo) sdTimerSondeo = setInterval(load, 3000);
+      load();
+    } else if (sdTimerSondeo) {
+      clearInterval(sdTimerSondeo);
+      sdTimerSondeo = null;
+    }
   });
   window.addEventListener('focus', load);
 </script>

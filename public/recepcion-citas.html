@@ -694,7 +694,17 @@
   }
   load();
   if (canSchedule) initScheduler();
-  setInterval(load, 8000);
+  // Se detiene con la pestaña oculta y se reanuda al volver (ver recepcion-inicio).
+  let sdTimerSondeo = setInterval(load, 8000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      if (!sdTimerSondeo) sdTimerSondeo = setInterval(load, 8000);
+      load();
+    } else if (sdTimerSondeo) {
+      clearInterval(sdTimerSondeo);
+      sdTimerSondeo = null;
+    }
+  });
 </script>
 </body>
 </html>

@@ -1490,7 +1490,19 @@
   tickClock();
   setInterval(tickClock, 1000);
   loadAll();
-  setInterval(loadAll, 5000);
+  // Este panel refresca CUATRO endpoints cada 5 s: 48 peticiones por minuto, la
+  // pantalla más cara de la plataforma. Con la pestaña oculta no hay nadie
+  // mirando, así que se para; al volver se reanuda y se pide de inmediato.
+  let sdTimerSondeo = setInterval(loadAll, 5000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      if (!sdTimerSondeo) sdTimerSondeo = setInterval(loadAll, 5000);
+      loadAll();
+    } else if (sdTimerSondeo) {
+      clearInterval(sdTimerSondeo);
+      sdTimerSondeo = null;
+    }
+  });
 </script>
 </body>
 </html>

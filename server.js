@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const compression = require('compression');
+const zlib = require('zlib');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
@@ -143,6 +144,19 @@ app.use((req, res, next) => {
   next();
 });
 
+// gzip/deflate — ~5x menos bytes en el HTML de la landing.
+// ── Por qué está TAN arriba ──
+// compression envuelve res.write/res.end cuando la petición lo atraviesa. Estaba
+// registrado DESPUÉS del interceptor de *.html y de las rutas que sirven páginas
+// (/confirmar, /c/:slug, /mapa), así que esas respuestas salían sin comprimir: el
+// HTML más pesado de la app (index 206 KB, citas 185 KB, la consulta podológica
+// 151 KB) viajaba entero. Los .js/.css sí se comprimían porque express.static va
+// más abajo. Aquí arriba cubre todo: HTML, estáticos y JSON de la API.
+app.use(compression({
+  threshold: 1024, // solo respuestas >= 1KB
+  level: 6,
+}));
+
 // ── Inyección PWA (manifest + iconos + registro del Service Worker) ──
 // Se inyecta server-side en TODA respuesta HTML (todas pasan por aquí), así las
 // ~47 páginas quedan instalables como app sin tocar archivo por archivo. La
@@ -215,31 +229,87 @@ function ensureViewportFit(html) {
   });
 }
 
-function serveHtmlWithVersion(filePath, res) {
-  fs.readFile(filePath, 'utf8', (err, raw) => {
-    if (err) {
+// Aplica a un HTML crudo todo lo que el servidor le añade: ?v= en los assets,
+// viewport-fit para el notch y las etiquetas PWA. El resultado solo depende del
+// archivo y de ASSET_VERSION, que es constante durante toda la vida del proceso.
+function transformarHtml(raw) {
+  const html = raw
+    .replace(
+      /(<script\b[^>]*\bsrc=")(\/[^"?#]+\.jsx?)(")/gi,
+      `$1$2?v=${ASSET_VERSION}$3`,
+    )
+    .replace(
+      /(<link\b[^>]*\bhref=")(\/[^"?#]+\.(?:css|js))(")/gi,
+      `$1$2?v=${ASSET_VERSION}$3`,
+    );
+  return injectPwaTags(ensureViewportFit(html));
+}
+
+// ── Caché en memoria del HTML ya transformado Y YA COMPRIMIDO ──
+// Servir una página costaba leer el archivo entero, pasarle cuatro regex y, con
+// compression delante, gzipearlo. Medido: ~0,8 ms de transformación y ~4 ms de
+// gzip por carga de index.html, en el ÚNICO hilo que atiende también la API. Se
+// repetía en cada visita porque las páginas se sirven con no-cache.
+//
+// Como el resultado solo depende del archivo y de ASSET_VERSION (constante por
+// proceso), se guardan las dos formas una sola vez: el HTML y su gzip. A partir
+// de la segunda carga no hay lectura de disco, ni regex, ni compresión — se
+// escribe un Buffer que ya estaba hecho. Sin esto, activar gzip habría cambiado
+// ancho de banda por CPU, que es justo el recurso escaso.
+//
+// Se revalida con mtime + tamaño: en producción los archivos no cambian y siempre
+// acierta; con nodemon, al guardar un .html se regenera solo. El techo son las 56
+// páginas de public/ (~3 MB + gzip), así que el Map no crece sin control.
+const HTML_CACHE = new Map(); // filePath → { mtimeMs, size, html, gz }
+
+function aceptaGzip(req) {
+  return /\bgzip\b/i.test(String(req.headers['accept-encoding'] || ''));
+}
+
+function serveHtmlWithVersion(filePath, req, res) {
+  const enviar = (entrada) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    // La respuesta cambia según Accept-Encoding: sin Vary, un proxy podría dar
+    // el gzip a un cliente que no lo pidió.
+    res.setHeader('Vary', 'Accept-Encoding');
+    if (entrada.gz && aceptaGzip(req)) {
+      // Con Content-Encoding ya puesto, el middleware compression se aparta
+      // ('already encoded') y no vuelve a comprimir.
+      res.setHeader('Content-Encoding', 'gzip');
+      res.send(entrada.gz);
+      return;
+    }
+    res.send(entrada.html);
+  };
+  fs.stat(filePath, (errStat, st) => {
+    if (errStat || !st.isFile()) {
       res.status(404).end();
       return;
     }
-    const html = raw
-      .replace(
-        /(<script\b[^>]*\bsrc=")(\/[^"?#]+\.jsx?)(")/gi,
-        `$1$2?v=${ASSET_VERSION}$3`,
-      )
-      .replace(
-        /(<link\b[^>]*\bhref=")(\/[^"?#]+\.(?:css|js))(")/gi,
-        `$1$2?v=${ASSET_VERSION}$3`,
-      );
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.send(injectPwaTags(ensureViewportFit(html)));
+    const guardado = HTML_CACHE.get(filePath);
+    if (guardado && guardado.mtimeMs === st.mtimeMs && guardado.size === st.size) {
+      return enviar(guardado);
+    }
+    fs.readFile(filePath, 'utf8', (err, raw) => {
+      if (err) {
+        res.status(404).end();
+        return;
+      }
+      const html = transformarHtml(raw);
+      let gz = null;
+      try { gz = zlib.gzipSync(Buffer.from(html, 'utf8'), { level: 6 }); } catch (_) {}
+      const entrada = { mtimeMs: st.mtimeMs, size: st.size, html, gz };
+      HTML_CACHE.set(filePath, entrada);
+      enviar(entrada);
+    });
   });
 }
 
 // Serve the public confirmation page under /confirmar/:token (la página lee el
 // token de location.pathname y llama a /api/confirmations/public/:token).
 app.get(/^\/confirmar\/[a-f0-9]{32}$/i, (req, res) => {
-  serveHtmlWithVersion(path.join(PUBLIC_DIR, 'confirm.html'), res);
+  serveHtmlWithVersion(path.join(PUBLIC_DIR, 'confirm.html'), req, res);
 });
 
 // Landing pública por clínica: /c/<slug> sirve siempre el mismo template HTML,
@@ -247,13 +317,13 @@ app.get(/^\/confirmar\/[a-f0-9]{32}$/i, (req, res) => {
 // valida en el endpoint API; aquí solo verificamos shape para no servir el HTML
 // ante rutas raras.
 app.get(/^\/c\/[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/i, (req, res) => {
-  serveHtmlWithVersion(path.join(PUBLIC_DIR, 'clinic-landing.html'), res);
+  serveHtmlWithVersion(path.join(PUBLIC_DIR, 'clinic-landing.html'), req, res);
 });
 
 // Mapa público de clínicas registradas. Sin auth: cualquiera puede entrar y ver pines.
 app.get('/mapa', (req, res) => {
   analytics.registrarVisita(req, 'mapa', '/mapa');
-  serveHtmlWithVersion(path.join(PUBLIC_DIR, 'mapa.html'), res);
+  serveHtmlWithVersion(path.join(PUBLIC_DIR, 'mapa.html'), req, res);
 });
 
 // Manifest dinámico: añade ?v=ASSET_VERSION a las URLs de iconos. Android/Chrome
@@ -302,16 +372,9 @@ app.use((req, res, next) => {
       const pagina = analytics.paginaDe(urlPath);
       if (pagina) analytics.registrarVisita(req, pagina, urlPath);
     }
-    serveHtmlWithVersion(filePath, res);
+    serveHtmlWithVersion(filePath, req, res);
   });
 });
-
-// gzip/deflate compression — ~5x reduction on the landing HTML
-// (most-impactful single change for first paint over slow networks)
-app.use(compression({
-  threshold: 1024, // only compress responses >= 1KB
-  level: 6,
-}));
 
 // Límite de payload para mitigar DoS por bodies enormes (multer maneja sus propios límites).
 // Excepción: las consultas de ortodoncia embeben fotos clínicas (data URLs base64) dentro de
@@ -574,7 +637,7 @@ app.use('/api/media', capturar(require('./routes/media')));
 app.use('/api/messaging', capturar(require('./routes/messaging')));
 
 app.get('*', (req, res) => {
-  serveHtmlWithVersion(path.join(PUBLIC_DIR, 'index.html'), res);
+  serveHtmlWithVersion(path.join(PUBLIC_DIR, 'index.html'), req, res);
 });
 
 // Global error handler — never leak stacktraces or raw messages to clients en producción

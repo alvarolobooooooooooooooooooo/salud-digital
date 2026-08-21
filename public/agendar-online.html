@@ -2952,7 +2952,18 @@
       renderDayPanel();
       document.getElementById('loadingOverlay').classList.add('hidden');
 
-      setInterval(loadStats, 5000);
+      // loadStats sí pide al servidor, así que se detiene con la pestaña oculta.
+      // tickSyncLabel solo repinta el "hace N segundos": no toca red, sigue igual.
+      let sdTimerSondeo = setInterval(loadStats, 5000);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          if (!sdTimerSondeo) sdTimerSondeo = setInterval(loadStats, 5000);
+          loadStats();
+        } else if (sdTimerSondeo) {
+          clearInterval(sdTimerSondeo);
+          sdTimerSondeo = null;
+        }
+      });
       setInterval(tickSyncLabel, 1000);
     } catch (e) {
       console.error(e);

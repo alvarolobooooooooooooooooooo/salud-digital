@@ -1214,9 +1214,19 @@
       ensureNotifPermission();
       poll();
       pollTimer = setInterval(poll, POLL_MS);
-      // Re-poll when tab regains focus
+      // El sondeo se DETIENE con la pestaña oculta y se reanuda al volver. Antes
+      // solo se re-sondeaba al volver, pero el intervalo nunca paraba: una pestaña
+      // olvidada en segundo plano seguía pidiendo notificaciones cada 20 s durante
+      // días. Ojo: "oculta" es pestaña tapada o app minimizada — una pantalla de
+      // recepción encendida en otro monitor sigue contando como visible.
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') poll();
+        if (document.visibilityState === 'visible') {
+          if (!pollTimer) pollTimer = setInterval(poll, POLL_MS);
+          poll(); // al volver, datos frescos ya
+        } else if (pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
       });
     }
 
