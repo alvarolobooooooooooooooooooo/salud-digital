@@ -54,25 +54,71 @@ const COLUMNAS_LISTADO = [
   'clinic_id', 'created_by', 'whatsapp_number',
 ];
 
-router.get('/', authenticate, async (req, res) => {
-  let queryStr;
-  let params;
+// Cuántos pacientes tiene el doctor (o la clínica). El panel de inicio pedía la
+// LISTA COMPLETA solo para pintar un número y una dona; con mil pacientes son
+// cientos de KB y un ORDER BY sobre todo, en cada carga del panel. La dona sale
+// de aquí más las citas de hoy, que el panel ya trae.
+router.get('/count', authenticate, async (req, res) => {
+  const result = await query(...consultaListado(req, { soloContar: true }));
+  res.json({ total: parseInt(result.rows[0].total, 10) || 0 });
+});
+
+// Arma la consulta del listado. Devuelve [sql, params] para pasarlo con spread.
+//
+// ── El DISTINCT que se fue ──
+// La rama del doctor decía `SELECT DISTINCT`. Era un no-op demostrable: se
+// selecciona de UNA sola tabla, sin joins, y entre las columnas va `id`, que es
+// única — no hay dos filas que puedan colapsar. Lo único que hacía era obligar a
+// Postgres a ordenar o hashear el resultado entero para no quitar nada. Igual el
+// DISTINCT de dentro del IN.
+function consultaListado(req, { soloContar = false, search = '', limit = null, offset = 0 } = {}) {
+  const params = [req.user.clinic_id];
+  const bind = (v) => { params.push(v); return '$' + params.length; };
+  const where = ['p.clinic_id = $1'];
 
   if (req.user.role === 'doctor') {
-    const cols = COLUMNAS_LISTADO.map((c) => 'p.' + c).join(', ');
-    queryStr = `SELECT DISTINCT ${cols} FROM patients p
-      WHERE p.clinic_id = $1 AND (
-        p.created_by = $2 OR
-        p.id IN (SELECT DISTINCT patient_id FROM appointments WHERE doctor_id = $3 AND clinic_id = $4)
-      )
-      ORDER BY p.name`;
-    params = [req.user.clinic_id, req.user.id, req.user.id, req.user.clinic_id];
-  } else {
-    queryStr = `SELECT ${COLUMNAS_LISTADO.join(', ')} FROM patients WHERE clinic_id = $1 ORDER BY name`;
-    params = [req.user.clinic_id];
+    // Sus pacientes: los que creó él, más los que ha atendido alguna vez.
+    where.push(`(p.created_by = ${bind(req.user.id)} OR p.id IN (
+      SELECT patient_id FROM appointments WHERE doctor_id = ${bind(req.user.id)} AND clinic_id = ${bind(req.user.clinic_id)}
+    ))`);
   }
 
-  const result = await query(queryStr, params);
+  // Búsqueda en servidor: sin esto, las pantallas que tienen buscador se bajan
+  // la lista entera y filtran en el navegador.
+  const q = String(search || '').trim();
+  if (q) {
+    const patron = bind('%' + q + '%');
+    where.push(`(p.name ILIKE ${patron} OR p.identity_number ILIKE ${patron} OR p.phone ILIKE ${patron})`);
+  }
+
+  const filtro = where.join(' AND ');
+  if (soloContar) {
+    return [`SELECT COUNT(*) AS total FROM patients p WHERE ${filtro}`, params];
+  }
+
+  const cols = COLUMNAS_LISTADO.map((c) => 'p.' + c).join(', ');
+  let sql = `SELECT ${cols} FROM patients p WHERE ${filtro} ORDER BY p.name`;
+  if (limit !== null) {
+    sql += ` LIMIT ${bind(limit)} OFFSET ${bind(offset)}`;
+  }
+  return [sql, params];
+}
+
+// Listado de pacientes. `search`, `limit` y `offset` son OPCIONALES: sin ellos
+// devuelve la lista completa, como siempre. Mismo criterio que /finances/paid y
+// que la ventana de la agenda — el comportamiento nuevo se pide, para que una
+// pestaña abierta con el HTML anterior no se quede a medias durante un despliegue.
+router.get('/', authenticate, async (req, res) => {
+  const search = String(req.query.search || '').slice(0, 100);
+  let limit = null;
+  if (req.query.limit !== undefined) {
+    const n = parseInt(req.query.limit, 10);
+    if (!Number.isFinite(n) || n < 1) return res.status(400).json({ error: 'limit inválido' });
+    limit = Math.min(n, 200);
+  }
+  const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
+
+  const result = await query(...consultaListado(req, { search, limit, offset }));
   res.json(result.rows);
 });
 

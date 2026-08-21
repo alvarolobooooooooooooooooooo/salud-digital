@@ -268,3 +268,92 @@ test('el tope de Finanzas avanza un día para que el último día entre entero',
     );
   } finally { srv.close(); }
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. Pacientes: sin DISTINCT inútil, con búsqueda y conteo en servidor
+// ─────────────────────────────────────────────────────────────────────────────
+
+function conPacientes() {
+  return levantar((app) => app.use('/api/patients', capturar(require('../routes/patients'))));
+}
+
+test('el listado de pacientes ya no arrastra un DISTINCT que no quita nada', async () => {
+  const { srv, url } = await conPacientes();
+  try {
+    ejecutadas.length = 0;
+    await pedir(url, '/api/patients');
+    const c = ultima(/FROM patients p/i);
+    // Se selecciona de UNA tabla, sin joins, e incluye `id`, que es única: no hay
+    // dos filas que puedan colapsar. El DISTINCT solo forzaba ordenar el
+    // resultado entero para no descartar nada.
+    assert.ok(!/SELECT DISTINCT/i.test(c.sql), 'volvió el DISTINCT:\n' + c.sql);
+    // Y sigue siendo la lista del doctor, no la de toda la clínica.
+    assert.match(c.sql, /p\.created_by = \$\d/);
+    assert.match(c.sql, /FROM appointments WHERE doctor_id = \$\d/);
+  } finally { srv.close(); }
+});
+
+test('sin limit, el listado responde entero como siempre', async () => {
+  const { srv, url } = await conPacientes();
+  try {
+    ejecutadas.length = 0;
+    await pedir(url, '/api/patients');
+    const c = ultima(/FROM patients p/i);
+    assert.ok(!/LIMIT/i.test(c.sql), 'sin ?limit no debe acotar');
+  } finally { srv.close(); }
+});
+
+test('con limit y offset, el listado pagina en la base', async () => {
+  const { srv, url } = await conPacientes();
+  try {
+    ejecutadas.length = 0;
+    await pedir(url, '/api/patients?limit=50&offset=100');
+    const c = ultima(/FROM patients p/i);
+    assert.match(c.sql, /LIMIT \$\d+ OFFSET \$\d+/);
+    assert.ok(c.params.includes(50) && c.params.includes(100), JSON.stringify(c.params));
+  } finally { srv.close(); }
+});
+
+test('el limit se topa para que nadie pida diez mil de golpe', async () => {
+  const { srv, url } = await conPacientes();
+  try {
+    ejecutadas.length = 0;
+    await pedir(url, '/api/patients?limit=99999');
+    const c = ultima(/FROM patients p/i);
+    assert.ok(c.params.includes(200), 'debería quedarse en 200; params: ' + JSON.stringify(c.params));
+  } finally { srv.close(); }
+});
+
+test('un limit inválido se rechaza con 400', async () => {
+  const { srv, url } = await conPacientes();
+  try {
+    const r = await pedir(url, '/api/patients?limit=0');
+    assert.strictEqual(r.status, 400);
+  } finally { srv.close(); }
+});
+
+test('la búsqueda viaja a la base, no se filtra en el navegador', async () => {
+  const { srv, url } = await conPacientes();
+  try {
+    ejecutadas.length = 0;
+    await pedir(url, '/api/patients?search=Ana');
+    const c = ultima(/FROM patients p/i);
+    assert.match(c.sql, /p\.name ILIKE/i);
+    assert.match(c.sql, /p\.identity_number ILIKE/i);
+    assert.match(c.sql, /p\.phone ILIKE/i);
+    assert.ok(c.params.includes('%Ana%'), JSON.stringify(c.params));
+  } finally { srv.close(); }
+});
+
+test('/count cuenta en la base y no cae en la ruta de :id', async () => {
+  const { srv, url } = await conPacientes();
+  try {
+    ejecutadas.length = 0;
+    const r = await pedir(url, '/api/patients/count');
+    assert.strictEqual(r.status, 200);
+    const c = ultima(/FROM patients p/i);
+    assert.match(c.sql, /SELECT COUNT\(\*\) AS total/i);
+    assert.ok(!/WHERE p\.id = /i.test(c.sql), 'cayó en la ruta de :id');
+    assert.deepStrictEqual(await r.json(), { total: 0 });
+  } finally { srv.close(); }
+});
