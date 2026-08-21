@@ -32,12 +32,15 @@ const { decodeToken, CLINICAL_ROLES } = require('./auth');
 //   /confirmations/public → enlace de confirmación que el paciente ya recibió
 //   /invitations          → aceptar una invitación (el POST de alta ya exige admin)
 //   /billing/webhook      → lo llama el procesador de pagos, no una persona
+//   /legal                → los documentos legales son públicos y su aceptación
+//                           es previa a cualquier permiso clínico
 const PREFIJOS_ABIERTOS = [
   '/auth',
   '/public',
   '/confirmations/public',
   '/invitations',
   '/billing/webhook',
+  '/legal',
 ];
 
 function esRutaAbierta(pathname) {

@@ -446,6 +446,11 @@ app.use('/api/clinics/geo', limites.geocodificacion);
 
 // Webhook de pagos: público por definición. Cada evento con firma inválida deja
 // igualmente una fila en payment_events y gasta una verificación contra PayPal.
+// Aceptaciones legales: las lecturas son públicas y baratas (el visor de
+// documentos), pero registrar una aceptación escribe una fila que nadie puede
+// borrar después. El tope va solo sobre las escrituras.
+app.use('/api/legal', limites.soloEscrituras(limites.escrituraClinica));
+
 app.use('/api/billing/webhook', limites.webhookPagos);
 
 // Static files: hint browsers to cache JS/CSS for a day, HTML always revalidated
@@ -521,6 +526,12 @@ app.use('/api', require('./middleware/clinical-access').gate);
 // cualquier ruta futura quede cubierta sin acordarse de añadir nada.
 app.use('/api', require('./middleware/subscription').gate);
 
+// Guardián de aceptación legal: sin los Términos y la Política de Privacidad
+// aceptados (en su versión vigente), la API deja leer pero responde 451 a
+// cualquier escritura. Va DESPUÉS del de suscripción y con la misma forma:
+// montado una sola vez sobre /api para que ninguna ruta futura se escape.
+app.use('/api', require('./middleware/legal').gate);
+
 // ── Handlers async: que un error no se lleve por delante el proceso ──
 // Express 4 no recoge las promesas rechazadas de un handler `async`, y Node mata
 // el proceso ante una promesa rechazada sin dueño. Sin esto, CUALQUIER error de
@@ -555,6 +566,7 @@ app.use('/api/reception', capturar(require('./routes/reception')));
 // app.use('/api/inventory-usage', capturar(require('./routes/inventory-usage')));
 app.use(['/api/inventory', '/api/inventory-usage'], (req, res) =>
   res.status(404).json({ error: 'El inventario está desactivado.' }));
+app.use('/api/legal', capturar(require('./routes/legal')));
 app.use('/api/audit', capturar(require('./routes/audit')));
 app.use('/api/growth', capturar(require('./routes/growth')));
 app.use('/api/integrations', capturar(require('./routes/integrations')));
@@ -651,6 +663,22 @@ function comprobarBaseDeDatos() {
   try {
     comprobarBaseDeDatos();
     await initDb();
+
+    // ── Siembra de los documentos legales ──
+    // Publica las versiones que trae el repositorio (lib/legal/documents) y
+    // avisa si un archivo cambió sin subir el número de versión: eso sería
+    // reescribir un texto que alguien ya aceptó, y no se hace en silencio.
+    try {
+      const sembrado = await require('./lib/legal/service').sembrar();
+      if (sembrado.versiones > 0) {
+        console.log(`[legal] publicadas ${sembrado.versiones} versiones de documentos legales`);
+      }
+      sembrado.desviaciones.forEach((d) => console.error('[legal] REVISAR: ' + d));
+    } catch (err) {
+      // Que la plataforma arranque igual: sin documentos publicados el guardián
+      // no exige nada (no hay requisitos), así que nadie se queda fuera.
+      console.error('[legal] no se pudieron sembrar los documentos:', err.message);
+    }
 
     // Tarea de retención: audit_logs > 90 días se borran cada 24h.
     // Ejecuta una vez al arrancar y luego en intervalo, no requiere cron externo.

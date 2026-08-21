@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
+const legal = require('../lib/legal/service');
 const { sendDoctorInvitation } = require('../utils/mailer');
 
 router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async (req, res) => {
@@ -88,6 +89,25 @@ router.post('/:token/accept', async (req, res) => {
     return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
   }
 
+  // ── Aceptación legal, comprobada ANTES de crear nada ──
+  //
+  // Aceptar una invitación es dar de alta una cuenta, así que exige los mismos
+  // documentos que el registro público. Se valida primero para que un paquete
+  // inválido no deje a medias una clínica o un usuario; la fila de aceptación se
+  // escribe justo después, cuando ya existe el id del usuario.
+  try {
+    await legal.validarSeleccion(req.body && req.body.legal_acceptances, {
+      exigirObligatorios: true,
+    });
+  } catch (err) {
+    if (err instanceof legal.ErrorLegal) {
+      return res.status(err.codigo === 'version_mismatch' ? 409 : 400).json({
+        error: err.message, code: err.codigo, ...err.extra,
+      });
+    }
+    throw err;
+  }
+
   const invResult = await query('SELECT * FROM invitations WHERE token = $1', [req.params.token]);
   const inv = invResult.rows[0];
   if (!inv) return res.status(404).json({ error: 'Invitación no válida o ya fue usada' });
@@ -115,6 +135,7 @@ router.post('/:token/accept', async (req, res) => {
       clinicId = clinicResult.rows[0].id;
     }
 
+    let userId;
     if (existingResult.rows.length > 0) {
       const existingUser = existingResult.rows[0];
       if (existingUser.clinic_id !== null) {
@@ -125,14 +146,31 @@ router.post('/:token/accept', async (req, res) => {
         'UPDATE users SET password = $1, clinic_id = $2, specialty = $3, name = $4, phone = $5, role = $6 WHERE id = $7',
         [hashed, clinicId, inv.specialty, inv.name, inv.phone, inv.role || 'doctor', existingUser.id]
       );
+      userId = existingUser.id;
     } else {
-      await query(
-        'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      const creado = await query(
+        'INSERT INTO users (email, password, role, name, clinic_id, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
         [inv.email, hashed, inv.role || 'doctor', inv.name, clinicId, inv.specialty, inv.phone]
       );
+      userId = creado.rows[0].id;
     }
+
+    // La cuenta ya existe: queda constancia de qué versión aceptó y desde dónde.
+    // Si esto fallara, el guardián legal le pediría la aceptación en su primera
+    // escritura, así que la cuenta nunca queda operativa sin ella.
+    const aceptaciones = await legal.registrarAceptaciones({
+      userId,
+      clinicId,
+      seleccion: req.body && req.body.legal_acceptances,
+      metodo: 'invitation_checkbox',
+      req,
+      exigirObligatorios: true,
+      actorRole: inv.role || 'doctor',
+      contexto: { origen: 'invitacion', pagina: '/accept-invitation.html' },
+    });
+
     await query('DELETE FROM invitations WHERE token = $1', [req.params.token]);
-    res.json({ success: true });
+    res.json({ success: true, legal: aceptaciones });
   } catch (err) {
     const detail = err.message;
     if (detail.includes('unique constraint') || detail.includes('UNIQUE')) {

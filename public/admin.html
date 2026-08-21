@@ -412,6 +412,7 @@
         <button class="ad-tab" role="tab" data-tab="clinicas" aria-selected="false">Clínicas</button>
         <button class="ad-tab" role="tab" data-tab="actividad" aria-selected="false">Actividad</button>
         <button class="ad-tab" role="tab" data-tab="visitas" aria-selected="false">Visitas</button>
+        <button class="ad-tab" role="tab" data-tab="legal" aria-selected="false">Legal</button>
       </nav>
 
       <!-- ══ Resumen ══ -->
@@ -539,6 +540,58 @@
         </div>
       </div>
 
+      <!-- ══ Legal ══
+           Publicar una versión aquí no borra nada: la anterior pasa a
+           'archived' y sigue consultable, y las aceptaciones registradas contra
+           ella se quedan intactas. No hay ningún botón que edite o borre una
+           aceptación, y aunque lo hubiera la base lo rechazaría.            -->
+      <div class="ad-panel sdl-scope" data-panel="legal">
+        <div class="ad-card">
+          <div class="ad-card-head">
+            <div>
+              <h2 class="ad-card-h">Documentos y versiones</h2>
+              <p class="ad-card-note">Cada versión publicada es inmutable. Publicar una nueva archiva la anterior sin borrarla.</p>
+            </div>
+          </div>
+          <div class="ad-card-body ad-card-body--flush" id="adLegalDocs"><div class="ad-skel" style="height:120px"></div></div>
+        </div>
+
+        <div class="ad-cols">
+          <div class="ad-card">
+            <div class="ad-card-head">
+              <div>
+                <h2 class="ad-card-h">Aceptaciones</h2>
+                <p class="ad-card-note">Solo lectura. Busca por nombre o correo.</p>
+              </div>
+            </div>
+            <div class="ad-card-body">
+              <input type="search" id="adLegalBuscar" placeholder="Buscar profesional…"
+                     style="width:100%;font:inherit;font-size:.84rem;padding:.5rem .75rem;border-radius:9px;border:1px solid var(--sdl-line,#e2e8f0);background:var(--sdl-bg,#fff);color:var(--sdl-text,#0f172a);margin-bottom:12px">
+              <div id="adLegalAceptaciones"></div>
+            </div>
+          </div>
+          <div class="ad-card">
+            <div class="ad-card-head">
+              <div>
+                <h2 class="ad-card-h">Bitácora legal</h2>
+                <p class="ad-card-note">Append-only. Nunca se purga, a diferencia de la auditoría general.</p>
+              </div>
+            </div>
+            <div class="ad-card-body" id="adLegalAudit"></div>
+          </div>
+        </div>
+
+        <div class="ad-card">
+          <div class="ad-card-head">
+            <div>
+              <h2 class="ad-card-h">Solicitudes de cancelación de cuenta</h2>
+              <p class="ad-card-note">Ninguna cancelación elimina expedientes clínicos de forma automática.</p>
+            </div>
+          </div>
+          <div class="ad-card-body" id="adLegalCierres"></div>
+        </div>
+      </div>
+
     </div>
   </main>
 
@@ -631,6 +684,7 @@
   </div>
 
   <script src="/common.js"></script>
+  <script src="/legal-consent.js"></script>
   <script>
     requireAuth(['super_admin']);
 
@@ -723,6 +777,7 @@
       if (tab === 'clinicas') cargarClinicas();
       if (tab === 'actividad') cargarActividad();
       if (tab === 'visitas') cargarVisitas();
+      if (tab === 'legal' && typeof window.cargarLegal === 'function') window.cargarLegal();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     $('adTabs').addEventListener('click', function (e) {
@@ -1250,5 +1305,151 @@
     if (VALIDAS.indexOf(inicial) !== -1 && inicial !== 'resumen') irA(inicial);
   </script>
   <script src="/layout.js"></script>
+  <script>
+    // ── Pestaña Legal del panel de plataforma ──
+    //
+    // Lee y publica. Lo que NO hay, a propósito: ningún camino para editar o
+    // borrar una aceptación. El administrador puede publicar una versión nueva
+    // y consultar la evidencia; reescribir el pasado no está entre sus poderes,
+    // ni aquí ni en la API ni en la base (triggers en lib/legal/schema.js).
+    (function () {
+      var esc = function (t) { return window.SDLegal ? SDLegal.escapar(t) : String(t == null ? '' : t); };
+      var $$ = function (id) { return document.getElementById(id); };
+
+      function fh(iso) {
+        if (!iso) return '—';
+        try {
+          return new Date(iso).toLocaleString('es-HN', {
+            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+        } catch (_) { return String(iso); }
+      }
+      function pedir(url, opciones) {
+        return fetch(url, Object.assign({ credentials: 'same-origin' }, opciones || {}))
+          .then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (d) {
+              if (!r.ok) throw new Error((d && d.error) || 'Error ' + r.status);
+              return d;
+            });
+          });
+      }
+
+      function pintarDocs(docs) {
+        $$('adLegalDocs').innerHTML = (docs || []).map(function (d) {
+          var versiones = (d.versions || []).map(function (v) {
+            var etiqueta = v.status === 'published' ? 'Vigente'
+              : v.status === 'archived' ? 'Anterior' : 'Borrador';
+            return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--sdl-line-soft,#eef2f6)">' +
+              '<div style="flex:1;min-width:0">' +
+                '<b style="font-size:.83rem">v' + esc(v.version) + '</b> ' +
+                '<span style="font-size:.72rem;color:var(--sdl-muted,#64748b)">· ' + etiqueta +
+                ' · ' + esc(v.aceptaciones) + ' aceptaciones' +
+                (v.requires_new_acceptance ? ' · exige nueva aceptación' : ' · sin nueva aceptación') + '</span>' +
+                '<div style="font-size:.7rem;color:var(--sdl-muted,#64748b);margin-top:2px">' +
+                  'SHA-256 <code>' + esc(String(v.content_hash || '').slice(0, 32)) + '…</code>' +
+                  (v.published_at ? ' · publicada ' + esc(fh(v.published_at)) : '') +
+                '</div>' +
+              '</div>' +
+              (v.status === 'draft'
+                ? '<button class="ad-btn ad-btn--sm" data-publicar="' + v.id + '">Publicar</button>'
+                : '<a class="ad-btn ad-btn--sm" target="_blank" rel="noopener" href="/legal.html?doc=' +
+                  encodeURIComponent(d.type) + '&v=' + encodeURIComponent(v.version) + '">Ver</a>') +
+            '</div>';
+          }).join('');
+
+          return '<div style="padding:14px 16px;border-bottom:1px solid var(--sdl-line-soft,#eef2f6)">' +
+            '<div style="display:flex;align-items:center;gap:10px">' +
+              '<div style="flex:1"><b style="font-size:.9rem">' + esc(d.name) + '</b>' +
+                '<div style="font-size:.73rem;color:var(--sdl-muted,#64748b);margin-top:2px">' +
+                  esc(d.type) + ' · ' + (d.consent_category === 'mandatory' ? 'obligatorio' : 'opcional') +
+                  ' · ' + (d.country ? esc(d.country) : 'global') + '</div>' +
+              '</div>' +
+            '</div>' + versiones + '</div>';
+        }).join('') || '<div style="padding:16px;font-size:.85rem">Sin documentos.</div>';
+
+        $$('adLegalDocs').querySelectorAll('[data-publicar]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            if (!window.confirm('Publicar esta versión. La anterior quedará archivada (no se borra) y, ' +
+              'si exige nueva aceptación, se pedirá a todos los profesionales. ¿Continuar?')) return;
+            b.disabled = true;
+            pedir('/api/legal/admin/versions/' + b.dataset.publicar + '/publish', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}'
+            }).then(cargarLegal).catch(function (e) { window.alert(e.message); b.disabled = false; });
+          });
+        });
+      }
+
+      function pintarAceptaciones(filas) {
+        $$('adLegalAceptaciones').innerHTML = (filas || []).length === 0
+          ? '<div style="font-size:.84rem;color:var(--sdl-muted,#64748b)">Sin registros.</div>'
+          : filas.map(function (a) {
+              return '<div style="padding:9px 0;border-bottom:1px solid var(--sdl-line-soft,#eef2f6)">' +
+                '<div style="display:flex;gap:8px;align-items:baseline">' +
+                  '<b style="font-size:.82rem">' + esc(a.user_name || a.user_email || ('usuario ' + a.user_id)) + '</b>' +
+                  '<span style="font-size:.72rem;color:var(--sdl-muted,#64748b)">' +
+                    esc(a.document_type) + ' v' + esc(a.document_version) +
+                    (a.action === 'accepted' ? '' : ' · ' + esc(a.action)) + '</span>' +
+                '</div>' +
+                '<div style="font-size:.71rem;color:var(--sdl-muted,#64748b);margin-top:2px">' +
+                  esc(fh(a.accepted_at)) + ' · IP ' + esc(a.ip || '—') + ' · ' + esc(a.acceptance_method) +
+                '</div>' +
+                '<div style="margin-top:5px"><a class="ad-btn ad-btn--sm" href="/api/legal/admin/evidence/' +
+                  esc(a.user_id) + '?format=pdf">Evidencia PDF</a></div>' +
+              '</div>';
+            }).join('');
+      }
+
+      function pintarAudit(eventos) {
+        $$('adLegalAudit').innerHTML = (eventos || []).length === 0
+          ? '<div style="font-size:.84rem;color:var(--sdl-muted,#64748b)">Sin eventos.</div>'
+          : eventos.map(function (e) {
+              return '<div style="padding:8px 0;border-bottom:1px solid var(--sdl-line-soft,#eef2f6)">' +
+                '<code style="font-size:.71rem;color:var(--sdl-accent,#0891b2)">' + esc(e.event) + '</code>' +
+                '<div style="font-size:.73rem;margin-top:2px">' +
+                  esc(e.subject_name || e.actor_name || '—') +
+                  (e.document_type ? ' · ' + esc(e.document_type) + ' v' + esc(e.document_version) : '') +
+                '</div>' +
+                '<div style="font-size:.7rem;color:var(--sdl-muted,#64748b)">' + esc(fh(e.created_at)) + '</div>' +
+              '</div>';
+            }).join('');
+      }
+
+      function pintarCierres(filas) {
+        $$('adLegalCierres').innerHTML = (filas || []).length === 0
+          ? '<div style="font-size:.85rem;color:var(--sdl-muted,#64748b)">No hay solicitudes de cancelación.</div>'
+          : filas.map(function (r) {
+              return '<div style="padding:10px 0;border-bottom:1px solid var(--sdl-line-soft,#eef2f6)">' +
+                '<b style="font-size:.84rem">' + esc(r.user_name || r.user_email) + '</b>' +
+                '<span style="font-size:.72rem;color:var(--sdl-muted,#64748b)"> · ' + esc(r.status) + '</span>' +
+                '<div style="font-size:.72rem;color:var(--sdl-muted,#64748b);margin-top:2px">' +
+                  'Solicitada ' + esc(fh(r.requested_at)) +
+                  (r.clinical_retention_until ? ' · conservar hasta ' + esc(fh(r.clinical_retention_until))
+                                              : ' · plazo de conservación sin determinar') +
+                '</div></div>';
+            }).join('');
+      }
+
+      window.cargarLegal = function () {
+        var q = ($$('adLegalBuscar') && $$('adLegalBuscar').value.trim()) || '';
+        return Promise.all([
+          pedir('/api/legal/admin/documents').then(function (d) { pintarDocs(d.documents); }).catch(function () {}),
+          pedir('/api/legal/admin/acceptances?limit=60' + (q ? '&q=' + encodeURIComponent(q) : ''))
+            .then(function (d) { pintarAceptaciones(d.acceptances); }).catch(function () {}),
+          pedir('/api/legal/admin/audit?limit=40').then(function (d) { pintarAudit(d.events); }).catch(function () {}),
+          pedir('/api/legal/admin/closures').then(function (d) { pintarCierres(d.requests); }).catch(function () {})
+        ]);
+      };
+
+      var buscar = $$('adLegalBuscar');
+      if (buscar) {
+        var t = null;
+        buscar.addEventListener('input', function () {
+          clearTimeout(t);
+          t = setTimeout(window.cargarLegal, 320);
+        });
+      }
+      if (location.hash.slice(1) === 'legal') window.cargarLegal();
+    })();
+  </script>
 </body>
 </html>

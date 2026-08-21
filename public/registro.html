@@ -151,6 +151,26 @@
     .progress-seg.current { background: linear-gradient(90deg, var(--primary) 0%, rgba(6,182,212,.25) 100%); }
 
     /* ── Paso ── */
+    /* ── Paso legal ── */
+    .legal-docs { display: flex; flex-direction: column; gap: 9px; margin-bottom: 1.15rem; }
+    .legal-cargando { font-size: .84rem; color: var(--text-muted, #64748b); padding: 14px 0; }
+    .legal-doc {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      border: 1px solid var(--sdl-line); border-radius: 12px; background: var(--sdl-bg-2);
+    }
+    .legal-doc-txt { flex: 1; min-width: 0; }
+    .legal-doc-name { font-size: .875rem; font-weight: 620; color: var(--sdl-text); line-height: 1.3; }
+    .legal-doc-meta { font-size: .74rem; color: var(--sdl-muted); margin-top: 3px; }
+    .legal-doc-btn {
+      flex: none; font: inherit; font-size: .78rem; font-weight: 600; cursor: pointer;
+      padding: .42rem .85rem; border-radius: 9px; border: 1px solid var(--sdl-line);
+      background: var(--sdl-bg); color: var(--sdl-accent); transition: .16s;
+    }
+    .legal-doc-btn:hover { background: var(--sdl-accent-soft); border-color: var(--sdl-accent-line); }
+    .legal-doc-btn:focus-visible { outline: 2px solid var(--sdl-accent); outline-offset: 2px; }
+    .legal-pie { font-size: .75rem; line-height: 1.55; color: var(--sdl-muted); margin: 1rem 0 0; }
+    .legal-pie b { color: var(--sdl-text); font-weight: 620; }
+
     .step { display: none; }
     .step.active { display: block; animation: stepIn .32s cubic-bezier(.22,.61,.36,1) both; }
     .step.back.active { animation-name: stepInBack; }
@@ -563,8 +583,36 @@
           </div>
         </section>
 
-        <!-- 6 · Confirmación -->
-        <section class="step" data-step="5">
+        <!-- 6 · Documentos legales -->
+        <!--
+          Este paso es el consentimiento electrónico. Tres reglas que vienen del
+          contrato y no del diseño: las casillas nacen DESMARCADAS, el botón no
+          se habilita hasta marcarlas, y lo que se envía al servidor es la
+          versión y la huella EXACTAS del documento que se acaba de mostrar. El
+          servidor las vuelve a comprobar: esto es comodidad, no el control.
+        -->
+        <section class="step sdl-scope" data-step="5">
+          <h1 class="step-title">Antes de crear tu cuenta</h1>
+          <p class="step-sub">Aquí vive información clínica de tus pacientes, así que el marco es
+          serio. Revisa estos documentos: puedes abrirlos completos sin salir de esta pantalla.</p>
+
+          <div class="legal-docs" id="legalDocs">
+            <div class="legal-cargando">Cargando documentos…</div>
+          </div>
+
+          <div class="sdl-checks" id="legalChecks"></div>
+
+          <p class="legal-pie">
+            Guardaremos la constancia de esta aceptación: versión del documento, su huella
+            criptográfica, fecha, hora, dirección IP y navegador. Podrás consultarla y exportarla
+            cuando quieras desde <b>Configuración → Legal y privacidad</b>.
+          </p>
+
+          <div class="form-error" id="legalError"></div>
+        </section>
+
+        <!-- 7 · Confirmación -->
+        <section class="step" data-step="6">
           <h1 class="step-title">Todo listo</h1>
           <p class="step-sub">Revisa que esté correcto y creamos tu espacio.</p>
 
@@ -580,8 +628,8 @@
           <div class="form-error" id="formError"></div>
         </section>
 
-        <!-- 7 · Solicitud enviada -->
-        <section class="step" data-step="6">
+        <!-- 8 · Solicitud enviada -->
+        <section class="step" data-step="7">
           <div class="done-mark">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
@@ -622,21 +670,33 @@
       © 2026 SaludDigital · Honduras
       <span class="sep">·</span>
       <a href="/">Inicio</a>
+      <span class="sep">·</span>
+      <a href="/legal.html?doc=TERMS">Términos</a>
+      <span class="sep">·</span>
+      <a href="/legal.html?doc=PRIVACY">Privacidad</a>
     </div>
   </div>
 
   <script src="/icons.js"></script>
   <script src="/location.js"></script>
   <script src="/map-picker.js"></script>
+  <script src="/legal-consent.js"></script>
   <script>
     // ── Asistente de alta en pasos ──
     // Todo el estado vive aquí; el POST a /api/auth/register solo ocurre en el
     // último paso, cuando el doctor ya vio el resumen completo.
 
-    var PASOS = ['Tus datos', 'Contraseña', 'Especialidad', 'Consultorio', 'Ubicación', 'Confirmar', 'Enviado'];
+    var PASOS = ['Tus datos', 'Contraseña', 'Especialidad', 'Consultorio', 'Ubicación', 'Legal', 'Confirmar', 'Enviado'];
     var PASO_UBICACION = 4;
-    var ULTIMO_FORMULARIO = 5;   // índice del paso de confirmación
-    var PASO_EXITO = 6;
+    var PASO_LEGAL = 5;          // documentos y consentimiento electrónico
+    var ULTIMO_FORMULARIO = 6;   // índice del paso de confirmación
+    var PASO_EXITO = 7;
+
+    // Lo que el doctor tuvo delante en el paso legal: tipo, versión y huella de
+    // cada documento. Es lo que viaja al servidor y lo que el servidor compara
+    // contra lo publicado antes de registrar nada.
+    var legalDocs = [];
+    var legalListo = false;
 
     // El alta por cuenta propia es solo para podología. La lista se mantiene como
     // array porque el paso funciona igual con una o con varias opciones: para
@@ -755,9 +815,101 @@
         if (!datos.specialty) { marcar('fSpec', true); ok = false; }
       } else if (n === 3) {
         if ($('clinic').value.trim().length < 3) { marcar('fClinic', true); ok = false; }
+      } else if (n === PASO_LEGAL) {
+        // Redundante con el botón deshabilitado, pero el botón se puede forzar
+        // desde la consola y esto no. (Y el servidor lo comprueba otra vez.)
+        if (!legalListo || !todasMarcadas()) {
+          $('legalError').textContent = 'Marca las dos casillas para continuar.';
+          $('legalError').classList.add('show');
+          ok = false;
+        }
       }
       return ok;
     }
+
+    // ── Paso legal ──
+    //
+    // Los documentos se piden al servidor: ni el texto ni la versión ni la
+    // huella se escriben aquí a mano. Lo que se muestre es exactamente lo que
+    // se acepta, y lo que se acepta es exactamente lo que se envía.
+    function todasMarcadas() {
+      var cajas = document.querySelectorAll('#legalChecks input[type="checkbox"]');
+      if (cajas.length === 0) return false;
+      return Array.prototype.every.call(cajas, function (c) { return c.checked; });
+    }
+
+    function repasarLegal() {
+      if (paso !== PASO_LEGAL) return;
+      $('btnNext').disabled = !(legalListo && todasMarcadas());
+    }
+
+    function cargarLegal() {
+      if (legalListo || !window.SDLegal) return;
+      var caja = $('legalDocs');
+      var checks = $('legalChecks');
+
+      SDLegal.documentos().then(function (d) {
+        // Solo los obligatorios: el consentimiento de marketing es opcional y no
+        // se mezcla con la aceptación del contrato (se ofrece luego, en ajustes).
+        legalDocs = ((d && d.documents) || []).filter(function (x) {
+          return x.consent_category === 'mandatory';
+        });
+
+        if (legalDocs.length === 0) {
+          caja.innerHTML = '';
+          checks.innerHTML = '';
+          legalListo = true;
+          repasarLegal();
+          return;
+        }
+
+        caja.innerHTML = legalDocs.map(function (x) {
+          return '<div class="legal-doc">' +
+            '<div class="legal-doc-txt">' +
+              '<div class="legal-doc-name">' + SDLegal.escapar(x.name) + '</div>' +
+              '<div class="legal-doc-meta">Versión ' + SDLegal.escapar(x.version) +
+                ' · en vigor desde ' + SDLegal.escapar(SDLegal.fecha(x.effective_at || x.published_at)) +
+              '</div>' +
+            '</div>' +
+            '<button type="button" class="legal-doc-btn" data-doc="' + SDLegal.escapar(x.type) + '">Leer</button>' +
+          '</div>';
+        }).join('');
+
+        checks.innerHTML = legalDocs.map(function (x, i) {
+          var verbo = x.type === 'PRIVACY' ? 'He leído y comprendo la' : 'He leído y acepto los';
+          return '<label class="sdl-check">' +
+            // Sin `checked`: nunca preseleccionado.
+            '<input type="checkbox" data-i="' + i + '">' +
+            '<span class="sdl-check-txt">' + verbo + ' <a href="#" data-doc="' +
+              SDLegal.escapar(x.type) + '">' + SDLegal.escapar(x.name) + '</a>' +
+              '<span class="sdl-req">*</span>' +
+              '<span class="sdl-check-note">Versión ' + SDLegal.escapar(x.version) + '</span>' +
+            '</span></label>';
+        }).join('');
+
+        legalListo = true;
+        repasarLegal();
+      }).catch(function (err) {
+        caja.innerHTML = '<div class="legal-cargando">No se pudieron cargar los documentos. ' +
+          'Revisa tu conexión y vuelve a intentarlo.</div>';
+        $('legalError').textContent = err.message;
+        $('legalError').classList.add('show');
+      });
+    }
+
+    document.addEventListener('change', function (e) {
+      if (e.target && e.target.closest && e.target.closest('#legalChecks')) {
+        $('legalError').classList.remove('show');
+        repasarLegal();
+      }
+    });
+
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('[data-doc]');
+      if (!b || !window.SDLegal) return;
+      e.preventDefault();
+      SDLegal.abrirDocumento(b.getAttribute('data-doc'));
+    });
 
     function pintarResumen() {
       var filas = [
@@ -773,6 +925,11 @@
       if (tel) filas.push(['Teléfono', tel]);
       if (direccion) filas.push(['Dirección', direccion]);
       filas.push(['Ubicación en el mapa', datos.lat != null ? 'Marcada' : 'La marcarás después']);
+      if (legalDocs.length) {
+        filas.push(['Documentos aceptados', legalDocs.map(function (x) {
+          return x.name + ' v' + x.version;
+        }).join(' · ')]);
+      }
 
       $('summary').innerHTML = filas.map(function (f) {
         var b = document.createElement('b');
@@ -798,6 +955,11 @@
       $('btnBack').style.display = (n === 0 || n >= PASO_EXITO) ? 'none' : '';
       $('btnLabel').textContent = n === ULTIMO_FORMULARIO ? 'Enviar solicitud' : 'Continuar';
       $('btnIcon').style.display = n === ULTIMO_FORMULARIO ? 'none' : '';
+
+      // El botón solo lo bloquea el paso legal; en cualquier otro vuelve a estar
+      // disponible (si no, quedaría apagado al retroceder).
+      $('btnNext').disabled = false;
+      if (n === PASO_LEGAL) { cargarLegal(); repasarLegal(); }
 
       if (n === ULTIMO_FORMULARIO) pintarResumen();
       // El mapa se monta al llegar al paso: Leaflet no puede medir un contenedor
@@ -965,7 +1127,13 @@
             address: $('address').value.trim(),
             map_url: $('mapUrl').value.trim(),
             latitude: datos.lat,
-            longitude: datos.lng
+            longitude: datos.lng,
+            // Versión y huella de lo que se mostró en el paso legal. Si el
+            // servidor publicó otra versión entretanto, responde 409 y no crea
+            // la cuenta: es imposible quedar registrado aceptando otro texto.
+            legal_acceptances: legalDocs.map(function (x) {
+              return { type: x.type, version: x.version, hash: x.content_hash };
+            })
           })
         });
         var data = null;

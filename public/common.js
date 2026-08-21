@@ -123,6 +123,27 @@ async function api(url, options = {}) {
       err.code = 'subscription_required';
       throw err;
     }
+    // 451 = falta aceptar la versión vigente de los documentos legales. Igual
+    // que con el 402, la página NO navega a ningún sitio: se abre el modal de
+    // aceptación encima y el formulario se queda tal cual. Aceptar recarga.
+    if (res.status === 451 && data && data.code === 'legal_acceptance_required') {
+      if (!options.quiet) {
+        if (typeof window.sdCargarLegal === 'function') {
+          window.sdCargarLegal()
+            .then(SDL => SDL.exigir(data.pending || []))
+            .catch(() => { window.location.href = '/legal.html'; });
+        } else {
+          // Página que no carga layout.js: sin el modal a mano, al menos que el
+          // usuario llegue a los documentos en vez de quedarse sin explicación.
+          window.location.href = '/legal.html';
+        }
+      }
+      const err = new Error(data.error || 'Debes aceptar los documentos legales para continuar.');
+      err.status = 451;
+      err.code = 'legal_acceptance_required';
+      err.pending = data.pending || [];
+      throw err;
+    }
     const err = new Error((data && data.error) || `Request failed (${res.status})`);
     err.status = res.status;
     throw err;

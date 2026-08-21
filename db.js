@@ -1045,6 +1045,16 @@ const initDb = async () => {
       CREATE INDEX IF NOT EXISTS idx_landing_visits_page ON landing_visits(page, created_at DESC);
     `);
 
+    // ── Sistema legal y de aceptación ──
+    //
+    // Documentos versionados, aceptaciones con evidencia y bitácora legal. Vive
+    // en su propio módulo porque trae triggers de inmutabilidad y no es una
+    // migración más de una columna: ver lib/legal/schema.js.
+    const esquemaLegal = await require('./lib/legal/schema').migrate(query);
+    if (esquemaLegal.guardianes) {
+      console.log('[legal] esquema listo (aceptaciones y bitácora protegidas contra modificación)');
+    }
+
     console.log('Database initialized successfully');
   } catch (err) {
     console.error('Database initialization error:', err);

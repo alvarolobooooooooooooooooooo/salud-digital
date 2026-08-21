@@ -23,6 +23,7 @@ const EXEMPT_PREFIXES = [
   '/billing',               // estado, alta y cancelación de la suscripción
   '/public',                // landing pública + reservas online
   '/confirmations/public',  // enlace de confirmación que ya recibió el paciente
+  '/legal',                 // leer y aceptar los términos no puede depender del pago
 ];
 
 // Métodos que solo leen. Son los que siguen abiertos sin plan: el doctor recién

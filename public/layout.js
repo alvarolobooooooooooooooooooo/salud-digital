@@ -1568,3 +1568,54 @@
     } catch (_) {}
   }, true);
 })();
+
+// ── Aceptación legal pendiente (frontend) ──
+//
+// El servidor ya bloquea las escrituras con 451 cuando falta aceptar la versión
+// vigente de los documentos. Aquí va la parte amable: preguntarlo al entrar y
+// abrir el modal, para que nadie descubra que hay términos nuevos justo cuando
+// intentaba guardar una consulta.
+//
+// El modal vive en legal-consent.js, que se carga bajo demanda: es un archivo
+// que solo hace falta cuando hay algo pendiente o cuando alguien abre un
+// documento, así que no se le cuelga a todas las páginas por defecto.
+(function () {
+  var SIN_MODAL = [
+    '/login.html', '/registro.html', '/landing.html', '/accept-invitation.html',
+    '/legal.html', '/plan.html', '/', '/index.html', '/offline.html'
+  ];
+  var ROLES = ['clinic_admin', 'doctor', 'receptionist'];
+
+  window.sdCargarLegal = function () {
+    if (window.SDLegal) return Promise.resolve(window.SDLegal);
+    if (window.__sdLegalCargando) return window.__sdLegalCargando;
+    window.__sdLegalCargando = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = '/legal-consent.js';
+      s.onload = function () { resolve(window.SDLegal); };
+      s.onerror = function () { reject(new Error('No se pudo cargar el visor legal.')); };
+      document.head.appendChild(s);
+    });
+    return window.__sdLegalCargando;
+  };
+
+  if (SIN_MODAL.indexOf(window.location.pathname) !== -1) return;
+  try {
+    if (ROLES.indexOf(localStorage.getItem('sd_role')) === -1) return;
+  } catch (_) { return; }
+
+  // Una sola consulta por carga de página. Es barata (el servidor la cachea 60 s
+  // por usuario) y es la única forma de enterarse de una versión nueva sin
+  // esperar a que el usuario intente guardar algo.
+  fetch('/api/legal/pending', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (!d || !d.pending || d.pending.length === 0) return;
+      return window.sdCargarLegal().then(function (SDL) {
+        var abrir = function () { SDL.comprobarPendientes(); };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', abrir);
+        else abrir();
+      });
+    })
+    .catch(function () { /* sin red: el servidor lo exigirá en la próxima escritura */ });
+})();

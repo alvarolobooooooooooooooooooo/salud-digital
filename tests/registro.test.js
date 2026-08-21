@@ -17,7 +17,35 @@ const jwt = require('jsonwebtoken');
 // Guarda en memoria lo insertado y responde a las pocas consultas que hace el
 // alta. Cualquier SQL no previsto revienta el test a propósito: si mañana el
 // endpoint consulta algo nuevo, aquí se entera.
-const bd = { clinicas: [], usuarios: [], sesiones: [] };
+const bd = { clinicas: [], usuarios: [], sesiones: [], aceptaciones: [], eventosLegales: [] };
+
+// Los dos documentos obligatorios publicados, tal como los devolvería la base.
+// Las huellas son de pega pero el servidor las compara EXACTAMENTE, así que el
+// test tiene que enviarlas idénticas — que es justo lo que se quiere probar.
+const HASH_TERMS = 'a'.repeat(64);
+const HASH_PRIVACY = 'b'.repeat(64);
+const DOCS_LEGALES = [
+  {
+    id: 1, doc_key: 'terms-doctor', type: 'TERMS', name: 'Términos y Condiciones de Uso',
+    description: '', audience: 'doctor', country: '', jurisdiction: '', locale: 'es',
+    consent_category: 'mandatory', display_order: 1,
+    version_id: 11, version: '1.0', content_hash: HASH_TERMS, content_format: 'markdown',
+    summary_of_changes: '', requires_new_acceptance: true,
+    published_at: new Date(), effective_at: new Date(),
+  },
+  {
+    id: 2, doc_key: 'privacy', type: 'PRIVACY', name: 'Política de Privacidad',
+    description: '', audience: 'doctor', country: '', jurisdiction: '', locale: 'es',
+    consent_category: 'mandatory', display_order: 2,
+    version_id: 21, version: '1.0', content_hash: HASH_PRIVACY, content_format: 'markdown',
+    summary_of_changes: '', requires_new_acceptance: true,
+    published_at: new Date(), effective_at: new Date(),
+  },
+];
+const ACEPTACION_VALIDA = [
+  { type: 'TERMS', version: '1.0', hash: HASH_TERMS },
+  { type: 'PRIVACY', version: '1.0', hash: HASH_PRIVACY },
+];
 
 function ejecutar(text, params) {
   const sql = String(text).replace(/\s+/g, ' ').trim();
@@ -70,6 +98,29 @@ function ejecutar(text, params) {
     bd.sesiones.push({ jti: params[0], user_id: params[1] });
     return { rows: [], rowCount: 1 };
   }
+  // ── Sistema legal ──
+  // El alta ya no puede crear una cuenta sin registrar la aceptación de los
+  // documentos vigentes, así que el doble tiene que saber cuáles son.
+  if (/FROM legal_documents d\s+JOIN legal_document_versions v/i.test(sql)) {
+    return { rows: DOCS_LEGALES, rowCount: DOCS_LEGALES.length };
+  }
+  if (/^INSERT INTO legal_acceptances/i.test(sql)) {
+    bd.aceptaciones.push({
+      acceptance_uid: params[0], user_id: params[1], clinic_id: params[2],
+      document_type: params[6], document_version: params[8], document_hash: params[9],
+      ip: params[10], user_agent: params[11], acceptance_method: params[12],
+    });
+    return { rows: [], rowCount: 1 };
+  }
+  if (/^INSERT INTO legal_audit_events/i.test(sql)) {
+    bd.eventosLegales.push({ event: params[0], user_id: params[3] });
+    return { rows: [], rowCount: 1 };
+  }
+  if (/FROM legal_acceptances/i.test(sql)) {
+    const filas = bd.aceptaciones.filter((a) => a.user_id === params[0]);
+    return { rows: filas, rowCount: filas.length };
+  }
+
   if (/^(BEGIN|COMMIT|ROLLBACK)$/i.test(sql)) return { rows: [], rowCount: 0 };
 
   throw new Error('SQL no previsto en el doble: ' + sql);
@@ -168,6 +219,9 @@ const ALTA_VALIDA = {
   clinic_name: 'Clínica Podológica Sonrisa',
   city: 'Tegucigalpa',
   phone: '+504 9999 9999',
+  // Sin esto no hay alta: el servidor exige la versión y la huella exactas de
+  // los documentos obligatorios vigentes.
+  legal_acceptances: ACEPTACION_VALIDA,
 };
 
 test('el alta crea clínica y doctor, pero NO abre sesión: queda pendiente de aprobación', async (t) => {

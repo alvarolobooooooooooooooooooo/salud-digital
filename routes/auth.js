@@ -10,6 +10,7 @@ const vault = require('../lib/secret-vault');
 const { isValidLatLng } = require('../lib/maps-links');
 const presupuesto = require('../lib/password-budget');
 const mailer = require('../utils/mailer');
+const legal = require('../lib/legal/service');
 
 // ── Hash señuelo para nivelar los tiempos del login ──
 //
@@ -196,6 +197,8 @@ router.post('/register', async (req, res) => {
   }
   const hash = await bcrypt.hash(password, 10);
   const client = await pool.connect();
+  let userId = null;
+  let aceptaciones = [];
   try {
     await client.query('BEGIN');
     const nombreClinica = await nombreDeClinicaLibre(client, clinica);
@@ -215,15 +218,48 @@ router.post('/register', async (req, res) => {
       ]
     );
     const clinicId = c.rows[0].id;
-    await client.query(
+    const nuevo = await client.query(
       `INSERT INTO users (email, password, role, name, clinic_id, specialty, phone,
                           approval_status, approval_requested_at)
-       VALUES ($1, $2, 'doctor', $3, $4, $5, $6, 'pending', CURRENT_TIMESTAMP)`,
+       VALUES ($1, $2, 'doctor', $3, $4, $5, $6, 'pending', CURRENT_TIMESTAMP)
+       RETURNING id`,
       [email, hash, nombre, clinicId, especialidad, telefono]
     );
+    userId = nuevo.rows[0].id;
+
+    // ── Aceptación de los documentos legales ──
+    //
+    // Va DENTRO de la transacción a propósito: si la aceptación no es válida
+    // —falta un documento obligatorio, o la versión/huella no coinciden con lo
+    // publicado— el ROLLBACK se lleva también la clínica y el usuario. No puede
+    // existir una cuenta sin su aceptación correspondiente, y por eso tampoco
+    // sirve de nada llamar a /api/auth/register directamente sin el paquete:
+    // el servidor no acepta "lo que sea", compara contra lo que él publicó.
+    aceptaciones = await legal.registrarAceptaciones({
+      userId,
+      clinicId,
+      seleccion: b.legal_acceptances,
+      metodo: 'signup_checkbox',
+      req,
+      client,
+      exigirObligatorios: true,
+      actorRole: 'doctor',
+      contexto: { origen: 'registro_publico', pagina: '/registro.html' },
+    });
+
     await client.query('COMMIT');
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
+
+    // Aceptación legal inválida o incompleta: la cuenta no llega a existir.
+    if (err instanceof legal.ErrorLegal) {
+      return res.status(err.codigo === 'version_mismatch' ? 409 : 400).json({
+        error: err.message,
+        code: err.codigo,
+        ...err.extra,
+      });
+    }
+
     // Carreras contra los índices únicos: dos altas simultáneas con el mismo
     // correo, o con el mismo nombre de clínica entre la comprobación y el INSERT.
     if (err && err.code === '23505') {
@@ -257,6 +293,9 @@ router.post('/register', async (req, res) => {
     pending: true,
     status: 'pending_approval',
     message: 'Recibimos tu solicitud. Te avisaremos por correo en cuanto el equipo de Salud Digital la apruebe.',
+    // Constancia inmediata de lo aceptado: versión, huella e identificador
+    // único de cada aceptación. El mismo dato queda guardado y exportable.
+    legal: aceptaciones,
   });
 });
 
