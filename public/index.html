@@ -1607,31 +1607,38 @@
   }
   .partner-card::before { top: -120px; left: -80px; }
   .partner-card::after  { bottom: -130px; right: -90px; }
-  .partner-badge {
-    display: inline-flex;
+  /* La píldora con puntito es lenguaje de interfaz: sirve para un estado o una
+     etiqueta dentro de la app. Aquí choca, porque esta tarjeta no es interfaz —
+     es una placa: Playfair, oro sobre crema, un filete bajo el logo. Así que la
+     mención va grabada, no etiquetada: versalitas muy espaciadas entre dos
+     filetes que se desvanecen, y que riman a propósito con .partner-divider de
+     más abajo para que las dos líneas se lean como un par. */
+  .partner-eyebrow {
+    display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 1rem;
-    background: rgba(168, 151, 101, 0.12);
-    border: 1px solid rgba(168, 151, 101, 0.3);
-    border-radius: 999px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.22em;
+    justify-content: center;
+    gap: 0.85rem;
+    margin: 0 0 2.25rem;
+    font-size: 0.63rem;
+    font-weight: 600;
+    letter-spacing: 0.34em;
     text-transform: uppercase;
     color: var(--podo-gold-deep);
-    margin-bottom: 2rem;
     position: relative;
     z-index: 1;
   }
-  .partner-badge::before {
+  /* letter-spacing añade el hueco DESPUÉS de la última letra, así que el texto
+     queda descentrado respecto a los filetes; el margen negativo lo devuelve. */
+  .partner-eyebrow span { margin-right: -0.34em; }
+  .partner-eyebrow::before,
+  .partner-eyebrow::after {
     content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--podo-gold);
-    box-shadow: 0 0 0 4px rgba(168, 151, 101, 0.18);
+    height: 1px;
+    width: clamp(26px, 9vw, 56px);
+    opacity: 0.55;
   }
+  .partner-eyebrow::before { background: linear-gradient(90deg, transparent, var(--podo-gold)); }
+  .partner-eyebrow::after  { background: linear-gradient(90deg, var(--podo-gold), transparent); }
   .partner-logo {
     position: relative;
     z-index: 1;
@@ -1688,6 +1695,8 @@
     .partner { padding: 1.5rem 0 3rem; }
     .partner-card { padding: 2.5rem 1.5rem; border-radius: 18px; }
     .partner-card::before, .partner-card::after { width: 180px; height: 180px; }
+    .partner-eyebrow { gap: 0.6rem; letter-spacing: 0.26em; font-size: 0.58rem; margin-bottom: 1.85rem; }
+    .partner-eyebrow span { margin-right: -0.26em; }
   }
   html[data-theme="dark"] .partner-card {
     background: linear-gradient(180deg, rgba(28, 26, 22, 0.92) 0%, rgba(22, 20, 16, 0.95) 100%);
@@ -1698,12 +1707,13 @@
   html[data-theme="dark"] .partner-card::after {
     background: radial-gradient(circle, rgba(194, 179, 133, 0.18) 0%, transparent 65%);
   }
-  html[data-theme="dark"] .partner-badge {
-    background: rgba(194, 179, 133, 0.10);
-    border-color: rgba(194, 179, 133, 0.32);
-    color: var(--podo-gold-light);
+  html[data-theme="dark"] .partner-eyebrow { color: var(--podo-gold-light); }
+  html[data-theme="dark"] .partner-eyebrow::before {
+    background: linear-gradient(90deg, transparent, var(--podo-gold-light));
   }
-  html[data-theme="dark"] .partner-badge::before { background: var(--podo-gold-light); }
+  html[data-theme="dark"] .partner-eyebrow::after {
+    background: linear-gradient(90deg, var(--podo-gold-light), transparent);
+  }
   html[data-theme="dark"] .partner-logo-name,
   html[data-theme="dark"] .partner-logo-sub { color: var(--podo-gold-light); }
   html[data-theme="dark"] .partner-divider { background: var(--podo-gold-light); }
@@ -4517,7 +4527,7 @@
 <section class="partner" aria-label="Aliado fundador">
   <div class="container">
     <div class="partner-card reveal">
-      <span class="partner-badge">Aliado fundador</span>
+      <p class="partner-eyebrow"><span>Aliado fundador</span></p>
       <div class="partner-logo">
         <span class="partner-logo-name">PoDO</span>
         <span class="partner-logo-sub">ESTÉTICA</span>
