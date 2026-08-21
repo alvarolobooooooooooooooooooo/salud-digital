@@ -32,10 +32,15 @@ if 'id="dfeRoot"' not in MARCADO:
     sys.exit("no encontré la exploración de pie diabético")
 
 PAGINA = """<!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- El mismo arranque de tema que usa la app. Como el iframe es del mismo
+     origen que la landing, lee el MISMO localStorage (sd_theme) y aplica el
+     MISMO data-theme: la ficha se ve clara o en modo oscuro exactamente igual
+     que la página que la contiene, sin que nadie tenga que sincronizar nada. -->
+<script src="/theme.js"></script>
 <title>Consulta podológica — Salud Digital</title>
 <meta name="robots" content="noindex">
 
@@ -56,8 +61,9 @@ PAGINA = """<!DOCTYPE html>
 </style>
 <style>
   /* Ajustes propios del demo: sin el armazón de la app (barra lateral,
-     cabecera), la ficha va sola sobre el lienzo. */
-  html, body { background: var(--pod-bg, #f1f5f9); }
+     cabecera), la ficha va sola sobre el lienzo. El fondo NO se toca: lo
+     ponen las reglas de la app (claro) y theme-dark.css (oscuro), que es
+     justo lo que hace que el demo cambie de tema solo. */
   body { margin: 0; padding: 1.5rem 1rem 3rem; }
   .demo-wrap { max-width: 980px; margin: 0 auto; }
   /* El cursor delata que las cabeceras se abren, igual que en la app. */

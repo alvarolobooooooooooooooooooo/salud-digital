@@ -3874,12 +3874,22 @@
     background: #f1f5f9;
   }
 
+  /* En oscuro el marco acompaña: la ficha de dentro ya se pone oscura sola
+     —el iframe lee el mismo sd_theme—, así que si el marco se quedara claro
+     se vería un borde blanco alrededor de una pantalla negra. */
   html[data-theme="dark"] .spec-app {
     border-color: rgba(6, 182, 212, 0.22);
+    background: #050507;
     box-shadow:
       0 0 100px rgba(6, 182, 212, 0.14),
       0 26px 64px rgba(0, 0, 0, 0.5);
   }
+  html[data-theme="dark"] .spec-app-bar {
+    background: #14141a;
+    border-bottom-color: rgba(6, 182, 212, 0.16);
+  }
+  html[data-theme="dark"] .spec-app-url { color: #94a3b8; }
+  html[data-theme="dark"] .spec-app-frame { background: #050507; }
 
   @media (max-width: 720px) {
     .spec { padding: 0 0 3.5rem; }
