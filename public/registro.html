@@ -845,6 +845,12 @@
 
     function cargarLegal() {
       if (legalListo || !window.SDLegal) return;
+      // Los estilos de .sdl-check viven en legal-consent.js y se inyectan bajo
+      // demanda (normalmente al abrir un modal). Aquí las casillas se pintan
+      // dentro de la propia página, sin modal de por medio, así que hay que
+      // pedirlos explícitamente: sin esto salían como checkboxes crudos con el
+      // texto corrido, que es exactamente lo que se veía en el móvil.
+      SDLegal.inyectarEstilos();
       var caja = $('legalDocs');
       var checks = $('legalChecks');
 

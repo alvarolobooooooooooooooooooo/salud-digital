@@ -35,7 +35,12 @@
     .lg-top {
       position: sticky; top: 0; z-index: 40;
       display: flex; align-items: center; justify-content: space-between; gap: 16px;
-      padding: 14px 24px; background: color-mix(in srgb, var(--lg-bg) 86%, transparent);
+      /* viewport-fit=cover (lo inyecta el servidor) hace que en la PWA instalada
+         la página ocupe la pantalla física entera. Sin estos insets, la barra
+         quedaba entera debajo de la Dynamic Island. */
+      padding: calc(14px + env(safe-area-inset-top, 0px)) calc(24px + env(safe-area-inset-right, 0px))
+               14px calc(24px + env(safe-area-inset-left, 0px));
+      background: color-mix(in srgb, var(--lg-bg) 86%, transparent);
       -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--lg-line-soft);
     }
@@ -54,7 +59,10 @@
     .lg-top-link:hover { background: var(--lg-panel); color: var(--lg-text); }
 
     /* ── Encabezado ── */
-    .lg-hero { max-width: 1180px; margin: 0 auto; padding: 44px 24px 26px; }
+    .lg-hero {
+      max-width: 1180px; margin: 0 auto;
+      padding: 44px calc(24px + env(safe-area-inset-right, 0px)) 26px calc(24px + env(safe-area-inset-left, 0px));
+    }
     .lg-eyebrow {
       font-size: .7rem; font-weight: 650; letter-spacing: .1em; text-transform: uppercase;
       color: var(--lg-accent); margin-bottom: 10px;
@@ -64,7 +72,8 @@
 
     /* ── Rejilla ── */
     .lg-grid {
-      max-width: 1180px; margin: 0 auto; padding: 8px 24px 80px;
+      max-width: 1180px; margin: 0 auto;
+      padding: 8px calc(24px + env(safe-area-inset-right, 0px)) 80px calc(24px + env(safe-area-inset-left, 0px));
       display: grid; grid-template-columns: 268px minmax(0, 1fr); gap: 26px; align-items: start;
     }
 
@@ -116,8 +125,12 @@
     .lg-fact b { font-weight: 660; color: var(--lg-text); }
     .lg-fact code {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .68rem;
-      color: var(--lg-accent); letter-spacing: -.02em;
+      color: var(--lg-accent); letter-spacing: -.02em; overflow-wrap: anywhere;
     }
+    /* Un hash es una sola "palabra" de 64 caracteres: sin esto, la fila de datos
+       se estira y arrastra toda la página a lo ancho. */
+    .lg-fact { max-width: 100%; }
+    .lg-facts { max-width: 100%; }
     .lg-fact--accent { background: var(--lg-accent-soft); border-color: var(--lg-accent-line); }
 
     .lg-versions { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
@@ -138,7 +151,9 @@
     html[data-theme="dark"] .lg-err { color: #f87171; }
 
     .lg-foot {
-      max-width: 1180px; margin: 0 auto; padding: 0 24px 60px;
+      max-width: 1180px; margin: 0 auto;
+      padding: 0 calc(24px + env(safe-area-inset-right, 0px))
+               calc(60px + env(safe-area-inset-bottom, 0px)) calc(24px + env(safe-area-inset-left, 0px));
       font-size: .77rem; color: var(--lg-muted); line-height: 1.6;
     }
     .lg-foot a { color: var(--lg-accent); text-decoration: none; }
@@ -146,10 +161,15 @@
     @media (max-width: 900px) {
       .lg-grid { grid-template-columns: 1fr; gap: 18px; }
       .lg-side { position: static; }
-      .lg-hero { padding: 30px 18px 18px; }
-      .lg-grid { padding: 4px 18px 60px; }
+      .lg-hero { padding: 30px calc(18px + env(safe-area-inset-right, 0px)) 18px calc(18px + env(safe-area-inset-left, 0px)); }
+      .lg-grid { padding: 4px calc(18px + env(safe-area-inset-right, 0px)) 60px calc(18px + env(safe-area-inset-left, 0px)); }
       .lg-panel-head, .lg-panel-body { padding-left: 18px; padding-right: 18px; }
-      .lg-top { padding: 12px 16px; }
+      .lg-top {
+        padding: calc(12px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-right, 0px))
+                 12px calc(16px + env(safe-area-inset-left, 0px));
+      }
+      .lg-top-links { gap: 0; }
+      .lg-top-link { padding: .45rem .5rem; }
     }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   </style>

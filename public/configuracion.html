@@ -167,7 +167,13 @@
     .cfl-row-meta code {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .72rem;
       color: var(--sdl-accent, #0891b2);
+      /* Un SHA-256 recortado (32 caracteres) y un UUID de aceptación (36) son
+         una sola palabra sin espacios: en un móvil estiran la tarjeta y sacan
+         la pantalla de sitio si no se les deja partir. */
+      overflow-wrap: anywhere;
     }
+    .cfl-row-meta { overflow-wrap: anywhere; }
+    .cfl-row-name { overflow-wrap: anywhere; }
     .cfl-badge {
       display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px;
       font-size: .68rem; font-weight: 640; border: 1px solid var(--sdl-line, #e2e8f0);

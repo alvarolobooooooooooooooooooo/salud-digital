@@ -149,7 +149,9 @@
 
       /* ── Capa modal ── */
       '.sdl-overlay{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;',
-      'justify-content:center;padding:20px;background:rgba(15,23,42,.55);',
+      'justify-content:center;background:rgba(15,23,42,.55);',
+      'padding:max(20px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-right, 0px))',
+      ' max(20px, env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));',
       '-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:sdlFade .18s ease both}',
       'html[data-theme="dark"] .sdl-overlay{background:rgba(0,0,0,.72)}',
       '@keyframes sdlFade{from{opacity:0}to{opacity:1}}',
@@ -179,12 +181,18 @@
       'font-size:.7rem;font-weight:600;background:var(--sdl-bg-2);border:1px solid var(--sdl-line);',
       'color:var(--sdl-soft);white-space:nowrap}',
       '.sdl-chip--accent{background:var(--sdl-accent-soft);border-color:var(--sdl-accent-line);color:var(--sdl-accent)}',
-      '.sdl-chip code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.66rem;letter-spacing:-.01em}',
+      '.sdl-chip code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.66rem;',
+      'letter-spacing:-.01em;overflow-wrap:anywhere}',
+      // El chip no puede ser más ancho que su columna: un hash de 64 caracteres
+      // empujaba la cabecera entera fuera de la pantalla.
+      '.sdl-meta{max-width:100%}',
+      '.sdl-chip{max-width:100%;white-space:normal}',
 
       /* ── Cuerpo del documento ── */
       '.sdl-body{flex:1;min-height:0;overflow-y:auto;padding:22px;scroll-behavior:smooth;',
       '-webkit-overflow-scrolling:touch}',
-      '.sdl-doc{font-size:.9rem;line-height:1.72;color:var(--sdl-soft);max-width:74ch}',
+      '.sdl-doc{font-size:.9rem;line-height:1.72;color:var(--sdl-soft);max-width:74ch;',
+      'overflow-wrap:anywhere}',
       '.sdl-doc p{margin:0 0 .9rem}',
       '.sdl-doc .sdl-h1{font-size:1.34rem;font-weight:680;letter-spacing:-.025em;color:var(--sdl-text);',
       'margin:0 0 .2rem;line-height:1.24}',
@@ -208,7 +216,7 @@
       'border:1px solid var(--sdl-warn-line);border-left-width:3px;color:var(--sdl-warn)}',
       '.sdl-cita--revision strong{color:var(--sdl-warn)}',
       '.sdl-tabla-wrap{overflow-x:auto;margin:0 0 1.1rem;border:1px solid var(--sdl-line);border-radius:11px}',
-      '.sdl-tabla{width:100%;border-collapse:collapse;font-size:.82rem;min-width:420px}',
+      '.sdl-tabla{width:100%;border-collapse:collapse;font-size:.82rem;min-width:340px}',
       '.sdl-tabla th{text-align:left;font-weight:640;color:var(--sdl-text);background:var(--sdl-bg-2);',
       'padding:.6rem .8rem;border-bottom:1px solid var(--sdl-line);white-space:nowrap}',
       '.sdl-tabla td{padding:.6rem .8rem;border-bottom:1px solid var(--sdl-line-soft);vertical-align:top}',
@@ -251,10 +259,21 @@
       'html[data-theme="dark"] .sdl-error{color:#f87171}',
       '.sdl-cargando{padding:40px 0;text-align:center;color:var(--sdl-muted);font-size:.86rem}',
 
+      // ── Pantalla completa en móvil, respetando las zonas del sistema ──
+      //
+      // El servidor inyecta viewport-fit=cover en todo el HTML que sirve, así que
+      // en la PWA instalada el modal ocupa TODA la pantalla física: sin estos
+      // insets el título queda debajo de la Dynamic Island y los botones debajo
+      // del indicador de inicio. Y el botón de aceptar es justo el que no puede
+      // quedar tapado: sin él, el doctor no puede desbloquear su cuenta.
       '@media (max-width:640px){',
       '.sdl-overlay{padding:0;align-items:stretch}',
       '.sdl-modal{max-height:100%;height:100%;border-radius:0;border:0;width:100%}',
-      '.sdl-head,.sdl-body,.sdl-foot{padding-left:16px;padding-right:16px}',
+      '.sdl-head{padding-top:calc(20px + env(safe-area-inset-top, 0px))}',
+      '.sdl-foot{padding-bottom:calc(18px + env(safe-area-inset-bottom, 0px))}',
+      '.sdl-head,.sdl-body,.sdl-foot{',
+      'padding-left:calc(16px + env(safe-area-inset-left, 0px));',
+      'padding-right:calc(16px + env(safe-area-inset-right, 0px))}',
       '.sdl-actions{flex-direction:column-reverse;align-items:stretch}',
       '.sdl-btn{justify-content:center}}',
     ].join('');
