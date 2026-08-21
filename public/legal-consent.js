@@ -162,6 +162,19 @@
       'animation:sdlUp .22s cubic-bezier(.22,.61,.36,1) both}',
       '@media (prefers-reduced-motion:reduce){.sdl-overlay,.sdl-modal{animation:none}}',
 
+      /* ── Blindaje contra el CSS de la aplicación ──
+         Este modal se abre DENTRO de la app, donde layout.css y theme-dark.css
+         pisan etiquetas genéricas con !important. Las clases propias (.sdl-*)
+         no las alcanza nadie, pero el contenido de los documentos es HTML
+         corriente —section, table, blockquote— y ahí sí llegan. La única forma
+         de ganar a un !important ajeno es con el propio, acotado al modal. */
+      '.sdl-modal section,.sdl-modal .sdl-docblock{background:transparent!important;',
+      'border:0!important;box-shadow:none!important;padding:0!important;margin:0!important;',
+      'backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-radius:0!important}',
+      '.sdl-modal .sdl-doc h1,.sdl-modal .sdl-doc h2,.sdl-modal .sdl-doc h3,',
+      '.sdl-modal .sdl-doc h4{color:var(--sdl-text)!important;background:transparent!important}',
+      '.sdl-docblock{display:block}',
+
       /* ── Cabecera ── */
       '.sdl-head{display:flex;align-items:flex-start;gap:14px;padding:20px 22px 16px;',
       'border-bottom:1px solid var(--sdl-line-soft);flex:none}',
@@ -269,13 +282,38 @@
       '@media (max-width:640px){',
       '.sdl-overlay{padding:0;align-items:stretch}',
       '.sdl-modal{max-height:100%;height:100%;border-radius:0;border:0;width:100%}',
-      '.sdl-head{padding-top:calc(20px + env(safe-area-inset-top, 0px))}',
-      '.sdl-foot{padding-bottom:calc(18px + env(safe-area-inset-bottom, 0px))}',
+      '.sdl-head{padding-top:calc(14px + env(safe-area-inset-top, 0px));padding-bottom:12px}',
+      '.sdl-foot{padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));padding-top:12px}',
       '.sdl-head,.sdl-body,.sdl-foot{',
       'padding-left:calc(16px + env(safe-area-inset-left, 0px));',
       'padding-right:calc(16px + env(safe-area-inset-right, 0px))}',
-      '.sdl-actions{flex-direction:column-reverse;align-items:stretch}',
-      '.sdl-btn{justify-content:center}}',
+      '.sdl-body{padding-top:16px;padding-bottom:16px}',
+
+      /* ── El documento manda ──
+         En un teléfono, cabecera y pie se comían dos tercios de la pantalla y
+         al contrato le quedaba un tercio: no se puede leer un contrato por una
+         rendija. Todo lo de alrededor se aprieta y lo que no aporta se va.
+         Las versiones salen del encabezado porque cada casilla ya las repite. */
+      '.sdl-title{font-size:1.04rem}',
+      '.sdl-sub{font-size:.79rem;margin-top:.25rem}',
+      '.sdl-modal--accept .sdl-meta{display:none}',
+      '.sdl-body{min-height:34vh}',
+      '.sdl-checks{margin-bottom:10px}',
+      '.sdl-check{padding:7px 9px;gap:9px}',
+      '.sdl-check-txt{font-size:.82rem;line-height:1.42}',
+      '.sdl-check-note{font-size:.72rem}',
+      /* Los botones en fila y no apilados: ahorra media pulgada de alto, y el
+         principal sigue siendo el ancho porque es el que hay que pulsar. */
+      '.sdl-actions{flex-direction:row;align-items:stretch;gap:8px}',
+      '.sdl-btn{justify-content:center;padding:.6rem .8rem}',
+      '.sdl-btn--primary{flex:1;min-height:44px}',
+      '.sdl-actions .sdl-btn:not(.sdl-btn--primary){flex:0 0 auto;font-size:.8rem}}',
+
+      /* Pantallas muy bajas (móvil en horizontal): el pie se queda, el resto cede. */
+      '@media (max-height:520px){',
+      '.sdl-modal--accept .sdl-sub{display:none}',
+      '.sdl-body{min-height:0}',
+      '.sdl-head{padding-top:calc(10px + env(safe-area-inset-top, 0px));padding-bottom:8px}}',
     ].join('');
     document.head.appendChild(s);
   }
@@ -419,6 +457,7 @@
   function abrirAceptacion(pendientes, opciones) {
     opciones = opciones || {};
     var capa = abrirCapa({ label: 'Aceptación de documentos legales', bloqueante: true });
+    capa.modal.classList.add('sdl-modal--accept');
     capa.modal.innerHTML =
       cabecera({ eyebrow: 'Portal Salud Digital', titulo: 'Cargando documentos…' }) +
       '<div class="sdl-body"><div class="sdl-cargando">Un momento…</div></div>';
@@ -464,8 +503,13 @@
 
         // Los documentos completos, uno tras otro, dentro del propio modal:
         // aceptar sin haber podido leer no sería consentimiento informado.
+        // <div>, NUNCA <section>: theme-dark.css pinta todo `section` de la app
+        // como tarjeta de cristal con !important (fondo, borde, sombra y blur).
+        // Dentro del modal eso dibujaba una caja alrededor de cada documento
+        // cuyo borde cortaba el texto por debajo del pie: parecía que el
+        // contenido se salía del modal.
         document.getElementById('sdlDocs').innerHTML = docs.map(function (d) {
-          return '<section>' + markdown(d.content || '') + '</section>';
+          return '<div class="sdl-docblock">' + markdown(d.content || '') + '</div>';
         }).join('<hr>');
 
         var contenedor = document.getElementById('sdlChecks');
