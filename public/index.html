@@ -3869,6 +3869,9 @@
   .spec-app-frame {
     display: block;
     width: 100%;
+    /* Sin scroll propio: el alto lo fija el demo por postMessage. En táctil,
+       un iframe scrolleable se queda con el gesto y la página no baja. */
+    overflow: hidden;
     height: 760px;      /* arranque; el propio demo avisa su alto real */
     border: 0;
     background: #f1f5f9;
@@ -4465,6 +4468,7 @@
         src="/demo/consulta-podologica.html"
         title="Ficha de consulta podológica de Salud Digital"
         loading="lazy"
+        scrolling="no"
         referrerpolicy="same-origin"
       ></iframe>
     </div>

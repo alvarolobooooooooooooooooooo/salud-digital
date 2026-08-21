@@ -31,6 +31,18 @@ if 'id="podogram1"' not in MARCADO:
 if 'id="dfeRoot"' not in MARCADO:
     sys.exit("no encontré la exploración de pie diabético")
 
+# ── 3 · La termografía ──
+# El SVG de los pies y su lógica viven en un <script> inline de la página, no
+# en diabetic-foot-exam.js, así que el barrido de scripts de arriba se los
+# llevaba y el paso 9 quedaba con el contenedor vacío. Se rescata entero: no
+# llama a la API ni a nada del armazón, se basta solo.
+ta = src.index('const thermoSVG =')
+tb = src.index('// ── Consentimiento y Firma ──')
+TERMO = src[ta:tb]
+for dep in ('api(', 'fetch(', 'showToast'):
+    if dep in TERMO:
+        sys.exit("la termografía depende de %s, habría que recortarla" % dep)
+
 PAGINA = """<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -64,6 +76,10 @@ PAGINA = """<!DOCTYPE html>
      cabecera), la ficha va sola sobre el lienzo. El fondo NO se toca: lo
      ponen las reglas de la app (claro) y theme-dark.css (oscuro), que es
      justo lo que hace que el demo cambie de tema solo. */
+  /* El iframe se dimensiona a su contenido, así que aquí no debe quedar
+     NADA que scrollear: en un teléfono, un iframe con scroll propio se
+     traga el gesto y la landing no se mueve. */
+  html, body { overflow: hidden; }
   body { margin: 0; padding: 1.5rem 1rem 3rem; }
   .demo-wrap { max-width: 980px; margin: 0 auto; }
   /* El cursor delata que las cabeceras se abren, igual que en la app. */
@@ -84,6 +100,18 @@ PAGINA = """<!DOCTYPE html>
 <script>
   // El podograma, en modo solo lectura (tercer argumento del componente).
   try { new PodogramContainer('podogram1', {}, true); } catch (e) {}
+</script>
+
+<script>
+// ── Termografía ──
+// Copiado tal cual del <script> inline de consultation-podiatry.html: el SVG
+// de los dos pies por zonas, su paleta por temperatura y el registro del
+// widget como cuerpo del paso 9. Va en su propio <script> para que un error
+// aquí no se lleve por delante los acordeones de abajo.
+%s
+</script>
+
+<script>
 
   // Los acordeones: mismo comportamiento que en la ficha real — la cabecera
   // pliega todo lo que va hasta el siguiente grupo.
@@ -114,7 +142,13 @@ PAGINA = """<!DOCTYPE html>
   (function avisarAlto() {
     let ultimo = 0;
     function medir() {
-      const alto = Math.ceil(document.querySelector('.demo-wrap').getBoundingClientRect().height) + 48;
+      // Se mide el DOCUMENTO, no el contenedor: sumarle un padding a ojo
+      // dejaba una decena de píxeles de diferencia, y con eso basta para que
+      // en táctil el iframe se quede con el gesto y la landing no baje.
+      const alto = Math.ceil(Math.max(
+        document.documentElement.scrollHeight,
+        document.body.scrollHeight
+      ));
       if (alto !== ultimo) {
         ultimo = alto;
         parent.postMessage({ tipo: 'alto-consulta', alto: alto }, '*');
@@ -128,7 +162,7 @@ PAGINA = """<!DOCTYPE html>
 </script>
 </body>
 </html>
-""" % (CSS, MARCADO)
+""" % (CSS, MARCADO, TERMO)
 
 import os
 os.makedirs(PUB + "demo", exist_ok=True)
