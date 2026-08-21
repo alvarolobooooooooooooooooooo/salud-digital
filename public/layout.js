@@ -1586,12 +1586,30 @@
   ];
   var ROLES = ['clinic_admin', 'doctor', 'receptionist'];
 
+  // ── La versión del despliegue, sacada de la propia página ──
+  //
+  // El servidor reescribe cada <script src> y <link href> del HTML añadiéndoles
+  // ?v=<commit>, y así el navegador se trae el archivo nuevo tras cada deploy.
+  // Un script inyectado por JS NO pasa por esa reescritura: se pedía
+  // /legal-consent.js a secas, que viaja con Cache-Control de un día y encima
+  // lo guarda el service worker. Resultado: el modal legal de la app seguía
+  // siendo el de hace un día aunque el servidor ya sirviera otro.
+  // Se copia la versión de cualquier recurso que ya la traiga.
+  function versionDeAssets() {
+    var el = document.querySelector('script[src*="?v="], link[href*="?v="]');
+    if (!el) return '';
+    var url = el.getAttribute('src') || el.getAttribute('href') || '';
+    var m = /[?&]v=([^&#]+)/.exec(url);
+    return m ? m[1] : '';
+  }
+
   window.sdCargarLegal = function () {
     if (window.SDLegal) return Promise.resolve(window.SDLegal);
     if (window.__sdLegalCargando) return window.__sdLegalCargando;
     window.__sdLegalCargando = new Promise(function (resolve, reject) {
       var s = document.createElement('script');
-      s.src = '/legal-consent.js';
+      var v = versionDeAssets();
+      s.src = '/legal-consent.js' + (v ? '?v=' + encodeURIComponent(v) : '');
       s.onload = function () { resolve(window.SDLegal); };
       s.onerror = function () { reject(new Error('No se pudo cargar el visor legal.')); };
       document.head.appendChild(s);
