@@ -463,8 +463,6 @@
     [data-theme="dark"] .loc-map .leaflet-control-zoom a {
       background: #16161a; color: #e2e8f0; border-color: rgba(255,255,255,.12);
     }
-    [data-theme="dark"] .loc-map .leaflet-control-attribution { background: rgba(0,0,0,.55); color: #94a3b8; }
-    [data-theme="dark"] .loc-map .leaflet-control-attribution a { color: #22d3ee; }
     [data-theme="dark"] .loc-map-title { color: var(--sd-text, #f1f5f9); }
     [data-theme="dark"] .loc-map-sub,
     [data-theme="dark"] .loc-coords { color: var(--sd-text-muted, #94a3b8); }
@@ -497,21 +495,6 @@
     .tag-input {
       border: none !important; outline: none !important; box-shadow: none !important;
       padding: .25rem !important; flex: 1; min-width: 100px; font-size: 13px !important;
-    }
-
-    /* ── Weekday picker ── */
-    .weekday-row { display: flex; gap: .4rem; flex-wrap: wrap; }
-    .weekday-btn {
-      width: 44px; height: 44px; border-radius: 12px;
-      background: white; border: 1.5px solid #e2e8f0; cursor: pointer;
-      font-family: inherit; font-size: 12px; font-weight: 700; color: #64748b;
-      transition: all .25s;
-    }
-    .weekday-btn:hover { border-color: #0891b2; color: #0891b2; }
-    .weekday-btn.active {
-      background: linear-gradient(135deg, #0891b2, #06b6d4);
-      color: white; border-color: transparent;
-      box-shadow: 0 6px 14px rgba(8, 145, 178, .25);
     }
 
     /* ── Session item ── */
@@ -693,16 +676,12 @@
       .field-readonly { align-items: flex-start !important; row-gap: .65rem; }
       .field-readonly > div { flex-wrap: wrap; }
     }
-    @media (max-width: 480px) {
-      .weekday-btn { width: 38px; height: 38px; font-size: 11px; }
-    }
     @media (max-width: 420px) {
       .layout-main { padding-left: .75rem; padding-right: .75rem; }
       .glass-card { padding: 1rem; }
       .switch-row { flex-direction: column; align-items: flex-start; gap: .75rem; }
       .save-bar .save-actions { grid-template-columns: 1fr; }
       .tag-input { min-width: 70px; }
-      .weekday-btn { width: 34px; height: 34px; }
     }
 
     /* ── Page Loader ── */
@@ -746,9 +725,9 @@
         <div class="pro-badge"><span class="dot"></span><span id="headerBadge" data-label-doctor="Perfil médico profesional" data-label-clinic_admin="Cuenta de administrador de clínica" data-label-receptionist="Cuenta de recepción">Perfil médico profesional</span></div>
         <h1>Configuración</h1>
         <p id="headerSubtitle"
-           data-desc-doctor="Administra tu perfil profesional, la información de tu clínica, tu disponibilidad para citas y las preferencias de la plataforma."
+           data-desc-doctor="Administra tu perfil profesional, la información y la ubicación de tu clínica, y las preferencias de la plataforma."
            data-desc-clinic_admin="Administra los datos de tu cuenta, la información de la clínica y las preferencias de la plataforma."
-           data-desc-receptionist="Administra los datos de tu cuenta y tus preferencias de la plataforma.">Administra tu perfil profesional, la información de tu clínica, tu disponibilidad para citas y las preferencias de la plataforma.</p>
+           data-desc-receptionist="Administra los datos de tu cuenta y tus preferencias de la plataforma.">Administra tu perfil profesional, la información y la ubicación de tu clínica, y las preferencias de la plataforma.</p>
       </div>
       <div class="header-actions">
         <button class="btn btn-ghost" id="resetBtn" type="button"><span data-icon="refresh" data-size="16"></span>Descartar</button>
@@ -772,10 +751,6 @@
         <button class="tab-btn" data-tab="location" data-roles="doctor clinic_admin" type="button">
           <span class="tab-icon" data-icon="mapPin" data-size="14"></span>
           <span class="tab-label">Ubicación</span>
-        </button>
-        <button class="tab-btn" data-tab="agenda" data-roles="doctor" type="button">
-          <span class="tab-icon" data-icon="calendar" data-size="14"></span>
-          <span class="tab-label">Agenda y disponibilidad</span>
         </button>
         <button class="tab-btn" data-tab="security" data-roles="doctor clinic_admin receptionist" type="button">
           <span class="tab-icon" data-icon="lock" data-size="14"></span>
@@ -1081,19 +1056,6 @@
                 <textarea id="fldLocationNotes" placeholder="Edificio azul frente a la farmacia, segundo piso. Parqueo en el sótano."></textarea>
                 <span class="hint">Se envía junto con el mapa en confirmaciones y recordatorios.</span>
               </div>
-
-              <div class="field span-2">
-                <div class="switch-row">
-                  <div class="switch-text">
-                    <div class="switch-title">Aparecer en el mapa público de clínicas</div>
-                    <div class="switch-desc">Tu clínica se muestra como un pin en <a href="/mapa" target="_blank" rel="noopener">/mapa</a> con nombre, dirección y teléfono. Desmarca para ocultar.</div>
-                  </div>
-                  <label class="toggle">
-                    <input type="checkbox" id="fldShowOnPublicMap" checked>
-                    <span class="slider"></span>
-                  </label>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -1108,111 +1070,6 @@
             <!-- data-sd-gate="off": es una maqueta de lo que ve el paciente, no una
                  acción sobre nadie; el modo solo lectura no tiene por qué apagarla. -->
             <div class="loc-preview" id="locPreview" data-sd-gate="off"></div>
-          </div>
-        </section>
-
-        <!-- ════════════════════════════════════════════════════ -->
-        <!-- 4. AGENDA Y DISPONIBILIDAD -->
-        <!-- ════════════════════════════════════════════════════ -->
-        <section class="settings-panel" data-panel="agenda" data-roles="doctor">
-          <div class="glass-card">
-            <div class="card-head">
-              <div class="icon-box"><span data-icon="calendar" data-size="20"></span></div>
-              <div>
-                <h2>Agenda y disponibilidad</h2>
-                <p>Define cuándo y cómo aceptas citas. Los cambios afectan a las reservas online.</p>
-              </div>
-            </div>
-
-            <div class="form-grid">
-              <div class="field">
-                <label>Hora de inicio</label>
-                <input type="time" id="fldStartTime" value="08:00">
-              </div>
-              <div class="field">
-                <label>Hora de fin</label>
-                <input type="time" id="fldEndTime" value="17:00">
-              </div>
-              <div class="field span-2">
-                <label>Días disponibles</label>
-                <div class="weekday-row" id="weekdayRow">
-                  <button type="button" class="weekday-btn active" data-day="1">Lun</button>
-                  <button type="button" class="weekday-btn active" data-day="2">Mar</button>
-                  <button type="button" class="weekday-btn active" data-day="3">Mié</button>
-                  <button type="button" class="weekday-btn active" data-day="4">Jue</button>
-                  <button type="button" class="weekday-btn active" data-day="5">Vie</button>
-                  <button type="button" class="weekday-btn" data-day="6">Sáb</button>
-                  <button type="button" class="weekday-btn" data-day="0">Dom</button>
-                </div>
-              </div>
-              <div class="field">
-                <label>Duración predeterminada de cita</label>
-                <select id="fldDuration">
-                  <option value="15">15 minutos</option>
-                  <option value="30" selected>30 minutos</option>
-                  <option value="45">45 minutos</option>
-                  <option value="60">1 hora</option>
-                  <option value="90">1 hora 30 min</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Descanso entre citas</label>
-                <select id="fldBuffer">
-                  <option value="0">Sin descanso</option>
-                  <option value="5">5 minutos</option>
-                  <option value="10" selected>10 minutos</option>
-                  <option value="15">15 minutos</option>
-                  <option value="30">30 minutos</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Anticipación mínima para reservar</label>
-                <select id="fldLeadTime">
-                  <option value="0">Sin restricción</option>
-                  <option value="2">2 horas</option>
-                  <option value="6">6 horas</option>
-                  <option value="24" selected>24 horas</option>
-                  <option value="48">48 horas</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>Reservas máximas por día</label>
-                <input type="number" id="fldMaxBookings" min="1" max="50" value="20">
-              </div>
-            </div>
-
-            <div style="margin-top: 1.25rem;">
-              <div class="switch-row">
-                <div class="switch-text">
-                  <div class="switch-title">Permitir citas online</div>
-                  <div class="switch-desc">Los pacientes pueden reservar por internet sin llamar a la clínica.</div>
-                </div>
-                <label class="toggle">
-                  <input type="checkbox" id="swOnlineBooking" checked>
-                  <span class="slider"></span>
-                </label>
-              </div>
-              <div class="switch-row">
-                <div class="switch-text">
-                  <div class="switch-title">Aprobación manual</div>
-                  <div class="switch-desc">Cada reserva queda pendiente hasta que tú la confirmes.</div>
-                </div>
-                <label class="toggle">
-                  <input type="checkbox" id="swManualApproval">
-                  <span class="slider"></span>
-                </label>
-              </div>
-              <div class="switch-row">
-                <div class="switch-text">
-                  <div class="switch-title">Permitir telemedicina</div>
-                  <div class="switch-desc">Acepta consultas por video con link automático.</div>
-                </div>
-                <label class="toggle">
-                  <input type="checkbox" id="swTelemedicine">
-                  <span class="slider"></span>
-                </label>
-              </div>
-            </div>
           </div>
         </section>
 
@@ -1570,16 +1427,9 @@
       clinic: {
         name: '', type: '', taxId: '', address: '', city: '', phone: '',
         email: '', info: '', brandColor: '#0891b2', currency: 'HNL', website: '',
-        logoUrl: '', showOnPublicMap: true,
+        logoUrl: '',
         // Ubicación: lat/lng null = sin pin marcado.
         latitude: null, longitude: null, mapUrl: '', locationNotes: ''
-      },
-      agenda: {
-        startTime: '08:00', endTime: '17:00',
-        days: [1, 2, 3, 4, 5],
-        duration: '30', buffer: '10', leadTime: '24',
-        maxBookings: 20,
-        onlineBooking: true, manualApproval: false, telemedicine: false
       },
       preferences: {
         language: 'es', timezone: 'America/Tegucigalpa',
@@ -1733,20 +1583,6 @@
       renderPreview();
       markDirty();
     });
-
-    // ── Weekday picker (doctor only) ──
-    const weekdayRow = document.getElementById('weekdayRow');
-    if (weekdayRow) {
-      weekdayRow.addEventListener('click', (e) => {
-        const btn = e.target.closest('.weekday-btn');
-        if (!btn) return;
-        const day = parseInt(btn.dataset.day, 10);
-        const idx = state.agenda.days.indexOf(day);
-        if (idx >= 0) { state.agenda.days.splice(idx, 1); btn.classList.remove('active'); }
-        else { state.agenda.days.push(day); btn.classList.add('active'); }
-        markDirty();
-      });
-    }
 
     // ── Avatar upload (uploads to Cloudinary via /api/users/me/photo) ──
     const avatarInput = document.getElementById('avatarInput');
@@ -1931,19 +1767,9 @@
     bind('fldClinicPhone', 'clinic.phone');
     bind('fldClinicEmail', 'clinic.email');
     bind('fldClinicInfo', 'clinic.info');
-    bind('fldShowOnPublicMap', 'clinic.showOnPublicMap');
     bind('fldMapUrl', 'clinic.mapUrl', { onChange: renderLocationPreview });
     bind('fldLocationNotes', 'clinic.locationNotes', { onChange: renderLocationPreview });
 
-    bind('fldStartTime', 'agenda.startTime');
-    bind('fldEndTime', 'agenda.endTime');
-    bind('fldDuration', 'agenda.duration');
-    bind('fldBuffer', 'agenda.buffer');
-    bind('fldLeadTime', 'agenda.leadTime');
-    bind('fldMaxBookings', 'agenda.maxBookings');
-    bind('swOnlineBooking', 'agenda.onlineBooking');
-    bind('swManualApproval', 'agenda.manualApproval');
-    bind('swTelemedicine', 'agenda.telemedicine');
 
     // 2FA toggle has its own dedicated flow (modal + verification) — handled below.
 
@@ -2521,7 +2347,6 @@
       const payload = {
         profile: { ...state.profile },
         clinic: { ...state.clinic },
-        agenda: { ...state.agenda },
         preferences: { ...state.preferences }
       };
       // Don't ship blob/file
@@ -2556,8 +2381,9 @@
         refreshLayoutProfileCache();
 
         // Clinic data — clinic_admin only (only role allowed by the PUT endpoint).
-        // address/city/show_on_public_map viajan en el PUT de ubicación, no aquí:
-        // el endpoint general los deja intactos si no se envían.
+        // address/city viajan en el PUT de ubicación, no aquí: el endpoint
+        // general los deja intactos si no se envían. La visibilidad en /mapa
+        // ya no se edita desde la app, así que tampoco se toca.
         if (CURRENT_ROLE === 'clinic_admin') {
           await api('/api/clinics/me', {
             method: 'PUT',
@@ -2586,7 +2412,6 @@
               longitude: state.clinic.longitude,
               map_url: state.clinic.mapUrl,
               location_notes: state.clinic.locationNotes,
-              show_on_public_map: state.clinic.showOnPublicMap !== false,
             }
           });
         }
@@ -2671,7 +2496,6 @@
           state.clinic.currency = c.currency || 'HNL';
           state.clinic.website = c.website || '';
           state.clinic.logoUrl = c.logo_url || '';
-          state.clinic.showOnPublicMap = c.show_on_public_map !== false;
           state.clinic.latitude = c.latitude != null ? Number(c.latitude) : null;
           state.clinic.longitude = c.longitude != null ? Number(c.longitude) : null;
           state.clinic.mapUrl = c.map_url || '';
@@ -2714,7 +2538,6 @@
       setVal('fldClinicPhone', state.clinic.phone);
       setVal('fldClinicEmail', state.clinic.email);
       setVal('fldClinicInfo', state.clinic.info);
-      setChk('fldShowOnPublicMap', state.clinic.showOnPublicMap !== false);
       setVal('fldMapUrl', state.clinic.mapUrl);
       setVal('fldLocationNotes', state.clinic.locationNotes);
       renderClinicLogo();
@@ -2724,15 +2547,6 @@
         locPicker.set(state.clinic.latitude, state.clinic.longitude, { silent: true });
       }
 
-      setVal('fldStartTime', state.agenda.startTime);
-      setVal('fldEndTime', state.agenda.endTime);
-      setVal('fldDuration', state.agenda.duration);
-      setVal('fldBuffer', state.agenda.buffer);
-      setVal('fldLeadTime', state.agenda.leadTime);
-      setVal('fldMaxBookings', state.agenda.maxBookings);
-      setChk('swOnlineBooking', state.agenda.onlineBooking);
-      setChk('swManualApproval', state.agenda.manualApproval);
-      setChk('swTelemedicine', state.agenda.telemedicine);
 
       // 2FA state hydrated by load2faStatus() — see below.
 
@@ -2743,12 +2557,6 @@
       setVal('fldWeekStart', state.preferences.weekStart);
       setVal('fldCalendarView', state.preferences.calendarView);
       setVal('fldTheme', state.preferences.theme);
-
-      // Weekday active states (only doctor sees them, but harmless if hidden)
-      document.querySelectorAll('.weekday-btn').forEach(btn => {
-        const day = parseInt(btn.dataset.day, 10);
-        btn.classList.toggle('active', state.agenda.days.includes(day));
-      });
 
       renderChips('languages');
       renderChips('focus');

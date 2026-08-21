@@ -267,6 +267,66 @@
     }
     .co-url-pill .co-copy:hover { background: var(--accent-strong); }
     .co-share-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+    /* Color del calendario público */
+    .co-brand { padding: 20px 24px; display: grid; gap: 16px; }
+    .co-brand-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .co-brand-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .co-brand-body { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .co-brand-picker { flex: 1; min-width: 220px; display: grid; gap: 10px; }
+    .co-brand-hint { font-size: 12px; color: var(--muted); line-height: 1.45; max-width: 54ch; }
+    .co-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+    .co-swatch {
+      width: 30px; height: 30px; padding: 0; border-radius: 9px; cursor: pointer;
+      border: 1px solid var(--line-2); position: relative;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 4px 10px -6px rgba(15,23,42,0.45);
+    }
+    .co-swatch.on::after {
+      content: ""; position: absolute; inset: -4px;
+      border-radius: 12px; border: 2px solid var(--ink); opacity: 0.5;
+    }
+    .co-brand-custom {
+      position: relative; display: inline-flex; align-items: center; gap: 7px;
+      height: 30px; padding: 0 11px; border-radius: 8px;
+      border: 1px solid var(--line-2); background: transparent;
+      font-size: 12.5px; color: var(--ink-2); cursor: pointer; white-space: nowrap;
+    }
+    .co-brand-custom:hover { background: color-mix(in oklch, var(--ink) 6%, transparent); }
+    /* El input nativo se estira sobre toda la etiqueta: el selector del sistema
+       se abre al tocar cualquier parte del control, no solo un cuadradito. */
+    .co-brand-custom input[type="color"] {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      opacity: 0; border: 0; padding: 0; cursor: pointer;
+    }
+    .co-brand-dot {
+      width: 14px; height: 14px; border-radius: 5px;
+      background: var(--brand, var(--accent)); border: 1px solid var(--line-2);
+    }
+    .co-brand-hex { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-transform: uppercase; }
+    .co-brand-preview {
+      width: 260px; max-width: 100%;
+      border-radius: 14px; padding: 13px;
+      border: 1px solid var(--line);
+      background: color-mix(in oklch, var(--brand, var(--accent)) 10%, var(--surface-2));
+      display: grid; gap: 9px;
+    }
+    .co-brand-preview-label { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+    .co-brand-chips { display: flex; gap: 6px; }
+    .co-brand-chip {
+      flex: 1; text-align: center; font-family: var(--font-mono); font-size: 11px;
+      padding: 6px 0; border-radius: 8px;
+      border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2);
+    }
+    .co-brand-chip.on {
+      background: var(--brand, var(--accent));
+      border-color: var(--brand, var(--accent));
+      color: #fff;
+    }
+    .co-brand-cta {
+      text-align: center; font-size: 12px; font-weight: 600; color: #fff;
+      padding: 8px 0; border-radius: 9px;
+      background: var(--brand, var(--accent));
+    }
     .co-qr-card {
       position: relative; z-index: 1;
       align-self: stretch;
@@ -443,6 +503,7 @@
     }
     @container (max-width: 720px) {
       .co-share { grid-template-columns: 1fr; }
+      .co-brand-preview { width: 100%; }
       .co-qr-card {
         margin-left: 0;
         margin-top: 18px;
@@ -1222,6 +1283,44 @@
         <div class="co-qr-meta">
           <span class="co-qr-title">Escaneá para agendar</span>
           <span class="co-qr-sub">Apuntá la cámara de tu celular al código</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Color del calendario público -->
+    <section class="co-card co-brand" id="brandCard">
+      <div class="co-brand-head">
+        <div>
+          <div class="co-card-title">Color del calendario</div>
+          <div class="co-card-sub">El color con el que tus pacientes ven la página de reserva. No cambia nada dentro de la app.</div>
+        </div>
+        <!-- data-sd-gate: guarda al instante, así que sin suscripción va apagado. -->
+        <div class="co-brand-actions" data-sd-gate>
+          <span class="co-brand-hex" id="brandHex">#0891B2</span>
+          <label class="co-brand-custom">
+            <span class="co-brand-dot"></span>
+            Personalizado
+            <input type="color" id="brandColorInput" value="#0891b2" aria-label="Elegir un color exacto">
+          </label>
+          <button class="co-btn sm" id="brandSaveBtn" type="button" disabled>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="brandSaveLabel">Sin cambios</span>
+          </button>
+        </div>
+      </div>
+      <div class="co-brand-body">
+        <div class="co-brand-picker">
+          <div class="co-swatches" id="brandSwatches" data-sd-gate></div>
+          <div class="co-brand-hint">Se aplica al enlace público de arriba. Con «Personalizado» elegís cualquier tono exacto.</div>
+        </div>
+        <div class="co-brand-preview">
+          <div class="co-brand-preview-label">Así lo ve el paciente</div>
+          <div class="co-brand-chips">
+            <span class="co-brand-chip">09:00</span>
+            <span class="co-brand-chip on">09:30</span>
+            <span class="co-brand-chip">10:00</span>
+          </div>
+          <div class="co-brand-cta">Confirmar cita</div>
         </div>
       </div>
     </section>
@@ -2246,6 +2345,73 @@
     renderQR(link);
   }
 
+  // ---------- Color del calendario público ----------
+  // Es el único ajuste de apariencia que se edita dentro de la app: pinta
+  // /agendar.html (la página de reserva del paciente), no la app del doctor.
+  const BRAND_PRESETS = ['#0891b2', '#2563eb', '#7c3aed', '#0f766e', '#e11d48', '#ea580c', '#475569'];
+  let brandColor = '#0891b2';
+  let savedBrandColor = '#0891b2';
+
+  function normalizeHex(value) {
+    const m = String(value || '').trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (!m) return null;
+    const h = m[1].length === 3 ? m[1].split('').map(c => c + c).join('') : m[1];
+    return '#' + h.toLowerCase();
+  }
+
+  function renderBrand() {
+    document.getElementById('brandCard').style.setProperty('--brand', brandColor);
+    document.getElementById('brandColorInput').value = brandColor;
+    document.getElementById('brandHex').textContent = brandColor;
+    document.getElementById('brandSwatches').innerHTML = BRAND_PRESETS.map(c => `
+      <button type="button" class="co-swatch${c === brandColor ? ' on' : ''}" data-color="${c}"
+              style="background:${c}" aria-label="Usar el color ${c}"></button>`).join('');
+
+    const dirty = brandColor !== savedBrandColor;
+    const btn = document.getElementById('brandSaveBtn');
+    btn.disabled = !dirty;
+    btn.classList.toggle('accent', dirty);
+    document.getElementById('brandSaveLabel').textContent = dirty ? 'Guardar color' : 'Sin cambios';
+  }
+
+  function setBrandColor(value) {
+    const hex = normalizeHex(value);
+    if (!hex || hex === brandColor) return;
+    brandColor = hex;
+    renderBrand();
+  }
+
+  async function loadBrandColor() {
+    try {
+      const clinic = await api('/api/clinics/me');
+      savedBrandColor = normalizeHex(clinic && clinic.brand_color) || '#0891b2';
+      brandColor = savedBrandColor;
+    } catch (_) {
+      // Sin clínica o sin permiso: se queda el cian por defecto.
+    }
+    renderBrand();
+  }
+
+  async function saveBrandColor() {
+    const btn = document.getElementById('brandSaveBtn');
+    btn.disabled = true;
+    try {
+      const r = await api('/api/clinics/me/booking-color', {
+        method: 'PUT',
+        body: { brand_color: brandColor },
+      });
+      savedBrandColor = normalizeHex(r && r.brand_color) || brandColor;
+      brandColor = savedBrandColor;
+      // agendar.html cachea el tema para no parpadear al abrir; si el doctor
+      // acaba de previsualizar el enlace, ese caché quedaría con el color viejo.
+      try { localStorage.removeItem('clinic-theme-' + clinicId); } catch (_) {}
+      showToast('Color guardado');
+    } catch (e) {
+      showToast((e && e.message) || 'No se pudo guardar el color');
+    }
+    renderBrand();
+  }
+
   // ---------- Filter pills ----------
   function renderFilterPills() {
     const counts = { todos: recent.length };
@@ -2779,7 +2945,7 @@
         });
       }
 
-      await Promise.all([loadStats(), loadAvailability()]);
+      await Promise.all([loadStats(), loadAvailability(), loadBrandColor()]);
       pickInitialDate();
       await Promise.all([loadOverrides(), loadAppointments()]);
       renderCalendar();
@@ -2796,6 +2962,13 @@
   }
 
   // ---------- Wire global controls ----------
+  document.getElementById('brandSwatches').addEventListener('click', (e) => {
+    const swatch = e.target.closest('.co-swatch');
+    if (swatch) setBrandColor(swatch.dataset.color);
+  });
+  document.getElementById('brandColorInput').addEventListener('input', (e) => setBrandColor(e.target.value));
+  document.getElementById('brandSaveBtn').addEventListener('click', saveBrandColor);
+
   document.getElementById('copyBtn').addEventListener('click', () => {
     const link = document.getElementById('publicLink').dataset.link;
     if (!link) return;

@@ -146,13 +146,15 @@
 
     loadLeaflet().then(function (L) {
       var start = current || pending;
-      map = L.map(el, { zoomControl: false, attributionControl: true })
+      // attributionControl: false — el selector es un control de formulario, no
+      // un mapa publicado, y la firma «Leaflet | OpenStreetMap» sobre la esquina
+      // distraía del único gesto que importa aquí: marcar el pin.
+      map = L.map(el, { zoomControl: false, attributionControl: false })
         .setView(start ? [start.lat, start.lng] : DEFAULT_CENTER,
                  start ? PIN_ZOOM : (opts.zoom || DEFAULT_ZOOM));
       L.control.zoom({ position: 'topright' }).addTo(map);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap'
+        maxZoom: 19
       }).addTo(map);
 
       ready = true;

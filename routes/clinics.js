@@ -246,6 +246,42 @@ router.delete('/me/logo', authenticate, requireRole('clinic_admin'), async (req,
   res.json({ success: true });
 });
 
+// ── Color del calendario online ──────────────────────────────────────────────
+// Único ajuste de apariencia que se edita dentro de la app. Vive en Citas
+// Online (no en Configuración) porque es ahí donde está el enlace público al
+// que se aplica, y lo pueden tocar los dos roles que ven esa página: el
+// clinic_admin y el doctor dueño de su propio consultorio.
+const BOOKING_COLOR_ROLES = ['clinic_admin', 'doctor'];
+
+// PUT /api/clinics/me/booking-color — color de /agendar.html
+router.put('/me/booking-color', authenticate, requireRole(...BOOKING_COLOR_ROLES), async (req, res) => {
+  if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
+
+  const raw = String((req.body && req.body.brand_color) || '').trim();
+  if (!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(raw)) {
+    return res.status(400).json({ error: 'Color inválido. Usa un hex como #0891b2.' });
+  }
+  const hex = raw.toLowerCase();
+
+  // En la página pública, landing_data.theme.primary manda sobre brand_color
+  // (ver routes/public-booking.js). Si la clínica tiene tema guardado del
+  // editor de sitio, lo movemos con el color: si no, el doctor cambiaría el
+  // color aquí y el calendario seguiría saliendo del color viejo.
+  await query(
+    `UPDATE clinics
+        SET brand_color = $1,
+            landing_data = CASE
+              WHEN jsonb_typeof(landing_data -> 'theme') = 'object'
+                THEN jsonb_set(landing_data, '{theme,primary}', to_jsonb($1::text), true)
+              ELSE landing_data
+            END
+      WHERE id = $2`,
+    [hex, req.user.clinic_id]
+  );
+
+  res.json({ success: true, brand_color: hex });
+});
+
 // PUT /api/clinics/me — update the current user's clinic (clinic_admin only)
 router.put('/me', authenticate, requireRole('clinic_admin'), async (req, res) => {
   if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
