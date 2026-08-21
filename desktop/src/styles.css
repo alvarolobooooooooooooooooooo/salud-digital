@@ -1,0 +1,133 @@
+/* Splash / pantalla offline de Salud Digital.
+   Paleta y tipografía alineadas con la plataforma (Poppins, cian #0891b2). */
+
+:root {
+  --bg: #f7f9fc;
+  --fg: #0b1424;
+  --muted: #606a7c;
+  --cyan: #0891b2;
+  --cyan-deep: #0e7490;
+  --card: #ffffff;
+  --border: #e2e8f0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #050507;
+    --fg: #e6e8ec;
+    --muted: #9aa0aa;
+    --card: #141416;
+    --border: #2a2a2e;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+.splash {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  text-align: center;
+  padding: 24px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo {
+  filter: drop-shadow(0 10px 24px rgba(8, 145, 178, 0.28));
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(120deg, #155e75 0%, #0891b2 50%, #0ea5e9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  .brand h1 {
+    background: linear-gradient(120deg, #22d3ee 0%, #38bdf8 50%, #67e8f9 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.state.hidden { display: none; }
+
+.spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--cyan);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.status {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+.offline-icon { color: var(--muted); }
+
+#retry {
+  margin-top: 6px;
+  appearance: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--cyan);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 22px;
+  transition: background 0.15s ease;
+}
+
+#retry:hover { background: var(--cyan-deep); }
+#retry:active { transform: translateY(1px); }

@@ -1,0 +1,22 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "remote-bridge",
+  "description": "Permite SOLO a la plataforma web hospedada (tu dominio) disparar notificaciones nativas del sistema. Acotado por dominio y a la sola capacidad de notificación: la web no recibe ningún otro acceso nativo.",
+  "windows": ["main"],
+  "remote": {
+    "urls": [
+      "https://portalsaluddigital.com",
+      "https://www.portalsaluddigital.com",
+      "https://salud-digital.onrender.com"
+    ]
+  },
+  "permissions": [
+    "notification:default",
+    "notification:allow-notify",
+    "notification:allow-request-permission",
+    "notification:allow-is-permission-granted",
+    "core:window:allow-set-badge-count",
+    "opener:default",
+    "opener:allow-open-url"
+  ]
+}
