@@ -1912,6 +1912,60 @@ let reminderMap = {};
 /* ─────────── View state ─────────── */
 let calView = 'month';
 let calDate = new Date();
+
+// ── Ventana de datos de la agenda ──
+// `allAppts` alimenta los KPIs, las cinco vistas y todos los filtros, así que el
+// código lo trataba como "todo el historial" y pedía /api/appointments sin acotar:
+// a los dos años son miles de filas con dos joins encima, en cada carga de la
+// pantalla y después de cada cambio de estado.
+//
+// Ahora se pide una ventana alrededor de hoy, que es justo lo que la agenda
+// enseña al abrirse. Si el usuario navega —o cambia a una vista que no se ancla a
+// calDate— fuera de esa ventana, se carga el historial completo UNA vez y ya no
+// se vuelve a acotar en toda la sesión. Se prefiere "cargar todo" a ir cosiendo
+// rangos: es un viaje más en el peor caso, pero no puede dejar huecos en la
+// agenda, que es el fallo que nadie perdonaría aquí.
+//
+// Los márgenes cubren lo que la pantalla necesita sin que el usuario toque nada:
+// los KPIs miran hasta el mes pasado y el filtro más amplio llega al mes próximo.
+const VENTANA_DIAS_ATRAS = 90;
+const VENTANA_DIAS_ADELANTE = 180;
+let ventana = { desde: null, hasta: null, todo: false };
+
+function diaISO(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// Única puerta de entrada a las citas del doctor. Devuelve el arreglo además de
+// dejarlo en allAppts, para que sirva igual dentro de un Promise.all.
+async function cargarCitas() {
+  if (ventana.todo) {
+    allAppts = await api('/api/appointments');
+    return allAppts;
+  }
+  const hoy = startOfDay(new Date());
+  ventana.desde = diaISO(addDays(hoy, -VENTANA_DIAS_ATRAS));
+  ventana.hasta = diaISO(addDays(hoy, VENTANA_DIAS_ADELANTE));
+  allAppts = await api(`/api/appointments?from=${ventana.desde}&to=${ventana.hasta}`);
+  return allAppts;
+}
+
+// ¿Lo que toca pintar puede caer fuera de lo cargado?
+function fueraDeVentana() {
+  if (ventana.todo || !ventana.desde) return false;
+  // Lista y kanban recorren el conjunto entero; no se anclan a calDate.
+  if (calView === 'list' || calView === 'kanban') return true;
+  let ini = startOfDay(calDate);
+  let fin = startOfDay(calDate);
+  if (calView === 'week') {
+    ini = startOfMonday(calDate);
+    fin = addDays(ini, 6);
+  } else if (calView === 'month') {
+    ini = new Date(calDate.getFullYear(), calDate.getMonth(), 1);
+    fin = new Date(calDate.getFullYear(), calDate.getMonth() + 1, 0);
+  }
+  return diaISO(ini) < ventana.desde || diaISO(fin) > ventana.hasta;
+}
 let weekActiveDayIdx = null; // mobile: which day's column is shown (null = auto-pick today or Monday)
 
 let filterState = {
@@ -2059,7 +2113,7 @@ async function refreshReminders() {
   const pageLoader = document.getElementById('pageLoader');
   try {
     const [appts, clinicAppts, patients, doctors, user, waCfg] = await Promise.all([
-      api('/api/appointments'),
+      cargarCitas(),
       api('/api/appointments/calendar').catch(() => []),
       api('/api/patients'),
       api('/api/users/doctors'),
@@ -2123,7 +2177,7 @@ function initHeroSub() {
 
 async function reloadAppointments() {
   try {
-    const fresh = await api('/api/appointments');
+    const fresh = await cargarCitas();
     allAppts = fresh;
     await refreshReminders();
     renderEverything();
@@ -2682,7 +2736,23 @@ function updateDateLabel(filteredCount) {
 }
 
 /* ─────────── Master render ─────────── */
+// Punto único por el que pasa TODA la navegación de la agenda (cambiar de vista,
+// de día, de filtro, paginar la lista). Pinta ya con lo que hay —para que moverse
+// no se sienta lento— y, si la vista puede necesitar datos de fuera de la ventana
+// cargada, pide el historial completo y repinta cuando llega.
+let cargandoTodo = false;
 function renderEverything() {
+  pintarVista();
+  if (!fueraDeVentana() || cargandoTodo) return;
+  cargandoTodo = true;
+  ventana.todo = true;
+  cargarCitas()
+    .then(() => { pintarVista(); })
+    .catch(() => { ventana.todo = false; }) // que se reintente al siguiente movimiento
+    .finally(() => { cargandoTodo = false; });
+}
+
+function pintarVista() {
   renderKpis();
   const filtered = applyFilterState(allAppts);
   updateDateLabel(filtered.length);
@@ -3400,7 +3470,7 @@ function closeDrawer() {
 async function changeStatus(id, status) {
   try {
     await api(`/api/appointments/${id}/status`, { method: 'PUT', body: { status } });
-    allAppts = await api('/api/appointments');
+    allAppts = await cargarCitas();
     renderEverything();
     closeDrawer();
   } catch(err) { alert(err.message); }
@@ -3812,7 +3882,7 @@ async function deleteCita() {
   try {
     await api(`/api/appointments/${editingId}`, { method: 'DELETE' });
     [allAppts, allClinicAppts] = await Promise.all([
-      api('/api/appointments'),
+      cargarCitas(),
       api('/api/appointments/calendar').catch(() => allClinicAppts)
     ]);
     renderEverything();
@@ -3873,7 +3943,7 @@ async function submitCita(e) {
       msgEl.textContent = 'Cita creada'; msgEl.className = 'form-msg ok';
     }
     [allAppts, allClinicAppts] = await Promise.all([
-      api('/api/appointments'),
+      cargarCitas(),
       api('/api/appointments/calendar').catch(() => allClinicAppts)
     ]);
     renderEverything();
@@ -3942,7 +4012,7 @@ async function submitConsult(e) {
     if (currentAppointmentId) {
       await api(`/api/appointments/${currentAppointmentId}/status`, { method: 'PUT', body: { status: 'completed' } });
     }
-    allAppts = await api('/api/appointments');
+    allAppts = await cargarCitas();
     renderEverything();
     msgEl.textContent = 'Consulta guardada'; msgEl.className = 'form-msg ok';
     setTimeout(closeConsult, 900);

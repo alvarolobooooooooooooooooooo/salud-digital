@@ -1655,9 +1655,13 @@
     (async () => {
       const pageLoader = document.getElementById('pageLoader');
       try {
-        const [me, patients, appointments, finances] = await Promise.all([
+        // Antes se pedía la LISTA COMPLETA de pacientes para pintar un número y
+        // una dona: con mil pacientes, cientos de KB y un ORDER BY sobre todo en
+        // cada carga del panel. Ahora solo viene el total; la dona sale de las
+        // citas de hoy, que ya se traían de todos modos.
+        const [me, totalPacientes, appointments, finances] = await Promise.all([
           api('/api/auth/me'),
-          api('/api/patients'),
+          api('/api/patients/count').then(r => (r && r.total) || 0).catch(() => 0),
           api('/api/appointments/today'),
           api('/api/consultations/finances/summary').catch(() => ({ month_revenue: 0 })),
           // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar: api('/api/reminders').catch(() => [])
@@ -1700,18 +1704,20 @@
         const miniToday = document.getElementById('welcomeMiniToday');
         const miniPatients = document.getElementById('welcomeMiniPatients');
         if (miniToday) miniToday.textContent = appointments.length;
-        if (miniPatients) miniPatients.textContent = patients.length;
+        if (miniPatients) miniPatients.textContent = totalPacientes;
 
         // Stat cards
-        document.getElementById('statPatients').textContent = patients.length;
+        document.getElementById('statPatients').textContent = totalPacientes;
         document.getElementById('statToday').textContent = appointments.length;
         const monthRevenue = finances.month_revenue || 0;
         document.getElementById('statMonth').textContent = `L. ${monthRevenue.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
         // Donut chart
-        const patientIdsWithAppt = new Set(appointments.map(a => a.patient_id));
-        const withAppt = patients.filter(p => patientIdsWithAppt.has(p.id)).length;
-        const withoutAppt = patients.length - withAppt;
+        // Pacientes distintos con cita hoy. Antes se cruzaba contra la lista
+        // completa; el cruce sobraba, porque /appointments/today ya viene
+        // filtrado por este mismo doctor y toda cita tiene su paciente.
+        const withAppt = new Set(appointments.map(a => a.patient_id)).size;
+        const withoutAppt = Math.max(0, totalPacientes - withAppt);
         renderDonut(withAppt, withoutAppt);
 
         // Appointments list

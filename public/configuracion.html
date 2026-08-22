@@ -748,6 +748,10 @@
           <span class="tab-icon" data-icon="staff" data-size="14"></span>
           <span class="tab-label">Clínica</span>
         </button>
+        <button class="tab-btn" data-tab="hours" data-roles="doctor clinic_admin" type="button">
+          <span class="tab-icon" data-icon="clock" data-size="14"></span>
+          <span class="tab-label">Horarios</span>
+        </button>
         <button class="tab-btn" data-tab="location" data-roles="doctor clinic_admin" type="button">
           <span class="tab-icon" data-icon="mapPin" data-size="14"></span>
           <span class="tab-label">Ubicación</span>
@@ -984,6 +988,24 @@
                 <span class="hint">Crea, renombra y elimina salas en Personal › Habitaciones. Cada sala aparece en el panel de recepción.</span>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- ════════════════════════════════════════════════════ -->
+        <!-- 3. HORARIOS -->
+        <!-- El editor es el mismo de Citas Online (horario-editor.js), sobre -->
+        <!-- la misma tabla: lo que se cambia acá se ve allá y al revés.      -->
+        <!-- ════════════════════════════════════════════════════ -->
+        <section class="settings-panel" data-panel="hours" data-roles="doctor clinic_admin">
+          <div class="glass-card">
+            <div class="card-head">
+              <div class="icon-box"><span data-icon="clock" data-size="20"></span></div>
+              <div>
+                <h2>Horario de atención</h2>
+                <p>Los días y las horas en las que atiendes. Manda en todo: en el enlace de Citas Online, en el selector de hora al agendar y en lo que puede reservar recepción.</p>
+              </div>
+            </div>
+            <div id="hoursEditor"></div>
           </div>
         </section>
 
@@ -1322,6 +1344,7 @@
   <script src="/legal-consent.js"></script>
   <script src="/layout.js"></script>
   <script src="/location.js"></script>
+  <script src="/horario-editor.js"></script>
   <script src="/map-picker.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <script>
@@ -1444,6 +1467,23 @@
     // setSectionOpen() pueden pedirlo antes de llegar a su bloque de wiring.
     let locPicker = null;
 
+    // ── Horarios ──
+    // El editor es el mismo que el de Citas Online (horario-editor.js) y guarda
+    // por su cuenta, con su propio botón: no entra en el "Guardar cambios" de
+    // arriba. Se monta la primera vez que se abre la pestaña.
+    let hoursMounted = false;
+    function ensureHoursEditor() {
+      if (hoursMounted) return;
+      const box = document.getElementById('hoursEditor');
+      if (!box || typeof HorarioEditor === 'undefined') return;
+      if (CURRENT_ROLE !== 'doctor' && CURRENT_ROLE !== 'clinic_admin') return;
+      hoursMounted = true;
+      HorarioEditor.mount(box, {
+        role: CURRENT_ROLE,
+        onToast: (msg) => toast(msg, /error|no se pudo/i.test(msg) ? 'error' : 'success'),
+      });
+    }
+
     function markDirty() {
       if (!dirty) {
         dirty = true;
@@ -1470,6 +1510,7 @@
       // Leaflet no puede medir un contenedor oculto: el mapa se monta (o se
       // recalcula) justo cuando la pestaña se hace visible.
       if (tab === 'location') ensureLocationMap();
+      if (tab === 'hours') ensureHoursEditor();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     document.getElementById('tabsNav').addEventListener('click', (e) => {
@@ -1499,6 +1540,7 @@
       head.setAttribute('aria-expanded', open ? 'true' : 'false');
       panel.classList.toggle('m-collapsed', !open);
       if (open && tab === 'location') ensureLocationMap();
+      if (open && tab === 'hours') ensureHoursEditor();
     }
     function initMobileSections() {
       const nav = document.getElementById('tabsNav');
