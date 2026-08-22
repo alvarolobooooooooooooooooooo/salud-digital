@@ -3220,13 +3220,13 @@ html[data-theme="dark"] .cdp-wrapper label {
 html[data-theme="dark"] .cdp-wrapper span {
   color: var(--sd-text) !important;
 }
-html[data-theme="dark"] .cdp-wrapper button {
+html[data-theme="dark"] .cdp-wrapper button:not(.cdp-slot) {
   background-color: var(--sd-input-bg) !important;
   border-color: var(--sd-input-border) !important;
   color: var(--sd-text-soft) !important;
 }
 /* Day-of-week headers (L, M, X, J, V, S, D) — divs without explicit class */
-html[data-theme="dark"] .cdp-wrapper > div > div > div:not([style*="display: grid"]) {
+html[data-theme="dark"] .cdp-wrapper > div > div > div:not([style*="display: grid"]):not(.cdp-note) {
   color: var(--sd-text-faint) !important;
 }
 /* Selected/today day button — keeps cyan when JS sets explicit background */
@@ -3243,27 +3243,16 @@ html[data-theme="dark"] .cdp-wrapper button[style*="background-color: rgba(0, 0,
   border: 0 !important;
   color: var(--sd-text-soft) !important;
 }
-/* Occupied/disabled time slots — clearly distinguishable from available
-   slots in dark mode. Without this they inherit the same bg as available
-   slots from the generic .cdp-wrapper button rule above. */
-html[data-theme="dark"] .cdp-wrapper button[disabled],
-html[data-theme="dark"] .cdp-wrapper button:disabled {
-  background-color: rgba(220, 38, 38, .10) !important;
-  background-image: repeating-linear-gradient(
-    135deg,
-    transparent,
-    transparent 6px,
-    rgba(255, 255, 255, .03) 6px,
-    rgba(255, 255, 255, .03) 12px
-  ) !important;
-  border: 1px solid rgba(220, 38, 38, .35) !important;
-  color: rgba(252, 165, 165, .8) !important;
+/* Días del calendario deshabilitados (mes pasado). Las horas ocupadas ya no
+   entran aquí: las pinta common-date-picker.js con su propio estilo, tachado
+   gris y sin rojos, igual que «Selecciona un horario» de Citas Online. */
+html[data-theme="dark"] .cdp-wrapper button[disabled]:not(.cdp-slot),
+html[data-theme="dark"] .cdp-wrapper button:disabled:not(.cdp-slot) {
+  background-color: rgba(255, 255, 255, .02) !important;
+  border: 1px dashed rgba(255, 255, 255, .14) !important;
+  color: var(--sd-text-faint) !important;
   opacity: 1 !important;
-  text-decoration: line-through !important;
-  text-decoration-color: rgba(252, 165, 165, .9) !important;
-  text-decoration-thickness: 1.5px !important;
   cursor: not-allowed !important;
-  font-weight: 600 !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════

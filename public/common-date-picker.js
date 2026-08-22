@@ -1,8 +1,92 @@
 /**
  * Calendar Datetime Picker
+ *
+ * El selector de hora sigue el mismo criterio que «Selecciona un horario» de
+ * Citas Online (agendar-online.html): las horas en las que el doctor no atiende
+ * no se muestran, y las que se ven tachadas —en gris, sin rojos— son las que ya
+ * tienen una cita. Los motivos los pone DoctorBlocks (doctor-blocks.js).
  */
 
+// Los estilos del selector de hora viven aquí para que las tres pantallas que
+// usan el picker (citas, recepción, pacientes) se vean igual sin copiar CSS.
+function ensureCalendarPickerStyles() {
+  if (document.getElementById('cdp-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'cdp-styles';
+  style.textContent = `
+    .cdp-wrapper .cdp-time {
+      display: flex; flex-direction: column; gap: .5rem; width: 100%;
+      padding: .75rem; border: 1px solid #e2e8f0; border-radius: 6px;
+      background: #f9fafb;
+    }
+    .cdp-wrapper .cdp-time-label {
+      font-size: .75rem; font-weight: 600; color: #374151; margin-bottom: .3rem;
+    }
+    .cdp-wrapper .cdp-slots { display: grid; gap: 14px; }
+    .cdp-wrapper .cdp-slot-group-head {
+      display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 7px;
+    }
+    .cdp-wrapper .cdp-slot-group-title { font-size: 12px; font-weight: 600; color: #334155; }
+    .cdp-wrapper .cdp-slot-group-count { font-size: 11px; color: #94a3b8; }
+    .cdp-wrapper .cdp-slot-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px;
+    }
+    .cdp-wrapper .cdp-slot {
+      border: 1px solid #e3e8ef; border-radius: 9px; background: #fff;
+      padding: 8px 6px 7px; font-family: inherit; font-size: 12px; color: #334155;
+      text-align: center; line-height: 1.15; cursor: pointer;
+      transition: border-color .15s ease;
+    }
+    .cdp-wrapper .cdp-slot:hover:not(:disabled) { border-color: rgba(8, 145, 178, .55); }
+    .cdp-wrapper .cdp-slot small {
+      display: block; margin-top: 3px; font-size: 8.5px;
+      letter-spacing: .06em; text-transform: uppercase; color: #94a3b8;
+    }
+    .cdp-wrapper .cdp-slot.is-sel {
+      border-color: #0891b2; background: #0891b2; color: #fff; font-weight: 600;
+    }
+    .cdp-wrapper .cdp-slot.is-sel small { color: rgba(255, 255, 255, .85); }
+    .cdp-wrapper .cdp-slot.is-busy,
+    .cdp-wrapper .cdp-slot.is-off {
+      border-style: dashed; border-color: #cfd6df; background: transparent;
+      color: #94a3b8; cursor: not-allowed;
+    }
+    .cdp-wrapper .cdp-slot.is-busy .h,
+    .cdp-wrapper .cdp-slot.is-off .h { text-decoration: line-through; }
+    .cdp-wrapper .cdp-note {
+      border: 1px dashed #cfd6df; border-radius: 10px;
+      padding: 18px 14px; text-align: center; color: #64748b; font-size: 12.5px;
+    }
+    /* Modo oscuro: los colores de arriba son inline-equivalentes, así que aquí
+       se repiten con !important porque theme-dark.css pinta los botones del
+       picker de forma genérica. */
+    html[data-theme="dark"] .cdp-wrapper .cdp-slot {
+      background: rgba(255, 255, 255, .04) !important;
+      border-color: rgba(255, 255, 255, .12) !important;
+      color: #cbd5e1 !important;
+    }
+    html[data-theme="dark"] .cdp-wrapper .cdp-slot .h { color: inherit !important; }
+    html[data-theme="dark"] .cdp-wrapper .cdp-slot small { color: rgba(148, 163, 184, .8) !important; }
+    html[data-theme="dark"] .cdp-wrapper .cdp-slot.is-sel,
+    html[data-theme="dark"] .cdp-wrapper .cdp-slot.is-sel .h {
+      background: #0891b2 !important; border-color: #0891b2 !important; color: #fff !important;
+    }
+    html[data-theme="dark"] .cdp-wrapper .cdp-slot.is-busy,
+    html[data-theme="dark"] .cdp-wrapper .cdp-slot.is-off {
+      background: transparent !important;
+      border: 1px dashed rgba(255, 255, 255, .18) !important;
+      color: rgba(148, 163, 184, .75) !important;
+    }
+    html[data-theme="dark"] .cdp-wrapper .cdp-slot-group-title { color: #e2e8f0 !important; }
+    html[data-theme="dark"] .cdp-wrapper .cdp-slot-group-count,
+    html[data-theme="dark"] .cdp-wrapper .cdp-note { color: rgba(148, 163, 184, .9) !important; }
+    html[data-theme="dark"] .cdp-wrapper .cdp-note { border-color: rgba(255, 255, 255, .16) !important; }
+  `;
+  document.head.appendChild(style);
+}
+
 function replaceWithCalendarDatetimePicker(input, options = {}) {
+  ensureCalendarPickerStyles();
   const wrapper = document.createElement('div');
   wrapper.className = 'cdp-wrapper';
   wrapper.style.display = 'flex';
@@ -184,140 +268,123 @@ function replaceWithCalendarDatetimePicker(input, options = {}) {
   calContainer.appendChild(navContainer);
   calContainer.appendChild(calGrid);
 
-  // Time picker
+  // ── Selector de hora ────────────────────────────────────────────────────
+  // Mismo criterio que «Selecciona un horario» de Citas Online: las horas en
+  // las que el doctor no atiende (día cerrado, día de descanso, fuera de su
+  // horario, o quitadas a mano) no se muestran; las que se ven tachadas son
+  // las que ya tienen una cita. Nada en rojo.
   const timeContainer = document.createElement('div');
-  timeContainer.style.display = 'flex';
-  timeContainer.style.flexDirection = 'column';
-  timeContainer.style.gap = '0.5rem';
-  timeContainer.style.width = '100%';
-  timeContainer.style.padding = '0.75rem';
-  timeContainer.style.border = '1px solid #e2e8f0';
-  timeContainer.style.borderRadius = '6px';
-  timeContainer.style.backgroundColor = '#f9fafb';
+  timeContainer.className = 'cdp-time';
 
   const timeLabel = document.createElement('label');
+  timeLabel.className = 'cdp-time-label';
   timeLabel.textContent = 'Hora';
-  timeLabel.style.fontSize = '.75rem';
-  timeLabel.style.fontWeight = '600';
-  timeLabel.style.color = '#374151';
-  timeLabel.style.marginBottom = '0.3rem';
-
-  const ampmNav = document.createElement('div');
-  ampmNav.style.display = 'flex';
-  ampmNav.style.alignItems = 'center';
-  ampmNav.style.justifyContent = 'center';
-  ampmNav.style.gap = '1rem';
-  ampmNav.style.marginBottom = '0.5rem';
-
-  const ampmPrevBtn = document.createElement('button');
-  ampmPrevBtn.textContent = '‹';
-  ampmPrevBtn.style.background = 'none';
-  ampmPrevBtn.style.border = 'none';
-  ampmPrevBtn.style.color = '#475569';
-  ampmPrevBtn.style.borderRadius = '6px';
-  ampmPrevBtn.style.padding = '0.25rem 0.5rem';
-  ampmPrevBtn.style.cursor = 'pointer';
-  ampmPrevBtn.style.fontSize = '.8rem';
-  ampmPrevBtn.type = 'button';
-
-  const ampmSpan = document.createElement('span');
-  ampmSpan.style.fontSize = '.85rem';
-  ampmSpan.style.fontWeight = '600';
-  ampmSpan.style.color = '#0f172a';
-  ampmSpan.style.minWidth = '40px';
-  ampmSpan.style.textAlign = 'center';
-
-  const ampmNextBtn = document.createElement('button');
-  ampmNextBtn.textContent = '›';
-  ampmNextBtn.style.background = 'none';
-  ampmNextBtn.style.border = 'none';
-  ampmNextBtn.style.color = '#475569';
-  ampmNextBtn.style.borderRadius = '6px';
-  ampmNextBtn.style.padding = '0.25rem 0.5rem';
-  ampmNextBtn.style.cursor = 'pointer';
-  ampmNextBtn.style.fontSize = '.8rem';
-  ampmNextBtn.type = 'button';
-
-  // Motivos por los que el doctor no atiende esa casilla — los que devuelve
-  // DoctorBlocks. Lo que no esté aquí se pinta como "ya hay una cita".
-  const BLOCK_TITLES = {
-    closed:   'El doctor cerró este día',
-    blocked:  'El doctor marcó esta hora como no disponible',
-    dayoff:   'El doctor no atiende este día según su horario de atención',
-    offhours: 'Fuera del horario de atención del doctor',
-  };
 
   const timeGrid = document.createElement('div');
-  timeGrid.style.display = 'grid';
-  timeGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
-  timeGrid.style.gap = '0.5rem';
+  timeGrid.className = 'cdp-slots';
 
-  let isPM = selectedHour >= 12;
+  // Motivos que devuelve DoctorBlocks cuando el doctor no atiende esa casilla.
+  // Esas horas se ocultan; lo que llega sin motivo es una cita ya agendada.
+  const BLOCK_NOTES = {
+    closed:   'El doctor cerró este día en su disponibilidad.',
+    blocked:  'El doctor quitó estas horas de este día.',
+    dayoff:   'El doctor no atiende este día según su horario de atención.',
+    offhours: 'Fuera del horario de atención del doctor.',
+  };
+  // Cuál explicar cuando el día se queda sin ninguna hora: gana el motivo más
+  // amplio, que es el que de verdad describe el día.
+  const NOTE_ORDER = ['closed', 'dayoff', 'offhours', 'blocked'];
+
+  const GRID_MINUTES = 30;
+  const DAY_MINUTES = 24 * 60;
+  const fmtSlot = (min) => {
+    const h = Math.floor(min / 60), m = min % 60;
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${String(h12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+  };
 
   const renderTimeGrid = () => {
-    ampmSpan.textContent = isPM ? 'PM' : 'AM';
     timeGrid.innerHTML = '';
-    const startHour = isPM ? 12 : 0;
-    const endHour = isPM ? 24 : 12;
     const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
-    const occupiedTimes = getOccupiedHours(dateStr);
+    const cells = getOccupiedHours(dateStr) || [];
 
-    for (let h = startHour; h < endHour; h++) {
-      for (let m = 0; m < 60; m += 30) {
+    const blocked = new Map();   // minuto → motivo (el doctor no atiende)
+    const busy = new Set();      // minuto → ya hay una cita
+    cells.forEach(c => {
+      // A la casilla de media hora que la contiene: una cita a las 09:15 tapa
+      // las 09:00, que es la única de las dos que el selector ofrece.
+      const key = Math.floor((c.h * 60 + c.m) / GRID_MINUTES) * GRID_MINUTES;
+      if (c.reason && BLOCK_NOTES[c.reason]) {
+        if (!blocked.has(key)) blocked.set(key, c.reason);
+      } else {
+        busy.add(key);
+      }
+    });
+
+    const selectedMin = selectedHour * 60 + selectedMinute;
+    const slots = [];
+    for (let min = 0; min < DAY_MINUTES; min += GRID_MINUTES) {
+      // Una cita se ve aunque el doctor haya cerrado esa hora después: es la
+      // explicación de por qué no se puede agendar ahí.
+      if (busy.has(min)) { slots.push({ min, state: 'busy' }); continue; }
+      if (blocked.has(min)) {
+        // La hora ya elegida nunca desaparece: si no, al editar una cita vieja
+        // el selector se quedaba sin marcar nada.
+        if (min === selectedMin) slots.push({ min, state: 'off' });
+        continue;
+      }
+      slots.push({ min, state: 'free' });
+    }
+
+    const libres = slots.filter(s => s.state === 'free').length;
+    if (!libres) {
+      const motivo = NOTE_ORDER.find(r => [...blocked.values()].includes(r));
+      const note = document.createElement('div');
+      note.className = 'cdp-note';
+      note.textContent = motivo
+        ? BLOCK_NOTES[motivo]
+        : 'No queda ninguna hora libre este día.';
+      timeGrid.appendChild(note);
+      if (!slots.length) return;
+    }
+
+    const groups = [
+      { title: 'Mañana', slots: slots.filter(s => s.min < 12 * 60) },
+      { title: 'Tarde', slots: slots.filter(s => s.min >= 12 * 60) },
+    ].filter(g => g.slots.length);
+
+    groups.forEach(g => {
+      const wrap = document.createElement('div');
+
+      const head = document.createElement('div');
+      head.className = 'cdp-slot-group-head';
+      const title = document.createElement('div');
+      title.className = 'cdp-slot-group-title';
+      title.textContent = g.title;
+      const count = document.createElement('div');
+      count.className = 'cdp-slot-group-count';
+      const libresGrupo = g.slots.filter(s => s.state === 'free').length;
+      count.textContent = `${libresGrupo} ${libresGrupo === 1 ? 'libre' : 'libres'}`;
+      head.appendChild(title);
+      head.appendChild(count);
+
+      const grid = document.createElement('div');
+      grid.className = 'cdp-slot-grid';
+
+      g.slots.forEach(s => {
+        const h = Math.floor(s.min / 60), m = s.min % 60;
         const btn = document.createElement('button');
         btn.type = 'button';
-        const displayH = (h % 12 === 0 ? 12 : h % 12).toString().padStart(2, '0');
-        const displayM = m.toString().padStart(2, '0');
-        btn.textContent = `${displayH}:${displayM}`;
-        btn.style.padding = '0.5rem';
-        btn.style.border = '1px solid #e2e8f0';
-        btn.style.borderRadius = '6px';
-        btn.style.cursor = 'pointer';
-        btn.style.fontSize = '0.8rem';
-        btn.style.background = 'white';
-        btn.style.color = '#475569';
-        btn.style.fontFamily = 'inherit';
+        btn.className = 'cdp-slot';
+        const isSel = s.min === selectedMin;
+        if (s.state === 'busy') { btn.classList.add('is-busy'); btn.disabled = true; btn.title = 'Ya hay una cita a esta hora'; }
+        else if (s.state === 'off') { btn.classList.add('is-off'); btn.disabled = true; btn.title = BLOCK_NOTES[blocked.get(s.min)] || ''; }
+        else if (isSel) btn.classList.add('is-sel');
 
-        const hit = occupiedTimes.find(t => t.h === h && t.m === m);
-        const isOccupied = !!hit;
-        // Con motivo = el doctor no atiende a esa hora (la quitó de ese día, o
-        // queda fuera de su horario de atención); sin motivo = ya hay una cita.
-        // Se distinguen porque no se arreglan igual.
-        const isBlocked = isOccupied && !!BLOCK_TITLES[hit.reason];
+        const nota = s.state === 'busy' ? 'Cita' : (s.state === 'off' ? 'No disp.' : '');
+        btn.innerHTML = `<span class="h">${fmtSlot(s.min)}</span>${nota ? `<small>${nota}</small>` : ''}`;
 
-        if (isBlocked) {
-          btn.style.backgroundColor = 'rgba(100, 116, 139, .06)';
-          btn.style.border = '1px dashed rgba(100, 116, 139, .5)';
-          btn.style.color = 'rgba(71, 85, 105, .7)';
-          btn.style.cursor = 'not-allowed';
-          btn.style.textDecoration = 'line-through';
-          btn.style.textDecorationColor = 'rgba(71, 85, 105, .6)';
-          btn.disabled = true;
-          btn.title = BLOCK_TITLES[hit.reason];
-        } else if (isOccupied) {
-          btn.style.backgroundColor = 'rgba(220, 38, 38, .07)';
-          btn.style.backgroundImage = 'repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(220, 38, 38, .09) 6px, rgba(220, 38, 38, .09) 12px)';
-          btn.style.border = '1px solid rgba(220, 38, 38, .35)';
-          btn.style.color = 'rgba(185, 28, 28, .85)';
-          btn.style.cursor = 'not-allowed';
-          btn.style.textDecoration = 'line-through';
-          btn.style.textDecorationColor = 'rgba(185, 28, 28, .9)';
-          btn.style.textDecorationThickness = '1.5px';
-          btn.style.fontWeight = '600';
-          btn.disabled = true;
-        }
-
-        // Una hora ocupada o bloqueada nunca se pinta como seleccionada: si no,
-        // el azul tapaba el aviso y parecía elegible.
-        if (h === selectedHour && m === selectedMinute && !isOccupied) {
-          btn.style.background = '#0891b2';
-          btn.style.color = 'white';
-          btn.style.borderColor = '#0891b2';
-          btn.style.fontWeight = '600';
-          btn.style.cursor = 'pointer';
-        }
-
-        if (!isOccupied) {
+        if (s.state === 'free') {
           btn.addEventListener('click', (e) => {
             e.preventDefault();
             selectedHour = h;
@@ -326,32 +393,17 @@ function replaceWithCalendarDatetimePicker(input, options = {}) {
             renderTimeGrid();
           });
         }
+        grid.appendChild(btn);
+      });
 
-        timeGrid.appendChild(btn);
-      }
-    }
+      wrap.appendChild(head);
+      wrap.appendChild(grid);
+      timeGrid.appendChild(wrap);
+    });
   };
 
-  ampmPrevBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    isPM = !isPM;
-    renderTimeGrid();
-  });
-
-  ampmNextBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    isPM = !isPM;
-    renderTimeGrid();
-  });
-
-  ampmNav.appendChild(ampmPrevBtn);
-  ampmNav.appendChild(ampmSpan);
-  ampmNav.appendChild(ampmNextBtn);
-
   timeContainer.appendChild(timeLabel);
-  timeContainer.appendChild(ampmNav);
   timeContainer.appendChild(timeGrid);
-
   // Add everything to wrapper
   wrapper.appendChild(calContainer);
   wrapper.appendChild(timeContainer);
@@ -381,7 +433,6 @@ function replaceWithCalendarDatetimePicker(input, options = {}) {
         selectedDay = day;
         selectedHour = hour;
         selectedMinute = minute;
-        isPM = hour >= 12;
         renderCalendar();
         renderTimeGrid();
       }
