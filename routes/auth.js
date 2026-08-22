@@ -11,6 +11,7 @@ const { isValidLatLng } = require('../lib/maps-links');
 const presupuesto = require('../lib/password-budget');
 const mailer = require('../utils/mailer');
 const legal = require('../lib/legal/service');
+const { normalizar: normalizarEspecialidad } = require('../lib/especialidades');
 
 // ── Hash señuelo para nivelar los tiempos del login ──
 //
@@ -159,7 +160,7 @@ router.post('/register', async (req, res) => {
   const nombre = String(b.name || '').trim().replace(/\s+/g, ' ').slice(0, 120);
   const email = String(b.email || '').trim().toLowerCase().slice(0, 160);
   const password = String(b.password || '');
-  const especialidad = String(b.specialty || '').trim();
+  const especialidad = normalizarEspecialidad(b.specialty);
   const clinica = String(b.clinic_name || '').trim().replace(/\s+/g, ' ').slice(0, 120);
   const telefono = String(b.phone || '').trim().slice(0, 40);
   const ciudad = String(b.city || '').trim().slice(0, 80);
@@ -358,6 +359,10 @@ router.get('/me', authenticate, async (req, res) => {
   );
   const user = result.rows[0];
   if (!user) return res.status(404).json({ error: 'User not found' });
+  // Se normaliza AL LEER, no solo al escribir: las cuentas que ya quedaron con un
+  // valor raro guardado (ver lib/especialidades.js) vuelven a funcionar sin que
+  // nadie tenga que tocar la base ni volver a elegir nada.
+  user.specialty = normalizarEspecialidad(user.specialty);
   res.json(user);
 });
 

@@ -7,6 +7,7 @@ const { v4: uuid } = require('uuid');
 const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { sendDoctorInvitation } = require('../utils/mailer');
+const { normalizar: normalizarEspecialidad } = require('../lib/especialidades');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -75,6 +76,9 @@ router.get('/me', authenticate, async (req, res) => {
   if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
   user.languages = parseJsonArray(user.languages);
   user.focus = parseJsonArray(user.focus);
+  // Igual que en /api/auth/me: normalizar al leer cura las cuentas ya guardadas
+  // con un slug («podologia») en vez del nombre canónico («Podología»).
+  user.specialty = normalizarEspecialidad(user.specialty);
   res.json(user);
 });
 
@@ -116,7 +120,7 @@ router.put('/me', authenticate, async (req, res) => {
   const next = {
     name: b.name !== undefined ? String(b.name).trim() : u.name,
     email: b.email !== undefined ? String(b.email).trim().toLowerCase() : u.email,
-    specialty: b.specialty !== undefined ? (b.specialty || '') : u.specialty,
+    specialty: b.specialty !== undefined ? normalizarEspecialidad(b.specialty) : u.specialty,
     phone: b.phone !== undefined ? (b.phone || '') : u.phone,
     location: b.location !== undefined ? (b.location || '') : u.location,
     bio: b.bio !== undefined ? (b.bio || '') : u.bio,
@@ -266,7 +270,7 @@ router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async
   try {
     const result = await query(
       'INSERT INTO users (email, password, role, clinic_id, name, specialty, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-      [normEmail, hashed, role, assignedClinicId, name || '', specialty || '', phone || '']
+      [normEmail, hashed, role, assignedClinicId, name || '', normalizarEspecialidad(specialty), phone || '']
     );
 
     if (role === 'doctor') {
@@ -285,7 +289,7 @@ router.post('/', authenticate, requireRole('super_admin', 'clinic_admin'), async
       role,
       clinic_id: assignedClinicId,
       name: name || '',
-      specialty: specialty || '',
+      specialty: normalizarEspecialidad(specialty),
       phone: phone || ''
     });
   } catch {

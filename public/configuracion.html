@@ -825,18 +825,26 @@
               </div>
               <div class="field" data-roles="doctor">
                 <label>Especialidad médica <span class="req">*</span></label>
+                <!-- El `value` de cada opción DEBE ser el nombre canónico, tal cual, con
+                     tilde y mayúscula: es el texto que se guarda en users.specialty y con
+                     el que cada página de consulta se compara con ===. Cuando aquí había
+                     slugs («podologia»), el select no reconocía el valor guardado y salía
+                     en blanco; el doctor lo volvía a elegir, se guardaba el slug, y desde
+                     ese momento todas sus consultas rebotaban a la agenda sin explicación.
+                     Ver lib/especialidades.js.
+                     Solo se ofrecen las especialidades que tienen pantalla de consulta: las
+                     demás dejaban el botón "Iniciar consulta" apuntando a una página que no
+                     existe. -->
                 <select id="fldSpecialty">
                   <option value="">— Selecciona —</option>
-                  <option value="general">Medicina general</option>
-                  <option value="podologia">Podología</option>
-                  <option value="odontologia">Odontología</option>
-                  <option value="nutricion">Nutrición</option>
+                  <option value="Medicina General">Medicina general</option>
+                  <option value="Podología">Podología</option>
+                  <option value="Odontología">Odontología</option>
+                  <option value="Odontopediatría">Odontopediatría</option>
+                  <option value="Ortodoncia">Ortodoncia</option>
+                  <option value="Periodoncia">Periodoncia</option>
+                  <option value="Nutrición">Nutrición</option>
                   <option value="Dermatología">Dermatología</option>
-                  <option value="pediatria">Pediatría</option>
-                  <option value="ginecologia">Ginecología</option>
-                  <option value="cardiologia">Cardiología</option>
-                  <option value="psicologia">Psicología</option>
-                  <option value="otra">Otra</option>
                 </select>
               </div>
               <div class="field" data-roles="doctor">
@@ -2562,6 +2570,17 @@
       const setChk = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
 
       setVal('fldName', state.profile.name);
+      // Un <select> al que se le asigna un value que no existe entre sus opciones
+      // se queda sin selección y devuelve ''. Si el doctor guardaba entonces, su
+      // especialidad se perdía. Antes de asignarla, si el valor guardado no está
+      // en la lista se añade como opción: así se ve, se conserva y se puede
+      // cambiar, pero nunca desaparece sola.
+      (function conservarEspecialidad(valor) {
+        const sel = document.getElementById('fldSpecialty');
+        if (!sel || !valor) return;
+        const existe = Array.from(sel.options).some((o) => o.value === valor);
+        if (!existe) sel.add(new Option(valor, valor));
+      })(state.profile.specialty);
       setVal('fldSpecialty', state.profile.specialty);
       setVal('fldLicense', state.profile.license);
       setVal('fldExperience', state.profile.experience);

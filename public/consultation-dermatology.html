@@ -1313,7 +1313,7 @@ window.submitDerma = async function () {
   try {
     const me = await api("/api/auth/me");
     window.__me = me;
-    if (me && me.role === "doctor" && me.specialty !== "Dermatología") { window.location.href = "/citas.html"; return; }
+    if (me && me.role === "doctor" && me.specialty && me.specialty !== "Dermatología") { window.location.href = "/citas.html"; return; }
     if (IS_VIEW) await loadView(me); else await loadCreate(me);
   } catch (e) {
     console.error(e);

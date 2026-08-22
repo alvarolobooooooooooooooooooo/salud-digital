@@ -2433,7 +2433,7 @@ async function loadAppointment() {
   try {
     const me = await api('/api/auth/me');
 
-    if (me.role === 'doctor' && me.specialty !== 'Podología') {
+    if (me.role === 'doctor' && me.specialty && me.specialty !== 'Podología') {
       window.location.href = '/citas.html';
       return;
     }

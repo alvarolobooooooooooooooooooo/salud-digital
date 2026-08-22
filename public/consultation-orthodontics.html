@@ -1155,7 +1155,7 @@ async function loadAppointment() {
   try {
     const me = await api('/api/auth/me');
 
-    if (me.role === 'doctor' && me.specialty !== 'Ortodoncia') {
+    if (me.role === 'doctor' && me.specialty && me.specialty !== 'Ortodoncia') {
       window.location.href = '/citas.html';
       return;
     }
@@ -1768,7 +1768,7 @@ if (IS_VIEW_MODE) document.body.classList.add('viewer-mode');
 async function loadConsultationView() {
   try {
     const me = await api('/api/auth/me');
-    if (me.role === 'doctor' && me.specialty !== 'Ortodoncia') {
+    if (me.role === 'doctor' && me.specialty && me.specialty !== 'Ortodoncia') {
       window.location.href = '/citas.html';
       return;
     }

@@ -990,7 +990,7 @@ async function loadAppointment() {
   try {
     const me = await api('/api/auth/me');
 
-    if (me.role === 'doctor' && me.specialty !== 'Periodoncia') {
+    if (me.role === 'doctor' && me.specialty && me.specialty !== 'Periodoncia') {
       window.location.href = '/citas.html';
       return;
     }
@@ -1625,7 +1625,7 @@ if (IS_VIEW_MODE) document.body.classList.add('viewer-mode');
 async function loadConsultationView() {
   try {
     const me = await api('/api/auth/me');
-    if (me.role === 'doctor' && me.specialty !== 'Periodoncia') {
+    if (me.role === 'doctor' && me.specialty && me.specialty !== 'Periodoncia') {
       window.location.href = '/citas.html';
       return;
     }
