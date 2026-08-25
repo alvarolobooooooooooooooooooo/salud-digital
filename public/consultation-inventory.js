@@ -424,9 +424,12 @@
     if (s == null) return '';
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   }
+  // Moneda de la clínica (public/monedas.js). El módulo puede cargarse en
+  // páginas que no lo incluyan, así que hay un respaldo: sin SDMoneda se
+  // formatea sin símbolo antes que mentir con uno que no toca.
   function fmtMoney(n) {
-    const num = Number(n || 0);
-    return 'L. ' + num.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (window.SDMoneda) return SDMoneda.fmt(n);
+    return Number(n || 0).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
   function fmtDate(d) {
     if (!d) return '—';

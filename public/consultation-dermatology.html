@@ -385,6 +385,7 @@
 </main>
 
 <script src="/common.js"></script>
+<script src="/monedas.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
 <!-- Inventario desactivado — para reactivar, descomentar esta línea:
@@ -939,7 +940,7 @@ function Cobro({ data, set }) {
   return (
     <Card id="cobro" kicker="Cobro" title="Cobro y estado de pago" icon={I.wallet}>
       <div className="dz-grid">
-        <Field label="Costo de la consulta" hint="Monto en lempiras (HNL).">
+        <Field label="Costo de la consulta" hint={`Monto en ${SDMoneda.ficha().nombre} (${SDMoneda.codigo()}).`}>
           <Input inputMode="decimal" placeholder="0.00" value={data.cost} onChange={(e) => set({ cost: e.target.value })} />
         </Field>
         <Field label="Estado de pago">
@@ -1237,7 +1238,9 @@ function buildBody(S, me) {
     S.plan.seguimiento ? "Seguimiento: " + S.plan.seguimiento : "",
     S.plan.biopsia ? "Biopsia/evolución: " + S.plan.biopsia : "",
   ].filter(Boolean).join("\n");
-  const cost = parseFloat(String(S.pago.cost).replace(/[^\d.]/g, "")) || 0;
+  // SDMoneda.parse entiende la puntuación de cualquiera de las monedas
+  // soportadas; el replace anterior se comía los miles de "$1.200.000".
+  const cost = SDMoneda.parse(S.pago.cost);
   return {
     patient_id: patientId,
     doctor_id: me && me.id,

@@ -889,6 +889,7 @@
 
 <script src="/icons.js"></script>
 <script src="/common.js"></script>
+<script src="/monedas.js"></script>
 <script src="/layout.js"></script>
 <script>
   requireAuth(['clinic_admin', 'doctor']);
@@ -1093,7 +1094,7 @@
   function fmtMoney(v) {
     const n = Number(v);
     if (!isFinite(n) || n <= 0) return '';
-    return 'L. ' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return SDMoneda.fmt(n);
   }
 
   function enablePodiatryView() {
@@ -1696,6 +1697,10 @@
 
   (async () => {
     try {
+      // La moneda de la clínica antes de pintar el primer importe: si no,
+      // la pantalla saldría en lempiras y saltaría a la moneda real un
+      // instante después. Con el perfil en caché resuelve al momento.
+      await SDMoneda.listo();
       const [patient, me] = await Promise.all([
         api(`/api/patients/${patientId}`),
         api('/api/auth/me').catch(() => ({}))

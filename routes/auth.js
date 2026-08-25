@@ -12,6 +12,7 @@ const presupuesto = require('../lib/password-budget');
 const mailer = require('../utils/mailer');
 const legal = require('../lib/legal/service');
 const { normalizar: normalizarEspecialidad } = require('../lib/especialidades');
+const monedas = require('../lib/monedas');
 
 // ── Hash señuelo para nivelar los tiempos del login ──
 //
@@ -164,6 +165,10 @@ router.post('/register', async (req, res) => {
   const clinica = String(b.clinic_name || '').trim().replace(/\s+/g, ' ').slice(0, 120);
   const telefono = String(b.phone || '').trim().slice(0, 40);
   const ciudad = String(b.city || '').trim().slice(0, 80);
+  // El país decide la moneda con la que nace la clínica (lib/monedas.js). No se
+  // adivina por IP ni por el prefijo del teléfono: lo elige el doctor en el
+  // alta, porque de él dependen todas las cifras que verá en Finanzas.
+  const pais = monedas.normalizarPais(b.country);
   const direccion = String(b.address || '').trim().slice(0, 300);
   const referencias = String(b.location_notes || '').trim().slice(0, 500);
   const enlaceMapa = /^https?:\/\//i.test(String(b.map_url || '').trim())
@@ -187,6 +192,9 @@ router.post('/register', async (req, res) => {
   if (clinica.length < 3) {
     return res.status(400).json({ error: 'Escribe el nombre de tu clínica o consultorio.' });
   }
+  if (!pais) {
+    return res.status(400).json({ error: 'Selecciona el país donde atiendes.' });
+  }
 
   const yaExiste = await query('SELECT 1 FROM users WHERE LOWER(email) = $1', [email]);
   if (yaExiste.rowCount > 0) {
@@ -206,8 +214,8 @@ router.post('/register', async (req, res) => {
     const c = await client.query(
       `INSERT INTO clinics (name, address, chairs, specialties, phone, email, city,
                             latitude, longitude, map_url, location_notes,
-                            location_source, geocoded_at)
-       VALUES ($1, $2, 1, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
+                            location_source, geocoded_at, country, currency)
+       VALUES ($1, $2, 1, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id`,
       [
         nombreClinica, direccion, especialidad, telefono, email, ciudad,
         pin ? pin.lat : null,
@@ -216,6 +224,11 @@ router.post('/register', async (req, res) => {
         referencias,
         pin ? 'manual' : null,
         pin ? new Date() : null,
+        pais,
+        // La moneda del país, y no una elegida aparte, porque en el alta todavía
+        // no hay ni un importe guardado: es el único momento en que fijarla es
+        // gratis. A partir de aquí cambiarla convierte el histórico.
+        monedas.monedaDePais(pais),
       ]
     );
     const clinicId = c.rows[0].id;
@@ -351,14 +364,24 @@ router.post('/sessions/revoke-others', authenticate, async (req, res) => {
 
 router.get('/me', authenticate, async (req, res) => {
   const result = await query(
+    // clinic_currency / clinic_country viajan aquí porque este endpoint es lo
+    // primero que carga cualquier pantalla (layout.js lo cachea). Toda cifra de
+    // dinero de la app se formatea con esa moneda —public/monedas.js la lee de
+    // esta respuesta—, así que pedirla aparte habría significado una segunda
+    // petición antes de poder pintar un solo importe.
     `SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.specialty, u.phone,
-            u.photo_url, c.name as clinic_name
+            u.photo_url, c.name as clinic_name, c.currency as clinic_currency,
+            c.country as clinic_country
        FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id
       WHERE u.id = $1`,
     [req.user.id]
   );
   const user = result.rows[0];
   if (!user) return res.status(404).json({ error: 'User not found' });
+  // Una clínica sin moneda guardada (o con una que ya no se soporta) cae en
+  // lempiras, que es lo que veían todas antes de que existiera este campo.
+  user.clinic_currency = monedas.normalizarMoneda(user.clinic_currency) || monedas.MONEDA_POR_DEFECTO;
+  user.clinic_country = monedas.normalizarPais(user.clinic_country) || monedas.PAIS_POR_DEFECTO;
   // Se normaliza AL LEER, no solo al escribir: las cuentas que ya quedaron con un
   // valor raro guardado (ver lib/especialidades.js) vuelven a funcionar sin que
   // nadie tenga que tocar la base ni volver a elegir nada.

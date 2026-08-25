@@ -393,12 +393,12 @@
     </div>
     <div class="kpi">
       <div class="kpi-label">Invertido (mes)</div>
-      <div class="kpi-value" id="kpiInvested">L. 0</div>
+      <div class="kpi-value" id="kpiInvested" data-moneda="cero">L. 0</div>
       <div class="kpi-sub">Estimado por canales activos</div>
     </div>
     <div class="kpi">
       <div class="kpi-label">Ingreso atribuido</div>
-      <div class="kpi-value" id="kpiRevenue">L. 0</div>
+      <div class="kpi-value" id="kpiRevenue" data-moneda="cero">L. 0</div>
       <div class="kpi-sub" id="kpiRevenueSub">Estimación + cobrado</div>
     </div>
     <div class="kpi">
@@ -507,11 +507,14 @@
 
 <script src="/icons.js"></script>
 <script src="/common.js"></script>
+<script src="/monedas.js"></script>
 <script src="/layout.js"></script>
 <script>
   requireAuth(['clinic_admin', 'doctor']);
 
-  const fmtHnl = n => 'L. ' + Number(n || 0).toLocaleString('es-HN', { maximumFractionDigits: 0 });
+  // Se llamaba fmtHnl cuando solo había Honduras; ahora sale en la moneda de la
+  // clínica (public/monedas.js). Sin decimales, que es como se leen los KPIs.
+  const fmtHnl = n => SDMoneda.fmtCorto(n);
   const $ = id => document.getElementById(id);
 
   function showToast(msg) {

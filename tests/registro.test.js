@@ -67,6 +67,8 @@ function ejecutar(text, params) {
       name: params[0], address: params[1], specialties: params[2],
       phone: params[3], email: params[4], city: params[5],
       latitude: params[6], longitude: params[7],
+      // Van al final del INSERT, después de location_source y geocoded_at.
+      country: params[12], currency: params[13],
     };
     bd.clinicas.push(fila);
     return { rows: [{ id: fila.id }], rowCount: 1 };
@@ -217,6 +219,9 @@ const ALTA_VALIDA = {
   password: 'contrasena-larga',
   specialty: 'Podología',
   clinic_name: 'Clínica Podológica Sonrisa',
+  // El país es obligatorio desde que la plataforma se abrió a varios países:
+  // decide la moneda con la que nace la clínica (ver lib/monedas.js).
+  country: 'HN',
   city: 'Tegucigalpa',
   phone: '+504 9999 9999',
   // Sin esto no hay alta: el servidor exige la versión y la huella exactas de
@@ -241,6 +246,8 @@ test('el alta crea clínica y doctor, pero NO abre sesión: queda pendiente de a
   const doctor = bd.usuarios[0];
   assert.equal(clinica.name, 'Clínica Podológica Sonrisa');
   assert.equal(clinica.city, 'Tegucigalpa');
+  assert.equal(clinica.country, 'HN', 'el país elegido en el alta se guarda');
+  assert.equal(clinica.currency, 'HNL', 'y la moneda sale del país, no de un valor fijo');
   assert.equal(doctor.clinic_id, clinica.id);
   assert.equal(doctor.approval_status, 'pending', 'la cuenta nace en espera de aprobación');
   assert.equal(doctor.specialty, 'Podología', 'la especialidad se guarda tal cual: enruta la ficha de consulta');
@@ -367,6 +374,11 @@ test('el alta rechaza datos incompletos antes de tocar la BD', async (t) => {
     [{ specialty: 'Astrología' }, 'especialidad fuera de la lista'],
     [{ specialty: 'Odontología' }, 'el alta por cuenta propia es solo para podología'],
     [{ clinic_name: '' }, 'clínica sin nombre'],
+    [{ country: '' }, 'sin país no se sabe en qué moneda cobra'],
+    // Ojo al elegir el ejemplo: aquí ponía 'AR' hasta que Argentina entró en la
+    // lista. Que sea un país que no vayamos a vender.
+    [{ country: 'BR' }, 'país fuera de los habilitados'],
+    [{ country: 'Honduras' }, 'el país viaja como código ISO, no como nombre'],
   ];
 
   const antes = bd.usuarios.length;

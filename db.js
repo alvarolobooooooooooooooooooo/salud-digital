@@ -531,7 +531,17 @@ const initDb = async () => {
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS confirmation_card_message TEXT DEFAULT 'Hola {{patientName}}, ¿podrás asistir a esta cita?'",
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS map_url TEXT DEFAULT ''",
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS location_notes TEXT DEFAULT ''",
-      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS location_source TEXT'
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS location_source TEXT',
+      // ── País de la clínica ──
+      // Código ISO-3166 alfa-2 ('HN', 'SV', 'NI', 'MX', 'CO'). Se elige en el
+      // alta y SUGIERE la moneda, no la impone: ver lib/monedas.js.
+      //
+      // El DEFAULT 'HN' no es una preferencia, es un hecho: todas las clínicas
+      // que existen cuando esta columna nace son hondureñas. Rellenarlas con
+      // 'HN' las deja exactamente como estaban (currency ya era 'HNL'); dejar la
+      // columna en NULL las habría dejado sin país y sin moneda derivable.
+      "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS country TEXT DEFAULT 'HN'",
+      "UPDATE clinics SET country = 'HN' WHERE country IS NULL OR country = ''"
     ];
 
     // Leads (formulario de contacto público de la landing). Se modelan como tabla aparte

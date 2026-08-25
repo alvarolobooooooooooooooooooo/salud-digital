@@ -652,7 +652,7 @@
       <h3>Información de Pago</h3>
       <div class="form-grid two">
         <div class="form-group">
-          <label>Costo de la Consulta (L.)</label>
+          <label>Costo de la Consulta (<span data-moneda="prefijo">L.</span>)</label>
           <input type="text" id="consCost" placeholder="0.00" inputmode="decimal" disabled>
         </div>
         <div class="form-group">
@@ -681,6 +681,7 @@
 </main>
 
 <script src="/common.js"></script>
+<script src="/monedas.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
 <!-- Inventario desactivado — para reactivar, descomentar esta línea:
@@ -761,12 +762,9 @@ async function loadConsultation() {
 
     // Load cost and payment status
     if (consultation.cost) {
-      const formatted = Number(consultation.cost).toFixed(2);
-      const parts = formatted.split('.');
-      const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-      document.getElementById('consCost').value = 'L. ' + intPart + '.' + parts[1];
+      document.getElementById('consCost').value = SDMoneda.fmt(consultation.cost);
     } else {
-      document.getElementById('consCost').value = 'L. 0.00';
+      document.getElementById('consCost').value = SDMoneda.fmt(0);
     }
 
     document.getElementById('consPayment').value = consultation.payment_status || 'pending';

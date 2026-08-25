@@ -590,6 +590,22 @@
     loadUserProfile();
   }
 
+  // ── La moneda cambió en otra sesión ──
+  //
+  // `sd:moneda` solo se dispara cuando el código REALMENTE cambia respecto al
+  // que esta pestaña estaba usando: alguien corrigió el país de la clínica desde
+  // otro dispositivo, o desde la pestaña de al lado. Y si eso pasa, todo lo que
+  // hay en pantalla lleva el símbolo equivocado. Recargar es la única respuesta
+  // honesta.
+  //
+  // Configuración se excluye: allí el cambio lo acaba de hacer el usuario, la
+  // pantalla ya se pone al día sola y recargar se llevaría por delante el aviso
+  // de que se guardó.
+  document.addEventListener('sd:moneda', function () {
+    if (window.SD_MONEDA_SIN_RECARGA) return;
+    window.location.reload();
+  });
+
   async function loadUserProfile() {
     try {
       // Try to use cached profile first
@@ -605,6 +621,11 @@
         // Cache the profile
         localStorage.setItem('sd_user_profile', JSON.stringify(me));
         updateProfileUI(me);
+        // La moneda de la clínica llega en el mismo perfil. Fijarla aquí es lo
+        // que hace que un cambio hecho desde otra sesión (o desde otro
+        // dispositivo) se note sin tener que cerrar sesión: si el código cambió,
+        // SDMoneda dispara `sd:moneda` y las pantallas de dinero se repintan.
+        if (window.SDMoneda && me.clinic_currency) window.SDMoneda.fijar(me.clinic_currency);
       }
     } catch (e) {
       console.error('Error loading user profile:', e);

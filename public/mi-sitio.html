@@ -1307,6 +1307,7 @@
   </div>
 
   <script src="/common.js"></script>
+  <script src="/monedas.js"></script>
   <script src="/icons.js"></script>
   <script src="/layout.js"></script>
 
@@ -2102,7 +2103,10 @@
                 onChange: v => { s.duration = v; markDirty(); }
               }),
               field({
-                label: 'Precio', value: s.price, maxLength: 30, placeholder: 'L. 500',
+                // El precio de la landing es texto libre ("desde L. 500", "a
+                // convenir"), así que aquí solo se ajusta la sugerencia a la
+                // moneda de la clínica; lo que se guarda es lo que se escriba.
+                label: 'Precio', value: s.price, maxLength: 30, placeholder: SDMoneda.fmtCorto(500),
                 onChange: v => { s.price = v; markDirty(); }
               })
             ));

@@ -1410,7 +1410,7 @@
 
           <div class="form-grid cols-2">
             <div class="form-group">
-              <label for="consCost">Costo de la consulta (L.)</label>
+              <label for="consCost">Costo de la consulta (<span data-moneda="prefijo">L.</span>)</label>
               <input type="text" id="consCost" placeholder="0.00" inputmode="decimal">
             </div>
             <div class="form-group">
@@ -1459,6 +1459,7 @@
 </main>
 
 <script src="/common.js"></script>
+<script src="/monedas.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
 <!-- Inventario desactivado — para reactivar, descomentar esta línea:
@@ -1739,17 +1740,13 @@
   }
 
   // ── Formato del costo (igual a consultation.html) ──
+  // El campo se formatea en la moneda de la clínica (public/monedas.js). Antes
+  // era 'L. ' fijo: un doctor mexicano tecleaba pesos y el campo se los devolvía
+  // con una L delante.
   function formatCostBlur(el) {
     if (!el.value) return;
-    const clean = el.value.replace(/[^\d.]/g, '');
-    const num = parseFloat(clean);
-    if (!isNaN(num) && num >= 0) {
-      const fixed = Math.floor(num * 100) / 100;
-      const [intPart, decPart] = fixed.toFixed(2).split('.');
-      el.value = 'L. ' + intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.' + decPart;
-    } else {
-      el.value = '';
-    }
+    const num = SDMoneda.parse(el.value);
+    el.value = num > 0 ? SDMoneda.fmt(num) : '';
   }
   document.addEventListener('DOMContentLoaded', () => {
     const cost = document.getElementById('consCost');
@@ -2073,7 +2070,7 @@
       setVal('plan_indications', consultation.treatment || consultation.notes);
 
       if (consultation.cost != null) {
-        setVal('consCost', `L. ${parseFloat(consultation.cost).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+        setVal('consCost', SDMoneda.fmt(consultation.cost));
       }
       if (consultation.payment_status) {
         setVal('consPayment', consultation.payment_status);
