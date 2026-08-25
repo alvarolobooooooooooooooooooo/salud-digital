@@ -30,6 +30,7 @@
     '/agendar-online.html': 'agendar-online',
     '/mi-sitio.html': 'mi-sitio',
     '/crecimiento.html': 'crecimiento',
+    '/migracion.html': 'migracion',
     '/plan.html': 'plan',
     '/consultation.html': '',
     '/consultation-nutrition.html': '',
@@ -125,6 +126,7 @@
         {
           label: 'AJUSTES',
           items: [
+            { href: '/migracion.html', key: 'migracion', iconName: 'archive', label: 'Migrar Expedientes' },
             { href: '/configuracion.html', key: 'configuracion', iconName: 'settings', label: 'Configuración' },
             { href: '/plan.html', key: 'plan', iconName: 'creditCard', label: 'Suscripción' }
           ]
@@ -161,6 +163,7 @@
         {
           label: 'AJUSTES',
           items: [
+            { href: '/migracion.html', key: 'migracion', iconName: 'archive', label: 'Migrar Expedientes' },
             { href: '/configuracion.html', key: 'configuracion', iconName: 'settings', label: 'Configuración' },
             { href: '/plan.html', key: 'plan', iconName: 'creditCard', label: 'Suscripción' }
           ]
@@ -188,7 +191,7 @@
     }).join('');
 
     // Mobile menu items (exclude items reserved for the drawer)
-    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'plan' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio' && item.key !== 'doctors' && item.key !== 'facturacion').map(item => {
+    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'plan' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio' && item.key !== 'doctors' && item.key !== 'facturacion' && item.key !== 'migracion').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
@@ -302,6 +305,10 @@
           -->
           <div class="sidebar-section">
             <div class="sidebar-label">AJUSTES</div>
+            <a href="/migracion.html" class="sidebar-menu-link">
+              <span id="migracionMenuIcon"></span>
+              <span>Migrar Expedientes</span>
+            </a>
             <a href="/configuracion.html" class="sidebar-menu-link">
               <span id="configMenuIcon"></span>
               <span>Configuración</span>
@@ -490,6 +497,9 @@
 
     // Configuración menu icon
     const configMenuIcon = document.querySelector('#configMenuIcon');
+    const migracionMenuIcon = document.querySelector('#migracionMenuIcon');
+    if (migracionMenuIcon && !migracionMenuIcon.innerHTML.trim()) migracionMenuIcon.innerHTML = Icons.render('archive', 16);
+
     if (configMenuIcon && !configMenuIcon.innerHTML.trim()) configMenuIcon.innerHTML = Icons.render('settings', 16);
 
     // Suscripción menu icon (drawer móvil)

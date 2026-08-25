@@ -1057,6 +1057,60 @@ const initDb = async () => {
       CREATE INDEX IF NOT EXISTS idx_landing_visits_page ON landing_visits(page, created_at DESC);
     `);
 
+    // ── Migración de expedientes ──
+    //
+    // Un lote por importación: el archivo que subió la clínica, la tanda que
+    // pegó desde Excel, o la sesión en la que estuvo digitalizando fichas de
+    // papel. Guarda de dónde salió y cuántas filas hizo qué.
+    //
+    // `migration_batch_id` en pacientes y consultas es la contrapartida: sin esa
+    // marca no habría forma de deshacer una importación mal mapeada sin borrar a
+    // mano, uno por uno, miles de expedientes recién creados — y sin deshacer,
+    // nadie se atreve a hacer la primera importación de verdad.
+    await query(`
+      CREATE TABLE IF NOT EXISTS migration_batches (
+        id SERIAL PRIMARY KEY,
+        clinic_id INTEGER NOT NULL REFERENCES clinics(id),
+        created_by INTEGER REFERENCES users(id),
+        doctor_id INTEGER REFERENCES users(id),
+        source TEXT NOT NULL DEFAULT 'archivo',
+        origin_label TEXT DEFAULT '',
+        file_name TEXT DEFAULT '',
+        total_rows INTEGER NOT NULL DEFAULT 0,
+        imported INTEGER NOT NULL DEFAULT 0,
+        updated INTEGER NOT NULL DEFAULT 0,
+        skipped INTEGER NOT NULL DEFAULT 0,
+        failed INTEGER NOT NULL DEFAULT 0,
+        consultations INTEGER NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'en_curso',
+        mapping TEXT DEFAULT '{}',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        finished_at TIMESTAMP,
+        reverted_at TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_migration_batches_clinic
+        ON migration_batches(clinic_id, created_at DESC);
+    `);
+
+    const migracionColumnas = [
+      'ALTER TABLE patients ADD COLUMN IF NOT EXISTS migration_batch_id INTEGER',
+      'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS migration_batch_id INTEGER',
+      // Índices PARCIALES: lo migrado es una minoría de las filas y solo se
+      // consulta al deshacer un lote. Un índice completo pagaría en cada alta
+      // normal de paciente por una consulta que casi nunca se hace.
+      `CREATE INDEX IF NOT EXISTS idx_patients_migration_batch
+         ON patients(migration_batch_id) WHERE migration_batch_id IS NOT NULL`,
+      `CREATE INDEX IF NOT EXISTS idx_consultations_migration_batch
+         ON consultations(migration_batch_id) WHERE migration_batch_id IS NOT NULL`,
+      // Emparejar por identidad es LO que evita duplicar expedientes al
+      // reimportar, y se hace comparando la forma desnuda del número (sin
+      // guiones ni espacios). Sin este índice de expresión, cada tramo de la
+      // importación recorre el padrón entero de la clínica.
+      `CREATE INDEX IF NOT EXISTS idx_patients_clinic_identidad_norm
+         ON patients(clinic_id, upper(regexp_replace(identity_number, '[^A-Za-z0-9]', '', 'g')))`,
+    ];
+    for (const cmd of migracionColumnas) await query(cmd);
+
     // ── Sistema legal y de aceptación ──
     //
     // Documentos versionados, aceptaciones con evidencia y bitácora legal. Vive

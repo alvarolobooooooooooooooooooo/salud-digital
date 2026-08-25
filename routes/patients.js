@@ -3,20 +3,24 @@ const router = express.Router();
 const { query } = require('../db');
 const { authenticate } = require('../middleware/auth');
 
-// ── Relación médico-paciente en las ESCRITURAS ──
+// ── Relación médico-paciente: UNA sola regla, para leer y para escribir ──
 //
-// Las tres rutas de abajo comprobaban la clínica pero no si el doctor tiene algo
-// que ver con ese paciente: bastaba cambiar el id de la URL para editar el
-// expediente, las alergias o el odontograma de cualquier paciente de la clínica.
-// El `GET` equivalente sí lo comprobaba, así que la lectura estaba cerrada y la
-// escritura abierta — que es el peor reparto posible.
+// Nació para las escrituras: comprobaban la clínica pero no si el doctor tenía
+// algo que ver con ese paciente, así que bastaba cambiar el id de la URL para
+// editar el expediente, las alergias o el odontograma de cualquiera.
 //
-// La regla es a propósito UN PUNTO MÁS PERMISIVA que la de lectura (que solo
-// admite "tiene cita conmigo"): aquí vale también "lo di de alta yo". Así queda
-// cubierto el caso del doctor que registra a un paciente nuevo y corrige sus
-// datos antes de que exista la cita, sin abrir la puerta al resto del padrón.
-// Como toda pantalla que edita carga antes al paciente, y esa carga ya exige
-// relación, esto no puede cerrar ningún flujo que hoy funcione.
+// Ahora también gobierna las lecturas, que antes admitían SOLO "tiene cita
+// conmigo". Esa asimetría dejaba un agujero funcional feo: un doctor podía dar
+// de alta a un paciente —o migrar tres mil expedientes— y después recibir un 403
+// al abrir la ficha, porque todavía no existía ninguna cita. El expediente era
+// suyo, aparecía en su lista (que se arma con `created_by`), y no podía abrirlo.
+//
+// La regla, entonces:
+//     es mío si lo di de alta yo, o si tiene (o tuvo) una cita conmigo.
+//
+// No amplía el alcance al padrón de la clínica: sigue sin verse nada de lo que
+// registró otro profesional. Solo cierra la contradicción entre la lista y la
+// ficha, y hace que leer no sea más estricto que escribir.
 //
 // Recepción y administración no pasan por aquí: su alcance es la clínica entera
 // por diseño.
@@ -128,13 +132,7 @@ router.get('/:id', authenticate, async (req, res) => {
   const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
-  if (req.user.role === 'doctor') {
-    const accessResult = await query(
-      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = $1 AND doctor_id = $2 AND clinic_id = $3',
-      [patient.id, req.user.id, req.user.clinic_id]
-    );
-    if (parseInt(accessResult.rows[0].count) === 0) return res.status(403).json({ error: 'Access denied' });
-  }
+  if (!(await doctorTieneAcceso(req, patient))) return res.status(403).json(SIN_ACCESO);
 
   const criticalResult = await query('SELECT * FROM critical_info WHERE patient_id = $1', [patient.id]);
   const critical_info = criticalResult.rows[0] || {};
@@ -176,13 +174,7 @@ router.get('/:id/photo-index', authenticate, async (req, res) => {
   const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
-  if (req.user.role === 'doctor') {
-    const accessResult = await query(
-      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = $1 AND doctor_id = $2 AND clinic_id = $3',
-      [patient.id, req.user.id, req.user.clinic_id]
-    );
-    if (parseInt(accessResult.rows[0].count) === 0) return res.status(403).json({ error: 'Access denied' });
-  }
+  if (!(await doctorTieneAcceso(req, patient))) return res.status(403).json(SIN_ACCESO);
 
   // Solo traemos odontogram_state para Ortodoncia (única especialidad con fotos base64
   // embebidas), para no transferir blobs grandes de otras especialidades solo para contar.
@@ -283,13 +275,7 @@ router.get('/:id/critical-info', authenticate, async (req, res) => {
   const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
-  if (req.user.role === 'doctor') {
-    const accessResult = await query(
-      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = $1 AND doctor_id = $2 AND clinic_id = $3',
-      [patient.id, req.user.id, req.user.clinic_id]
-    );
-    if (parseInt(accessResult.rows[0].count) === 0) return res.status(403).json({ error: 'Access denied' });
-  }
+  if (!(await doctorTieneAcceso(req, patient))) return res.status(403).json(SIN_ACCESO);
 
   const r = await query('SELECT allergies, medications, conditions FROM critical_info WHERE patient_id = $1', [patient.id]);
   const info = r.rows[0] || { allergies: '', medications: '', conditions: '' };
@@ -323,13 +309,7 @@ router.get('/:id/consultations', authenticate, async (req, res) => {
   const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
-  if (req.user.role === 'doctor') {
-    const accessResult = await query(
-      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = $1 AND doctor_id = $2 AND clinic_id = $3',
-      [patient.id, req.user.id, req.user.clinic_id]
-    );
-    if (parseInt(accessResult.rows[0].count) === 0) return res.status(403).json({ error: 'Access denied' });
-  }
+  if (!(await doctorTieneAcceso(req, patient))) return res.status(403).json(SIN_ACCESO);
 
   // El tope importa: estas filas son `c.*`, e incluyen `odontogram_state`, que en
   // Ortodoncia lleva las fotos clínicas embebidas en base64 (hasta 25 MB por
@@ -375,20 +355,14 @@ router.get('/:id/consultations', authenticate, async (req, res) => {
 // misma especialidad, de modo que la anamnesis/antecedentes se hereden aunque haya
 // atendido otro profesional de la misma especialidad. Expone SOLO los campos necesarios
 // para el prefill (anamnesis/antecedentes), nunca diagnóstico/tratamiento/notas/costos.
-// El acceso del doctor sigue requiriendo una cita con el paciente.
+// El acceso del doctor sigue exigiendo relación con el paciente (doctorTieneAcceso).
 router.get('/:id/prefill-history', authenticate, async (req, res) => {
   const patientResult = await query('SELECT id FROM patients WHERE id = $1 AND clinic_id = $2',
     [req.params.id, req.user.clinic_id]);
   const patient = patientResult.rows[0];
   if (!patient) return res.status(404).json({ error: 'Patient not found' });
 
-  if (req.user.role === 'doctor') {
-    const accessResult = await query(
-      'SELECT COUNT(*) as count FROM appointments WHERE patient_id = $1 AND doctor_id = $2 AND clinic_id = $3',
-      [patient.id, req.user.id, req.user.clinic_id]
-    );
-    if (parseInt(accessResult.rows[0].count) === 0) return res.status(403).json({ error: 'Access denied' });
-  }
+  if (!(await doctorTieneAcceso(req, patient))) return res.status(403).json(SIN_ACCESO);
 
   const specialty = req.query.specialty || '';
   // Solo se pueden exponer los contenedores de anamnesis/antecedentes, y el cliente

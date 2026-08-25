@@ -346,6 +346,17 @@ app.get('/manifest.webmanifest', (req, res) => {
   res.send(MANIFEST_VERSIONED);
 });
 
+// El catálogo de campos de la migración lo comparten la API y la página. Se
+// sirve el MISMO archivo que usa el servidor (lib/migracion/campos.js) en vez de
+// mantener una copia en public/: si hubiera dos, el día que se añada un campo la
+// pantalla y la validación dejarían de estar de acuerdo justo en la operación
+// que crea expedientes en bloque.
+app.get('/migracion-campos.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(path.join(__dirname, 'lib', 'migracion', 'campos.js'));
+});
+
 // Inventario desactivado: la página sigue en public/inventario.html pero ya no se
 // sirve. Para reactivar, borrar este redirect.
 app.get('/inventario.html', (req, res) => res.redirect(302, '/dashboard.html'));
@@ -391,6 +402,11 @@ app.use((req, res, next) => {
 // (body-parser marca req._body y los parsers de abajo se saltan esta ruta).
 app.use('/api/billing/webhook', express.raw({ type: '*/*', limit: '1mb' }));
 app.use('/api/consultations', express.json({ limit: '25mb' }));
+// La migración manda tramos de hasta 400 filas de expediente (nombre, historia,
+// notas). Con el límite global de 256kb un tramo de 200 filas con evolución
+// escrita se rechazaba entero; 4 MB deja sitio de sobra sin abrir la puerta a
+// cuerpos arbitrariamente grandes.
+app.use('/api/migracion', express.json({ limit: '4mb' }));
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
 
@@ -519,6 +535,12 @@ app.use('/api/clinics/geo', limites.geocodificacion);
 // borrar después. El tope va solo sobre las escrituras.
 app.use('/api/legal', limites.soloEscrituras(limites.escrituraClinica));
 
+// Migración de expedientes: cada POST escribe un tramo completo, así que el tope
+// se cuenta en tramos, no en filas. Con 60/min y tramos de 200 caben 12.000
+// expedientes por minuto — muy por encima de cualquier migración real — y sigue
+// cortando el bucle de un script descontrolado.
+app.use('/api/migracion', limites.soloEscrituras(limites.escrituraClinica));
+
 app.use('/api/billing/webhook', limites.webhookPagos);
 
 // Static files: hint browsers to cache JS/CSS for a day, HTML always revalidated
@@ -644,6 +666,7 @@ app.use('/api/growth', capturar(require('./routes/growth')));
 app.use('/api/integrations', capturar(require('./routes/integrations')));
 app.use('/api/media', capturar(require('./routes/media')));
 app.use('/api/messaging', capturar(require('./routes/messaging')));
+app.use('/api/migracion', capturar(require('./routes/migracion')));
 
 app.get('*', (req, res) => {
   serveHtmlWithVersion(path.join(PUBLIC_DIR, 'index.html'), req, res);
