@@ -13,6 +13,16 @@ function newToken() {
 
 // ───────────────────────── Configuración WhatsApp ─────────────────────────
 
+// Quién puede tocar los textos y el número de WhatsApp de la clínica. No es
+// solo el clinic_admin: el alta por cuenta propia crea DOCTORES dueños de su
+// consultorio (ver routes/auth.js), y en una cuenta así no existe ningún
+// clinic_admin — dejándolo cerrado, el doctor que se registró solo veía la
+// pantalla de Confirmaciones pero no podía cambiar su propio mensaje. Mismo
+// criterio que MONEDA_ROLES/BOOKING_COLOR_ROLES en routes/clinics.js y
+// OWNER_ROLES en routes/billing.js. La recepcionista sigue fuera: envía los
+// mensajes, no decide qué dicen.
+const CONFIG_ROLES = ['clinic_admin', 'doctor'];
+
 // Texto por defecto de la tarjeta: el mismo que la página mostraba fijo antes de
 // que fuera editable, para que una clínica que nunca lo toque no note el cambio.
 const CARD_MESSAGE_DEFAULT = 'Hola {{patientName}}, ¿podrás asistir a esta cita?';
@@ -33,10 +43,10 @@ router.get('/whatsapp-config', authenticate, async (req, res) => {
   res.json(row);
 });
 
-// PUT /api/confirmations/card-message  (solo clinic_admin)
+// PUT /api/confirmations/card-message  (clinic_admin o doctor)
 // Mensaje que el paciente lee en la tarjeta de confirmación.
 router.put('/card-message', authenticate, async (req, res) => {
-  if (req.user.role !== 'clinic_admin') {
+  if (!CONFIG_ROLES.includes(req.user.role)) {
     return res.status(403).json({ error: 'No autorizado' });
   }
   // El texto acaba dentro de una página pública. La página ya escapa antes de
@@ -56,7 +66,7 @@ router.put('/card-message', authenticate, async (req, res) => {
   res.json({ success: true, confirmation_card_message: raw });
 });
 
-// PUT /api/confirmations/whatsapp-config  (solo clinic_admin)
+// PUT /api/confirmations/whatsapp-config  (clinic_admin o doctor)
 // Antes solo guardaba la plantilla: el interruptor y el número vivían en
 // Recordatorios. Al desactivar esa pantalla se quedaban sin sitio donde
 // editarse, así que ahora los tres campos se guardan desde aquí. Los campos
@@ -64,7 +74,7 @@ router.put('/card-message', authenticate, async (req, res) => {
 // de Confirmaciones los manda siempre, pero así ninguna llamada vieja apaga
 // WhatsApp sin querer).
 router.put('/whatsapp-config', authenticate, async (req, res) => {
-  if (req.user.role !== 'clinic_admin') {
+  if (!CONFIG_ROLES.includes(req.user.role)) {
     return res.status(403).json({ error: 'No autorizado' });
   }
   const body = req.body || {};
