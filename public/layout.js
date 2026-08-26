@@ -1559,19 +1559,72 @@
     }
   }
 
+  // El estado del plan se cachea 60s para no preguntar en cada pantalla. Eso
+  // está bien mientras nada cambie, y muy mal justo después de cambiar de plan:
+  // el doctor acaba de pagar Avanzado y el menú le sigue enseñando el candado
+  // hasta un minuto. La pantalla de suscripción llama a esto al terminar.
+  window.sdOlvidarPlan = function () {
+    try {
+      sessionStorage.removeItem(CACHE_KEY);
+      sessionStorage.removeItem(CACHE_KEY + ':features');
+    } catch (_) {}
+  };
+
   if (path === '/plan.html' || path === '/login.html' || path === '/registro.html' ||
       path === '/landing.html' || path === '/accept-invitation.html' ||
       path === '/' || path === '/index.html') return;
+  // ── Candado en las entradas de menú que el plan no incluye ──
+  //
+  // La entrada NO se esconde: un menú que cambia de forma según lo que pagas
+  // deja al doctor sin saber que la función existe, y esta pantalla es
+  // precisamente lo que vende los planes de arriba. Se enseña con candado y al
+  // entrar se explica.
+  var FUNCION_DE_MENU = { migracion: 'migracion' };
+
+  function marcarCandados(features) {
+    var f = features || {};
+    if (f['*']) return;
+    Object.keys(FUNCION_DE_MENU).forEach(function (clave) {
+      if (f[FUNCION_DE_MENU[clave]]) return;
+      var enlaces = document.querySelectorAll('.sb-item[href="/' + clave + '.html"], .sidebar-menu-link[href="/' + clave + '.html"]');
+      for (var i = 0; i < enlaces.length; i++) {
+        if (enlaces[i].querySelector('.sb-lock')) continue;
+        var lock = document.createElement('span');
+        lock.className = 'sb-lock';
+        lock.setAttribute('aria-hidden', 'true');
+        lock.textContent = '🔒';
+        lock.title = 'Incluido en los planes Avanzado y Premium';
+        enlaces[i].appendChild(lock);
+        enlaces[i].classList.add('sb-item--locked');
+      }
+    });
+  }
+
+  function alPintar(fn) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+
   try {
     if (GATED_ROLES.indexOf(localStorage.getItem('sd_role')) === -1) return;
     var okUntil = parseInt(sessionStorage.getItem(CACHE_KEY) || '0', 10);
-    if (okUntil && Date.now() < okUntil) return; // verificado hace poco
+    if (okUntil && Date.now() < okUntil) {
+      // Verificado hace poco: no se vuelve a preguntar, pero los candados hay
+      // que repintarlos porque el menú se acaba de construir en esta página.
+      var guardadas = null;
+      try { guardadas = JSON.parse(sessionStorage.getItem(CACHE_KEY + ':features') || 'null'); } catch (_) {}
+      if (guardadas) alPintar(function () { marcarCandados(guardadas); });
+      return;
+    }
   } catch (_) { return; }
 
   fetch('/api/billing/status', { credentials: 'same-origin' })
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (data) {
       if (!data || !data.access) return;
+      var features = data.features || {};
+      try { sessionStorage.setItem(CACHE_KEY + ':features', JSON.stringify(features)); } catch (_) {}
+      alPintar(function () { marcarCandados(features); });
       if (data.access.active) {
         try { sessionStorage.setItem(CACHE_KEY, String(Date.now() + 60000)); } catch (_) {}
         return;

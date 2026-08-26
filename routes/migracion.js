@@ -36,12 +36,42 @@ const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
 const campos = require('../lib/migracion/campos');
 
+const suscripcion = require('../lib/subscription');
+const mailer = require('../utils/mailer');
+
 const AuditService = require('../lib/audit/service');
 const auditoria = new AuditService();
 
 // Solo el doctor y quien administra la clínica migran expedientes. Recepción no:
 // da de alta pacientes de uno en uno desde su pantalla, que es lo suyo.
 const soloClinica = requireRole('doctor', 'clinic_admin');
+
+// ── La migración es de los planes Avanzado y Premium ──
+//
+// Va como middleware propio y no dentro de cada handler porque la regla es de
+// toda la sección: si mañana se añade un endpoint aquí, nace cerrado.
+//
+// El código de error es distinto del 402 de "suscripción vencida" a propósito.
+// Son dos conversaciones que no se parecen: una dice "págame lo que ya
+// acordamos" y la otra "esto cuesta más". Mezclarlas mandaba al doctor a una
+// pantalla que le hablaba de una deuda que no tiene.
+async function exigeMigracion(req, res, next) {
+  if (await suscripcion.clinicHasFeature(req.user.clinic_id, 'migracion')) return next();
+  res.status(402).json({
+    error: 'Migrar Expedientes está en los planes Avanzado y Premium.',
+    code: 'plan_upgrade_required',
+    feature: 'migracion',
+  });
+}
+
+async function exigeAsistida(req, res, next) {
+  if (await suscripcion.clinicHasFeature(req.user.clinic_id, 'migracion_asistida')) return next();
+  res.status(402).json({
+    error: 'La migración asistida es del plan Premium.',
+    code: 'plan_upgrade_required',
+    feature: 'migracion_asistida',
+  });
+}
 
 // Tope por tramo. La página manda 200; este número existe para que un cliente
 // hecho a mano no pueda pedir un tramo de 50.000 filas y dejar una conexión de
@@ -93,7 +123,7 @@ router.get('/campos', authenticate, soloClinica, async (req, res) => {
 // paciente sin `created_by` solo aparece en la lista del doctor cuando ya tiene
 // cita con él, así que una migración sin asignar deja al doctor mirando una
 // pantalla vacía y creyendo que no se importó nada.
-router.get('/doctores', authenticate, soloClinica, async (req, res) => {
+router.get('/doctores', authenticate, soloClinica, exigeMigracion, async (req, res) => {
   if (req.user.role === 'doctor') {
     const r = await query(
       'SELECT id, name, specialty FROM users WHERE id = $1 AND clinic_id = $2',
@@ -126,7 +156,7 @@ async function resolverDoctor(req, pedido) {
 
 // ── Lotes ───────────────────────────────────────────────────────────────────
 
-router.post('/lotes', authenticate, soloClinica, async (req, res) => {
+router.post('/lotes', authenticate, soloClinica, exigeMigracion, async (req, res) => {
   const source = ORIGENES.has(req.body.source) ? req.body.source : 'archivo';
   const total = Math.min(parseInt(req.body.total_rows, 10) || 0, MAX_FILAS_LOTE);
   if (total <= 0) return res.status(400).json({ error: 'El lote no trae filas' });
@@ -165,7 +195,7 @@ async function cargarLote(req, id) {
 // Devuelve, fila a fila, qué pasaría: si es alta, si choca con un paciente que
 // ya existe, y qué avisos arrastra. La página lo usa para pintar la revisión
 // antes de que nadie pulse Importar.
-router.post('/analizar', authenticate, soloClinica, async (req, res) => {
+router.post('/analizar', authenticate, soloClinica, exigeMigracion, async (req, res) => {
   const filas = Array.isArray(req.body.filas) ? req.body.filas : [];
   if (filas.length === 0) return res.json({ resultados: [] });
   if (filas.length > MAX_FILAS_TRAMO) {
@@ -193,7 +223,7 @@ router.post('/analizar', authenticate, soloClinica, async (req, res) => {
 });
 
 // ── Escritura de un tramo ───────────────────────────────────────────────────
-router.post('/lotes/:id/filas', authenticate, soloClinica, async (req, res) => {
+router.post('/lotes/:id/filas', authenticate, soloClinica, exigeMigracion, async (req, res) => {
   const lote = await cargarLote(req, req.params.id);
   if (!lote) return res.status(404).json({ error: 'Lote no encontrado' });
   if (lote.status !== 'en_curso') return res.status(409).json({ error: 'Este lote ya está cerrado' });
@@ -420,7 +450,7 @@ router.post('/lotes/:id/filas', authenticate, soloClinica, async (req, res) => {
 // `MAX_CONSULTAS_FICHA` existe por la misma razón que el tope de los tramos: la
 // página nunca manda tantas, y sin él un cliente hecho a mano podría pedir mil
 // inserciones en una sola petición.
-router.post('/lotes/:id/ficha', authenticate, soloClinica, async (req, res) => {
+router.post('/lotes/:id/ficha', authenticate, soloClinica, exigeMigracion, async (req, res) => {
   const lote = await cargarLote(req, req.params.id);
   if (!lote) return res.status(404).json({ error: 'Lote no encontrado' });
   if (lote.status !== 'en_curso') return res.status(409).json({ error: 'Este lote ya está cerrado' });
@@ -525,7 +555,7 @@ router.post('/lotes/:id/ficha', authenticate, soloClinica, async (req, res) => {
 });
 
 // ── Cierre del lote ─────────────────────────────────────────────────────────
-router.post('/lotes/:id/cerrar', authenticate, soloClinica, async (req, res) => {
+router.post('/lotes/:id/cerrar', authenticate, soloClinica, exigeMigracion, async (req, res) => {
   const lote = await cargarLote(req, req.params.id);
   if (!lote) return res.status(404).json({ error: 'Lote no encontrado' });
 
@@ -550,7 +580,7 @@ router.post('/lotes/:id/cerrar', authenticate, soloClinica, async (req, res) => 
 });
 
 // ── Historial ───────────────────────────────────────────────────────────────
-router.get('/lotes', authenticate, soloClinica, async (req, res) => {
+router.get('/lotes', authenticate, soloClinica, exigeMigracion, async (req, res) => {
   const r = await query(
     `SELECT b.*, u.name AS autor
        FROM migration_batches b
@@ -570,7 +600,7 @@ router.get('/lotes', authenticate, soloClinica, async (req, res) => {
 // entonces tiene cita, consulta propia o consentimiento firmado ya no es "lo que
 // escribió el lote": es un paciente de la clínica, y se queda. Se informa de
 // cuántos se conservaron por eso — si no, parece que el deshacer falló.
-router.post('/lotes/:id/revertir', authenticate, soloClinica, async (req, res) => {
+router.post('/lotes/:id/revertir', authenticate, soloClinica, exigeMigracion, async (req, res) => {
   const lote = await cargarLote(req, req.params.id);
   if (!lote) return res.status(404).json({ error: 'Lote no encontrado' });
   if (lote.status === 'revertido') return res.status(409).json({ error: 'Este lote ya se revirtió' });
@@ -626,6 +656,86 @@ router.post('/lotes/:id/revertir', authenticate, soloClinica, async (req, res) =
     consultas_borradas: cons.rowCount,
     pacientes_conservados: quedan.rows[0].n,
   });
+});
+
+// ── Migración asistida (plan Premium) ───────────────────────────────────────
+//
+// Aquí no se migra nada: se abre una conversación. La clínica dice qué tiene y
+// el equipo se encarga. La petición se GUARDA antes de intentar el correo, y en
+// ese orden a propósito: si SendGrid está caído, la petición existe igual y la
+// clínica ve que se registró. Al revés —correo primero— un fallo del proveedor
+// dejaría a alguien que pagó Premium creyendo que pidió algo que nadie recibió.
+
+router.get('/asistida', authenticate, soloClinica, exigeAsistida, async (req, res) => {
+  const r = await query(
+    `SELECT id, sistema_origen, volumen, contacto, notas, status, created_at, attended_at
+       FROM migration_requests WHERE clinic_id = $1
+      ORDER BY created_at DESC LIMIT 10`,
+    [req.user.clinic_id],
+  );
+  res.json({ peticiones: r.rows });
+});
+
+router.post('/asistida', authenticate, soloClinica, exigeAsistida, async (req, res) => {
+  // Una petición pendiente a la vez. Sin esto, el botón pulsado tres veces
+  // —porque no pasa nada visible— llena la bandeja del equipo de duplicados.
+  const abierta = await query(
+    "SELECT id FROM migration_requests WHERE clinic_id = $1 AND status = 'pendiente' LIMIT 1",
+    [req.user.clinic_id],
+  );
+  if (abierta.rowCount) {
+    return res.status(409).json({
+      error: 'Ya tienes una petición en curso. Te escribiremos al contacto que dejaste.',
+      code: 'peticion_abierta',
+      id: abierta.rows[0].id,
+    });
+  }
+
+  const datos = {
+    sistema: limpiarTexto(req.body.sistema_origen, 80),
+    volumen: limpiarTexto(req.body.volumen, 40),
+    contacto: limpiarTexto(req.body.contacto, 120),
+    notas: limpiarTexto(req.body.notas, 1000),
+  };
+  if (!datos.contacto) {
+    return res.status(400).json({ error: 'Déjanos un teléfono o correo para responderte.' });
+  }
+
+  const ins = await query(
+    `INSERT INTO migration_requests (clinic_id, requested_by, sistema_origen, volumen, contacto, notas)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at, status`,
+    [req.user.clinic_id, req.user.id, datos.sistema, datos.volumen, datos.contacto, datos.notas],
+  );
+
+  const ctx = await query(
+    `SELECT c.name AS clinica, c.phone AS tel_clinica, u.name AS quien, u.email
+       FROM clinics c LEFT JOIN users u ON u.id = $2
+      WHERE c.id = $1`,
+    [req.user.clinic_id, req.user.id],
+  );
+  const info = ctx.rows[0] || {};
+
+  const avisado = await mailer.sendMigrationRequest({
+    peticionId: ins.rows[0].id,
+    clinica: info.clinica,
+    quien: info.quien,
+    email: info.email,
+    contacto: datos.contacto,
+    sistema: datos.sistema,
+    volumen: datos.volumen,
+    notas: datos.notas,
+  });
+
+  auditoria.logAction({
+    user_id: req.user.id,
+    clinic_id: req.user.clinic_id,
+    action: 'migracion.asistida.solicitada',
+    status: 'success',
+    tool_input: JSON.stringify(datos),
+    tool_output: JSON.stringify({ id: ins.rows[0].id, correo_enviado: avisado }),
+  });
+
+  res.json({ peticion: ins.rows[0], correo_enviado: avisado });
 });
 
 // ── Piezas internas ─────────────────────────────────────────────────────────
