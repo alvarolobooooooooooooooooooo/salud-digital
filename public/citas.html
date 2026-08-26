@@ -1591,11 +1591,9 @@
         <button class="glass-icon-btn mobile-hide" data-tip="Buscar (⌘K)" onclick="document.getElementById('searchInput').focus()">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         </button>
-        <!-- Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar este bloque:
         <button class="glass-icon-btn tablet-hide mobile-hide" data-tip="Recordatorios" onclick="window.location.href='/recordatorios.html'">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 1 1 12 0c0 4.5 1.5 5.5 2 7H4c.5-1.5 2-2.5 2-7z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
         </button>
-        -->
         <button class="glass-icon-btn tablet-hide mobile-hide" data-tip="Actualizar" onclick="reloadAppointments()">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 4v4h-4M21 12a9 9 0 0 1-15 6.7L3 16M3 20v-4h4"/></svg>
         </button>
@@ -2100,13 +2098,12 @@ function viewConsultationPathForSpecialty(specialty, id) {
 }
 
 /* ─────────── Boot ─────────── */
-// Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar el cuerpo (la función se deja para no tocar sus llamadas):
 async function refreshReminders() {
-  // try {
-  //   const reminders = await api('/api/reminders');
-  //   reminderMap = {};
-  //   reminders.forEach(r => { reminderMap[r.appointment_id] = r; });
-  // } catch (e) { console.error('Error loading reminders:', e); }
+  try {
+    const reminders = await api('/api/reminders');
+    reminderMap = {};
+    reminders.forEach(r => { reminderMap[r.appointment_id] = r; });
+  } catch (e) { console.error('Error loading reminders:', e); }
 }
 
 (async () => {
@@ -2118,8 +2115,7 @@ async function refreshReminders() {
       api('/api/patients'),
       api('/api/users/doctors'),
       api('/api/auth/me'),
-      // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar: api('/api/reminders/whatsapp-config').catch(() => null)
-      Promise.resolve(null)
+      api('/api/reminders/whatsapp-config').catch(() => null)
     ]);
     currentUser = user;
     allAppts   = appts;
@@ -3338,25 +3334,23 @@ function openDrawer(id) {
   const end = new Date(start.getTime() + dur * 60000);
 
   // WhatsApp block
-  // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar este bloque (el envío por WhatsApp de cada cita vive ahora en
-  // Confirmaciones, que además registra si el paciente respondió):
+  const reminder = reminderMap[a.id];
+  const waState = WhatsApp.getReminderState({
+    whatsappEnabled: waConfig.whatsapp_enabled,
+    patientWhatsapp: a.patient_phone || a.phone,
+    reminderStatus: reminder ? reminder.reminder_status : null,
+  });
   let waBlock = '';
-  // const reminder = reminderMap[a.id];
-  // const waState = WhatsApp.getReminderState({
-  //   whatsappEnabled: waConfig.whatsapp_enabled,
-  //   patientWhatsapp: a.patient_phone || a.phone,
-  //   reminderStatus: reminder ? reminder.reminder_status : null,
-  // });
-  // if (waState === 'manual_sent') {
-  //   const sentAt = reminder && reminder.sent_at ? new Date(reminder.sent_at).toLocaleString('es-ES', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
-  //   waBlock = `<div class="wa-block sent">✓ WhatsApp enviado${sentAt ? ' · ' + esc(sentAt) : ''}${reminder.sent_by_name ? ' por ' + esc(reminder.sent_by_name) : ''}<button onclick="sendWhatsAppFromPopup(${a.id})">Reenviar</button></div>`;
-  // } else if (waState === 'pending') {
-  //   waBlock = `<div style="margin-top:12px"><button class="btn-sm btn-success" style="width:100%;height:36px;font-size:13px" onclick="sendWhatsAppFromPopup(${a.id})">${SVG.whatsapp} Enviar recordatorio por WhatsApp</button></div>`;
-  // } else if (waState === 'no_whatsapp_number') {
-  //   waBlock = `<div class="wa-block warn">Sin número WhatsApp · <a href="/patient.html?id=${a.patient_id}">Agregar</a></div>`;
-  // } else if (waState === 'whatsapp_disabled') {
-  //   waBlock = `<div class="wa-block disabled">WhatsApp desactivado · <a href="/recordatorios.html">Configurar</a></div>`;
-  // }
+  if (waState === 'manual_sent') {
+    const sentAt = reminder && reminder.sent_at ? new Date(reminder.sent_at).toLocaleString('es-ES', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+    waBlock = `<div class="wa-block sent">✓ WhatsApp enviado${sentAt ? ' · ' + esc(sentAt) : ''}${reminder.sent_by_name ? ' por ' + esc(reminder.sent_by_name) : ''}<button onclick="sendWhatsAppFromPopup(${a.id})">Reenviar</button></div>`;
+  } else if (waState === 'pending') {
+    waBlock = `<div style="margin-top:12px"><button class="btn-sm btn-success" style="width:100%;height:36px;font-size:13px" onclick="sendWhatsAppFromPopup(${a.id})">${SVG.whatsapp} Enviar recordatorio por WhatsApp</button></div>`;
+  } else if (waState === 'no_whatsapp_number') {
+    waBlock = `<div class="wa-block warn">Sin número WhatsApp · <a href="/patient.html?id=${a.patient_id}">Agregar</a></div>`;
+  } else if (waState === 'whatsapp_disabled') {
+    waBlock = `<div class="wa-block disabled">WhatsApp desactivado · <a href="/recordatorios.html">Configurar</a></div>`;
+  }
 
   // Footer actions by status
   let footer = '';

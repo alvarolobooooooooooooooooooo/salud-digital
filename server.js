@@ -361,11 +361,6 @@ app.get('/migracion-campos.js', (req, res) => {
 // sirve. Para reactivar, borrar este redirect.
 app.get('/inventario.html', (req, res) => res.redirect(302, '/dashboard.html'));
 
-// Recordatorios desactivado: hacía lo mismo que Confirmaciones, que está mejor
-// resuelta. La página sigue en public/recordatorios.html. Para reactivar, borrar
-// este redirect (y ver el 404 de /api/reminders más abajo).
-app.get('/recordatorios.html', (req, res) => res.redirect(302, '/confirmaciones.html'));
-
 // Intercept *.html requests before express.static so we can inject ?v=… into asset URLs
 app.use((req, res, next) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') return next();
@@ -641,11 +636,7 @@ app.use('/api/patients', capturar(require('./routes/patients')));
 app.use('/api/consultations', capturar(require('./routes/consultations')));
 app.use('/api/appointments', capturar(require('./routes/appointments')));
 app.use('/api/consents', capturar(require('./routes/consents')));
-// Recordatorios desactivado — para reactivar, descomentar esta línea y borrar el
-// 404 de abajo (el historial de appointment_reminders sigue intacto en la base):
-// app.use('/api/reminders', capturar(require('./routes/reminders')));
-app.use('/api/reminders', (req, res) =>
-  res.status(404).json({ error: 'Los recordatorios están desactivados. Usa Confirmaciones.' }));
+app.use('/api/reminders', capturar(require('./routes/reminders')));
 app.use('/api/confirmations', capturar(require('./routes/confirmations')));
 app.use('/api/assistant', capturar(require('./routes/assistant')));
 app.use('/api/assistant', capturar(require('./routes/assistant-intent')));
