@@ -85,6 +85,12 @@ function ejecutar(text, params) {
   if (/^SELECT id, name, specialty FROM users/i.test(sql)) {
     return { rows: [{ id: 7, name: 'Dra. Ejemplo', specialty: 'Podología' }], rowCount: 1 };
   }
+  // Consultas de las rutas de LECTURA, que ahora pasan sin plan.
+  if (/^SELECT b\.\*, u\.name AS autor/i.test(sql)) return { rows: [], rowCount: 0 };
+  if (/^SELECT COUNT\(\*\)::int AS n FROM patients/i.test(sql)) return { rows: [{ n: 0 }], rowCount: 1 };
+  if (/^SELECT id, name, identity_number FROM patients/i.test(sql)) return { rows: [], rowCount: 0 };
+  if (/^SELECT id, name, identity_number, phone FROM patients/i.test(sql)) return { rows: [], rowCount: 0 };
+
   if (/^INSERT INTO audit_logs/i.test(sql)) return { rows: [], rowCount: 1 };
   if (/^INSERT INTO migration_batches/i.test(sql)) return { rows: [{ id: 1, created_at: new Date() }], rowCount: 1 };
 
@@ -141,19 +147,33 @@ function conPlan(nombre) {
   suscripcion.invalidateAll();
 }
 
-test('el plan Básico no llega a la migración', async () => {
+test('el plan Básico puede MIRAR la migración, pero no escribir', async () => {
+  // Lo que se cobra es guardar, no asomarse. El doctor tiene que poder recorrer
+  // la herramienta con su propio archivo y ver qué entraría: eso es lo que le
+  // explica qué compra. Un muro solo le enseña un precio.
   conPlan('basico');
   const app = await levantar();
   try {
-    for (const ruta of ['/api/migracion/doctores', '/api/migracion/lotes']) {
-      const r = await app.pedir('GET', ruta);
+    assert.strictEqual((await app.pedir('GET', '/api/migracion/doctores')).status, 200);
+    assert.strictEqual((await app.pedir('GET', '/api/migracion/lotes')).status, 200);
+
+    // `/analizar` es POST y no escribe una fila: compara con lo que ya existe.
+    const previo = await app.pedir('POST', '/api/migracion/analizar', {
+      filas: [{ __i: 0, name: 'Ana', identity_number: '1' }],
+    });
+    assert.strictEqual(previo.status, 200, 'la revisión previa tiene que funcionar sin plan');
+
+    // Lo que sí se cierra: cualquier cosa que guarde.
+    for (const [metodo, ruta, cuerpo] of [
+      ['POST', '/api/migracion/lotes', { total_rows: 5 }],
+      ['POST', '/api/migracion/lotes/1/filas', { filas: [] }],
+      ['POST', '/api/migracion/lotes/1/ficha', { fila: { name: 'Ana' } }],
+    ]) {
+      const r = await app.pedir(metodo, ruta, cuerpo);
       assert.strictEqual(r.status, 402, `${ruta} debería estar cerrado`);
       assert.strictEqual(r.body.code, 'plan_upgrade_required');
       assert.strictEqual(r.body.feature, 'migracion');
     }
-    // Y tampoco escribiendo.
-    const w = await app.pedir('POST', '/api/migracion/lotes', { total_rows: 5 });
-    assert.strictEqual(w.status, 402);
   } finally { await app.cerrar(); }
 });
 
@@ -164,7 +184,7 @@ test('el error de plan NO se confunde con el de suscripción vencida', async () 
   conPlan('basico');
   const app = await levantar();
   try {
-    const r = await app.pedir('GET', '/api/migracion/doctores');
+    const r = await app.pedir('POST', '/api/migracion/lotes', { total_rows: 1 });
     assert.notStrictEqual(r.body.code, 'subscription_required');
     assert.strictEqual(r.body.code, 'plan_upgrade_required');
   } finally { await app.cerrar(); }
@@ -184,7 +204,7 @@ test('un plan con migración pero sin asistida no puede pedir el trabajo del equ
   conPlan('soloMigracion');
   const app = await levantar();
   try {
-    assert.strictEqual((await app.pedir('GET', '/api/migracion/doctores')).status, 200);
+    assert.strictEqual((await app.pedir('POST', '/api/migracion/lotes', { total_rows: 1 })).status, 200);
 
     const r = await app.pedir('POST', '/api/migracion/asistida', { contacto: '9988-7766' });
     assert.strictEqual(r.status, 402);
@@ -237,7 +257,7 @@ test('sin suscripción no hay funciones de plan que valgan', async () => {
   conPlan(null);
   const app = await levantar();
   try {
-    assert.strictEqual((await app.pedir('GET', '/api/migracion/doctores')).status, 402);
+    assert.strictEqual((await app.pedir('POST', '/api/migracion/lotes', { total_rows: 1 })).status, 402);
   } finally { await app.cerrar(); }
 });
 
@@ -247,7 +267,7 @@ test('una clínica exenta y el cobro apagado lo abren todo', async () => {
   suscripcion.invalidateAll();
   const app = await levantar();
   try {
-    assert.strictEqual((await app.pedir('GET', '/api/migracion/doctores')).status, 200,
+    assert.strictEqual((await app.pedir('POST', '/api/migracion/lotes', { total_rows: 1 })).status, 200,
       'una clínica exenta lo tiene todo pagado por definición');
   } finally {
     delete process.env.BILLING_EXEMPT_CLINIC_IDS;
@@ -258,7 +278,7 @@ test('una clínica exenta y el cobro apagado lo abren todo', async () => {
   suscripcion.invalidateAll();
   const app2 = await levantar();
   try {
-    assert.strictEqual((await app2.pedir('GET', '/api/migracion/doctores')).status, 200,
+    assert.strictEqual((await app2.pedir('POST', '/api/migracion/lotes', { total_rows: 1 })).status, 200,
       'con el cobro apagado no hay planes que respetar');
   } finally {
     process.env.BILLING_ENFORCEMENT = 'on';

@@ -24,8 +24,7 @@
     '/facturacion.html': 'facturacion',
     '/doctors.html': 'doctors',
     '/consentimientos.html': 'consentimientos',
-    // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar esta línea:
-    // '/recordatorios.html': 'recordatorios',
+    '/recordatorios.html': 'recordatorios',
     '/confirmaciones.html': 'confirmaciones',
     '/agendar-online.html': 'agendar-online',
     '/mi-sitio.html': 'mi-sitio',
@@ -108,8 +107,7 @@
           items: [
             { href: '/doctors.html', key: 'doctors', iconName: 'staff', label: 'Personal' },
             { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
-            // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar esta línea:
-            // { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
+            { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
             { href: '/confirmaciones.html', key: 'confirmaciones', iconName: 'check', label: 'Confirmaciones' },
             { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' },
             { href: '/mi-sitio.html', key: 'mi-sitio', iconName: 'globe', label: 'Mi Sitio Web' }
@@ -154,8 +152,7 @@
           label: 'CLÍNICA',
           items: [
             { href: '/consentimientos.html', key: 'consentimientos', iconName: 'fileText', label: 'Consentimientos' },
-            // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar esta línea:
-            // { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
+            { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
             { href: '/confirmaciones.html', key: 'confirmaciones', iconName: 'check', label: 'Confirmaciones' },
             { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' }
           ]
@@ -273,12 +270,10 @@
               <span id="consentsIcon"></span>
               <span>Consentimientos</span>
             </a>
-            <!-- Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar este bloque:
             <a href="/recordatorios.html" class="sidebar-menu-link">
               <span id="remindersIcon"></span>
               <span>Recordatorios</span>
             </a>
-            -->
             <a href="/confirmaciones.html" class="sidebar-menu-link">
               <span id="confirmsIcon"></span>
               <span>Confirmaciones</span>
@@ -476,9 +471,8 @@
     if (consentsIcon && !consentsIcon.innerHTML.trim()) consentsIcon.innerHTML = Icons.render('fileText', 16);
 
     // Reminders menu icon
-    // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar estas dos líneas:
-    // const remindersIcon = document.querySelector('#remindersIcon');
-    // if (remindersIcon && !remindersIcon.innerHTML.trim()) remindersIcon.innerHTML = Icons.render('bell', 16);
+    const remindersIcon = document.querySelector('#remindersIcon');
+    if (remindersIcon && !remindersIcon.innerHTML.trim()) remindersIcon.innerHTML = Icons.render('bell', 16);
 
     // Confirmations menu icon
     const confirmsIcon = document.querySelector('#confirmsIcon');
@@ -1382,22 +1376,37 @@
 
   // Aviso de escritura bloqueada. Se define ya mismo (no espera al fetch de
   // estado) porque el usuario puede pulsar "Guardar" antes de que resuelva.
+  // ── El motivo del bloqueo ──
+  // Por defecto es "no hay suscripción". Una pantalla puede cambiarlo cuando el
+  // bloqueo sea otro —una función que su plan no incluye— para que el aviso
+  // hable de eso y no de una deuda que la clínica no tiene.
+  var MOTIVO_SUSCRIPCION = {
+    titulo: 'Activa tu suscripción para guardar',
+    texto: 'Tu cuenta está en modo solo lectura: puedes recorrer la plataforma, pero para registrar pacientes, citas o consultas necesitas el plan activo.',
+    cinta: 'Modo solo lectura.',
+    cintaDetalle: 'Aún no se guardan cambios.',
+    cta: 'Activar',
+    ctaModal: 'Ver suscripción',
+  };
+  var motivo = MOTIVO_SUSCRIPCION;
+
   window.sdPaywall = function (mensaje) {
     if (document.querySelector('.sd-pw-scrim')) return; // ya hay uno abierto
     inyectarEstilos();
     var scrim = document.createElement('div');
     scrim.className = 'sd-pw-scrim';
     scrim.innerHTML =
-      '<div class="sd-pw-card" role="dialog" aria-modal="true" aria-label="Suscripción requerida">' +
-        '<h3>Activa tu suscripción para guardar</h3>' +
+      '<div class="sd-pw-card" role="dialog" aria-modal="true" aria-label="Plan requerido">' +
+        '<h3></h3>' +
         '<p></p>' +
         '<div class="sd-pw-actions">' +
           '<button type="button" class="sd-pw-ghost">Seguir explorando</button>' +
-          '<a class="sd-pw-solid" href="/plan.html">Ver suscripción</a>' +
+          '<a class="sd-pw-solid" href="/plan.html"></a>' +
         '</div>' +
       '</div>';
-    scrim.querySelector('p').textContent = mensaje ||
-      'Tu cuenta está en modo solo lectura: puedes recorrer la plataforma, pero para registrar pacientes, citas o consultas necesitas el plan activo.';
+    scrim.querySelector('h3').textContent = motivo.titulo;
+    scrim.querySelector('.sd-pw-solid').textContent = motivo.ctaModal;
+    scrim.querySelector('p').textContent = mensaje || motivo.texto;
     function cerrar() { scrim.remove(); }
     scrim.querySelector('.sd-pw-ghost').addEventListener('click', cerrar);
     scrim.addEventListener('click', function (e) { if (e.target === scrim) cerrar(); });
@@ -1414,9 +1423,12 @@
     bar.className = 'sd-ro-bar';
     bar.innerHTML =
       '<span class="sd-ro-dot"></span>' +
-      '<div class="sd-ro-txt"><b>Modo solo lectura.</b> ' +
-      '<span>Aún no se guardan cambios.</span></div>' +
-      (puedeGestionar ? '<a class="sd-ro-cta" href="/plan.html">Activar</a>' : '');
+      '<div class="sd-ro-txt"><b></b> <span></span></div>' +
+      (puedeGestionar ? '<a class="sd-ro-cta" href="/plan.html"></a>' : '');
+    bar.querySelector('.sd-ro-txt b').textContent = motivo.cinta;
+    bar.querySelector('.sd-ro-txt span').textContent = motivo.cintaDetalle;
+    var cta = bar.querySelector('.sd-ro-cta');
+    if (cta) cta.textContent = motivo.cta;
     document.body.appendChild(bar);
   }
 
@@ -1563,6 +1575,34 @@
   // está bien mientras nada cambie, y muy mal justo después de cambiar de plan:
   // el doctor acaba de pagar Premium y el menú le sigue enseñando el candado
   // hasta un minuto. La pantalla de suscripción llama a esto al terminar.
+  // ── Bloqueo por PLAN, no por deuda ──
+  //
+  // Lo pide la pantalla que sabe que su función no está incluida. Reutiliza toda
+  // la maquinaria del modo solo lectura —los mismos botones apagados, el mismo
+  // aviso al pulsarlos, la misma cinta— cambiando solo el texto: la clínica no
+  // debe nada, es que esto cuesta más.
+  //
+  // Se hace así y no con una pantalla de bloqueo entera porque el doctor tiene
+  // que poder recorrer la herramienta y entender qué compra. Un muro le enseña
+  // un precio; dejarle llegar hasta el botón le enseña lo que se lleva por él.
+  window.sdBloquearPorPlan = function (opciones) {
+    var o = opciones || {};
+    motivo = {
+      titulo: o.titulo || 'Esta función está en otro plan',
+      texto: o.texto || 'Puedes recorrerla y ver cómo funciona, pero para usarla necesitas subir de plan.',
+      cinta: o.cinta || 'Vista previa.',
+      cintaDetalle: o.cintaDetalle || 'Con tu plan no se guardan cambios aquí.',
+      cta: o.cta || 'Ver planes',
+      ctaModal: o.ctaModal || 'Ver planes',
+    };
+    window.SD_READONLY = true;
+    document.documentElement.classList.add('sd-readonly');
+    inyectarEstilos();
+    var pintar = function () { pintarCinta(true); bloquearAcciones(); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pintar);
+    else pintar();
+  };
+
   window.sdOlvidarPlan = function () {
     try {
       sessionStorage.removeItem(CACHE_KEY);
@@ -1573,33 +1613,6 @@
   if (path === '/plan.html' || path === '/login.html' || path === '/registro.html' ||
       path === '/landing.html' || path === '/accept-invitation.html' ||
       path === '/' || path === '/index.html') return;
-  // ── Candado en las entradas de menú que el plan no incluye ──
-  //
-  // La entrada NO se esconde: un menú que cambia de forma según lo que pagas
-  // deja al doctor sin saber que la función existe, y esta pantalla es
-  // precisamente lo que vende los planes de arriba. Se enseña con candado y al
-  // entrar se explica.
-  var FUNCION_DE_MENU = { migracion: 'migracion' };
-
-  function marcarCandados(features) {
-    var f = features || {};
-    if (f['*']) return;
-    Object.keys(FUNCION_DE_MENU).forEach(function (clave) {
-      if (f[FUNCION_DE_MENU[clave]]) return;
-      var enlaces = document.querySelectorAll('.sb-item[href="/' + clave + '.html"], .sidebar-menu-link[href="/' + clave + '.html"]');
-      for (var i = 0; i < enlaces.length; i++) {
-        if (enlaces[i].querySelector('.sb-lock')) continue;
-        var lock = document.createElement('span');
-        lock.className = 'sb-lock';
-        lock.setAttribute('aria-hidden', 'true');
-        lock.textContent = '🔒';
-        lock.title = 'Incluido en el plan Premium';
-        enlaces[i].appendChild(lock);
-        enlaces[i].classList.add('sb-item--locked');
-      }
-    });
-  }
-
   function alPintar(fn) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
     else fn();
@@ -1611,9 +1624,6 @@
     if (okUntil && Date.now() < okUntil) {
       // Verificado hace poco: no se vuelve a preguntar, pero los candados hay
       // que repintarlos porque el menú se acaba de construir en esta página.
-      var guardadas = null;
-      try { guardadas = JSON.parse(sessionStorage.getItem(CACHE_KEY + ':features') || 'null'); } catch (_) {}
-      if (guardadas) alPintar(function () { marcarCandados(guardadas); });
       return;
     }
   } catch (_) { return; }
@@ -1622,9 +1632,9 @@
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (data) {
       if (!data || !data.access) return;
-      var features = data.features || {};
-      try { sessionStorage.setItem(CACHE_KEY + ':features', JSON.stringify(features)); } catch (_) {}
-      alPintar(function () { marcarCandados(features); });
+      // Las funciones del plan se guardan para que la pantalla que las necesite
+      // no tenga que volver a preguntar (migracion.html las lee de aquí).
+      try { sessionStorage.setItem(CACHE_KEY + ':features', JSON.stringify(data.features || {})); } catch (_) {}
       if (data.access.active) {
         try { sessionStorage.setItem(CACHE_KEY, String(Date.now() + 60000)); } catch (_) {}
         return;

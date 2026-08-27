@@ -573,10 +573,6 @@ function autoMapear() {
 // ── Render ──────────────────────────────────────────────────────────────────
 
 function render() {
-  // Sin la función en el plan, la pantalla entera es otra cosa: no un banco de
-  // trabajo, sino la explicación de qué se está perdiendo.
-  if (S.features && !S.features['*'] && !S.features.migracion) { renderSinPlan(); return; }
-
   renderPasos();
   $('btnReiniciar').style.display = (S.origen && !S.importando) ? '' : 'none';
   if (S.origen === 'fisico') { renderPapel(); return; }
@@ -597,82 +593,36 @@ function renderPasos() {
   }).join('');
 }
 
-// ── Cuando el plan no la incluye ────────────────────────────────────────────
-function renderSinPlan() {
-  $('pasos').innerHTML = '';
-  $('btnReiniciar').style.display = 'none';
+// ── Vista previa: el plan no incluye la migración ───────────────────────────
+//
+// La pantalla NO se bloquea. Se recorre entera —eliges origen, lees tu archivo,
+// mapeas columnas y ves fila por fila lo que entraría— y lo único que no ocurre
+// es la escritura: layout.js apaga los botones que guardan y explica por qué al
+// pulsarlos, igual que en el resto de la app cuando falta la suscripción.
+//
+// Un muro habría sido menos código, pero enseña un precio y nada más. Dejar
+// llegar hasta el botón enseña lo que se compra.
+function sinPlan() {
+  return !!(S.features && !S.features['*'] && !S.features.migracion);
+}
 
-  const grupos = { paciente: [], critico: [], historia: [] };
-  MC.CAMPOS.forEach((c) => { if (grupos[c.grupo]) grupos[c.grupo].push(c); });
-
-  $('lienzo').innerHTML = `
+function avisoDePlan() {
+  if (!sinPlan()) return '';
+  return `
     <div class="mg-card">
-      <div class="mg-card-b" style="padding:28px">
-        <div style="display:flex;gap:16px;align-items:flex-start">
-          <span class="mg-oi" style="width:46px;height:46px;flex-shrink:0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-          <div>
-            <h2 style="margin:0 0 6px;font-size:19px;font-weight:700">Migrar Expedientes está en el plan Premium</h2>
-            <p style="margin:0;color:var(--mg-ink-2);font-size:14px;line-height:1.6;max-width:70ch">
-              Tu plan actual incluye la plataforma completa. Lo que falta es la parte que trae contigo
-              lo que ya tenías: los expedientes de tu sistema anterior, del Excel de la clínica o del
-              archivador de papel, con su historia clínica y sus fechas originales.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="mg-card">
-      <div class="mg-card-h"><h2>Qué desbloquea</h2></div>
+      <div class="mg-card-h"><h2>Vista previa</h2><div class="mg-right"><span class="mg-tag wa">Plan Premium</span></div></div>
       <div class="mg-card-b">
-        <div class="mg-origins">
-          <div class="mg-origin" style="cursor:default">
-            <span class="mg-oi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
-            <b>Archivo de otro sistema</b>
-            <span>Un CSV o Excel de Medilink, Dentalink u otro programa. Se lee en tu computadora, sin subirlo.</span>
-          </div>
-          <div class="mg-origin" style="cursor:default">
-            <span class="mg-oi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg></span>
-            <b>Pegar desde Excel</b>
-            <span>Copias las filas de tu hoja y las pegas. Sin exportar ni guardar archivos.</span>
-          </div>
-          <div class="mg-origin" style="cursor:default">
-            <span class="mg-oi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
-            <b>Expediente en papel</b>
-            <span>Ficha por ficha, fotografiando las hojas. Cada visita queda con su fecha.</span>
-          </div>
+        <p class="mg-hint" style="margin:0 0 12px">
+          Puedes recorrer la herramienta entera con tu propio archivo: se lee en tu
+          computadora y verás exactamente qué expedientes entrarían y con qué avisos.
+          Lo único que no se hará es guardarlos.
+        </p>
+        <div class="mg-list" style="margin-bottom:12px">
+          <div class="mg-li"><span class="mg-ltxt"><b>Premium</b><br><span style="font-size:11.5px;color:var(--mg-ink-3)">Migras tú, o lo migramos nosotros</span></span><span class="mg-lin">$49.99</span></div>
         </div>
+        <a class="mg-btn mg-btn--primary" href="/plan.html" data-sd-gate="off" style="width:100%">Ver el plan Premium</a>
       </div>
-    </div>
-  `;
-
-  $('railIzq').innerHTML = `
-    <div class="mg-card">
-      <div class="mg-card-h"><h2>Lo que se trae</h2></div>
-      <div class="mg-card-b">
-        ${[['paciente', 'Datos del paciente'], ['critico', 'Información crítica'], ['historia', 'Historia clínica']].map(([k, t]) => `
-          <div style="padding:8px 0 4px">
-            <div style="font-size:11.5px;font-weight:700;color:var(--mg-ink-3);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px">${esc(t)}</div>
-            <div style="font-size:12.5px;color:var(--mg-ink-2);line-height:1.6">${grupos[k].map((c) => esc(c.label)).join(' · ')}</div>
-          </div>`).join('')}
-      </div>
-    </div>
-  `;
-
-  $('railDer').innerHTML = `
-    <div class="mg-card">
-      <div class="mg-card-h"><h2>El plan Premium</h2><div class="mg-right"><span class="mg-lin" style="font-size:18px;font-weight:800">$49.99<span style="font-size:11px;font-weight:600;opacity:.6">/mes</span></span></div></div>
-      <div class="mg-card-b">
-        <div class="mg-list">
-          <div class="mg-li"><span class="mg-tag ok">✓</span><span class="mg-ltxt">Todo lo del plan Básico</span></div>
-          <div class="mg-li"><span class="mg-tag ok">✓</span><span class="mg-ltxt">Migras tus expedientes cuando quieras</span></div>
-          <div class="mg-li"><span class="mg-tag ok">✓</span><span class="mg-ltxt">O nos los pasas y los migramos nosotros</span></div>
-        </div>
-      </div>
-    </div>
-    <a class="mg-btn mg-btn--primary mg-btn--big" href="/plan.html" data-sd-gate="off">Ver los planes</a>
-    <p class="mg-hint">Puedes cambiar de plan cuando quieras desde Suscripción.</p>
-  `;
+    </div>`;
 }
 
 // ── Panel de migración asistida (Premium) ───────────────────────────────────
@@ -803,6 +753,7 @@ María López	0801-1990-01234	9988-7766	03/04/1990"></textarea>
   MC.CAMPOS.forEach((c) => { if (grupos[c.grupo]) grupos[c.grupo].push(c); });
 
   $('railDer').innerHTML = `
+    ${avisoDePlan()}
     ${panelAsistida()}
     <div class="mg-card">
       <div class="mg-card-h"><h2>Qué se puede migrar</h2></div>
@@ -2117,18 +2068,29 @@ window.addEventListener('beforeunload', (e) => {
     S.features = { '*': true };
   }
 
-  const abierta = S.features['*'] || S.features.migracion;
-  if (abierta) {
-    try {
-      const r = await api('/api/migracion/doctores');
-      S.doctores = r.doctores || [];
-      S.doctorFijo = !!r.fijo;
-      if (S.doctorFijo && S.doctores.length) S.doctorId = S.doctores[0].id;
-    } catch (_) {
-      // Sin la lista se sigue: el servidor decide igual a quién atribuir lo migrado.
-    }
-    await cargarAsistida();
+  // Sin la función en el plan se apagan los botones que escriben y se explica al
+  // pulsarlos, en vez de tapar la pantalla. El servidor cierra igual la
+  // escritura: esto es para que se entienda, no para que se cumpla.
+  if (sinPlan() && typeof window.sdBloquearPorPlan === 'function') {
+    window.sdBloquearPorPlan({
+      titulo: 'Migrar Expedientes está en el plan Premium',
+      texto: 'Puedes recorrer la herramienta y ver qué entraría con tu archivo. Para guardar los expedientes necesitas el plan Premium.',
+      cinta: 'Vista previa.',
+      cintaDetalle: 'Con tu plan, los expedientes no se guardan.',
+      cta: 'Ver Premium',
+      ctaModal: 'Ver el plan Premium',
+    });
   }
+
+  try {
+    const r = await api('/api/migracion/doctores');
+    S.doctores = r.doctores || [];
+    S.doctorFijo = !!r.fijo;
+    if (S.doctorFijo && S.doctores.length) S.doctorId = S.doctores[0].id;
+  } catch (_) {
+    // Sin la lista se sigue: el servidor decide igual a quién atribuir lo migrado.
+  }
+  await cargarAsistida();
   render();
   const pl = $('pageLoader');
   if (pl) pl.classList.add('hidden');

@@ -51,11 +51,31 @@ const soloClinica = requireRole('doctor', 'clinic_admin');
 // Va como middleware propio y no dentro de cada handler porque la regla es de
 // toda la sección: si mañana se añade un endpoint aquí, nace cerrado.
 //
+// Lo que se cierra es ESCRIBIR, no mirar — el mismo criterio que el guardián de
+// la suscripción. Sin plan, la clínica puede abrir la pantalla, leer su propio
+// archivo (que ni siquiera sale de su computadora) y ver fila por fila qué
+// entraría; lo que no ocurre es el guardado. Un doctor que ya vio sus 3.000
+// expedientes listos para entrar entiende qué está comprando; uno que se
+// encontró un muro solo vio un precio.
+//
+// `/analizar` es POST pero no escribe una sola fila: compara lo que llega con
+// los pacientes que ya existen. Por eso entra en las lecturas.
+// Por MÉTODO y ruta, no por ruta a secas: `/lotes` es GET para el historial y
+// POST para abrir un lote nuevo. Mirando solo el camino, el POST que crea el
+// lote entraba como si fuera una lectura y la puerta quedaba abierta.
+const ESCRITURAS_PERMITIDAS = new Set(['POST /analizar']);
+
+function esLectura(req) {
+  if (req.method === 'GET' || req.method === 'HEAD') return true;
+  return ESCRITURAS_PERMITIDAS.has(req.method + ' ' + req.path);
+}
+
 // El código de error es distinto del 402 de "suscripción vencida" a propósito.
 // Son dos conversaciones que no se parecen: una dice "págame lo que ya
 // acordamos" y la otra "esto cuesta más". Mezclarlas mandaba al doctor a una
 // pantalla que le hablaba de una deuda que no tiene.
 async function exigeMigracion(req, res, next) {
+  if (esLectura(req)) return next();
   if (await suscripcion.clinicHasFeature(req.user.clinic_id, 'migracion')) return next();
   res.status(402).json({
     error: 'Migrar Expedientes está en el plan Premium.',
