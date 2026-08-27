@@ -297,10 +297,19 @@
     .doctor-card.selected .doctor-check { display: grid; }
     .doctor-top { display: flex; align-items: center; gap: 14px; }
     .doctor-avatar {
+      position: relative; overflow: hidden;
       width: 52px; height: 52px; border-radius: 14px;
       color: white; font-weight: 700; font-size: 18px;
       display: grid; place-items: center; letter-spacing: .5px;
       flex-shrink: 0;
+    }
+    /* La foto de perfil del doctor se monta encima de las iniciales: si la
+       imagen no carga se quita sola y quedan las iniciales de siempre. */
+    .doctor-photo {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
     }
     .doctor-name {
       font-weight: 700; font-size: 15px; color: var(--ink-900);
@@ -537,6 +546,7 @@
     }
     .sum-row.last { border-bottom: none; }
     .sum-ico {
+      position: relative; overflow: hidden;
       width: 34px; height: 34px; border-radius: 10px;
       background: var(--teal-50);
       color: var(--teal-600);
@@ -547,6 +557,12 @@
       background: var(--ink-100);
       color: var(--ink-400);
       border: 1px dashed var(--ink-200);
+    }
+    .sum-ico-photo {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
     }
     .sum-body { min-width: 0; flex: 1; }
     .sum-label {
@@ -1131,6 +1147,7 @@ function renderDoctors() {
         <div class="doctor-top">
           <div class="doctor-avatar" style="background: linear-gradient(135deg, ${accent}, ${accent}b8); box-shadow: 0 10px 22px -10px ${accent}99, inset 0 1px 0 rgba(255,255,255,.25);">
             ${esc(initials)}
+            ${d.photo_url ? `<img class="doctor-photo" src="${esc(d.photo_url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
           </div>
           <div style="min-width:0;">
             <div class="doctor-name">${esc(d.name || 'Especialista')}</div>
@@ -1344,10 +1361,28 @@ function setSumRow(rowId, value, sub) {
   }
 }
 
+// El resumen también muestra la foto del especialista elegido: es el mismo
+// dato que la tarjeta, así el paciente reconoce a quién va a ver.
+function setSumDoctorPhoto(url) {
+  const ico = document.querySelector('#sumDoctor .sum-ico');
+  if (!ico) return;
+  const current = ico.querySelector('.sum-ico-photo');
+  if (!url) { if (current) current.remove(); return; }
+  if (current && current.getAttribute('src') === url) return;
+  if (current) current.remove();
+  const img = document.createElement('img');
+  img.className = 'sum-ico-photo';
+  img.alt = '';
+  img.addEventListener('error', () => img.remove());
+  img.src = url;
+  ico.appendChild(img);
+}
+
 function renderSummary() {
   setSumRow('sumDoctor',
     state.doctor ? (state.doctor.name || 'Especialista') : 'Por elegir',
     state.doctor ? (state.doctor.specialty || 'Medicina General') : null);
+  setSumDoctorPhoto(state.doctor ? (state.doctor.photo_url || '') : '');
   setSumRow('sumDate',
     state.date ? formatDateLong(state.date) : 'Por elegir');
   setSumRow('sumTime',
