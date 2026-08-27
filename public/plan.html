@@ -193,7 +193,7 @@
     /* Sin soporte de backdrop-filter (Firefox antiguo, WebView viejo) el vidrio
        se vería transparente sobre los blobs: se cae a superficie sólida. */
     @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-      .subs-page .card, .subs-page .notice, .subs-page .ghost-btn {
+      .subs-page .card, .subs-page .notice, .subs-page .ghost-btn, .subs-page .planopt {
         background: var(--surface);
       }
     }
@@ -428,35 +428,53 @@
     @keyframes sp-rot { to { transform: rotate(360deg); } }
 
     /* ── Paneles ── */
-    /* ── Selector de plan ── */
-    /* Se reparten el ancho entre los que haya: con dos planes, dos mitades; si
-       mañana vuelve a haber tres, tres tercios. Un `repeat(3, …)` fijo dejaba un
-       hueco vacío a la derecha en cuanto el catálogo cambiaba. */
+    /* ── Selector de plan ──
+       Mismo cristal que `.subs-page .card`, con sus mismos tokens: el bloque
+       oscuro de arriba los redefine todos, así que la tarjeta se pone negra
+       sola. Antes tiraba de --card y --border, que esta página no redefine para
+       oscuro, y quedaban dos tarjetas blancas con el texto invisible encima de
+       una pantalla negra. */
     .subs-page .planes {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 14px; margin-bottom: 18px;
     }
     @media (max-width: 900px) { .subs-page .planes { grid-template-columns: 1fr; } }
+
     .subs-page .planopt {
-      position: relative; text-align: left; padding: 18px; border-radius: 18px; cursor: pointer;
-      background: var(--card, #fff); border: 1.5px solid var(--border, #e2e8f0); color: inherit;
-      font: inherit; display: flex; flex-direction: column; gap: 8px;
-      transition: border-color .15s, transform .12s, box-shadow .15s;
+      position: relative; text-align: left; padding: 20px; cursor: pointer;
+      background: var(--glass);
+      -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px; box-shadow: var(--glass-shadow);
+      color: var(--text); font: inherit;
+      display: flex; flex-direction: column; gap: 8px;
+      transition: transform .14s ease, box-shadow .18s ease, border-color .18s ease;
     }
-    .subs-page .planopt:hover { border-color: #0891b2; transform: translateY(-1px); }
-    .subs-page .planopt.on { border-color: #0891b2; box-shadow: 0 0 0 3px rgba(8,145,178,.14); }
-    .subs-page .planopt .pnom { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
-    .subs-page .planopt .pprecio { font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
-    .subs-page .planopt .pprecio small { font-size: 12px; font-weight: 600; opacity: .6; margin-left: 4px; }
-    .subs-page .planopt .pdesc { font-size: 12.5px; line-height: 1.5; opacity: .78; }
+    .subs-page .planopt:hover { transform: translateY(-2px); }
+    .subs-page .planopt.on {
+      border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+      box-shadow: var(--glass-shadow), 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+    }
+    .subs-page .planopt .pnom {
+      font-size: 15px; font-weight: 700; letter-spacing: -.01em; color: var(--text);
+    }
+    .subs-page .planopt .pprecio {
+      font-size: 30px; font-weight: 800; letter-spacing: -.025em; line-height: 1.05; color: var(--text);
+    }
+    .subs-page .planopt .pprecio small {
+      font-size: 12px; font-weight: 600; color: var(--muted); margin-left: 4px; letter-spacing: 0;
+    }
+    .subs-page .planopt .pdesc { font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
     .subs-page .planopt .pactual {
-      position: absolute; top: 12px; right: 12px; font-size: 10.5px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .04em; padding: 3px 8px; border-radius: 999px;
-      background: rgba(8,145,178,.12); color: #0e7490;
+      position: absolute; top: 14px; right: 14px; font-size: 10.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .04em; padding: 4px 9px; border-radius: 999px;
+      background: var(--accent-soft); color: var(--accent-ink);
     }
     .subs-page .planopt .pextra {
-      display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #0e7490;
+      display: flex; align-items: flex-start; gap: 6px;
+      font-size: 12px; font-weight: 600; line-height: 1.45; color: var(--accent-ink);
     }
+
     .subs-page .cols {
       display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;
     }
