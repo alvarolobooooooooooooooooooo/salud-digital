@@ -251,7 +251,7 @@
   <div class="totals" id="totalsRow">
     <div class="total-card featured">
       <div class="total-label">Total cobrado hoy</div>
-      <div class="total-value" id="totalToday">L. 0</div>
+      <div class="total-value" id="totalToday" data-moneda="cero">L. 0</div>
     </div>
   </div>
 
@@ -283,7 +283,7 @@
     <div class="form-group">
       <label class="form-label">Monto pendiente (Lempiras)</label>
       <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <div class="form-input" id="chargePendingAmount" style="background: #f0f9ff; color: #0891b2; padding: 0.8rem 1rem; min-height: 44px; display: flex; align-items: center; font-weight: 700; font-size: 1.1rem; flex: 1;">L. 0.00</div>
+        <div class="form-input" id="chargePendingAmount" style="background: #f0f9ff; color: #0891b2; padding: 0.8rem 1rem; min-height: 44px; display: flex; align-items: center; font-weight: 700; font-size: 1.1rem; flex: 1;" data-moneda="cero">L. 0.00</div>
       </div>
     </div>
 
@@ -312,6 +312,7 @@
 
 <script src="/icons.js"></script>
 <script src="/common.js"></script>
+<script src="/monedas.js"></script>
 <script src="/layout.js"></script>
 <script>
   requireAuth(['receptionist', 'clinic_admin']);
@@ -328,13 +329,18 @@
     setTimeout(() => t.classList.remove('show'), 2000);
   }
 
+  // El símbolo sale de la moneda de la clínica, no de una constante: ver
+  // public/monedas.js.
   function fmtL(n) {
-    const num = Number(n) || 0;
-    return 'L. ' + num.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return SDMoneda.fmt(n);
   }
 
   async function load() {
     try {
+      // La moneda de la clínica antes de pintar el primer importe: si no,
+      // la pantalla saldría en lempiras y saltaría a la moneda real un
+      // instante después. Con el perfil en caché resuelve al momento.
+      await SDMoneda.listo();
       const [p, t] = await Promise.all([
         api('/api/reception/payments-pending'),
         api('/api/reception/payments-today')

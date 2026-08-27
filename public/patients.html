@@ -967,6 +967,7 @@
 
 <script src="/icons.js"></script>
 <script src="/common.js"></script>
+<script src="/monedas.js"></script>
 <script src="/layout.js"></script>
 <script src="/common-date-picker.js"></script>
 <script src="/odontogram.types.js"></script>
@@ -996,6 +997,10 @@
   (async () => {
     const pageLoader = document.getElementById('pageLoader');
     try {
+      // La moneda de la clínica antes de pintar el primer importe: si no,
+      // la pantalla saldría en lempiras y saltaría a la moneda real un
+      // instante después. Con el perfil en caché resuelve al momento.
+      await SDMoneda.listo();
       allPatients = await api('/api/patients');
       renderQueue();
       pageLoader.classList.add('hidden');
@@ -1315,8 +1320,7 @@
                   const payment = c.payment_status || 'completed';
                   const statusBadge = payment === 'paid' ? 'status-completed' : 'status-pending';
                   const statusText = payment === 'paid' ? 'Pagado' : 'Pendiente';
-                  const costFormatted = c.cost ? Number(c.cost).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0.00';
-                  const cost = 'L. ' + costFormatted;
+                  const cost = SDMoneda.fmt(c.cost || 0);
                   return `
                     <tr style="cursor: ${payment === 'paid' ? 'default' : 'pointer'};" onclick="${payment === 'paid' ? '' : `openPaymentModal(${c.id}, '${esc(treatment)}', '${cDate}', '${cost}')`}">
                       <td>#${c.id || idx + 1}</td>
@@ -1328,7 +1332,7 @@
                 }).join('')}
                 ${consultations.length > 0 ? `<tr class="history-total-row">
                   <td colspan="4" style="text-align: right;">Total pagado:</td>
-                  <td>L. ${totalCost.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                  <td>${SDMoneda.fmt(totalCost)}</td>
                 </tr>` : ''}
               </tbody>
             </table>

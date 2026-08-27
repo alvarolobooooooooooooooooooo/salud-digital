@@ -977,6 +977,48 @@
             </div>
           </div>
 
+          <!-- ── País y moneda ──
+               La moneda no se edita: sale del país. Y el país solo se puede
+               corregir mientras la clínica no tenga cobros registrados, porque
+               después cambiarlo reetiquetaría con otro símbolo unos números que
+               siguen siendo de la moneda anterior. Quien decide si se puede es
+               el servidor (`puede_cambiar`).
+               Lo ve doctor y clinic_admin: el alta por cuenta propia crea
+               doctores dueños de su consultorio, y son ellos quienes cobran. -->
+          <div class="glass-card">
+            <div class="card-head">
+              <div class="icon-box"><span data-icon="wallet" data-size="20"></span></div>
+              <div>
+                <h2>País y moneda</h2>
+                <p>El país define con qué moneda se muestran tus cobros, tus pendientes y todo el panel de Finanzas.</p>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label>País donde atiendes</label>
+                <!-- Dos formas del mismo dato. Cuando el país ya no se puede
+                     tocar se enseña como texto y no como un <select> apagado:
+                     un desplegable deshabilitado se lee como "esto debería
+                     funcionar y algo va mal", y aquí no va nada mal — es que el
+                     dato quedó fijo. La caja de solo lectura es la misma que usa
+                     la moneda al lado. -->
+                <select id="fldClinicCountry"></select>
+                <div class="field-readonly" id="clinicCountryFixed" style="display:none;">
+                  <span id="clinicCountryLabel">—</span>
+                </div>
+                <span class="hint" id="clinicCountryHint"></span>
+              </div>
+              <div class="field">
+                <label>Moneda de la clínica</label>
+                <div class="field-readonly">
+                  <span id="clinicCurrencyLabel">—</span>
+                </div>
+                <span class="hint" id="clinicCurrencyHint"></span>
+              </div>
+            </div>
+          </div>
+
           <!-- Salas / habitaciones — clinic_admin only -->
           <div class="glass-card" data-roles="clinic_admin">
             <div class="card-head">
@@ -1349,6 +1391,7 @@
 
   <script src="/icons.js"></script>
   <script src="/common.js"></script>
+  <script src="/monedas.js"></script>
   <script src="/legal-consent.js"></script>
   <script src="/layout.js"></script>
   <script src="/location.js"></script>
@@ -1361,6 +1404,12 @@
     // ──────────────────────────────────────────────────────────
     requireAuth(['doctor', 'clinic_admin', 'receptionist']);
     const CURRENT_ROLE = getRole();
+
+    // Esta pantalla es la que cambia la moneda: se pone al día sola después de
+    // convertir, así que no necesita la recarga automática que layout.js aplica
+    // al resto (y que aquí se llevaría por delante el aviso de cuántos
+    // registros se convirtieron).
+    window.SD_MONEDA_SIN_RECARGA = true;
 
     // ── Role-based visibility ──
     function applyRole(role) {
@@ -1457,7 +1506,7 @@
       },
       clinic: {
         name: '', type: '', taxId: '', address: '', city: '', phone: '',
-        email: '', info: '', brandColor: '#0891b2', currency: 'HNL', website: '',
+        email: '', info: '', brandColor: '#0891b2', currency: 'HNL', country: 'HN', website: '',
         logoUrl: '',
         // Ubicación: lat/lng null = sin pin marcado.
         latitude: null, longitude: null, mapUrl: '', locationNotes: ''
@@ -2391,6 +2440,86 @@
 
     loadSessions();
 
+    // ── País y moneda de la clínica ───────────────────────────────────────────
+    //
+    // La moneda no se elige: la decide el país (ver lib/monedas.js). Y el país
+    // solo se puede corregir mientras la clínica NO tenga todavía ningún importe
+    // registrado — el caso real es "me equivoqué al registrarme". A partir del
+    // primer cobro queda fijo, porque cambiarlo reetiquetaría con otro símbolo
+    // unos números que siguen siendo de la moneda anterior.
+    //
+    // Quién manda sobre eso es el servidor (`puede_cambiar`), no esta pantalla:
+    // aquí solo se pinta lo que él dice, y él vuelve a comprobarlo al guardar.
+    const PUEDE_MONEDA = CURRENT_ROLE === 'doctor' || CURRENT_ROLE === 'clinic_admin';
+    let monedaEstado = null;
+
+    function pintarPaisMoneda() {
+      const sel = document.getElementById('fldClinicCountry');
+      const etiqueta = document.getElementById('clinicCurrencyLabel');
+      const hintPais = document.getElementById('clinicCountryHint');
+      const hintMoneda = document.getElementById('clinicCurrencyHint');
+      if (!sel || !etiqueta) return;
+
+      if (!sel.options.length) {
+        SDMoneda.PAISES.forEach(p => {
+          const o = document.createElement('option');
+          o.value = p.codigo;
+          o.textContent = p.nombre;
+          sel.appendChild(o);
+        });
+      }
+      // Un país guardado que ya no esté en la lista no se puede perder en
+      // silencio: se añade como opción para que se vea y se pueda corregir.
+      const guardado = state.clinic.country || 'HN';
+      if (!SDMoneda.normalizarPais(guardado) && guardado) {
+        const o = document.createElement('option');
+        o.value = guardado;
+        o.textContent = guardado;
+        sel.appendChild(o);
+      }
+      sel.value = guardado;
+
+      const fijo = !!(!PUEDE_MONEDA || (monedaEstado && monedaEstado.puede_cambiar === false));
+      const caja = document.getElementById('clinicCountryFixed');
+      sel.style.display = fijo ? 'none' : '';
+      sel.disabled = fijo;
+      if (caja) {
+        caja.style.display = fijo ? '' : 'none';
+        const p = SDMoneda.paisPorCodigo(sel.value);
+        document.getElementById('clinicCountryLabel').textContent = p ? p.nombre : (sel.value || '—');
+      }
+
+      const m = SDMoneda.ficha(state.clinic.currency);
+      etiqueta.textContent = `${m.nombre} · ${m.prefijo.trim()} · ${m.codigo}`;
+
+      hintPais.textContent = fijo
+        ? 'Ya tienes cobros registrados, así que el país queda fijo: cambiarlo cambiaría la moneda con la que se leen. Escríbenos si necesitas corregirlo.'
+        : 'Todavía no tienes cobros registrados, así que puedes corregirlo. Define la moneda de toda tu operación.';
+      hintMoneda.textContent = `La moneda sale del país y no se elige aparte. Tu suscripción a Salud Digital se cobra en dólares, al margen de esto.`;
+    }
+
+    async function cargarPaisMoneda() {
+      if (!PUEDE_MONEDA) return;
+      try {
+        monedaEstado = await api('/api/clinics/me/currency');
+        state.clinic.country = monedaEstado.country;
+        state.clinic.currency = monedaEstado.currency;
+        SDMoneda.fijar(monedaEstado.currency);
+      } catch (_) { /* se pinta con lo que trajo /api/clinics/me */ }
+      pintarPaisMoneda();
+    }
+
+    document.addEventListener('change', (e) => {
+      if (e.target && e.target.id === 'fldClinicCountry') {
+        state.clinic.country = e.target.value;
+        // La moneda se mueve con el país en la misma pantalla, para que se vea
+        // lo que se está eligiendo antes de guardar.
+        state.clinic.currency = SDMoneda.monedaDePais(e.target.value);
+        pintarPaisMoneda();
+        markDirty();
+      }
+    });
+
     // ── Save handler ──
     async function handleSave() {
       // Build clean payload
@@ -2445,10 +2574,35 @@
               email: state.clinic.email,
               info: state.clinic.info,
               brand_color: state.clinic.brandColor,
-              currency: state.clinic.currency,
+              // La moneda NO viaja aquí: la decide el país, y el país va por su
+              // propio endpoint (ver "País y moneda" más abajo). Mandarla en
+              // este PUT haría que guardar el teléfono reetiquetara el
+              // histórico de cobros con otro símbolo.
               website: state.clinic.website,
             }
           });
+        }
+
+        // País — doctor y clinic_admin, endpoint propio. Con él viaja la moneda,
+        // porque es quien la decide. El servidor lo rechaza con un 409 si la
+        // clínica ya tiene cobros registrados; ese error sube al toast como
+        // cualquier otro.
+        if (PUEDE_MONEDA && state.clinic.country) {
+          const rp = await api('/api/clinics/me/country', {
+            method: 'PUT',
+            body: { country: state.clinic.country },
+          });
+          if (rp && rp.currency) {
+            state.clinic.currency = rp.currency;
+            SDMoneda.fijar(rp.currency);
+            try {
+              const perfil = JSON.parse(localStorage.getItem('sd_user_profile') || 'null');
+              if (perfil) {
+                perfil.clinic_currency = rp.currency;
+                localStorage.setItem('sd_user_profile', JSON.stringify(perfil));
+              }
+            } catch (_) {}
+          }
         }
 
         // Ubicación — doctor y clinic_admin (endpoint propio, ver routes/clinics.js)
@@ -2471,6 +2625,7 @@
         originalSnapshot = JSON.stringify(state);
         markClean();
         toast('Cambios guardados correctamente.', 'success');
+        pintarPaisMoneda();
       } catch (err) {
         toast(err.message || 'No se pudieron guardar los cambios.', 'error');
       } finally {
@@ -2544,6 +2699,7 @@
           state.clinic.info = c.info || '';
           state.clinic.brandColor = c.brand_color || '#0891b2';
           state.clinic.currency = c.currency || 'HNL';
+          state.clinic.country = c.country || 'HN';
           state.clinic.website = c.website || '';
           state.clinic.logoUrl = c.logo_url || '';
           state.clinic.latitude = c.latitude != null ? Number(c.latitude) : null;
@@ -2639,6 +2795,10 @@
     }
 
     loadInitial().finally(() => {
+      // Va después de loadInitial porque necesita el país y la moneda ya
+      // hidratados: /api/clinics/me/currency añade encima la última conversión
+      // registrada, que es lo que se enseña bajo el selector.
+      cargarPaisMoneda();
       const pageLoader = document.getElementById('pageLoader');
       if (pageLoader) pageLoader.classList.add('hidden');
     });

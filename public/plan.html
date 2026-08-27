@@ -428,6 +428,35 @@
     @keyframes sp-rot { to { transform: rotate(360deg); } }
 
     /* ── Paneles ── */
+    /* ── Selector de plan ── */
+    /* Se reparten el ancho entre los que haya: con dos planes, dos mitades; si
+       mañana vuelve a haber tres, tres tercios. Un `repeat(3, …)` fijo dejaba un
+       hueco vacío a la derecha en cuanto el catálogo cambiaba. */
+    .subs-page .planes {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px; margin-bottom: 18px;
+    }
+    @media (max-width: 900px) { .subs-page .planes { grid-template-columns: 1fr; } }
+    .subs-page .planopt {
+      position: relative; text-align: left; padding: 18px; border-radius: 18px; cursor: pointer;
+      background: var(--card, #fff); border: 1.5px solid var(--border, #e2e8f0); color: inherit;
+      font: inherit; display: flex; flex-direction: column; gap: 8px;
+      transition: border-color .15s, transform .12s, box-shadow .15s;
+    }
+    .subs-page .planopt:hover { border-color: #0891b2; transform: translateY(-1px); }
+    .subs-page .planopt.on { border-color: #0891b2; box-shadow: 0 0 0 3px rgba(8,145,178,.14); }
+    .subs-page .planopt .pnom { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+    .subs-page .planopt .pprecio { font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+    .subs-page .planopt .pprecio small { font-size: 12px; font-weight: 600; opacity: .6; margin-left: 4px; }
+    .subs-page .planopt .pdesc { font-size: 12.5px; line-height: 1.5; opacity: .78; }
+    .subs-page .planopt .pactual {
+      position: absolute; top: 12px; right: 12px; font-size: 10.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .04em; padding: 3px 8px; border-radius: 999px;
+      background: rgba(8,145,178,.12); color: #0e7490;
+    }
+    .subs-page .planopt .pextra {
+      display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #0e7490;
+    }
     .subs-page .cols {
       display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;
     }
@@ -734,7 +763,7 @@
     return FEATURES_ESPECIALIDAD.find(e => e.re.test(n)) || null;
   }
 
-  let state = { status: null, payments: [], banner: null, busy: '' };
+  let state = { status: null, payments: [], banner: null, busy: '', planElegido: '' };
 
   /* ── Formato ── */
   function money(amount, currency) {
@@ -794,6 +823,53 @@
     return { key: 'other', label: status || 'Desconocido', tone: 'off', blurb: 'Estado reportado por el procesador de pagos.' };
   }
 
+  /* ── Qué plan se está mirando ──
+     Con suscripción viva manda la contratada: la pantalla informa de lo que se
+     está pagando. Sin ella, el que el usuario haya elegido en el selector, y si
+     no ha tocado nada, el primero del catálogo. Todo el checkout —el importe,
+     el botón de PayPal, el pago único— sale de aquí, así que el precio que se
+     ve y el que se cobra no pueden separarse. */
+  function planActivo(st) {
+    const planes = st.plans || [];
+    const sub = st.subscription;
+    const vivo = sub && st.access && st.access.paid;
+    const codigo = vivo ? sub.plan_code : (state.planElegido || (planes[0] || {}).code);
+    return planes.find((p) => p.code === codigo) || planes[0] || {};
+  }
+
+  /* Las tres tarjetas. Solo se pintan si hay más de un plan: con uno solo el
+     selector sería un adorno que no elige nada. */
+  function renderPlanes(st, owner) {
+    const planes = st.plans || [];
+    if (planes.length < 2 || !owner) return '';
+    const sub = st.subscription;
+    const contratado = st.access && st.access.paid && sub ? sub.plan_code : '';
+    const elegido = planActivo(st).code;
+
+    // Lo que el plan añade, en una línea por cosa. Se listan las dos cuando las
+    // dos están: "migrar" y "que lo migremos nosotros" no son la misma promesa,
+    // y quien duda entre planes está comparando exactamente eso.
+    const extra = (f) => {
+      if (!f) return '';
+      const lineas = [];
+      if (f.migracion) lineas.push('Migrar Expedientes incluido');
+      if (f.migracion_asistida) lineas.push('Nosotros traemos tus expedientes');
+      return lineas.map((t) => `<span class="pextra">✦ ${esc(t)}</span>`).join('');
+    };
+
+    return `
+      <div class="planes in d1">
+        ${planes.map((p) => `
+          <button type="button" class="planopt ${p.code === elegido ? 'on' : ''}" data-plan="${esc(p.code)}">
+            ${p.code === contratado ? '<span class="pactual">Tu plan</span>' : ''}
+            <span class="pnom">${esc(p.name)}</span>
+            <span class="pprecio">${money(p.amount, p.currency)}<small>/mes</small></span>
+            <span class="pdesc">${esc(p.description || '')}</span>
+            ${extra(p.features)}
+          </button>`).join('')}
+      </div>`;
+  }
+
   /* ── Render ── */
   function render() {
     const st = state.status;
@@ -813,7 +889,7 @@
       <div class="head in">
         <div>
           <h1>Suscripción</h1>
-          <p>Plan individual de Salud Digital · cobro mensual con PayPal.</p>
+          <p>${(st.plans || []).length > 1 ? 'Elige tu plan · cobro mensual, cancelas cuando quieras.' : 'Plan individual de Salud Digital · cobro mensual con PayPal.'}</p>
         </div>
         ${owner && sub ? `<button class="ghost-btn" id="btnSync" ${state.busy === 'sync' ? 'disabled' : ''}>
           ${state.busy === 'sync' ? '<span class="spin"></span> Actualizando' : I.refresh + ' Actualizar estado'}
@@ -822,14 +898,15 @@
 
       ${renderBanner()}
       ${renderConfigWarning(st, owner)}
+      ${renderPlanes(st, owner)}
 
       <section class="card in d1">
         <div class="state">
           <div class="state-l">
             <div class="status ${e.tone}"><span class="dot"></span>${esc(e.label)}</div>
-            <div class="plan">Plan Individual</div>
+            <div class="plan">${esc(planActivo(st).name || st.plan_name)}</div>
             <div class="amount">
-              <b>${money(st.price, st.currency)}</b>
+              <b>${money(st.access && st.access.paid && sub ? st.price : (planActivo(st).amount != null ? planActivo(st).amount : st.price), st.currency)}</b>
               <span>${esc(st.currency)} al mes${e.key === 'active' ? ' · renovación automática' : ''}</span>
             </div>
             <p class="blurb">${esc(e.blurb)}</p>
@@ -843,7 +920,7 @@
 
       <div class="cols in d2">
         <section class="card panel">
-          ${renderIncluye(st.specialty)}
+          ${renderIncluye(st.specialty, planActivo(st))}
         </section>
 
         <section class="card panel">
@@ -1012,11 +1089,18 @@
   // "Qué incluye": lo de la especialidad de la clínica arriba (es lo que
   // diferencia a esta cuenta) y lo general de la plataforma debajo. Sin
   // especialidad reconocida se pinta solo la parte general.
-  function renderIncluye(specialty) {
+  function renderIncluye(specialty, plan) {
     const esp = featuresDeEspecialidad(specialty);
     const lista = items => `<ul class="checks">${items.map(f => `<li>${I.check}<span>${esc(f)}</span></li>`).join('')}</ul>`;
+    // Lo que este plan añade sobre la base. Se pinta arriba del todo porque es
+    // justo lo que se está decidiendo al mirar esta pantalla.
+    const f = (plan && plan.features) || {};
+    const extras = [];
+    if (f.migracion) extras.push('Migrar Expedientes: trae tu historial de otro sistema, de Excel o de papel');
+    if (f.migracion_asistida) extras.push('La migración la hace nuestro equipo por ti');
     return `
-      <h2>Qué incluye</h2>
+      <h2>Qué incluye${plan && plan.name ? ` <span class="n">${esc(plan.name)}</span>` : ''}</h2>
+      ${extras.length ? `<div class="checks-head">Solo en este plan</div>${lista(extras)}` : ''}
       ${esp ? `<div class="checks-head">Para ${esc(esp.nombre.toLowerCase())}</div>${lista(esp.items)}
       <div class="checks-head">En toda la plataforma</div>` : ''}
       ${lista(FEATURES_BASE)}
@@ -1047,6 +1131,44 @@
     </table>`;
   }
 
+  /* Elegir plan. Con suscripción activa no se cambia desde aquí: cambiar de
+     plan a mitad de un mes pagado es un prorrateo, y eso lo resuelve
+     /api/billing/change-plan con su propio cálculo — no un clic en una tarjeta. */
+  function elegirPlan(code) {
+    const st = state.status;
+    if (!st) return;
+    if (st.access && st.access.paid) {
+      const sub = st.subscription;
+      if (sub && sub.plan_code === code) return;
+      cambiarDePlan(code);
+      return;
+    }
+    state.planElegido = code;
+    render();
+  }
+
+  async function cambiarDePlan(code) {
+    const plan = (state.status.plans || []).find((p) => p.code === code);
+    if (!plan) return;
+    if (!confirm(`¿Cambiar al plan ${plan.name} (${money(plan.amount, plan.currency)} al mes)?\n\nSe ajusta lo que ya pagaste de este mes.`)) return;
+    state.busy = 'plan';
+    render();
+    try {
+      await api('/api/billing/change-plan', { method: 'POST', body: { plan_code: code } });
+      // El menú de la izquierda cachea qué desbloquea el plan: sin esto, el
+      // candado de Migrar Expedientes seguiría puesto hasta un minuto después
+      // de haberlo pagado.
+      if (typeof window.sdOlvidarPlan === 'function') window.sdOlvidarPlan();
+      state.status = adaptar(await api('/api/billing/status'));
+      state.banner = { tone: 'ok', title: 'Plan cambiado', text: `Tu plan es ahora ${plan.name}.` };
+    } catch (e) {
+      state.banner = { tone: 'danger', title: 'No se pudo cambiar el plan', text: e.message || 'Inténtalo de nuevo.' };
+    }
+    state.busy = '';
+    render();
+    wire();
+  }
+
   /* ── Acciones ── */
   function wire() {
     const sync = document.getElementById('btnSync');
@@ -1055,6 +1177,9 @@
     if (sub) sub.onclick = doSubscribe;
     const cancel = document.getElementById('btnCancel');
     if (cancel) cancel.onclick = openCancelModal;
+    document.querySelectorAll('.planopt[data-plan]').forEach(function (b) {
+      b.onclick = function () { elegirPlan(b.dataset.plan); };
+    });
     if (document.getElementById('pzSlots')) montarPaypal();
   }
 
@@ -1159,7 +1284,7 @@
     return pintarBotones(pp, 'pzManual', [[pp.FUNDING.CARD, { color: 'black' }]], {
       // El importe NO viaja desde aquí: lo pone el servidor según el plan.
       createOrder: () =>
-        api('/api/billing/order', { method: 'POST', body: { plan_code: st.plan_code, provider: cfg.provider } })
+        api('/api/billing/order', { method: 'POST', body: { plan_code: planActivo(st).code || st.plan_code, provider: cfg.provider } })
           .then((r) => r.order_id),
 
       onApprove: async (data) => {
@@ -1225,7 +1350,7 @@
       // La suscripción la crea NUESTRO servidor contra PayPal; al SDK solo se le
       // entrega el id. Así el plan y el importe nunca vienen del navegador.
       createSubscription: () =>
-        api('/api/billing/subscribe', { method: 'POST', body: { plan_code: st.plan_code, provider: cfg.provider } })
+        api('/api/billing/subscribe', { method: 'POST', body: { plan_code: planActivo(st).code || st.plan_code, provider: cfg.provider } })
           .then((r) => r.subscription_id),
 
       onApprove: async (data) => {
@@ -1339,7 +1464,7 @@
     state.banner = null;
     render();
     try {
-      const r = await api('/api/billing/subscribe', { method: 'POST', body: { plan_code: st.plan_code } });
+      const r = await api('/api/billing/subscribe', { method: 'POST', body: { plan_code: planActivo(st).code || st.plan_code } });
 
       // En la app de escritorio (Tauri) NO se navega el webview a paypal.com:
       // dejaría al doctor atrapado fuera de la plataforma, sin barra de
@@ -1421,6 +1546,8 @@
     const plan = (api.plans || [])[0] || {};
     const sub = api.subscription;
     return Object.assign({}, api, {
+      // El importe de la suscripción viva manda; si no hay, lo pone el plan
+      // elegido en el selector (se recalcula en render, ver planActivo).
       price: sub && sub.amount != null ? sub.amount : plan.amount || 0,
       currency: (sub && sub.currency) || plan.currency || 'USD',
       plan_name: (sub && sub.plan_name) || plan.name || 'Plan Individual',

@@ -5,6 +5,7 @@ const cloudinary = require('cloudinary').v2;
 const { v4: uuid } = require('uuid');
 const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
+const monedas = require('../lib/monedas');
 const { geocodeAndStore, searchAddress } = require('../lib/geocoding');
 const { parseMapsUrl, resolveMapsShortLink, isValidLatLng } = require('../lib/maps-links');
 
@@ -95,7 +96,7 @@ router.get('/me', authenticate, async (req, res) => {
   if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
   const result = await query(
     `SELECT id, name, type, tax_id, address, city, phone, email, info,
-            brand_color, currency, website, logo_url,
+            brand_color, currency, country, website, logo_url,
             latitude, longitude, show_on_public_map,
             map_url, location_notes, location_source
        FROM clinics WHERE id = $1`,
@@ -169,6 +170,122 @@ router.put('/me/location', authenticate, requireRole(...LOCATION_ROLES), async (
     longitude: lng,
     location_source: hasCoords ? 'manual' : null,
   });
+});
+
+// ── País y moneda ────────────────────────────────────────────────────────────
+//
+// La moneda de la clínica se DERIVA del país: no se elige por separado y no hay
+// pantalla para cambiarla suelta. El motivo está explicado en lib/monedas.js y
+// se resume así: cambiar la moneda de una clínica que ya tiene cobros guardados
+// exigiría convertir esos importes, convertir exige una tasa de cambio, y una
+// tasa que la plataforma se invente multiplica el histórico de una clínica real
+// por un número que nadie verificó.
+//
+// De ahí sale la regla de este bloque: el país se corrige mientras la clínica
+// NO tenga todavía ningún importe registrado —el caso real es "me equivoqué al
+// registrarme"—, y a partir del primer cobro queda fijo. Así el símbolo que se
+// ve nunca deja de corresponderse con el número que hay detrás.
+//
+// Va por endpoints propios y no dentro del PUT general de la clínica porque
+// aquel es solo para clinic_admin, y el alta por cuenta propia crea DOCTORES
+// dueños de su consultorio: con el país colgando de ese PUT, el podólogo que se
+// registró solo no podría corregir el suyo.
+const MONEDA_ROLES = ['clinic_admin', 'doctor'];
+
+// Dónde vive el dinero de la clínica. Si hay una sola fila con importe en
+// cualquiera de estas tablas, el país ya no se toca: cambiarlo reetiquetaría
+// ese importe con otro símbolo sin convertirlo.
+//
+// La suscripción no está aquí ni puede estarlo: plans/subscriptions/payments es
+// lo que la clínica nos paga a nosotros, se cobra en USD, y no es dinero suyo.
+const TABLAS_CON_DINERO = [
+  { tabla: 'consultations', columnas: ['cost'] },
+  { tabla: 'appointments', columnas: ['cost'] },
+  { tabla: 'inventory_items', columnas: ['unit_cost', 'sale_price'] },
+  { tabla: 'consultation_inventory_usage', columnas: ['unit_cost', 'total_cost'] },
+];
+
+/**
+ * ¿Tiene esta clínica algún importe guardado?
+ *
+ * Para en cuanto encuentra el primero. Una base antigua puede no tener alguna
+ * de las tablas de inventario, así que se comprueba antes: un `relation does
+ * not exist` aquí bloquearía una pantalla de configuración por nada.
+ */
+async function tieneImportes(clinicId) {
+  for (const def of TABLAS_CON_DINERO) {
+    const existe = await query('SELECT to_regclass($1) AS t', [`public.${def.tabla}`]);
+    if (!existe.rows[0] || !existe.rows[0].t) continue;
+    const condicion = def.columnas.map((c) => `COALESCE(${c}, 0) <> 0`).join(' OR ');
+    const r = await query(
+      `SELECT 1 FROM ${def.tabla} WHERE clinic_id = $1 AND (${condicion}) LIMIT 1`,
+      [clinicId]
+    );
+    if (r.rowCount > 0) return true;
+  }
+  return false;
+}
+
+async function estadoDePais(clinicId) {
+  const r = await query('SELECT currency, country FROM clinics WHERE id = $1', [clinicId]);
+  const fila = r.rows[0] || {};
+  const pais = monedas.normalizarPais(fila.country) || monedas.PAIS_POR_DEFECTO;
+  return {
+    country: pais,
+    // Lo guardado manda para leer los importes que ya existen; si por lo que sea
+    // no cuadrara con el país, la columna es la verdad.
+    currency: monedas.normalizarMoneda(fila.currency) || monedas.monedaDePais(pais),
+    paises: monedas.PAISES,
+    monedas: monedas.MONEDAS,
+    puede_cambiar: !(await tieneImportes(clinicId)),
+  };
+}
+
+// GET /api/clinics/me/currency — país, moneda y catálogo para pintar la pantalla
+router.get('/me/currency', authenticate, requireRole(...MONEDA_ROLES), async (req, res) => {
+  if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
+  res.json(await estadoDePais(req.user.clinic_id));
+});
+
+// PUT /api/clinics/me/country — corrige el país (y con él la moneda)
+router.put('/me/country', authenticate, requireRole(...MONEDA_ROLES), async (req, res) => {
+  if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
+
+  const pais = monedas.normalizarPais((req.body || {}).country);
+  if (!pais) {
+    return res.status(400).json({
+      error: 'Selecciona uno de los países disponibles.',
+      paises: monedas.PAISES.map((p) => p.codigo),
+    });
+  }
+
+  const actual = await query('SELECT country, currency FROM clinics WHERE id = $1', [req.user.clinic_id]);
+  const paisActual = monedas.normalizarPais(actual.rows[0] && actual.rows[0].country)
+    || monedas.PAIS_POR_DEFECTO;
+
+  if (pais === paisActual) {
+    return res.json({ success: true, country: pais, currency: monedas.monedaDePais(pais), sin_cambio: true });
+  }
+
+  // El candado. Se comprueba en el servidor y no solo en la pantalla: el 409 es
+  // lo que impide que una petición directa reetiquete como dólares un histórico
+  // que está en lempiras.
+  if (await tieneImportes(req.user.clinic_id)) {
+    return res.status(409).json({
+      error: 'Ya tienes cobros registrados en ' +
+        monedas.moneda(monedas.monedaDePais(paisActual)).nombre +
+        '. Cambiar de país cambiaría la moneda con la que se leen, así que escríbenos y lo revisamos contigo.',
+      code: 'clinica_con_importes',
+    });
+  }
+
+  const moneda = monedas.monedaDePais(pais);
+  await query(
+    'UPDATE clinics SET country = $2, currency = $3 WHERE id = $1',
+    [req.user.clinic_id, pais, moneda]
+  );
+
+  res.json({ success: true, country: pais, currency: moneda });
 });
 
 // GET /api/clinics/geo/search?q=… — autocompletado de direcciones (Nominatim vía
@@ -286,16 +403,19 @@ router.put('/me/booking-color', authenticate, requireRole(...BOOKING_COLOR_ROLES
 router.put('/me', authenticate, requireRole('clinic_admin'), async (req, res) => {
   if (!req.user.clinic_id) return res.status(403).json({ error: 'Sin clínica asignada' });
 
-  const { name, type, tax_id, address, city, phone, email, info, brand_color, currency, website, show_on_public_map } = req.body || {};
+  const { name, type, tax_id, address, city, phone, email, info, brand_color, website, show_on_public_map } = req.body || {};
 
+  // OJO: `currency` ya NO se lee aquí, aunque el cuerpo lo traiga.
+  //
+  // La moneda la decide el país (ver lib/monedas.js), y el país tiene su propio
+  // endpoint con su candado. Colgando de este PUT, guardar el teléfono de la
+  // clínica con un `currency` viejo en el formulario reetiquetaba el histórico
+  // de cobros con otro símbolo sin que nadie lo pidiera.
   if (!name || !String(name).trim()) {
     return res.status(400).json({ error: 'El nombre de la clínica es requerido' });
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Correo de contacto inválido' });
-  }
-  if (currency && !['HNL', 'USD'].includes(currency)) {
-    return res.status(400).json({ error: 'Moneda no válida' });
   }
   if (website && !/^https?:\/\//i.test(website)) {
     return res.status(400).json({ error: 'El sitio web debe comenzar con http:// o https://' });
@@ -323,7 +443,7 @@ router.put('/me', authenticate, requireRole('clinic_admin'), async (req, res) =>
 
   try {
     const showFlagSql = (typeof show_on_public_map === 'boolean')
-      ? ', show_on_public_map = $13' : '';
+      ? ', show_on_public_map = $12' : '';
     const invalidateGeoSql = addressChanged
       ? ', latitude = NULL, longitude = NULL, geocoded_at = NULL' : '';
     const params = [
@@ -336,7 +456,6 @@ router.put('/me', authenticate, requireRole('clinic_admin'), async (req, res) =>
       email || '',
       info || '',
       brand_color || '#0891b2',
-      currency || 'HNL',
       website || '',
       req.user.clinic_id,
     ];
@@ -345,8 +464,8 @@ router.put('/me', authenticate, requireRole('clinic_admin'), async (req, res) =>
       `UPDATE clinics SET
          name = $1, type = $2, tax_id = $3, address = $4, city = $5,
          phone = $6, email = $7, info = $8, brand_color = $9,
-         currency = $10, website = $11${showFlagSql}${invalidateGeoSql}
-       WHERE id = $12`,
+         website = $10${showFlagSql}${invalidateGeoSql}
+       WHERE id = $11`,
       params
     );
     if (addressChanged && (newAddress || newCity)) {

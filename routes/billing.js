@@ -34,6 +34,7 @@ function publicPlan(p) {
     interval: p.billing_interval,
     interval_count: p.interval_count,
     trial_days: p.trial_days,
+    features: p.features || {},
   };
 }
 
@@ -169,6 +170,10 @@ router.get('/status', authenticate, async (req, res) => {
     checkout,
     checkouts,
     plans: planes.map(publicPlan),
+    // Qué tiene desbloqueado ESTA clínica ahora mismo. Sale del mismo sitio que
+    // usa el guardián de la API, así que la pantalla no puede enseñar abierto lo
+    // que el servidor cierra (ni al revés).
+    features: await enforcement.clinicFeatures(clinicId),
     access: {
       active: acceso.active || exento || !enforcement.enforcementEnabled(),
       paid: acceso.active,

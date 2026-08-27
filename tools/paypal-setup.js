@@ -2,8 +2,16 @@
 /*
  * paypal-setup.js — Prepara PayPal para cobrar la suscripción mensual.
  *
- * Crea (si no existen) el producto, el plan de $19.99/mes y el webhook, y
- * escupe las líneas que hay que pegar en .env / en las variables de Render.
+ * Crea (si no existen) el producto, LOS DOS PLANES del catálogo y el webhook, y
+ * escupe las líneas que hay que pegar en .env / en las variables de Render:
+ *
+ *     Básico   SUBSCRIPTION_PRICE   → PAYPAL_PLAN_ID
+ *     Premium  PREMIUM_PRICE (49.99)→ PAYPAL_PLAN_ID_PREMIUM
+ *
+ * En PayPal el precio vive DENTRO del plan, así que cada importe del catálogo
+ * necesita su propio plan allí. Sin el de Premium, el cobro recurrente de ese
+ * plan se niega a arrancar a propósito — antes cobraba el precio del Básico sin
+ * dar ningún error, que es la peor forma posible de fallar.
  *
  *   node tools/paypal-setup.js              # entorno según PAYPAL_ENV (sandbox por defecto)
  *   PAYPAL_ENV=live node tools/paypal-setup.js
@@ -22,6 +30,11 @@ const paypal = require('../lib/paypal');
 
 const PRODUCT_NAME = process.env.SUBSCRIPTION_BRAND_NAME || 'Salud Digital';
 const PLAN_NAME = 'Salud Digital — Plan Individual (mensual)';
+const PLAN_NAME_PREMIUM = 'Salud Digital — Plan Premium (mensual)';
+
+// El precio del Premium. Se puede pisar por entorno si algún día cambia, pero
+// el valor de referencia es el que siembra db.js.
+const PREMIUM_PRICE = parseFloat(process.env.PREMIUM_PRICE || '49.99');
 
 // Eventos que necesita routes/billing.js para mantener el estado al día.
 const EVENT_TYPES = [
@@ -100,6 +113,38 @@ async function main() {
     }
   }
 
+  // ── 1b. Plan Premium ──
+  // Va aparte y no dentro del bloque de arriba porque son independientes: se
+  // puede tener uno y no el otro, y re-ejecutar esto con el Básico ya creado
+  // tiene que poder crear solo el que falta.
+  let planIdPremium = process.env.PAYPAL_PLAN_ID_PREMIUM || '';
+  if (planIdPremium) {
+    log('• PAYPAL_PLAN_ID_PREMIUM ya está en .env → no se crea otro (' + planIdPremium + ')');
+  } else {
+    try {
+      log('• Creando producto del Premium…');
+      const productoPremium = await paypal.createProduct({
+        name: PRODUCT_NAME + ' Premium',
+        description: 'Plataforma clínica Salud Digital — plan Premium con migración de expedientes.',
+      });
+      log('  producto: ' + productoPremium.id);
+
+      log('• Creando plan Premium (' + PREMIUM_PRICE.toFixed(2) + ' ' + currency + '/mes)…');
+      const planPremium = await paypal.createPlan({
+        productId: productoPremium.id,
+        name: PLAN_NAME_PREMIUM,
+        description: 'Salud Digital completo, más Migrar Expedientes y la migración de tu historial hecha por nuestro equipo.',
+        amount: PREMIUM_PRICE,
+        currencyCode: currency,
+      });
+      planIdPremium = planPremium.id;
+      log('  plan: ' + planIdPremium);
+    } catch (err) {
+      log('• No se pudo crear el plan Premium: ' + err.message);
+      log('  Sin él, el Premium solo se puede cobrar con PAYMENTS_PROVIDER=paypal_onetime.');
+    }
+  }
+
   // ── 2. Webhook ──
   let webhookId = process.env.PAYPAL_WEBHOOK_ID || '';
   const webhookUrl = appUrl ? appUrl + '/api/billing/webhook' : '';
@@ -132,8 +177,10 @@ async function main() {
   log('');
   log('   PAYPAL_ENV=' + env);
   log('   PAYPAL_PLAN_ID=' + planId);
+  if (planIdPremium) log('   PAYPAL_PLAN_ID_PREMIUM=' + planIdPremium);
   if (webhookId) log('   PAYPAL_WEBHOOK_ID=' + webhookId);
   log('   SUBSCRIPTION_PRICE=' + price.toFixed(2));
+  if (planIdPremium) log('   PREMIUM_PRICE=' + PREMIUM_PRICE.toFixed(2));
   log('   SUBSCRIPTION_CURRENCY=' + currency);
   log('════════════════════════════════════════════════');
   log('');

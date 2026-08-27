@@ -431,7 +431,7 @@
 
       <div class="form-grid cols-2">
         <div class="form-group">
-          <label for="consCost">Costo de la consulta (L.)</label>
+          <label for="consCost">Costo de la consulta (<span data-moneda="prefijo">L.</span>)</label>
           <input type="text" id="consCost" placeholder="0.00" inputmode="decimal">
         </div>
         <div class="form-group">
@@ -455,6 +455,7 @@
 </main>
 
 <script src="/common.js"></script>
+<script src="/monedas.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
 <!-- Inventario desactivado — para reactivar, descomentar esta línea:
@@ -748,10 +749,9 @@
     saving = true;
     setStatus('Guardando…');
     try {
-      // Parse cost (acepta "L. 1,500.00" → 1500)
-      const costRaw = (document.getElementById('consCost')?.value || '')
-        .replace(/^L\.\s*/i, '').replace(/,/g, '').trim();
-      const cost = parseFloat(costRaw) || 0;
+      // SDMoneda.parse entiende el prefijo y la puntuación de cualquiera de
+      // las monedas soportadas ("L. 1,500.00", "$1.500.000").
+      const cost = SDMoneda.parse(document.getElementById('consCost')?.value);
       const payment_status = document.getElementById('consPayment')?.value || 'pending';
       const payment_notes  = document.getElementById('consPaymentNotes')?.value || '';
 

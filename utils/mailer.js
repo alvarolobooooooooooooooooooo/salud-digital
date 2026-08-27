@@ -167,8 +167,43 @@ async function sendAccountRejected({ to, doctorName, reason }) {
   );
 }
 
+// ── Migración asistida: el equipo tiene que enterarse ──
+// Al equipo, no a la clínica. Lleva todo lo que hace falta para ponerse a
+// trabajar sin tener que pedir nada de vuelta: quién, de qué sistema viene,
+// cuánto hay y por dónde responderle.
+async function sendMigrationRequest({ peticionId, clinica, quien, email, contacto, sistema, volumen, notas }) {
+  const destino = process.env.ADMIN_ALERT_EMAIL || process.env.EMAIL_FROM;
+  if (!destino) return false;
+  const fila = (k, v) =>
+    `<tr><td style="padding:4px 12px 4px 0;color:#6b7280;vertical-align:top">${k}</td><td style="padding:4px 0;color:#111827"><b>${escapeHtml(v || '—')}</b></td></tr>`;
+  return enviar(
+    {
+      to: destino,
+      subject: `Migración asistida — ${escapeHtml(clinica || 'clínica')} (Premium)`,
+      trackingSettings: { clickTracking: { enable: false, enableText: false } },
+      html: envoltorio(
+        'Una clínica Premium pide su migración',
+        `<p style="color:#374151">Hay que traerle los expedientes de su sistema anterior:</p>
+         <table style="font-size:14px;border-collapse:collapse">
+           ${fila('Petición', '#' + peticionId)}
+           ${fila('Clínica', clinica)}
+           ${fila('Lo pide', quien)}
+           ${fila('Correo de la cuenta', email)}
+           ${fila('Responder a', contacto)}
+           ${fila('Sistema de origen', sistema)}
+           ${fila('Volumen', volumen)}
+           ${fila('Notas', notas)}
+         </table>
+         <p style="color:#6b7280;font-size:13px;margin-top:20px">La petición ya está guardada: la clínica ve que se recibió aunque este correo se pierda.</p>`,
+      ),
+    },
+    'petición de migración asistida',
+  );
+}
+
 module.exports = {
   sendDoctorInvitation,
+  sendMigrationRequest,
   sendSignupPendingAlert,
   sendAccountApproved,
   sendAccountRejected,

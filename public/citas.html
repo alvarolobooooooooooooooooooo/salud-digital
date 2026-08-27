@@ -665,8 +665,8 @@
     /* status-tinted apt blocks */
     .apt-block.s-pending { background: #fff7e0; border: 1px solid #fcd34d; border-left: 3px solid var(--warn-500); }
     .apt-block.s-pending .apt-time { color: #92400e; }
-    .apt-block.s-confirmed { background: #ecfdf5; border: 1px solid #a7f3d0; border-left: 3px solid #10b981; }
-    .apt-block.s-confirmed .apt-time { color: #065f46; }
+    .apt-block.s-confirmed { background: #ecfeff; border: 1px solid #a5f3fc; border-left: 3px solid #06b6d4; }
+    .apt-block.s-confirmed .apt-time { color: #155e75; }
     .apt-block.s-waiting { background: #eaf2ff; border: 1px solid #93c5fd; border-left: 3px solid var(--info-500); }
     .apt-block.s-waiting .apt-time { color: #1e40af; }
     .apt-block.s-completed { background: #e6f7ee; border: 1px solid #86efac; border-left: 3px solid var(--ok-500); }
@@ -787,6 +787,8 @@
     .month-apt-time { font-weight: 600; margin-right: 4px; font-variant-numeric: tabular-nums; }
     .month-apt.s-pending { background: #fff7e0; border-left: 2px solid var(--warn-500); }
     .month-apt.s-pending .month-apt-time { color: #92400e; }
+    .month-apt.s-confirmed { background: #ecfeff; border-left: 2px solid #06b6d4; }
+    .month-apt.s-confirmed .month-apt-time { color: #155e75; }
     .month-apt.s-waiting { background: #eaf2ff; border-left: 2px solid var(--info-500); }
     .month-apt.s-waiting .month-apt-time { color: #1e40af; }
     .month-apt.s-completed { background: #e6f7ee; border-left: 2px solid var(--ok-500); }
@@ -843,6 +845,7 @@
     }
     .list-row:hover { box-shadow: var(--shadow-md); border-color: var(--ink-300); transform: translateY(-1px); }
     .list-row.s-pending { border-left: 3px solid var(--warn-500); }
+    .list-row.s-confirmed { border-left: 3px solid #06b6d4; }
     .list-row.s-waiting { border-left: 3px solid var(--info-500); }
     .list-row.s-completed { border-left: 3px solid var(--ok-500); }
     .list-row.s-cancelled { border-left: 3px solid var(--bad-500); }
@@ -879,8 +882,8 @@
     .status-badge .dot { width: 6px; height: 6px; border-radius: 999px; }
     .status-badge.s-pending { background: var(--warn-50); color: var(--warn-700); border: 1px solid var(--warn-100); }
     .status-badge.s-pending .dot { background: var(--warn-500); }
-    .status-badge.s-confirmed { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-    .status-badge.s-confirmed .dot { background: #10b981; }
+    .status-badge.s-confirmed { background: #ecfeff; color: #0e7490; border: 1px solid #a5f3fc; }
+    .status-badge.s-confirmed .dot { background: #06b6d4; }
     .status-badge.s-waiting { background: var(--info-50); color: var(--info-700); border: 1px solid var(--info-100); }
     .status-badge.s-waiting .dot { background: var(--info-500); }
     .status-badge.s-completed { background: var(--ok-50); color: var(--ok-700); border: 1px solid var(--ok-100); }
@@ -1004,6 +1007,7 @@
     }
     .kanban-more-btn:hover { border-color: var(--teal-500); color: var(--teal-700); }
     .kanban-card.s-pending { border-top: 2px solid var(--warn-500); }
+    .kanban-card.s-confirmed { border-top: 2px solid #06b6d4; }
     .kanban-card.s-waiting { border-top: 2px solid var(--info-500); }
     .kanban-card.s-completed { border-top: 2px solid var(--ok-500); }
     .kanban-card.s-cancelled { border-top: 2px solid var(--bad-500); }
@@ -2529,7 +2533,7 @@ function renderKpis() {
   const pending = monthApts.filter(a => (a.status||'pending') === 'pending').length;
   const completed = monthApts.filter(a => a.status === 'completed').length;
   const cancelled = monthApts.filter(a => a.status === 'cancelled').length;
-  const todayConfirmed = todayApts.filter(a => a.status === 'waiting' || a.status === 'completed').length;
+  const todayConfirmed = todayApts.filter(a => a.status === 'confirmed' || a.status === 'waiting' || a.status === 'completed').length;
   const todayPending = todayApts.filter(a => (a.status||'pending') === 'pending').length;
   const attendanceTotal = completed + cancelled;
   const attendanceRate = attendanceTotal > 0 ? Math.round((completed / attendanceTotal) * 100) : 0;
@@ -3220,9 +3224,9 @@ function listRowHtml(a) {
   let actions = '';
   if (status === 'pending') {
     actions = `<button class="btn-sm btn-primary" data-apt-action="confirm" data-apt-id="${a.id}">${SVG.check} Confirmar</button>`;
-  } else if (status === 'waiting' && isDoctor) {
+  } else if ((status === 'waiting' || status === 'confirmed') && isDoctor) {
     actions = `<button class="btn-sm btn-primary" data-apt-action="register" data-apt-id="${a.id}">${SVG.bolt} Iniciar consulta</button>`;
-  } else if (status === 'waiting') {
+  } else if (status === 'waiting' || status === 'confirmed') {
     actions = `<button class="btn-sm btn-secondary" data-apt-action="reschedule" data-apt-id="${a.id}">${SVG.refresh} Reprogramar</button>`;
   } else if (status === 'completed') {
     actions = `<button class="btn-sm btn-secondary" data-apt-action="view" data-apt-id="${a.id}">${SVG.eye} Ver consulta</button>`;
@@ -3359,7 +3363,7 @@ function openDrawer(id) {
     footer = `
       <button class="btn-danger" onclick="changeStatus(${a.id}, 'cancelled')">${SVG.ban} Cancelar</button>
       <button class="btn-primary" onclick="changeStatus(${a.id}, 'waiting')">${SVG.check} Confirmar cita</button>`;
-  } else if (status === 'waiting') {
+  } else if (status === 'waiting' || status === 'confirmed') {
     footer = `
       <button class="btn-secondary" onclick="openEdit(${a.id});closeDrawer()">${SVG.refresh} Reprogramar</button>
       ${isDoctor ? `<button class="btn-primary" onclick="closeDrawer();window.location.href='${consultationPathForSpecialty(currentUser && currentUser.specialty)}?id=${a.id}'">${SVG.bolt} Iniciar consulta</button>` : `<button class="btn-primary" onclick="changeStatus(${a.id}, 'completed')">${SVG.check} Marcar como atendida</button>`}`;

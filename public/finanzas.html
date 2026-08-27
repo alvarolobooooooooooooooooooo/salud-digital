@@ -262,6 +262,11 @@
 
     .stat-body {
       flex: 1;
+      /* Sin `min-width: 0` un hijo flex no encoge por debajo de su contenido, y
+         un importe largo se sale de la tarjeta —que recorta con overflow:hidden—
+         en vez de repartirse en dos líneas. Se vio con el peso argentino:
+         "$ 255.250,00" desbordaba 37 px y se perdía el último dígito. */
+      min-width: 0;
     }
 
     .stat-card-sm .stat-label {
@@ -1278,7 +1283,7 @@
     <!-- Large Balance Card -->
     <div class="card stat-card-large">
       <div class="stat-label">Ingresos del Mes</div>
-      <div class="stat-value" id="monthRevenue">L. 0.00</div>
+      <div class="stat-value" id="monthRevenue" data-moneda="cero">L. 0.00</div>
       <div class="stat-sub">Mes actual</div>
     </div>
 
@@ -1291,7 +1296,7 @@
       </div>
       <div class="stat-body">
         <div class="stat-label">Ingresos Totales</div>
-        <div class="stat-value" id="totalRevenue">L. 0.00</div>
+        <div class="stat-value" id="totalRevenue" data-moneda="cero">L. 0.00</div>
         <div class="stat-sub">Histórico</div>
       </div>
     </div>
@@ -1337,7 +1342,7 @@
         </div>
         <div class="stat-body">
           <div class="stat-label">Ganancia del mes</div>
-          <div class="stat-value" id="prodProfitMonth">L. 0.00</div>
+          <div class="stat-value" id="prodProfitMonth" data-moneda="cero">L. 0.00</div>
           <div class="stat-sub" id="prodProfitMonthSub">0 ventas · 0 unidades</div>
         </div>
       </div>
@@ -1347,7 +1352,7 @@
         </div>
         <div class="stat-body">
           <div class="stat-label">Ingreso ventas (mes)</div>
-          <div class="stat-value" id="prodRevenueMonth">L. 0.00</div>
+          <div class="stat-value" id="prodRevenueMonth" data-moneda="cero">L. 0.00</div>
           <div class="stat-sub">Bruto del mes actual</div>
         </div>
       </div>
@@ -1357,7 +1362,7 @@
         </div>
         <div class="stat-body">
           <div class="stat-label">Ganancia histórica</div>
-          <div class="stat-value" id="prodProfitHistoric">L. 0.00</div>
+          <div class="stat-value" id="prodProfitHistoric" data-moneda="cero">L. 0.00</div>
           <div class="stat-sub" id="prodProfitHistoricSub">Acumulado total</div>
         </div>
       </div>
@@ -1501,6 +1506,7 @@
 
 <script src="/icons.js"></script>
 <script src="/common.js"></script>
+<script src="/monedas.js"></script>
 <script src="/layout.js"></script>
 <script>
   requireAuth(['clinic_admin', 'doctor']);
@@ -1508,7 +1514,62 @@
   // ===================== Motor de filtros reutilizable por tabla =====================
   // Cada tabla mantiene su arreglo de filas crudas y se re-renderiza al cambiar cualquier
   // filtro (preset/fecha, búsqueda, selects), el orden, o al refrescar tras un cobro.
-  const finMoney = n => 'L. ' + Number(n || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  // Todo importe de esta pantalla pasa por aquí. El símbolo y la puntuación
+  // salen de la moneda de la clínica (public/monedas.js), no de una constante:
+  // antes era 'L. ' escrito a mano, y una clínica mexicana veía sus pesos con
+  // una L delante.
+  const finMoney = n => SDMoneda.fmt(n);
+
+  // ── Que un importe grande no se pierda por el borde de su tarjeta ──
+  //
+  // Las tarjetas de KPI tienen ancho fijo y `overflow: hidden`, y un importe es
+  // un bloque que casi no se puede partir. Con lempiras colaba porque "L. " deja
+  // un espacio donde romper la línea; con el peso argentino no: "$ 255.250,00"
+  // desbordaba 37 px y el último dígito desaparecía sin avisar.
+  //
+  // Y no es cuestión de elegir mejor el tamaño de letra: con la inflación
+  // argentina el histórico de una clínica se cuenta en decenas de millones, así
+  // que "$ 45.250.000,00" tampoco entraría con ningún valor fijo. Se mide y se
+  // encoge hasta que cabe, con un suelo para que nunca quede ilegible.
+  //
+  // Un número recortado en una pantalla de cobros no es un defecto estético: es
+  // una cifra que se lee mal y nadie sabe que está mal.
+  const SUELO_IMPORTE = 16;
+  const importesAjustables = new Set();
+
+  function aplicarAjuste(el) {
+    el.style.whiteSpace = 'nowrap';
+    el.style.fontSize = '';   // se reevalúa desde el tamaño de diseño, no desde el ya encogido
+    let px = parseFloat(getComputedStyle(el).fontSize) || 36;
+    while (px > SUELO_IMPORTE && el.scrollWidth > el.clientWidth) {
+      px -= 1;
+      el.style.fontSize = px + 'px';
+    }
+  }
+
+  function ajustarImporte(el) {
+    if (!el) return;
+    importesAjustables.add(el);
+    aplicarAjuste(el);
+  }
+
+  // Medir UNA vez no basta, y esto costó una captura:
+  //
+  //   · La primera medición ocurre con la tipografía de respaldo. Cuando Poppins
+  //     termina de cargar, las letras cambian de ancho y el importe vuelve a
+  //     desbordar — con la misma cifra, unas veces cabía y otras no.
+  //   · Al estrechar la ventana, la tarjeta encoge y el número deja de caber.
+  //
+  // En los dos casos se vuelve a medir desde el tamaño de diseño, así que si hay
+  // sitio de sobra el importe recupera su tamaño en vez de quedarse pequeño.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => importesAjustables.forEach(aplicarAjuste)).catch(() => {});
+  }
+  let reajuste = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(reajuste);
+    reajuste = setTimeout(() => importesAjustables.forEach(aplicarAjuste), 120);
+  });
 
   function finPresetRange(preset, cStart, cEnd) {
     const now = new Date();
@@ -1940,6 +2001,11 @@
   (async () => {
     const pageLoader = document.getElementById('pageLoader');
     try {
+      // Antes de pintar un solo importe hay que saber en qué moneda va. Resuelve
+      // al instante si el perfil está en caché; si no, espera a /api/auth/me. Sin
+      // esto la pantalla se pintaría en lempiras y saltaría a la moneda real un
+      // segundo después.
+      await SDMoneda.listo();
       const role = getRole();
       const isAdmin = role === 'clinic_admin';
       const stats = await api('/api/consultations/finances/summary');
@@ -1992,9 +2058,9 @@
         cont.innerHTML = payload.days.map((key, i) => {
           const value = numValues[i];
           const height = Math.max((value / maxValue) * 100, 0);
-          const formatted = Number(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+          const formatted = SDMoneda.fmt(value);
           const zeroAttr = value > 0 ? '' : ' data-zero="1"';
-          return `<div class="chart-bar" style="height: ${height}%; min-height: ${value > 0 ? '2px' : '0px'};" data-value="L. ${formatted}"${zeroAttr}></div>`;
+          return `<div class="chart-bar" style="height: ${height}%; min-height: ${value > 0 ? '2px' : '0px'};" data-value="${formatted}"${zeroAttr}></div>`;
         }).join('');
         daysEl.innerHTML = payload.days.map(k => renderChartDay(k, granularity)).join('');
       };
@@ -2019,9 +2085,11 @@
           });
         });
       };
-      document.getElementById('monthRevenue').textContent = 'L. ' + fmtNum(stats.month_revenue);
-      document.getElementById('totalRevenue').textContent = 'L. ' + fmtNum(stats.total_revenue);
+      document.getElementById('monthRevenue').textContent = SDMoneda.fmt(stats.month_revenue);
+      document.getElementById('totalRevenue').textContent = SDMoneda.fmt(stats.total_revenue);
       document.getElementById('pendingCount').textContent = stats.pending_count;
+      ajustarImporte(document.getElementById('monthRevenue'));
+      ajustarImporte(document.getElementById('totalRevenue'));
 
       // ── Instancias de filtro por tabla ──
       const finDate = v => new Date(v).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -2259,9 +2327,9 @@
         // const m = summary?.month || {};
         // const h = summary?.historic || {};
         // const top = summary?.top_products || [];
-        // document.getElementById('prodProfitMonth').textContent = 'L. ' + fmtNum(m.profit || 0);
-        // document.getElementById('prodRevenueMonth').textContent = 'L. ' + fmtNum(m.revenue || 0);
-        // document.getElementById('prodProfitHistoric').textContent = 'L. ' + fmtNum(h.profit || 0);
+        // document.getElementById('prodProfitMonth').textContent = SDMoneda.fmt(m.profit || 0);
+        // document.getElementById('prodRevenueMonth').textContent = SDMoneda.fmt(m.revenue || 0);
+        // document.getElementById('prodProfitHistoric').textContent = SDMoneda.fmt(h.profit || 0);
         // const monthSub = document.getElementById('prodProfitMonthSub');
         // if (monthSub) {
           // const count = Number(m.sales_count || 0);
@@ -2288,9 +2356,9 @@
                 // <div class="top-product-thumb">${thumb}</div>
                 // <div class="top-product-info">
                   // <div class="top-product-name">${esc(p.name)}</div>
-                  // <div class="top-product-meta">${Number(p.units || 0)} u · Ingreso L. ${fmtNum(p.revenue || 0)}</div>
+                  // <div class="top-product-meta">${Number(p.units || 0)} u · Ingreso ${SDMoneda.fmt(p.revenue || 0)}</div>
                 // </div>
-                // <div class="top-product-profit" style="color:${profitColor}">L. ${fmtNum(p.profit || 0)}</div>
+                // <div class="top-product-profit" style="color:${profitColor}">${SDMoneda.fmt(p.profit || 0)}</div>
               // </div>`;
           // }).join('');
         // }
@@ -2318,8 +2386,10 @@
           // Inventario desactivado — para reactivar, descomentar esta línea:
           // renderProductSales(prodSummary, prodSales);
 
-          document.getElementById('monthRevenue').textContent = 'L. ' + fmtNum(stats.month_revenue);
-          document.getElementById('totalRevenue').textContent = 'L. ' + fmtNum(stats.total_revenue);
+          document.getElementById('monthRevenue').textContent = SDMoneda.fmt(stats.month_revenue);
+          document.getElementById('totalRevenue').textContent = SDMoneda.fmt(stats.total_revenue);
+          ajustarImporte(document.getElementById('monthRevenue'));
+          ajustarImporte(document.getElementById('totalRevenue'));
           document.getElementById('pendingCount').textContent = stats.pending_count;
 
           renderChart(weekly);

@@ -535,6 +535,22 @@
             <div class="field-error">Escribe el nombre de tu clínica o consultorio.</div>
           </div>
 
+          <!--
+            El país no es un dato de ficha: fija la moneda con la que el doctor
+            verá TODO su dinero en Finanzas. Por eso el hint dice cuál le toca
+            antes de continuar, y por eso es obligatorio. Cambiarlo después se
+            puede (Configuración › Clínica), pero ya cuesta una conversión de
+            los importes guardados.
+          -->
+          <div class="field" id="fCountry">
+            <label for="country">País donde atiendes</label>
+            <select id="country">
+              <option value="">— Selecciona tu país —</option>
+            </select>
+            <span class="hint" id="countryHint">Define la moneda de tus cobros y de todo lo que verás en Finanzas.</span>
+            <div class="field-error">Selecciona el país donde atiendes.</div>
+          </div>
+
           <div class="field">
             <label for="city">Ciudad <span style="color:var(--text-faint);font-weight:400;">(opcional)</span></label>
             <input type="text" id="city" autocomplete="address-level2" placeholder="Tegucigalpa">
@@ -676,6 +692,7 @@
   </div>
 
   <script src="/icons.js"></script>
+  <script src="/monedas.js"></script>
   <script src="/location.js"></script>
   <script src="/map-picker.js"></script>
   <script src="/legal-consent.js"></script>
@@ -758,6 +775,36 @@
       }
     })();
 
+    // ── País → moneda ──
+    // La lista sale de public/monedas.js (gemelo de lib/monedas.js), que es la
+    // MISMA que valida el servidor en /api/auth/register. Duplicar aquí los
+    // países habría significado que añadir uno funcionara en la pantalla y
+    // fallara al enviar.
+    (function pintarPaises() {
+      var sel = $('country');
+      SDMoneda.PAISES.forEach(function (p) {
+        var o = document.createElement('option');
+        o.value = p.codigo;
+        o.textContent = p.nombre;
+        sel.appendChild(o);
+      });
+      sel.addEventListener('change', function () {
+        limpiar('fCountry');
+        var hint = $('countryHint');
+        var p = SDMoneda.paisPorCodigo(sel.value);
+        if (!p) {
+          hint.textContent = 'Define la moneda de tus cobros y de todo lo que verás en Finanzas.';
+          return;
+        }
+        var m = SDMoneda.ficha(p.moneda);
+        hint.textContent = 'Tus cobros y tu panel de Finanzas irán en ' + m.nombre +
+          ' (' + m.prefijo.trim() + ' · ' + m.codigo + ').';
+        // El teléfono se pide dos campos más abajo: el ejemplo pasa al prefijo
+        // del país elegido, que si no seguiría pidiendo un número hondureño.
+        $('phone').placeholder = p.telefono + ' 0000 0000';
+      });
+    })();
+
     function marcar(idCampo, mal) {
       var el = $(idCampo);
       if (el) el.classList.toggle('invalid', !!mal);
@@ -813,6 +860,7 @@
         if (!datos.specialty) { marcar('fSpec', true); ok = false; }
       } else if (n === 3) {
         if ($('clinic').value.trim().length < 3) { marcar('fClinic', true); ok = false; }
+        if (!SDMoneda.normalizarPais($('country').value)) { marcar('fCountry', true); ok = false; }
       } else if (n === PASO_LEGAL) {
         // Redundante con el botón deshabilitado, pero el botón se puede forzar
         // desde la consola y esto no. (Y el servidor lo comprueba otra vez.)
@@ -922,6 +970,14 @@
         ['Especialidad', datos.specialty],
         ['Consultorio', $('clinic').value.trim()]
       ];
+      var elegido = SDMoneda.paisPorCodigo($('country').value);
+      if (elegido) {
+        var m = SDMoneda.ficha(elegido.moneda);
+        filas.push(['País', elegido.nombre]);
+        // La moneda se enseña en el resumen porque es la única decisión de este
+        // formulario que después cuesta deshacer: cambiarla convierte importes.
+        filas.push(['Moneda', m.nombre + ' (' + m.prefijo.trim() + ')']);
+      }
       var ciudad = $('city').value.trim();
       var tel = $('phone').value.trim();
       var direccion = $('address').value.trim();
@@ -1126,6 +1182,7 @@
             password: $('password').value,
             specialty: datos.specialty,
             clinic_name: $('clinic').value.trim(),
+            country: $('country').value,
             city: $('city').value.trim(),
             phone: $('phone').value.trim(),
             address: $('address').value.trim(),

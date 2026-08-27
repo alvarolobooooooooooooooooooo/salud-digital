@@ -1346,7 +1346,7 @@
       <h3>Información de Pago</h3>
       <div class="form-grid two">
         <div class="form-group">
-          <label>Costo de la Consulta (L.)</label>
+          <label>Costo de la Consulta (<span data-moneda="prefijo">L.</span>)</label>
           <input type="text" disabled id="consCost" placeholder="0.00" inputmode="decimal">
         </div>
         <div class="form-group">
@@ -1372,6 +1372,7 @@
 </main>
 
 <script src="/common.js"></script>
+<script src="/monedas.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
 <!-- Inventario desactivado — para reactivar, descomentar esta línea:
@@ -1536,7 +1537,7 @@ async function loadConsultation() {
     
     // Cost with formatting
     if (consultation.cost) {
-      const formatted = `L. ${parseFloat(consultation.cost).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const formatted = SDMoneda.fmt(consultation.cost);
       setInputValue('consCost', formatted);
     }
     

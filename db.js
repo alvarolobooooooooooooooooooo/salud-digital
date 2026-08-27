@@ -531,7 +531,17 @@ const initDb = async () => {
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS confirmation_card_message TEXT DEFAULT 'Hola {{patientName}}, ¿podrás asistir a esta cita?'",
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS map_url TEXT DEFAULT ''",
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS location_notes TEXT DEFAULT ''",
-      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS location_source TEXT'
+      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS location_source TEXT',
+      // ── País de la clínica ──
+      // Código ISO-3166 alfa-2 ('HN', 'SV', 'NI', 'MX', 'CO'). Se elige en el
+      // alta y SUGIERE la moneda, no la impone: ver lib/monedas.js.
+      //
+      // El DEFAULT 'HN' no es una preferencia, es un hecho: todas las clínicas
+      // que existen cuando esta columna nace son hondureñas. Rellenarlas con
+      // 'HN' las deja exactamente como estaban (currency ya era 'HNL'); dejar la
+      // columna en NULL las habría dejado sin país y sin moneda derivable.
+      "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS country TEXT DEFAULT 'HN'",
+      "UPDATE clinics SET country = 'HN' WHERE country IS NULL OR country = ''"
     ];
 
     // Leads (formulario de contacto público de la landing). Se modelan como tabla aparte
@@ -618,6 +628,10 @@ const initDb = async () => {
         interval_count INTEGER NOT NULL DEFAULT 1 CHECK (interval_count > 0),
         trial_days INTEGER NOT NULL DEFAULT 0 CHECK (trial_days >= 0),
         is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        -- Qué desbloquea el plan, más allá de "entrar". Va como JSONB y no como
+        -- columnas porque la lista crece con el producto y no quiero una
+        -- migración de esquema cada vez que una función pase a ser de pago.
+        features JSONB NOT NULL DEFAULT '{}'::jsonb,
         provider_refs JSONB NOT NULL DEFAULT '{}'::jsonb,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -834,14 +848,70 @@ const initDb = async () => {
     const refsPaypal = process.env.PAYPAL_PLAN_ID
       ? JSON.stringify({ paypal: { plan_id: process.env.PAYPAL_PLAN_ID } })
       : '{}';
+    await query("ALTER TABLE plans ADD COLUMN IF NOT EXISTS features JSONB NOT NULL DEFAULT '{}'::jsonb");
+
+    // ── El catálogo ──
+    //
+    // Dos planes sobre la misma plataforma; lo que cambia es si la clínica trae
+    // consigo los expedientes que ya tenía:
+    //
+    //   Básico   la plataforma
+    //   Premium  + Migrar Expedientes, y la migración la hacemos nosotros
+    //
+    // El PRECIO del básico no se toca aquí: sale del entorno la primera vez y a
+    // partir de ahí manda la tabla (hay clínicas cobrando con él). Los dos
+    // nuevos sí traen su importe, porque nacen ahora.
     await query(
-      `INSERT INTO plans (code, name, description, amount, currency, billing_interval, interval_count, provider_refs)
-       VALUES ('individual-monthly', 'Plan Individual',
-               'Acceso completo a Salud Digital para un profesional.', $1, $2, 'month', 1, $3::jsonb)
+      `INSERT INTO plans (code, name, description, amount, currency, billing_interval, interval_count, features, provider_refs)
+       VALUES ('individual-monthly', 'Básico',
+               'La plataforma completa para un profesional: pacientes, agenda, expedientes y finanzas.',
+               $1, $2, 'month', 1, '{}'::jsonb, $3::jsonb)
        ON CONFLICT (code) DO UPDATE
-         SET provider_refs = plans.provider_refs || EXCLUDED.provider_refs`,
+         SET name = EXCLUDED.name,
+             description = EXCLUDED.description,
+             provider_refs = plans.provider_refs || EXCLUDED.provider_refs`,
       [Number.isFinite(precioEnv) && precioEnv > 0 ? precioEnv : 19.99, monedaEnv, refsPaypal]
     );
+
+    // El de arriba. `DO UPDATE` deja fuera `amount` a propósito: una vez
+    // sembrado, el precio se cambia en la tabla y un reinicio del servidor no
+    // puede devolverlo al valor que quedó escrito en el código.
+    const planesNuevos = [
+      {
+        code: 'premium-monthly',
+        name: 'Premium',
+        description: 'Todo lo del plan Básico, más Migrar Expedientes — y la migración de tu historial la hacemos nosotros.',
+        amount: 49.99,
+        features: { migracion: true, migracion_asistida: true },
+        env: 'PAYPAL_PLAN_ID_PREMIUM',
+      },
+    ];
+
+    for (const plan of planesNuevos) {
+      const refs = process.env[plan.env]
+        ? JSON.stringify({ paypal: { plan_id: process.env[plan.env] } })
+        : '{}';
+      await query(
+        `INSERT INTO plans (code, name, description, amount, currency, billing_interval, interval_count, features, provider_refs)
+         VALUES ($1, $2, $3, $4, $5, 'month', 1, $6::jsonb, $7::jsonb)
+         ON CONFLICT (code) DO UPDATE
+           SET name = EXCLUDED.name,
+               description = EXCLUDED.description,
+               features = EXCLUDED.features,
+               provider_refs = plans.provider_refs || EXCLUDED.provider_refs`,
+        [plan.code, plan.name, plan.description, plan.amount, monedaEnv,
+          JSON.stringify(plan.features), refs],
+      );
+    }
+    // ── El plan Avanzado, retirado ──
+    //
+    // Llegó a sembrarse antes de que el catálogo se quedara en dos. Se DESACTIVA
+    // en vez de borrarse: `plans` no es un catálogo, es también historia de
+    // facturación —cada suscripción y cada cobro apuntan a la fila de su plan—,
+    // y borrarla dejaría pagos sin poder explicar de qué eran. `listPlans` filtra
+    // por is_active, así que desaparece de la pantalla sin romper nada.
+    await query("UPDATE plans SET is_active = FALSE WHERE code = 'avanzado-monthly'");
+
     // Suscripciones antiguas sin plan → al plan por defecto.
     await query(
       `UPDATE subscriptions SET plan_id = (SELECT id FROM plans WHERE code = 'individual-monthly')
@@ -1090,6 +1160,33 @@ const initDb = async () => {
       );
       CREATE INDEX IF NOT EXISTS idx_migration_batches_clinic
         ON migration_batches(clinic_id, created_at DESC);
+    `);
+
+    // ── Peticiones de migración asistida (plan Premium) ──
+    //
+    // En Premium el trabajo lo hace el equipo, así que la petición tiene que
+    // quedar EN LA BASE y no solo en un correo: el correo se pierde, se reenvía
+    // o se lee en un móvil y se olvida, y mientras tanto la clínica que pagó no
+    // tiene forma de saber si alguien la vio. Guardada, la clínica ve su estado
+    // en la misma pantalla desde la que la pidió.
+    await query(`
+      CREATE TABLE IF NOT EXISTS migration_requests (
+        id SERIAL PRIMARY KEY,
+        clinic_id INTEGER NOT NULL REFERENCES clinics(id),
+        requested_by INTEGER REFERENCES users(id),
+        sistema_origen TEXT DEFAULT '',
+        volumen TEXT DEFAULT '',
+        contacto TEXT DEFAULT '',
+        notas TEXT DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'pendiente',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        attended_at TIMESTAMP,
+        attended_by INTEGER REFERENCES users(id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_migration_requests_clinic
+        ON migration_requests(clinic_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_migration_requests_pendientes
+        ON migration_requests(created_at DESC) WHERE status = 'pendiente';
     `);
 
     const migracionColumnas = [

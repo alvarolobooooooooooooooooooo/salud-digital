@@ -1421,6 +1421,7 @@
 
   <script src="/icons.js"></script>
   <script src="/common.js"></script>
+<script src="/monedas.js"></script>
   <script src="/layout.js"></script>
   <script>
     requireAuth(['clinic_admin', 'doctor']);
@@ -1654,6 +1655,10 @@
     (async () => {
       const pageLoader = document.getElementById('pageLoader');
       try {
+        // La moneda de la clínica antes de pintar el primer importe: si no, el
+        // panel saldría en lempiras y saltaría a la moneda real un instante
+        // después. Con el perfil en caché resuelve al momento.
+        await SDMoneda.listo();
         // Antes se pedía la LISTA COMPLETA de pacientes para pintar un número y
         // una dona: con mil pacientes, cientos de KB y un ORDER BY sobre todo en
         // cada carga del panel. Ahora solo viene el total; la dona sale de las
@@ -1709,7 +1714,7 @@
         document.getElementById('statPatients').textContent = totalPacientes;
         document.getElementById('statToday').textContent = appointments.length;
         const monthRevenue = finances.month_revenue || 0;
-        document.getElementById('statMonth').textContent = `L. ${monthRevenue.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        document.getElementById('statMonth').textContent = SDMoneda.fmt(monthRevenue);
 
         // Donut chart
         // Pacientes distintos con cita hoy. Antes se cruzaba contra la lista

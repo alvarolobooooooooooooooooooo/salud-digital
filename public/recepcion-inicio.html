@@ -764,6 +764,7 @@
 
 <script src="/icons.js"></script>
 <script src="/common.js"></script>
+<script src="/monedas.js"></script>
 <script src="/layout.js"></script>
 <script>
   requireAuth(['receptionist', 'clinic_admin']);
@@ -780,8 +781,11 @@
 
   // ── Helpers ──
   // `esc` is provided by /common.js
+  // Se llamaba fmtLempiras cuando solo había Honduras. Ahora formatea en la
+  // moneda de la clínica (public/monedas.js); el nombre se queda para no tocar
+  // las treinta llamadas, pero de lempiras ya no tiene nada.
   function fmtLempiras(n) {
-    return 'L. ' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return SDMoneda.fmt(n);
   }
 
   function showToast(msg) {
@@ -1277,7 +1281,7 @@
     if (items.length === 0) {
       container.innerHTML = `
         <div class="pago-headline">
-          <span class="num">L. 0.00</span>
+          <span class="num" data-moneda="cero">L. 0.00</span>
           <span class="cur">facturados hoy</span>
         </div>
         <div class="pago-sub">Sin pagos registrados aún. <a href="/recepcion-pagos.html" style="color:var(--teal-700); font-weight:600; text-decoration:none;">Ir a Pagos →</a></div>`;
@@ -1458,6 +1462,10 @@
   // ── Load + poll ──
   async function loadAll() {
     try {
+      // La moneda de la clínica antes de pintar el primer importe: si no,
+      // la pantalla saldría en lempiras y saltaría a la moneda real un
+      // instante después. Con el perfil en caché resuelve al momento.
+      await SDMoneda.listo();
       const [r, q, s, p] = await Promise.all([
         api('/api/rooms'),
         api('/api/reception/waiting-queue'),

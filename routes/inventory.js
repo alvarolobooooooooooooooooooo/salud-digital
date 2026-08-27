@@ -4,6 +4,7 @@ const multer = require('multer');
 const { v4: uuid } = require('uuid');
 const { query } = require('../db');
 const { authenticate } = require('../middleware/auth');
+const monedas = require('../lib/monedas');
 const cloudinary = require('cloudinary').v2;
 
 // ── Cloudinary Configuration ──
@@ -81,7 +82,18 @@ function str(v, def = '') { return v == null ? def : String(v); }
 function bool(v, def = false) { if (v === undefined || v === null) return def; if (typeof v === 'boolean') return v; if (typeof v === 'string') return v === 'true' || v === '1'; return Boolean(v); }
 function dateOrNull(v) { if (!v) return null; const d = new Date(v); return isNaN(d.getTime()) ? null : v; }
 
-function buildItemPayload(body) {
+// `monedaClinica` es la moneda en la que la clínica lleva sus cuentas. Antes
+// aquí había un 'HNL' fijo: una clínica mexicana daba de alta productos
+// etiquetados en lempiras, y al convertir la moneda esas filas quedaban
+// diciendo una cosa distinta de lo que valían. (El módulo de inventario está
+// apagado hoy; esto es para que al reactivarlo nazca correcto.)
+/** La moneda en la que la clínica lleva sus cuentas (ver lib/monedas.js). */
+async function monedaDeClinica(clinicId) {
+  const r = await query('SELECT currency FROM clinics WHERE id = $1', [clinicId]);
+  return monedas.normalizarMoneda(r.rows[0] && r.rows[0].currency) || monedas.MONEDA_POR_DEFECTO;
+}
+
+function buildItemPayload(body, monedaClinica) {
   return {
     name: str(body.name).trim(),
     description: str(body.description),
@@ -100,7 +112,7 @@ function buildItemPayload(body) {
     expiration_alert_days: intOrNull(body.expiration_alert_days) || 30,
     unit_cost: num(body.unit_cost, 0),
     sale_price: num(body.sale_price, 0),
-    currency: str(body.currency, 'HNL'),
+    currency: str(body.currency, monedaClinica || 'HNL'),
     supplier_name: str(body.supplier_name).trim(),
     invoice_number: str(body.invoice_number).trim(),
     purchase_notes: str(body.purchase_notes),
@@ -241,7 +253,7 @@ router.get('/:id', authenticate, async (req, res) => {
 // ── Create ──
 router.post('/', authenticate, async (req, res) => {
   if (!canEdit(req)) return res.status(403).json({ error: 'No autorizado' });
-  const data = buildItemPayload(req.body);
+  const data = buildItemPayload(req.body, await monedaDeClinica(req.user.clinic_id));
   if (!data.name) return res.status(400).json({ error: 'El nombre del artículo es obligatorio' });
 
   try {
@@ -293,7 +305,7 @@ router.put('/:id', authenticate, async (req, res) => {
   const existing = await query('SELECT * FROM inventory_items WHERE id = $1 AND clinic_id = $2', [id, req.user.clinic_id]);
   if (existing.rows.length === 0) return res.status(404).json({ error: 'Artículo no encontrado' });
 
-  const data = buildItemPayload(req.body);
+  const data = buildItemPayload(req.body, await monedaDeClinica(req.user.clinic_id));
   if (!data.name) return res.status(400).json({ error: 'El nombre del artículo es obligatorio' });
 
   try {

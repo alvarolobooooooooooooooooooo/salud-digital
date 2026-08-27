@@ -2217,7 +2217,7 @@
       <h3>Información de Pago</h3>
       <div class="form-grid two">
         <div class="form-group">
-          <label>Costo de la Consulta (L.)</label>
+          <label>Costo de la Consulta (<span data-moneda="prefijo">L.</span>)</label>
           <input type="text" id="consCost" placeholder="0.00" inputmode="decimal">
         </div>
         <div class="form-group">
@@ -2248,6 +2248,7 @@
 </main>
 
 <script src="/common.js"></script>
+<script src="/monedas.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
 <!-- Inventario desactivado — para reactivar, descomentar esta línea:
@@ -2670,12 +2671,9 @@ async function submitConsult(e) {
   if (submitBtn) submitBtn.disabled = true;
 
   try {
-    let costInput = document.getElementById('consCost').value.trim();
-    costInput = costInput.replace(/^L\.\s*/, '').replace(/,/g, '');
-    if (costInput && !/^\d+(\.\d{1,2})?$/.test(costInput)) {
-      throw new Error('El costo debe ser un número válido');
-    }
-    let cost = parseFloat(costInput) || 0;
+    // SDMoneda.parse entiende el prefijo y la puntuación de cualquiera de las
+    // monedas soportadas ("L. 1,200.00", "$1.200.000"), no solo la hondureña.
+    let cost = SDMoneda.parse(document.getElementById('consCost').value);
 
     const me = await api('/api/auth/me');
     const podogramState = podogram1 ? podogram1.getState() : {};
