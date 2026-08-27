@@ -451,24 +451,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
   }
 }
 
-/* Entrada de menú que el plan actual no incluye. Se ve, se puede pulsar y la
-   pantalla de destino explica qué falta: esconderla dejaría al doctor sin saber
-   que la función existe. */
-.sb-lock {
-  margin-left: auto;
-  font-size: 11px;
-  line-height: 1;
-  opacity: 0.55;
-  flex-shrink: 0;
-}
-.sb-item--locked { opacity: 0.72; }
-.sb-item--locked:hover { opacity: 1; }
-/* En el carril estrecho no cabe: ahí el candado se calla y lo explica la
-   propia pantalla al entrar. `expanded` es la clase que aparece al desplegarlo. */
-@media (max-width: 1400px) {
-  #sidebar:not(.expanded) .sb-lock { display: none; }
-}
-
 /* ── Layout Main Content ── */
 .layout-main {
   margin-left: var(--sidebar-w);
