@@ -1561,7 +1561,7 @@
 
   // El estado del plan se cachea 60s para no preguntar en cada pantalla. Eso
   // está bien mientras nada cambie, y muy mal justo después de cambiar de plan:
-  // el doctor acaba de pagar Avanzado y el menú le sigue enseñando el candado
+  // el doctor acaba de pagar Premium y el menú le sigue enseñando el candado
   // hasta un minuto. La pantalla de suscripción llama a esto al terminar.
   window.sdOlvidarPlan = function () {
     try {
@@ -1593,7 +1593,7 @@
         lock.className = 'sb-lock';
         lock.setAttribute('aria-hidden', 'true');
         lock.textContent = '🔒';
-        lock.title = 'Incluido en los planes Avanzado y Premium';
+        lock.title = 'Incluido en el plan Premium';
         enlaces[i].appendChild(lock);
         enlaces[i].classList.add('sb-item--locked');
       }

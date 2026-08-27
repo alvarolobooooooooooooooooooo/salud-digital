@@ -46,7 +46,7 @@ const auditoria = new AuditService();
 // da de alta pacientes de uno en uno desde su pantalla, que es lo suyo.
 const soloClinica = requireRole('doctor', 'clinic_admin');
 
-// ── La migración es de los planes Avanzado y Premium ──
+// ── La migración es del plan Premium ──
 //
 // Va como middleware propio y no dentro de cada handler porque la regla es de
 // toda la sección: si mañana se añade un endpoint aquí, nace cerrado.
@@ -58,7 +58,7 @@ const soloClinica = requireRole('doctor', 'clinic_admin');
 async function exigeMigracion(req, res, next) {
   if (await suscripcion.clinicHasFeature(req.user.clinic_id, 'migracion')) return next();
   res.status(402).json({
-    error: 'Migrar Expedientes está en los planes Avanzado y Premium.',
+    error: 'Migrar Expedientes está en el plan Premium.',
     code: 'plan_upgrade_required',
     feature: 'migracion',
   });

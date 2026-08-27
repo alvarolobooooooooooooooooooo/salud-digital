@@ -852,12 +852,11 @@ const initDb = async () => {
 
     // ── El catálogo ──
     //
-    // Tres planes sobre la misma plataforma; lo que cambia es quién trae los
-    // expedientes de antes y quién hace el trabajo:
+    // Dos planes sobre la misma plataforma; lo que cambia es si la clínica trae
+    // consigo los expedientes que ya tenía:
     //
-    //   Básico    la plataforma
-    //   Avanzado  + Migrar Expedientes, que la clínica usa por su cuenta
-    //   Premium   + la migración la hacemos nosotros
+    //   Básico   la plataforma
+    //   Premium  + Migrar Expedientes, y la migración la hacemos nosotros
     //
     // El PRECIO del básico no se toca aquí: sale del entorno la primera vez y a
     // partir de ahí manda la tabla (hay clínicas cobrando con él). Los dos
@@ -874,22 +873,14 @@ const initDb = async () => {
       [Number.isFinite(precioEnv) && precioEnv > 0 ? precioEnv : 19.99, monedaEnv, refsPaypal]
     );
 
-    // Los dos de arriba. `DO UPDATE` deja fuera `amount` a propósito: una vez
+    // El de arriba. `DO UPDATE` deja fuera `amount` a propósito: una vez
     // sembrado, el precio se cambia en la tabla y un reinicio del servidor no
     // puede devolverlo al valor que quedó escrito en el código.
     const planesNuevos = [
       {
-        code: 'avanzado-monthly',
-        name: 'Avanzado',
-        description: 'Todo lo del plan Básico, más Migrar Expedientes para traer tu historial de otro sistema.',
-        amount: 39.99,
-        features: { migracion: true },
-        env: 'PAYPAL_PLAN_ID_AVANZADO',
-      },
-      {
         code: 'premium-monthly',
         name: 'Premium',
-        description: 'Todo lo del plan Avanzado, y la migración de tus expedientes la hacemos nosotros.',
+        description: 'Todo lo del plan Básico, más Migrar Expedientes — y la migración de tu historial la hacemos nosotros.',
         amount: 49.99,
         features: { migracion: true, migracion_asistida: true },
         env: 'PAYPAL_PLAN_ID_PREMIUM',
@@ -912,6 +903,15 @@ const initDb = async () => {
           JSON.stringify(plan.features), refs],
       );
     }
+    // ── El plan Avanzado, retirado ──
+    //
+    // Llegó a sembrarse antes de que el catálogo se quedara en dos. Se DESACTIVA
+    // en vez de borrarse: `plans` no es un catálogo, es también historia de
+    // facturación —cada suscripción y cada cobro apuntan a la fila de su plan—,
+    // y borrarla dejaría pagos sin poder explicar de qué eran. `listPlans` filtra
+    // por is_active, así que desaparece de la pantalla sin romper nada.
+    await query("UPDATE plans SET is_active = FALSE WHERE code = 'avanzado-monthly'");
+
     // Suscripciones antiguas sin plan → al plan por defecto.
     await query(
       `UPDATE subscriptions SET plan_id = (SELECT id FROM plans WHERE code = 'individual-monthly')

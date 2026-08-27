@@ -5,10 +5,14 @@
 // añada un endpoint a /api/migracion y se olvide del middleware, la función más
 // cara del catálogo queda gratis, y no hay error ni log que lo diga.
 //
-// Aquí se comprueban las tres reglas:
+// Aquí se comprueban las reglas del catálogo:
 //   · Básico   no pasa de la puerta
-//   · Avanzado migra por su cuenta, pero no pide migración asistida
-//   · Premium  las dos cosas
+//   · Premium  migra y además puede pedir que lo hagamos nosotros
+//
+// Y una que hoy no corresponde a ningún plan a la venta pero sostiene el
+// middleware: un plan con `migracion` y SIN `migracion_asistida` migra, pero no
+// puede pedir el trabajo del equipo. Las dos funciones son puertas distintas y
+// tienen que seguir siéndolo el día que el catálogo vuelva a crecer.
 //
 // Y una cuarta que no es de negocio sino de supervivencia: con el cobro
 // apagado (desarrollo) y en las clínicas exentas, todo abierto — si no, montar
@@ -34,7 +38,9 @@ const bd = {
 
 const PLANES = {
   basico: { code: 'individual-monthly', features: {} },
-  avanzado: { code: 'avanzado-monthly', features: { migracion: true } },
+  // No está a la venta: existe para comprobar que las dos funciones son puertas
+  // independientes y no una sola con dos nombres.
+  soloMigracion: { code: 'plan-hipotetico', features: { migracion: true } },
   premium: { code: 'premium-monthly', features: { migracion: true, migracion_asistida: true } },
 };
 
@@ -174,8 +180,8 @@ test('el catálogo de campos sigue abierto: explica lo que el plan no incluye', 
   } finally { await app.cerrar(); }
 });
 
-test('el plan Avanzado migra, pero no pide migración asistida', async () => {
-  conPlan('avanzado');
+test('un plan con migración pero sin asistida no puede pedir el trabajo del equipo', async () => {
+  conPlan('soloMigracion');
   const app = await levantar();
   try {
     assert.strictEqual((await app.pedir('GET', '/api/migracion/doctores')).status, 200);

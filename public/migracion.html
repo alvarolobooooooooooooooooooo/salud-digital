@@ -611,7 +611,7 @@ function renderSinPlan() {
         <div style="display:flex;gap:16px;align-items:flex-start">
           <span class="mg-oi" style="width:46px;height:46px;flex-shrink:0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
           <div>
-            <h2 style="margin:0 0 6px;font-size:19px;font-weight:700">Migrar Expedientes está en los planes Avanzado y Premium</h2>
+            <h2 style="margin:0 0 6px;font-size:19px;font-weight:700">Migrar Expedientes está en el plan Premium</h2>
             <p style="margin:0;color:var(--mg-ink-2);font-size:14px;line-height:1.6;max-width:70ch">
               Tu plan actual incluye la plataforma completa. Lo que falta es la parte que trae contigo
               lo que ya tenías: los expedientes de tu sistema anterior, del Excel de la clínica o del
@@ -661,11 +661,12 @@ function renderSinPlan() {
 
   $('railDer').innerHTML = `
     <div class="mg-card">
-      <div class="mg-card-h"><h2>Los dos planes</h2></div>
+      <div class="mg-card-h"><h2>El plan Premium</h2><div class="mg-right"><span class="mg-lin" style="font-size:18px;font-weight:800">$49.99<span style="font-size:11px;font-weight:600;opacity:.6">/mes</span></span></div></div>
       <div class="mg-card-b">
         <div class="mg-list">
-          <div class="mg-li"><span class="mg-ltxt"><b>Avanzado</b><br><span style="font-size:11.5px;color:var(--mg-ink-3)">Migras tú, cuando quieras</span></span><span class="mg-lin">$39.99</span></div>
-          <div class="mg-li"><span class="mg-ltxt"><b>Premium</b><br><span style="font-size:11.5px;color:var(--mg-ink-3)">La migración la hacemos nosotros</span></span><span class="mg-lin">$49.99</span></div>
+          <div class="mg-li"><span class="mg-tag ok">✓</span><span class="mg-ltxt">Todo lo del plan Básico</span></div>
+          <div class="mg-li"><span class="mg-tag ok">✓</span><span class="mg-ltxt">Migras tus expedientes cuando quieras</span></div>
+          <div class="mg-li"><span class="mg-tag ok">✓</span><span class="mg-ltxt">O nos los pasas y los migramos nosotros</span></div>
         </div>
       </div>
     </div>

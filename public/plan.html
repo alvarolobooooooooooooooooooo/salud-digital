@@ -429,8 +429,12 @@
 
     /* ── Paneles ── */
     /* ── Selector de plan ── */
+    /* Se reparten el ancho entre los que haya: con dos planes, dos mitades; si
+       mañana vuelve a haber tres, tres tercios. Un `repeat(3, …)` fijo dejaba un
+       hueco vacío a la derecha en cuanto el catálogo cambiaba. */
     .subs-page .planes {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px; margin-bottom: 18px;
     }
     @media (max-width: 900px) { .subs-page .planes { grid-template-columns: 1fr; } }
     .subs-page .planopt {
@@ -844,11 +848,15 @@
     const contratado = st.access && st.access.paid && sub ? sub.plan_code : '';
     const elegido = planActivo(st).code;
 
+    // Lo que el plan añade, en una línea por cosa. Se listan las dos cuando las
+    // dos están: "migrar" y "que lo migremos nosotros" no son la misma promesa,
+    // y quien duda entre planes está comparando exactamente eso.
     const extra = (f) => {
       if (!f) return '';
-      if (f.migracion_asistida) return '<span class="pextra">✦ Nosotros traemos tus expedientes</span>';
-      if (f.migracion) return '<span class="pextra">✦ Migrar Expedientes incluido</span>';
-      return '';
+      const lineas = [];
+      if (f.migracion) lineas.push('Migrar Expedientes incluido');
+      if (f.migracion_asistida) lineas.push('Nosotros traemos tus expedientes');
+      return lineas.map((t) => `<span class="pextra">✦ ${esc(t)}</span>`).join('');
     };
 
     return `
