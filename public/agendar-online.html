@@ -386,6 +386,13 @@
       font-size: 11px; color: var(--muted);
       line-height: 1.35;
     }
+    .co-qr-download {
+      width: 100%;
+      height: 32px;
+      justify-content: center;
+      font-size: 12px;
+      padding: 0 10px;
+    }
 
     /* Buttons */
     .co-btn {
@@ -1284,6 +1291,10 @@
           <span class="co-qr-title">Escaneá para agendar</span>
           <span class="co-qr-sub">Apuntá la cámara de tu celular al código</span>
         </div>
+        <button class="co-btn sm co-qr-download" id="qrDownloadBtn" type="button">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar imagen
+        </button>
       </div>
     </section>
 
@@ -1672,35 +1683,139 @@
   }
 
   // ---------- QR (real, scannable) ----------
-  function renderQR(url) {
-    const svg = document.getElementById('qrSvg');
-    if (!svg) return;
-    if (typeof qrcode === 'undefined' || !url) return;
+  // La geometría se calcula una sola vez y sirve para las dos salidas: el SVG
+  // que se ve en pantalla y el PNG que se descarga, así el archivo que reparte
+  // la clínica es exactamente el mismo código que está viendo.
+  let qrShape = null;
+
+  function buildQRShape(url) {
+    if (typeof qrcode === 'undefined' || !url) return null;
     const qr = qrcode(0, 'M');
     qr.addData(url);
     qr.make();
     const count = qr.getModuleCount();
     const margin = 2;
-    const total = count + margin * 2;
     const isFinder = (r, c) => {
       const inBox = (br, bc) => r >= br && r < br + 7 && c >= bc && c < bc + 7;
       return inBox(0, 0) || inBox(0, count - 7) || inBox(count - 7, 0);
     };
-    let modules = '';
+    const modules = [];
     for (let r = 0; r < count; r++) {
       for (let c = 0; c < count; c++) {
         if (!qr.isDark(r, c) || isFinder(r, c)) continue;
-        modules += `<rect x="${c + margin + 0.08}" y="${r + margin + 0.08}" width="0.84" height="0.84" rx="0.22" fill="currentColor"/>`;
+        modules.push([r, c]);
       }
     }
+    return {
+      url,
+      count,
+      margin,
+      total: count + margin * 2,
+      modules,
+      finders: [[0, 0], [0, count - 7], [count - 7, 0]],
+    };
+  }
+
+  function renderQR(url) {
+    const svg = document.getElementById('qrSvg');
+    if (!svg) return;
+    const shape = buildQRShape(url);
+    if (!shape) return;
+    qrShape = shape;
+    let modules = '';
+    shape.modules.forEach(([r, c]) => {
+      modules += `<rect x="${c + shape.margin + 0.08}" y="${r + shape.margin + 0.08}" width="0.84" height="0.84" rx="0.22" fill="currentColor"/>`;
+    });
     let finders = '';
-    [[0, 0], [0, count - 7], [count - 7, 0]].forEach(([fr, fc]) => {
-      const x = fc + margin, y = fr + margin;
+    shape.finders.forEach(([fr, fc]) => {
+      const x = fc + shape.margin, y = fr + shape.margin;
       finders += `<rect x="${x + 0.5}" y="${y + 0.5}" width="6" height="6" rx="1.6" fill="none" stroke="currentColor" stroke-width="1"/>`;
       finders += `<rect x="${x + 2}" y="${y + 2}" width="3" height="3" rx="0.8" fill="currentColor"/>`;
     });
-    svg.setAttribute('viewBox', `0 0 ${total} ${total}`);
+    svg.setAttribute('viewBox', `0 0 ${shape.total} ${shape.total}`);
     svg.innerHTML = modules + finders;
+  }
+
+  // El QR se pinta en un canvas a mano (nada de convertir el SVG) para que la
+  // imagen no dependa de fuentes ni de recursos externos: sale igual en Mac,
+  // Windows y en la app de escritorio.
+  function drawRoundedRect(ctx, x, y, w, h, r) {
+    if (typeof ctx.roundRect === 'function') {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, r);
+      return;
+    }
+    const rad = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rad, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rad);
+    ctx.arcTo(x + w, y + h, x, y + h, rad);
+    ctx.arcTo(x, y + h, x, y, rad);
+    ctx.arcTo(x, y, x + w, y, rad);
+    ctx.closePath();
+  }
+
+  function qrToCanvas(shape, size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    // Fondo blanco sólido: un PNG transparente se vuelve ilegible en cuanto lo
+    // pegan sobre papel de color o sobre un fondo oscuro de WhatsApp.
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, size, size);
+    const u = size / shape.total; // tamaño de un módulo en píxeles
+    ctx.fillStyle = '#0F172A';
+    ctx.strokeStyle = '#0F172A';
+    shape.modules.forEach(([r, c]) => {
+      drawRoundedRect(ctx, (c + shape.margin + 0.08) * u, (r + shape.margin + 0.08) * u, 0.84 * u, 0.84 * u, 0.22 * u);
+      ctx.fill();
+    });
+    shape.finders.forEach(([fr, fc]) => {
+      const x = (fc + shape.margin) * u, y = (fr + shape.margin) * u;
+      ctx.lineWidth = u;
+      drawRoundedRect(ctx, x + 0.5 * u, y + 0.5 * u, 6 * u, 6 * u, 1.6 * u);
+      ctx.stroke();
+      drawRoundedRect(ctx, x + 2 * u, y + 2 * u, 3 * u, 3 * u, 0.8 * u);
+      ctx.fill();
+    });
+    return canvas;
+  }
+
+  function saveBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function downloadQR() {
+    const shape = qrShape || buildQRShape(document.getElementById('publicLink')?.dataset.link);
+    if (!shape) { showToast('El código todavía se está generando'); return; }
+    qrShape = shape;
+    // 1024 px: entra bien en un afiche impreso y no pesa nada.
+    const canvas = qrToCanvas(shape, 1024);
+    const filename = `qr-agenda-clinica-${clinicId || 'salud-digital'}.png`;
+    const done = () => showToast('Código QR descargado');
+    if (canvas.toBlob) {
+      canvas.toBlob((blob) => {
+        if (!blob) { showToast('No se pudo generar la imagen'); return; }
+        saveBlob(blob, filename);
+        done();
+      }, 'image/png');
+    } else {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      done();
+    }
   }
 
   // ---------- Sparkline ----------
@@ -2985,6 +3100,7 @@
     if (!link) return;
     navigator.clipboard?.writeText(link).then(() => showToast('Link copiado al portapapeles'));
   });
+  document.getElementById('qrDownloadBtn').addEventListener('click', downloadQR);
   document.getElementById('shareBtn').addEventListener('click', async () => {
     const link = document.getElementById('publicLink').dataset.link;
     if (!link) return;

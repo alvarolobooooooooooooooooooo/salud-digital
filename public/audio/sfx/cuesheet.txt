@@ -1,0 +1,40 @@
+HOJA DE SEÑALES — Launch de Salud Digital
+Duración del film: 30.00 s · derivada de la implementación, no escrita a mano.
+Regenerar con: node tools/sfx-cuesheet.js
+
+  TIEMPO   ESCENA            SFX                    NIVEL  TONO   NOTA
+  ------------------------------------------------------------------------------
+    0.20s   01 vacío          ambience               1.00   1.00  inicia cama (loop)
+    4.80s   02 logotipo       connection-bloom       0.50   0.92  
+    5.28s   02 logotipo       logo-pulse             1.00   1.00  
+    6.90s   03 ecosistema     connection-bloom       1.00   1.00  
+    8.30s   03 ecosistema     data-activation        0.85   1.00  
+    9.85s   04 interfaz       ui-morph               1.00   1.00  
+   12.56s   05 rampa          camera-acceleration    1.00   1.00  
+   12.81s   05 rampa          high-speed-pass        0.90   1.10  
+   13.95s   05 rampa          high-speed-pass        0.89   1.12  
+   15.10s   05 rampa          high-speed-pass        0.89   1.09  
+   16.20s   05 rampa          high-speed-pass        1.00   1.17  
+   16.32s   05 rampa          cinematic-brake        1.00   1.00  
+   18.60s   06 macro          ui-click               1.00   1.00  
+   18.95s   06 macro          ui-click               0.50   1.18  
+   19.25s   06 macro          data-flow              1.00   1.00  inicia cama (loop)
+   22.25s   08 dispositivos   device-shift           1.00   1.00  
+   22.30s   08 dispositivos   data-flow              1.00   1.00  cierra cama
+   23.25s   08 dispositivos   device-shift           0.60   1.07  
+   23.25s   08 dispositivos   final-riser            1.00   1.00  
+   24.35s   09 héroe          high-speed-pass        0.50   1.25  
+   24.85s   09 héroe          final-impact           1.00   1.00  
+   27.00s   10 cierre         data-activation        0.55   0.88  
+   28.80s   10 cierre         logo-pulse             0.40   0.80  
+   29.80s   10 cierre         ambience               1.00   1.00  cierra cama
+
+PASES RÁPIDOS DE LA RAMPA (velocidad medida de la cámara; pico del tramo = 19657)
+  pase 1:  12.87s   velocidad 15337   (78% del pico)
+  pase 2:  14.01s   velocidad 14856   (76% del pico)
+  pase 3:  15.16s   velocidad 14955   (76% del pico)
+  pase 4:  16.26s   velocidad 19657   (100% del pico)
+  frenazo: 16.32s
+
+El nivel y el tono de cada pase salen de su velocidad real, así que
+los cuatro suenan parecidos pero no idénticos: el sonido sigue a la cámara.

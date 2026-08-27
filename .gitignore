@@ -30,3 +30,11 @@ tools/shots/
 tools/_*
 .tmp-*
 **/__preview.html
+
+# Másteres de audio del launch: pesan 19 MB y son REGENERABLES con semilla
+# fija (tools/gen-sfx.py y tools/gen-music.py). Lo que sirve la web son los
+# .m4a, que sí van al repositorio. data-flow.wav es la excepción: es un
+# bucle y necesita ir sin comprimir.
+public/audio/sfx/*.wav
+!public/audio/sfx/data-flow.wav
+public/audio/launch-score.wav
