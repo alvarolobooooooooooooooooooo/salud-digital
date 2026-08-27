@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#030304" />
+<meta name="color-scheme" content="dark" />
+<title>Salud Digital — El futuro de la salud, conectado.</title>
+<meta name="description" content="El lanzamiento de Salud Digital: pacientes, médicos, clínicas, laboratorios y farmacias en un solo sistema. portalsaluddigital.com" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Salud Digital" />
+<meta property="og:title" content="Salud Digital — El futuro de la salud, conectado." />
+<meta property="og:description" content="Pacientes, médicos, clínicas, laboratorios y farmacias en un solo sistema." />
+<meta property="og:url" content="https://portalsaluddigital.com/launch.html" />
+<link rel="icon" href="/icons/favicon-32.png" sizes="32x32" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="/launch/launch.css" />
+<!-- Las capturas del corredor: se piden desde el primer momento para que
+     ninguna sección se estrene descomprimiendo en mitad del vuelo. -->
+<link rel="preload" as="image" href="/launch/frames/inicio.webp" type="image/webp" />
+<link rel="preload" as="image" href="/launch/frames/pacientes.webp" type="image/webp" />
+<link rel="preload" as="image" href="/launch/frames/citas.webp" type="image/webp" />
+<link rel="preload" as="image" href="/launch/frames/finanzas.webp" type="image/webp" />
+</head>
+<body>
+
+<!-- Fondo plano: ni un blur animado a pantalla completa en todo el film. -->
+<div id="lx-bg"></div>
+
+<!-- Partículas por detrás del mundo 3D -->
+<canvas id="lx-fx-back"></canvas>
+
+<!-- El motion blur se aplica AQUÍ, sobre el resultado 2D ya compuesto:
+     un filter sobre #lx-world aplanaría el preserve-3d y con él toda la
+     profundidad de la escena. -->
+<div id="lx-blur">
+  <div id="lx-stage">
+    <div id="lx-world"></div>
+  </div>
+</div>
+
+<canvas id="lx-fx-front"></canvas>
+<div id="lx-hud"></div>
+<div id="lx-vig"></div>
+<div id="lx-grain"></div>
+
+<div class="lx-progress"><i></i></div>
+<!-- Control de sonido: discreto, con los mismos tokens que el resto de
+     controles. Arranca en silencio porque el navegador bloquea el audio
+     sin un gesto del usuario; este botón ES ese gesto. -->
+<button id="lx-sound" type="button" aria-pressed="false" aria-label="Activar sonido">
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+       stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M4 9.5h3.2L12 5.6v12.8L7.2 14.5H4z"/>
+    <path class="lx-snd-on" d="M15.8 9.2a4 4 0 0 1 0 5.6M18.4 6.6a7.6 7.6 0 0 1 0 10.8"/>
+    <path class="lx-snd-off" d="M16.4 9.6l5 4.8M21.4 9.6l-5 4.8"/>
+  </svg>
+</button>
+
+<div id="lx-ctrl">
+  <button class="lx-ck" id="lx-skip">Ir al final</button>
+  <button class="lx-ck" id="lx-replay">Repetir</button>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="lx-mblur" x="-18%" y="-18%" width="136%" height="136%" color-interpolation-filters="sRGB">
+      <feGaussianBlur id="lx-mblur-g" stdDeviation="0 0" edgeMode="duplicate"/>
+    </filter>
+  </defs>
+</svg>
+
+<noscript>
+  <div style="position:fixed;inset:0;display:grid;place-items:center;color:#f1f5f9;font-family:Poppins,sans-serif;text-align:center;padding:24px">
+    <div>
+      <h1 style="font-size:32px;font-weight:500;letter-spacing:-.03em">El futuro de la salud, conectado.</h1>
+      <p style="color:#94a3b8;margin:14px 0 26px">Pacientes, médicos, clínicas, laboratorios y farmacias en un solo sistema.</p>
+      <a href="/registro.html" style="color:#22d3ee">Conoce SaludDigital →</a>
+    </div>
+  </div>
+</noscript>
+
+<script src="/launch/engine.js"></script>
+<script src="/launch/fx.js"></script>
+<script src="/launch/ui.js"></script>
+<script src="/launch/scenes.js"></script>
+<script src="/launch/audio.js"></script>
+<script src="/launch/debug.js"></script>
+<script src="/launch/main.js"></script>
+</body>
+</html>
