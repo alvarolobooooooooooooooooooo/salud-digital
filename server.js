@@ -308,7 +308,16 @@ function serveHtmlWithVersion(filePath, req, res) {
 
 // Serve the public confirmation page under /confirmar/:token (la página lee el
 // token de location.pathname y llama a /api/confirmations/public/:token).
-app.get(/^\/confirmar\/[a-f0-9]{32}$/i, (req, res) => {
+//
+// Acepta CUALQUIER cosa detrás de /confirmar/, no solo un token bien formado.
+// Antes exigía [a-f0-9]{32} aquí mismo y todo lo demás se escurría hasta la
+// landing: un enlace cortado por WhatsApp, o el link de muestra que la app le
+// enseña al doctor en el editor del mensaje, abrían la página de ventas sin una
+// palabra de explicación. La página ya sabe distinguir un token válido de uno
+// que no lo es y lo dice; el servidor solo tiene que dejarla llegar.
+// La validación de verdad no se pierde: /api/confirmations/public/:token sigue
+// exigiendo los 32 hex antes de tocar la base.
+app.get(/^\/confirmar(?:\/.*)?$/i, (req, res) => {
   serveHtmlWithVersion(path.join(PUBLIC_DIR, 'confirm.html'), req, res);
 });
 

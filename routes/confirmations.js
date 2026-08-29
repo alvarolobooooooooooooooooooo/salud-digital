@@ -109,6 +109,94 @@ router.put('/whatsapp-config', authenticate, async (req, res) => {
   res.json({ success: true });
 });
 
+// GET /api/confirmations/preview
+// Datos REALES de la cuenta para la vista previa de la tarjeta.
+//
+// /confirm.html?preview=1 los llevaba inventados dentro de la propia página
+// —"María González", "Dr. Álvaro Lobo", "Clínica Demostración"—, así que el
+// doctor abría la vista previa y no veía su tarjeta: veía la de una clínica que
+// no existe. Con esto ve la suya: su nombre, su consultorio, su dirección, su
+// mensaje y —si tiene alguna cita por delante— su propio paciente con su día y
+// su hora.
+//
+// Devuelve la MISMA forma que /public/:token para que la página pinte con el
+// mismo código y no haya dos maneras de dibujar la tarjeta.
+//
+// Va declarado antes que GET /:appointmentId: si no, "preview" entraría por ahí
+// como si fuera un id de cita.
+router.get('/preview', authenticate, async (req, res) => {
+  const clinicaRes = await query(
+    `SELECT name, phone, brand_color, address, city, latitude, longitude,
+            map_url, location_notes, confirmation_card_message
+       FROM clinics WHERE id = $1`,
+    [req.user.clinic_id]
+  );
+  const clinica = clinicaRes.rows[0];
+  if (!clinica) return res.status(404).json({ error: 'Clinic not found' });
+
+  // La próxima cita de verdad. Un doctor ve la suya; clinic_admin y recepción
+  // ven la siguiente de la clínica, que es la que tienen delante de todos modos.
+  const params = [req.user.clinic_id];
+  let filtroDoctor = '';
+  if (req.user.role === 'doctor') {
+    params.push(req.user.id);
+    filtroDoctor = ` AND a.doctor_id = $${params.length}`;
+  }
+  const citaRes = await query(
+    `SELECT a.scheduled_at, p.name AS patient_name, u.name AS doctor_name
+       FROM appointments a
+       JOIN patients p ON a.patient_id = p.id
+       JOIN users u ON a.doctor_id = u.id
+      WHERE a.clinic_id = $1${filtroDoctor}
+        AND a.scheduled_at >= CURRENT_TIMESTAMP
+        AND a.status <> 'cancelled'
+      ORDER BY a.scheduled_at
+      LIMIT 1`,
+    params
+  );
+  const cita = citaRes.rows[0] || null;
+
+  // Sin ninguna cita por delante (cuenta recién abierta) hace falta al menos un
+  // nombre de doctor de verdad: el de quien mira, o el de un doctor de la casa.
+  let doctorName = cita && cita.doctor_name;
+  if (!doctorName) {
+    const dueño = await query(
+      req.user.role === 'doctor'
+        ? 'SELECT name FROM users WHERE id = $1'
+        : `SELECT name FROM users WHERE clinic_id = $1 AND role = 'doctor' ORDER BY name LIMIT 1`,
+      [req.user.role === 'doctor' ? req.user.id : req.user.clinic_id]
+    );
+    doctorName = (dueño.rows[0] && dueño.rows[0].name) || '';
+  }
+
+  // Mañana a las 10:00 cuando no hay cita real: futuro, para que la tarjeta no
+  // caiga en el caso "cita pasada".
+  const manana = new Date();
+  manana.setDate(manana.getDate() + 1);
+  manana.setHours(10, 0, 0, 0);
+
+  res.json({
+    // Con cita real el paciente es el de verdad; sin ella, un hueco con forma de
+    // nombre — nunca el de un paciente que no venga a cuento.
+    patient_name: cita ? cita.patient_name : 'Nombre del paciente',
+    doctor_name: doctorName,
+    clinic_name: clinica.name,
+    clinic_phone: clinica.phone,
+    brand_color: clinica.brand_color,
+    clinic_address: clinica.address,
+    clinic_city: clinica.city,
+    latitude: clinica.latitude,
+    longitude: clinica.longitude,
+    map_url: clinica.map_url,
+    location_notes: clinica.location_notes,
+    scheduled_at: cita ? cita.scheduled_at : manana.toISOString(),
+    status: 'sent',
+    card_message: clinica.confirmation_card_message || CARD_MESSAGE_DEFAULT,
+    // Para que la página pueda decir si lo que se ve es una cita de verdad.
+    cita_real: !!cita,
+  });
+});
+
 // ───────────────────────── Listado para staff ─────────────────────────
 
 // GET /api/confirmations  → cita + paciente + confirmación (si existe)
