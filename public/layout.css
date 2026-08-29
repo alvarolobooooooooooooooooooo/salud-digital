@@ -2049,3 +2049,73 @@ nav.old-nav {
   flex: 1 1 auto; min-width: 0;
   display: flex; flex-direction: column; gap: 8px;
 }
+
+/* ───────────────────────────────────────────────────────────────
+   Móvil: las cuatro KPI dejan de ser cuatro tarjetas y pasan a ser
+   un panel único partido en cuatro celdas.
+
+   A ancho completo cada tarjeta gastaba media superficie en blanco
+   —el icono y la cifra llegaban a la mitad— y las cuatro sumaban
+   575px: dos tercios de un iPhone antes de que asome la tabla. En
+   panel 2x2 son 258px, con la cifra igual de grande.
+
+   El icono se va: los cuatro son el mismo cuadro cian, así que
+   ocupaban 56px sin distinguir una tarjeta de otra. Y el dato de
+   apoyo pierde su cápsula: dentro de una celda ya no tiene de qué
+   separarse.
+
+   Los selectores van con la clase repetida (.kpis.kpis) a propósito.
+   Cada página define `.kpis{grid-template-columns:1fr}` en su propio
+   <style>, que se carga después de esta hoja, y theme-dark.css pisa
+   `.kpi` con !important desde `html[data-theme="dark"] .kpi`. Tres
+   clases ganan a las dos de allí, y así esto vive en un solo sitio
+   en vez de repetirse en confirmaciones, consentimientos,
+   recordatorios y doctors.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .kpis.kpis {
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    background: var(--glass-bg, var(--bg-elev, #fff));
+    border: 1px solid var(--glass-border, var(--line, #e2e8f0));
+    border-radius: var(--r-lg, 16px);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, .06));
+  }
+  .kpis.kpis .kpi {
+    flex-direction: column !important;
+    align-items: stretch;
+    gap: 7px;
+    min-height: 0;
+    padding: 16px 14px;
+    background: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-right: 1px solid var(--glass-border, var(--line, #e2e8f0)) !important;
+    border-bottom: 1px solid var(--glass-border, var(--line, #e2e8f0)) !important;
+  }
+  /* Las cuatro páginas traen exactamente 4 KPI: la columna derecha se queda
+     sin línea a la derecha y la fila de abajo sin línea abajo. */
+  .kpis.kpis .kpi:nth-child(2n) { border-right: 0 !important; }
+  .kpis.kpis .kpi:nth-last-child(-n+2) { border-bottom: 0 !important; }
+  /* El brillo que el tema oscuro pinta en cada tarjeta: dentro del panel
+     serían cuatro reflejos donde debería haber una sola superficie. */
+  .kpis.kpis .kpi::after { display: none !important; }
+  .kpis.kpis .kpi .kpi-tile { display: none; }
+  .kpis.kpis .kpi .spark { display: none; }
+  .kpis.kpis .kpi .label { font-size: 10px; letter-spacing: .07em; }
+  .kpis.kpis .kpi .v { font-size: 32px; }
+  .kpis.kpis .kpi .v .unit { font-size: 11px; display: block; margin: 4px 0 0; }
+  /* .trend repetido: theme-dark.css pinta estas cápsulas desde
+     `html[data-theme="dark"] .kpi.warn .trend`, que con su elemento html pesa
+     más que cuatro clases. Cinco clases lo superan. */
+  .kpis.kpis .kpi .trend.trend {
+    background: none !important;
+    padding: 0 !important;
+    font-size: 11.5px;
+    gap: 4px;
+  }
+}
