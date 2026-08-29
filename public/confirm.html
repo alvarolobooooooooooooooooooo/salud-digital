@@ -6,170 +6,383 @@
 <title>Confirmación de cita · SaludDigital</title>
 <meta name="theme-color" content="#0891b2">
 <link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
 <style>
   :root{
-    --teal-500:#06b6d4; --teal-600:#0891b2; --teal-700:#0e7490;
-    --green-500:#22c55e; --green-600:#16a34a; --green-700:#15803d;
+    /* La clínica pisa --brand con su color; todo el degradado de la cabecera
+       se calcula a partir de él, así un solo color sigue dando cristal. */
+    --brand:#0891b2;
+    --green-400:#34d399; --green-500:#10b981; --green-600:#059669; --green-700:#047857;
     --rose-500:#f43f5e; --rose-600:#e11d48; --rose-700:#be123c;
-    --bg:#f8fafc;
-    --surface:#ffffff;
-    --surface-2:#f1f5f9;
-    --ink:#0f172a;
-    --ink-2:#334155;
-    --ink-3:#64748b;
-    --ink-4:#94a3b8;
-    --line:#e2e8f0;
-    --line-strong:#cbd5e1;
-    --shadow-lg:0 24px 60px -16px rgba(15,23,42,.18), 0 8px 24px -8px rgba(15,23,42,.08);
-    --r-lg:18px; --r-md:12px;
+
+    --ink:#0f172a; --ink-2:#334155; --ink-3:#64748b; --ink-4:#94a3b8;
+
+    /* Cristal: blancos translúcidos + la línea de canto que hace el borde de vidrio */
+    --glass:rgba(255,255,255,.62);
+    --glass-strong:rgba(255,255,255,.80);
+    --glass-line:rgba(255,255,255,.80);
+    --hairline:rgba(15,23,42,.09);
+    --blur:saturate(185%) blur(26px);
+
+    --shadow-card:
+      0 44px 84px -30px rgba(8,47,73,.34),
+      0 18px 44px -22px rgba(8,47,73,.22),
+      0 2px 6px rgba(8,47,73,.05);
+
+    --r-lg:28px; --r-md:20px; --r-sm:14px;
+
+    /* location.js pinta su bloque con estas variables: aquí se le da cristal */
+    --sdloc-bg:rgba(255,255,255,.46);
+    --sdloc-line:rgba(255,255,255,.85);
+    --sdloc-ink:#0f172a;
+    --sdloc-muted:#64748b;
   }
+
   *{ box-sizing:border-box }
-  html, body{ margin:0; padding:0; min-height:100vh }
+  html, body{ margin:0; padding:0; min-height:100% }
   body{
-    font-family:'Poppins', sans-serif;
-    background:linear-gradient(180deg, #ecfeff 0%, var(--bg) 60%);
+    font-family:'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
     color:var(--ink);
-    display:flex; align-items:center; justify-content:center;
-    padding:24px 16px;
+    min-height:100vh;
+    min-height:100dvh;
+    display:flex; align-items:flex-start; justify-content:center;
+    padding:28px 16px;
     -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(1100px 800px at 50% 108%, #ffffff 0%, #eef8fc 55%, #e6eef6 100%);
   }
+
+  /* ---- Fondo: dos capas de manchas de color muy suaves. Son degradados
+     radiales (no filter:blur), así que el cristal tiene algo que refractar
+     sin pagar un desenfoque por fotograma. ---- */
+  .bg, .bg-2{
+    position:fixed; inset:-25%; z-index:-1; pointer-events:none;
+    will-change:transform;
+  }
+  .bg{
+    background-image:
+      radial-gradient(46% 34% at 30% 22%, rgba(34,211,238,.62), transparent 72%),
+      radial-gradient(40% 30% at 74% 16%, rgba(129,140,248,.46), transparent 72%),
+      radial-gradient(50% 40% at 68% 78%, rgba(45,212,191,.54), transparent 72%),
+      radial-gradient(42% 34% at 24% 82%, rgba(244,186,222,.46), transparent 72%);
+    animation:deriva 38s ease-in-out infinite alternate;
+  }
+  .bg-2{
+    background-image:
+      radial-gradient(44% 32% at 52% 44%, rgba(56,189,248,.44), transparent 72%),
+      radial-gradient(40% 34% at 44% 66%, rgba(167,243,208,.50), transparent 72%),
+      radial-gradient(34% 26% at 58% 8%, rgba(196,181,253,.38), transparent 72%);
+    animation:deriva-2 52s ease-in-out infinite alternate;
+  }
+  @keyframes deriva{
+    from{ transform:translate3d(0,0,0) scale(1) }
+    to  { transform:translate3d(-4%, 3%, 0) scale(1.12) }
+  }
+  @keyframes deriva-2{
+    from{ transform:translate3d(0,0,0) scale(1.08) }
+    to  { transform:translate3d(5%, -4%, 0) scale(1) }
+  }
+
+  /* ---- La tarjeta de cristal ---- */
   .card{
+    position:relative;
     width:100%; max-width:480px;
-    background:var(--surface);
+    margin:auto;
     border-radius:var(--r-lg);
-    border:1px solid var(--line);
-    box-shadow:var(--shadow-lg);
+    background:linear-gradient(152deg,
+      rgba(255,255,255,.70) 0%,
+      rgba(255,255,255,.44) 46%,
+      rgba(255,255,255,.62) 100%);
+    -webkit-backdrop-filter:var(--blur);
+    backdrop-filter:var(--blur);
+    border:1px solid var(--glass-line);
+    box-shadow:
+      var(--shadow-card),
+      0 50px 90px -46px rgba(6,182,212,.55),
+      inset 0 1px 0 rgba(255,255,255,.95),
+      inset 0 -1px 0 rgba(255,255,255,.40),
+      inset 1px 0 0 rgba(255,255,255,.55),
+      inset -1px 0 0 rgba(255,255,255,.55);
     overflow:hidden;
+    animation:entrar .6s cubic-bezier(.22,1,.36,1) both;
   }
+  @keyframes entrar{
+    from{ opacity:0; transform:translateY(18px) scale(.985) }
+    to  { opacity:1; transform:none }
+  }
+
+  /* ---- Cabecera: degradado hecho con un solo color de marca ---- */
   .head{
-    padding:28px 28px 18px;
-    background:linear-gradient(135deg, var(--teal-600), var(--teal-700));
-    color:#fff;
-    text-align:center;
+    position:relative;
+    padding:30px 28px 22px;
+    text-align:center; color:#fff;
+    background:var(--brand);
+    background-image:linear-gradient(138deg,
+      color-mix(in srgb, var(--brand) 66%, #ffffff) 0%,
+      var(--brand) 44%,
+      color-mix(in srgb, var(--brand) 74%, #082f3f) 100%);
+    box-shadow:inset 0 -1px 0 rgba(255,255,255,.28);
+    overflow:hidden;
+    isolation:isolate;
+  }
+  /* Luz difusa arriba a la izquierda */
+  .head::before{
+    content:''; position:absolute; inset:0; z-index:-1; pointer-events:none;
+    background:radial-gradient(70% 90% at 18% -10%, rgba(255,255,255,.42), transparent 62%);
+  }
+  /* Reflejo diagonal: el brillo que delata que hay vidrio */
+  .head::after{
+    content:''; position:absolute; z-index:-1; pointer-events:none;
+    left:-25%; top:-130%; width:62%; height:320%;
+    transform:rotate(19deg);
+    background:linear-gradient(90deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,.26) 48%,
+      rgba(255,255,255,0) 100%);
   }
   .head h1{
-    margin:8px 0 4px;
-    font-size:22px; font-weight:700; letter-spacing:-0.01em;
+    margin:12px 0 4px;
+    font-size:22px; font-weight:700; letter-spacing:-0.015em;
+    text-shadow:0 1px 12px rgba(8,47,73,.22);
   }
   .head .sub{
-    margin:0; font-size:13.5px; opacity:.92;
+    margin:0; font-size:13.5px; font-weight:500;
+    color:rgba(255,255,255,.92);
   }
   .head .logo{
-    width:48px; height:48px; border-radius:14px;
-    background:rgba(255,255,255,.18);
+    width:54px; height:54px; border-radius:18px;
     display:inline-flex; align-items:center; justify-content:center;
-    border:1px solid rgba(255,255,255,.25);
+    background:linear-gradient(158deg, rgba(255,255,255,.46), rgba(255,255,255,.14));
+    border:1px solid rgba(255,255,255,.48);
+    -webkit-backdrop-filter:blur(6px);
+    backdrop-filter:blur(6px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.72),
+      0 12px 24px -14px rgba(4,30,45,.7);
   }
-  .body{ padding:26px 28px }
+
+  .body{ padding:26px 26px 28px; position:relative }
+
+  /* ---- Panel de datos: cristal sobre cristal ---- */
   .info-block{
-    background:var(--surface-2);
-    border:1px solid var(--line);
+    background:linear-gradient(160deg, rgba(255,255,255,.72), rgba(255,255,255,.36));
+    border:1px solid rgba(255,255,255,.9);
     border-radius:var(--r-md);
+    -webkit-backdrop-filter:saturate(150%) blur(12px);
+    backdrop-filter:saturate(150%) blur(12px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.95),
+      0 12px 26px -18px rgba(8,47,73,.45);
     padding:16px 18px;
-    margin-bottom:20px;
+    margin-bottom:18px;
   }
   .info-row{
     display:flex; justify-content:space-between; align-items:flex-start;
-    padding:6px 0; gap:12px; font-size:14px;
+    padding:9px 0; gap:12px; font-size:14px;
   }
-  .info-row + .info-row{ border-top:1px dashed var(--line) }
+  .info-row + .info-row{ border-top:1px solid var(--hairline) }
   .info-row .k{
-    color:var(--ink-3); font-size:12px; font-weight:600;
-    text-transform:uppercase; letter-spacing:.06em;
-    flex-shrink:0;
+    color:var(--ink-3); font-size:11px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.08em;
+    flex-shrink:0; padding-top:2px;
   }
   .info-row .v{
     color:var(--ink); font-weight:600; text-align:right;
     font-size:14px; line-height:1.4;
   }
-  .actions{ display:flex; flex-direction:column; gap:10px; margin-top:6px }
+
+  /* ---- Botones ---- */
+  .actions{ display:flex; flex-direction:column; gap:11px; margin-top:6px }
   .btn{
-    width:100%; padding:14px 18px;
-    border-radius:14px; border:none; cursor:pointer;
+    position:relative; overflow:hidden;
+    width:100%; padding:15px 18px;
+    border-radius:16px; border:none; cursor:pointer;
     font-family:inherit; font-size:15px; font-weight:600;
     display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    transition:transform .15s, box-shadow .15s, background .15s;
+    transition:transform .18s cubic-bezier(.22,1,.36,1), box-shadow .18s, filter .18s;
   }
-  .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none !important }
+  /* Barniz superior: media pastilla de luz sobre el color */
+  .btn::before{
+    content:''; position:absolute; left:0; right:0; top:0; height:52%;
+    background:linear-gradient(180deg, rgba(255,255,255,.32), rgba(255,255,255,0));
+    pointer-events:none;
+  }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none !important }
   .btn-primary{
-    background:linear-gradient(180deg, var(--green-500), var(--green-600));
+    background:linear-gradient(138deg, var(--green-400), var(--green-500) 46%, var(--green-600));
     color:#fff;
-    box-shadow:0 8px 18px -8px rgba(22,163,74,.55);
+    box-shadow:
+      0 14px 28px -12px rgba(5,150,105,.72),
+      0 2px 6px -2px rgba(5,150,105,.4),
+      inset 0 1px 0 rgba(255,255,255,.5),
+      inset 0 -1px 0 rgba(4,120,87,.5);
   }
   .btn-primary:hover:not(:disabled){
-    transform:translateY(-1px);
-    background:linear-gradient(180deg, var(--green-600), var(--green-700));
+    transform:translateY(-2px);
+    box-shadow:
+      0 20px 34px -12px rgba(5,150,105,.8),
+      0 3px 8px -2px rgba(5,150,105,.45),
+      inset 0 1px 0 rgba(255,255,255,.55);
   }
+  .btn-primary:active:not(:disabled){ transform:translateY(0) }
   .btn-secondary{
-    background:#fff; color:var(--rose-700);
-    border:1.5px solid var(--rose-500);
+    background:linear-gradient(160deg, rgba(255,255,255,.82), rgba(255,255,255,.52));
+    color:var(--rose-700);
+    border:1px solid rgba(244,63,94,.36);
+    -webkit-backdrop-filter:blur(10px);
+    backdrop-filter:blur(10px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.95),
+      0 10px 22px -16px rgba(190,18,60,.55);
   }
   .btn-secondary:hover:not(:disabled){
-    background:#fff5f7; border-color:var(--rose-600);
+    transform:translateY(-2px);
+    border-color:rgba(225,29,72,.55);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.95),
+      0 16px 26px -16px rgba(190,18,60,.6);
   }
+  .btn-secondary:active:not(:disabled){ transform:translateY(0) }
+
+  /* ---- Pie ---- */
   .clinic-foot{
-    text-align:center; padding:16px 28px 22px;
-    border-top:1px solid var(--line);
-    background:var(--surface-2);
+    text-align:center; padding:16px 26px 20px;
+    border-top:1px solid rgba(255,255,255,.75);
+    background:linear-gradient(180deg, rgba(255,255,255,.30), rgba(255,255,255,.62));
     color:var(--ink-3);
     font-size:12.5px;
   }
   .clinic-foot b{ color:var(--ink-2); font-weight:600 }
-  .clinic-foot a{ color:var(--teal-700); text-decoration:none; font-weight:600 }
-  .state-icon{
-    width:64px; height:64px; border-radius:50%;
-    display:inline-flex; align-items:center; justify-content:center;
-    margin:0 auto 12px; flex-shrink:0;
+  .clinic-foot a{
+    color:color-mix(in srgb, var(--brand) 82%, #0f172a);
+    text-decoration:none; font-weight:600;
   }
-  .state-icon.ok{ background:#dcfce7; color:var(--green-700) }
-  .state-icon.bad{ background:#ffe4e6; color:var(--rose-700) }
-  .state-icon.warn{ background:#fef9c3; color:#854d0e }
+
+  /* ---- Estados ---- */
+  .state-icon{
+    width:76px; height:76px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    margin:6px auto 16px; flex-shrink:0;
+    position:relative;
+    -webkit-backdrop-filter:blur(8px);
+    backdrop-filter:blur(8px);
+    animation:pop .5s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .state-icon::after{
+    content:''; position:absolute; inset:0; border-radius:50%;
+    background:linear-gradient(160deg, rgba(255,255,255,.6), rgba(255,255,255,0) 55%);
+    pointer-events:none;
+  }
+  @keyframes pop{
+    from{ opacity:0; transform:scale(.7) }
+    to  { opacity:1; transform:none }
+  }
+  .state-icon.ok{
+    background:linear-gradient(150deg, rgba(209,250,229,.95), rgba(110,231,183,.55));
+    border:1px solid rgba(255,255,255,.9);
+    color:var(--green-700);
+    box-shadow:0 18px 34px -18px rgba(5,150,105,.75), inset 0 1px 0 rgba(255,255,255,.95);
+  }
+  .state-icon.bad{
+    background:linear-gradient(150deg, rgba(255,228,230,.95), rgba(253,164,175,.55));
+    border:1px solid rgba(255,255,255,.9);
+    color:var(--rose-700);
+    box-shadow:0 18px 34px -18px rgba(190,18,60,.6), inset 0 1px 0 rgba(255,255,255,.95);
+  }
+  .state-icon.warn{
+    background:linear-gradient(150deg, rgba(254,249,195,.95), rgba(253,224,71,.5));
+    border:1px solid rgba(255,255,255,.9);
+    color:#854d0e;
+    box-shadow:0 18px 34px -18px rgba(161,98,7,.55), inset 0 1px 0 rgba(255,255,255,.95);
+  }
   .center{ text-align:center }
   .center h2{
-    font-size:20px; font-weight:700; letter-spacing:-0.01em;
+    font-size:21px; font-weight:700; letter-spacing:-0.018em;
     margin:0 0 8px;
   }
   .center p{
-    margin:0; color:var(--ink-2); font-size:14px; line-height:1.55;
+    margin:0; color:var(--ink-2); font-size:14px; line-height:1.6;
   }
   .spinner{
-    width:32px; height:32px; border-radius:50%;
-    border:3px solid var(--line);
-    border-top-color:var(--teal-600);
-    animation:sp 0.8s linear infinite;
-    margin:24px auto;
+    width:38px; height:38px; border-radius:50%;
+    border:3px solid rgba(255,255,255,.75);
+    border-top-color:var(--brand);
+    box-shadow:0 6px 16px -8px rgba(8,47,73,.4);
+    animation:sp .8s linear infinite;
+    margin:28px auto;
   }
   @keyframes sp{ to{ transform:rotate(360deg) } }
   .pill{
     display:inline-flex; align-items:center; gap:6px;
-    padding:5px 10px; border-radius:999px;
+    padding:5px 11px; border-radius:999px;
     font-size:12px; font-weight:600;
+    border:1px solid rgba(255,255,255,.8);
   }
-  .pill.confirmed{ background:#dcfce7; color:var(--green-700) }
-  .pill.declined{ background:#ffe4e6; color:var(--rose-700) }
-  .pill.sent{ background:#fef9c3; color:#854d0e }
+  .pill.confirmed{ background:rgba(220,252,231,.8); color:var(--green-700) }
+  .pill.declined{ background:rgba(255,228,230,.8); color:var(--rose-700) }
+  .pill.sent{ background:rgba(254,249,195,.8); color:#854d0e }
   .change-link{
-    display:inline-block; margin-top:14px;
-    color:var(--teal-700); font-weight:600; font-size:13px;
-    cursor:pointer; background:none; border:none;
-    text-decoration:underline; text-underline-offset:3px;
+    display:inline-block; margin-top:16px;
+    padding:9px 16px; border-radius:999px;
+    color:color-mix(in srgb, var(--brand) 80%, #0f172a);
+    font-family:inherit; font-weight:600; font-size:13px;
+    cursor:pointer;
+    background:linear-gradient(160deg, rgba(255,255,255,.8), rgba(255,255,255,.45));
+    border:1px solid rgba(255,255,255,.9);
+    -webkit-backdrop-filter:blur(8px);
+    backdrop-filter:blur(8px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.95), 0 8px 20px -14px rgba(8,47,73,.5);
+    transition:transform .18s, box-shadow .18s;
   }
+  .change-link:hover{
+    transform:translateY(-1px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.95), 0 12px 22px -14px rgba(8,47,73,.55);
+  }
+
   /* El bloque de ubicación (.sdloc) trae sus propios estilos desde location.js;
-     aquí solo se le da su sitio dentro de la tarjeta. */
-  .sdloc{ margin:16px 0 18px }
+     aquí se le da su sitio y el mismo cristal que el resto de la tarjeta. */
+  .sdloc{
+    margin:16px 0 18px;
+    -webkit-backdrop-filter:saturate(150%) blur(12px);
+    backdrop-filter:saturate(150%) blur(12px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.95), 0 12px 26px -18px rgba(8,47,73,.45);
+  }
+
+  /* Sin backdrop-filter (navegadores viejos) el cristal se vuelve blanco sólido
+     en vez de dejar el texto flotando sobre las manchas de color. */
+  @supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+    .card{ background:rgba(255,255,255,.96) }
+    .info-block, .btn-secondary, .change-link{ background:#fff }
+    .sdloc{ background:#fff }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .bg, .bg-2{ animation:none }
+    .card, .state-icon{ animation:none }
+    .btn:hover, .change-link:hover{ transform:none }
+  }
+
   @media (max-width: 420px){
-    .head{ padding:22px 22px 16px }
-    .body{ padding:22px }
+    body{ padding:16px 12px }
+    .card{ border-radius:24px }
+    .head{ padding:24px 20px 18px }
+    .body{ padding:22px 20px 24px }
     .head h1{ font-size:20px }
+    .head .logo{ width:48px; height:48px; border-radius:16px }
   }
 </style>
 </head>
 <body>
+  <div class="bg" aria-hidden="true"></div>
+  <div class="bg-2" aria-hidden="true"></div>
+
   <div class="card" role="region" aria-labelledby="hdrTitle">
     <div id="state">
       <div class="head">
         <div class="logo" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
         </div>
         <h1 id="hdrTitle">Cargando…</h1>
         <p class="sub" id="hdrSub">Un momento</p>
@@ -269,8 +482,22 @@
     });
   }
 
+  // Cabecera de marca. La comparten los cuatro estados (pregunta, confirmada,
+  // cancelada y error) para que la tarjeta nunca se quede sin clínica ni color.
+  function headHtml(clinicName, brandColor, sub){
+    var estilo = brandColor ? ' style="--brand:' + esc(brandColor) + '"' : '';
+    return '<div class="head"' + estilo + '>' +
+      '<div class="logo" aria-hidden="true">' + LOGO_SVG + '</div>' +
+      '<h1>Confirmación de cita</h1>' +
+      '<p class="sub">' + esc(sub || clinicName || 'SaludDigital') + '</p>' +
+    '</div>';
+  }
+
+  var LOGO_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>';
+
   function renderError(title, msg){
     stateEl.innerHTML = `
+      ${headHtml(null, null, 'SaludDigital')}
       <div class="body">
         <div class="state-icon bad" aria-hidden="true">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg>
@@ -286,13 +513,14 @@
     const f = fmtDateTime(data.scheduled_at);
     if (action === 'confirm') {
       stateEl.innerHTML = `
+        ${headHtml(data.clinic_name, data.brand_color)}
         <div class="body">
           <div class="state-icon ok" aria-hidden="true">
             <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
           </div>
           <div class="center">
             <h2>¡Cita confirmada!</h2>
-            <p>${esc(data.clinic_name)} te espera el <b>${esc(f.full)}</b> a las <b>${esc(f.time)}</b>.</p>
+            <p>${esc(data.clinic_name)} te espera el <b>${esc(f.full)}</b> a las <b>${esc(f.time)}</b></p>
             <button type="button" class="change-link" id="changeBtn">Necesito cambiarla</button>
           </div>
           ${locationBlock(data)}
@@ -304,6 +532,7 @@
       if (change) change.addEventListener('click', () => render(data, true));
     } else {
       stateEl.innerHTML = `
+        ${headHtml(data.clinic_name, data.brand_color)}
         <div class="body">
           <div class="state-icon warn" aria-hidden="true">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
@@ -332,13 +561,7 @@
     const past = new Date(data.scheduled_at) < new Date();
 
     stateEl.innerHTML = `
-      <div class="head" style="${data.brand_color ? `background:linear-gradient(135deg, ${esc(data.brand_color)}, color-mix(in oklch, ${esc(data.brand_color)} 75%, #0f172a))` : ''}">
-        <div class="logo" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
-        </div>
-        <h1>Confirmación de cita</h1>
-        <p class="sub">${esc(data.clinic_name || 'Clínica')}</p>
-      </div>
+      ${headHtml(data.clinic_name || 'Clínica', data.brand_color)}
       <div class="body">
         <p style="margin:0 0 16px; color:var(--ink-2); font-size:14.5px; line-height:1.55; text-align:center; white-space:pre-line">${cardMessage(data)}</p>
         <div class="info-block">
@@ -449,6 +672,18 @@
     }
   }
 
+  // Volver de la vista previa: si esta pestaña la abrió la app, cerrarla deja al
+  // doctor donde estaba; si la previa se abrió en la misma pestaña, atrás; y si
+  // no hay ni una cosa ni la otra, se va derecho a Confirmaciones.
+  function salirDeLaPrevia(){
+    if (window.opener && !window.opener.closed) { window.close(); return; }
+    try {
+      const ref = document.referrer ? new URL(document.referrer) : null;
+      if (ref && ref.origin === location.origin && history.length > 1) { history.back(); return; }
+    } catch (_) {}
+    location.href = '/confirmaciones.html';
+  }
+
   async function renderPreview(){
     const data = await datosDePrevia();
     // El editor de plantilla manda ?msg= para enseñar el texto que se está
@@ -457,16 +692,36 @@
     if (escribiendo) data.card_message = escribiendo;
     if (!data.card_message) data.card_message = CARD_MESSAGE_DEFAULT;
 
-    // Banner sutil indicando que es preview
+    // Banner sutil indicando que es preview, con salida a la vista. La previa se
+    // abre en una pestaña aparte y volver dependía del gesto del navegador
+    // (deslizar hacia atrás), que no todo el mundo conoce: aquí hay un botón.
     const banner = document.createElement('div');
-    banner.style.cssText = 'position:fixed; top:0; left:0; right:0; padding:8px 16px; background:#fffbeb; color:#854d0e; font-size:12.5px; font-weight:600; text-align:center; border-bottom:1px solid #fde68a; z-index:10; letter-spacing:.02em';
-    banner.textContent = data.ejemplo
+    banner.style.cssText = 'position:fixed; top:0; left:0; right:0; display:flex; align-items:center; gap:10px; padding:8px 12px; background:linear-gradient(180deg, rgba(255,251,235,.86), rgba(254,243,199,.72)); -webkit-backdrop-filter:saturate(160%) blur(14px); backdrop-filter:saturate(160%) blur(14px); color:#854d0e; font-size:12.5px; font-weight:600; border-bottom:1px solid rgba(253,230,138,.9); box-shadow:0 8px 24px -18px rgba(120,53,15,.6); z-index:10; letter-spacing:.02em';
+
+    const btnVolver = document.createElement('button');
+    btnVolver.type = 'button';
+    btnVolver.setAttribute('aria-label', 'Volver a Confirmaciones');
+    btnVolver.style.cssText = 'flex-shrink:0; display:inline-flex; align-items:center; gap:5px; padding:6px 12px 6px 9px; background:linear-gradient(160deg, rgba(255,255,255,.95), rgba(255,255,255,.7)); color:#854d0e; border:1px solid rgba(252,211,77,.9); border-radius:999px; box-shadow:inset 0 1px 0 rgba(255,255,255,.95), 0 6px 14px -10px rgba(120,53,15,.6); font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer; line-height:1';
+    btnVolver.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Volver';
+    btnVolver.addEventListener('click', salirDeLaPrevia);
+
+    const aviso = document.createElement('span');
+    aviso.style.cssText = 'flex:1; min-width:0; text-align:center; line-height:1.35';
+    aviso.textContent = data.ejemplo
       ? 'Vista previa con datos de ejemplo · Abrila desde la app para ver la tuya'
       : (data.cita_real
           ? 'Vista previa · Es tu próxima cita. Los botones no envían ni cambian nada'
           : 'Vista previa · Los botones no envían nada real');
+
+    banner.append(btnVolver, aviso);
     document.body.prepend(banner);
-    document.body.style.paddingTop = '32px';
+    // El aviso envuelve en pantallas estrechas, así que el hueco se mide, no
+    // se supone.
+    const ajustarHueco = () => {
+      document.body.style.paddingTop = (banner.offsetHeight || 32) + 'px';
+    };
+    ajustarHueco();
+    window.addEventListener('resize', ajustarHueco);
     render(data, false);
     // Intercepta clics en los botones y solo muestra el resultado simulado.
     setTimeout(() => {
