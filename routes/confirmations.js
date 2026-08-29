@@ -13,30 +13,76 @@ function newToken() {
 
 // ───────────────────────── Configuración WhatsApp ─────────────────────────
 
+// Quién puede guardar, dónde guarda cada rol y cómo se resuelve el texto de un
+// doctor contra el de la clínica: todo vive en lib/whatsapp-config.js, porque
+// esta pantalla y la de Recordatorios escriben las MISMAS columnas y no pueden
+// permitirse opinar distinto sobre ellas.
+const {
+  CONFIG_ROLES,
+  guardaEnSuPropiaFila,
+  sqlConfigEfectiva,
+  normalizarNumero,
+  numeroInvalido,
+} = require('../lib/whatsapp-config');
+
 // Texto por defecto de la tarjeta: el mismo que la página mostraba fijo antes de
 // que fuera editable, para que una clínica que nunca lo toque no note el cambio.
 const CARD_MESSAGE_DEFAULT = 'Hola {{patientName}}, ¿podrás asistir a esta cita?';
 
 // GET /api/confirmations/whatsapp-config
-// Devuelve también el mensaje de la tarjeta: la pantalla de Confirmaciones edita
-// los dos textos y así los carga en una sola petición.
+// La configuración de quien mira, ya resuelta contra la de la clínica, más la
+// de cada doctor de la casa para que cada fila se mande con el texto de SU
+// doctor y no con el de quien pulsa. Devuelve también el mensaje de la tarjeta:
+// la pantalla edita los dos textos y así los carga en una sola petición.
+//
+// El mensaje de la tarjeta NO es por doctor a propósito: lo que el paciente lee
+// al abrir el enlace es una página de la clínica, con su nombre y su dirección,
+// no la consulta de un doctor concreto.
 router.get('/whatsapp-config', authenticate, async (req, res) => {
-  const result = await query(
-    `SELECT whatsapp_enabled, whatsapp_number, whatsapp_confirmation_template,
-            confirmation_card_message, name
-       FROM clinics WHERE id = $1`,
-    [req.user.clinic_id]
+  const esDoctor = guardaEnSuPropiaFila(req.user);
+
+  const propia = await query(
+    esDoctor
+      ? `SELECT ${sqlConfigEfectiva('u', 'cl')},
+                cl.confirmation_card_message, cl.name,
+                u.whatsapp_confirmation_template IS NOT NULL AS personalizado
+           FROM users u JOIN clinics cl ON cl.id = u.clinic_id
+          WHERE u.id = $1`
+      : `SELECT cl.whatsapp_enabled, cl.whatsapp_number, cl.whatsapp_template,
+                cl.whatsapp_confirmation_template, cl.confirmation_card_message,
+                cl.name, FALSE AS personalizado
+           FROM clinics cl WHERE cl.id = $1`,
+    [esDoctor ? req.user.id : req.user.clinic_id]
   );
-  if (result.rows.length === 0) return res.status(404).json({ error: 'Clinic not found' });
-  const row = result.rows[0];
+  if (propia.rows.length === 0) return res.status(404).json({ error: 'Clinic not found' });
+  const row = propia.rows[0];
   if (!row.confirmation_card_message) row.confirmation_card_message = CARD_MESSAGE_DEFAULT;
-  res.json(row);
+
+  const doctores = await query(
+    `SELECT u.id, ${sqlConfigEfectiva('u', 'cl')}
+       FROM users u JOIN clinics cl ON cl.id = u.clinic_id
+      WHERE u.clinic_id = $1 AND u.role = 'doctor'
+        ${esDoctor ? 'AND u.id = $2' : ''}`,
+    esDoctor ? [req.user.clinic_id, req.user.id] : [req.user.clinic_id]
+  );
+  const porDoctor = {};
+  for (const d of doctores.rows) {
+    porDoctor[d.id] = {
+      whatsapp_enabled: d.whatsapp_enabled,
+      whatsapp_confirmation_template: d.whatsapp_confirmation_template,
+    };
+  }
+
+  res.json(Object.assign({}, row, {
+    scope: esDoctor ? 'doctor' : 'clinic',
+    por_doctor: porDoctor,
+  }));
 });
 
-// PUT /api/confirmations/card-message  (solo clinic_admin)
+// PUT /api/confirmations/card-message  (clinic_admin o doctor)
 // Mensaje que el paciente lee en la tarjeta de confirmación.
 router.put('/card-message', authenticate, async (req, res) => {
-  if (req.user.role !== 'clinic_admin') {
+  if (!CONFIG_ROLES.includes(req.user.role)) {
     return res.status(403).json({ error: 'No autorizado' });
   }
   // El texto acaba dentro de una página pública. La página ya escapa antes de
@@ -56,47 +102,139 @@ router.put('/card-message', authenticate, async (req, res) => {
   res.json({ success: true, confirmation_card_message: raw });
 });
 
-// PUT /api/confirmations/whatsapp-config  (solo clinic_admin)
-// Antes solo guardaba la plantilla: el interruptor y el número vivían en
-// Recordatorios. Al desactivar esa pantalla se quedaban sin sitio donde
-// editarse, así que ahora los tres campos se guardan desde aquí. Los campos
-// son opcionales: si la petición no los trae, se dejan como están (la pantalla
-// de Confirmaciones los manda siempre, pero así ninguna llamada vieja apaga
-// WhatsApp sin querer).
+// PUT /api/confirmations/whatsapp-config
+// Guarda la configuración de quien llama: el doctor la suya (users), el
+// clinic_admin la de la casa (clinics). Son filas distintas, así que un doctor
+// no puede cambiarle el mensaje a otro ni pisar el de la clínica.
+//
+// Los campos son opcionales: si la petición no los trae, se dejan como están
+// (la pantalla los manda siempre, pero así ninguna llamada vieja apaga WhatsApp
+// sin querer).
 router.put('/whatsapp-config', authenticate, async (req, res) => {
-  if (req.user.role !== 'clinic_admin') {
+  if (!CONFIG_ROLES.includes(req.user.role)) {
     return res.status(403).json({ error: 'No autorizado' });
   }
   const body = req.body || {};
-  const { whatsapp_confirmation_template } = body;
-
-  const sets = ['whatsapp_confirmation_template = $1'];
-  const params = [whatsapp_confirmation_template || ''];
 
   const traeEnabled = Object.prototype.hasOwnProperty.call(body, 'whatsapp_enabled');
   const traeNumero = Object.prototype.hasOwnProperty.call(body, 'whatsapp_number');
+  const traePlantilla = Object.prototype.hasOwnProperty.call(body, 'whatsapp_confirmation_template');
 
-  // Solo dígitos, igual que hacía Recordatorios: el número acaba en un enlace
-  // wa.me, donde los espacios y guiones rompen el link.
-  const numero = (body.whatsapp_number || '').replace(/\D/g, '');
-  if (traeNumero && numero && !/^\d{8,15}$/.test(numero)) {
+  const numero = normalizarNumero(body.whatsapp_number);
+  if (traeNumero && numeroInvalido(numero)) {
     return res.status(400).json({ error: 'Número de WhatsApp inválido. Use formato internacional sin +, espacios ni guiones.' });
   }
-  // Encender sin número deja la clínica con el botón activo y ningún sitio
-  // desde donde escribir: se corta aquí en vez de fallar al enviar.
+  // Encender sin número deja el botón activo y ningún sitio desde donde
+  // escribir: se corta aquí en vez de fallar al enviar.
   if (traeEnabled && body.whatsapp_enabled && traeNumero && !numero) {
-    return res.status(400).json({ error: 'Escribe el número de WhatsApp de la clínica antes de activarlo.' });
+    return res.status(400).json({ error: 'Escribe el número de WhatsApp antes de activarlo.' });
   }
 
-  if (traeEnabled) { params.push(!!body.whatsapp_enabled); sets.push(`whatsapp_enabled = $${params.length}`); }
-  if (traeNumero) { params.push(numero); sets.push(`whatsapp_number = $${params.length}`); }
+  const sets = [];
+  const params = [];
+  const set = (col, val) => { params.push(val); sets.push(`${col} = $${params.length}`); };
 
-  params.push(req.user.clinic_id);
+  if (traePlantilla) set('whatsapp_confirmation_template', body.whatsapp_confirmation_template || '');
+  if (traeEnabled) set('whatsapp_enabled', !!body.whatsapp_enabled);
+  if (traeNumero) set('whatsapp_number', numero);
+
+  if (sets.length === 0) return res.json({ success: true });
+
+  const enSuFila = guardaEnSuPropiaFila(req.user);
+  params.push(enSuFila ? req.user.id : req.user.clinic_id);
   await query(
-    `UPDATE clinics SET ${sets.join(', ')} WHERE id = $${params.length}`,
+    `UPDATE ${enSuFila ? 'users' : 'clinics'} SET ${sets.join(', ')} WHERE id = $${params.length}`,
     params
   );
-  res.json({ success: true });
+  res.json({ success: true, scope: enSuFila ? 'doctor' : 'clinic' });
+});
+
+// GET /api/confirmations/preview
+// Datos REALES de la cuenta para la vista previa de la tarjeta.
+//
+// /confirm.html?preview=1 los llevaba inventados dentro de la propia página
+// —"María González", "Dr. Álvaro Lobo", "Clínica Demostración"—, así que el
+// doctor abría la vista previa y no veía su tarjeta: veía la de una clínica que
+// no existe. Con esto ve la suya: su nombre, su consultorio, su dirección, su
+// mensaje y —si tiene alguna cita por delante— su propio paciente con su día y
+// su hora.
+//
+// Devuelve la MISMA forma que /public/:token para que la página pinte con el
+// mismo código y no haya dos maneras de dibujar la tarjeta.
+//
+// Va declarado antes que GET /:appointmentId: si no, "preview" entraría por ahí
+// como si fuera un id de cita.
+router.get('/preview', authenticate, async (req, res) => {
+  const clinicaRes = await query(
+    `SELECT name, phone, brand_color, address, city, latitude, longitude,
+            map_url, location_notes, confirmation_card_message
+       FROM clinics WHERE id = $1`,
+    [req.user.clinic_id]
+  );
+  const clinica = clinicaRes.rows[0];
+  if (!clinica) return res.status(404).json({ error: 'Clinic not found' });
+
+  // La próxima cita de verdad. Un doctor ve la suya; clinic_admin y recepción
+  // ven la siguiente de la clínica, que es la que tienen delante de todos modos.
+  const params = [req.user.clinic_id];
+  let filtroDoctor = '';
+  if (req.user.role === 'doctor') {
+    params.push(req.user.id);
+    filtroDoctor = ` AND a.doctor_id = $${params.length}`;
+  }
+  const citaRes = await query(
+    `SELECT a.scheduled_at, p.name AS patient_name, u.name AS doctor_name
+       FROM appointments a
+       JOIN patients p ON a.patient_id = p.id
+       JOIN users u ON a.doctor_id = u.id
+      WHERE a.clinic_id = $1${filtroDoctor}
+        AND a.scheduled_at >= CURRENT_TIMESTAMP
+        AND a.status <> 'cancelled'
+      ORDER BY a.scheduled_at
+      LIMIT 1`,
+    params
+  );
+  const cita = citaRes.rows[0] || null;
+
+  // Sin ninguna cita por delante (cuenta recién abierta) hace falta al menos un
+  // nombre de doctor de verdad: el de quien mira, o el de un doctor de la casa.
+  let doctorName = cita && cita.doctor_name;
+  if (!doctorName) {
+    const dueño = await query(
+      req.user.role === 'doctor'
+        ? 'SELECT name FROM users WHERE id = $1'
+        : `SELECT name FROM users WHERE clinic_id = $1 AND role = 'doctor' ORDER BY name LIMIT 1`,
+      [req.user.role === 'doctor' ? req.user.id : req.user.clinic_id]
+    );
+    doctorName = (dueño.rows[0] && dueño.rows[0].name) || '';
+  }
+
+  // Mañana a las 10:00 cuando no hay cita real: futuro, para que la tarjeta no
+  // caiga en el caso "cita pasada".
+  const manana = new Date();
+  manana.setDate(manana.getDate() + 1);
+  manana.setHours(10, 0, 0, 0);
+
+  res.json({
+    // Con cita real el paciente es el de verdad; sin ella, un hueco con forma de
+    // nombre — nunca el de un paciente que no venga a cuento.
+    patient_name: cita ? cita.patient_name : 'Nombre del paciente',
+    doctor_name: doctorName,
+    clinic_name: clinica.name,
+    clinic_phone: clinica.phone,
+    brand_color: clinica.brand_color,
+    clinic_address: clinica.address,
+    clinic_city: clinica.city,
+    latitude: clinica.latitude,
+    longitude: clinica.longitude,
+    map_url: clinica.map_url,
+    location_notes: clinica.location_notes,
+    scheduled_at: cita ? cita.scheduled_at : manana.toISOString(),
+    status: 'sent',
+    card_message: clinica.confirmation_card_message || CARD_MESSAGE_DEFAULT,
+    // Para que la página pueda decir si lo que se ve es una cita de verdad.
+    cita_real: !!cita,
+  });
 });
 
 // ───────────────────────── Listado para staff ─────────────────────────
@@ -111,6 +249,7 @@ router.get('/', authenticate, async (req, res) => {
       p.id AS patient_id,
       p.name AS patient_name,
       p.phone,
+      a.doctor_id,
       u.name AS doctor_name,
       c.id AS confirmation_id,
       c.token,

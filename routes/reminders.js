@@ -2,40 +2,115 @@ const express = require('express');
 const router = express.Router();
 const { query } = require('../db');
 const { authenticate } = require('../middleware/auth');
+const {
+  CONFIG_ROLES,
+  guardaEnSuPropiaFila,
+  sqlConfigEfectiva,
+  normalizarNumero,
+  numeroInvalido,
+} = require('../lib/whatsapp-config');
 
 // GET /api/reminders/whatsapp-config
-// Returns the clinic's WhatsApp config: enabled, number, template
+// La configuración de WhatsApp de quien mira, ya resuelta contra la de la
+// clínica (ver lib/whatsapp-config.js), más la de cada doctor de la casa para
+// que la lista pueda pintar el mensaje de CADA cita con el texto de SU doctor.
+//
+// Los cuatro campos de siempre se devuelven en la raíz y con el mismo nombre:
+// public/citas.html lee este endpoint y espera esa forma. Lo nuevo son claves
+// añadidas, nunca movidas.
 router.get('/whatsapp-config', authenticate, async (req, res) => {
-  const result = await query(
-    'SELECT whatsapp_enabled, whatsapp_number, whatsapp_template, name FROM clinics WHERE id = $1',
-    [req.user.clinic_id]
+  const esDoctor = guardaEnSuPropiaFila(req.user);
+
+  // El doctor ve lo suyo resuelto contra la clínica; los demás roles ven —y
+  // editan— el valor de la casa, que es el que gobierna a quien no lo ha tocado.
+  const propia = await query(
+    esDoctor
+      ? `SELECT ${sqlConfigEfectiva('u', 'c')},
+                c.name,
+                u.whatsapp_template IS NOT NULL AS personalizado
+           FROM users u JOIN clinics c ON c.id = u.clinic_id
+          WHERE u.id = $1`
+      : `SELECT c.whatsapp_enabled, c.whatsapp_number, c.whatsapp_template,
+                c.whatsapp_confirmation_template, c.name,
+                FALSE AS personalizado
+           FROM clinics c WHERE c.id = $1`,
+    [esDoctor ? req.user.id : req.user.clinic_id]
   );
-  if (result.rows.length === 0) return res.status(404).json({ error: 'Clinic not found' });
-  res.json(result.rows[0]);
+  if (propia.rows.length === 0) return res.status(404).json({ error: 'Clinic not found' });
+
+  // Un doctor solo se necesita a sí mismo: la lista que ve son sus citas. La
+  // recepción y el clinic_admin ven las de toda la clínica, así que necesitan
+  // el texto de cada doctor para no mandar el de uno firmado por otro.
+  const doctores = await query(
+    `SELECT u.id, ${sqlConfigEfectiva('u', 'c')}
+       FROM users u JOIN clinics c ON c.id = u.clinic_id
+      WHERE u.clinic_id = $1 AND u.role = 'doctor'
+        ${esDoctor ? 'AND u.id = $2' : ''}`,
+    esDoctor ? [req.user.clinic_id, req.user.id] : [req.user.clinic_id]
+  );
+  const porDoctor = {};
+  for (const d of doctores.rows) {
+    porDoctor[d.id] = {
+      whatsapp_enabled: d.whatsapp_enabled,
+      whatsapp_template: d.whatsapp_template,
+    };
+  }
+
+  res.json(Object.assign({}, propia.rows[0], {
+    // De quién es lo que la pantalla va a guardar: 'doctor' = tu mensaje,
+    // 'clinic' = el de la casa. La pantalla lo dice en voz alta para que nadie
+    // crea que está cambiando el de todos.
+    scope: esDoctor ? 'doctor' : 'clinic',
+    por_doctor: porDoctor,
+  }));
 });
 
 // PUT /api/reminders/whatsapp-config
-// Update the clinic's WhatsApp config (clinic_admin only)
+// Guarda la configuración de quien llama: el doctor la suya, el clinic_admin la
+// de la casa. Son filas distintas, así que uno no puede pisar al otro.
+//
+// Antes esto exigía role === 'clinic_admin' y devolvía 403 a los doctores, que
+// sí veían la pantalla y sus botones. En una cuenta del alta por cuenta propia
+// —sin ningún clinic_admin— el mensaje no se podía cambiar nunca. Mismo arreglo
+// que bd8293a hizo en Confirmaciones, ahora con destino propio para el doctor.
 router.put('/whatsapp-config', authenticate, async (req, res) => {
-  // Solo clinic_admin puede modificar la configuración de WhatsApp de la clínica;
-  // antes cualquier doctor podía sobrescribirla y secuestrar comunicaciones a pacientes.
-  if (req.user.role !== 'clinic_admin') {
+  if (!CONFIG_ROLES.includes(req.user.role)) {
     return res.status(403).json({ error: 'No autorizado' });
   }
 
-  const { whatsapp_enabled, whatsapp_number, whatsapp_template } = req.body;
+  const body = req.body || {};
+  const traeNumero = Object.prototype.hasOwnProperty.call(body, 'whatsapp_number');
+  const numero = normalizarNumero(body.whatsapp_number);
 
-  // Normalize the phone number: only digits
-  const normalizedNumber = (whatsapp_number || '').replace(/\D/g, '');
-  if (whatsapp_enabled && normalizedNumber && !/^\d{8,15}$/.test(normalizedNumber)) {
+  if (traeNumero && numeroInvalido(numero)) {
     return res.status(400).json({ error: 'Número de WhatsApp inválido. Use formato internacional sin +, espacios ni guiones.' });
   }
+  // Encender WhatsApp sin número deja el interruptor apuntando a ninguna parte.
+  // Confirmaciones ya lo rechazaba y Recordatorios no: ahora que las dos
+  // pantallas escriben la MISMA fila, tenían que dejar de opinar distinto.
+  if (body.whatsapp_enabled && traeNumero && !numero) {
+    return res.status(400).json({ error: 'Para encender WhatsApp hace falta un número.' });
+  }
 
+  // Solo se escribe lo que venga en el cuerpo: así una llamada vieja que no
+  // mande el interruptor no apaga WhatsApp sin querer.
+  const sets = [];
+  const params = [];
+  const set = (col, val) => { params.push(val); sets.push(`${col} = $${params.length}`); };
+
+  if (Object.prototype.hasOwnProperty.call(body, 'whatsapp_enabled')) set('whatsapp_enabled', !!body.whatsapp_enabled);
+  if (traeNumero) set('whatsapp_number', numero);
+  if (Object.prototype.hasOwnProperty.call(body, 'whatsapp_template')) set('whatsapp_template', body.whatsapp_template || '');
+
+  if (sets.length === 0) return res.json({ success: true });
+
+  const enSuFila = guardaEnSuPropiaFila(req.user);
+  params.push(enSuFila ? req.user.id : req.user.clinic_id);
   await query(
-    'UPDATE clinics SET whatsapp_enabled = $1, whatsapp_number = $2, whatsapp_template = $3 WHERE id = $4',
-    [!!whatsapp_enabled, normalizedNumber, whatsapp_template || '', req.user.clinic_id]
+    `UPDATE ${enSuFila ? 'users' : 'clinics'} SET ${sets.join(', ')} WHERE id = $${params.length}`,
+    params
   );
-  res.json({ success: true });
+  res.json({ success: true, scope: enSuFila ? 'doctor' : 'clinic' });
 });
 
 // GET /api/reminders
@@ -49,6 +124,7 @@ router.get('/', authenticate, async (req, res) => {
       p.id AS patient_id,
       p.name AS patient_name,
       p.phone,
+      a.doctor_id,
       u.name AS doctor_name,
       r.id AS reminder_id,
       r.status AS reminder_status,

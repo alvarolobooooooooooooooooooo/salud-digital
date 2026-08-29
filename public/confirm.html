@@ -186,6 +186,19 @@
   // El token viene en la URL: /confirmar/<token>
   const m = location.pathname.match(/\/confirmar\/([a-f0-9]{32})/i);
   const token = m ? m[1] : null;
+
+  // Lo que llega por /confirmar/ SIN ser un token. Son dos cosas que la propia
+  // app le enseña al doctor: el link de muestra del editor de plantilla
+  // (…/confirmar/abc123ejemplo) y el hueco de guiones bajos que el cajón pinta
+  // mientras la confirmación no se ha enviado. Antes ninguno llegaba hasta aquí
+  // —el servidor solo enrutaba tokens bien formados y el resto acababa en la
+  // landing—, así que el doctor probaba su propio mensaje y aterrizaba en la
+  // página de ventas. Ahora se le dice qué está mirando.
+  const enlaceCrudo = (() => {
+    const trozo = location.pathname.split(/\/confirmar\/?/i)[1] || '';
+    try { return decodeURIComponent(trozo); } catch (_) { return trozo; }
+  })();
+  const esEnlaceDeMuestra = !token && (/^_+$/.test(enlaceCrudo) || /ejemplo/i.test(enlaceCrudo));
   // Modo preview: render con datos de ejemplo, sin tocar la API.
   // Usado desde /confirmaciones.html para que el staff vea cómo se ve.
   const isPreview = new URLSearchParams(location.search).get('preview') === '1';
@@ -390,12 +403,15 @@
     });
   }
 
-  function renderPreview(){
+  // Respaldo: la vista previa se abre desde la app, con sesión. Si se abre sin
+  // ella —o la petición falla— sigue habiendo algo que enseñar, pero con nombres
+  // que se leen como lo que son: un ejemplo.
+  function datosDeEjemplo(){
     // Mañana a las 10:00 — futuro, evita el caso "cita pasada".
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(10, 0, 0, 0);
-    const data = {
+    return {
       patient_name: 'María González',
       doctor_name: 'Dr. Álvaro Lobo',
       clinic_name: 'Clínica Demostración',
@@ -408,14 +424,47 @@
       location_notes: 'Edificio azul frente al parque, segundo piso.',
       scheduled_at: tomorrow.toISOString(),
       status: 'sent',
-      // La vista previa acepta ?msg= para que el editor de plantilla enseñe el
-      // texto que se está escribiendo, sin guardarlo antes.
-      card_message: new URLSearchParams(location.search).get('msg') || CARD_MESSAGE_DEFAULT
+      ejemplo: true,
     };
+  }
+
+  // Lo de verdad: la clínica, el doctor y la próxima cita de quien está mirando.
+  // Sin esto la vista previa enseñaba una clínica inventada, que es justo lo que
+  // el doctor NO necesita ver.
+  async function datosDePrevia(){
+    try {
+      const cab = {};
+      // La cookie de sesión viaja sola (mismo origen). El Bearer se manda además
+      // por las sesiones viejas que aún viven en localStorage.
+      try {
+        const t = localStorage.getItem('sd_token');
+        if (t) cab['Authorization'] = 'Bearer ' + t;
+      } catch (_) {}
+      const res = await fetch('/api/confirmations/preview', { headers: cab, credentials: 'same-origin' });
+      if (!res.ok) return datosDeEjemplo();
+      const real = await res.json();
+      return real && real.clinic_name ? real : datosDeEjemplo();
+    } catch (_) {
+      return datosDeEjemplo();
+    }
+  }
+
+  async function renderPreview(){
+    const data = await datosDePrevia();
+    // El editor de plantilla manda ?msg= para enseñar el texto que se está
+    // escribiendo, sin guardarlo antes. Si no viene, el guardado de la clínica.
+    const escribiendo = new URLSearchParams(location.search).get('msg');
+    if (escribiendo) data.card_message = escribiendo;
+    if (!data.card_message) data.card_message = CARD_MESSAGE_DEFAULT;
+
     // Banner sutil indicando que es preview
     const banner = document.createElement('div');
     banner.style.cssText = 'position:fixed; top:0; left:0; right:0; padding:8px 16px; background:#fffbeb; color:#854d0e; font-size:12.5px; font-weight:600; text-align:center; border-bottom:1px solid #fde68a; z-index:10; letter-spacing:.02em';
-    banner.textContent = 'Vista previa · Los botones no envían nada real';
+    banner.textContent = data.ejemplo
+      ? 'Vista previa con datos de ejemplo · Abrila desde la app para ver la tuya'
+      : (data.cita_real
+          ? 'Vista previa · Es tu próxima cita. Los botones no envían ni cambian nada'
+          : 'Vista previa · Los botones no envían nada real');
     document.body.prepend(banner);
     document.body.style.paddingTop = '32px';
     render(data, false);
@@ -435,9 +484,16 @@
   }
 
   async function init(){
-    if (isPreview) { renderPreview(); return; }
+    if (isPreview) { await renderPreview(); return; }
+    if (esEnlaceDeMuestra) {
+      renderError(
+        'Enlace de muestra',
+        'Este es el link de ejemplo que enseña el editor del mensaje, no una cita. El que reciba tu paciente abre su propia tarjeta de confirmación.'
+      );
+      return;
+    }
     if (!token) {
-      renderError('Link inválido', 'El enlace que recibiste no es válido. Por favor contacta a tu clínica.');
+      renderError('Link inválido', 'El enlace que recibiste no es válido. Es posible que se haya cortado al copiarlo. Pídele a tu clínica que te lo reenvíe.');
       return;
     }
     try {
