@@ -95,7 +95,7 @@
       display: inline-flex; align-items: center; gap: .45rem;
       padding: .58rem .9rem; border-radius: 10px;
       border: 1px solid var(--ad-b-2); background-color: var(--ad-s); color: var(--ad-t);
-      font-size: 13px; font-weight: 600; cursor: pointer; line-height: 1.2;
+      font-size: 13px; font-weight: 600; cursor: pointer; line-height: 1.2; text-decoration: none;
       transition: background-color .15s, border-color .15s, color .15s, opacity .15s;
       white-space: nowrap;
     }
@@ -243,6 +243,25 @@
     .ad-pill--wait { background-color: var(--ad-warn-soft); color: var(--ad-warn); }
     .ad-pill--bad { background-color: var(--ad-bad-soft); color: var(--ad-bad); }
     .ad-pill--mute { background-color: var(--ad-s-3); color: var(--ad-t-3); }
+
+    /* ── Cobros por atender ──
+       Fila de aviso: el color lo pone el borde izquierdo, no el fondo, para que
+       una lista de seis avisos no se convierta en una pared de color. */
+    .ad-due { display: flex; gap: .85rem; align-items: center; flex-wrap: wrap;
+      padding: .85rem 1.15rem; border-bottom: 1px solid var(--ad-b); border-left: 3px solid var(--ad-warn); }
+    .ad-due:last-child { border-bottom: 0; }
+    .ad-due--bad { border-left-color: var(--ad-bad); }
+    .ad-due-body { flex: 1 1 260px; min-width: 0; }
+    .ad-due-name { font-size: 13.5px; font-weight: 650; letter-spacing: -.01em; }
+    .ad-due-meta { font-size: 12px; color: var(--ad-t-3); margin-top: .15rem; }
+    .ad-due-when { font-size: 12.5px; font-weight: 700; white-space: nowrap; color: var(--ad-warn); }
+    .ad-due--bad .ad-due-when { color: var(--ad-bad); }
+    .ad-due-acts { display: flex; gap: .4rem; flex-wrap: wrap; }
+
+    .ad-seg--wide { display: flex; width: 100%; }
+    .ad-seg--wide button { flex: 1; text-align: center; }
+    .ad-kpi--link { cursor: pointer; }
+    .ad-kpi--link:hover { border-color: var(--ad-ac-line); }
 
     /* ── Segmentos y búsqueda ── */
     .ad-seg { display: inline-flex; background-color: var(--ad-s-2); border: 1px solid var(--ad-b); border-radius: 10px; padding: 3px; gap: 2px; }
@@ -409,6 +428,9 @@
         <button class="ad-tab" role="tab" data-tab="solicitudes" aria-selected="false">
           Solicitudes <span class="ad-count ad-count--zero" id="adCount">0</span>
         </button>
+        <button class="ad-tab" role="tab" data-tab="suscripciones" aria-selected="false">
+          Suscripciones <span class="ad-count ad-count--zero" id="adCountSubs">0</span>
+        </button>
         <button class="ad-tab" role="tab" data-tab="clinicas" aria-selected="false">Clínicas</button>
         <button class="ad-tab" role="tab" data-tab="actividad" aria-selected="false">Actividad</button>
         <button class="ad-tab" role="tab" data-tab="visitas" aria-selected="false">Visitas</button>
@@ -466,6 +488,47 @@
             </div>
           </div>
           <div class="ad-card-body" id="adSolicitudes"></div>
+        </div>
+      </div>
+
+      <!-- ══ Suscripciones ══
+           Lo que este apartado contesta no es "quién paga" sino "de quién
+           tengo que estar pendiente": por eso lo primero que se ve son los
+           cobros que se acercan, y la lista completa va debajo.          -->
+      <div class="ad-panel" data-panel="suscripciones">
+        <div class="ad-kpis" id="adSubKpis"></div>
+
+        <div class="ad-card">
+          <div class="ad-card-head">
+            <div>
+              <h2 class="ad-card-h">Cobros por atender</h2>
+              <p class="ad-card-note" id="adSubAvisoNota">Aparecen aquí con antelación, antes de que se venza el plazo.</p>
+            </div>
+          </div>
+          <div class="ad-card-body ad-card-body--flush" id="adSubAvisos"></div>
+        </div>
+
+        <div class="ad-card">
+          <div class="ad-card-head">
+            <div>
+              <h2 class="ad-card-h">Todas las suscripciones</h2>
+              <p class="ad-card-note">Una fila por clínica, tenga plan o no. El importe es lo que esa clínica nos paga a nosotros.</p>
+            </div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+              <div class="ad-seg" id="adSegSubs">
+                <button data-filtro="todas" aria-pressed="true">Todas</button>
+                <button data-filtro="aviso" aria-pressed="false">Con aviso</button>
+                <button data-filtro="prueba" aria-pressed="false">En prueba</button>
+                <button data-filtro="activas" aria-pressed="false">Activas</button>
+                <button data-filtro="sin" aria-pressed="false">Sin plan</button>
+              </div>
+              <div class="ad-search">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input type="search" class="ad-search-in" id="adBuscarSub" placeholder="Buscar clínica…" autocomplete="off">
+              </div>
+            </div>
+          </div>
+          <div class="ad-card-body ad-card-body--flush" id="adSubs"></div>
         </div>
       </div>
 
@@ -616,6 +679,41 @@
     </div>
   </div>
 
+
+  <!-- ── Modal: periodo de prueba ──
+       Un solo sitio para conceder y para extender: la diferencia la marca si
+       la clínica ya tenía una prueba, y eso lo decide el servidor. -->
+  <div class="ad-ov" id="adOvPrueba">
+    <div class="ad-modal">
+      <button class="ad-modal-x" onclick="cerrar('adOvPrueba')" aria-label="Cerrar">&times;</button>
+      <h3 class="ad-modal-h">Activar periodo de prueba</h3>
+      <p class="ad-modal-lead" id="adPruebaLead"></p>
+      <div class="ad-fields">
+        <div class="ad-field">
+          <label>Duración</label>
+          <div class="ad-seg ad-seg--wide" id="adSegMeses">
+            <button type="button" data-meses="1" aria-pressed="false">1 mes</button>
+            <button type="button" data-meses="3" aria-pressed="false">3 meses</button>
+            <button type="button" data-meses="6" aria-pressed="true">6 meses</button>
+            <button type="button" data-meses="12" aria-pressed="false">12 meses</button>
+          </div>
+        </div>
+        <div class="ad-field">
+          <label for="adPruebaPlan">Plan durante la prueba</label>
+          <select class="ad-in" id="adPruebaPlan"></select>
+        </div>
+        <div class="ad-field">
+          <label for="adPruebaNota">Nota interna (opcional)</label>
+          <input class="ad-in" type="text" id="adPruebaNota" placeholder="Ej.: acuerdo con la doctora en la demo">
+        </div>
+      </div>
+      <p class="ad-card-note" style="margin-top:.9rem">Durante la prueba la clínica trabaja con todo desbloqueado. Al terminar, si no hay pago, la cuenta pasa a solo lectura sin perder ningún dato.</p>
+      <div class="ad-modal-foot">
+        <button class="ad-btn" onclick="cerrar('adOvPrueba')">Cancelar</button>
+        <button class="ad-btn ad-btn--primary" id="adBtnPrueba" onclick="confirmarPrueba()">Activar prueba</button>
+      </div>
+    </div>
+  </div>
   <!-- ── Modal: invitar dueño de clínica ── -->
   <div class="ad-ov" id="adOvDueno">
     <div class="ad-modal">
@@ -698,6 +796,13 @@
       clinicas: [],
       rechazando: null,
       invitandoClinica: null,
+      subs: null,
+      filtroSubs: 'todas',
+      busquedaSub: '',
+      diasAviso: 5,
+      planes: [],
+      pruebaClinica: null,
+      pruebaMeses: 6,
     };
 
     var NUM = new Intl.NumberFormat('es-HN');
@@ -730,6 +835,20 @@
       var d = new Date(iso);
       return isNaN(d) ? '' : d.toLocaleTimeString('es-HN', { hour: '2-digit', minute: '2-digit' });
     }
+    // Fecha absoluta y corta. Para un cobro, "hace 3 d" no sirve: hay que poder
+    // decirle al doctor el día exacto.
+    function fechaCorta(iso) {
+      if (!iso) return '—';
+      var d = new Date(iso);
+      if (isNaN(d)) return '—';
+      return d.toLocaleDateString('es-HN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    function dinero(v, moneda) {
+      if (v == null || v === '') return '—';
+      try {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: moneda || 'USD' }).format(Number(v));
+      } catch (e) { return '$' + Number(v).toFixed(2); }
+    }
     function diaLargo(iso) {
       var d = new Date(iso);
       if (isNaN(d)) return '';
@@ -757,7 +876,10 @@
     }
 
     function tarjetaKpi(t) {
-      return '<div class="ad-kpi' + (t.mod ? ' ad-kpi--' + t.mod : '') + '">' +
+      // Un indicador que señala un problema tiene que llevar a donde se
+      // resuelve: sin esto, "3 por cobrar" es una cifra que hay que ir a buscar.
+      return '<div class="ad-kpi' + (t.mod ? ' ad-kpi--' + t.mod : '') +
+        (t.ir ? ' ad-kpi--link" onclick="irA(\'' + t.ir + '\')"' : '"') + '>' +
         '<div class="ad-kpi-label">' + esc(t.etiqueta) + '</div>' +
         '<div class="ad-kpi-value">' + (typeof t.valor === 'number' ? num(t.valor) : esc(t.valor)) + '</div>' +
         (t.nota ? '<div class="ad-kpi-note">' + esc(t.nota) + '</div>' : '') + '</div>';
@@ -774,6 +896,7 @@
       });
       if (location.hash.slice(1) !== tab) history.replaceState(null, '', '#' + tab);
       if (tab === 'solicitudes') cargarSolicitudes();
+      if (tab === 'suscripciones') cargarSuscripciones();
       if (tab === 'clinicas') cargarClinicas();
       if (tab === 'actividad') cargarActividad();
       if (tab === 'visitas') cargarVisitas();
@@ -794,6 +917,13 @@
       $('adCount').textContent = n;
       $('adCount').classList.toggle('ad-count--zero', !n);
     }
+    // El número de la pestaña de Suscripciones cuenta TODO lo que pide acción:
+    // lo que vence pronto, lo que ya se pasó y lo que está en mora. Contar solo
+    // lo que vence pronto escondería justo lo más urgente.
+    function pintarPorCobrar(n) {
+      $('adCountSubs').textContent = n;
+      $('adCountSubs').classList.toggle('ad-count--zero', !n);
+    }
 
     // ══════════════ Resumen ══════════════
 
@@ -801,18 +931,30 @@
       try {
         var d = await api('/api/admin/overview');
         var p = d.plataforma, v = d.visitas;
+        estado.diasAviso = d.dias_aviso || 5;
+        var porAtender = (p.por_cobrar || 0) + (p.cobros_vencidos || 0) + (p.en_mora || 0);
+        var notaCobros = p.cobros_vencidos
+          ? num(p.cobros_vencidos) + ' ya pasó de fecha'
+          : p.en_mora ? num(p.en_mora) + ' con el pago fallido'
+          : porAtender ? 'En los próximos ' + estado.diasAviso + ' días'
+          : 'Nada por cobrar ahora';
+
         $('adKpis').innerHTML = [
           { etiqueta: 'En espera', valor: p.pendientes, mod: p.pendientes ? 'alert' : '',
-            nota: p.pendientes ? 'Requieren tu decisión' : 'Todo al día' },
+            nota: p.pendientes ? 'Requieren tu decisión' : 'Todo al día', ir: 'solicitudes' },
+          { etiqueta: 'Por cobrar', valor: porAtender, mod: porAtender ? 'alert' : '',
+            nota: notaCobros, ir: 'suscripciones' },
           { etiqueta: 'Visitas · 30 d', valor: v ? v.landing.ultimos_30 : '—', mod: 'accent',
-            nota: v ? num(v.landing.personas_30) + ' personas distintas' : 'Sin datos todavía' },
+            nota: v ? num(v.landing.personas_30) + ' personas distintas' : 'Sin datos todavía', ir: 'visitas' },
           { etiqueta: 'Clínicas', valor: p.clinicas, nota: num(p.personal) + ' personas con acceso' },
-          { etiqueta: 'Doctores', valor: p.doctores, nota: num(p.suscripciones_activas) + ' suscripciones activas' },
+          { etiqueta: 'Doctores', valor: p.doctores,
+            nota: num(p.suscripciones_activas) + ' con plan · ' + num(p.en_prueba) + ' en prueba' },
           { etiqueta: 'Pacientes', valor: p.pacientes, nota: 'En todas las clínicas' },
           { etiqueta: 'Consultas · 30 d', valor: p.consultas_30, nota: num(p.consultas) + ' desde el inicio' },
         ].map(tarjetaKpi).join('');
 
         pintarPendientes(p.pendientes);
+        pintarPorCobrar(porAtender);
         $('adMiniVisitas').innerHTML = v ? grafica(v.serie)
           : vacio('Aún sin visitas', 'Se empiezan a contar desde este despliegue.');
         if (v) {
@@ -851,10 +993,16 @@
         '<div class="ad-req-avatar ad-req-avatar--sm">' + esc(iniciales(s.name)) + '</div>' +
         '<div class="ad-ev-body"><div class="ad-ev-text"><b>' + esc(s.name) + '</b></div>' +
         '<div class="ad-ev-meta">' + esc(s.clinic_name || 'Sin clínica') + ' · ' + esc(s.specialty || '—') + '</div></div>' +
-        '<button class="ad-btn ad-btn--sm ad-btn--ok" onclick="aprobar(' + s.id + ')">Aprobar</button></div>';
+        '<button class="ad-btn ad-btn--sm ad-btn--primary" onclick="aprobar(' + s.id + ', ' + MESES_PRUEBA + ')">' +
+        'Aprobar · ' + MESES_PRUEBA + ' meses</button></div>';
     }
 
     // ══════════════ Solicitudes ══════════════
+
+    // La prueba que se concede de un clic al aprobar. Aprobar sin más deja la
+    // cuenta entrando pero sin poder guardar nada, así que este es el gesto
+    // normal y el otro ("Solo aprobar") el excepcional.
+    var MESES_PRUEBA = 6;
 
     $('adSegEstado').addEventListener('click', function (e) {
       var b = e.target.closest('button');
@@ -897,10 +1045,12 @@
       var dato = function (k, v) { return v ? '<dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd>' : ''; };
 
       var acciones = pendiente
-        ? '<button class="ad-btn ad-btn--sm ad-btn--ok" onclick="aprobar(' + s.id + ')">Aprobar</button>' +
+        ? '<button class="ad-btn ad-btn--sm ad-btn--primary" onclick="aprobar(' + s.id + ', ' + MESES_PRUEBA + ')">' +
+            'Aprobar + ' + MESES_PRUEBA + ' meses de prueba</button>' +
+          '<button class="ad-btn ad-btn--sm ad-btn--ok" onclick="aprobar(' + s.id + ', 0)">Solo aprobar</button>' +
           '<button class="ad-btn ad-btn--sm ad-btn--bad" onclick="abrirRechazo(' + s.id + ')">Rechazar</button>'
         : s.approval_status === 'rejected'
-          ? '<button class="ad-btn ad-btn--sm ad-btn--ok" onclick="aprobar(' + s.id + ')">Aprobar de todos modos</button>'
+          ? '<button class="ad-btn ad-btn--sm ad-btn--ok" onclick="aprobar(' + s.id + ', 0)">Aprobar de todos modos</button>'
           : '<button class="ad-btn ad-btn--sm ad-btn--bad" onclick="abrirRechazo(' + s.id + ')">Revocar acceso</button>';
 
       var fecha = pendiente ? s.approval_requested_at : s.approval_decided_at;
@@ -927,13 +1077,38 @@
       '</article>';
     }
 
-    async function aprobar(id) {
-      if (!confirm('¿Aprobar esta cuenta? Podrá iniciar sesión de inmediato y se le avisará por correo.')) return;
+    async function aprobar(id, meses) {
+      var conPrueba = Number(meses) > 0;
+      var pregunta = conPrueba
+        ? '¿Aprobar esta cuenta y darle ' + meses + ' meses de prueba?\n\n' +
+          'Podrá entrar y trabajar con todo desbloqueado desde ya. Se le avisa por correo, ' +
+          'con la fecha en que termina la prueba.'
+        : '¿Aprobar esta cuenta? Podrá iniciar sesión de inmediato, pero sin suscripción no ' +
+          'podrá guardar pacientes ni consultas.';
+      if (!confirm(pregunta)) return;
+
       try {
-        var r = await api('/api/admin/registrations/' + id + '/approve', { method: 'POST' });
-        aviso(r.notificado ? 'Cuenta aprobada y avisada por correo.' : 'Cuenta aprobada. No se pudo enviar el correo.');
+        var r = await api('/api/admin/registrations/' + id + '/approve', {
+          method: 'POST',
+          body: conPrueba ? { trial_months: Number(meses) } : {},
+        });
+
+        // Aprobación y prueba son dos operaciones: la primera pudo salir bien y
+        // la segunda no. Decirlo es lo único honesto, porque lo que hay que
+        // hacer después es distinto en cada caso.
+        if (r.prueba && r.prueba.error) {
+          aviso('Cuenta aprobada, pero la prueba no: ' + r.prueba.error, 'bad');
+        } else if (r.prueba) {
+          aviso('Cuenta aprobada con prueba hasta el ' + fechaCorta(r.prueba.hasta) +
+            (r.notificado ? '. Avisada por correo.' : '. No se pudo enviar el correo.'));
+        } else {
+          aviso(r.notificado ? 'Cuenta aprobada y avisada por correo.' : 'Cuenta aprobada. No se pudo enviar el correo.');
+        }
+
+        estado.subs = null;
         await cargarSolicitudes();
         await cargarResumen();
+        if (estado.tab === 'suscripciones') await cargarSuscripciones();
       } catch (e) {
         aviso(e.message || 'No se pudo aprobar', 'bad');
       }
@@ -959,6 +1134,231 @@
         await cargarResumen();
       } catch (e) {
         aviso(e.message || 'No se pudo rechazar', 'bad');
+      } finally {
+        b.disabled = false;
+      }
+    }
+
+    // ══════════════ Suscripciones ══════════════
+    //
+    // El apartado tiene dos mitades y no es casualidad: arriba, lo que pide
+    // acción esta semana; abajo, la lista entera. Quien entra aquí casi siempre
+    // viene a lo primero.
+
+    var ESTADOS_SUB = {
+      active:         ['ok',   'Activa'],
+      trialing:       ['ok',   'En prueba'],
+      past_due:       ['wait', 'Impago'],
+      payment_failed: ['bad',  'Cobro fallido'],
+      paused:         ['wait', 'En pausa'],
+      cancelled:      ['bad',  'Cancelada'],
+      expired:        ['mute', 'Vencida'],
+      incomplete:     ['mute', 'Sin terminar'],
+    };
+
+    function pillSub(f) {
+      var d = ESTADOS_SUB[f.status];
+      if (!d) return '<span class="ad-pill ad-pill--mute">Sin plan</span>';
+      // Una prueba caducada sigue guardada como 'trialing' hasta que pasa el
+      // job de facturación. Enseñarla como "en prueba" sería mentir justo en la
+      // fila que hay que atender.
+      if (f.alerta === 'vencida') return '<span class="ad-pill ad-pill--bad">Se pasó de fecha</span>';
+      return '<span class="ad-pill ad-pill--' + d[0] + '">' + esc(d[1]) + '</span>';
+    }
+
+    function diasTexto(d) {
+      if (d == null) return 'sin fecha';
+      var a = Math.abs(d);
+      if (d < 0) return 'se pasó hace ' + a + (a === 1 ? ' día' : ' días');
+      if (d === 0) return 'vence hoy';
+      if (d === 1) return 'vence mañana';
+      return 'en ' + d + ' días';
+    }
+
+    function cargarSuscripciones() {
+      if (!estado.subs) $('adSubs').innerHTML = cargando();
+      return api('/api/admin/subscriptions').then(function (d) {
+        estado.subs = d;
+        estado.diasAviso = d.dias_aviso || 5;
+        pintarSubs();
+      }).catch(function (e) {
+        $('adSubs').innerHTML = vacio('No se pudieron cargar las suscripciones', e.message || '');
+      });
+    }
+
+    $('adSegSubs').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      estado.filtroSubs = b.dataset.filtro;
+      marcarSegmento(this, b);
+      pintarSubs();
+    });
+    $('adBuscarSub').addEventListener('input', function () {
+      estado.busquedaSub = this.value.trim().toLowerCase();
+      pintarSubs();
+    });
+
+    var FILTROS_SUB = {
+      todas: function () { return true; },
+      aviso: function (f) { return !!f.alerta; },
+      prueba: function (f) { return f.status === 'trialing'; },
+      activas: function (f) { return f.status === 'active'; },
+      sin: function (f) { return !f.status || ['expired', 'cancelled', 'incomplete'].indexOf(f.status) !== -1; },
+    };
+
+    function pintarSubs() {
+      var d = estado.subs;
+      if (!d) return;
+      var r = d.resumen;
+
+      $('adSubKpis').innerHTML = [
+        { etiqueta: 'Por cobrar', valor: r.por_cobrar, mod: r.por_cobrar ? 'alert' : '',
+          nota: 'En los próximos ' + d.dias_aviso + ' días' },
+        { etiqueta: 'Se pasaron', valor: r.vencidas + r.en_mora, mod: (r.vencidas + r.en_mora) ? 'alert' : '',
+          nota: r.en_mora ? num(r.en_mora) + ' con el cobro fallido' : 'Fecha cumplida sin pago' },
+        { etiqueta: 'Activas', valor: r.activas, mod: 'accent', nota: dinero(r.mensual, 'USD') + ' al mes' },
+        { etiqueta: 'En prueba', valor: r.en_prueba, nota: 'Todavía sin cobrar' },
+        { etiqueta: 'Sin plan', valor: r.sin_plan, nota: 'Clínicas en solo lectura' },
+      ].map(tarjetaKpi).join('');
+
+      pintarPorCobrar(r.por_cobrar + r.vencidas + r.en_mora);
+
+      // ── Cobros por atender ──
+      var avisos = d.suscripciones.filter(function (f) { return !!f.alerta; });
+      $('adSubAvisoNota').textContent = avisos.length
+        ? 'Escríbeles antes de que se les corte. Aparecen ' + d.dias_aviso + ' días antes de la fecha.'
+        : 'Aquí aparece cada cobro ' + d.dias_aviso + ' días antes de su fecha.';
+
+      $('adSubAvisos').innerHTML = avisos.length
+        ? avisos.map(filaAviso).join('')
+        : vacio('Nada por cobrar ahora', 'Ninguna suscripción vence en los próximos ' + d.dias_aviso + ' días.');
+
+      // ── Tabla completa ──
+      var q = estado.busquedaSub;
+      var filas = d.suscripciones.filter(FILTROS_SUB[estado.filtroSubs] || FILTROS_SUB.todas)
+        .filter(function (f) {
+          if (!q) return true;
+          return (f.clinic_name + ' ' + (f.city || '') + ' ' + (f.contacto || '')).toLowerCase().indexOf(q) !== -1;
+        });
+
+      if (!filas.length) {
+        $('adSubs').innerHTML = vacio('Ninguna coincide', 'Prueba con otro filtro o con otro nombre.');
+        return;
+      }
+
+      $('adSubs').innerHTML =
+        '<div class="ad-scroll"><table class="ad-table"><thead><tr>' +
+          '<th>Clínica</th><th>Plan</th><th>Estado</th>' +
+          '<th class="ad-num">Importe</th><th>Vence</th><th>Último cobro</th><th></th>' +
+        '</tr></thead><tbody>' +
+        filas.map(filaSub).join('') +
+        '</tbody></table></div>';
+    }
+
+    function filaAviso(f) {
+      var grave = f.alerta === 'vencida' || f.alerta === 'mora';
+      var motivo = f.alerta === 'mora'
+        ? 'El cobro falló' + (f.failed_attempts ? ' (' + f.failed_attempts + ' intentos)' : '')
+        : (f.cortesia ? 'Prueba' : 'Suscripción') + ' hasta el ' + fechaCorta(f.current_period_end);
+
+      return '<div class="ad-due' + (grave ? ' ad-due--bad' : '') + '">' +
+        '<div class="ad-due-body">' +
+          '<div class="ad-due-name">' + esc(f.clinic_name) + '</div>' +
+          '<div class="ad-due-meta">' + esc(motivo) +
+            ' · ' + dinero(f.amount, f.currency) +
+            (f.contacto ? ' · ' + esc(f.contacto) : '') +
+            (f.contacto_tel ? ' · ' + esc(f.contacto_tel) : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="ad-due-when">' + esc(diasTexto(f.dias)) + '</div>' +
+        '<div class="ad-due-acts">' +
+          (f.contacto ? '<a class="ad-btn ad-btn--sm" href="mailto:' + esc(f.contacto) + '">Escribirle</a>' : '') +
+          '<button class="ad-btn ad-btn--sm ad-btn--primary" onclick="abrirPrueba(' + f.clinic_id + ')">' +
+            (f.cortesia ? 'Extender prueba' : 'Dar prueba') + '</button>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function filaSub(f) {
+      var vence = f.current_period_end
+        ? '<div>' + esc(fechaCorta(f.current_period_end)) + '</div>' +
+          '<div class="ad-cell-sub">' + esc(diasTexto(f.dias)) + '</div>'
+        : '<span class="ad-cell-sub">—</span>';
+
+      return '<tr>' +
+        '<td><div class="ad-cell-main">' + esc(f.clinic_name) + '</div>' +
+          '<div class="ad-cell-sub">' + esc(f.contacto || 'Sin contacto') +
+          (f.city ? ' · ' + esc(f.city) : '') + '</div></td>' +
+        '<td>' + esc(f.plan_name || '—') +
+          (f.cortesia ? '<div class="ad-cell-sub">Cortesía · no se cobra sola</div>' : '') + '</td>' +
+        '<td>' + pillSub(f) + '</td>' +
+        '<td class="ad-num">' + esc(dinero(f.amount, f.currency)) + '</td>' +
+        '<td>' + vence + '</td>' +
+        '<td>' + (f.ultimo_pago
+            ? esc(fechaCorta(f.ultimo_pago)) + '<div class="ad-cell-sub">' + num(f.cobros) + ' cobro' + (f.cobros === 1 ? '' : 's') + '</div>'
+            : '<span class="ad-cell-sub">Nunca</span>') + '</td>' +
+        '<td><button class="ad-btn ad-btn--sm" onclick="abrirPrueba(' + f.clinic_id + ')">' +
+          (f.cortesia ? 'Extender' : 'Dar prueba') + '</button></td>' +
+      '</tr>';
+    }
+
+    // ── Modal de prueba ──
+
+    $('adSegMeses').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      estado.pruebaMeses = parseInt(b.dataset.meses, 10) || 6;
+      marcarSegmento(this, b);
+    });
+
+    async function abrirPrueba(clinicId) {
+      var f = estado.subs && estado.subs.suscripciones.find(function (x) { return x.clinic_id === clinicId; });
+      estado.pruebaClinica = clinicId;
+      estado.pruebaMeses = 6;
+      marcarSegmento($('adSegMeses'), $('adSegMeses').querySelector('[data-meses="6"]'));
+      $('adPruebaNota').value = '';
+
+      $('adPruebaLead').textContent = f
+        ? (f.cortesia && f.dias != null && f.dias > 0
+            ? f.clinic_name + ' está en prueba hasta el ' + fechaCorta(f.current_period_end) +
+              '. Lo que elijas se suma a partir de esa fecha.'
+            : f.clinic_name + ' pasará a tener la plataforma completa desde hoy.')
+        : 'Se activará la prueba para esta clínica.';
+
+      // El catálogo se pide una vez: no cambia entre modales.
+      if (!estado.planes.length) {
+        try { estado.planes = await api('/api/admin/plans'); } catch (e) { estado.planes = []; }
+      }
+      $('adPruebaPlan').innerHTML = estado.planes.length
+        ? estado.planes.map(function (p) {
+            return '<option value="' + esc(p.code) + '">' + esc(p.name) + ' · ' + esc(dinero(p.amount, p.currency)) + '/mes</option>';
+          }).join('')
+        : '<option value="">Plan por defecto</option>';
+
+      abrir('adOvPrueba');
+    }
+
+    async function confirmarPrueba() {
+      var b = $('adBtnPrueba');
+      b.disabled = true;
+      try {
+        var r = await api('/api/admin/subscriptions/trial', {
+          method: 'POST',
+          body: {
+            clinic_id: estado.pruebaClinica,
+            months: estado.pruebaMeses,
+            plan_code: $('adPruebaPlan').value || undefined,
+            note: $('adPruebaNota').value.trim(),
+          },
+        });
+        cerrar('adOvPrueba');
+        aviso((r.extendida ? 'Prueba extendida' : 'Prueba activada') + ' hasta el ' + fechaCorta(r.hasta) + '.');
+        estado.subs = null;
+        estado.clinicas = [];
+        await cargarSuscripciones();
+        cargarResumen();
+      } catch (e) {
+        aviso(e.message || 'No se pudo activar la prueba', 'bad');
       } finally {
         b.disabled = false;
       }
@@ -1288,9 +1688,11 @@
       var b = $('adRefresh');
       b.disabled = true;
       estado.clinicas = [];
+      estado.subs = null;
       try {
         await cargarResumen();
         if (estado.tab === 'solicitudes') await cargarSolicitudes();
+        if (estado.tab === 'suscripciones') await cargarSuscripciones();
         if (estado.tab === 'clinicas') await cargarClinicas();
         if (estado.tab === 'actividad') await cargarActividad();
         if (estado.tab === 'visitas') await cargarVisitas();
@@ -1299,7 +1701,7 @@
       }
     }
 
-    var VALIDAS = ['resumen', 'solicitudes', 'clinicas', 'actividad', 'visitas'];
+    var VALIDAS = ['resumen', 'solicitudes', 'suscripciones', 'clinicas', 'actividad', 'visitas'];
     var inicial = (location.hash || '').slice(1);
     cargarResumen();
     if (VALIDAS.indexOf(inicial) !== -1 && inicial !== 'resumen') irA(inicial);

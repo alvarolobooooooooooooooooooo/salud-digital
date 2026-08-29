@@ -125,7 +125,30 @@ async function sendSignupPendingAlert({ doctorName, clinicName, email, specialty
 }
 
 // Al doctor: su cuenta ya está aceptada y puede entrar.
-async function sendAccountApproved({ to, doctorName }) {
+//
+// Con `trialEndsAt` el mensaje cambia de fondo, y no de adorno: sin prueba hay
+// que decirle que para guardar pacientes falta la suscripción; con prueba, que
+// ya puede trabajar y hasta cuándo. Prometer lo que no es en cualquiera de los
+// dos sentidos se paga con un doctor que no entiende por qué no le guarda.
+async function sendAccountApproved({ to, doctorName, trialEndsAt = null, trialMonths = 0 }) {
+  const hasta = trialEndsAt ? new Date(trialEndsAt) : null;
+  const fecha =
+    hasta && !isNaN(hasta)
+      ? hasta.toLocaleDateString('es-HN', { day: 'numeric', month: 'long', year: 'numeric' })
+      : '';
+  const meses = parseInt(trialMonths, 10) || 0;
+
+  const cierre = fecha
+    ? `<p style="color:#374151;background:#ecfeff;border-left:3px solid #0891b2;padding:12px 16px;margin:16px 0">
+         Te activamos <b>${meses > 0 ? meses + (meses === 1 ? ' mes' : ' meses') + ' de prueba' : 'un periodo de prueba'} sin costo</b>.
+         Tienes la plataforma completa hasta el <b>${escapeHtml(fecha)}</b>; puedes registrar pacientes,
+         agendar citas y guardar consultas desde hoy.
+       </p>
+       <p style="color:#6b7280;font-size:13px">Cuando se acerque esa fecha te escribimos para activar
+       la suscripción y que no se te interrumpa el trabajo.</p>`
+    : `<p style="color:#6b7280;font-size:13px">Para registrar pacientes, agendar citas y guardar
+       consultas hay que activar la suscripción desde la propia plataforma.</p>`;
+
   return enviar(
     {
       to,
@@ -137,8 +160,7 @@ async function sendAccountApproved({ to, doctorName }) {
          <p style="color:#374151">Revisamos tu solicitud y tu cuenta quedó aprobada. Ya puedes entrar
          con el correo y la contraseña que elegiste al registrarte.</p>
          ${boton(APP() + '/login.html', 'Iniciar sesión')}
-         <p style="color:#6b7280;font-size:13px">Para registrar pacientes, agendar citas y guardar
-         consultas hay que activar la suscripción desde la propia plataforma.</p>`,
+         ${cierre}`,
       ),
     },
     'cuenta aprobada',

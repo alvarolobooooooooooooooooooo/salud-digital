@@ -18,6 +18,8 @@ const { authenticate, requireRole } = require('../middleware/auth');
 const analytics = require('../lib/analytics');
 const mailer = require('../utils/mailer');
 const subscription = require('../lib/subscription');
+const subs = require('../lib/billing/subscription-service');
+const { PaymentError } = require('../lib/payments/provider');
 
 // Un solo guardián para todo el router: ninguna ruta nueva puede olvidarse de
 // pedir el rol.
@@ -30,6 +32,27 @@ function entero(valor, porDefecto, maximo) {
 }
 
 const n = (v) => parseInt(v, 10) || 0;
+
+/**
+ * Con cuántos días de antelación empieza el panel a avisar de un cobro. Es el
+ * margen para escribirle al doctor ANTES de que se le acabe la prueba o el mes
+ * pagado, no después: avisar el mismo día es avisar tarde.
+ */
+function diasDeAviso() {
+  const d = parseInt(process.env.BILLING_ALERT_DAYS || '5', 10);
+  return Number.isFinite(d) && d >= 0 ? Math.min(d, 90) : 5;
+}
+
+// Los errores del motor de facturación ya vienen con un código legible; el
+// resto sube al manejador global de Express.
+function errorDeCobro(res, err) {
+  if (err instanceof PaymentError) {
+    const mapa = { already_subscribed: 409, unknown_plan: 400, inactive_plan: 400,
+                   no_clinic: 400, invalid_trial_length: 400 };
+    return res.status(mapa[err.code] || 400).json({ error: err.message, code: err.code });
+  }
+  throw err;
+}
 
 // ══════════════════════════════════════════════════════════════════
 //  Resumen
@@ -49,8 +72,21 @@ router.get('/overview', async (req, res) => {
         (SELECT COUNT(*) FROM appointments)                                      AS citas,
         (SELECT COUNT(*) FROM users WHERE approval_status = 'pending')           AS pendientes,
         (SELECT COUNT(*) FROM subscriptions WHERE status IN ('active','trialing')) AS suscripciones_activas,
+        (SELECT COUNT(*) FROM subscriptions
+          WHERE status = 'trialing'
+            AND (current_period_end IS NULL OR current_period_end >= NOW()))          AS en_prueba,
+        -- Lo que hay que cobrar pronto y lo que ya se pasó de fecha van por
+        -- separado: no es lo mismo "escríbele esta semana" que "ya se te pasó".
+        (SELECT COUNT(*) FROM subscriptions
+          WHERE status IN ('active','trialing') AND current_period_end IS NOT NULL
+            AND current_period_end >= NOW()
+            AND current_period_end <= NOW() + make_interval(days => $1))              AS por_cobrar,
+        (SELECT COUNT(*) FROM subscriptions
+          WHERE status IN ('active','trialing') AND current_period_end IS NOT NULL
+            AND current_period_end < NOW())                                           AS cobros_vencidos,
+        (SELECT COUNT(*) FROM subscriptions WHERE status IN ('past_due','payment_failed')) AS en_mora,
         (SELECT COUNT(*) FROM clinic_landing_leads WHERE created_at >= NOW() - INTERVAL '30 days') AS leads_30
-    `),
+    `, [diasDeAviso()]),
     // Las visitas viven en su propio módulo y su tabla puede no existir en un
     // despliegue a medio migrar: que falte el tráfico no puede dejar sin
     // resumen al resto del panel.
@@ -70,8 +106,13 @@ router.get('/overview', async (req, res) => {
       citas: n(p.citas),
       pendientes: n(p.pendientes),
       suscripciones_activas: n(p.suscripciones_activas),
+      en_prueba: n(p.en_prueba),
+      por_cobrar: n(p.por_cobrar),
+      cobros_vencidos: n(p.cobros_vencidos),
+      en_mora: n(p.en_mora),
       leads_30: n(p.leads_30),
     },
+    dias_aviso: diasDeAviso(),
     visitas: visitas || null,
   });
 });
@@ -120,6 +161,12 @@ async function resolver(req, res, decision) {
   if (!Number.isInteger(id)) return res.status(400).json({ error: 'ID inválido.' });
 
   const motivo = String((req.body && req.body.reason) || '').trim().slice(0, 400);
+
+  // Meses de prueba a conceder en el mismo gesto. 0 (o nada) = solo aprobar.
+  const meses = parseInt((req.body && req.body.trial_months) || 0, 10) || 0;
+  if (meses < 0 || meses > 24) {
+    return res.status(400).json({ error: 'La prueba tiene que ir de 1 a 24 meses.' });
+  }
   if (id === req.user.id) {
     return res.status(400).json({ error: 'No puedes cambiar el estado de tu propia cuenta.' });
   }
@@ -153,18 +200,236 @@ async function resolver(req, res, decision) {
     subscription.invalidate(usuario.clinic_id);
   }
 
+  // ── Aprobar y dejarle trabajar son dos cosas distintas ──
+  // Una cuenta aprobada puede entrar, pero sin suscripción no guarda ni un
+  // paciente. Por eso el botón de "aprobar con prueba" concede las dos cosas de
+  // una vez: es lo que el administrador quiere hacer casi siempre.
+  let prueba = null;
+  if (decision === 'approved' && meses > 0) {
+    if (!usuario.clinic_id) {
+      prueba = { error: 'Esta cuenta no tiene clínica asignada, así que no se le puede dar la prueba.' };
+    } else {
+      try {
+        const dada = await subs.grantTrial({
+          clinicId: usuario.clinic_id,
+          months: meses,
+          userId: usuario.id,
+          grantedBy: req.user.id,
+          note: 'Concedida al aprobar la solicitud',
+        });
+        prueba = {
+          meses,
+          hasta: dada.trialEndsAt,
+          plan: dada.plan.name,
+          extendida: dada.extended,
+        };
+      } catch (err) {
+        // La aprobación YA está guardada y no se deshace porque la prueba
+        // falle: son dos decisiones distintas y revertir la primera dejaría al
+        // doctor fuera sin que nadie lo hubiera decidido. Se informa para que
+        // se conceda a mano desde Suscripciones.
+        prueba = { error: err.message || 'No se pudo conceder la prueba.' };
+      }
+    }
+  }
+
   // El correo va después de que el cambio esté guardado y nunca puede fallarlo.
   const aviso =
     decision === 'approved'
-      ? mailer.sendAccountApproved({ to: usuario.email, doctorName: usuario.name })
+      ? mailer.sendAccountApproved({
+          to: usuario.email,
+          doctorName: usuario.name,
+          trialEndsAt: prueba && !prueba.error ? prueba.hasta : null,
+          trialMonths: prueba && !prueba.error ? prueba.meses : 0,
+        })
       : mailer.sendAccountRejected({ to: usuario.email, doctorName: usuario.name, reason: motivo });
   const notificado = await aviso.catch(() => false);
 
-  res.json({ ok: true, id: usuario.id, approval_status: usuario.approval_status, notificado });
+  res.json({
+    ok: true,
+    id: usuario.id,
+    approval_status: usuario.approval_status,
+    notificado,
+    prueba,
+  });
 }
 
 router.post('/registrations/:id/approve', (req, res) => resolver(req, res, 'approved'));
 router.post('/registrations/:id/reject', (req, res) => resolver(req, res, 'rejected'));
+
+// ══════════════════════════════════════════════════════════════════
+//  Suscripciones
+// ══════════════════════════════════════════════════════════════════
+//
+// Una fila por clínica —tenga suscripción o no—, porque la pregunta que se
+// contesta aquí no es "quién paga" sino "de quién tengo que estar pendiente", y
+// una clínica aprobada que nunca contrató entra de lleno en esa lista.
+//
+// El único dinero que aparece es el que la clínica nos paga a NOSOTROS. Lo que
+// ella le cobre a sus pacientes sigue sin salir de su cuenta (ver la cabecera
+// de este archivo).
+
+/**
+ * Etiqueta de urgencia de una fila. Se calcula en el servidor, y no en el
+ * navegador, para que el número del aviso y el que se pinta en la tabla no
+ * puedan discrepar: los cuenta el mismo criterio.
+ */
+function alertaDe(fila, dias) {
+  if (!fila.status) return null;                       // nunca contrató
+  if (fila.status === 'past_due' || fila.status === 'payment_failed') return 'mora';
+  if (!['active', 'trialing'].includes(fila.status)) return null;  // cancelada, expirada…
+  if (fila.dias == null) return null;                  // sin fecha que vigilar
+  if (fila.dias < 0) return 'vencida';
+  return fila.dias <= dias ? 'pronto' : null;
+}
+
+router.get('/subscriptions', async (req, res) => {
+  const aviso = diasDeAviso();
+
+  const r = await query(`
+    SELECT c.id                          AS clinic_id,
+           c.name                        AS clinic_name,
+           COALESCE(c.city, '')          AS city,
+           COALESCE(c.country, '')       AS country,
+           c.created_at                  AS clinic_created_at,
+           s.id                          AS subscription_id,
+           s.provider,
+           s.status,
+           s.amount,
+           s.currency,
+           s.current_period_start,
+           s.current_period_end,
+           s.trial_ends_at,
+           s.cancel_at_period_end,
+           s.failed_attempts,
+           s.created_at                  AS subscription_created_at,
+           s.metadata,
+           pl.name                       AS plan_name,
+           pl.code                       AS plan_code,
+           -- Días que faltan para el cobro. Se resta en Postgres y no en el
+           -- navegador: la fecha se guarda sin zona horaria y restarla contra
+           -- el reloj del cliente daba un día de diferencia según quién mirara.
+           CASE WHEN s.current_period_end IS NULL THEN NULL
+                ELSE FLOOR(EXTRACT(EPOCH FROM (s.current_period_end - NOW())) / 86400)::int
+           END                           AS dias,
+           contacto.name                 AS contacto_nombre,
+           contacto.email                AS contacto,
+           COALESCE(contacto.phone, '')  AS contacto_tel,
+           pagos.ultimo                  AS ultimo_pago,
+           COALESCE(pagos.total, 0)      AS cobros,
+           COALESCE(pagos.suma, 0)       AS pagado,
+           (SELECT COUNT(*)::int FROM users u
+             WHERE u.clinic_id = c.id
+               AND u.role IN ('doctor','clinic_admin','receptionist')
+               AND u.approval_status = 'approved')                         AS personal
+      FROM clinics c
+      -- La misma elección que hace getForClinic: la que da acceso si existe y,
+      -- si no, la más reciente. Si aquí saliera otra, el panel enseñaría un
+      -- estado distinto del que de verdad gobierna el acceso de esa clínica.
+      LEFT JOIN LATERAL (
+        SELECT * FROM subscriptions
+         WHERE clinic_id = c.id
+         ORDER BY (CASE WHEN status IN ('active','trialing','past_due') THEN 0 ELSE 1 END),
+                  COALESCE(current_period_end, created_at) DESC, id DESC
+         LIMIT 1
+      ) s ON TRUE
+      LEFT JOIN plans pl ON pl.id = s.plan_id
+      LEFT JOIN LATERAL (
+        SELECT u.name, u.email, u.phone FROM users u
+         WHERE u.clinic_id = c.id AND u.role IN ('clinic_admin','doctor')
+           AND u.approval_status = 'approved'
+         ORDER BY CASE u.role WHEN 'clinic_admin' THEN 0 ELSE 1 END, u.id
+         LIMIT 1
+      ) contacto ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT MAX(paid_at) AS ultimo, COUNT(*)::int AS total, SUM(amount) AS suma
+          FROM payments pg WHERE pg.clinic_id = c.id AND pg.status = 'succeeded'
+      ) pagos ON TRUE
+  `);
+
+  const filas = r.rows.map((f) => ({
+    ...f,
+    amount: f.amount == null ? null : Number(f.amount),
+    pagado: Number(f.pagado || 0),
+    // Una prueba de cortesía no es una suscripción de pago aunque ocupe su
+    // sitio: la tabla necesita distinguirlas para no prometer un cobro que
+    // ningún procesador va a hacer solo.
+    cortesia: f.provider === 'cortesia',
+    alerta: alertaDe(f, aviso),
+  }));
+
+  const PRIORIDAD = { mora: 0, vencida: 1, pronto: 2 };
+  filas.sort((a, b) => {
+    const pa = PRIORIDAD[a.alerta] != null ? PRIORIDAD[a.alerta] : 3;
+    const pb = PRIORIDAD[b.alerta] != null ? PRIORIDAD[b.alerta] : 3;
+    if (pa !== pb) return pa - pb;
+    // Dentro del mismo grupo, primero lo que vence antes. Lo que no tiene fecha
+    // (sin plan) se va al final, ordenado por nombre.
+    const da = a.dias == null ? Infinity : a.dias;
+    const db = b.dias == null ? Infinity : b.dias;
+    if (da !== db) return da - db;
+    return String(a.clinic_name).localeCompare(String(b.clinic_name), 'es');
+  });
+
+  const cuenta = (fn) => filas.filter(fn).length;
+  res.json({
+    dias_aviso: aviso,
+    resumen: {
+      clinicas: filas.length,
+      activas: cuenta((f) => f.status === 'active'),
+      en_prueba: cuenta((f) => f.status === 'trialing' && f.alerta !== 'vencida'),
+      por_cobrar: cuenta((f) => f.alerta === 'pronto'),
+      vencidas: cuenta((f) => f.alerta === 'vencida'),
+      en_mora: cuenta((f) => f.alerta === 'mora'),
+      sin_plan: cuenta((f) => !f.status || ['expired', 'cancelled', 'incomplete'].includes(f.status)),
+      // Lo que entra al mes por las suscripciones que de verdad se están
+      // cobrando. Las de cortesía no suman: son gratis, y contarlas sería
+      // inventarse un ingreso.
+      mensual: filas
+        .filter((f) => f.status === 'active' && !f.cortesia)
+        .reduce((total, f) => total + (f.amount || 0), 0),
+    },
+    suscripciones: filas,
+  });
+});
+
+/**
+ * Concede o extiende una prueba gratuita. Es la misma operación que hace el
+ * botón de la bandeja de solicitudes, pero apuntando a una clínica cualquiera:
+ * sirve para dar aire a quien ya estaba dentro y para alargar una prueba que se
+ * queda corta.
+ */
+router.post('/subscriptions/trial', async (req, res) => {
+  const b = req.body || {};
+  const clinicId = parseInt(b.clinic_id, 10);
+  if (!Number.isInteger(clinicId)) return res.status(400).json({ error: 'Falta la clínica.' });
+
+  try {
+    const dada = await subs.grantTrial({
+      clinicId,
+      months: b.months,
+      planCode: b.plan_code ? String(b.plan_code) : undefined,
+      grantedBy: req.user.id,
+      note: String(b.note || '').slice(0, 400),
+    });
+    res.json({
+      ok: true,
+      clinic_id: clinicId,
+      meses: parseInt(b.months, 10),
+      hasta: dada.trialEndsAt,
+      plan: dada.plan.name,
+      extendida: dada.extended,
+    });
+  } catch (err) {
+    errorDeCobro(res, err);
+  }
+});
+
+/** Catálogo de planes, para elegir cuál disfruta la prueba. */
+router.get('/plans', async (req, res) => {
+  const planes = await subs.listPlans();
+  res.json(planes.map((p) => ({ code: p.code, name: p.name, amount: p.amount, currency: p.currency })));
+});
 
 // ══════════════════════════════════════════════════════════════════
 //  Reportes por clínica
