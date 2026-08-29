@@ -303,30 +303,21 @@
       background: var(--brand, var(--accent)); border: 1px solid var(--line-2);
     }
     .co-brand-hex { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-transform: uppercase; }
+    /* Panel de la derecha: ya no dibuja un calendario de mentira — abre el de
+       verdad. El tinte del fondo es lo único que sigue enseñando el color aquí,
+       y sirve de anticipo del botón que hay dentro. */
     .co-brand-preview {
       width: 260px; max-width: 100%;
       border-radius: 14px; padding: 13px;
       border: 1px solid var(--line);
       background: color-mix(in oklch, var(--brand, var(--accent)) 10%, var(--surface-2));
-      display: grid; gap: 9px;
+      display: grid; gap: 9px; justify-items: start;
     }
     .co-brand-preview-label { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
-    .co-brand-chips { display: flex; gap: 6px; }
-    .co-brand-chip {
-      flex: 1; text-align: center; font-family: var(--font-mono); font-size: 11px;
-      padding: 6px 0; border-radius: 8px;
-      border: 1px solid var(--line); background: var(--surface-2); color: var(--ink-2);
-    }
-    .co-brand-chip.on {
-      background: var(--brand, var(--accent));
-      border-color: var(--brand, var(--accent));
-      color: #fff;
-    }
-    .co-brand-cta {
-      text-align: center; font-size: 12px; font-weight: 600; color: #fff;
-      padding: 8px 0; border-radius: 9px;
-      background: var(--brand, var(--accent));
-    }
+    .co-brand-preview-txt { margin: 0; font-size: 12px; line-height: 1.45; color: var(--ink-2); }
+    /* Mientras no se sabe de qué clínica es el enlace (la carga de /users/me va
+       por su cuenta), el botón se ve pero no lleva a ninguna parte. */
+    .co-brand-preview .is-off { opacity: .5; pointer-events: none; }
     .co-qr-card {
       position: relative; z-index: 1;
       align-self: stretch;
@@ -1326,12 +1317,16 @@
         </div>
         <div class="co-brand-preview">
           <div class="co-brand-preview-label">Así lo ve el paciente</div>
-          <div class="co-brand-chips">
-            <span class="co-brand-chip">09:00</span>
-            <span class="co-brand-chip on">09:30</span>
-            <span class="co-brand-chip">10:00</span>
-          </div>
-          <div class="co-brand-cta">Confirmar cita</div>
+          <p class="co-brand-preview-txt">
+            Abre tu página de reserva de verdad, con el color que tenés elegido
+            aunque todavía no lo hayas guardado. No reserva ninguna cita.
+          </p>
+          <!-- data-sd-gate="off": solo mira, no escribe nada, así que sigue
+               disponible aunque la cuenta esté en modo solo lectura. -->
+          <a id="brandPreviewLink" class="co-btn sm ghost" target="_blank" rel="noopener" href="#" data-sd-gate="off">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Vista previa
+          </a>
         </div>
       </div>
     </section>
@@ -2487,6 +2482,17 @@
     btn.disabled = !dirty;
     btn.classList.toggle('accent', dirty);
     document.getElementById('brandSaveLabel').textContent = dirty ? 'Guardar color' : 'Sin cambios';
+
+    // El enlace lleva el color que hay elegido AHORA, no el guardado: probar un
+    // tono y verlo en la página real es justo lo que esto tiene que resolver.
+    // Se rehace en cada render porque el color cambia con cada clic en la paleta.
+    const previa = document.getElementById('brandPreviewLink');
+    if (previa) {
+      previa.href = clinicId
+        ? `${buildPublicLink()}&preview=1&color=${encodeURIComponent(brandColor)}`
+        : '#';
+      previa.classList.toggle('is-off', !clinicId);
+    }
   }
 
   function setBrandColor(value) {
