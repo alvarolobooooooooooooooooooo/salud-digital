@@ -48,7 +48,11 @@
     min-height:100vh;
     min-height:100dvh;
     display:flex; align-items:flex-start; justify-content:center;
-    padding:28px 16px;
+    padding:
+      calc(28px + env(safe-area-inset-top, 0px))
+      calc(16px + env(safe-area-inset-right, 0px))
+      calc(28px + env(safe-area-inset-bottom, 0px))
+      calc(16px + env(safe-area-inset-left, 0px));
     -webkit-font-smoothing:antialiased;
     background:
       radial-gradient(1100px 800px at 50% 108%, #ffffff 0%, #eef8fc 55%, #e6eef6 100%);
@@ -365,7 +369,13 @@
   }
 
   @media (max-width: 420px){
-    body{ padding:16px 12px }
+    body{
+      padding:
+        calc(16px + env(safe-area-inset-top, 0px))
+        calc(12px + env(safe-area-inset-right, 0px))
+        calc(16px + env(safe-area-inset-bottom, 0px))
+        calc(12px + env(safe-area-inset-left, 0px));
+    }
     .card{ border-radius:24px }
     .head{ padding:24px 20px 18px }
     .body{ padding:22px 20px 24px }
@@ -696,7 +706,7 @@
     // abre en una pestaña aparte y volver dependía del gesto del navegador
     // (deslizar hacia atrás), que no todo el mundo conoce: aquí hay un botón.
     const banner = document.createElement('div');
-    banner.style.cssText = 'position:fixed; top:0; left:0; right:0; display:flex; align-items:center; gap:10px; padding:8px 12px; background:linear-gradient(180deg, rgba(255,251,235,.86), rgba(254,243,199,.72)); -webkit-backdrop-filter:saturate(160%) blur(14px); backdrop-filter:saturate(160%) blur(14px); color:#854d0e; font-size:12.5px; font-weight:600; border-bottom:1px solid rgba(253,230,138,.9); box-shadow:0 8px 24px -18px rgba(120,53,15,.6); z-index:10; letter-spacing:.02em';
+    banner.style.cssText = 'position:fixed; top:0; left:0; right:0; display:flex; align-items:center; gap:10px; padding:calc(8px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px)) 8px calc(12px + env(safe-area-inset-left, 0px)); background:linear-gradient(180deg, rgba(255,251,235,.86), rgba(254,243,199,.72)); -webkit-backdrop-filter:saturate(160%) blur(14px); backdrop-filter:saturate(160%) blur(14px); color:#854d0e; font-size:12.5px; font-weight:600; border-bottom:1px solid rgba(253,230,138,.9); box-shadow:0 8px 24px -18px rgba(120,53,15,.6); z-index:10; letter-spacing:.02em';
 
     const btnVolver = document.createElement('button');
     btnVolver.type = 'button';
