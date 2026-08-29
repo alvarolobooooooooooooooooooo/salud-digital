@@ -1291,6 +1291,15 @@
         <div>Esta configuración es referencial. Los mensajes se envían desde la sesión de WhatsApp Web abierta en tu navegador.</div>
       </div>
 
+      <!-- De quién es lo que se está editando. Sin esto, un doctor de una
+           clínica con varios cree que le está cambiando el mensaje a todos. -->
+      <div class="note" id="configScopeNote" style="display:none">
+        <div class="ic-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div id="configScopeText"></div>
+      </div>
+
       <div class="toggle-row">
         <div>
           <strong>Confirmaciones por WhatsApp</strong>
@@ -1300,7 +1309,7 @@
       </div>
 
       <div class="form-group">
-        <label for="waNumber">Número oficial de la clínica</label>
+        <label for="waNumber" id="waNumberLabel">Número oficial de la clínica</label>
         <input type="text" id="waNumber" placeholder="Ej: 50488888888" inputmode="numeric">
         <small>Formato internacional sin +, espacios, guiones ni paréntesis. Ejemplo Honduras: 50488888888</small>
       </div>
@@ -1668,8 +1677,16 @@
 
   // ───────────── State machine ─────────────
   // whatsapp_disabled | no_whatsapp_number | pending | sent | confirmed | declined
+  // La configuración del doctor DE ESTA CITA, no la de quien mira. La
+  // recepcionista confirma citas de toda la clínica: si usara la suya, mandaría
+  // el mismo texto firmado por varios doctores. El servidor manda en
+  // `por_doctor` la config ya resuelta de cada uno.
+  function configDe(r){
+    return (waConfig.por_doctor && waConfig.por_doctor[r.doctor_id]) || waConfig;
+  }
+
   function getState(r){
-    if (!waConfig.whatsapp_enabled) return 'whatsapp_disabled';
+    if (!configDe(r).whatsapp_enabled) return 'whatsapp_disabled';
     const phone = WhatsApp.normalizePhone(r.phone);
     if (!WhatsApp.isValidPhone(phone)) return 'no_whatsapp_number';
     if (r.confirmation_status === 'confirmed') return 'confirmed';
@@ -1714,7 +1731,7 @@
     // luego de pedirle el token al backend.
     const token = r.token || '________________________________';
     const f = WhatsApp.formatAppointmentDateTime(r.scheduled_at);
-    return WhatsApp.renderTemplate(waConfig.whatsapp_confirmation_template || '', Object.assign({
+    return WhatsApp.renderTemplate(configDe(r).whatsapp_confirmation_template || '', Object.assign({
       patientName: r.patient_name || '',
       clinicName: waConfig.name || '',
       doctorName: r.doctor_name || '',
@@ -2320,6 +2337,27 @@
   }
 
   function openConfigModal(){
+    // `scope` lo decide el servidor por el rol: un doctor guarda su propio
+    // mensaje, el administrador de la clínica guarda el de la casa.
+    const nota = document.getElementById('configScopeNote');
+    const texto = document.getElementById('configScopeText');
+    if (waConfig.scope === 'doctor') {
+      nota.style.display = 'flex';
+      texto.textContent = waConfig.personalizado
+        ? 'Este es tu mensaje. Solo se usa en tus citas; los demás doctores tienen el suyo.'
+        : 'Estás viendo el mensaje de la clínica. En cuanto guardes, pasa a ser el tuyo y solo se usará en tus citas.';
+    } else if (waConfig.scope === 'clinic') {
+      nota.style.display = 'flex';
+      texto.textContent = 'Este es el mensaje de la clínica: lo usan los doctores que no hayan escrito el suyo.';
+    } else {
+      nota.style.display = 'none';
+    }
+    const etiqueta = document.getElementById('waNumberLabel');
+    if (etiqueta) {
+      etiqueta.textContent = waConfig.scope === 'doctor'
+        ? 'Tu número de WhatsApp'
+        : 'Número oficial de la clínica';
+    }
     document.getElementById('waTemplate').value = waConfig.whatsapp_confirmation_template || '';
     document.getElementById('waNumber').value = waConfig.whatsapp_number || '';
     waEnabledDraft = !!waConfig.whatsapp_enabled;

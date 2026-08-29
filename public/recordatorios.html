@@ -1212,6 +1212,15 @@
         <div>Esta configuración es referencial. Los mensajes se envían desde la sesión de WhatsApp Web abierta en tu navegador.</div>
       </div>
 
+      <!-- De quién es lo que se está editando. Sin esto, un doctor de una
+           clínica con varios cree que le está cambiando el mensaje a todos. -->
+      <div class="note" id="configScopeNote" style="display:none">
+        <div class="ic-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div id="configScopeText"></div>
+      </div>
+
       <div class="toggle-row">
         <div>
           <strong>Recordatorios manuales por WhatsApp</strong>
@@ -1221,7 +1230,7 @@
       </div>
 
       <div class="form-group">
-        <label for="waNumber">Número oficial de la clínica</label>
+        <label for="waNumber" id="waNumberLabel">Número oficial de la clínica</label>
         <input type="text" id="waNumber" placeholder="Ej: 50488888888" inputmode="numeric">
         <small>Formato internacional sin +, espacios, guiones ni paréntesis. Ejemplo Honduras: 50488888888</small>
       </div>
@@ -1523,9 +1532,18 @@
     return `${String(p.d).padStart(2,'0')}/${String(p.m).padStart(2,'0')} ${String(p.hh).padStart(2,'0')}:${String(p.mm).padStart(2,'0')}`;
   }
 
+  // La configuración del doctor DE ESTA CITA, no la de quien está mirando. La
+  // recepcionista manda recordatorios de toda la clínica: si usara la suya,
+  // mandaría el mismo texto firmado por cinco doctores distintos. El servidor
+  // manda en `por_doctor` la config ya resuelta de cada uno (la suya propia, o
+  // la de la clínica si no la ha tocado).
+  function configDe(r){
+    return (waConfig.por_doctor && waConfig.por_doctor[r.doctor_id]) || waConfig;
+  }
+
   function getState(r){
     return WhatsApp.getReminderState({
-      whatsappEnabled: waConfig.whatsapp_enabled,
+      whatsappEnabled: configDe(r).whatsapp_enabled,
       patientWhatsapp: r.phone,
       reminderStatus: r.reminder_status
     });
@@ -1555,7 +1573,7 @@
 
   function buildMessage(r){
     const { date, time } = WhatsApp.formatAppointmentDateTime(r.scheduled_at);
-    return WhatsApp.renderTemplate(waConfig.whatsapp_template || '', Object.assign({
+    return WhatsApp.renderTemplate(configDe(r).whatsapp_template || '', Object.assign({
       patientName: r.patient_name || '',
       clinicName: waConfig.name || '',
       doctorName: r.doctor_name || '',
@@ -2168,6 +2186,27 @@
 
   // ───────────── Config modal ─────────────
   function openConfigModal(){
+    // `scope` lo decide el servidor por el rol: un doctor guarda su propio
+    // mensaje, el administrador de la clínica guarda el de la casa.
+    const nota = document.getElementById('configScopeNote');
+    const texto = document.getElementById('configScopeText');
+    if (waConfig.scope === 'doctor') {
+      nota.style.display = 'flex';
+      texto.textContent = waConfig.personalizado
+        ? 'Este es tu mensaje. Solo se usa en tus citas; los demás doctores tienen el suyo.'
+        : 'Estás viendo el mensaje de la clínica. En cuanto guardes, pasa a ser el tuyo y solo se usará en tus citas.';
+    } else if (waConfig.scope === 'clinic') {
+      nota.style.display = 'flex';
+      texto.textContent = 'Este es el mensaje de la clínica: lo usan los doctores que no hayan escrito el suyo.';
+    } else {
+      nota.style.display = 'none';
+    }
+    const etiqueta = document.getElementById('waNumberLabel');
+    if (etiqueta) {
+      etiqueta.textContent = waConfig.scope === 'doctor'
+        ? 'Tu número de WhatsApp'
+        : 'Número oficial de la clínica';
+    }
     document.getElementById('waEnabledToggle').classList.toggle('active', !!waConfig.whatsapp_enabled);
     document.getElementById('waEnabledToggle').setAttribute('aria-checked', String(!!waConfig.whatsapp_enabled));
     document.getElementById('waNumber').value = waConfig.whatsapp_number || '';

@@ -442,6 +442,19 @@ const initDb = async () => {
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_enabled BOOLEAN DEFAULT FALSE',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_number TEXT DEFAULT \'\'',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_template TEXT DEFAULT \'Hola {{patientName}}, le recordamos su cita en {{clinicName}} el día {{appointmentDate}} a las {{appointmentTime}} con {{doctorName}}.\\n\\nPor favor confirme si podrá asistir. Gracias.\'',
+      // WhatsApp por doctor. Las cuatro columnas de arriba siguen en clinics y
+      // pasan a ser el valor de la casa: lo que ve un doctor que nunca ha tocado
+      // su configuración, y lo que usa la clínica cuando el mensaje lo manda
+      // alguien que no es doctor. Estas cuatro son la personalización de cada
+      // uno y nacen NULL a propósito: NULL no es «vacío», es «este doctor no lo
+      // ha tocado», que es justo lo que COALESCE necesita para caer a la clínica
+      // (ver lib/whatsapp-config.js). Por eso whatsapp_enabled NO lleva DEFAULT
+      // FALSE: con un default, cada doctor nacería con WhatsApp apagado y una
+      // clínica que lo tenía encendido se quedaría muda de golpe.
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS whatsapp_enabled BOOLEAN DEFAULT NULL',
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS whatsapp_number TEXT DEFAULT NULL',
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS whatsapp_template TEXT DEFAULT NULL',
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS whatsapp_confirmation_template TEXT DEFAULT NULL',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS payment_notes TEXT DEFAULT \'\'',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS consent_id INTEGER',
       'ALTER TABLE patient_consents ADD COLUMN IF NOT EXISTS signature_data TEXT',

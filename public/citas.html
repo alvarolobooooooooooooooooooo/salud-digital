@@ -1909,6 +1909,14 @@ let editingId  = null;
 let currentUser = null;
 
 let waConfig = { whatsapp_enabled: false, whatsapp_number: '', whatsapp_template: '', name: '' };
+
+// La configuración de WhatsApp del doctor DE ESTA CITA, no la de quien mira.
+// El calendario enseña las citas de toda la clínica, así que el recordatorio de
+// cada una tiene que salir con el texto de su doctor. `por_doctor` lo manda ya
+// resuelto /api/reminders/whatsapp-config (ver lib/whatsapp-config.js).
+function waConfigDe(a){
+  return (waConfig.por_doctor && waConfig.por_doctor[a && a.doctor_id]) || waConfig;
+}
 let reminderMap = {};
 
 /* ─────────── View state ─────────── */
@@ -3340,7 +3348,7 @@ function openDrawer(id) {
   // WhatsApp block
   const reminder = reminderMap[a.id];
   const waState = WhatsApp.getReminderState({
-    whatsappEnabled: waConfig.whatsapp_enabled,
+    whatsappEnabled: waConfigDe(a).whatsapp_enabled,
     patientWhatsapp: a.patient_phone || a.phone,
     reminderStatus: reminder ? reminder.reminder_status : null,
   });
@@ -3481,8 +3489,9 @@ async function sendWhatsAppFromPopup(appointmentId) {
   const a = allAppts.find(x => x.id === appointmentId);
   if (!a) return;
 
-  if (!waConfig.whatsapp_enabled) {
-    alert('WhatsApp está desactivado. Ve a Confirmaciones → Configuración para activarlo.');
+  const waDeLaCita = waConfigDe(a);
+  if (!waDeLaCita.whatsapp_enabled) {
+    alert('WhatsApp está desactivado. Ve a Recordatorios → Configuración para activarlo.');
     return;
   }
 
@@ -3493,7 +3502,7 @@ async function sendWhatsAppFromPopup(appointmentId) {
   if (!WhatsApp.isValidPhone(patientWa)) { alert('Número de teléfono inválido.'); return; }
 
   const message = WhatsApp.buildReminderMessage({
-    template: waConfig.whatsapp_template || '',
+    template: waDeLaCita.whatsapp_template || '',
     patientName: a.patient_name,
     clinicName: waConfig.name,
     doctorName: a.doctor_name,
