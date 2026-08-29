@@ -46,6 +46,7 @@ en la interfaz.
 | `BILLING_GRACE_DAYS` | no (3) | Días de acceso tras vencer el periodo sin pagar |
 | `BILLING_RETRY_DAYS` | no (`1,3,5`) | Espera entre reintentos, en días |
 | `BILLING_JOB_INTERVAL_MINUTES` | no (60) | Cada cuánto corre el ciclo de facturación |
+| `BILLING_ALERT_DAYS` | no (5) | Con cuántos días de antelación avisa el panel de un cobro |
 
 Específicas de PayPal (las lee **solo** su provider):
 
@@ -165,6 +166,37 @@ reprocesa webhooks fallidos.
    vuelve a intentar solo.
 3. En todo momento, mientras quede periodo pagado, **el acceso se mantiene**.
 
+### Pruebas de cortesía (las que regala el administrador)
+
+El panel de plataforma puede conceder meses gratis: al aprobar la solicitud de
+un doctor (`POST /api/admin/registrations/:id/approve` con `trial_months`) o a
+una clínica cualquiera (`POST /api/admin/subscriptions/trial`). No hay ningún
+interruptor de "regalado" aparte del cobro: es **una fila más de
+`subscriptions`**, con `provider = 'cortesia'`, estado `trialing` y una fecha de
+fin. Así el resto del sistema no tiene que aprender nada nuevo — da acceso
+mientras dure y caduca sola, exactamente como cualquier otra.
+
+- `lib/payments/providers/cortesia.js` es un provider que declara TODO como no
+  soportado (`recurring: 'none'`, `isConfigured() === false`). Existe para que
+  `getProvider(sub.provider)` nunca reviente con una prueba delante, y para que
+  el ciclo de cobro y la renovación manual la descarten por capacidad, sin
+  excepciones repartidas por el código. Nunca se ofrece como forma de pago:
+  queda fuera de `enabledProviderNames()` y de `nombreProviderPorDefecto()`.
+- **`access()` no espera al job**: un `trialing` con la fecha pasada devuelve
+  `trial_expired` y NO da acceso. Sin eso, bastaba con que el job no corriera
+  una noche para regalar meses.
+- Una clínica no acumula pruebas: conceder otra **reescribe la misma fila**, y
+  extender una viva encadena desde su fin (seis + seis son doce).
+- No se conceden a quien ya tiene una suscripción de pago vigente
+  (`already_subscribed`).
+- **Pagar durante la prueba no cuesta días**: el checkout ignora la fila de
+  cortesía (`getPayableForClinic`), y cuando entra el primer cobro
+  `markPaymentSucceeded` cierra la prueba y arranca el mes pagado **donde ella
+  terminaba**.
+- El aviso al operador vive en el panel: `GET /api/admin/subscriptions` marca
+  cada fila como `pronto` / `vencida` / `mora` según `BILLING_ALERT_DAYS`
+  (5 por defecto).
+
 ---
 
 ## 7. Flujo completo de una suscripción
@@ -201,6 +233,8 @@ reprocesa webhooks fallidos.
 | POST | `/api/billing/retry` | dueño |
 | POST | `/api/billing/webhook[/:provider]` | público (firmado) |
 | GET | `/api/billing/events` | super admin |
+| GET | `/api/admin/subscriptions` | super admin (panel de plataforma) |
+| POST | `/api/admin/subscriptions/trial` | super admin (panel de plataforma) |
 
 ---
 

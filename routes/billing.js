@@ -8,7 +8,7 @@ const express = require('express');
 const router = express.Router();
 const { query } = require('../db');
 const { authenticate, requireRole } = require('../middleware/auth');
-const { getProvider, enabledProviderNames, PaymentError } = require('../lib/payments/provider');
+const { getProvider, enabledProviderNames, PaymentError, PROVEEDOR_CORTESIA } = require('../lib/payments/provider');
 const subs = require('../lib/billing/subscription-service');
 const billing = require('../lib/billing/billing-service');
 const webhooks = require('../lib/billing/webhook-service');
@@ -121,7 +121,12 @@ router.get('/status', authenticate, async (req, res) => {
     // medias del provider anterior, manda el activo — si no, cambiar
     // PAYMENTS_PROVIDER no serviría de nada: la pantalla seguiría ofreciendo el
     // checkout viejo para siempre.
-    provider = getProvider(sub && acceso.active ? sub.provider : undefined);
+    // Una prueba de cortesía no tiene checkout que pintar —no la cobra nadie—,
+    // así que durante la prueba manda el procesador activo: es con el que el
+    // doctor pagará al terminar, o antes si decide adelantarse.
+    const suyo =
+      sub && acceso.active && sub.provider !== PROVEEDOR_CORTESIA ? sub.provider : undefined;
+    provider = getProvider(suyo);
     checkout = { ...provider.publicConfig(), configured: provider.isConfigured(), capabilities: provider.capabilities };
   } catch (_) {
     /* procesador desconocido: se informa como no configurado */
@@ -242,7 +247,11 @@ router.post('/order', authenticate, requireRole(...OWNER_ROLES), async (req, res
     const clinicId = req.user.clinic_id;
     if (!clinicId) return res.status(403).json({ error: 'Tu usuario no tiene una clínica asignada.' });
 
+    // Con una prueba de cortesía viva, lo que se paga es la suscripción de
+    // pago (si la hay). La regalada no se cobra ni se transforma: se cierra
+    // sola cuando el primer cobro entra.
     let sub = await subs.getForClinic(clinicId);
+    if (sub && sub.provider === PROVEEDOR_CORTESIA) sub = await subs.getPayableForClinic(clinicId);
     const acceso = subs.access(sub);
     const pedido = providerPedido(req);
     const activo = getProvider(pedido || undefined);

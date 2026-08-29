@@ -808,10 +808,26 @@
       return { key: 'none', label: 'Sin suscripción', tone: 'off',
         blurb: 'Activa la suscripción mensual para usar Salud Digital sin interrupciones. Puedes cancelarla cuando quieras.' };
     }
-    if (status === 'active' || status === 'trialing') {
+    // La prueba tiene estado propio, y no es un adorno: durante ella NO hay nada
+    // que cancelar y SÍ tiene que poder pagarse (renderActions y renderPayBand
+    // miran esta clave). Tratarla como una suscripción activa dejaba al doctor
+    // con un botón de cancelar que no cancelaba nada y sin forma de contratar
+    // justo cuando se le acababa el plazo.
+    if (status === 'trialing') {
+      const hasta = sub.current_period_end ? new Date(sub.current_period_end) : null;
+      return {
+        key: 'trial',
+        label: 'En prueba',
+        tone: 'on',
+        blurb: hasta
+          ? `Tienes la plataforma completa, sin costo, hasta el ${fechaCorta(hasta)}. Cuando termine, activa la suscripción para seguir guardando pacientes y consultas.`
+          : 'Tienes la plataforma completa sin costo durante tu periodo de prueba.',
+      };
+    }
+    if (status === 'active') {
       return {
         key: 'active',
-        label: status === 'trialing' ? 'En prueba' : 'Activa',
+        label: 'Activa',
         tone: 'on',
         blurb: 'Tu suscripción está al día. El cobro se renueva solo cada mes y el recibo te llega por correo.',
       };
@@ -1002,6 +1018,9 @@
     if (sub && e.key === 'active' && proximo) {
       const d = new Date(proximo);
       facts.push({ k: 'Próximo cobro', v: fechaCorta(d), s: 'en ' + diasHasta(d) + ' día' + (diasHasta(d) === 1 ? '' : 's') });
+    } else if (sub && e.key === 'trial' && sub.current_period_end) {
+      const d = new Date(sub.current_period_end);
+      facts.push({ k: 'Prueba hasta', v: fechaCorta(d), s: 'quedan ' + diasHasta(d) + ' día' + (diasHasta(d) === 1 ? '' : 's') });
     } else if (sub && st.access.paid && sub.current_period_end) {
       facts.push({ k: 'Acceso hasta', v: fechaCorta(new Date(sub.current_period_end)), s: 'después se pausa' });
     } else {
@@ -1065,7 +1084,15 @@
                                : 'Pagar el mes · ' + money(st.price, st.currency))
       : e.key === 'pending' ? 'Termina tu pago'
       : (e.key === 'cancelled' || e.key === 'suspended') ? 'Reactivar por ' + money(st.price, st.currency) + ' al mes'
+      : e.key === 'trial' ? 'Cuando quieras · ' + money(st.price, st.currency) + ' al mes'
       : money(st.price, st.currency) + ' al mes · elige cómo pagar';
+
+    // Adelantarse a pagar no cuesta días: el mes cobrado empieza cuando termina
+    // la prueba (lo encadena markPaymentSucceeded). Decirlo aquí es lo que
+    // quita el miedo a pulsar el botón antes de tiempo.
+    const notaPrueba = e.key === 'trial'
+      ? `<div class="pz-hint">Tu prueba sigue corriendo. Si contratas ahora, el mes que pagues empieza cuando ella termine: no pierdes ni un día.</div>`
+      : '';
 
     // En la app de escritorio (Tauri) no se usa el SDK: sus ventanas emergentes
     // no funcionan bien dentro del WKWebView empaquetado, así que ahí el pago
@@ -1080,6 +1107,7 @@
             <button class="btn btn-primary" id="btnSubscribe" style="width:100%" ${cargando || !puede ? 'disabled' : ''}>
               ${cargando ? '<span class="spin"></span> Conectando…' : esc(texto)}
             </button>
+            ${notaPrueba}
           </div>
           ${NOTA_SEGURO}
         </div>`;
@@ -1093,6 +1121,7 @@
               <div class="pz-loading" id="pzLoading"><span class="spin"></span> Cargando el pago…</div>
             </div>
           </div>
+          ${notaPrueba}
           <div class="pz-hint">${ambas
             ? 'Con cuenta de PayPal se te cobra solo cada mes. Con tarjeta pagas mes a mes y te avisamos antes de que venza; no guardamos tu tarjeta. En ambos casos cancelas cuando quieras.'
             : manual
