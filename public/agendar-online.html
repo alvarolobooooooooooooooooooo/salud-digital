@@ -2446,13 +2446,22 @@
   }
 
   // ---------- Public link ----------
+  // El enlace que ve el paciente siempre lleva el dominio de la marca, no el
+  // host donde esté servida la app (Render). En local seguimos usando el
+  // origen real para que la vista previa y el QR funcionen al desarrollar.
+  const PUBLIC_ORIGIN = (() => {
+    const host = location.hostname;
+    const local = host === 'localhost' || host === '127.0.0.1' || host === '::1'
+      || host.endsWith('.local') || /^\d+\.\d+\.\d+\.\d+$/.test(host);
+    return local ? location.origin : 'https://portalsaluddigital.com';
+  })();
   function buildPublicLink() {
-    return `${location.origin}/agendar.html?clinic=${clinicId}`;
+    return `${PUBLIC_ORIGIN}/agendar.html?clinic=${clinicId}`;
   }
   function renderShareLink() {
     const link = buildPublicLink();
     const target = document.getElementById('publicLink');
-    target.innerHTML = `<span style="color:var(--muted);">${location.origin.replace(/^https?:\/\//, '')}</span><b>/agendar.html?clinic=${clinicId}</b>`;
+    target.innerHTML = `<span style="color:var(--muted);">${PUBLIC_ORIGIN.replace(/^https?:\/\//, '')}</span><b>/agendar.html?clinic=${clinicId}</b>`;
     target.dataset.link = link;
     document.getElementById('whatsappShare').href =
       `https://wa.me/?text=${encodeURIComponent('Agenda tu cita aquí: ' + link)}`;
