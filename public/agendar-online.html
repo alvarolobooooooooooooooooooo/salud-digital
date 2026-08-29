@@ -1990,7 +1990,7 @@
       loadPosterImage('/icons/logo-mark.png?v=2'),
     ]);
 
-    const W = 1080, H = 1440, S = 2, M = 96;
+    const W = 1080, H = 1620, S = 2, M = 78;
     const canvas = document.createElement('canvas');
     canvas.width = W * S;
     canvas.height = H * S;
@@ -2054,48 +2054,43 @@
     const lugar = String((clinicInfo && (clinicInfo.city || clinicInfo.address)) || '').trim();
 
     // ── Bloques ────────────────────────────────────────────────────────────
-    const avatarSize = (logo || retrato) ? 112 : 0;
-    const dosLineas = (() => { font(76, 700); return wrapPosterLines(ctx, titulo, W - M * 2, 2).length > 1; })();
-    const tamTitulo = dosLineas ? 60 : 76;
-    const altoLinea = dosLineas ? 70 : 86;
+    const avatarSize = (logo || retrato) ? 148 : 0;
+    const dosLineas = (() => { font(94, 700); return wrapPosterLines(ctx, titulo, W - M * 2, 2).length > 1; })();
+    const tamTitulo = dosLineas ? 76 : 94;
+    const altoLinea = dosLineas ? 88 : 110;
     font(tamTitulo, 700);
     const lineasTitulo = wrapPosterLines(ctx, titulo, W - M * 2, 2);
-
-    // Con logo o foto arriba el afiche tiene una boca más que alimentar, así que
-    // el código cede unos píxeles antes que apretar los aires de todo lo demás.
-    const cardX = 90, cardW = W - 180, qrTile = avatarSize ? 372 : 400;
-    const cardH = 50 + qrTile + 34 + 46 + 8 + 30 + 32 + 64 + 50;
 
     const bloques = [];
 
     // Rótulo a secas. Llevaba píldora de vidrio y un punto de color, que es
     // vocabulario de interfaz —un indicador de "en línea"— y en un papel
     // impreso no significa nada.
-    bloques.push({ h: 26, gap: 24, draw: (y) => {
+    bloques.push({ h: 32, gap: 26, draw: (y) => {
       const label = 'AGENDA EN LÍNEA';
-      const track = 3.4;
-      font(19, 600);
+      const track = 4.2;
+      font(24, 600);
       ctx.fillStyle = 'rgba(255,255,255,0.72)';
       ctx.textAlign = 'left';
-      fillSpaced(ctx, label, (W - measureSpaced(ctx, label, track)) / 2, y + 19, track);
+      fillSpaced(ctx, label, (W - measureSpaced(ctx, label, track)) / 2, y + 24, track);
       ctx.textAlign = 'center';
     } });
 
     if (avatarSize) {
-      bloques.push({ h: avatarSize, gap: 26, draw: (y) => {
+      bloques.push({ h: avatarSize, gap: 30, draw: (y) => {
         const x = (W - avatarSize) / 2;
         if (logo) {
           // Los logos suelen ser oscuros y sobre el degradado desaparecerían:
           // van sobre una placa clara, como en una tarjeta impresa.
           ctx.save();
           ctx.shadowColor = 'rgba(0,0,0,0.35)';
-          ctx.shadowBlur = 30;
-          ctx.shadowOffsetY = 10;
-          drawRoundedRect(ctx, x, y, avatarSize, avatarSize, 34);
+          ctx.shadowBlur = 34;
+          ctx.shadowOffsetY = 12;
+          drawRoundedRect(ctx, x, y, avatarSize, avatarSize, 42);
           ctx.fillStyle = 'rgba(255,255,255,0.94)';
           ctx.fill();
           ctx.restore();
-          drawContain(ctx, logo, x + 18, y + 18, avatarSize - 36, avatarSize - 36);
+          drawContain(ctx, logo, x + 22, y + 22, avatarSize - 44, avatarSize - 44);
         } else {
           const cx = W / 2, cy = y + avatarSize / 2, r = avatarSize / 2;
           ctx.save();
@@ -2105,22 +2100,22 @@
           drawCover(ctx, retrato, x, y, avatarSize, avatarSize);
           ctx.restore();
           ctx.strokeStyle = 'rgba(255,255,255,0.42)';
-          ctx.lineWidth = 3;
+          ctx.lineWidth = 3.5;
           ctx.beginPath();
-          ctx.arc(cx, cy, r - 1.5, 0, Math.PI * 2);
+          ctx.arc(cx, cy, r - 1.75, 0, Math.PI * 2);
           ctx.stroke();
         }
       } });
     }
 
-    bloques.push({ h: lineasTitulo.length * altoLinea, gap: bajada ? 6 : 34, draw: (y) => {
+    bloques.push({ h: lineasTitulo.length * altoLinea, gap: bajada ? 8 : 38, draw: (y) => {
       font(tamTitulo, 700);
       ctx.textAlign = 'center';
       ctx.fillStyle = '#ffffff';
       ctx.save();
       ctx.shadowColor = 'rgba(0,0,0,0.3)';
-      ctx.shadowBlur = 26;
-      ctx.shadowOffsetY = 8;
+      ctx.shadowBlur = 30;
+      ctx.shadowOffsetY = 9;
       lineasTitulo.forEach((linea, i) => {
         ctx.fillText(linea, W / 2, y + altoLinea * i + tamTitulo * 0.86);
       });
@@ -2128,81 +2123,24 @@
     } });
 
     if (bajada) {
-      bloques.push({ h: 42, gap: 34, draw: (y) => {
-        font(28, 500);
+      bloques.push({ h: 50, gap: 38, draw: (y) => {
+        font(34, 500);
         ctx.textAlign = 'center';
         ctx.fillStyle = 'rgba(255,255,255,0.74)';
-        ctx.fillText(bajada, W / 2, y + 30);
+        ctx.fillText(bajada, W / 2, y + 36);
       } });
     }
 
-    bloques.push({ h: cardH, gap: 26, draw: (y) => {
-      ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.35)';
-      ctx.shadowBlur = 46;
-      ctx.shadowOffsetY = 20;
-      drawRoundedRect(ctx, cardX, y, cardW, cardH, 46);
-      ctx.fillStyle = 'rgba(255,255,255,0.05)';
-      ctx.fill();
-      ctx.restore();
-      glassPanel(ctx, cardX, y, cardW, cardH, 46, 0.09);
+    // Lo que va DEBAJO de la tarjeta se arma aparte para poder medirlo antes:
+    // el tamaño del código sale de restar todo lo demás, no de un número fijo.
+    const despues = [];
 
-      // Un halo del color de la clínica detrás del código: sin él la placa de
-      // cristal se lee como una mancha gris en mitad del degradado.
-      ctx.save();
-      drawRoundedRect(ctx, cardX, y, cardW, cardH, 46);
-      ctx.clip();
-      const halo = ctx.createRadialGradient(W / 2, y + 40 + qrTile / 2, qrTile * 0.2,
-        W / 2, y + 40 + qrTile / 2, qrTile * 1.05);
-      halo.addColorStop(0, hsl(c.h + 6, 95, 62, 0.32));
-      halo.addColorStop(1, hsl(c.h + 6, 95, 62, 0));
-      ctx.fillStyle = halo;
-      ctx.fillRect(cardX, y, cardW, cardH);
-      ctx.restore();
-
-      // Placa blanca para el código: un QR sobre color no escanea.
-      const tx = cardX + (cardW - qrTile) / 2, ty = y + 50;
-      ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.32)';
-      ctx.shadowBlur = 34;
-      ctx.shadowOffsetY = 12;
-      drawRoundedRect(ctx, tx, ty, qrTile, qrTile, 34);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-      ctx.restore();
-      // Margen de silencio generoso: impreso hay que dejarle aire al código.
-      const inset = 30;
-      ctx.drawImage(qrToCanvas(shape, (qrTile - inset * 2) * S), tx + inset, ty + inset,
-        qrTile - inset * 2, qrTile - inset * 2);
-
-      let cy = ty + qrTile + 34;
-      ctx.textAlign = 'center';
-      font(38, 700);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText('Escaneá para agendar', W / 2, cy + 34);
-      cy += 46 + 8;
-      font(24, 400);
-      ctx.fillStyle = 'rgba(255,255,255,0.62)';
-      ctx.fillText('Apuntá la cámara de tu celular al código', W / 2, cy + 22);
-      cy += 30 + 32;
-
-      // Píldora con el enlace escrito, para quien prefiera teclearlo.
-      const texto = link.replace(/^https?:\/\//, '');
-      let tam = 24;
-      font(tam, 500);
-      while (ctx.measureText(texto).width > cardW - 150 && tam > 16) { tam -= 1; font(tam, 500); }
-      const pw = Math.min(cardW - 60, ctx.measureText(texto).width + 62);
-      glassPanel(ctx, (W - pw) / 2, cy, pw, 64, 32, 0.14);
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.fillText(texto, W / 2, cy + 41);
-    } });
-
-    bloques.push({ h: 32, gap: 24, draw: (y) => {
+    despues.push({ h: 38, gap: 28, draw: (y) => {
       const claim = 'SIN LLAMADAS · ELEGÍ TU HORARIO · CONFIRMACIÓN INMEDIATA';
-      font(21, 600);
+      font(25, 600);
       ctx.textAlign = 'left';
       ctx.fillStyle = 'rgba(255,255,255,0.6)';
-      fillSpaced(ctx, claim, (W - measureSpaced(ctx, claim, 2)) / 2, y + 22, 2);
+      fillSpaced(ctx, claim, (W - measureSpaced(ctx, claim, 2.4)) / 2, y + 26, 2.4);
       ctx.textAlign = 'center';
     } });
 
@@ -2212,31 +2150,108 @@
     if (contactos.length) {
       // Sin píldoras: el teléfono y la dirección son un pie de contacto, no dos
       // botones. Se separan entre sí con aire, no con dos cápsulas de vidrio.
-      bloques.push({ h: 34, gap: 0, draw: (y) => {
-        font(23, 500);
-        const anchos = contactos.map(k => 22 + 12 + ctx.measureText(k.texto).width);
-        const total = anchos.reduce((a, b) => a + b, 0) + (contactos.length - 1) * 38;
+      despues.push({ h: 42, gap: 0, draw: (y) => {
+        font(28, 500);
+        const anchos = contactos.map(k => 28 + 14 + ctx.measureText(k.texto).width);
+        const total = anchos.reduce((a, b) => a + b, 0) + (contactos.length - 1) * 46;
         let x = (W - total) / 2;
         contactos.forEach((k, i) => {
-          drawPosterIcon(ctx, k.icono, x, y + 5, 24, hsl(c.h, 90, 72, 0.9));
+          drawPosterIcon(ctx, k.icono, x, y + 6, 28, hsl(c.h, 90, 72, 0.9));
           ctx.textAlign = 'left';
           ctx.fillStyle = 'rgba(255,255,255,0.82)';
-          ctx.fillText(k.texto, x + 22 + 12, y + 25);
-          x += anchos[i] + 38;
+          ctx.fillText(k.texto, x + 28 + 14, y + 31);
+          x += anchos[i] + 46;
         });
         ctx.textAlign = 'center';
       } });
     }
+
+    // ── La tarjeta se queda con todo el alto que sobra ─────────────────────
+    // El código era un cuadrado de tamaño fijo y en un afiche de 1080×1620 se
+    // veía chico. Ahora se le da lo que quede después de colocar el resto: con
+    // un nombre corto y sin logo llega al tope, y solo se encoge cuando de
+    // verdad hace falta sitio.
+    const CARD_CHROME = 372;   // todo lo de la tarjeta que no es el código
+    const ARRIBA = 96, ABAJO = 176;
+    const disponible = H - ARRIBA - ABAJO;
+    const gapCard = 30;
+    const sumaOtros = bloques.concat(despues).reduce((t, b) => t + b.h, 0);
+    const sumaGapOtros = bloques.reduce((t, b) => t + b.gap, 0) + gapCard
+      + despues.slice(0, -1).reduce((t, b) => t + b.gap, 0);
+    const qrTile = clampNum(disponible - sumaOtros - sumaGapOtros - CARD_CHROME, 380, 560);
+    const cardH = qrTile + CARD_CHROME;
+    const cardX = 60, cardW = W - 120;
+
+    bloques.push({ h: cardH, gap: gapCard, draw: (y) => {
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.35)';
+      ctx.shadowBlur = 50;
+      ctx.shadowOffsetY = 22;
+      drawRoundedRect(ctx, cardX, y, cardW, cardH, 52);
+      ctx.fillStyle = 'rgba(255,255,255,0.05)';
+      ctx.fill();
+      ctx.restore();
+      glassPanel(ctx, cardX, y, cardW, cardH, 52, 0.09);
+
+      // Un halo del color de la clínica detrás del código: sin él la placa de
+      // cristal se lee como una mancha gris en mitad del degradado.
+      ctx.save();
+      drawRoundedRect(ctx, cardX, y, cardW, cardH, 52);
+      ctx.clip();
+      const halo = ctx.createRadialGradient(W / 2, y + 56 + qrTile / 2, qrTile * 0.2,
+        W / 2, y + 56 + qrTile / 2, qrTile * 1.05);
+      halo.addColorStop(0, hsl(c.h + 6, 95, 62, 0.32));
+      halo.addColorStop(1, hsl(c.h + 6, 95, 62, 0));
+      ctx.fillStyle = halo;
+      ctx.fillRect(cardX, y, cardW, cardH);
+      ctx.restore();
+
+      // Placa blanca para el código: un QR sobre color no escanea.
+      const tx = cardX + (cardW - qrTile) / 2, ty = y + 56;
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.32)';
+      ctx.shadowBlur = 38;
+      ctx.shadowOffsetY = 14;
+      drawRoundedRect(ctx, tx, ty, qrTile, qrTile, 40);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+      // Margen de silencio generoso: impreso hay que dejarle aire al código.
+      const inset = 34;
+      ctx.drawImage(qrToCanvas(shape, (qrTile - inset * 2) * S), tx + inset, ty + inset,
+        qrTile - inset * 2, qrTile - inset * 2);
+
+      let cy = ty + qrTile + 40;
+      ctx.textAlign = 'center';
+      font(46, 700);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('Escaneá para agendar', W / 2, cy + 42);
+      cy += 58 + 10;
+      font(28, 400);
+      ctx.fillStyle = 'rgba(255,255,255,0.62)';
+      ctx.fillText('Apuntá la cámara de tu celular al código', W / 2, cy + 26);
+      cy += 36 + 38;
+
+      // Píldora con el enlace escrito, para quien prefiera teclearlo.
+      const texto = link.replace(/^https?:\/\//, '');
+      let tam = 30;
+      font(tam, 500);
+      while (ctx.measureText(texto).width > cardW - 170 && tam > 20) { tam -= 1; font(tam, 500); }
+      const pw = Math.min(cardW - 70, ctx.measureText(texto).width + 74);
+      glassPanel(ctx, (W - pw) / 2, cy, pw, 78, 39, 0.14);
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillText(texto, W / 2, cy + 50);
+    } });
+
+    despues.forEach(b => bloques.push(b));
 
     // ── Reparto vertical ───────────────────────────────────────────────────
     // Los aires se estiran o se encogen para llenar el alto disponible; el
     // contenido no se toca. Así un nombre de clínica en dos líneas o una clínica
     // con logo no empujan nada fuera del afiche, y una sin ellos no deja un
     // hueco muerto abajo.
-    const ARRIBA = 92, ABAJO = 160;
-    const disponible = H - ARRIBA - ABAJO;
-    const sumaH = bloques.reduce((s, b) => s + b.h, 0);
-    const sumaGap = bloques.slice(0, -1).reduce((s, b) => s + b.gap, 0);
+    const sumaH = bloques.reduce((t, b) => t + b.h, 0);
+    const sumaGap = bloques.slice(0, -1).reduce((t, b) => t + b.gap, 0);
     const k = sumaGap > 0 ? clampNum((disponible - sumaH) / sumaGap, 0.3, 1.45) : 1;
     let y = ARRIBA + Math.max(0, (disponible - sumaH - sumaGap * k) / 2);
     bloques.forEach((b, i) => {
@@ -2245,20 +2260,20 @@
     });
 
     // ── Pie ────────────────────────────────────────────────────────────────
-    font(23, 600);
+    font(28, 600);
     const wMarca = ctx.measureText('Salud Digital').width;
-    const chip = marca ? 52 : 0;
-    const anchoPie = chip + (chip ? 14 : 0) + wMarca;
-    const px = (W - anchoPie) / 2, py = H - 108;
+    const chip = marca ? 62 : 0;
+    const anchoPie = chip + (chip ? 18 : 0) + wMarca;
+    const px = (W - anchoPie) / 2, py = H - 130;
     if (marca) {
-      drawRoundedRect(ctx, px, py, chip, chip, 16);
+      drawRoundedRect(ctx, px, py, chip, chip, 19);
       ctx.fillStyle = 'rgba(255,255,255,0.92)';
       ctx.fill();
-      drawContain(ctx, marca, px + 8, py + 8, chip - 16, chip - 16);
+      drawContain(ctx, marca, px + 10, py + 10, chip - 20, chip - 20);
     }
     ctx.textAlign = 'left';
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.fillText('Salud Digital', px + chip + (chip ? 14 : 0), py + 34);
+    ctx.fillText('Salud Digital', px + chip + (chip ? 18 : 0), py + 41);
     ctx.textAlign = 'center';
 
     return canvas;
