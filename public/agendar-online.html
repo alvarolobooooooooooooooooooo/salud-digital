@@ -2068,20 +2068,16 @@
 
     const bloques = [];
 
-    bloques.push({ h: 54, gap: 24, draw: (y) => {
+    // Rótulo a secas. Llevaba píldora de vidrio y un punto de color, que es
+    // vocabulario de interfaz —un indicador de "en línea"— y en un papel
+    // impreso no significa nada.
+    bloques.push({ h: 26, gap: 24, draw: (y) => {
       const label = 'AGENDA EN LÍNEA';
       const track = 3.4;
       font(19, 600);
-      const wTxt = measureSpaced(ctx, label, track);
-      const pw = wTxt + 86, px = (W - pw) / 2;
-      glassPanel(ctx, px, y, pw, 54, 27, 0.15);
-      ctx.fillStyle = hsl(c.h, 92, 66, 0.95);
-      ctx.beginPath();
-      ctx.arc(px + 32, y + 27, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.fillStyle = 'rgba(255,255,255,0.72)';
       ctx.textAlign = 'left';
-      fillSpaced(ctx, label, px + 54, y + 34, track);
+      fillSpaced(ctx, label, (W - measureSpaced(ctx, label, track)) / 2, y + 19, track);
       ctx.textAlign = 'center';
     } });
 
@@ -2214,18 +2210,19 @@
     if (telefono) contactos.push({ icono: POSTER_ICON_PHONE, texto: telefono });
     if (lugar) contactos.push({ icono: POSTER_ICON_PIN, texto: lugar });
     if (contactos.length) {
-      bloques.push({ h: 58, gap: 0, draw: (y) => {
+      // Sin píldoras: el teléfono y la dirección son un pie de contacto, no dos
+      // botones. Se separan entre sí con aire, no con dos cápsulas de vidrio.
+      bloques.push({ h: 34, gap: 0, draw: (y) => {
         font(23, 500);
-        const anchos = contactos.map(k => 30 + 22 + 12 + ctx.measureText(k.texto).width);
-        const total = anchos.reduce((a, b) => a + b, 0) + (contactos.length - 1) * 14;
+        const anchos = contactos.map(k => 22 + 12 + ctx.measureText(k.texto).width);
+        const total = anchos.reduce((a, b) => a + b, 0) + (contactos.length - 1) * 38;
         let x = (W - total) / 2;
         contactos.forEach((k, i) => {
-          glassPanel(ctx, x, y, anchos[i], 58, 29, 0.1);
-          drawPosterIcon(ctx, k.icono, x + 26, y + 17, 24, hsl(c.h, 90, 72, 0.9));
+          drawPosterIcon(ctx, k.icono, x, y + 5, 24, hsl(c.h, 90, 72, 0.9));
           ctx.textAlign = 'left';
           ctx.fillStyle = 'rgba(255,255,255,0.82)';
-          ctx.fillText(k.texto, x + 26 + 22 + 12, y + 37);
-          x += anchos[i] + 14;
+          ctx.fillText(k.texto, x + 22 + 12, y + 25);
+          x += anchos[i] + 38;
         });
         ctx.textAlign = 'center';
       } });
