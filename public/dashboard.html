@@ -1405,7 +1405,7 @@
           <div class="cal-grid" id="calDays"></div>
         </div>
 
-        <!-- Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar este bloque:
+        <!-- Recordatorios -->
         <div class="card">
           <div class="card-hdr">
             <span class="card-title">Recordatorios</span>
@@ -1416,7 +1416,6 @@
           </div>
           <a href="/recordatorios.html" class="reminders-link">Ver todos →</a>
         </div>
-        -->
       </div>
   </main>
 
@@ -1664,12 +1663,12 @@
         // una dona: con mil pacientes, cientos de KB y un ORDER BY sobre todo en
         // cada carga del panel. Ahora solo viene el total; la dona sale de las
         // citas de hoy, que ya se traían de todos modos.
-        const [me, totalPacientes, appointments, finances] = await Promise.all([
+        const [me, totalPacientes, appointments, finances, reminders] = await Promise.all([
           api('/api/auth/me'),
           api('/api/patients/count').then(r => (r && r.total) || 0).catch(() => 0),
           api('/api/appointments/today'),
           api('/api/consultations/finances/summary').catch(() => ({ month_revenue: 0 })),
-          // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar: api('/api/reminders').catch(() => [])
+          api('/api/reminders').catch(() => [])
         ]);
 
         // Welcome banner - personalized greeting
@@ -1738,7 +1737,8 @@
         }
         renderCalendar(today.getFullYear(), today.getMonth(), apptDatesSet);
 
-        // Recordatorios desactivado — duplicaba Confirmaciones. Para reactivar, descomentar: renderReminders(reminders);
+        // Reminders
+        renderReminders(reminders);
 
         // Hide loader
         pageLoader.classList.add('hidden');
