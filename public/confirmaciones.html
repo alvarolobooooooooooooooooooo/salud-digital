@@ -913,44 +913,91 @@
        Colores literales a propósito: la tarjeta del paciente es clara SIEMPRE,
        así que no puede heredar las variables del tema (en oscuro, --ink es casi
        blanco y el texto desaparecía sobre el fondo blanco de la maqueta). */
+
+    /* El fondo de color no es adorno: la tarjeta del paciente es de cristal y
+       sin algo debajo se ve idéntica a un panel blanco cualquiera. */
+    .card-preview-stage{
+      padding:16px; border-radius:var(--r-md);
+      border:1px solid #e2e8f0;
+      background:
+        radial-gradient(46% 42% at 22% 18%, rgba(34,211,238,.55), transparent 70%),
+        radial-gradient(42% 38% at 80% 14%, rgba(129,140,248,.42), transparent 70%),
+        radial-gradient(50% 46% at 74% 84%, rgba(45,212,191,.50), transparent 70%),
+        radial-gradient(42% 40% at 18% 86%, rgba(244,186,222,.42), transparent 70%),
+        linear-gradient(160deg, #f7fcff, #eef4f9);
+    }
     .card-preview{
-      border:1px solid #e2e8f0; border-radius:var(--r-md);
-      overflow:hidden; background:#fff; color:#0f172a;
+      border:1px solid rgba(255,255,255,.85); border-radius:14px;
+      overflow:hidden; color:#0f172a;
+      background:linear-gradient(152deg,
+        rgba(255,255,255,.72), rgba(255,255,255,.46) 46%, rgba(255,255,255,.64));
+      -webkit-backdrop-filter:saturate(180%) blur(14px);
+      backdrop-filter:saturate(180%) blur(14px);
+      box-shadow:
+        0 18px 34px -22px rgba(8,47,73,.5),
+        0 26px 46px -30px rgba(6,182,212,.55),
+        inset 0 1px 0 rgba(255,255,255,.95);
     }
     .card-preview-head{
-      background:linear-gradient(135deg, #0891b2, #0e7490);
+      position:relative; overflow:hidden; isolation:isolate;
+      background:linear-gradient(138deg, #63d5e9 0%, #0891b2 44%, #0a5f78 100%);
       color:#fff; text-align:center; padding:14px 16px;
       font-size:13.5px; font-weight:600;
     }
+    /* El mismo reflejo diagonal que lleva la tarjeta de verdad. */
+    .card-preview-head::after{
+      content:''; position:absolute; z-index:-1; pointer-events:none;
+      left:-20%; top:-140%; width:55%; height:340%; transform:rotate(19deg);
+      background:linear-gradient(90deg,
+        rgba(255,255,255,0), rgba(255,255,255,.26), rgba(255,255,255,0));
+    }
     .card-preview-msg{
-      padding:16px 18px 4px; font-size:13.5px; line-height:1.55;
+      padding:16px 18px 8px; font-size:13.5px; line-height:1.55;
       text-align:center; color:#334155; white-space:pre-line;
       min-height:20px;
     }
     .card-preview-msg b{ color:#0f172a; font-weight:600 }
     .card-preview-msg .cp-empty{ color:#94a3b8; font-style:italic }
-    .card-preview-rows{ padding:12px 18px }
+    .card-preview-rows{
+      margin:0 16px; padding:4px 14px;
+      background:linear-gradient(160deg, rgba(255,255,255,.72), rgba(255,255,255,.36));
+      border:1px solid rgba(255,255,255,.9);
+      border-radius:12px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.95);
+    }
     .card-preview-rows > div{
       display:flex; justify-content:space-between; gap:12px;
-      padding:5px 0; font-size:12.5px;
+      padding:7px 0; font-size:12.5px;
     }
-    .card-preview-rows > div + div{ border-top:1px dashed #e2e8f0 }
+    .card-preview-rows > div + div{ border-top:1px solid rgba(15,23,42,.09) }
     .card-preview-rows span{
       color:#64748b; font-size:10.5px; font-weight:600;
       text-transform:uppercase; letter-spacing:.07em;
     }
     .card-preview-rows b{ color:#0f172a; font-weight:600 }
-    .card-preview-btns{ display:flex; flex-direction:column; gap:7px; padding:6px 18px 16px }
+    .card-preview-btns{ display:flex; flex-direction:column; gap:8px; padding:14px 16px 16px }
     .card-preview-btns span{
-      text-align:center; padding:9px; border-radius:10px;
+      text-align:center; padding:10px; border-radius:12px;
       font-size:12.5px; font-weight:600;
     }
-    .card-preview-btns .cp-ok{ background:#16a34a; color:#fff }
-    .card-preview-btns .cp-no{ border:1.5px solid #f43f5e; color:#be123c; background:#fff }
+    .card-preview-btns .cp-ok{
+      background:linear-gradient(138deg, #34d399, #10b981 46%, #059669); color:#fff;
+      box-shadow:0 10px 20px -12px rgba(5,150,105,.75), inset 0 1px 0 rgba(255,255,255,.45);
+    }
+    .card-preview-btns .cp-no{
+      border:1px solid rgba(244,63,94,.36); color:#be123c;
+      background:linear-gradient(160deg, rgba(255,255,255,.88), rgba(255,255,255,.58));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.95);
+    }
     /* En dark mode se enmarca para que no parezca un bloque suelto flotando. */
-    html[data-theme="dark"] .card-preview{
+    html[data-theme="dark"] .card-preview-stage{
       border-color:rgba(255,255,255,.14);
       box-shadow:0 8px 26px rgba(0,0,0,.45);
+    }
+    /* Sin backdrop-filter el cristal se cae a blanco sólido, como en la tarjeta. */
+    @supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+      .card-preview{ background:rgba(255,255,255,.96) }
+      .card-preview-rows{ background:#fff }
     }
 
     /* Responsive */
@@ -1388,6 +1435,7 @@
 
       <div class="form-group">
         <label>Así se verá la tarjeta</label>
+        <div class="card-preview-stage">
         <div class="card-preview">
           <div class="card-preview-head" id="cardPreviewClinic">Clínica</div>
           <div class="card-preview-msg" id="cardPreviewMsg"></div>
@@ -1400,6 +1448,7 @@
             <span class="cp-ok">Sí, asistiré</span>
             <span class="cp-no">No podré asistir</span>
           </div>
+        </div>
         </div>
         <small>Para verla a tamaño real, abre la <a href="/confirm.html?preview=1" target="_blank" rel="noopener" id="cardPreviewLink">vista previa completa</a>.</small>
       </div>
