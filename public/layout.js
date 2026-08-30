@@ -81,7 +81,7 @@
         {
           label: 'AYUDA',
           items: [
-            { href: '/tutoriales.html', key: 'tutoriales', iconName: 'bookOpen', label: 'Tutoriales', labelMovil: 'Guías' }
+            { href: '/tutoriales.html', key: 'tutoriales', iconName: 'bookOpen', label: 'Tutoriales' }
           ]
         },
         {
@@ -131,7 +131,7 @@
         {
           label: 'AYUDA',
           items: [
-            { href: '/tutoriales.html', key: 'tutoriales', iconName: 'bookOpen', label: 'Tutoriales', labelMovil: 'Guías' }
+            { href: '/tutoriales.html', key: 'tutoriales', iconName: 'bookOpen', label: 'Tutoriales' }
           ]
         },
         {
@@ -173,7 +173,7 @@
         {
           label: 'AYUDA',
           items: [
-            { href: '/tutoriales.html', key: 'tutoriales', iconName: 'bookOpen', label: 'Tutoriales', labelMovil: 'Guías' }
+            { href: '/tutoriales.html', key: 'tutoriales', iconName: 'bookOpen', label: 'Tutoriales' }
           ]
         },
         {
@@ -207,11 +207,11 @@
     }).join('');
 
     // Mobile menu items (exclude items reserved for the drawer)
-    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'plan' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio' && item.key !== 'doctors' && item.key !== 'facturacion' && item.key !== 'migracion').map(item => {
+    const mobileMenuItems = allItems.filter(item => item.key !== 'consentimientos' && item.key !== 'recordatorios' && item.key !== 'confirmaciones' && item.key !== 'agendar-online' && item.key !== 'inventario' && item.key !== 'configuracion' && item.key !== 'plan' && item.key !== 'calendario-compartido' && item.key !== 'mi-sitio' && item.key !== 'doctors' && item.key !== 'facturacion' && item.key !== 'migracion' && item.key !== 'tutoriales').map(item => {
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
-        <span>${item.labelMovil || item.label}</span>
+        <span>${item.label}</span>
       </a>`;
     }).join('');
 
@@ -259,6 +259,13 @@
           </div>` : ''}
 
           ${isReceptionist ? `<div class="sidebar-section">
+            <div class="sidebar-label">AYUDA</div>
+            <a href="/tutoriales.html" class="sidebar-menu-link">
+              <span id="tutorialesMenuIcon"></span>
+              <span>Tutoriales</span>
+            </a>
+          </div>
+          <div class="sidebar-section">
             <div class="sidebar-label">AJUSTES</div>
             <a href="/configuracion.html" class="sidebar-menu-link">
               <span id="configMenuIcon"></span>
@@ -317,6 +324,13 @@
               </a>
             </div>
           -->
+          <div class="sidebar-section">
+            <div class="sidebar-label">AYUDA</div>
+            <a href="/tutoriales.html" class="sidebar-menu-link">
+              <span id="tutorialesMenuIcon2"></span>
+              <span>Tutoriales</span>
+            </a>
+          </div>
           <div class="sidebar-section">
             <div class="sidebar-label">AJUSTES</div>
             <a href="/migracion.html" class="sidebar-menu-link">
@@ -507,6 +521,11 @@
 
     const personalMenuIcon = document.querySelector('#personalMenuIcon');
     if (personalMenuIcon && !personalMenuIcon.innerHTML.trim()) personalMenuIcon.innerHTML = Icons.render('staff', 16);
+
+    // Tutoriales menu icon (cajón móvil; dos ids porque recepción tiene su propia rama)
+    document.querySelectorAll('#tutorialesMenuIcon, #tutorialesMenuIcon2').forEach(el => {
+      if (!el.innerHTML.trim()) el.innerHTML = Icons.render('bookOpen', 16);
+    });
 
     // Configuración menu icon
     const configMenuIcon = document.querySelector('#configMenuIcon');
