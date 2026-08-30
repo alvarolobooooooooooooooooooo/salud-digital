@@ -353,6 +353,7 @@
       box-shadow: 0 2px 8px rgba(8, 145, 178, 0.25);
     }
     .chart-container {
+      --chart-label-size: 11px;
       flex: 1;
       display: flex;
       align-items: flex-end;
@@ -362,6 +363,18 @@
       flex-basis: 220px;
       gap: 0.8rem;
       padding-top: 28px;
+    }
+    /* Sonda invisible con la MISMA tipografía que la etiqueta: fitChartLabels
+       mide con ella en vez de con getComputedStyle(el,'::after') + canvas, que
+       en Safari no siempre devuelve la fuente real. position:absolute para que
+       no cuente como ítem del flex de barras. */
+    .chart-label-probe {
+      position: absolute;
+      visibility: hidden;
+      pointer-events: none;
+      white-space: nowrap;
+      font-size: var(--chart-label-size);
+      font-weight: 500;
     }
     .chart-bar {
       flex: 1;
@@ -383,7 +396,7 @@
       top: -22px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 11px;
+      font-size: var(--chart-label-size);
       font-weight: 500;
       color: #0f172a;
       white-space: nowrap;
@@ -400,12 +413,19 @@
     .chart-container.dense,
     .chart-days.dense { gap: 0.4rem; }
     .chart-container.dense .chart-bar { min-width: 10px; border-radius: 8px 8px 0 0; }
-    .chart-container.dense .chart-bar::after { font-size: 10px; }
+    .chart-container.dense { --chart-label-size: 10px; }
     .chart-days.dense .chart-day { min-width: 10px; font-size: 9px; letter-spacing: 0.06em; }
     .chart-days.dense .chart-day .chart-day-num { font-size: 11px; }
-    /* Ni el formato más corto entra: mejor sin importes que con importes
-       pisados unos encima de otros. El valor queda en el title de la barra. */
-    .chart-container.no-labels .chart-bar::after { display: none; }
+    /* Último recurso: si el importe no cabe ni acortado, se pone de canto. Se
+       sigue leyendo y NUNCA se esconde la cantidad; el hueco que necesita
+       arriba lo reserva fitChartLabels() con un padding-top a medida. */
+    .chart-container.rot .chart-bar::after {
+      top: auto;
+      bottom: 100%;
+      margin-bottom: 6px;
+      writing-mode: vertical-rl;
+      transform: translateX(-50%) rotate(180deg);
+    }
 
     /* Day labels under the bars (last 7 days, dynamic) */
     .chart-days {
@@ -878,7 +898,8 @@
       .chart-card h3 { font-size: 17px; }
       .chart-header { margin-bottom: 1.5rem; }
       .chart-container { height: 280px; min-height: 280px !important; flex-basis: 280px !important; padding-top: 30px; }
-      .chart-bar::after { top: -24px; font-size: 12px; }
+      .chart-container { --chart-label-size: 12px; }
+      .chart-bar::after { top: -24px; }
       .chart-days { margin-top: 0.75rem; padding-top: 0.9rem; }
       .content-grid { grid-template-columns: 1fr; }
       .activity-container { flex-wrap: wrap; gap: 1rem; height: auto; }
@@ -2061,48 +2082,60 @@
          y el último se salía de la tarjeta. Se mide el paso real entre barras y
          se usa el formato más largo que entre; si no entra ninguno, se quitan
          (el importe sigue en el title de la barra). */
-      const medirTexto = (() => {
-        let ctx = null;
-        return (texto, font) => {
-          if (!ctx) ctx = document.createElement('canvas').getContext('2d');
-          ctx.font = font;
-          return ctx.measureText(texto).width;
+      const medirEtiqueta = (() => {
+        let sonda = null;
+        return (texto, cont) => {
+          if (!sonda) {
+            sonda = document.createElement('span');
+            sonda.className = 'chart-label-probe';
+            sonda.setAttribute('aria-hidden', 'true');
+          }
+          if (sonda.parentNode !== cont) cont.appendChild(sonda);
+          sonda.textContent = texto;
+          return sonda.getBoundingClientRect().width;
         };
       })();
-      const fmtMiles = (n) => {
-        const v = Number(n) || 0;
-        if (v >= 1e6) return (v / 1e6).toFixed(v >= 1e7 ? 0 : 1).replace(/\.0$/, '') + 'M';
-        if (v >= 1000) return (v / 1000).toFixed(v >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'k';
-        return String(Math.round(v));
+      /* Sin el prefijo de moneda pero con la cifra entera: "15,300". Sigue
+         siendo el importe, que es lo que se quiere leer. */
+      const sinPrefijo = (v) => {
+        const pre = (SDMoneda.prefijo && SDMoneda.prefijo()) || '';
+        const t = SDMoneda.fmtCorto(v);
+        return (pre ? t.replace(pre, '') : t).trim();
       };
       const fitChartLabels = () => {
         const cont = document.getElementById('chartContainer');
         if (!cont) return;
         const bars = Array.from(cont.querySelectorAll('.chart-bar'));
-        if (!bars.length) { cont.classList.remove('no-labels'); return; }
+        if (!bars.length) { cont.classList.remove('rot'); cont.style.paddingTop = ''; return; }
         const primera = bars[0].getBoundingClientRect();
         const paso = bars.length > 1
           ? (bars[bars.length - 1].getBoundingClientRect().left - primera.left) / (bars.length - 1)
           : primera.width;
         if (!paso) return;
-        const cs = getComputedStyle(bars[0], '::after');
-        const font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
         const valores = bars.map(b => Number(b.dataset.raw || 0)).filter(v => v > 0);
-        if (!valores.length) { cont.classList.remove('no-labels'); return; }
-        const masAncho = (fn) => Math.max(...valores.map(v => medirTexto(fn(v), font)));
-        const formatos = [(v) => SDMoneda.fmt(v), (v) => SDMoneda.fmtCorto(v), fmtMiles];
+        if (!valores.length) { cont.classList.remove('rot'); cont.style.paddingTop = ''; return; }
+        const masAncho = (fn) => Math.max(...valores.map(v => medirEtiqueta(fn(v), cont)));
+        // Del más informativo al más corto; el importe nunca desaparece.
+        const formatos = [(v) => SDMoneda.fmt(v), (v) => SDMoneda.fmtCorto(v), sinPrefijo];
         const elegido = formatos.find(fn => masAncho(fn) + 6 <= paso);
-        cont.classList.toggle('no-labels', !elegido);
-        if (elegido) bars.forEach(b => { b.dataset.value = elegido(Number(b.dataset.raw || 0)); });
+        const pintar = elegido || ((v) => SDMoneda.fmtCorto(v));
+        bars.forEach(b => { b.dataset.value = pintar(Number(b.dataset.raw || 0)); });
+        // Ni el más corto entra de lado: se pone de canto y se le reserva sitio.
+        cont.classList.toggle('rot', !elegido);
+        cont.style.paddingTop = elegido ? '' : Math.ceil(masAncho(pintar) + 16) + 'px';
       };
       /* El ancho cambia sin que cambie el viewport (sidebar), así que se vigila
-         la tarjeta, no la ventana. */
+         la tarjeta, no la ventana. Y se vuelve a medir cuando cargan las
+         fuentes: con la de reserva los anchos no son los de verdad. */
       let chartRO = null;
       const watchChartWidth = () => {
         const cont = document.getElementById('chartContainer');
         if (!cont || chartRO || typeof ResizeObserver === 'undefined') return;
         chartRO = new ResizeObserver(() => fitChartLabels());
         chartRO.observe(cont);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(() => fitChartLabels()).catch(() => {});
+        }
       };
       const CHART_TITLES = { '7d': 'Ingresos Últimos 7 Días', '12m': 'Ingresos Últimos 12 Meses', '5y': 'Ingresos por Año' };
       const CHART_EMPTY = { '7d': 'Sin ingresos en los últimos 7 días', '12m': 'Sin ingresos en los últimos 12 meses', '5y': 'Sin ingresos registrados en los últimos años' };
