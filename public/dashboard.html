@@ -1059,9 +1059,14 @@
       box-shadow: 0 8px 20px rgba(8, 145, 178, 0.25);
       transform: scale(1.05);
     }
+    /* minmax(0, 1fr) y no 1fr: una pista `1fr` no baja del contenido mínimo de
+       su celda (el número + su padding), así que en un Android con la letra del
+       sistema grande las siete columnas pedían más ancho del que había y el fin
+       de semana se salía de la tarjeta. Con el mínimo en 0 la rejilla se
+       reparte de verdad y el mes siempre cabe entero. */
     .cal-grid {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(7, minmax(0, 1fr));
       gap: 6px;
       margin-top: 1.25rem;
     }
@@ -1077,7 +1082,9 @@
     .cal-day {
       text-align: center;
       font-size: 13px;
-      padding: 0.6rem;
+      /* El aire lateral se recorta solo cuando hace falta: en una pantalla
+         angosta cada celda tiene ~33px y 9.6px por lado se comían el número. */
+      padding: 0.6rem clamp(0.15rem, 1.4vw, 0.6rem);
       border-radius: 10px;
       cursor: default;
       color: var(--text);

@@ -31,6 +31,7 @@
     '/crecimiento.html': 'crecimiento',
     '/migracion.html': 'migracion',
     '/plan.html': 'plan',
+    '/tutoriales.html': 'tutoriales',
     '/consultation.html': '',
     '/consultation-nutrition.html': '',
     '/view-consultation.html': '',
@@ -78,6 +79,12 @@
           ]
         },
         {
+          label: 'AYUDA',
+          items: [
+            { href: '/tutoriales.html', key: 'tutoriales', iconName: 'bookOpen', label: 'Tutoriales', labelMovil: 'Guías' }
+          ]
+        },
+        {
           label: 'AJUSTES',
           items: [
             { href: '/configuracion.html', key: 'configuracion', iconName: 'settings', label: 'Configuración' }
@@ -122,6 +129,12 @@
         //   ]
         // },
         {
+          label: 'AYUDA',
+          items: [
+            { href: '/tutoriales.html', key: 'tutoriales', iconName: 'bookOpen', label: 'Tutoriales', labelMovil: 'Guías' }
+          ]
+        },
+        {
           label: 'AJUSTES',
           items: [
             { href: '/migracion.html', key: 'migracion', iconName: 'archive', label: 'Migrar Expedientes' },
@@ -155,6 +168,12 @@
             { href: '/recordatorios.html', key: 'recordatorios', iconName: 'bell', label: 'Recordatorios' },
             { href: '/confirmaciones.html', key: 'confirmaciones', iconName: 'check', label: 'Confirmaciones' },
             { href: '/agendar-online.html', key: 'agendar-online', iconName: 'calendar', label: 'Citas Online' }
+          ]
+        },
+        {
+          label: 'AYUDA',
+          items: [
+            { href: '/tutoriales.html', key: 'tutoriales', iconName: 'bookOpen', label: 'Tutoriales', labelMovil: 'Guías' }
           ]
         },
         {
@@ -192,7 +211,7 @@
       const isActive = item.key === activePage ? 'active' : '';
       return `<a href="${item.href}" class="mobile-nav-item ${isActive}" data-icon="${item.iconName}">
         <span class="mobile-icon"></span>
-        <span>${item.label}</span>
+        <span>${item.labelMovil || item.label}</span>
       </a>`;
     }).join('');
 
@@ -515,6 +534,38 @@
     if (notifCloseIcon && !notifCloseIcon.innerHTML.trim()) notifCloseIcon.innerHTML = Icons.render('x', 16);
   }
 
+  // ── La barra móvil: o caben las etiquetas, o se queda en iconos ──
+  //
+  // Ninguna media query sabe cuánto ocupa el texto. El Android del doctor sube
+  // la escala de fuente del sistema y "Pacientes" pasa de 55 a 72px sin que la
+  // pantalla cambie de ancho, así que el umbral hay que medirlo, no adivinarlo.
+  //
+  // Se mide SIEMPRE en modo normal: en compacto las etiquetas están ocultas y
+  // medirían 0, y la barra oscilaría entre los dos modos en cada pasada.
+  function fitMobileNav() {
+    const nav = document.getElementById('mobileNav');
+    if (!nav) return;
+    // En escritorio la barra no se pinta (display:none): nada que medir.
+    if (getComputedStyle(nav).display === 'none') return;
+
+    nav.classList.remove('mobile-nav--compact');
+
+    const etiquetas = nav.querySelectorAll('.mobile-nav-item span:last-child');
+    let recortada = false;
+    etiquetas.forEach(el => { if (el.scrollWidth > el.clientWidth + 1) recortada = true; });
+    if (recortada) nav.classList.add('mobile-nav--compact');
+  }
+
+  let fitPendiente = null;
+  function agendarFitMobileNav() {
+    clearTimeout(fitPendiente);
+    fitPendiente = setTimeout(fitMobileNav, 120);
+  }
+  window.addEventListener('resize', agendarFitMobileNav);
+  window.addEventListener('orientationchange', agendarFitMobileNav);
+  // La medida depende de la tipografía real, no de la de reserva.
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitMobileNav).catch(() => {});
+
   function injectSidebar() {
     console.log('[layout.js] injectSidebar called');
 
@@ -527,6 +578,7 @@
       const activeItem = document.querySelector(`.sb-item[href="${window.location.pathname}"]`);
       if (activeItem) activeItem.classList.add('active');
       renderSidebarIcons();
+      fitMobileNav();
       return;
     }
 
@@ -570,8 +622,9 @@
     // Render icons immediately if available, or after Icons loads
     if (typeof Icons !== 'undefined') {
       renderSidebarIcons();
+      fitMobileNav();
     } else {
-      setTimeout(() => renderSidebarIcons(), 100);
+      setTimeout(() => { renderSidebarIcons(); fitMobileNav(); }, 100);
     }
 
     // Mark main content for margin-left

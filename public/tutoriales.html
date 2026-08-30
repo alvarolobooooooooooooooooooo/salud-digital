@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="/theme.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SaludDigital — Tutoriales</title>
+  <link rel="stylesheet" href="/layout.css">
+  <style>
+    /* ─────────────────────────────────────────────────────────────────────
+       Prefijo `tu-` en TODO y ningún <section>.
+       theme-dark.css pisa con !important las clases genéricas de la app
+       (.card, .kpi, .field, .modal y todo `section`), así que una pantalla
+       nueva que las use sale con colores que no eligió nadie. Los tokens de
+       los dos temas se declaran aquí mismo.
+
+       LA FORMA DE LA PANTALLA: dos paneles, UNA guía a la vez.
+       La primera versión era una lista de acordeones y enseñaba trece títulos
+       con su descripción de golpe: mucha letra junta y nada donde descansar
+       la vista. Aquí el índice vive en su carril y el panel derecho enseña
+       una sola guía, ocupando todo el ancho disponible. En móvil no caben
+       dos paneles, así que se turnan: lista → guía → volver.
+       ───────────────────────────────────────────────────────────────────── */
+
+    .tu-page {
+      --tu-bg: #f6f8fa;
+      --tu-surface: #ffffff;
+      --tu-surface-2: #f8fafc;
+      --tu-line: #e2e8f0;
+      --tu-line-soft: #eef2f6;
+      --tu-ink: #0f172a;
+      --tu-ink-2: #475569;
+      --tu-ink-3: #94a3b8;
+      --tu-accent: #0891b2;
+      --tu-accent-ink: #0e7490;
+      --tu-accent-soft: #ecfeff;
+      --tu-accent-line: rgba(8,145,178,.22);
+      --tu-warn: #b45309;
+      --tu-warn-soft: #fffbeb;
+      --tu-warn-line: #fde68a;
+      --tu-r: 14px;
+      --tu-shadow: 0 1px 2px rgba(15,23,42,.04);
+
+      width: 100%;
+      color: var(--tu-ink);
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    [data-theme="dark"] .tu-page {
+      --tu-bg: #050507;
+      --tu-surface: #121214;
+      --tu-surface-2: #191a1d;
+      --tu-line: rgba(255,255,255,.10);
+      --tu-line-soft: rgba(255,255,255,.055);
+      --tu-ink: #f1f5f9;
+      --tu-ink-2: #cbd5e1;
+      --tu-ink-3: #7c8899;
+      --tu-accent: #22d3ee;
+      --tu-accent-ink: #67e8f9;
+      --tu-accent-soft: rgba(34,211,238,.10);
+      --tu-accent-line: rgba(34,211,238,.24);
+      --tu-warn: #fbbf24;
+      --tu-warn-soft: rgba(251,191,36,.09);
+      --tu-warn-line: rgba(251,191,36,.28);
+      --tu-shadow: none;
+    }
+
+    main.layout-main { padding: 22px 26px 44px; }
+    @media (max-width: 860px) { main.layout-main { padding: 14px 14px 100px; } }
+
+    .tu-page *, .tu-page *::before, .tu-page *::after { box-sizing: border-box; }
+
+    /* ── Cabecera ── */
+    .tu-top { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+    .tu-top h1 {
+      margin: 0; font-size: 23px; font-weight: 700; letter-spacing: -.02em;
+      display: flex; align-items: center; gap: 10px; color: var(--tu-ink);
+    }
+    .tu-top h1 svg { color: var(--tu-accent); flex-shrink: 0; }
+    .tu-top p { margin: 7px 0 0; color: var(--tu-ink-2); font-size: 13.5px; line-height: 1.6; max-width: 68ch; }
+    .tu-top-r { margin-left: auto; }
+
+    .tu-search { position: relative; width: 300px; max-width: 100%; }
+    .tu-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--tu-ink-3); }
+    .tu-search input {
+      width: 100%; height: 40px; padding: 0 34px;
+      border: 1px solid var(--tu-line); border-radius: 11px;
+      background: var(--tu-surface); color: var(--tu-ink);
+      font-family: inherit; font-size: 13.5px; outline: none; transition: border-color .15s;
+    }
+    .tu-search input:focus { border-color: var(--tu-accent); }
+    .tu-search input::placeholder { color: var(--tu-ink-3); }
+    .tu-search-clear {
+      position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+      width: 25px; height: 25px; display: none; align-items: center; justify-content: center;
+      border: 0; border-radius: 7px; background: transparent; color: var(--tu-ink-3); cursor: pointer;
+    }
+    .tu-search-clear:hover { background: var(--tu-surface-2); color: var(--tu-ink); }
+    .tu-search.has-text .tu-search-clear { display: flex; }
+
+    /* ── Los dos paneles: ocupan TODO el ancho de la pantalla ── */
+    .tu-shell { display: grid; grid-template-columns: 288px minmax(0, 1fr); gap: 22px; align-items: start; }
+    @media (max-width: 1240px) { .tu-shell { grid-template-columns: 252px minmax(0, 1fr); gap: 18px; } }
+
+    /* ── Carril del índice ── */
+    .tu-rail {
+      position: sticky; top: 16px;
+      max-height: calc(100vh - 32px); overflow-y: auto;
+      background: var(--tu-surface); border: 1px solid var(--tu-line);
+      border-radius: var(--tu-r); padding: 8px; box-shadow: var(--tu-shadow);
+    }
+    .tu-rail-grupo + .tu-rail-grupo { margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--tu-line-soft); }
+    .tu-rail-cat {
+      display: flex; align-items: center; gap: 8px; padding: 9px 10px 8px;
+      font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+      color: var(--tu-ink-3);
+    }
+    .tu-rail-cat svg { color: var(--tu-accent); }
+    .tu-rail-item {
+      display: flex; align-items: center; gap: 10px; width: 100%;
+      padding: 10px 11px; margin: 2px 0; border: 1px solid transparent; border-radius: 10px;
+      background: transparent; color: var(--tu-ink-2);
+      font-family: inherit; font-size: 13px; font-weight: 600; text-align: left;
+      line-height: 1.4; cursor: pointer; transition: background .14s, color .14s;
+    }
+    .tu-rail-item:hover { background: var(--tu-surface-2); color: var(--tu-ink); }
+    .tu-rail-item.on {
+      background: var(--tu-accent-soft); border-color: var(--tu-accent-line);
+      color: var(--tu-accent-ink); font-weight: 700;
+    }
+    .tu-rail-n {
+      width: 22px; height: 22px; flex-shrink: 0; border-radius: 7px;
+      display: grid; place-items: center;
+      background: var(--tu-surface-2); border: 1px solid var(--tu-line);
+      font-size: 11px; font-weight: 700; color: var(--tu-ink-3); font-variant-numeric: tabular-nums;
+    }
+    .tu-rail-item.on .tu-rail-n { background: var(--tu-surface); border-color: var(--tu-accent-line); color: var(--tu-accent-ink); }
+    .tu-rail-vacio { padding: 24px 12px; text-align: center; color: var(--tu-ink-3); font-size: 12.5px; line-height: 1.6; }
+
+    /* ── Panel de la guía ── */
+    .tu-guia {
+      background: var(--tu-surface); border: 1px solid var(--tu-line);
+      border-radius: var(--tu-r); box-shadow: var(--tu-shadow);
+      padding: 26px 30px 24px;
+    }
+    @media (max-width: 700px) { .tu-guia { padding: 20px 16px; } }
+
+    .tu-volver {
+      display: none; align-items: center; gap: 7px; margin-bottom: 14px;
+      padding: 8px 12px; border: 1px solid var(--tu-line); border-radius: 10px;
+      background: var(--tu-surface-2); color: var(--tu-ink-2);
+      font-family: inherit; font-size: 12.5px; font-weight: 650; cursor: pointer;
+    }
+
+    .tu-eyebrow {
+      font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+      color: var(--tu-accent); display: block; margin-bottom: 9px;
+    }
+    .tu-guia h2 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -.025em; line-height: 1.25; }
+    .tu-lead { margin: 10px 0 0; font-size: 14.5px; color: var(--tu-ink-2); line-height: 1.65; max-width: 70ch; }
+    .tu-sep { height: 1px; background: var(--tu-line-soft); margin: 22px 0; }
+
+    /* Dos columnas dentro de la guía: los pasos a la izquierda y lo que se
+       consulta (plantilla, avisos, enlace) a la derecha. Así el ancho de la
+       pantalla se usa de verdad sin que las frases crucen el monitor entero. */
+    .tu-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 400px); gap: 30px; align-items: start; }
+    .tu-cols.solo { grid-template-columns: minmax(0, 1fr); }
+    @media (max-width: 1150px) { .tu-cols { grid-template-columns: minmax(0, 1fr); gap: 22px; } }
+
+    .tu-bloque-label {
+      font-size: 10.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+      color: var(--tu-ink-3); margin: 0 0 14px;
+    }
+
+    /* ── Capturas señaladas ──
+       Las imágenes se generan con tools/shoot-tutoriales.js: son la aplicación
+       de verdad, con un círculo numerado sobre el botón de cada paso. Hay una
+       por tema porque una captura clara sobre una pantalla oscura (o al revés)
+       se lee como un error, no como una foto.
+
+       Se enseñan a ~560px, que es su tamaño natural en CSS: el archivo va al
+       doble, así que en pantallas normales entran nítidas. Para el detalle,
+       la lupa. */
+    .tu-fotos { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; margin: 0 0 26px; }
+    .tu-shot {
+      flex: 1 1 320px; max-width: 560px; margin: 0;
+      border: 1px solid var(--tu-line); border-radius: 12px;
+      background: var(--tu-surface-2); overflow: hidden;
+    }
+    /* Tamaño natural (el archivo va al doble, así que se ve nítida) con tope de
+       alto: las ventanas largas de WhatsApp medían el doble que el panel y
+       empujaban los pasos fuera de la pantalla. El resto, en la lupa. */
+    .tu-shot img {
+      display: block; width: auto; max-width: 100%; max-height: 620px;
+      height: auto; margin: 0 auto; cursor: zoom-in;
+    }
+    .tu-shot figcaption {
+      padding: 10px 13px; font-size: 12.25px; color: var(--tu-ink-2);
+      line-height: 1.55; border-top: 1px solid var(--tu-line-soft);
+    }
+    /* Con `img` en el selector: `.tu-shot img { display:block }` de arriba tiene
+       más peso que una clase suelta y salían las dos versiones a la vez. */
+    .tu-shot img.tu-shot-oscuro { display: none; }
+    [data-theme="dark"] .tu-shot img.tu-shot-claro { display: none; }
+    [data-theme="dark"] .tu-shot img.tu-shot-oscuro { display: block; }
+
+    .tu-lupa {
+      position: fixed; inset: 0; z-index: 4000; display: none;
+      align-items: center; justify-content: center; padding: 28px;
+      background: rgba(2,6,23,.82); backdrop-filter: blur(3px);
+    }
+    .tu-lupa[open] { display: flex; }
+    .tu-lupa img { max-width: 100%; max-height: 100%; border-radius: 12px; box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+    .tu-lupa-x {
+      position: absolute; top: 18px; right: 20px; width: 40px; height: 40px;
+      display: grid; place-items: center; cursor: pointer;
+      border: 1px solid rgba(255,255,255,.25); border-radius: 11px;
+      background: rgba(255,255,255,.10); color: #fff;
+    }
+
+    /* ── Pasos ── */
+    .tu-steps { list-style: none; margin: 0; padding: 0; }
+    .tu-step { display: flex; gap: 14px; padding-bottom: 22px; position: relative; }
+    .tu-step:last-child { padding-bottom: 0; }
+    .tu-step:not(:last-child)::before {
+      content: ''; position: absolute; left: 13px; top: 30px; bottom: 4px;
+      width: 1px; background: var(--tu-line);
+    }
+    .tu-step-n {
+      width: 27px; height: 27px; flex-shrink: 0; border-radius: 50%;
+      display: grid; place-items: center; z-index: 1;
+      background: var(--tu-accent-soft); border: 1px solid var(--tu-accent-line);
+      color: var(--tu-accent-ink); font-size: 12px; font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .tu-step-txt { padding-top: 3px; min-width: 0; max-width: 74ch; }
+    .tu-step-txt > b { display: block; font-size: 14.5px; font-weight: 650; letter-spacing: -.01em; line-height: 1.4; }
+    .tu-step-txt p { margin: 6px 0 0; font-size: 13.5px; color: var(--tu-ink-2); line-height: 1.7; }
+
+    /* Nombre literal de un botón o pestaña de la app. */
+    .tu-ui { font-weight: 650; color: var(--tu-ink); }
+    .tu-var {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em;
+      color: var(--tu-accent-ink); background: var(--tu-accent-soft);
+      border-radius: 5px; padding: 1px 5px; white-space: nowrap;
+    }
+
+    /* ── Avisos ── */
+    .tu-notes { display: flex; flex-direction: column; gap: 10px; }
+    .tu-note {
+      display: flex; gap: 10px; padding: 13px 14px; border-radius: 12px;
+      background: var(--tu-surface-2); border: 1px solid var(--tu-line-soft);
+      font-size: 13px; color: var(--tu-ink-2); line-height: 1.65;
+    }
+    .tu-note svg { flex-shrink: 0; margin-top: 2px; color: var(--tu-ink-3); }
+    .tu-note.ojo { background: var(--tu-warn-soft); border-color: var(--tu-warn-line); }
+    .tu-note.ojo svg { color: var(--tu-warn); }
+
+    /* ── Plantilla de ejemplo ── */
+    .tu-tpl { border: 1px solid var(--tu-line); border-radius: 12px; background: var(--tu-surface-2); overflow: hidden; }
+    .tu-tpl + .tu-notes, .tu-notes + .tu-tpl { margin-top: 16px; }
+    .tu-tpl-h {
+      display: flex; align-items: center; gap: 8px; padding: 10px 13px;
+      border-bottom: 1px solid var(--tu-line-soft);
+      font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--tu-ink-3);
+    }
+    .tu-copy {
+      margin-left: auto; display: inline-flex; align-items: center; gap: 5px;
+      border: 1px solid var(--tu-line); border-radius: 8px; background: var(--tu-surface);
+      color: var(--tu-ink-2); font-family: inherit; font-size: 11px; font-weight: 650;
+      letter-spacing: 0; text-transform: none; padding: 5px 9px; cursor: pointer;
+    }
+    .tu-copy:hover { color: var(--tu-ink); border-color: var(--tu-ink-3); }
+    .tu-copy.ok { color: var(--tu-accent-ink); border-color: var(--tu-accent-line); background: var(--tu-accent-soft); }
+    .tu-tpl pre {
+      margin: 0; padding: 14px; font-size: 12.5px; line-height: 1.85;
+      white-space: pre-wrap; word-break: break-word; color: var(--tu-ink);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    /* ── Tabla ── */
+    .tu-scroll { overflow-x: auto; border: 1px solid var(--tu-line); border-radius: 12px; }
+    .tu-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
+    .tu-table th {
+      text-align: left; padding: 11px 13px; background: var(--tu-surface-2);
+      font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+      color: var(--tu-ink-3); border-bottom: 1px solid var(--tu-line); white-space: nowrap;
+    }
+    .tu-table td { padding: 11px 13px; border-bottom: 1px solid var(--tu-line-soft); color: var(--tu-ink-2); vertical-align: top; line-height: 1.55; }
+    .tu-table tr:last-child td { border-bottom: 0; }
+    .tu-table td.si { color: var(--tu-accent); text-align: center; }
+    .tu-table td.no { color: var(--tu-ink-3); text-align: center; }
+    .tu-table th.c { text-align: center; }
+
+    /* ── Enlace a la pantalla ── */
+    .tu-go {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 15px; border-radius: 11px; text-decoration: none;
+      border: 1px solid var(--tu-accent-line); background: var(--tu-accent-soft);
+      color: var(--tu-accent-ink); font-size: 13px; font-weight: 650;
+    }
+    .tu-go:hover { border-color: var(--tu-accent); }
+
+    /* ── Anterior / siguiente ── */
+    .tu-pager { display: flex; gap: 12px; margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--tu-line-soft); }
+    .tu-pager button {
+      flex: 1; min-width: 0; display: flex; align-items: center; gap: 11px;
+      padding: 12px 14px; border: 1px solid var(--tu-line); border-radius: 12px;
+      background: var(--tu-surface); color: var(--tu-ink); font-family: inherit;
+      text-align: left; cursor: pointer; transition: border-color .15s;
+    }
+    .tu-pager button:hover { border-color: var(--tu-accent-line); }
+    .tu-pager button[hidden] { display: none; }
+    .tu-pager .sig { justify-content: flex-end; text-align: right; }
+    .tu-pager small { display: block; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tu-ink-3); margin-bottom: 3px; }
+    .tu-pager span { font-size: 13px; font-weight: 650; line-height: 1.35; }
+    .tu-pager svg { flex-shrink: 0; color: var(--tu-ink-3); }
+
+    /* ── Móvil: los paneles se turnan ── */
+    @media (max-width: 1000px) {
+      .tu-shell { grid-template-columns: minmax(0, 1fr); gap: 0; }
+      .tu-rail { position: static; max-height: none; }
+      .tu-volver { display: inline-flex; }
+      .tu-page[data-vista="lista"] .tu-guia { display: none; }
+      .tu-page[data-vista="guia"] .tu-rail { display: none; }
+      .tu-top-r { margin-left: 0; width: 100%; }
+      .tu-search { width: 100%; }
+      .tu-page[data-vista="guia"] .tu-top-r { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-loader" id="pageLoader">
+  <div class="page-loader-content">
+    <div class="page-loader-spinner"></div>
+    <div class="page-loader-text">Cargando...</div>
+  </div>
+</div>
+
+<main class="layout-main">
+  <!-- data-sd-gate="off": aquí no se guarda nada, así que el modo solo lectura
+       no tiene por qué apagar los botones de copiar ni los enlaces. -->
+  <div class="tu-page" id="tuPage" data-sd-gate="off" data-vista="lista">
+
+    <div class="tu-top">
+      <div>
+        <h1>
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2H2z"/><path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2H22z"/></svg>
+          Tutoriales
+        </h1>
+        <p>Elige una guía en la lista y se abre aquí, paso por paso: dónde tocar, qué escribir y qué se rompe si falta algo.</p>
+      </div>
+      <div class="tu-top-r">
+        <div class="tu-search" id="tuSearchWrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="tuSearch" placeholder="Buscar en los tutoriales…" autocomplete="off" spellcheck="false">
+          <button class="tu-search-clear" id="tuSearchClear" type="button" aria-label="Limpiar búsqueda">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tu-shell">
+      <div class="tu-rail" id="tuRail"></div>
+      <div class="tu-guia" id="tuGuia"></div>
+    </div>
+
+  </div>
+
+  <div class="tu-lupa" id="tuLupa" role="dialog" aria-label="Captura ampliada">
+    <button type="button" class="tu-lupa-x" id="tuLupaX" aria-label="Cerrar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+    <img id="tuLupaImg" alt="">
+  </div>
+</main>
+
+<script src="/icons.js"></script>
+<script src="/common.js"></script>
+<script src="/layout.js"></script>
+<script>
+'use strict';
+requireAuth(['doctor', 'clinic_admin', 'receptionist']);
+
+/* ───────────────────────────────────────────────────────────────────────────
+   EL CONTENIDO VIVE AQUÍ, EN UN SOLO SITIO.
+
+   Todo lo que se ve en pantalla —índice, títulos, buscador— se pinta desde
+   este array. Para añadir una guía nueva no hay que tocar ni el HTML ni el
+   CSS: se mete un objeto más en `items` de su categoría.
+
+   Forma de una guía:
+     id       — ancla de la URL (#crear-paciente). No cambiarlo una vez
+                publicado: la gente comparte estos enlaces.
+     titulo   — el título de la guía, y lo que se lee en el índice.
+     resumen  — una línea de entrada, debajo del título.
+     roles    — quién ve la guía. Si se omite, la ven todos. Es importante:
+                una recepcionista no tiene /patients.html y enseñarle esa ruta
+                es mandarla a una pantalla que la rebota.
+     pasos    — [{ t: título del paso, d: explicación }]
+     notas    — [{ tipo: 'tip' | 'ojo', txt }]
+     plantilla— { titulo, texto } bloque copiable (mensajes de WhatsApp)
+     tabla    — { cols, filas } para lo que se lee mejor en rejilla
+     ir       — { href, label } enlace a la pantalla de la que habla la guía
+
+   En los textos:
+     **negrita**      → negrita
+     «Guardar»        → nombre literal de un botón/pestaña de la app
+     {{patientName}}  → dato de plantilla, se pinta como etiqueta
+   ─────────────────────────────────────────────────────────────────────────── */
+
+const GUIAS = [
+  {
+    id: 'pacientes',
+    titulo: 'Pacientes',
+    icono: 'users',
+    resumen: 'Dar de alta a la persona, encontrarla después y completar lo que falte. Todo lo demás —citas, consultas, recordatorios— cuelga de esta ficha.',
+    items: [
+      {
+        id: 'crear-paciente',
+        titulo: 'Crear un paciente nuevo',
+        resumen: 'El camino normal, desde la pantalla de Pacientes.',
+        fotos: [
+          { img: 'crear-paciente-boton', pie: 'El botón «+» vive arriba de la cola de pacientes (paso 2).' },
+          { img: 'crear-paciente-modal', pie: 'La ventana Nuevo Paciente. Los círculos son los pasos 3, 4, 5 y 7.' }
+        ],
+        roles: ['doctor', 'clinic_admin'],
+        ir: { href: '/patients.html', label: 'Ir a Pacientes' },
+        pasos: [
+          { t: 'Entra a Pacientes', d: 'En el menú de la izquierda, dentro de **GENERAL**. En el celular está en la barra de abajo.' },
+          { t: 'Toca el botón «+»', d: 'Está arriba, junto al buscador. Se abre la ventana «Nuevo Paciente».' },
+          { t: 'Nombre completo', d: 'Obligatorio. Es el nombre que verás en la agenda y el que sale en los mensajes de WhatsApp cuando uses {{patientName}}.' },
+          { t: 'Número de identidad', d: 'Obligatorio. Se va formateando solo mientras escribes: 0801-2004-20128. Es lo que evita dos fichas de la misma persona y sirve para buscarla después.' },
+          { t: 'Teléfono', d: 'Opcional para guardar, **imprescindible para WhatsApp**. Solo dígitos: 31515887 o 50431515887. Si pones los 8 dígitos, la plataforma le antepone el 504 al enviar.' },
+          { t: 'Sexo y fecha de nacimiento', d: 'La edad no se escribe: se calcula sola a partir de la fecha de nacimiento y se mantiene al día.' },
+          { t: 'Guarda', d: 'Botón «Guardar Paciente». La ficha aparece de una vez en el listado, lista para agendarle una cita.' }
+        ],
+        notas: [
+          { tipo: 'tip', txt: 'Solo el nombre y la identidad son obligatorios. Si el paciente está enfrente y hay prisa, guarda con eso y completa el resto luego desde su ficha.' },
+          { tipo: 'ojo', txt: 'Sin teléfono válido, en la cita verás **«Sin número WhatsApp»** y el botón de enviar no aparece. Se puede añadir después, pero mientras tanto ese paciente no recibe recordatorios.' }
+        ]
+      },
+      {
+        id: 'crear-paciente-en-cita',
+        titulo: 'Crear el paciente sin salir de la agenda',
+        resumen: 'Llega alguien nuevo y hay que agendarlo ya: el atajo desde la propia cita.',
+        fotos: [
+          { img: 'crear-paciente-en-cita', pie: 'Dentro de «Nueva Cita», el «+» a la derecha del buscador de pacientes (paso 2).' }
+        ],
+        roles: ['doctor', 'clinic_admin'],
+        ir: { href: '/citas.html', label: 'Ir a Citas' },
+        pasos: [
+          { t: 'Abre «Nueva Cita»', d: 'Desde Citas, con el botón de arriba.' },
+          { t: 'En el campo «Paciente», toca el «+»', d: 'Está a la derecha del buscador de pacientes. Se abre el mismo formulario de «Nuevo Paciente».' },
+          { t: 'Llena y guarda', d: 'Nombre e identidad como mínimo; el teléfono, si lo tienes a mano, ahórrate volver después.' },
+          { t: 'Sigue con la cita', d: 'Al cerrarse la ventana el paciente **ya queda elegido** en la cita. Continúa con doctor, tipo de cita y fecha y hora.' }
+        ],
+        notas: [
+          { tipo: 'tip', txt: 'Para agendar, el paciente tiene que existir en el sistema. Por eso está ese «+» ahí: para no perder la cita a medio llenar yéndote a otra pantalla.' }
+        ]
+      },
+      {
+        id: 'crear-paciente-recepcion',
+        titulo: 'Crear un paciente desde recepción',
+        resumen: 'En recepción los pacientes se dan de alta desde la pantalla de citas del día.',
+        fotos: [
+          { img: 'crear-paciente-recepcion', pie: 'La ventana «Agendar Cita» de recepción: el «+» junto al selector de paciente (paso 3).' }
+        ],
+        roles: ['receptionist'],
+        ir: { href: '/recepcion-citas.html', label: 'Ir a Citas Hoy' },
+        pasos: [
+          { t: 'Entra a «Citas Hoy»', d: 'Es la segunda entrada del menú.' },
+          { t: 'Toca «Agendar Cita»', d: 'Arriba a la derecha. Se abre la ventana de la cita.' },
+          { t: 'En «Paciente», toca el «+»', d: 'A la derecha del selector. Se abre «Nuevo Paciente».' },
+          { t: 'Nombre e identidad', d: 'Los dos son obligatorios. La identidad se formatea sola: 0801-2004-20128.' },
+          { t: 'Teléfono', d: 'Solo dígitos. Es el número al que se le van a mandar los recordatorios y las confirmaciones, así que vale la pena pedirlo en el mostrador.' },
+          { t: 'Guarda y sigue con la cita', d: 'El paciente queda disponible en el selector para terminar de agendar.' }
+        ]
+      },
+      {
+        id: 'buscar-paciente',
+        titulo: 'Encontrar un paciente y abrir su ficha',
+        resumen: 'El buscador entiende nombre e identidad, no hace falta acertar el nombre completo.',
+        fotos: [
+          { img: 'buscar-paciente', pie: 'El buscador (1) y una tarjeta de paciente, que abre su ficha al tocarla (3).' }
+        ],
+        roles: ['doctor', 'clinic_admin'],
+        ir: { href: '/patients.html', label: 'Ir a Pacientes' },
+        pasos: [
+          { t: 'Escribe en «Buscar paciente…»', d: 'Sirve tanto el nombre como el número de identidad. Con el apellido o los primeros dígitos suele bastar.' },
+          { t: 'Toca la tarjeta del paciente', d: 'Se abre su ficha completa.' },
+          { t: 'Muévete por las pestañas', d: '«Datos personales», «Ficha médica», «Fotos» y una cuarta que cambia según tu especialidad: «Citas» o, en podología, «Historial clínico». Cada una guarda por separado.' }
+        ],
+        notas: [
+          { tipo: 'tip', txt: 'Si un paciente aparece dos veces, casi siempre es porque se creó una segunda ficha sin identidad o con la identidad mal escrita. Buscar por identidad antes de crear evita el duplicado.' }
+        ]
+      },
+      {
+        id: 'editar-paciente',
+        titulo: 'Corregir datos o agregar el teléfono',
+        resumen: 'Lo más habitual: la ficha se creó sin número y ahora no se le puede escribir.',
+        fotos: [
+          { img: 'editar-paciente', pie: 'Pestaña «Datos personales» (2) y el botón «Editar Información» debajo de los datos (3).' }
+        ],
+        roles: ['doctor', 'clinic_admin'],
+        ir: { href: '/patients.html', label: 'Ir a Pacientes' },
+        pasos: [
+          { t: 'Abre la ficha del paciente', d: 'Desde Pacientes, tocando su tarjeta.' },
+          { t: 'Pestaña «Datos personales»', d: 'Es la que sale por defecto.' },
+          { t: 'Toca «Editar Información»', d: 'Debajo de los datos.' },
+          { t: 'Corrige lo que haga falta', d: 'Nombre, identidad, fecha de nacimiento o teléfono. El teléfono va **solo con dígitos**: 50488888888.' },
+          { t: 'Guarda', d: 'El cambio se ve de inmediato en la ficha y en las citas de ese paciente.' }
+        ],
+        notas: [
+          { tipo: 'ojo', txt: 'El teléfono de la ficha es exactamente el número al que se abre WhatsApp. Si está mal escrito, el mensaje se le va a otra persona.' }
+        ]
+      },
+      {
+        id: 'ficha-medica',
+        titulo: 'Alergias, medicamentos y condiciones',
+        resumen: 'Lo que después aparece como aviso médico al abrir la consulta.',
+        fotos: [
+          { img: 'ficha-medica', pie: 'Pestaña «Ficha médica» (2) y «Editar Información Médica» (3).' }
+        ],
+        roles: ['doctor', 'clinic_admin'],
+        pasos: [
+          { t: 'Abre la ficha del paciente', d: 'Desde Pacientes.' },
+          { t: 'Pestaña «Ficha médica»', d: 'La segunda.' },
+          { t: 'Toca «Editar Información Médica»', d: 'Se abre la ventana con los tres campos.' },
+          { t: 'Escribe alergias, medicamentos y condiciones', d: 'Texto libre, tal como se lo dice el paciente. Si no hay nada, déjalo en blanco antes que poner «ninguna».' },
+          { t: 'Guarda', d: 'Esta información es la que se muestra como alerta en las pantallas de consulta.' }
+        ]
+      },
+      {
+        id: 'migrar-pacientes',
+        titulo: 'Traer muchos pacientes de golpe',
+        resumen: 'Para el arranque: la exportación del sistema anterior, el Excel de la clínica o las fichas de papel.',
+        fotos: [
+          { img: 'migrar-pacientes', pie: 'Los cuatro pasos de la migración arriba, y «Plantilla CSV» en la esquina (3).' }
+        ],
+        roles: ['doctor', 'clinic_admin'],
+        ir: { href: '/migracion.html', label: 'Ir a Migrar Expedientes' },
+        pasos: [
+          { t: 'Entra a «Migrar Expedientes»', d: 'En el menú, dentro de **AJUSTES**.' },
+          { t: 'Elige de dónde vienen', d: 'Una exportación de otro sistema (Medilink, Dentalink…), un Excel o CSV de la clínica, o el archivador de papel ficha por ficha con la cámara.' },
+          { t: 'Si vas a armar el archivo a mano, baja la «Plantilla CSV»', d: 'Botón de arriba. Trae las columnas ya con los nombres correctos.' },
+          { t: 'Revisa la tabla antes de importar', d: 'Ahí se corrigen los datos torcidos y se marcan los repetidos. **Nada se guarda hasta que confirmas.**' },
+          { t: 'Importa', d: 'Los pacientes entran de una vez al listado.' }
+        ],
+        notas: [
+          { tipo: 'tip', txt: 'Toda importación se puede deshacer desde «Historial», en la misma pantalla. Si algo entró mal, no hay que borrar paciente por paciente.' }
+        ]
+      }
+    ]
+  },
+
+  {
+    id: 'whatsapp',
+    titulo: 'Plantillas de WhatsApp',
+    icono: 'messageSquare',
+    resumen: 'Se escribe el mensaje una sola vez, con los datos entre llaves, y la plataforma lo rellena para cada cita. El envío sale desde tu propia sesión de WhatsApp Web: la app arma el texto y abre el chat, y el enviar final lo das tú.',
+    items: [
+      {
+        id: 'whatsapp-numero',
+        titulo: 'Antes de nada: encender WhatsApp y poner el número',
+        resumen: 'Sin esto, las plantillas se guardan pero no hay desde dónde enviar.',
+        fotos: [
+          { img: 'whatsapp-numero', pie: 'El interruptor (3) y el número de la clínica (4), en «Configuración WhatsApp».' }
+        ],
+        roles: ['doctor', 'clinic_admin'],
+        ir: { href: '/recordatorios.html', label: 'Ir a Recordatorios' },
+        pasos: [
+          { t: 'Entra a Recordatorios o a Confirmaciones', d: 'Da igual cuál: **el interruptor y el número son los mismos** en las dos. Lo que cambia entre pantallas es el texto del mensaje.' },
+          { t: 'Toca «Configuración WhatsApp»', d: 'En la cabecera de la pantalla.' },
+          { t: 'Enciende el interruptor', d: '«Recordatorios manuales por WhatsApp» / «Confirmaciones por WhatsApp». Es lo que hace aparecer el botón de enviar en cada cita.' },
+          { t: 'Escribe el número oficial de la clínica', d: 'Formato internacional, **sin +, sin espacios, sin guiones ni paréntesis**. En Honduras: 50488888888.' },
+          { t: 'Guarda', d: 'A partir de ahí las citas próximas ya muestran el botón de enviar.' }
+        ],
+        notas: [
+          { tipo: 'ojo', txt: 'No se puede encender WhatsApp sin número: la plataforma lo rechaza para no dejarte el botón encendido apuntando a ninguna parte.' },
+          { tipo: 'tip', txt: 'De quién es lo que estás guardando: si entras como **doctor**, guardas TU mensaje y tu interruptor. Si entras como **administrador de la clínica**, guardas el de la casa, y ese es el que usan todos los doctores que nunca han tocado el suyo. La propia ventana te lo dice arriba.' },
+          { tipo: 'tip', txt: 'El mensaje que sale es el del **doctor de la cita**, no el de quien pulsa enviar. Por eso en recepción se pueden mandar los recordatorios de toda la clínica y cada uno sale firmado por su doctor.' }
+        ]
+      },
+      {
+        id: 'plantilla-recordatorios',
+        titulo: 'La plantilla de Recordatorios',
+        resumen: 'El mensaje de aviso: le recordamos su cita, tal día, a tal hora. Sin link.',
+        fotos: [
+          { img: 'plantilla-recordatorios', pie: 'El cuadro del mensaje (2), los chips de datos (3) y la vista previa con datos reales (4).' }
+        ],
+        roles: ['doctor', 'clinic_admin'],
+        ir: { href: '/recordatorios.html', label: 'Ir a Recordatorios' },
+        pasos: [
+          { t: 'Recordatorios → «Configuración WhatsApp»', d: 'En esta pantalla los tres botones («Configurar plantilla», «Configuración WhatsApp» y «Mensaje WhatsApp») abren la misma ventana.' },
+          { t: 'Escribe el mensaje como un WhatsApp normal', d: 'El saludo, la información, la despedida. Emojis y saltos de línea funcionan igual que en el celular.' },
+          { t: 'Toca los chips para meter los datos', d: 'Nombre del paciente, Clínica, Doctor, Fecha, Hora, Dirección y Enlace del mapa. Se insertan **donde tengas el cursor**, así que coloca el cursor primero y luego toca el chip.' },
+          { t: 'Mira la «Vista previa»', d: 'Debajo del cuadro: es tu mensaje con datos de ejemplo puestos. Si algo se ve raro ahí, se verá raro en el celular del paciente.' },
+          { t: 'Guarda', d: 'Todas las citas próximas pasan a usar ese texto.' }
+        ],
+        plantilla: {
+          titulo: 'Plantilla de ejemplo — recordatorio',
+          texto: 'Hola {{patientName}} 👋\n\nLe recordamos su cita en {{clinicName}} con {{doctorName}}.\n\n🗓️ {{appointmentDate}}\n🕐 {{appointmentTime}}\n📍 {{clinicAddress}}\n\nCómo llegar: {{mapLink}}\n\nSi no puede asistir, por favor avísenos por este mismo medio. ¡Le esperamos!'
+        },
+        notas: [
+          { tipo: 'tip', txt: 'Los mensajes no se envían solos: la pantalla te abre WhatsApp Web con el texto ya escrito y tú das enviar. Por eso no hace falta contratar ninguna API.' }
+        ]
+      },
+      {
+        id: 'plantilla-confirmaciones',
+        titulo: 'La plantilla de Confirmaciones',
+        resumen: 'El mensaje que lleva el link: cuando el paciente responde, la cita se marca sola.',
+        fotos: [
+          { img: 'plantilla-confirmaciones', pie: 'El cuadro del mensaje (2) y el chip «Link de confirmación» (3), el que hace que la cita se confirme sola.' }
+        ],
+        roles: ['doctor', 'clinic_admin'],
+        ir: { href: '/confirmaciones.html', label: 'Ir a Confirmaciones' },
+        pasos: [
+          { t: 'Confirmaciones → «Configuración WhatsApp»', d: 'Arriba en la cabecera. También llegas con «Mensaje WhatsApp», el botón que está sobre la tabla.' },
+          { t: 'Escribe el mensaje', d: 'Aquí no estás avisando: estás **pidiendo una respuesta**. Que se note en el texto.' },
+          { t: 'Inserta el «Link de confirmación»', d: 'Es el chip destacado, {{confirmLink}}. Es un link **único por cita**: cuando el paciente lo toca, se le abre una tarjeta con «Sí, asistiré» y «No podré asistir», y la cita se marca confirmada en el calendario sin que nadie haga nada más.' },
+          { t: 'Añade fecha, hora y ubicación', d: 'Con los demás chips, igual que en el recordatorio.' },
+          { t: 'Revisa la vista previa y guarda', d: 'En la previa el link sale de ejemplo; el real se genera al enviar cada cita.' }
+        ],
+        plantilla: {
+          titulo: 'Plantilla de ejemplo — confirmación',
+          texto: 'Hola {{patientName}} 👋\n\nTiene cita en {{clinicName}} con {{doctorName}}:\n\n🗓️ {{appointmentDate}}\n🕐 {{appointmentTime}}\n\n¿Nos confirma si podrá asistir? Solo toque aquí:\n{{confirmLink}}\n\n📍 {{clinicAddress}}\nCómo llegar: {{mapLink}}'
+        },
+        notas: [
+          { tipo: 'ojo', txt: 'Ojo con el botón «Configurar plantilla» de esta pantalla: **no abre esta ventana**, abre el texto de la tarjeta (la guía siguiente). El mensaje de WhatsApp está en «Configuración WhatsApp» y en «Mensaje WhatsApp».' },
+          { tipo: 'tip', txt: 'Si borras {{confirmLink}} del mensaje, el paciente no tiene dónde confirmar y las citas se quedan pendientes para siempre.' }
+        ]
+      },
+      {
+        id: 'tarjeta-confirmacion',
+        titulo: 'El texto de la tarjeta que abre el paciente',
+        resumen: 'Es otra plantilla distinta: lo que se lee dentro de la página, no en WhatsApp.',
+        fotos: [
+          { img: 'tarjeta-confirmacion', pie: 'El texto de la tarjeta (3) y, debajo, cómo la ve el paciente (5).' }
+        ],
+        roles: ['doctor', 'clinic_admin'],
+        ir: { href: '/confirmaciones.html', label: 'Ir a Confirmaciones' },
+        pasos: [
+          { t: 'Confirmaciones → «Configurar plantilla»', d: 'El botón azul de la cabecera. Abre «Mensaje de la tarjeta de confirmación».' },
+          { t: 'Entiende qué estás editando', d: 'Es el texto que el paciente lee **dentro de la página** al tocar el link, justo encima de los botones «Sí, asistiré» y «No podré asistir».' },
+          { t: 'Escribe el saludo y la pregunta', d: 'Con eso basta: la fecha, la hora, el doctor y la ubicación ya salen debajo, en la propia tarjeta. Repetirlos arriba solo la ensucia.' },
+          { t: 'Usa los chips disponibles', d: 'Nombre del paciente, Clínica, Doctor, Fecha y Hora. Aquí no hay dirección, mapa ni link: no tendrían sentido dentro de la propia tarjeta.' },
+          { t: 'Mira «Así se verá la tarjeta» y guarda', d: 'La vista previa de la derecha es la tarjeta real. También puedes abrir la vista previa completa desde el aviso azul de la pantalla, en «Ver vista previa».' }
+        ],
+        plantilla: {
+          titulo: 'Texto de la tarjeta (el que trae por defecto)',
+          texto: 'Hola {{patientName}}, ¿podrás asistir a esta cita?'
+        }
+      },
+      {
+        id: 'datos-plantilla',
+        titulo: 'Los datos entre llaves: qué escribe cada uno',
+        resumen: 'Qué hay disponible en cada plantilla y en qué se convierte al enviar.',
+        pasos: [
+          { t: 'Se escriben con dos llaves', d: 'Así: {{patientName}}. Al enviar, cada uno se cambia por el dato real de esa cita.' },
+          { t: 'Mejor tocar el chip que escribirlo a mano', d: 'Una letra de más y el dato no se reconoce. Los chips lo insertan bien escrito y en la posición del cursor.' },
+          { t: 'Si un dato está vacío, sale vacío', d: 'No se queda la llave a la vista en el mensaje del paciente: simplemente queda el hueco. Por eso conviene revisar la vista previa antes de guardar.' }
+        ],
+        tabla: {
+          cols: ['Dato', 'En qué se convierte', 'Recordatorio', 'Confirmación', 'Tarjeta'],
+          filas: [
+            ['{{patientName}}', 'El nombre del paciente de la ficha', 1, 1, 1],
+            ['{{clinicName}}', 'El nombre de la clínica', 1, 1, 1],
+            ['{{doctorName}}', 'El doctor de esa cita', 1, 1, 1],
+            ['{{appointmentDate}}', 'La fecha en palabras: jueves, 4 de septiembre de 2026', 1, 1, 1],
+            ['{{appointmentTime}}', 'La hora: 03:30 p. m.', 1, 1, 1],
+            ['{{clinicAddress}}', 'La dirección guardada en Configuración › Ubicación', 1, 1, 0],
+            ['{{mapLink}}', 'Un enlace a Google Maps con el punto de la clínica', 1, 1, 0],
+            ['{{confirmLink}}', 'El link único que confirma esa cita al tocarlo', 0, 1, 0]
+          ]
+        }
+      },
+      {
+        id: 'direccion-y-mapa',
+        titulo: 'Que el mensaje lleve la dirección y el mapa',
+        resumen: 'Los chips de Dirección y Mapa se alimentan de un solo sitio, y no es la plantilla.',
+        fotos: [
+          { img: 'direccion-y-mapa', pie: 'La dirección (3) y el mapa donde se marca el punto (4), en Configuración › Ubicación.' }
+        ],
+        roles: ['doctor', 'clinic_admin'],
+        ir: { href: '/configuracion.html#location', label: 'Ir a Configuración › Ubicación' },
+        pasos: [
+          { t: 'Entra a Configuración', d: 'En el menú, dentro de **AJUSTES**.' },
+          { t: 'Pestaña «Ubicación»', d: 'No es lo mismo que la ciudad del perfil: aquí va la dirección exacta y el punto en el mapa.' },
+          { t: 'Escribe la dirección', d: 'Colonia, calle y número, como se la dirías a un taxista. Esto es lo que sale en {{clinicAddress}}.' },
+          { t: 'Marca el punto en el mapa', d: 'Toca el mapa o arrastra el pin. Esa coordenada es la que abre el GPS del paciente, y es lo que alimenta {{mapLink}}.' },
+          { t: 'Guarda y vuelve a la plantilla', d: 'Ahora los chips «Dirección» y «Enlace del mapa» ya traen contenido.' }
+        ],
+        notas: [
+          { tipo: 'ojo', txt: 'Si no hay punto marcado en el mapa, {{mapLink}} sale vacío y el mensaje le llega al paciente con un renglón cojo debajo de «Cómo llegar».' }
+        ]
+      },
+      {
+        id: 'donde-no-hay-plantilla',
+        titulo: 'Dónde NO se configuran mensajes',
+        resumen: 'Para no perder el tiempo buscando plantillas donde no las hay.',
+        pasos: [
+          { t: 'Citas Online no tiene plantilla', d: 'Ahí lo que se comparte es tu **enlace público** de agenda, con el botón de WhatsApp de esa pantalla. El texto que lo acompaña lo escribes en el momento, en el propio WhatsApp.' },
+          { t: 'Consentimientos tampoco', d: 'Los consentimientos se firman dentro de la plataforma; no salen por WhatsApp.' },
+          { t: 'Solo hay tres textos configurables', d: 'El recordatorio, la confirmación y la tarjeta de confirmación. Todo lo demás que salga por WhatsApp lo escribes tú a mano en ese momento.' }
+        ],
+        notas: [
+          { tipo: 'tip', txt: 'La recepción puede **enviar** los mensajes, pero no editar las plantillas: eso lo decide el doctor o el administrador de la clínica.' }
+        ]
+      }
+    ]
+  }
+];
+
+/* ── Pintado ─────────────────────────────────────────────────────────────── */
+
+const rol = (typeof getRole === 'function' ? getRole() : localStorage.getItem('sd_role')) || '';
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Mini-formato del contenido: escapa primero (el texto es plano) y después
+// convierte las tres marcas que se usan al escribir las guías.
+function fmt(s) {
+  return esc(s)
+    .replace(/\{\{(\w+)\}\}/g, '<span class="tu-var">{{$1}}</span>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+    .replace(/«([^»]+)»/g, '<span class="tu-ui">«$1»</span>');
+}
+
+function normalizar(s) {
+  return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+const ICO = {
+  tip: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
+  ojo: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+  copy: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  der: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+  izq: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>'
+};
+
+// Las guías que este rol puede ver, en orden y ya aplanadas: el índice, el
+// buscador y el anterior/siguiente trabajan todos sobre esta misma lista.
+const LISTA = [];
+GUIAS.forEach(cat => {
+  cat.items.filter(it => !it.roles || it.roles.includes(rol)).forEach((it, i) => {
+    LISTA.push(Object.assign({}, it, { catId: cat.id, catTitulo: cat.titulo, catIcono: cat.icono }));
+  });
+});
+
+// Texto completo de cada guía para el buscador: quien busca "identidad" o
+// "mapa" no sabe en qué guía está eso, y ese es justo el problema que el
+// buscador viene a resolver.
+const TEXTO = {};
+LISTA.forEach(it => {
+  TEXTO[it.id] = normalizar([
+    it.titulo, it.resumen, it.catTitulo,
+    (it.pasos || []).map(p => p.t + ' ' + (p.d || '')).join(' '),
+    (it.notas || []).map(n => n.txt).join(' '),
+    it.plantilla ? it.plantilla.texto : '',
+    it.tabla ? it.tabla.filas.map(f => f[0] + ' ' + f[1]).join(' ') : ''
+  ].join(' '));
+});
+
+function esMovil() { return window.matchMedia('(max-width: 1000px)').matches; }
+
+const page = document.getElementById('tuPage');
+const rail = document.getElementById('tuRail');
+const panel = document.getElementById('tuGuia');
+const inputBuscar = document.getElementById('tuSearch');
+const wrapBuscar = document.getElementById('tuSearchWrap');
+
+let actual = LISTA.length ? LISTA[0].id : null;
+
+/* ── Índice ── */
+
+function pintarRail() {
+  const q = normalizar(inputBuscar.value.trim());
+  const vistos = LISTA.filter(it => !q || (TEXTO[it.id] || '').includes(q));
+
+  if (!vistos.length) {
+    rail.innerHTML = '<div class="tu-rail-vacio">No hay ninguna guía que hable de eso.<br>Prueba con otra palabra.</div>';
+    return;
+  }
+
+  // En móvil la lista y la guía se turnan: mientras se ve la LISTA no hay
+  // ninguna guía abierta, así que marcar una sería mentir. En escritorio el
+  // panel derecho siempre enseña una, y ahí la marca sí corresponde.
+  const marcar = !esMovil() || page.getAttribute('data-vista') === 'guia';
+
+  let html = '';
+  let catActual = null;
+  vistos.forEach(it => {
+    if (it.catId !== catActual) {
+      if (catActual !== null) html += '</div>';
+      html += `<div class="tu-rail-grupo">
+        <div class="tu-rail-cat">${typeof Icons !== 'undefined' ? Icons.render(it.catIcono, 14) : ''}${esc(it.catTitulo)}</div>`;
+      catActual = it.catId;
+    }
+    const n = LISTA.filter(x => x.catId === it.catId).indexOf(it) + 1;
+    html += `<button type="button" class="tu-rail-item ${marcar && it.id === actual ? 'on' : ''}" data-guia="${esc(it.id)}">
+      <span class="tu-rail-n">${n}</span>
+      <span>${esc(it.titulo)}</span>
+    </button>`;
+  });
+  html += '</div>';
+  rail.innerHTML = html;
+}
+
+/* ── Guía ── */
+
+function pintarPasos(pasos) {
+  return '<ol class="tu-steps">' + pasos.map((p, i) => `
+    <li class="tu-step">
+      <span class="tu-step-n">${i + 1}</span>
+      <div class="tu-step-txt">
+        <b>${fmt(p.t)}</b>
+        ${p.d ? `<p>${fmt(p.d)}</p>` : ''}
+      </div>
+    </li>`).join('') + '</ol>';
+}
+
+function pintarFotos(fotos) {
+  if (!fotos || !fotos.length) return '';
+  return '<div class="tu-fotos">' + fotos.map(f => `
+    <figure class="tu-shot">
+      <img class="tu-shot-claro" src="/tutoriales/${esc(f.img)}-claro.webp" alt="${esc(f.pie)}" loading="lazy">
+      <img class="tu-shot-oscuro" src="/tutoriales/${esc(f.img)}-oscuro.webp" alt="${esc(f.pie)}" loading="lazy">
+      <figcaption>${fmt(f.pie)}</figcaption>
+    </figure>`).join('') + '</div>';
+}
+
+function pintarNotas(notas) {
+  if (!notas || !notas.length) return '';
+  return '<div class="tu-notes">' + notas.map(n => `
+    <div class="tu-note ${n.tipo === 'ojo' ? 'ojo' : ''}">${ICO[n.tipo] || ICO.tip}<div>${fmt(n.txt)}</div></div>`).join('') + '</div>';
+}
+
+function pintarPlantilla(tpl) {
+  if (!tpl) return '';
+  return `
+    <div class="tu-tpl">
+      <div class="tu-tpl-h">
+        ${esc(tpl.titulo)}
+        <button type="button" class="tu-copy" data-copiar="${esc(tpl.texto).replace(/\n/g, '&#10;')}">${ICO.copy}<span>Copiar</span></button>
+      </div>
+      <pre>${fmt(tpl.texto)}</pre>
+    </div>`;
+}
+
+function pintarTabla(t) {
+  if (!t) return '';
+  const cabeceras = t.cols.map((c, i) => `<th${i >= 2 ? ' class="c"' : ''}>${esc(c)}</th>`).join('');
+  const filas = t.filas.map(f => '<tr>' + f.map((celda, i) => {
+    if (i >= 2) return celda ? '<td class="si">●</td>' : '<td class="no">—</td>';
+    return `<td>${fmt(celda)}</td>`;
+  }).join('') + '</tr>').join('');
+  return `<div class="tu-scroll"><table class="tu-table"><thead><tr>${cabeceras}</tr></thead><tbody>${filas}</tbody></table></div>`;
+}
+
+function pintarGuia(id) {
+  const i = LISTA.findIndex(x => x.id === id);
+  if (i < 0) return;
+  const g = LISTA[i];
+  const hermanas = LISTA.filter(x => x.catId === g.catId);
+  const n = hermanas.indexOf(g) + 1;
+
+  // La columna derecha existe solo si hay algo que consultar; si no, los pasos
+  // se quedan con todo el ancho en vez de dejar medio panel en blanco.
+  const lateral = pintarPlantilla(g.plantilla) + pintarNotas(g.notas) +
+    (g.ir ? `<a class="tu-go" href="${esc(g.ir.href)}" style="margin-top:16px">${esc(g.ir.label)} ${ICO.der}</a>` : '');
+
+  const ant = LISTA[i - 1], sig = LISTA[i + 1];
+
+  panel.innerHTML = `
+    <button type="button" class="tu-volver" id="tuVolver">${ICO.izq} Todas las guías</button>
+    <span class="tu-eyebrow">${esc(g.catTitulo)} · Guía ${n} de ${hermanas.length}</span>
+    <h2>${fmt(g.titulo)}</h2>
+    <p class="tu-lead">${fmt(g.resumen)}</p>
+    <div class="tu-sep"></div>
+    ${pintarFotos(g.fotos)}
+    <div class="tu-cols ${lateral.trim() ? '' : 'solo'}">
+      <div>
+        <p class="tu-bloque-label">Paso a paso</p>
+        ${pintarPasos(g.pasos)}
+      </div>
+      ${lateral.trim() ? `<div>${lateral}</div>` : ''}
+    </div>
+    ${g.tabla ? `<div class="tu-sep"></div><p class="tu-bloque-label">Dato por dato</p>${pintarTabla(g.tabla)}` : ''}
+    <div class="tu-pager">
+      <button type="button" class="ant" ${ant ? `data-guia="${esc(ant.id)}"` : 'hidden'}>
+        ${ICO.izq}<span style="min-width:0"><small>Anterior</small><span>${ant ? esc(ant.titulo) : ''}</span></span>
+      </button>
+      <button type="button" class="sig" ${sig ? `data-guia="${esc(sig.id)}"` : 'hidden'}>
+        <span style="min-width:0"><small>Siguiente</small><span>${sig ? esc(sig.titulo) : ''}</span></span>${ICO.der}
+      </button>
+    </div>`;
+}
+
+function seleccionar(id, opciones) {
+  if (!LISTA.some(x => x.id === id)) return;
+  actual = id;
+  pintarGuia(id);
+  pintarRail();
+  history.replaceState(null, '', '#' + id);
+  page.setAttribute('data-vista', 'guia');
+  if (!opciones || opciones.scroll !== false) {
+    // En móvil el panel sustituye a la lista: hay que volver arriba o la guía
+    // nueva empieza por donde se quedó la anterior.
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+/* ── Arranque ── */
+
+const inicial = location.hash.slice(1);
+if (LISTA.some(x => x.id === inicial)) {
+  actual = inicial;
+  page.setAttribute('data-vista', 'guia');
+}
+pintarRail();
+if (actual) pintarGuia(actual);
+
+/* ── Interacción ── */
+
+rail.addEventListener('click', e => {
+  const b = e.target.closest('.tu-rail-item');
+  if (b) seleccionar(b.getAttribute('data-guia'));
+});
+
+panel.addEventListener('click', e => {
+  const nav = e.target.closest('.tu-pager button[data-guia]');
+  if (nav) { seleccionar(nav.getAttribute('data-guia')); return; }
+  if (e.target.closest('#tuVolver')) {
+    page.setAttribute('data-vista', 'lista');
+    pintarRail();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+});
+
+inputBuscar.addEventListener('input', () => {
+  wrapBuscar.classList.toggle('has-text', inputBuscar.value.trim().length > 0);
+  pintarRail();
+  // Buscar es buscar en la lista: la guía abierta no se cambia sola bajo los
+  // dedos de nadie, se cambia cuando se elige una de los resultados.
+  if (esMovil()) page.setAttribute('data-vista', 'lista');
+});
+
+document.getElementById('tuSearchClear').addEventListener('click', () => {
+  inputBuscar.value = '';
+  wrapBuscar.classList.remove('has-text');
+  pintarRail();
+  inputBuscar.focus();
+});
+
+/* ── Ampliar una captura ─────────────────────────────────────────────────── */
+
+const lupa = document.getElementById('tuLupa');
+const lupaImg = document.getElementById('tuLupaImg');
+
+document.addEventListener('click', e => {
+  const img = e.target.closest('.tu-shot img');
+  if (img) {
+    lupaImg.src = img.currentSrc || img.src;
+    lupaImg.alt = img.alt;
+    lupa.setAttribute('open', '');
+    return;
+  }
+  if (e.target.closest('#tuLupaX') || e.target === lupa) lupa.removeAttribute('open');
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && lupa.hasAttribute('open')) lupa.removeAttribute('open');
+});
+
+/* ── Copiar plantilla ────────────────────────────────────────────────────── */
+
+document.addEventListener('click', async e => {
+  const btn = e.target.closest('.tu-copy');
+  if (!btn) return;
+  e.preventDefault();
+  const texto = btn.getAttribute('data-copiar') || '';
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(texto);
+    ok = true;
+  } catch (err) {
+    // Sin permiso de portapapeles (o sin HTTPS): el textarea oculto sigue
+    // funcionando en los navegadores donde la API moderna no está.
+    const ta = document.createElement('textarea');
+    ta.value = texto;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { ok = document.execCommand('copy'); } catch (e2) { ok = false; }
+    ta.remove();
+  }
+  const etiqueta = btn.querySelector('span');
+  etiqueta.textContent = ok ? 'Copiado' : 'No se pudo';
+  btn.classList.toggle('ok', ok);
+  setTimeout(() => { etiqueta.textContent = 'Copiar'; btn.classList.remove('ok'); }, 1800);
+});
+
+const pl = document.getElementById('pageLoader');
+if (pl) pl.classList.add('hidden');
+</script>
+</body>
+</html>

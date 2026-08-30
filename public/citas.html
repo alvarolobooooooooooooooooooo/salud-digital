@@ -197,6 +197,22 @@
       transition: all 120ms;
     }
     .glass-icon-btn:hover { background: rgba(255,255,255,.25); }
+    /* Mismo cristal que los botones de icono, pero con etiqueta: el acceso a
+       horarios tiene que leerse, no adivinarse. */
+    .btn-hero-ghost {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 0 14px; height: 38px;
+      background: rgba(255,255,255,.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 10px;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 120ms;
+    }
+    .btn-hero-ghost:hover { background: rgba(255,255,255,.25); }
     .btn-nueva-hero {
       display: inline-flex; align-items: center; gap: 7px;
       padding: 0 16px; height: 38px;
@@ -1418,7 +1434,22 @@
       .hero-sub { font-size: 12.5px; }
       .hero-actions { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
       .glass-icon-btn.mobile-hide { display: none !important; }
-      .btn-nueva-hero { flex: 1; min-width: 0; justify-content: center; }
+      /* `flex:1; min-width:0` los dejaba encogerse sin límite: en un Android con
+         la letra del sistema grande "Nueva Cita" partía en dos líneas y la
+         segunda se salía por debajo de la píldora de 38px de alto.
+         Con base 150px la fila se parte antes de llegar a eso —cada botón a lo
+         ancho, uno debajo del otro— y la altura pasa a mínimo, no a fija, para
+         que un texto más alto agrande la píldora en vez de desbordarla. */
+      .btn-hero-ghost,
+      .btn-nueva-hero {
+        flex: 1 1 150px;
+        justify-content: center;
+        height: auto;
+        min-height: 38px;
+        padding: 8px 12px;
+        line-height: 1.25;
+        white-space: normal;
+      }
       .kpi-strip { gap: 10px; }
       /* Horizontal layout on mobile: big value anchors the left, label/hint
          stack in the middle, icon sits right. Eliminates the empty space
@@ -1600,6 +1631,10 @@
         </button>
         <button class="glass-icon-btn tablet-hide mobile-hide" data-tip="Actualizar" onclick="reloadAppointments()">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 4v4h-4M21 12a9 9 0 0 1-15 6.7L3 16M3 20v-4h4"/></svg>
+        </button>
+        <button class="btn-hero-ghost" data-tip="Configurar horario de atención" onclick="window.location.href='/configuracion.html#hours'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.2V12l3.2 1.9"/></svg>
+          Horarios
         </button>
         <button class="btn-nueva-hero" id="btnNewAppointment" onclick="openModal()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
