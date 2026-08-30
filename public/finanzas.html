@@ -2095,13 +2095,6 @@
           return sonda.getBoundingClientRect().width;
         };
       })();
-      /* Sin el prefijo de moneda pero con la cifra entera: "15,300". Sigue
-         siendo el importe, que es lo que se quiere leer. */
-      const sinPrefijo = (v) => {
-        const pre = (SDMoneda.prefijo && SDMoneda.prefijo()) || '';
-        const t = SDMoneda.fmtCorto(v);
-        return (pre ? t.replace(pre, '') : t).trim();
-      };
       const fitChartLabels = () => {
         const cont = document.getElementById('chartContainer');
         if (!cont) return;
@@ -2115,8 +2108,12 @@
         const valores = bars.map(b => Number(b.dataset.raw || 0)).filter(v => v > 0);
         if (!valores.length) { cont.classList.remove('rot'); cont.style.paddingTop = ''; return; }
         const masAncho = (fn) => Math.max(...valores.map(v => medirEtiqueta(fn(v), cont)));
-        // Del más informativo al más corto; el importe nunca desaparece.
-        const formatos = [(v) => SDMoneda.fmt(v), (v) => SDMoneda.fmtCorto(v), sinPrefijo];
+        /* Sólo dos formatos, y los dos llevan la moneda: quitar el prefijo para
+           ganar 20px dejaba la gráfica sin decir en qué se mide, y cuánto se
+           encoge la etiqueta depende de lo grandes que sean los importes de
+           cada clínica — o sea que la "L." se caía en unas cuentas sí y en
+           otras no. Si no entra de lado, se pone de canto. */
+        const formatos = [(v) => SDMoneda.fmt(v), (v) => SDMoneda.fmtCorto(v)];
         const elegido = formatos.find(fn => masAncho(fn) + 6 <= paso);
         const pintar = elegido || ((v) => SDMoneda.fmtCorto(v));
         bars.forEach(b => { b.dataset.value = pintar(Number(b.dataset.raw || 0)); });
