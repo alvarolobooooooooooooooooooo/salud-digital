@@ -1129,45 +1129,71 @@
       .patient-stats { width: 100%; }
     }
 
+    /* ── Teléfono ────────────────────────────────────────────────────────
+       La escala de aquí se mide contra el header: las etiquetas del menú
+       flotante son de 0.68rem (10.88px), así que NADA dentro de una tarjeta
+       puede bajar de ahí — antes la etiqueta (9.6px) y el pie (10.4px) de las
+       stat-cards quedaban por debajo del menú y la tarjeta entera se leía como
+       "más chica" que la barra de navegación.
+       El valor deja de ser un salto (24px por debajo de 390, 32px por encima) y
+       pasa a escalar con el ancho: ~27px en un iPhone de 375 —donde
+       "L. 126,350.00" todavía entra en una línea al lado del icono— y 32px en
+       los teléfonos grandes. */
     @media (max-width: 768px) {
       .content { padding: 1.75rem 1.25rem; }
       .stats { gap: 1.2rem; margin-bottom: 1.75rem; }
-      .stat-card { padding: 1.5rem; gap: 1rem; }
-      .stat-value { font-size: 2rem; }
+      .stat-card { padding: 1.35rem 1.4rem; gap: 1.1rem; }
+      .stat-icon { width: 54px; height: 54px; border-radius: 15px; font-size: 1.5rem; }
+      .stat-label { font-size: 11.5px; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 0.35rem; }
+      .stat-value { font-size: clamp(26px, 7.4vw, 32px); }
+      .stat-sub { font-size: 12.5px; margin-top: 0.3rem; }
       .card { padding: 1.75rem; }
+      .card-title { font-size: 16px; }
+      .card-badge { font-size: 10.5px; letter-spacing: 0.1em; }
+      /* El aro ocupaba 220px con la cifra en 28px: mucho anillo y poco dato. */
+      .patient-donut-wrap { max-width: 200px; }
+      .donut-value { font-size: clamp(30px, 8.6vw, 38px); }
+      .donut-value-small { font-size: 26px !important; }
       .mid-row { gap: 1.2rem; margin-bottom: 1.75rem; }
       .bot-row { gap: 1.2rem; }
     }
 
-    @media (max-width: 390px) {
+    /* ── Teléfono pequeño ────────────────────────────────────────────────
+       Este bloque cortaba en 390px, o sea que se lo comían casi todos los
+       iPhone (375 y 390 de ancho) y no solo los chicos: encogía la tarjeta
+       entera a tipografía de 9.6/10.4px. Ahora corta en 360px —el SE y los
+       Android angostos— y encoge mucho menos. */
+    @media (max-width: 360px) {
       .content { padding: 1rem 0.75rem; }
       .stats { gap: 0.8rem; margin-bottom: 1.25rem; }
-      .stat-card { padding: 1rem; gap: 0.75rem; }
-      .stat-icon { width: 48px; height: 48px; font-size: 1.5rem; }
-      .stat-label { font-size: 0.6rem; margin-bottom: 0.3rem; }
-      .stat-value { font-size: 1.5rem; }
-      .stat-sub { font-size: 0.65rem; margin-top: 0.2rem; }
+      .stat-card { padding: 1.1rem; gap: 0.85rem; }
+      .stat-icon { width: 46px; height: 46px; font-size: 1.4rem; }
+      .stat-label { font-size: 11px; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+      /* Tope más bajo que el del bloque de arriba: a 320px un monto de ocho
+         cifras ("L. 12,450,000.00") se partía en dos líneas. */
+      .stat-value { font-size: clamp(24px, 7.4vw, 26px); }
+      .stat-sub { font-size: 11.5px; margin-top: 0.25rem; }
       .card { padding: 1.25rem; }
-      .card-title { font-size: 0.9rem; }
-      .card-badge { font-size: 0.65rem; }
+      .card-title { font-size: 15px; }
+      .card-badge { font-size: 10px; }
       .mid-row { gap: 0.8rem; margin-bottom: 1.25rem; }
       .bot-row { gap: 0.8rem; }
       .patient-summary { gap: 1.2rem; }
       .patient-stat { padding: 0.8rem 0.9rem; gap: 0.75rem; }
       .patient-stat-icon { width: 38px; height: 38px; }
       .patient-stat-icon svg { width: 18px; height: 18px; }
-      .patient-stat-label { font-size: 0.6rem; }
-      .patient-stat-val { font-size: 1.25rem; }
-      .patient-stat-pct { font-size: 0.6rem; padding: 0.15rem 0.45rem; }
+      .patient-stat-label { font-size: 10.5px; }
+      .patient-stat-val { font-size: 20px; }
+      .patient-stat-pct { font-size: 10.5px; padding: 0.15rem 0.45rem; }
       .appt-scroll { max-height: 250px; padding-right: 0.3rem; }
       .appt-row { padding: 0.75rem; gap: 0.8rem; margin-bottom: 0.5rem; }
       .appt-avatar { width: 40px; height: 40px; font-size: 0.75rem; }
-      .appt-name { font-size: 0.75rem; }
-      .appt-sub { font-size: 0.65rem; margin-top: 0.1rem; }
-      .appt-time-badge { font-size: 0.6rem; padding: 0.3rem 0.6rem; }
+      .appt-name { font-size: 13px; }
+      .appt-sub { font-size: 11px; margin-top: 0.1rem; }
+      .appt-time-badge { font-size: 10.5px; padding: 0.3rem 0.6rem; }
       .next-patient { padding: 1.25rem; }
-      .next-label { font-size: 0.75rem; }
-      .next-name { font-size: 0.9rem; }
+      .next-label { font-size: 12px; }
+      .next-name { font-size: 15px; }
       .next-avatar { width: 72px; height: 72px; font-size: 1.4rem; }
       .next-meta { font-size: 0.75rem; }
       .next-time-row { font-size: 0.75rem; margin-top: 0.5rem; }
