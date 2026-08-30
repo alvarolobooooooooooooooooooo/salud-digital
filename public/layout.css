@@ -1262,7 +1262,14 @@ nav.old-nav {
   .mobile-nav-logout {
     border-left: none !important;
   }
-  .layout-main {
+  /* El segundo selector NO es decorativo: `#sidebar.expanded ~ .layout-main`
+     (bloque de 1400px) tiene más especificidad que `.layout-main`, así que en
+     un teléfono con la preferencia "menú expandido" guardada en localStorage
+     seguía aplicando margin-left:278px y width:calc(100% - 278px) — con el
+     sidebar ya oculto. El contenido se quedaba en una columna de ~110px y el
+     resto lo comía el overflow-x:hidden de aquí abajo. */
+  .layout-main,
+  #sidebar.expanded ~ .layout-main {
     margin: 0;
     padding: 0 1.5rem;
     /* 86px (alto barra + aire) + el safe-area que la barra ahora ocupa arriba */
@@ -2105,6 +2112,14 @@ nav.old-nav {
   flex: 1 1 auto; min-width: 0;
   display: flex; flex-direction: column; gap: 8px;
 }
+/* La cifra y su unidad van pegadas en el HTML ("54" + <span>próximas</span>),
+   sin espacio entre medias: no había dónde partir la línea, así que en una
+   tarjeta estrecha la unidad se perdía tras el overflow:hidden. Como flex sí
+   puede bajar a la línea siguiente. */
+.kpis .kpi .v {
+  display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px;
+}
+.kpis .kpi .v .unit { margin-left: 0; }
 
 /* ───────────────────────────────────────────────────────────────
    Móvil: las cuatro KPI dejan de ser cuatro tarjetas y pasan a ser

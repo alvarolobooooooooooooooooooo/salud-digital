@@ -223,10 +223,10 @@
     }
 
     /* ── Form ── */
-    .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem 1.25rem; margin-bottom: 1rem; }
-    .form-grid.cols-2 { grid-template-columns: 1fr 1fr; }
-    .form-grid.full { grid-template-columns: 1fr; }
-    .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+    .form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem 1.25rem; margin-bottom: 1rem; }
+    .form-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .form-grid.full { grid-template-columns: minmax(0, 1fr); }
+    .form-group { display: flex; min-width: 0; flex-direction: column; gap: 0.35rem; }
     .form-group.span-2 { grid-column: span 2; }
     .form-group.span-3 { grid-column: span 3; }
     .form-group label {
@@ -388,14 +388,19 @@
 
     /* ── Filas dinámicas (síntomas / medicamentos) ── */
     .dyn-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    /* minmax(0, …) e input con min-width:0: un <input> trae de fábrica un ancho
+       mínimo de ~20 caracteres, así que con `1fr` las tres columnas de
+       medicación no bajaban de ~590px y la fila desbordaba la columna de
+       contenido en cuanto el sidebar estaba abierto. */
     .dyn-row {
       display: grid;
-      grid-template-columns: 1fr 1fr auto;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
       gap: 0.6rem;
       align-items: center;
     }
-    .dyn-row.med { grid-template-columns: 1.4fr 1fr 1fr auto; }
+    .dyn-row.med { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) auto; }
     .dyn-row input {
+      min-width: 0;
       padding: 0.55rem 0.75rem;
       border: 1px solid #e2e8f0;
       border-radius: 8px;
@@ -616,11 +621,11 @@
       .summary-col { position: static; }
     }
     @media (max-width: 860px) {
-      .form-grid, .form-grid.cols-2 { grid-template-columns: 1fr; }
+      .form-grid, .form-grid.cols-2 { grid-template-columns: minmax(0, 1fr); }
       .form-group.span-2, .form-group.span-3 { grid-column: span 1; }
       .header { padding: 1.5rem 1.25rem; }
       .header-content h1 { font-size: 1.6rem; }
-      .dyn-row, .dyn-row.med { grid-template-columns: 1fr; }
+      .dyn-row, .dyn-row.med { grid-template-columns: minmax(0, 1fr); }
     }
     @media (max-width: 768px) {
       main { padding: 1rem 0.75rem; }

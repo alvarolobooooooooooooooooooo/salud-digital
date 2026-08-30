@@ -74,7 +74,12 @@
       position:relative; display:grid;
       grid-template-columns:1.4fr 1fr; gap:24px; align-items:start;
     }
-    @container (max-width: 980px){ .hero{ grid-template-columns:1fr } }
+    /* 1160 y no 980: el hero parte el ancho 1.4fr/1fr, así que la columna de
+       KPIs se queda con (ancho-24)/2.4. Por debajo de 1160 eso son menos de
+       473px, o sea tarjetas de 220px con 100px de cuerpo, y "54 próximas" o
+       "203 archivadas" se iban tras el overflow:hidden. Apilado, las cuatro
+       KPI recuperan el ancho completo. */
+    @container (max-width: 1160px){ .hero{ grid-template-columns:1fr } }
     .hero-card{
       position:relative; padding:0;
       background:transparent; color:var(--ink);
@@ -241,9 +246,14 @@
       border-radius:var(--r-lg); border:1px solid var(--line);
       box-shadow:var(--shadow-sm);
     }
+    /* flex-wrap desde el principio: con 6-8 pestañas el .seg medía ~1050px y
+       hasta 720px no envolvía, así que en cualquier ventana intermedia (o con
+       el sidebar abierto) empujaba la página y "Hoy"/"Archivadas" se salían. */
     .seg{
-      display:inline-flex; padding:3px;
-      background:var(--surface-2); border-radius:999px; border:1px solid var(--line);
+      display:flex; flex-wrap:wrap; max-width:100%; padding:3px;
+      /* 20px = el mismo radio efectivo que 999px en una fila de 38px de alto,
+         pero sin cápsula deforme cuando las pestañas pasan a dos filas. */
+      background:var(--surface-2); border-radius:20px; border:1px solid var(--line);
     }
     .seg button{
       appearance:none; border:none; background:transparent;

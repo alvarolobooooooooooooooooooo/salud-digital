@@ -742,7 +742,7 @@
     /* ════════════ Month view ════════════ */
     .month-view { border-radius: 16px; overflow: hidden; }
     .month-head {
-      display: grid; grid-template-columns: repeat(7, 1fr);
+      display: grid; grid-template-columns: repeat(7, minmax(0, 1fr));
       border-bottom: 1px solid var(--ink-150);
       background: var(--ink-50);
     }
@@ -753,13 +753,18 @@
       border-right: 1px solid var(--ink-150);
     }
     .month-head-cell:last-child { border-right: none; }
+    /* minmax(0, 1fr) y no 1fr: con el mínimo automático, una cita larga
+       ("11:00am Gustavo S.") ensanchaba su columna y el calendario desbordaba
+       la tarjeta — el domingo se salía por la derecha. Con el mínimo en 0 las
+       7 columnas siempre caben y el chip se corta con su propio ellipsis. */
     .month-grid {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(7, minmax(0, 1fr));
       grid-auto-rows: minmax(106px, auto);
     }
     .month-cell {
       position: relative;
+      min-width: 0;
       padding: 8px;
       background: white;
       border-right: 1px solid var(--ink-150);
@@ -790,7 +795,7 @@
     }
     .month-day-num.out { color: var(--ink-400); }
     .month-overflow { font-size: 10.5px; color: var(--ink-500); font-weight: 500; }
-    .month-apts { display: flex; flex-direction: column; gap: 2px; }
+    .month-apts { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .month-apt {
       padding: 2px 5px;
       border-radius: 3px;

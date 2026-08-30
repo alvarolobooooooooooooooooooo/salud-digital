@@ -391,6 +391,22 @@
     /* Hide tooltip on zero bars so empty days look clean */
     .chart-bar[data-zero="1"]::after { display: none; }
 
+    /* ── Rango denso (12 meses) ───────────────────────────────────────────
+       Con 12 barras el paso entre ellas baja de 40px en cuanto el sidebar se
+       expande, y el hueco de 0.8rem + el min-width de 20px hacían que la fila
+       no cupiera en la tarjeta (en teléfono se salía 88px). Aquí se aprietan
+       hueco y ancho mínimo; el formato de la etiqueta lo decide
+       fitChartLabels(), que mide el paso real. */
+    .chart-container.dense,
+    .chart-days.dense { gap: 0.4rem; }
+    .chart-container.dense .chart-bar { min-width: 10px; border-radius: 8px 8px 0 0; }
+    .chart-container.dense .chart-bar::after { font-size: 10px; }
+    .chart-days.dense .chart-day { min-width: 10px; font-size: 9px; letter-spacing: 0.06em; }
+    .chart-days.dense .chart-day .chart-day-num { font-size: 11px; }
+    /* Ni el formato más corto entra: mejor sin importes que con importes
+       pisados unos encima de otros. El valor queda en el title de la barra. */
+    .chart-container.no-labels .chart-bar::after { display: none; }
+
     /* Day labels under the bars (last 7 days, dynamic) */
     .chart-days {
       display: flex;
@@ -2038,6 +2054,56 @@
         const isToday = key === todayKey;
         return `<div class="chart-day${isToday ? ' is-today' : ''}">${wdCap}<span class="chart-day-num">${d.getDate()}</span></div>`;
       };
+      /* ── Etiquetas del gráfico que de verdad caben ──────────────────────
+         El ancho útil del gráfico no lo decide el viewport: cambia al expandir
+         el sidebar y al pasar de 7 barras a 12. Con la etiqueta completa
+         ("L. 15,300.00") sobre barras de 30px los importes se pisaban entre sí
+         y el último se salía de la tarjeta. Se mide el paso real entre barras y
+         se usa el formato más largo que entre; si no entra ninguno, se quitan
+         (el importe sigue en el title de la barra). */
+      const medirTexto = (() => {
+        let ctx = null;
+        return (texto, font) => {
+          if (!ctx) ctx = document.createElement('canvas').getContext('2d');
+          ctx.font = font;
+          return ctx.measureText(texto).width;
+        };
+      })();
+      const fmtMiles = (n) => {
+        const v = Number(n) || 0;
+        if (v >= 1e6) return (v / 1e6).toFixed(v >= 1e7 ? 0 : 1).replace(/\.0$/, '') + 'M';
+        if (v >= 1000) return (v / 1000).toFixed(v >= 10000 ? 0 : 1).replace(/\.0$/, '') + 'k';
+        return String(Math.round(v));
+      };
+      const fitChartLabels = () => {
+        const cont = document.getElementById('chartContainer');
+        if (!cont) return;
+        const bars = Array.from(cont.querySelectorAll('.chart-bar'));
+        if (!bars.length) { cont.classList.remove('no-labels'); return; }
+        const primera = bars[0].getBoundingClientRect();
+        const paso = bars.length > 1
+          ? (bars[bars.length - 1].getBoundingClientRect().left - primera.left) / (bars.length - 1)
+          : primera.width;
+        if (!paso) return;
+        const cs = getComputedStyle(bars[0], '::after');
+        const font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+        const valores = bars.map(b => Number(b.dataset.raw || 0)).filter(v => v > 0);
+        if (!valores.length) { cont.classList.remove('no-labels'); return; }
+        const masAncho = (fn) => Math.max(...valores.map(v => medirTexto(fn(v), font)));
+        const formatos = [(v) => SDMoneda.fmt(v), (v) => SDMoneda.fmtCorto(v), fmtMiles];
+        const elegido = formatos.find(fn => masAncho(fn) + 6 <= paso);
+        cont.classList.toggle('no-labels', !elegido);
+        if (elegido) bars.forEach(b => { b.dataset.value = elegido(Number(b.dataset.raw || 0)); });
+      };
+      /* El ancho cambia sin que cambie el viewport (sidebar), así que se vigila
+         la tarjeta, no la ventana. */
+      let chartRO = null;
+      const watchChartWidth = () => {
+        const cont = document.getElementById('chartContainer');
+        if (!cont || chartRO || typeof ResizeObserver === 'undefined') return;
+        chartRO = new ResizeObserver(() => fitChartLabels());
+        chartRO.observe(cont);
+      };
       const CHART_TITLES = { '7d': 'Ingresos Últimos 7 Días', '12m': 'Ingresos Últimos 12 Meses', '5y': 'Ingresos por Año' };
       const CHART_EMPTY = { '7d': 'Sin ingresos en los últimos 7 días', '12m': 'Sin ingresos en los últimos 12 meses', '5y': 'Sin ingresos registrados en los últimos años' };
       const renderChart = (payload) => {
@@ -2060,9 +2126,14 @@
           const height = Math.max((value / maxValue) * 100, 0);
           const formatted = SDMoneda.fmt(value);
           const zeroAttr = value > 0 ? '' : ' data-zero="1"';
-          return `<div class="chart-bar" style="height: ${height}%; min-height: ${value > 0 ? '2px' : '0px'};" data-value="${formatted}"${zeroAttr}></div>`;
+          return `<div class="chart-bar" style="height: ${height}%; min-height: ${value > 0 ? '2px' : '0px'};" data-value="${formatted}" data-raw="${value}" title="${formatted}"${zeroAttr}></div>`;
         }).join('');
         daysEl.innerHTML = payload.days.map(k => renderChartDay(k, granularity)).join('');
+        const dense = payload.days.length > 8;
+        cont.classList.toggle('dense', dense);
+        daysEl.classList.toggle('dense', dense);
+        fitChartLabels();
+        watchChartWidth();
       };
       let currentRange = '7d';
       const loadChart = async (range) => {

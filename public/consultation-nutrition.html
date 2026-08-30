@@ -194,9 +194,9 @@
     .section-help { font-size: 0.78rem; color: #64748b; margin-top: 0.15rem; }
 
     .form-grid { display: grid; gap: 1rem; }
-    .form-grid.cols-2 { grid-template-columns: 1fr 1fr; }
-    .form-grid.full   { grid-template-columns: 1fr; }
-    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .form-grid.full   { grid-template-columns: minmax(0, 1fr); }
+    .form-group { display: flex; min-width: 0; flex-direction: column; gap: 0.4rem; }
     .form-group label {
       font-size: 0.78rem;
       font-weight: 700;
