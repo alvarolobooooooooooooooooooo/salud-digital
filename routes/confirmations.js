@@ -27,7 +27,7 @@ const {
 
 // Texto por defecto de la tarjeta: el mismo que la página mostraba fijo antes de
 // que fuera editable, para que una clínica que nunca lo toque no note el cambio.
-const CARD_MESSAGE_DEFAULT = 'Hola {{patientName}}, ¿podrás asistir a esta cita?';
+const CARD_MESSAGE_DEFAULT = 'Hola {{paciente}}, ¿podrás asistir a esta cita?';
 
 // GET /api/confirmations/whatsapp-config
 // La configuración de quien mira, ya resuelta contra la de la clínica, más la

@@ -645,7 +645,7 @@
 
     /* Chips para insertar variables en la plantilla.
        El médico toca un dato y se inserta donde está el cursor: nunca
-       tiene que escribir {{patientName}} a mano. */
+       tiene que escribir {{paciente}} a mano. */
     .var-chips{
       display:flex; flex-wrap:wrap; gap:6px; align-items:center;
       margin:2px 0 4px;
@@ -1245,13 +1245,13 @@
               ¿Cómo funciona?
             </button>
           </div>
-          <button type="button" class="var-chip" data-var="patientName"><span class="plus">+</span>Nombre del paciente</button>
-          <button type="button" class="var-chip" data-var="clinicName"><span class="plus">+</span>Clínica</button>
-          <button type="button" class="var-chip" data-var="doctorName"><span class="plus">+</span>Doctor</button>
-          <button type="button" class="var-chip" data-var="appointmentDate"><span class="plus">+</span>Fecha</button>
-          <button type="button" class="var-chip" data-var="appointmentTime"><span class="plus">+</span>Hora</button>
-          <button type="button" class="var-chip" data-var="clinicAddress"><span class="plus">+</span>Dirección</button>
-          <button type="button" class="var-chip featured" data-var="mapLink"><span class="plus">+</span>Enlace del mapa</button>
+          <button type="button" class="var-chip" data-var="paciente"><span class="plus">+</span>Nombre del paciente</button>
+          <button type="button" class="var-chip" data-var="clinica"><span class="plus">+</span>Clínica</button>
+          <button type="button" class="var-chip" data-var="doctor"><span class="plus">+</span>Doctor</button>
+          <button type="button" class="var-chip" data-var="fecha"><span class="plus">+</span>Fecha</button>
+          <button type="button" class="var-chip" data-var="hora"><span class="plus">+</span>Hora</button>
+          <button type="button" class="var-chip" data-var="direccion"><span class="plus">+</span>Dirección</button>
+          <button type="button" class="var-chip featured" data-var="mapa"><span class="plus">+</span>Enlace del mapa</button>
         </div>
         <textarea id="waTemplate" placeholder="Escribe el mensaje y toca los datos de arriba para añadirlos…"></textarea>
       </div>
@@ -1556,7 +1556,7 @@
   }
 
   // Datos de ubicación de la clínica (Configuración › Ubicación). Alimentan la
-  // variable {{mapLink}} de la plantilla y el botón "Enviar ubicación".
+  // variable {{mapa}} de la plantilla y el botón "Enviar ubicación".
   function clinicLoc(){
     return SDLocation.from(Object.assign({ name: waConfig.name }, clinicLocation || {}));
   }
@@ -2066,13 +2066,13 @@
               <textarea id="drawerMessage">${esc(message)}</textarea>
               <div class="message-vars">
                 <span style="font-size:11px; color:var(--ink-3); text-transform:uppercase; letter-spacing:.08em; margin-right:4px; align-self:center">Variables:</span>
-                <span class="var">{{patientName}}</span>
-                <span class="var">{{clinicName}}</span>
-                <span class="var">{{doctorName}}</span>
-                <span class="var">{{appointmentDate}}</span>
-                <span class="var">{{appointmentTime}}</span>
-                <span class="var">{{clinicAddress}}</span>
-                <span class="var">{{mapLink}}</span>
+                <span class="var">{{paciente}}</span>
+                <span class="var">{{clinica}}</span>
+                <span class="var">{{doctor}}</span>
+                <span class="var">{{fecha}}</span>
+                <span class="var">{{hora}}</span>
+                <span class="var">{{direccion}}</span>
+                <span class="var">{{mapa}}</span>
               </div>
             </div>
           </div>` : ''}

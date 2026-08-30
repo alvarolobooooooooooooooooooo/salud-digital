@@ -412,7 +412,7 @@ requireAuth(['doctor', 'clinic_admin', 'receptionist']);
    En los textos:
      **negrita**      → negrita
      «Guardar»        → nombre literal de un botón/pestaña de la app
-     {{patientName}}  → dato de plantilla, se pinta como etiqueta
+     {{paciente}}  → dato de plantilla, se pinta como etiqueta
    ─────────────────────────────────────────────────────────────────────────── */
 
 const GUIAS = [
@@ -435,7 +435,7 @@ const GUIAS = [
         pasos: [
           { t: 'Entra a Pacientes', d: 'En el menú de la izquierda, dentro de **GENERAL**. En el celular está en la barra de abajo.' },
           { t: 'Toca el botón «+»', d: 'Está arriba, junto al buscador. Se abre la ventana «Nuevo Paciente».' },
-          { t: 'Nombre completo', d: 'Obligatorio. Es el nombre que verás en la agenda y el que sale en los mensajes de WhatsApp cuando uses {{patientName}}.' },
+          { t: 'Nombre completo', d: 'Obligatorio. Es el nombre que verás en la agenda y el que sale en los mensajes de WhatsApp cuando uses {{paciente}}.' },
           { t: 'Número de identidad', d: 'Obligatorio. Se va formateando solo mientras escribes: 0801-2004-20128. Es lo que evita dos fichas de la misma persona y sirve para buscarla después.' },
           { t: 'Teléfono', d: 'Opcional para guardar, **imprescindible para WhatsApp**. Solo dígitos: 31515887 o 50431515887. Si pones los 8 dígitos, la plataforma le antepone el 504 al enviar.' },
           { t: 'Sexo y fecha de nacimiento', d: 'La edad no se escribe: se calcula sola a partir de la fecha de nacimiento y se mantiene al día.' },
@@ -606,7 +606,7 @@ const GUIAS = [
         ],
         plantilla: {
           titulo: 'Plantilla de ejemplo — recordatorio',
-          texto: 'Hola {{patientName}} 👋\n\nLe recordamos su cita en {{clinicName}} con {{doctorName}}.\n\n🗓️ {{appointmentDate}}\n🕐 {{appointmentTime}}\n📍 {{clinicAddress}}\n\nCómo llegar: {{mapLink}}\n\nSi no puede asistir, por favor avísenos por este mismo medio. ¡Le esperamos!'
+          texto: 'Hola {{paciente}} 👋\n\nLe recordamos su cita en {{clinica}} con {{doctor}}.\n\n🗓️ {{fecha}}\n🕐 {{hora}}\n📍 {{direccion}}\n\nCómo llegar: {{mapa}}\n\nSi no puede asistir, por favor avísenos por este mismo medio. ¡Le esperamos!'
         },
         notas: [
           { tipo: 'tip', txt: 'Los mensajes no se envían solos: la pantalla te abre WhatsApp Web con el texto ya escrito y tú das enviar. Por eso no hace falta contratar ninguna API.' }
@@ -624,17 +624,17 @@ const GUIAS = [
         pasos: [
           { t: 'Confirmaciones → «Configuración WhatsApp»', d: 'Arriba en la cabecera. También llegas con «Mensaje WhatsApp», el botón que está sobre la tabla.' },
           { t: 'Escribe el mensaje', d: 'Aquí no estás avisando: estás **pidiendo una respuesta**. Que se note en el texto.' },
-          { t: 'Inserta el «Link de confirmación»', d: 'Es el chip destacado, {{confirmLink}}. Es un link **único por cita**: cuando el paciente lo toca, se le abre una tarjeta con «Sí, asistiré» y «No podré asistir», y la cita se marca confirmada en el calendario sin que nadie haga nada más.' },
+          { t: 'Inserta el «Link de confirmación»', d: 'Es el chip destacado, {{confirmacion}}. Es un link **único por cita**: cuando el paciente lo toca, se le abre una tarjeta con «Sí, asistiré» y «No podré asistir», y la cita se marca confirmada en el calendario sin que nadie haga nada más.' },
           { t: 'Añade fecha, hora y ubicación', d: 'Con los demás chips, igual que en el recordatorio.' },
           { t: 'Revisa la vista previa y guarda', d: 'En la previa el link sale de ejemplo; el real se genera al enviar cada cita.' }
         ],
         plantilla: {
           titulo: 'Plantilla de ejemplo — confirmación',
-          texto: 'Hola {{patientName}} 👋\n\nTiene cita en {{clinicName}} con {{doctorName}}:\n\n🗓️ {{appointmentDate}}\n🕐 {{appointmentTime}}\n\n¿Nos confirma si podrá asistir? Solo toque aquí:\n{{confirmLink}}\n\n📍 {{clinicAddress}}\nCómo llegar: {{mapLink}}'
+          texto: 'Hola {{paciente}} 👋\n\nTiene cita en {{clinica}} con {{doctor}}:\n\n🗓️ {{fecha}}\n🕐 {{hora}}\n\n¿Nos confirma si podrá asistir? Solo toque aquí:\n{{confirmacion}}\n\n📍 {{direccion}}\nCómo llegar: {{mapa}}'
         },
         notas: [
           { tipo: 'ojo', txt: 'Ojo con el botón «Configurar plantilla» de esta pantalla: **no abre esta ventana**, abre el texto de la tarjeta (la guía siguiente). El mensaje de WhatsApp está en «Configuración WhatsApp» y en «Mensaje WhatsApp».' },
-          { tipo: 'tip', txt: 'Si borras {{confirmLink}} del mensaje, el paciente no tiene dónde confirmar y las citas se quedan pendientes para siempre.' }
+          { tipo: 'tip', txt: 'Si borras {{confirmacion}} del mensaje, el paciente no tiene dónde confirmar y las citas se quedan pendientes para siempre.' }
         ]
       },
       {
@@ -655,7 +655,7 @@ const GUIAS = [
         ],
         plantilla: {
           titulo: 'Texto de la tarjeta (el que trae por defecto)',
-          texto: 'Hola {{patientName}}, ¿podrás asistir a esta cita?'
+          texto: 'Hola {{paciente}}, ¿podrás asistir a esta cita?'
         }
       },
       {
@@ -663,21 +663,25 @@ const GUIAS = [
         titulo: 'Los datos entre llaves: qué escribe cada uno',
         resumen: 'Qué hay disponible en cada plantilla y en qué se convierte al enviar.',
         pasos: [
-          { t: 'Se escriben con dos llaves', d: 'Así: {{patientName}}. Al enviar, cada uno se cambia por el dato real de esa cita.' },
+          { t: 'Se escriben con dos llaves', d: 'Así: {{paciente}}. Al enviar, cada uno se cambia por el dato real de esa cita.' },
+          { t: 'Son palabras en español', d: 'Se entienden {{paciente}}, {{clinica}}, {{doctor}}, {{fecha}}, {{hora}}, {{direccion}}, {{mapa}} y {{confirmacion}}. Da igual si los escribes con mayúsculas o con tilde: {{Dirección}} funciona igual que {{direccion}}.' },
           { t: 'Mejor tocar el chip que escribirlo a mano', d: 'Una letra de más y el dato no se reconoce. Los chips lo insertan bien escrito y en la posición del cursor.' },
           { t: 'Si un dato está vacío, sale vacío', d: 'No se queda la llave a la vista en el mensaje del paciente: simplemente queda el hueco. Por eso conviene revisar la vista previa antes de guardar.' }
+        ],
+        notas: [
+          { tipo: 'tip', txt: 'Si tu plantilla es de antes, tendrá los nombres viejos en inglés (**{{patientName}}**, **{{appointmentDate}}**…). **Siguen funcionando**: no hay que reescribir nada. Los chips insertan los nuevos, y los dos se pueden mezclar en el mismo mensaje.' }
         ],
         tabla: {
           cols: ['Dato', 'En qué se convierte', 'Recordatorio', 'Confirmación', 'Tarjeta'],
           filas: [
-            ['{{patientName}}', 'El nombre del paciente de la ficha', 1, 1, 1],
-            ['{{clinicName}}', 'El nombre de la clínica', 1, 1, 1],
-            ['{{doctorName}}', 'El doctor de esa cita', 1, 1, 1],
-            ['{{appointmentDate}}', 'La fecha en palabras: jueves, 4 de septiembre de 2026', 1, 1, 1],
-            ['{{appointmentTime}}', 'La hora: 03:30 p. m.', 1, 1, 1],
-            ['{{clinicAddress}}', 'La dirección guardada en Configuración › Ubicación', 1, 1, 0],
-            ['{{mapLink}}', 'Un enlace a Google Maps con el punto de la clínica', 1, 1, 0],
-            ['{{confirmLink}}', 'El link único que confirma esa cita al tocarlo', 0, 1, 0]
+            ['{{paciente}}', 'El nombre del paciente de la ficha', 1, 1, 1],
+            ['{{clinica}}', 'El nombre de la clínica', 1, 1, 1],
+            ['{{doctor}}', 'El doctor de esa cita', 1, 1, 1],
+            ['{{fecha}}', 'La fecha en palabras: jueves, 4 de septiembre de 2026', 1, 1, 1],
+            ['{{hora}}', 'La hora: 03:30 p. m.', 1, 1, 1],
+            ['{{direccion}}', 'La dirección guardada en Configuración › Ubicación', 1, 1, 0],
+            ['{{mapa}}', 'Un enlace a Google Maps con el punto de la clínica', 1, 1, 0],
+            ['{{confirmacion}}', 'El link único que confirma esa cita al tocarlo', 0, 1, 0]
           ]
         }
       },
@@ -693,12 +697,12 @@ const GUIAS = [
         pasos: [
           { t: 'Entra a Configuración', d: 'En el menú, dentro de **AJUSTES**.' },
           { t: 'Pestaña «Ubicación»', d: 'No es lo mismo que la ciudad del perfil: aquí va la dirección exacta y el punto en el mapa.' },
-          { t: 'Escribe la dirección', d: 'Colonia, calle y número, como se la dirías a un taxista. Esto es lo que sale en {{clinicAddress}}.' },
-          { t: 'Marca el punto en el mapa', d: 'Toca el mapa o arrastra el pin. Esa coordenada es la que abre el GPS del paciente, y es lo que alimenta {{mapLink}}.' },
+          { t: 'Escribe la dirección', d: 'Colonia, calle y número, como se la dirías a un taxista. Esto es lo que sale en {{direccion}}.' },
+          { t: 'Marca el punto en el mapa', d: 'Toca el mapa o arrastra el pin. Esa coordenada es la que abre el GPS del paciente, y es lo que alimenta {{mapa}}.' },
           { t: 'Guarda y vuelve a la plantilla', d: 'Ahora los chips «Dirección» y «Enlace del mapa» ya traen contenido.' }
         ],
         notas: [
-          { tipo: 'ojo', txt: 'Si no hay punto marcado en el mapa, {{mapLink}} sale vacío y el mensaje le llega al paciente con un renglón cojo debajo de «Cómo llegar».' }
+          { tipo: 'ojo', txt: 'Si no hay punto marcado en el mapa, {{mapa}} sale vacío y el mensaje le llega al paciente con un renglón cojo debajo de «Cómo llegar».' }
         ]
       },
       {
@@ -732,7 +736,7 @@ function esc(s) {
 // convierte las tres marcas que se usan al escribir las guías.
 function fmt(s) {
   return esc(s)
-    .replace(/\{\{(\w+)\}\}/g, '<span class="tu-var">{{$1}}</span>')
+    .replace(/\{\{([^{}]+)\}\}/g, '<span class="tu-var">{{$1}}</span>')  // [^{}] y no \w: los nombres llevan tildes
     .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
     .replace(/«([^»]+)»/g, '<span class="tu-ui">«$1»</span>');
 }

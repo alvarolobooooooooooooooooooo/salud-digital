@@ -55,6 +55,65 @@
     return { date, time };
   }
 
+  // ── Los datos que la clínica mete en su plantilla, en español ──
+  //
+  // La plantilla la escribe un doctor en Honduras, no un programador: leer
+  // «{{patientName}}» en el cuadro del mensaje no le dice nada y lo deja sin
+  // saber qué puede escribir. Los nombres que se enseñan y que insertan los
+  // chips son ahora {{paciente}}, {{fecha}}, {{hora}}…
+  //
+  // LOS NOMBRES EN INGLÉS SIGUEN VALIENDO, y no es opcional: hay plantillas
+  // guardadas con ellos en las clínicas que ya usan la plataforma, y cambiar
+  // solo los chips les habría vaciado el mensaje en el próximo envío. Las
+  // claves internas de `data` no se tocan (siguen en inglés): esto traduce a la
+  // entrada, en el único punto por el que pasan todas las plantillas.
+  //
+  // El nombre escrito se normaliza antes de buscar —minúsculas, sin tildes, sin
+  // espacios ni guiones bajos—, así que {{Dirección}}, {{direccion}} y
+  // {{nombre paciente}} llegan al mismo sitio sin listar cada variante.
+  const ALIAS = {
+    paciente: 'patientName',
+    nombrepaciente: 'patientName',
+    nombredelpaciente: 'patientName',
+    clinica: 'clinicName',
+    nombreclinica: 'clinicName',
+    doctor: 'doctorName',
+    doctora: 'doctorName',
+    medico: 'doctorName',
+    fecha: 'appointmentDate',
+    dia: 'appointmentDate',
+    hora: 'appointmentTime',
+    direccion: 'clinicAddress',
+    mapa: 'mapLink',
+    enlacemapa: 'mapLink',
+    enlacedelmapa: 'mapLink',
+    linkmapa: 'mapLink',
+    ubicacion: 'mapLink',
+    confirmacion: 'confirmLink',
+    linkconfirmacion: 'confirmLink',
+    enlaceconfirmacion: 'confirmLink',
+    linkdeconfirmacion: 'confirmLink',
+  };
+
+  function normalizarClave(nombre) {
+    return String(nombre == null ? '' : nombre)
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[\s_-]/g, '');
+  }
+
+  /**
+   * Nombre en español (o en inglés, o mal escrito) → clave interna de `data`.
+   * Si no hay alias se devuelve tal cual: así los nombres viejos en inglés
+   * —que SON las claves— siguen funcionando sin listarlos.
+   * @param {string} nombre
+   * @returns {string}
+   */
+  function resolverClave(nombre) {
+    const crudo = String(nombre == null ? '' : nombre).trim();
+    return ALIAS[normalizarClave(crudo)] || crudo;
+  }
+
   /**
    * Replace {{placeholders}} in a template with values from data.
    * @param {string} template
@@ -63,8 +122,11 @@
    */
   function renderTemplate(template, data) {
     if (!template) return '';
-    return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (m, key) => {
-      return data[key] != null ? String(data[key]) : '';
+    // `[^{}]+` en vez de `\w+`: los nombres en español llevan tildes, y `\w` no
+    // las reconoce — {{dirección}} se quedaba escrito tal cual en el mensaje.
+    return template.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (m, nombre) => {
+      const clave = resolverClave(nombre);
+      return data[clave] != null ? String(data[clave]) : '';
     });
   }
 
@@ -132,6 +194,7 @@
     buildWaLink,
     formatAppointmentDateTime,
     renderTemplate,
+    resolverClave,
     buildReminderMessage,
     getReminderState,
     openWhatsApp,

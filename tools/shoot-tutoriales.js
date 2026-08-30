@@ -53,19 +53,19 @@ const ESCRIBIR = (id, texto) =>
             t.dispatchEvent(new Event('input', { bubbles: true })); })()`;
 
 const EJEMPLO_RECORDATORIO =
-  'Hola {{patientName}} \uD83D\uDC4B\n\n' +
-  'Le recordamos su cita en {{clinicName}} con {{doctorName}}.\n\n' +
-  '\uD83D\uDDD3\uFE0F {{appointmentDate}}\n' +
-  '\uD83D\uDD50 {{appointmentTime}}\n' +
-  '\uD83D\uDCCD {{clinicAddress}}\n\n' +
+  'Hola {{paciente}} \uD83D\uDC4B\n\n' +
+  'Le recordamos su cita en {{clinica}} con {{doctor}}.\n\n' +
+  '\uD83D\uDDD3\uFE0F {{fecha}}\n' +
+  '\uD83D\uDD50 {{hora}}\n' +
+  '\uD83D\uDCCD {{direccion}}\n\n' +
   'Si no puede asistir, avísenos por este mismo medio.';
 
 const EJEMPLO_CONFIRMACION =
-  'Hola {{patientName}} \uD83D\uDC4B\n\n' +
-  'Tiene cita en {{clinicName}} con {{doctorName}}:\n\n' +
-  '\uD83D\uDDD3\uFE0F {{appointmentDate}}\n' +
-  '\uD83D\uDD50 {{appointmentTime}}\n\n' +
-  '¿Nos confirma si podrá asistir? Solo toque aquí:\n{{confirmLink}}';
+  'Hola {{paciente}} \uD83D\uDC4B\n\n' +
+  'Tiene cita en {{clinica}} con {{doctor}}:\n\n' +
+  '\uD83D\uDDD3\uFE0F {{fecha}}\n' +
+  '\uD83D\uDD50 {{hora}}\n\n' +
+  '¿Nos confirma si podrá asistir? Solo toque aquí:\n{{confirmacion}}';
 
 /* ── Las tomas ───────────────────────────────────────────────────────────────
    id      → nombre del archivo y guía a la que pertenece

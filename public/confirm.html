@@ -461,7 +461,27 @@
   // Orden importante: primero se escapa la plantilla ENTERA y después se sustituyen
   // las variables por valores ya escapados. Al revés, un nombre con "<" acabaría
   // inyectando HTML en una página pública.
-  var CARD_MESSAGE_DEFAULT = 'Hola {{patientName}}, ¿podrás asistir a esta cita?';
+  var CARD_MESSAGE_DEFAULT = 'Hola {{paciente}}, ¿podrás asistir a esta cita?';
+
+  // Los nombres de los datos van en español ({{paciente}}, {{fecha}}…) y los
+  // viejos en inglés siguen valiendo. Esta página es pública y no carga
+  // whatsapp.js —que es quien tiene la tabla de nombres—, así que resuelve con
+  // la misma regla: minúsculas, sin tildes y sin espacios ni guiones bajos.
+  // Si se toca aquí, tocar también ALIAS en public/whatsapp.js.
+  var ALIAS = {
+    paciente: 'patientName', nombrepaciente: 'patientName', nombredelpaciente: 'patientName',
+    clinica: 'clinicName', nombreclinica: 'clinicName',
+    doctor: 'doctorName', doctora: 'doctorName', medico: 'doctorName',
+    fecha: 'appointmentDate', dia: 'appointmentDate',
+    hora: 'appointmentTime'
+  };
+
+  function claveDeDato(nombre){
+    var norm = String(nombre == null ? '' : nombre).toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[\s_-]/g, '');
+    return ALIAS[norm] || String(nombre || '').trim();
+  }
 
   function cardMessage(data){
     var f = fmtDateTime(data.scheduled_at);
@@ -473,7 +493,9 @@
       appointmentTime: f.time
     };
     var plantilla = esc(data.card_message || CARD_MESSAGE_DEFAULT);
-    return plantilla.replace(/\{\{\s*(\w+)\s*\}\}/g, function(m, clave){
+    // `[^{}]+` y no `\w+`: los nombres en español llevan tildes.
+    return plantilla.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, function(m, nombre){
+      var clave = claveDeDato(nombre);
       if (!(clave in valores)) return '';           // variable desconocida → fuera
       return '<b>' + esc(valores[clave]) + '</b>';
     });

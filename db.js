@@ -443,7 +443,9 @@ const initDb = async () => {
       'ALTER TABLE patients ADD COLUMN IF NOT EXISTS whatsapp_number TEXT DEFAULT \'\'',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_enabled BOOLEAN DEFAULT FALSE',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_number TEXT DEFAULT \'\'',
-      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_template TEXT DEFAULT \'Hola {{patientName}}, le recordamos su cita en {{clinicName}} el día {{appointmentDate}} a las {{appointmentTime}} con {{doctorName}}.\\n\\nPor favor confirme si podrá asistir. Gracias.\'',
+      `ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_template TEXT DEFAULT 'Hola {{paciente}}, le recordamos su cita en {{clinica}} el día {{fecha}} a las {{hora}} con {{doctor}}.
+
+Por favor confirme si podrá asistir. Gracias.'`,
       // WhatsApp por doctor. Las cuatro columnas de arriba siguen en clinics y
       // pasan a ser el valor de la casa: lo que ve un doctor que nunca ha tocado
       // su configuración, y lo que usa la clínica cuando el mensaje lo manda
@@ -525,7 +527,11 @@ const initDb = async () => {
       'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS is_sale BOOLEAN NOT NULL DEFAULT FALSE',
       'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS unit_sale_price NUMERIC',
       'ALTER TABLE inventory_movements ADD COLUMN IF NOT EXISTS unit_cost_at_sale NUMERIC',
-      'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_confirmation_template TEXT DEFAULT \'Hola {{patientName}}, le escribimos desde {{clinicName}} para confirmar su cita del {{appointmentDate}} a las {{appointmentTime}} con {{doctorName}}.\\n\\nPor favor confirme aquí: {{confirmLink}}\\n\\n¡Gracias!\'',
+      `ALTER TABLE clinics ADD COLUMN IF NOT EXISTS whatsapp_confirmation_template TEXT DEFAULT 'Hola {{paciente}}, le escribimos desde {{clinica}} para confirmar su cita del {{fecha}} a las {{hora}} con {{doctor}}.
+
+Por favor confirme aquí: {{confirmacion}}
+
+¡Gracias!'`,
       // 'patient_link' cuando el paciente responde desde el link público, 'manual'
       // cuando el staff marca la confirmación a mano. Usado por la campanita del doctor
       // para mostrar solo confirmaciones reales del paciente.
@@ -558,7 +564,7 @@ const initDb = async () => {
       // Texto que el paciente lee en la tarjeta de /confirmar/<token>, antes de
       // responder. Es una plantilla con las mismas {{variables}} que el mensaje de
       // WhatsApp; se edita en Confirmaciones › Configurar plantilla.
-      "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS confirmation_card_message TEXT DEFAULT 'Hola {{patientName}}, ¿podrás asistir a esta cita?'",
+      "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS confirmation_card_message TEXT DEFAULT 'Hola {{paciente}}, ¿podrás asistir a esta cita?'",
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS map_url TEXT DEFAULT ''",
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS location_notes TEXT DEFAULT ''",
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS location_source TEXT',
@@ -571,7 +577,53 @@ const initDb = async () => {
       // 'HN' las deja exactamente como estaban (currency ya era 'HNL'); dejar la
       // columna en NULL las habría dejado sin país y sin moneda derivable.
       "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS country TEXT DEFAULT 'HN'",
-      "UPDATE clinics SET country = 'HN' WHERE country IS NULL OR country = ''"
+      "UPDATE clinics SET country = 'HN' WHERE country IS NULL OR country = ''",
+      // ── Las plantillas de WhatsApp, en español ──
+      //
+      // Los nombres de los datos eran {{patientName}}, {{appointmentDate}}…: la
+      // plantilla la escribe un doctor en Honduras y esos nombres no le dicen
+      // nada. Ahora son {{paciente}}, {{fecha}}, {{hora}}… Los viejos siguen
+      // funcionando —public/whatsapp.js los traduce al renderizar—, así que
+      // ninguna clínica que ya escribió el suyo se queda sin mensaje.
+      //
+      // El ADD COLUMN de más arriba solo fija el DEFAULT cuando la columna NACE,
+      // y en las bases que ya existen la columna está: hace falta este ALTER
+      // explícito o cada clínica nueva seguiría estrenando su cuenta en inglés.
+      //
+      // De paso se arregla un texto roto: el default llevaba la barra escapada
+      // dos veces, así que lo guardado era la barra y la ene y el paciente
+      // recibía «Gracias.\n\nPor favor confirme». Ahora son saltos de verdad.
+      `ALTER TABLE clinics ALTER COLUMN whatsapp_template SET DEFAULT 'Hola {{paciente}}, le recordamos su cita en {{clinica}} el día {{fecha}} a las {{hora}} con {{doctor}}.
+
+Por favor confirme si podrá asistir. Gracias.'`,
+      `ALTER TABLE clinics ALTER COLUMN whatsapp_confirmation_template SET DEFAULT 'Hola {{paciente}}, le escribimos desde {{clinica}} para confirmar su cita del {{fecha}} a las {{hora}} con {{doctor}}.
+
+Por favor confirme aquí: {{confirmacion}}
+
+¡Gracias!'`,
+      `ALTER TABLE clinics ALTER COLUMN confirmation_card_message SET DEFAULT 'Hola {{paciente}}, ¿podrás asistir a esta cita?'`,
+      // Y las filas que siguen con el texto de fábrica: nadie las escribió a
+      // mano, así que traducirlas no le pisa el mensaje a nadie. El WHERE compara
+      // contra el literal viejo EXACTO — quien tocó su plantilla no coincide y se
+      // queda como está. users.* entra también: un doctor que abrió la ventana y
+      // guardó sin cambiar nada se llevó una copia del texto de la clínica.
+      `UPDATE clinics SET whatsapp_template = 'Hola {{paciente}}, le recordamos su cita en {{clinica}} el día {{fecha}} a las {{hora}} con {{doctor}}.
+
+Por favor confirme si podrá asistir. Gracias.' WHERE whatsapp_template = 'Hola {{patientName}}, le recordamos su cita en {{clinicName}} el día {{appointmentDate}} a las {{appointmentTime}} con {{doctorName}}.\\n\\nPor favor confirme si podrá asistir. Gracias.'`,
+      `UPDATE clinics SET whatsapp_confirmation_template = 'Hola {{paciente}}, le escribimos desde {{clinica}} para confirmar su cita del {{fecha}} a las {{hora}} con {{doctor}}.
+
+Por favor confirme aquí: {{confirmacion}}
+
+¡Gracias!' WHERE whatsapp_confirmation_template = 'Hola {{patientName}}, le escribimos desde {{clinicName}} para confirmar su cita del {{appointmentDate}} a las {{appointmentTime}} con {{doctorName}}.\\n\\nPor favor confirme aquí: {{confirmLink}}\\n\\n¡Gracias!'`,
+      `UPDATE clinics SET confirmation_card_message = 'Hola {{paciente}}, ¿podrás asistir a esta cita?' WHERE confirmation_card_message = 'Hola {{patientName}}, ¿podrás asistir a esta cita?'`,
+      `UPDATE users SET whatsapp_template = 'Hola {{paciente}}, le recordamos su cita en {{clinica}} el día {{fecha}} a las {{hora}} con {{doctor}}.
+
+Por favor confirme si podrá asistir. Gracias.' WHERE whatsapp_template = 'Hola {{patientName}}, le recordamos su cita en {{clinicName}} el día {{appointmentDate}} a las {{appointmentTime}} con {{doctorName}}.\\n\\nPor favor confirme si podrá asistir. Gracias.'`,
+      `UPDATE users SET whatsapp_confirmation_template = 'Hola {{paciente}}, le escribimos desde {{clinica}} para confirmar su cita del {{fecha}} a las {{hora}} con {{doctor}}.
+
+Por favor confirme aquí: {{confirmacion}}
+
+¡Gracias!' WHERE whatsapp_confirmation_template = 'Hola {{patientName}}, le escribimos desde {{clinicName}} para confirmar su cita del {{appointmentDate}} a las {{appointmentTime}} con {{doctorName}}.\\n\\nPor favor confirme aquí: {{confirmLink}}\\n\\n¡Gracias!'`
     ];
 
     // Leads (formulario de contacto público de la landing). Se modelan como tabla aparte

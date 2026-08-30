@@ -665,7 +665,7 @@
 
     /* Chips para insertar variables en la plantilla.
        El médico toca un dato y se inserta donde está el cursor: nunca
-       tiene que escribir {{patientName}} a mano. */
+       tiene que escribir {{paciente}} a mano. */
     .var-chips{
       display:flex; flex-wrap:wrap; gap:6px; align-items:center;
       margin:2px 0 4px;
@@ -1371,14 +1371,14 @@
               ¿Cómo funciona?
             </button>
           </div>
-          <button type="button" class="var-chip" data-var="patientName"><span class="plus">+</span>Nombre del paciente</button>
-          <button type="button" class="var-chip" data-var="clinicName"><span class="plus">+</span>Clínica</button>
-          <button type="button" class="var-chip" data-var="doctorName"><span class="plus">+</span>Doctor</button>
-          <button type="button" class="var-chip" data-var="appointmentDate"><span class="plus">+</span>Fecha</button>
-          <button type="button" class="var-chip" data-var="appointmentTime"><span class="plus">+</span>Hora</button>
-          <button type="button" class="var-chip" data-var="clinicAddress"><span class="plus">+</span>Dirección</button>
-          <button type="button" class="var-chip featured" data-var="confirmLink"><span class="plus">+</span>Link de confirmación</button>
-          <button type="button" class="var-chip featured" data-var="mapLink"><span class="plus">+</span>Enlace del mapa</button>
+          <button type="button" class="var-chip" data-var="paciente"><span class="plus">+</span>Nombre del paciente</button>
+          <button type="button" class="var-chip" data-var="clinica"><span class="plus">+</span>Clínica</button>
+          <button type="button" class="var-chip" data-var="doctor"><span class="plus">+</span>Doctor</button>
+          <button type="button" class="var-chip" data-var="fecha"><span class="plus">+</span>Fecha</button>
+          <button type="button" class="var-chip" data-var="hora"><span class="plus">+</span>Hora</button>
+          <button type="button" class="var-chip" data-var="direccion"><span class="plus">+</span>Dirección</button>
+          <button type="button" class="var-chip featured" data-var="confirmacion"><span class="plus">+</span>Link de confirmación</button>
+          <button type="button" class="var-chip featured" data-var="mapa"><span class="plus">+</span>Enlace del mapa</button>
         </div>
         <textarea id="waTemplate" placeholder="Escribe el mensaje y toca los datos de arriba para añadirlos…"></textarea>
         <small>El <b>Link de confirmación</b> es único por cita: cuando el paciente lo toca, su cita queda confirmada automáticamente.</small>
@@ -1423,13 +1423,13 @@
               ¿Cómo funciona?
             </button>
           </div>
-          <button type="button" class="var-chip" data-var="patientName"><span class="plus">+</span>Nombre del paciente</button>
-          <button type="button" class="var-chip" data-var="clinicName"><span class="plus">+</span>Clínica</button>
-          <button type="button" class="var-chip" data-var="doctorName"><span class="plus">+</span>Doctor</button>
-          <button type="button" class="var-chip" data-var="appointmentDate"><span class="plus">+</span>Fecha</button>
-          <button type="button" class="var-chip" data-var="appointmentTime"><span class="plus">+</span>Hora</button>
+          <button type="button" class="var-chip" data-var="paciente"><span class="plus">+</span>Nombre del paciente</button>
+          <button type="button" class="var-chip" data-var="clinica"><span class="plus">+</span>Clínica</button>
+          <button type="button" class="var-chip" data-var="doctor"><span class="plus">+</span>Doctor</button>
+          <button type="button" class="var-chip" data-var="fecha"><span class="plus">+</span>Fecha</button>
+          <button type="button" class="var-chip" data-var="hora"><span class="plus">+</span>Hora</button>
         </div>
-        <textarea id="cardTemplate" placeholder="Hola {{patientName}}, ¿podrás asistir a esta cita?"></textarea>
+        <textarea id="cardTemplate" placeholder="Hola {{paciente}}, ¿podrás asistir a esta cita?"></textarea>
         <small>La fecha, la hora, el doctor y la ubicación ya salen debajo en la propia tarjeta: aquí basta el saludo y lo que quieras pedirle al paciente.</small>
       </div>
 
@@ -1758,7 +1758,7 @@
     return `${location.protocol}//${location.host}/confirmar/${token}`;
   }
 
-  // Ubicación de la clínica (Configuración › Ubicación): alimenta {{mapLink}} en
+  // Ubicación de la clínica (Configuración › Ubicación): alimenta {{mapa}} en
   // la plantilla y el botón "Enviar ubicación" del drawer.
   function clinicLoc(){
     return SDLocation.from(Object.assign({ name: waConfig.name }, clinicLocation || {}));
@@ -2460,7 +2460,7 @@
   // ───────────── Mensaje de la tarjeta de confirmación ─────────────
   // Es lo que el paciente lee DENTRO de la página del link, no el WhatsApp que
   // la lleva. Mismos chips de variables, misma mecánica.
-  const CARD_MESSAGE_DEFAULT = 'Hola {{patientName}}, ¿podrás asistir a esta cita?';
+  const CARD_MESSAGE_DEFAULT = 'Hola {{paciente}}, ¿podrás asistir a esta cita?';
 
   function openCardModal(){
     document.getElementById('cardTemplate').value =
@@ -2483,8 +2483,14 @@
     // Mismo orden que confirm.html: se escapa la plantilla entera y DESPUÉS se
     // sustituyen las variables, para que la previa no pinte HTML que la página
     // real sí escaparía (y para no abrir un XSS en esta pantalla).
-    const html = esc(tpl).replace(/\{\{\s*(\w+)\s*\}\}/g, (m, k) =>
-      k in datos ? `<b>${esc(datos[k])}</b>` : '');
+    //
+    // No se puede usar WhatsApp.renderTemplate —esa no escapa— pero sí su tabla
+    // de nombres: aquí llegan {{paciente}} y {{patientName}}, y sin traducir
+    // ninguno de los dos se veía como texto en blanco.
+    const html = esc(tpl).replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (m, nombre) => {
+      const k = WhatsApp.resolverClave(nombre);
+      return k in datos ? `<b>${esc(datos[k])}</b>` : '';
+    });
 
     document.getElementById('cardPreviewClinic').textContent = datos.clinicName;
     document.getElementById('cardPreviewMsg').innerHTML =
