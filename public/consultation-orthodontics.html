@@ -922,6 +922,7 @@
 <script src="/monedas.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
+<script src="/consent-photo.js"></script>
 <!-- Inventario desactivado — para reactivar, descomentar esta línea:
 <script src="/consultation-inventory.js"></script>
 -->
@@ -1682,6 +1683,7 @@ async function confirmSignature() {
     });
 
     currentConsentId = consentRes.id;
+    if (window.ConsentPhoto) ConsentPhoto.setConsentId(consentRes.id);
     currentSignatureData = imageData;
 
     const indicator = document.getElementById('consSignedIndicator');
@@ -1777,6 +1779,11 @@ async function loadConsultationView() {
     }
 
     patientId = consultation.patient_id;
+
+    // Consentimiento guardado (firma en pantalla o foto del papel): se pinta en
+    // modo lectura dentro de su sección — ver public/consent-photo.js.
+    if (consultation.consent_id && window.ConsentPhoto) ConsentPhoto.showSaved(consultation.consent_id);
+
     document.getElementById('patientName').textContent = consultation.patient_name || 'Paciente';
 
     // Hábitos
@@ -1874,6 +1881,18 @@ Promise.allSettled([
 setTimeout(() => {
   updateConsentInfo();
 }, 500);
+
+// ── Consentimiento firmado en papel ──
+// El bloque de subida se inyecta dentro de la misma sección de consentimiento
+// (public/consent-photo.js). Aquí solo se le dice cómo leer y escribir el estado
+// de esta pantalla, que vive en variables locales del módulo.
+if (window.ConsentPhoto) {
+  ConsentPhoto.init({
+    getPatientId: () => patientId,
+    getConsentId: () => currentConsentId,
+    onConsent: (id) => { currentConsentId = id; }
+  });
+}
 </script>
 </body>
 </html>

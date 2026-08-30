@@ -1375,6 +1375,7 @@
 <script src="/monedas.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
+<script src="/consent-photo.js"></script>
 <!-- Inventario desactivado — para reactivar, descomentar esta línea:
 <script src="/consultation-inventory.js"></script>
 -->
@@ -1509,6 +1510,11 @@ async function loadConsultation() {
     }
 
     patientId = consultation.patient_id;
+
+    // Consentimiento guardado (firma en pantalla o foto del papel): se pinta en
+    // modo lectura dentro de su sección — ver public/consent-photo.js.
+    if (consultation.consent_id && window.ConsentPhoto) ConsentPhoto.showSaved(consultation.consent_id);
+
     document.getElementById('patientName').textContent = consultation.patient_name || 'Paciente';
 
     // Parse radiography_notes

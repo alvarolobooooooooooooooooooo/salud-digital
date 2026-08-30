@@ -509,6 +509,7 @@ app.use('/api/auth/2fa', limites.credenciales);
 app.use('/api/media', limites.conversionHeic);
 app.use('/api/messaging/upload', limites.subidas);
 app.use('/api/consultations/:id/images', limites.subidas);
+app.use('/api/consents/paper', limites.subidas);
 app.use('/api/users/me/photo', limites.subidas);
 app.use('/api/clinics/me/logo', limites.subidas);
 app.use('/api/clinics/me/landing/image', limites.subidas);

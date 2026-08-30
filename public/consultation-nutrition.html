@@ -458,6 +458,7 @@
 <script src="/monedas.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
+<script src="/consent-photo.js"></script>
 <!-- Inventario desactivado — para reactivar, descomentar esta línea:
 <script src="/consultation-inventory.js"></script>
 -->
@@ -677,6 +678,7 @@
         body: { signature_data: imageData, status: 'signed', signed_by: me.name }
       });
       currentConsentId = cRes.id;
+      if (window.ConsentPhoto) ConsentPhoto.setConsentId(cRes.id);
       document.getElementById('consSignedIndicator').classList.add('show');
       closeSignatureModal();
     } catch (e) {
@@ -819,6 +821,18 @@
       ConsultationDraft.maybeRestore();
     }
   });
+
+  // ── Consentimiento firmado en papel ──
+  // El bloque de subida se inyecta dentro de la misma sección de consentimiento
+  // (public/consent-photo.js). Aquí solo se le dice cómo leer y escribir el
+  // estado de esta pantalla.
+  if (window.ConsentPhoto) {
+    ConsentPhoto.init({
+      getPatientId: () => STATE.patientId,
+      getConsentId: () => currentConsentId,
+      onConsent: (id) => { currentConsentId = id; }
+    });
+  }
 </script>
 
 </body>

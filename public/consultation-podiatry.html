@@ -2251,6 +2251,7 @@
 <script src="/monedas.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
+<script src="/consent-photo.js"></script>
 <!-- Inventario desactivado — para reactivar, descomentar esta línea:
 <script src="/consultation-inventory.js"></script>
 -->
@@ -3204,6 +3205,7 @@ async function confirmSignature() {
     });
 
     currentConsentId = consentRes.id;
+    if (window.ConsentPhoto) ConsentPhoto.setConsentId(consentRes.id);
     currentSignatureData = imageData;
 
     const indicator = document.getElementById('consSignedIndicator');
@@ -3296,6 +3298,18 @@ setTimeout(hidePageLoading, 60000);
 setTimeout(() => {
   updateConsentInfo();
 }, 500);
+
+// ── Consentimiento firmado en papel ──
+// El bloque de subida se inyecta dentro de la misma sección de consentimiento
+// (public/consent-photo.js). Aquí solo se le dice cómo leer y escribir el estado
+// de esta pantalla, que vive en variables locales del módulo.
+if (window.ConsentPhoto) {
+  ConsentPhoto.init({
+    getPatientId: () => patientId,
+    getConsentId: () => currentConsentId,
+    onConsent: (id) => { currentConsentId = id; }
+  });
+}
 </script>
 </body>
 </html>

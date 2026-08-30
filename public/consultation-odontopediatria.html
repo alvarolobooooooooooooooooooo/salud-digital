@@ -305,6 +305,7 @@
 <script src="/common.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
+<script src="/consent-photo.js"></script>
 
 <!-- General odontogram component (reused as-is) + pediatric (mixed-dentition) tooth data -->
 <script src="/odontogram.types.js"></script>
@@ -765,8 +766,24 @@ function FirmaPad({ value, onChange, readOnly }) {
     </div>
   );
 }
-function SecConsentimiento({ form, set, readOnly }) {
+function SecConsentimiento({ form, set, readOnly, ctx }) {
   const hoy = new Date().toLocaleDateString("es-HN", { day: "numeric", month: "long", year: "numeric" });
+  // Consentimiento firmado en papel. El bloque lo pinta consent-photo.js dentro
+  // de #cpfHost: ese div se declara SIN hijos en JSX, así que React nunca toca
+  // lo que hay dentro y el bloque sobrevive a los re-render del formulario.
+  React.useEffect(() => {
+    if (!window.ConsentPhoto) return;
+    if (readOnly) {
+      if (form.consent_id) ConsentPhoto.showSaved(form.consent_id, { host: "#cpfHost" });
+      return;
+    }
+    ConsentPhoto.init({
+      host: "#cpfHost",
+      getPatientId: () => ctx && ctx.patientId,
+      getConsentId: () => form.consent_id || null,
+      onConsent: (id) => set("consent_id", id),
+    });
+  }, [readOnly, form.consent_id]);
   return (
     <div>
       <div className="hc-consent-text">
@@ -786,6 +803,7 @@ function SecConsentimiento({ form, set, readOnly }) {
           <Field label="Profesional responsable"><TextInput value={form.consent_prof} onChange={(v) => set("consent_prof", v)} /></Field>
         </div>
       </G>
+      <div id="cpfHost"></div>
     </div>
   );
 }
@@ -920,7 +938,7 @@ function App({ ctx }) {
         cost: 0,
         payment_status: "pending",
         payment_notes: "",
-        consent_id: null,
+        consent_id: form.consent_id || null,
         lifestyle: {},
         procedures: planText || null,
         radiography_notes: null,
@@ -952,7 +970,7 @@ function App({ ctx }) {
     plan: <SecPlan form={form} set={set} />,
     indices: <SecIndices form={form} set={set} idx={idx} />,
     evolucion: <SecEvolucion form={form} set={set} profName={ctx.meName} />,
-    consentimiento: <SecConsentimiento form={form} set={set} readOnly={readOnly} />,
+    consentimiento: <SecConsentimiento form={form} set={set} readOnly={readOnly} ctx={ctx} />,
   };
 
   return (

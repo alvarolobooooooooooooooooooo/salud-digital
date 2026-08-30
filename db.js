@@ -156,7 +156,9 @@ const initDb = async () => {
       CREATE TABLE IF NOT EXISTS patient_consents (
         id SERIAL PRIMARY KEY,
         patient_id INTEGER NOT NULL,
-        template_id INTEGER NOT NULL,
+        -- Opcional: un consentimiento firmado en papel puede no tener plantilla
+        -- cargada en la app (ver document_url en los ALTER de más abajo).
+        template_id INTEGER,
         clinic_id INTEGER NOT NULL,
         signed_by TEXT DEFAULT '',
         signature_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -458,6 +460,21 @@ const initDb = async () => {
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS payment_notes TEXT DEFAULT \'\'',
       'ALTER TABLE consultations ADD COLUMN IF NOT EXISTS consent_id INTEGER',
       'ALTER TABLE patient_consents ADD COLUMN IF NOT EXISTS signature_data TEXT',
+      // ── Consentimiento firmado en papel ──
+      // Clínicas que siguen firmando en hoja: se guarda la foto/escaneo del
+      // documento firmado junto al consentimiento del paciente. document_public_id
+      // es el identificador de Cloudinary, guardado tal cual lo devuelve la subida:
+      // reconstruirlo a partir de la URL (como hace consultation_images) falla en
+      // cuanto la carpeta o la extensión cambian, y aquí borrar el archivo
+      // equivocado sería borrar un documento legal.
+      'ALTER TABLE patient_consents ADD COLUMN IF NOT EXISTS document_url TEXT',
+      'ALTER TABLE patient_consents ADD COLUMN IF NOT EXISTS document_name TEXT',
+      'ALTER TABLE patient_consents ADD COLUMN IF NOT EXISTS document_public_id TEXT',
+      'ALTER TABLE patient_consents ADD COLUMN IF NOT EXISTS document_uploaded_at TIMESTAMP',
+      // Una clínica de papel no tiene la plantilla cargada en la app: el
+      // consentimiento existe igual, con la foto como prueba. Por eso template_id
+      // deja de ser obligatoria (los JOIN de routes/consents.js son LEFT).
+      'ALTER TABLE patient_consents ALTER COLUMN template_id DROP NOT NULL',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS plan_type TEXT DEFAULT \'professional\'',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS plan_status TEXT DEFAULT \'active\'',
       'ALTER TABLE clinics ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMP',

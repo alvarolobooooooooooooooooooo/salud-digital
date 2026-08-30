@@ -639,6 +639,13 @@
     <div id="inventoryUsageSection"></div>
     -->
 
+    <!-- Consentimiento Informado (solo lectura) —
+         la pinta public/consent-photo.js cuando la consulta tiene consent_id. -->
+    <div class="form-section" data-icon="signature" id="consentSection" style="display:none;">
+      <h3>Consentimiento Informado</h3>
+      <div id="consConsentInfo" style="display:none;"></div>
+    </div>
+
     <!-- ─── Sección 5: Pago ─── -->
     <div class="pod-group is-collapsed" data-group-idx="4">
       <div class="pod-group-num">5</div>
@@ -684,6 +691,7 @@
 <script src="/monedas.js"></script>
 <script src="/icons.js"></script>
 <script src="/layout.js"></script>
+<script src="/consent-photo.js"></script>
 <!-- Inventario desactivado — para reactivar, descomentar esta línea:
 <script src="/consultation-inventory.js"></script>
 -->
@@ -741,6 +749,12 @@ async function loadConsultation() {
     }
 
     document.getElementById('patientName').textContent = consultation.patient_name || 'Paciente';
+
+    // Consentimiento guardado (firma en pantalla o foto del papel): lo pinta
+    // public/consent-photo.js dentro de #consentSection.
+    if (consultation.consent_id && window.ConsentPhoto) {
+      ConsentPhoto.showSaved(consultation.consent_id);
+    }
 
     // Load lifestyle habits
     if (consultation.lifestyle) {
