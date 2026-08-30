@@ -481,6 +481,61 @@ router.get('/clinics-report', async (req, res) => {
 });
 
 // ══════════════════════════════════════════════════════════════════
+//  Doctores: cuántos pacientes lleva cada uno
+// ══════════════════════════════════════════════════════════════════
+//
+// La columna "pacientes" es EL MISMO número que el doctor ve en su Inicio, y
+// eso es deliberado: si el panel contara con otra regla, el operador y el
+// doctor estarían mirando dos cifras distintas del mismo dato y ninguna sería
+// discutible. La regla la define routes/patients.js (consultaListado) y dice:
+//
+//     es mío si lo di de alta yo, o si tiene (o tuvo) una cita conmigo.
+//
+// La segunda mitad no sobra: en las clínicas con recepción, quien da de alta al
+// paciente es la recepcionista, así que contar solo `created_by` dejaría a esos
+// doctores en cero teniendo agenda llena. Por eso van las dos columnas: la de
+// arriba es "cuántos lleva", `pacientes_alta` es "cuántos registró esa cuenta".
+//
+// Consecuencia que la pantalla tiene que decir: un paciente atendido por dos
+// doctores cuenta en los dos, así que la suma de la columna puede pasarse del
+// total de la plataforma. No es un error de conteo — la columna responde
+// "cuántos lleva este doctor", no "cómo se reparten los pacientes".
+//
+// Y sigue sin salir un solo dato de paciente: todo son recuentos.
+
+router.get('/doctors-report', async (req, res) => {
+  const r = await query(`
+    SELECT u.id,
+           COALESCE(NULLIF(u.name, ''), u.email)   AS nombre,
+           u.email,
+           COALESCE(u.specialty, '')               AS especialidad,
+           u.clinic_id,
+           COALESCE(c.name, '')                    AS clinica,
+           u.approval_status,
+           u.created_at                            AS alta,
+           (SELECT COUNT(*)::int FROM patients p
+             WHERE p.clinic_id = u.clinic_id
+               AND (p.created_by = u.id
+                    OR EXISTS (SELECT 1 FROM appointments a
+                                WHERE a.patient_id = p.id
+                                  AND a.doctor_id = u.id
+                                  AND a.clinic_id = u.clinic_id)))            AS pacientes,
+           (SELECT COUNT(*)::int FROM patients p
+             WHERE p.clinic_id = u.clinic_id AND p.created_by = u.id)         AS pacientes_alta,
+           (SELECT COUNT(*)::int FROM consultations k WHERE k.doctor_id = u.id) AS consultas,
+           (SELECT COUNT(*)::int FROM consultations k
+             WHERE k.doctor_id = u.id
+               AND k.created_at >= NOW() - INTERVAL '30 days')                AS consultas_30,
+           (SELECT MAX(k.created_at) FROM consultations k WHERE k.doctor_id = u.id) AS ultima_consulta
+      FROM users u
+      LEFT JOIN clinics c ON c.id = u.clinic_id
+     WHERE u.role = 'doctor'
+     ORDER BY pacientes DESC, consultas_30 DESC, nombre ASC
+  `);
+  res.json(r.rows);
+});
+
+// ══════════════════════════════════════════════════════════════════
 //  Bitácora de actividad
 // ══════════════════════════════════════════════════════════════════
 //

@@ -394,6 +394,54 @@
       .ad-reqs { grid-template-columns: 1fr; }
       #adToasts { left: 1rem; right: 1rem; align-items: stretch; }
       .ad-toast { max-width: none; }
+
+      /* ── Doctores en el teléfono ──
+         La cifra que uno viene a buscar aquí —cuántos pacientes lleva cada
+         doctor— quedaba en la cuarta columna, o sea detrás de un scroll
+         lateral: en un móvil la tabla solo enseñaba nombre y correo. Cada fila
+         pasa a ser una ficha con el número al frente.
+         Va acotado a #adDoctores a propósito: la tabla de Clínicas tiene otras
+         columnas y sigue con su scroll. */
+      #adDoctores .ad-table { min-width: 0; display: block; }
+      #adDoctores .ad-table thead { display: none; }
+      #adDoctores .ad-table tbody { display: block; }
+      #adDoctores .ad-table tr {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: .9rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--ad-b);
+      }
+      #adDoctores .ad-table tbody tr:last-child { border-bottom: 0; }
+      #adDoctores .ad-table td { display: block; padding: 0; border: 0; text-align: left; }
+      #adDoctores .ad-table td.ad-c-doc { grid-column: 1; grid-row: 1; min-width: 0; }
+      #adDoctores .ad-table td.ad-c-cuenta { grid-column: 2; grid-row: 1; text-align: right; }
+      #adDoctores .ad-table td.ad-c-clinica { grid-column: 1 / -1; grid-row: 2; margin-top: .5rem; }
+      #adDoctores .ad-table td.ad-c-pac { grid-column: 1; grid-row: 3; }
+      #adDoctores .ad-table td.ad-c-cons { grid-column: 2; grid-row: 3; }
+      #adDoctores .ad-table td.ad-c-ultima { grid-column: 1 / -1; grid-row: 4; margin-top: .55rem; }
+      /* El nombre del encabezado se pierde al ocultar el thead: cada número se
+         trae el suyo. */
+      #adDoctores .ad-table td.ad-c-pac::before,
+      #adDoctores .ad-table td.ad-c-cons::before,
+      #adDoctores .ad-table td.ad-c-ultima::before {
+        content: attr(data-l);
+        display: block;
+        font-size: 10.5px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--ad-t-3);
+        font-weight: 600;
+        margin-bottom: .1rem;
+      }
+      #adDoctores .ad-table td.ad-c-pac,
+      #adDoctores .ad-table td.ad-c-cons { margin-top: .75rem; font-size: 22px; line-height: 1.1; }
+      #adDoctores .ad-table td.ad-c-ultima { font-size: 13px; }
+      #adDoctores .ad-table td.ad-c-pac .ad-cell-sub,
+      #adDoctores .ad-table td.ad-c-cons .ad-cell-sub { margin-top: .25rem; }
+      #adDoctores .ad-table td.ad-c-doc .ad-cell-sub {
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
     }
   </style>
 </head>
@@ -432,6 +480,7 @@
           Suscripciones <span class="ad-count ad-count--zero" id="adCountSubs">0</span>
         </button>
         <button class="ad-tab" role="tab" data-tab="clinicas" aria-selected="false">Clínicas</button>
+        <button class="ad-tab" role="tab" data-tab="doctores" aria-selected="false">Doctores</button>
         <button class="ad-tab" role="tab" data-tab="actividad" aria-selected="false">Actividad</button>
         <button class="ad-tab" role="tab" data-tab="visitas" aria-selected="false">Visitas</button>
         <button class="ad-tab" role="tab" data-tab="legal" aria-selected="false">Legal</button>
@@ -546,6 +595,23 @@
             </div>
           </div>
           <div class="ad-card-body ad-card-body--flush" id="adClinicas"></div>
+        </div>
+      </div>
+
+      <!-- ══ Doctores ══ -->
+      <div class="ad-panel" data-panel="doctores">
+        <div class="ad-card">
+          <div class="ad-card-head">
+            <div>
+              <h2 class="ad-card-h">Doctores de la plataforma</h2>
+              <p class="ad-card-note" id="adDoctoresNota">Cuántos pacientes lleva cada uno. Solo recuentos: no se muestra ningún dato de pacientes.</p>
+            </div>
+            <div class="ad-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input type="search" class="ad-search-in" id="adBuscarDoc" placeholder="Buscar doctor, clínica o especialidad…" autocomplete="off">
+            </div>
+          </div>
+          <div class="ad-card-body ad-card-body--flush" id="adDoctores"></div>
         </div>
       </div>
 
@@ -793,7 +859,9 @@
       diasVisitas: 30,
       clinicaActividad: '',
       busqueda: '',
+      busquedaDoc: '',
       clinicas: [],
+      doctores: [],
       rechazando: null,
       invitandoClinica: null,
       subs: null,
@@ -898,6 +966,7 @@
       if (tab === 'solicitudes') cargarSolicitudes();
       if (tab === 'suscripciones') cargarSuscripciones();
       if (tab === 'clinicas') cargarClinicas();
+      if (tab === 'doctores') cargarDoctores();
       if (tab === 'actividad') cargarActividad();
       if (tab === 'visitas') cargarVisitas();
       if (tab === 'legal' && typeof window.cargarLegal === 'function') window.cargarLegal();
@@ -1440,6 +1509,79 @@
         '</tbody></table></div>';
     }
 
+    // ══════════════ Doctores ══════════════
+    //
+    // La columna "Pacientes" es la misma cifra que el doctor ve en su propio
+    // Inicio (la calcula /api/admin/doctors-report con la regla de
+    // routes/patients.js). Por eso la nota del pie dice que la suma puede
+    // pasarse del total de la plataforma: un paciente atendido por dos doctores
+    // cuenta en los dos, y esconder ese detalle haría que el número pareciera
+    // mal sumado.
+
+    $('adBuscarDoc').addEventListener('input', function () {
+      estado.busquedaDoc = this.value.trim().toLowerCase();
+      pintarDoctores();
+    });
+
+    async function cargarDoctores() {
+      if (!estado.doctores.length) $('adDoctores').innerHTML = cargando();
+      try {
+        if (!estado.doctores.length) estado.doctores = await api('/api/admin/doctors-report');
+        pintarDoctores();
+      } catch (e) {
+        $('adDoctores').innerHTML = vacio('No se pudieron cargar los doctores', e.message || '');
+      }
+    }
+
+    function pillCuenta(estadoCuenta) {
+      if (estadoCuenta === 'approved') return '<span class="ad-pill ad-pill--ok">Activa</span>';
+      if (estadoCuenta === 'pending') return '<span class="ad-pill ad-pill--wait">En espera</span>';
+      if (estadoCuenta === 'rejected') return '<span class="ad-pill ad-pill--bad">Rechazada</span>';
+      return '<span class="ad-pill ad-pill--mute">—</span>';
+    }
+
+    function pintarDoctores() {
+      var q = estado.busquedaDoc;
+      var filas = estado.doctores.filter(function (d) {
+        if (!q) return true;
+        return (d.nombre + ' ' + d.email + ' ' + (d.clinica || '') + ' ' + (d.especialidad || ''))
+          .toLowerCase().indexOf(q) !== -1;
+      });
+
+      if (!filas.length) {
+        $('adDoctores').innerHTML = vacio(
+          q ? 'Ningún doctor coincide' : 'Todavía no hay doctores',
+          q ? 'Prueba con otro nombre, clínica o especialidad.' : 'Aparecerán aquí en cuanto se registre el primero.');
+        return;
+      }
+
+      var conPacientes = filas.filter(function (d) { return d.pacientes > 0; }).length;
+      $('adDoctoresNota').textContent =
+        num(filas.length) + ' doctores · ' + num(conPacientes) + ' con pacientes registrados. ' +
+        'Un paciente atendido por dos doctores cuenta en ambos, así que la suma puede pasarse del total de la plataforma.';
+
+      $('adDoctores').innerHTML =
+        '<div class="ad-scroll"><table class="ad-table"><thead><tr>' +
+          '<th>Doctor</th><th>Clínica</th><th class="ad-num">Pacientes</th>' +
+          '<th class="ad-num">Consultas 30 d</th><th>Última consulta</th><th>Cuenta</th>' +
+        '</tr></thead><tbody>' +
+        filas.map(function (d) {
+          return '<tr>' +
+            '<td class="ad-c-doc"><div class="ad-cell-main">' + esc(d.nombre) + '</div>' +
+              '<div class="ad-cell-sub">' + esc(d.email) + '</div></td>' +
+            '<td class="ad-c-clinica"><div class="ad-cell-main">' + esc(d.clinica || 'Sin clínica') + '</div>' +
+              '<div class="ad-cell-sub">' + esc(d.especialidad || 'Sin especialidad') + '</div></td>' +
+            '<td class="ad-num ad-c-pac" data-l="Pacientes">' + num(d.pacientes) +
+              '<div class="ad-cell-sub">' + num(d.pacientes_alta) + ' los registró esta cuenta</div></td>' +
+            '<td class="ad-num ad-c-cons" data-l="Consultas 30 d">' + num(d.consultas_30) +
+              '<div class="ad-cell-sub">' + num(d.consultas) + ' total</div></td>' +
+            '<td class="ad-c-ultima" data-l="Última consulta">' + esc(cuando(d.ultima_consulta)) + '</td>' +
+            '<td class="ad-c-cuenta">' + pillCuenta(d.approval_status) + '</td>' +
+          '</tr>';
+        }).join('') +
+        '</tbody></table></div>';
+    }
+
     // ══════════════ Actividad ══════════════
 
     var EVENTOS = {
@@ -1688,12 +1830,14 @@
       var b = $('adRefresh');
       b.disabled = true;
       estado.clinicas = [];
+      estado.doctores = [];
       estado.subs = null;
       try {
         await cargarResumen();
         if (estado.tab === 'solicitudes') await cargarSolicitudes();
         if (estado.tab === 'suscripciones') await cargarSuscripciones();
         if (estado.tab === 'clinicas') await cargarClinicas();
+        if (estado.tab === 'doctores') await cargarDoctores();
         if (estado.tab === 'actividad') await cargarActividad();
         if (estado.tab === 'visitas') await cargarVisitas();
       } finally {
@@ -1701,7 +1845,7 @@
       }
     }
 
-    var VALIDAS = ['resumen', 'solicitudes', 'suscripciones', 'clinicas', 'actividad', 'visitas'];
+    var VALIDAS = ['resumen', 'solicitudes', 'suscripciones', 'clinicas', 'doctores', 'actividad', 'visitas'];
     var inicial = (location.hash || '').slice(1);
     cargarResumen();
     if (VALIDAS.indexOf(inicial) !== -1 && inicial !== 'resumen') irA(inicial);
