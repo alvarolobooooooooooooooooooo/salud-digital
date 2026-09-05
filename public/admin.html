@@ -244,6 +244,18 @@
     .ad-pill--bad { background-color: var(--ad-bad-soft); color: var(--ad-bad); }
     .ad-pill--mute { background-color: var(--ad-s-3); color: var(--ad-t-3); }
 
+    /* La clave se dicta en voz alta: grande, monoespaciada y seleccionable de
+       una pasada. Nada de puntos ni de ocultarla — el operador tiene que leerla. */
+    .ad-clave-caja {
+      margin-top: .4rem; padding: .85rem 1rem; border-radius: 10px;
+      background-color: var(--ad-s-2); border: 1px dashed var(--ad-b-2);
+      text-align: center; user-select: all;
+    }
+    .ad-clave-caja code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 1.15rem; font-weight: 600; letter-spacing: .04em; color: var(--ad-t);
+    }
+
     /* ── Cobros por atender ──
        Fila de aviso: el color lo pone el borde izquierdo, no el fondo, para que
        una lista de seis avisos no se convierta en una pared de color. */
@@ -481,6 +493,7 @@
         </button>
         <button class="ad-tab" role="tab" data-tab="clinicas" aria-selected="false">Clínicas</button>
         <button class="ad-tab" role="tab" data-tab="doctores" aria-selected="false">Doctores</button>
+        <button class="ad-tab" role="tab" data-tab="cuentas" aria-selected="false">Cuentas</button>
         <button class="ad-tab" role="tab" data-tab="actividad" aria-selected="false">Actividad</button>
         <button class="ad-tab" role="tab" data-tab="visitas" aria-selected="false">Visitas</button>
         <button class="ad-tab" role="tab" data-tab="legal" aria-selected="false">Legal</button>
@@ -612,6 +625,23 @@
             </div>
           </div>
           <div class="ad-card-body ad-card-body--flush" id="adDoctores"></div>
+        </div>
+      </div>
+
+      <!-- ══ Cuentas ══ -->
+      <div class="ad-panel" data-panel="cuentas">
+        <div class="ad-card">
+          <div class="ad-card-head">
+            <div>
+              <h2 class="ad-card-h">Cuentas de las clínicas</h2>
+              <p class="ad-card-note" id="adCuentasNota">Doctores, recepción y administración. Desde aquí se le pone una clave temporal a quien perdió la suya.</p>
+            </div>
+            <div class="ad-search">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input type="search" class="ad-search-in" id="adBuscarCuenta" placeholder="Buscar por nombre, correo o clínica…" autocomplete="off">
+            </div>
+          </div>
+          <div class="ad-card-body ad-card-body--flush" id="adCuentas"></div>
         </div>
       </div>
 
@@ -780,6 +810,40 @@
       </div>
     </div>
   </div>
+  <!-- ── Modal: clave temporal ──
+       Dos pasos en la misma caja: primero se elige la clave, después se enseña
+       para dictarla. La clave solo existe en esta respuesta: si se cierra sin
+       copiarla hay que poner otra. -->
+  <div class="ad-ov" id="adOvClave">
+    <div class="ad-modal">
+      <button class="ad-modal-x" onclick="cerrar('adOvClave')" aria-label="Cerrar">&times;</button>
+      <h2 class="ad-modal-h">Clave temporal</h2>
+      <div id="adClavePaso1">
+        <p class="ad-modal-lead" id="adClaveLead"></p>
+        <div class="ad-fields">
+          <div class="ad-field">
+            <label for="adClaveTexto">Clave temporal</label>
+            <input class="ad-in" type="text" id="adClaveTexto" autocomplete="off" spellcheck="false" placeholder="Déjalo vacío y la genero yo">
+          </div>
+        </div>
+        <p class="ad-card-note" style="margin-top:.9rem">Al ponerla se cierran todas sus sesiones abiertas y la cuenta no podrá guardar nada hasta que ella misma elija una contraseña nueva al entrar.</p>
+        <div class="ad-modal-foot">
+          <button class="ad-btn" onclick="cerrar('adOvClave')">Cancelar</button>
+          <button class="ad-btn ad-btn--primary" id="adBtnClave" onclick="confirmarClave()">Poner clave temporal</button>
+        </div>
+      </div>
+      <div id="adClavePaso2" style="display:none">
+        <p class="ad-modal-lead" id="adClaveHecho"></p>
+        <div class="ad-clave-caja"><code id="adClaveValor"></code></div>
+        <p class="ad-card-note" style="margin-top:.9rem">Cópiala ahora: no vuelve a mostrarse. Dictársela por teléfono o WhatsApp es suficiente — solo sirve hasta que entre y elija la suya.</p>
+        <div class="ad-modal-foot">
+          <button class="ad-btn" id="adBtnCopiarClave" onclick="copiarClave()">Copiar</button>
+          <button class="ad-btn ad-btn--primary" onclick="cerrar('adOvClave')">Listo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Modal: invitar dueño de clínica ── -->
   <div class="ad-ov" id="adOvDueno">
     <div class="ad-modal">
@@ -860,6 +924,10 @@
       clinicaActividad: '',
       busqueda: '',
       busquedaDoc: '',
+      busquedaCuenta: '',
+      cuentas: [],
+      claveUsuario: null,
+      claveGenerada: '',
       clinicas: [],
       doctores: [],
       rechazando: null,
@@ -967,6 +1035,7 @@
       if (tab === 'suscripciones') cargarSuscripciones();
       if (tab === 'clinicas') cargarClinicas();
       if (tab === 'doctores') cargarDoctores();
+      if (tab === 'cuentas') cargarCuentas();
       if (tab === 'actividad') cargarActividad();
       if (tab === 'visitas') cargarVisitas();
       if (tab === 'legal' && typeof window.cargarLegal === 'function') window.cargarLegal();
@@ -1580,6 +1649,141 @@
           '</tr>';
         }).join('') +
         '</tbody></table></div>';
+    }
+
+    // ══════════════ Cuentas ══════════════
+    //
+    // La única acción del panel que toca la contraseña de otra persona. Se pone
+    // aquí, y no en la pestaña de Doctores, porque quien pierde la clave puede
+    // ser igual de bien la recepcionista o la administradora de la clínica.
+
+    var ROL_ETIQUETA = {
+      doctor: 'Doctor',
+      clinic_admin: 'Administración',
+      receptionist: 'Recepción',
+    };
+
+    $('adBuscarCuenta').addEventListener('input', function () {
+      estado.busquedaCuenta = this.value.trim().toLowerCase();
+      pintarCuentas();
+    });
+
+    async function cargarCuentas(recargar) {
+      if (recargar) estado.cuentas = [];
+      if (!estado.cuentas.length) $('adCuentas').innerHTML = cargando();
+      try {
+        if (!estado.cuentas.length) estado.cuentas = await api('/api/admin/users');
+        pintarCuentas();
+      } catch (e) {
+        $('adCuentas').innerHTML = vacio('No se pudieron cargar las cuentas', e.message || '');
+      }
+    }
+
+    function pintarCuentas() {
+      var q = estado.busquedaCuenta;
+      var filas = estado.cuentas.filter(function (u) {
+        if (!q) return true;
+        return (u.nombre + ' ' + u.email + ' ' + (u.clinica || '') + ' ' + (ROL_ETIQUETA[u.role] || ''))
+          .toLowerCase().indexOf(q) !== -1;
+      });
+
+      if (!filas.length) {
+        $('adCuentas').innerHTML = vacio(
+          q ? 'Ninguna cuenta coincide' : 'Todavía no hay cuentas',
+          q ? 'Prueba con otro nombre, correo o clínica.' : 'Aparecerán aquí en cuanto se registre la primera.');
+        return;
+      }
+
+      var pendientes = filas.filter(function (u) { return u.clave_pendiente; }).length;
+      $('adCuentasNota').textContent =
+        num(filas.length) + ' cuentas de clínica' +
+        (pendientes ? ' · ' + num(pendientes) + ' con clave temporal sin cambiar' : '') +
+        '. Doctores, recepción y administración.';
+
+      $('adCuentas').innerHTML =
+        '<div class="ad-scroll"><table class="ad-table"><thead><tr>' +
+          '<th>Persona</th><th>Clínica</th><th>Rol</th><th>Acceso</th><th></th>' +
+        '</tr></thead><tbody>' +
+        filas.map(function (u) {
+          return '<tr>' +
+            '<td><div class="ad-cell-main">' + esc(u.nombre) + '</div>' +
+              '<div class="ad-cell-sub">' + esc(u.email) + '</div></td>' +
+            '<td data-l="Clínica"><div class="ad-cell-main">' + esc(u.clinica || 'Sin clínica') + '</div>' +
+              '<div class="ad-cell-sub">' + esc(u.titulo || u.especialidad || '—') + '</div></td>' +
+            '<td data-l="Rol">' + esc(ROL_ETIQUETA[u.role] || u.role) + '</td>' +
+            '<td data-l="Acceso">' +
+              (u.clave_pendiente
+                ? '<span class="ad-pill ad-pill--wait">Clave temporal</span>' +
+                  '<div class="ad-cell-sub">Puesta ' + esc(cuando(u.clave_puesta)) + '</div>'
+                : pillCuenta(u.approval_status) +
+                  '<div class="ad-cell-sub">' + num(u.sesiones) + ' sesión(es) abierta(s)</div>') +
+            '</td>' +
+            '<td style="text-align:right">' +
+              '<button class="ad-btn ad-btn--sm" onclick="abrirClave(' + u.id + ')">Clave temporal</button>' +
+            '</td>' +
+          '</tr>';
+        }).join('') +
+        '</tbody></table></div>';
+    }
+
+    function abrirClave(id) {
+      var u = estado.cuentas.find(function (x) { return x.id === id; });
+      if (!u) return;
+      estado.claveUsuario = id;
+      estado.claveGenerada = '';
+      $('adClaveTexto').value = '';
+      $('adClaveLead').textContent =
+        'Le pones una contraseña provisional a ' + u.nombre + ' (' + u.email + ')' +
+        (u.clinica ? ', de ' + u.clinica : '') + '. Escríbela tú o déjala vacía y la genero fácil de dictar.';
+      $('adClavePaso1').style.display = '';
+      $('adClavePaso2').style.display = 'none';
+      $('adBtnClave').disabled = false;
+      $('adBtnClave').textContent = 'Poner clave temporal';
+      abrir('adOvClave');
+      setTimeout(function () { $('adClaveTexto').focus(); }, 60);
+    }
+
+    async function confirmarClave() {
+      var b = $('adBtnClave');
+      b.disabled = true;
+      b.textContent = 'Poniendo…';
+      try {
+        var r = await api('/api/admin/users/' + estado.claveUsuario + '/temp-password', {
+          method: 'POST',
+          body: { password: $('adClaveTexto').value.trim() },
+        });
+        estado.claveGenerada = r.password;
+        $('adClaveValor').textContent = r.password;
+        $('adClaveHecho').textContent =
+          'Listo. ' + r.nombre + ' entra con esta clave y la app le pedirá cambiarla antes de dejarle guardar nada.' +
+          (r.sesiones_cerradas ? ' Se cerraron ' + r.sesiones_cerradas + ' sesión(es) que tenía abiertas.' : '');
+        $('adClavePaso1').style.display = 'none';
+        $('adClavePaso2').style.display = '';
+        $('adBtnCopiarClave').textContent = 'Copiar';
+        aviso('Clave temporal puesta');
+        cargarCuentas(true);
+      } catch (e) {
+        aviso(e.message || 'No se pudo poner la clave temporal', 'bad');
+        b.disabled = false;
+        b.textContent = 'Poner clave temporal';
+      }
+    }
+
+    function copiarClave() {
+      var texto = estado.claveGenerada;
+      if (!texto) return;
+      var hecho = function () { $('adBtnCopiarClave').textContent = 'Copiada'; };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(hecho, function () {});
+      } else {
+        // Sin API de portapapeles (http en red local, navegador viejo): se
+        // selecciona para que baste un Cmd/Ctrl+C.
+        var r = document.createRange();
+        r.selectNodeContents($('adClaveValor'));
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(r);
+      }
     }
 
     // ══════════════ Actividad ══════════════

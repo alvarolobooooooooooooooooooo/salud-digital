@@ -692,6 +692,10 @@
         // dispositivo) se note sin tener que cerrar sesión: si el código cambió,
         // SDMoneda dispara `sd:moneda` y las pantallas de dinero se repintan.
         if (window.SDMoneda && me.clinic_currency) window.SDMoneda.fijar(me.clinic_currency);
+        // Clave temporal puesta por el administrador: hay que cambiarla antes
+        // de poder trabajar. Se engancha al perfil que ya se pide aquí en vez
+        // de hacer una segunda petición en cada pantalla.
+        if (window.SDClaveTemporal) window.SDClaveTemporal.comprobar(me);
       }
     } catch (e) {
       console.error('Error loading user profile:', e);
@@ -755,8 +759,12 @@
     else if (user.role === 'clinic_admin') specialtyText = 'Administrador de clínica';
     else if (user.specialty) {
       specialtyText = user.specialty;
+      // La especialidad canónica se cachea SIEMPRE, aunque no se enseñe: de
+      // aquí sale el ruteo de expediente/consulta (ver clinical-record.html).
       localStorage.setItem('sd_user_specialty', user.specialty);
     }
+    // El título libre solo sustituye al texto visible, nunca a la especialidad.
+    if (user.display_title) specialtyText = user.display_title;
     specialtyEls.forEach(el => { if (el) el.textContent = specialtyText; });
   }
 
@@ -1844,4 +1852,177 @@
   var s = document.createElement('script');
   s.src = '/guia.js' + (v ? '?v=' + encodeURIComponent(v) : '');
   document.head.appendChild(s);
+})();
+
+// ── Clave temporal: cambio obligatorio al entrar ──
+//
+// Cuando el administrador de la plataforma le pone una clave temporal a alguien
+// (panel /admin.html → Cuentas), esa cuenta entra con una contraseña que otra
+// persona conoce y que probablemente se dictó por teléfono. El servidor ya no
+// deja guardar nada mientras siga puesta (middleware/password-change.js); esto
+// es la parte que se ve: una pantalla que aparece encima de todo nada más
+// entrar y que solo se quita cambiando la contraseña.
+//
+// No se puede cerrar: no hay botón de cerrar, ni Escape, ni clic fuera. La
+// única salida que no pasa por cambiarla es cerrar sesión, y está a la vista
+// para que nadie se sienta atrapado.
+//
+// Las clases llevan prefijo propio (sd-tmp-) y todo son <div>: theme-dark.css
+// pisa con !important nombres genéricos como .card o .modal y cualquier
+// <section>, así que un modal con esos nombres se ve roto en oscuro.
+(function () {
+  var ESTILOS_ID = 'sdClaveTemporalEstilos';
+  var CAJA_ID = 'sdClaveTemporalCaja';
+  var abierto = false;
+
+  function inyectarEstilos() {
+    if (document.getElementById(ESTILOS_ID)) return;
+    var s = document.createElement('style');
+    s.id = ESTILOS_ID;
+    s.textContent = [
+      '.sd-tmp-fondo{position:fixed;inset:0;z-index:12000;display:flex;align-items:center;',
+      'justify-content:center;padding:1.25rem;background:rgba(15,23,42,.55);',
+      '-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);overflow:auto}',
+      'html[data-theme="dark"] .sd-tmp-fondo{background:rgba(0,0,0,.7)}',
+      '.sd-tmp-caja{width:100%;max-width:420px;background:#fff;color:#0f172a;',
+      'border:1px solid #e2e8f0;border-radius:16px;padding:1.6rem;',
+      'box-shadow:0 24px 60px rgba(15,23,42,.24);font-size:.9rem}',
+      '.sd-tmp-caja .sd-tmp-t{margin:0 0 .45rem;font-size:1.08rem;font-weight:650;line-height:1.3}',
+      '.sd-tmp-caja .sd-tmp-p{margin:0 0 1.2rem;font-size:.85rem;line-height:1.55;color:#64748b}',
+      '.sd-tmp-campo{margin-bottom:.85rem}',
+      '.sd-tmp-campo label{display:block;margin-bottom:.3rem;font-size:.78rem;font-weight:600;color:#334155}',
+      '.sd-tmp-campo input{width:100%;box-sizing:border-box;padding:.6rem .75rem;border-radius:9px;',
+      'border:1px solid #e2e8f0;background:#fff;color:#0f172a;font:inherit;font-size:.88rem}',
+      '.sd-tmp-campo input:focus{outline:none;border-color:#0891b2;box-shadow:0 0 0 3px rgba(8,145,178,.15)}',
+      '.sd-tmp-pista{margin:.3rem 0 0;font-size:.74rem;color:#94a3b8;line-height:1.45}',
+      '.sd-tmp-error{margin:0 0 .9rem;padding:.55rem .7rem;border-radius:9px;font-size:.8rem;line-height:1.45;',
+      'background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}',
+      '.sd-tmp-pie{display:flex;gap:.6rem;align-items:center;justify-content:space-between;margin-top:1.1rem}',
+      '.sd-tmp-btn{padding:.6rem 1.1rem;border-radius:9px;border:1px solid #0891b2;background:#0891b2;',
+      'color:#fff;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}',
+      '.sd-tmp-btn:hover{background:#0e7490;border-color:#0e7490}',
+      '.sd-tmp-btn[disabled]{opacity:.6;cursor:default}',
+      '.sd-tmp-salir{background:none;border:0;padding:0;font:inherit;font-size:.8rem;color:#64748b;',
+      'cursor:pointer;text-decoration:underline}',
+      'html[data-theme="dark"] .sd-tmp-caja{background:#141416;color:#f1f5f9;',
+      'border-color:rgba(255,255,255,.09);box-shadow:0 24px 60px rgba(0,0,0,.55)}',
+      'html[data-theme="dark"] .sd-tmp-caja .sd-tmp-p{color:#94a3b8}',
+      'html[data-theme="dark"] .sd-tmp-campo label{color:#cbd5e1}',
+      'html[data-theme="dark"] .sd-tmp-campo input{background:#0f0f11;color:#f1f5f9;',
+      'border-color:rgba(255,255,255,.14)}',
+      'html[data-theme="dark"] .sd-tmp-error{background:rgba(185,28,28,.16);',
+      'border-color:rgba(248,113,113,.35);color:#fca5a5}',
+      'html[data-theme="dark"] .sd-tmp-btn{background:#06b6d4;border-color:#06b6d4;color:#04191e}',
+      'html[data-theme="dark"] .sd-tmp-btn:hover{background:#22d3ee;border-color:#22d3ee}',
+      'html[data-theme="dark"] .sd-tmp-salir{color:#94a3b8}'
+    ].join('');
+    document.head.appendChild(s);
+  }
+
+  function pintar() {
+    if (abierto || document.getElementById(CAJA_ID)) return;
+    abierto = true;
+    inyectarEstilos();
+
+    var fondo = document.createElement('div');
+    fondo.className = 'sd-tmp-fondo';
+    fondo.id = CAJA_ID;
+    fondo.setAttribute('role', 'dialog');
+    fondo.setAttribute('aria-modal', 'true');
+    fondo.innerHTML =
+      '<div class="sd-tmp-caja">' +
+        '<div class="sd-tmp-t">Cambia tu contraseña para continuar</div>' +
+        '<div class="sd-tmp-p">La que usaste para entrar es una clave temporal que te dio el ' +
+          'administrador. Elige una tuya: hasta entonces puedes mirar la plataforma, pero no ' +
+          'se guarda nada.</div>' +
+        '<div class="sd-tmp-error" id="sdTmpError" style="display:none"></div>' +
+        '<div class="sd-tmp-campo">' +
+          '<label for="sdTmpActual">Clave temporal</label>' +
+          '<input type="password" id="sdTmpActual" autocomplete="current-password">' +
+        '</div>' +
+        '<div class="sd-tmp-campo">' +
+          '<label for="sdTmpNueva">Contraseña nueva</label>' +
+          '<input type="password" id="sdTmpNueva" autocomplete="new-password">' +
+          '<div class="sd-tmp-pista">Mínimo 8 caracteres. No puede ser la misma que te dieron.</div>' +
+        '</div>' +
+        '<div class="sd-tmp-campo">' +
+          '<label for="sdTmpRepite">Repite la contraseña nueva</label>' +
+          '<input type="password" id="sdTmpRepite" autocomplete="new-password">' +
+        '</div>' +
+        '<div class="sd-tmp-pie">' +
+          '<button type="button" class="sd-tmp-salir" id="sdTmpSalir">Cerrar sesión</button>' +
+          '<button type="button" class="sd-tmp-btn" id="sdTmpGuardar">Guardar contraseña</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(fondo);
+    document.documentElement.style.overflow = 'hidden';
+
+    var error = document.getElementById('sdTmpError');
+    var actual = document.getElementById('sdTmpActual');
+    var nueva = document.getElementById('sdTmpNueva');
+    var repite = document.getElementById('sdTmpRepite');
+    var guardar = document.getElementById('sdTmpGuardar');
+
+    function fallo(texto) {
+      error.textContent = texto;
+      error.style.display = '';
+    }
+
+    function enviar() {
+      error.style.display = 'none';
+      if (!actual.value) return fallo('Escribe la clave temporal que te dieron.');
+      if (nueva.value.length < 8) return fallo('La contraseña nueva debe tener al menos 8 caracteres.');
+      if (nueva.value !== repite.value) return fallo('Las dos contraseñas nuevas no coinciden.');
+      if (nueva.value === actual.value) return fallo('Elige una contraseña distinta de la temporal.');
+
+      guardar.disabled = true;
+      guardar.textContent = 'Guardando…';
+      var cabeceras = { 'Content-Type': 'application/json' };
+      try {
+        var t = localStorage.getItem('sd_token');
+        if (t) cabeceras['Authorization'] = 'Bearer ' + t;
+      } catch (_) {}
+
+      fetch('/api/auth/change-password', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: cabeceras,
+        body: JSON.stringify({ current: actual.value, new_password: nueva.value })
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          if (!res.ok) {
+            guardar.disabled = false;
+            guardar.textContent = 'Guardar contraseña';
+            return fallo(res.d && res.d.error ? res.d.error : 'No se pudo cambiar la contraseña.');
+          }
+          // Recargar y no solo quitar el modal: la pantalla de debajo se cargó
+          // con las escrituras bloqueadas y hay listas y botones que se
+          // pintaron contando con eso.
+          try { localStorage.removeItem('sd_user_profile'); } catch (_) {}
+          window.location.reload();
+        })
+        .catch(function () {
+          guardar.disabled = false;
+          guardar.textContent = 'Guardar contraseña';
+          fallo('No hay conexión con el servidor. Intenta de nuevo.');
+        });
+    }
+
+    guardar.addEventListener('click', enviar);
+    [actual, nueva, repite].forEach(function (campo) {
+      campo.addEventListener('keydown', function (e) { if (e.key === 'Enter') enviar(); });
+    });
+    document.getElementById('sdTmpSalir').addEventListener('click', function () {
+      if (typeof window.logout === 'function') window.logout();
+      else window.location.href = '/login.html';
+    });
+    setTimeout(function () { actual.focus(); }, 60);
+  }
+
+  window.SDClaveTemporal = {
+    comprobar: function (perfil) {
+      if (perfil && perfil.must_change_password) pintar();
+    }
+  };
 })();

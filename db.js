@@ -495,6 +495,16 @@ Por favor confirme si podrá asistir. Gracias.'`,
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS license TEXT DEFAULT \'\'',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS experience INTEGER DEFAULT 0',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS shift TEXT DEFAULT \'\'',
+      // Título visible del profesional. Va aparte de specialty a propósito:
+      // specialty se compara con === para rutear consultas y expedientes
+      // («Podología», «Medicina General»…), así que no puede llevar el texto
+      // libre con el que la persona quiere presentarse.
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS display_title TEXT DEFAULT \'\'',
+      // Clave temporal puesta por el administrador: obliga a cambiarla en la
+      // primera pantalla después de entrar y bloquea las escrituras mientras
+      // siga en pie (ver middleware/password-change.js).
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT FALSE',
+      'ALTER TABLE users ADD COLUMN IF NOT EXISTS password_set_at TIMESTAMP',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS photo_url TEXT DEFAULT \'\'',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS languages TEXT DEFAULT \'[]\'',
       'ALTER TABLE users ADD COLUMN IF NOT EXISTS focus TEXT DEFAULT \'[]\'',

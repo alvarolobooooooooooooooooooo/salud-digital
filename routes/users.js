@@ -64,7 +64,7 @@ function parseJsonArray(text) {
 // GET /api/users/me — full profile for the currently authenticated user
 router.get('/me', authenticate, async (req, res) => {
   const result = await query(
-    `SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.specialty, u.phone,
+    `SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.specialty, u.display_title, u.phone,
             u.admin_role, u.location, u.bio, u.license, u.experience, u.shift,
             u.photo_url, u.languages, u.focus,
             c.name AS clinic_name
@@ -121,6 +121,9 @@ router.put('/me', authenticate, async (req, res) => {
     name: b.name !== undefined ? String(b.name).trim() : u.name,
     email: b.email !== undefined ? String(b.email).trim().toLowerCase() : u.email,
     specialty: b.specialty !== undefined ? normalizarEspecialidad(b.specialty) : u.specialty,
+    // Texto libre y solo cosmético: es lo que se lee bajo el nombre. La
+    // especialidad de arriba sigue siendo la canónica y la que rutea.
+    display_title: b.display_title !== undefined ? String(b.display_title || '').trim().slice(0, 80) : (u.display_title || ''),
     phone: b.phone !== undefined ? (b.phone || '') : u.phone,
     location: b.location !== undefined ? (b.location || '') : u.location,
     bio: b.bio !== undefined ? (b.bio || '') : u.bio,
@@ -136,12 +139,14 @@ router.put('/me', authenticate, async (req, res) => {
       `UPDATE users SET
          name = $1, email = $2, specialty = $3, phone = $4,
          location = $5, bio = $6, license = $7,
-         experience = $8, shift = $9, languages = $10, focus = $11
-       WHERE id = $12`,
+         experience = $8, shift = $9, languages = $10, focus = $11,
+         display_title = $12
+       WHERE id = $13`,
       [
         next.name, next.email, next.specialty, next.phone,
         next.location, next.bio, next.license,
         next.experience, next.shift, next.languages, next.focus,
+        next.display_title,
         req.user.id,
       ]
     );

@@ -19,6 +19,8 @@ const analytics = require('../lib/analytics');
 const mailer = require('../utils/mailer');
 const subscription = require('../lib/subscription');
 const subs = require('../lib/billing/subscription-service');
+const bcrypt = require('bcryptjs');
+const claveTemporal = require('../lib/clave-temporal');
 const { PaymentError } = require('../lib/payments/provider');
 
 // Un solo guardián para todo el router: ninguna ruta nueva puede olvidarse de
@@ -619,6 +621,98 @@ router.get('/activity', async (req, res) => {
 router.get('/visits', async (req, res) => {
   const dias = entero(req.query.days, 30, 365);
   res.json(await analytics.resumen({ dias }));
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  Cuentas y claves temporales
+// ══════════════════════════════════════════════════════════════════
+//
+// Aquí se resuelve el caso más común de soporte: alguien perdió su contraseña y
+// hay que devolverle el acceso por teléfono. El operador pone una clave
+// temporal, la dicta, y la cuenta queda obligada a cambiarla en cuanto entra
+// —lo exige el servidor, no solo la pantalla (ver middleware/password-change.js)—.
+//
+// Reglas que sostienen esto:
+//   · La clave se devuelve UNA sola vez, en la respuesta de quien la puso. No
+//     se guarda en claro ni se manda por correo: viaja por donde el operador ya
+//     está hablando con la persona.
+//   · Poner una clave temporal CIERRA todas las sesiones abiertas de esa
+//     cuenta. Si alguien se metió con la contraseña vieja, se queda fuera.
+//   · Nadie puede ponerse una clave temporal a sí mismo ni a otro super_admin:
+//     el panel no es la vía para tomar la cuenta de otro operador.
+
+const ROLES_ADMINISTRABLES = ['clinic_admin', 'doctor', 'receptionist'];
+
+router.get('/users', async (req, res) => {
+  const r = await query(
+    `SELECT u.id,
+            COALESCE(NULLIF(u.name, ''), u.email)   AS nombre,
+            u.email,
+            u.role,
+            COALESCE(u.specialty, '')               AS especialidad,
+            COALESCE(u.display_title, '')           AS titulo,
+            u.clinic_id,
+            COALESCE(c.name, '')                    AS clinica,
+            u.approval_status,
+            COALESCE(u.must_change_password, FALSE) AS clave_pendiente,
+            u.password_set_at                       AS clave_puesta,
+            (SELECT COUNT(*)::int FROM user_sessions s
+              WHERE s.user_id = u.id AND s.revoked_at IS NULL) AS sesiones
+       FROM users u
+       LEFT JOIN clinics c ON c.id = u.clinic_id
+      WHERE u.role = ANY($1)
+      ORDER BY c.name NULLS LAST, u.role, nombre`,
+    [ROLES_ADMINISTRABLES],
+  );
+  res.json(r.rows);
+});
+
+router.post('/users/:id/temp-password', async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'Usuario inválido.' });
+  if (id === req.user.id) {
+    return res.status(400).json({ error: 'Para tu propia cuenta usa el cambio de contraseña normal.' });
+  }
+
+  const r = await query('SELECT id, email, name, role FROM users WHERE id = $1', [id]);
+  const usuario = r.rows[0];
+  if (!usuario) return res.status(404).json({ error: 'Esa cuenta no existe.' });
+  if (!ROLES_ADMINISTRABLES.includes(usuario.role)) {
+    return res.status(403).json({ error: 'Solo se puede hacer con cuentas de clínica (doctor, recepción o administración).' });
+  }
+
+  // Sin clave escrita, se genera una dictable. Con clave escrita, se valida.
+  const escrita = req.body && req.body.password !== undefined && req.body.password !== '';
+  const clave = escrita ? String(req.body.password).trim() : claveTemporal.generar();
+  if (escrita) {
+    const problema = claveTemporal.validar(clave);
+    if (problema) return res.status(400).json({ error: problema });
+  }
+
+  const hash = await bcrypt.hash(clave, 10);
+  await query(
+    `UPDATE users
+        SET password = $1, must_change_password = TRUE, password_set_at = CURRENT_TIMESTAMP
+      WHERE id = $2`,
+    [hash, id],
+  );
+  // Fuera todas las sesiones: la contraseña anterior ya no vale para nada y
+  // quien la estuviera usando no debe seguir dentro.
+  const sesiones = await query(
+    `UPDATE user_sessions SET revoked_at = CURRENT_TIMESTAMP
+      WHERE user_id = $1 AND revoked_at IS NULL`,
+    [id],
+  );
+
+  res.json({
+    ok: true,
+    id: usuario.id,
+    email: usuario.email,
+    nombre: usuario.name || usuario.email,
+    password: clave,
+    generada: !escrita,
+    sesiones_cerradas: sesiones.rowCount || 0,
+  });
 });
 
 module.exports = router;

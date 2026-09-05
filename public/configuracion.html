@@ -848,6 +848,11 @@
                 </select>
               </div>
               <div class="field" data-roles="doctor">
+                <label>Título que se muestra</label>
+                <input type="text" id="fldDisplayTitle" maxlength="80" placeholder="Ej: Enfermera - Técnica en Pedicure Clínico">
+                <span class="hint">Opcional. Es el texto que se lee bajo tu nombre en la barra lateral. Si lo dejas vacío se muestra tu especialidad. No cambia la especialidad: esa sigue decidiendo a qué consulta y expediente entras.</span>
+              </div>
+              <div class="field" data-roles="doctor">
                 <label>Colegiación / Licencia médica</label>
                 <input type="text" id="fldLicense" placeholder="CMH-12345">
                 <span class="hint">Número de registro del Colegio Médico de Honduras.</span>
@@ -1515,7 +1520,7 @@
     // ── State ──
     const state = {
       profile: {
-        name: '', specialty: '', license: '', experience: '',
+        name: '', specialty: '', displayTitle: '', license: '', experience: '',
         adminRole: '', shift: '',
         email: '', phone: '', location: '', bio: '',
         languages: [], focus: [],
@@ -1773,6 +1778,7 @@
         cached.email = state.profile.email || cached.email;
         cached.phone = state.profile.phone || cached.phone;
         cached.specialty = state.profile.specialty || cached.specialty;
+        cached.display_title = state.profile.displayTitle || '';
         cached.photo_url = state.profile.photoUrl || '';
         localStorage.setItem('sd_user_profile', JSON.stringify(cached));
       } catch (_) {}
@@ -1829,7 +1835,9 @@
 
       // Hero
       setText('heroName', name);
-      setText('heroSpecialty', state.profile.specialty ? specialty : 'Selecciona especialidad');
+      setText('heroSpecialty', state.profile.displayTitle
+        ? state.profile.displayTitle
+        : (state.profile.specialty ? specialty : 'Selecciona especialidad'));
       setText('heroLicense', state.profile.license || 'Sin colegiación');
       setText('heroExp', exp);
       setText('heroLocation', location);
@@ -1866,6 +1874,7 @@
     // Bind all fields (bind() is a no-op when the element is missing)
     bind('fldName', 'profile.name', { onChange: () => { renderAvatar(); renderPreview(); updateHeroPhone(); }});
     bind('fldSpecialty', 'profile.specialty', { onChange: renderPreview });
+    bind('fldDisplayTitle', 'profile.displayTitle', { onChange: renderPreview });
     bind('fldLicense', 'profile.license', { onChange: renderPreview });
     bind('fldExperience', 'profile.experience', { onChange: renderPreview });
     bind('fldAdminRole', 'profile.adminRole');
@@ -2563,6 +2572,7 @@
             name: state.profile.name,
             email: state.profile.email,
             specialty: state.profile.specialty,
+            display_title: state.profile.displayTitle,
             phone: state.profile.phone,
             admin_role: state.profile.adminRole,
             location: state.profile.location,
@@ -2677,6 +2687,7 @@
           state.profile.name = u.name || '';
           state.profile.email = u.email || '';
           state.profile.specialty = u.specialty || '';
+          state.profile.displayTitle = u.display_title || '';
           state.clinic.name = u.clinic_name || '';
         }
       } catch (_) {}
@@ -2688,6 +2699,7 @@
           state.profile.name = me.name || '';
           state.profile.email = me.email || '';
           state.profile.specialty = me.specialty || '';
+          state.profile.displayTitle = me.display_title || '';
           state.profile.phone = me.phone || '';
           state.profile.adminRole = me.admin_role || '';
           state.profile.location = me.location || '';
@@ -2755,6 +2767,7 @@
         if (!existe) sel.add(new Option(valor, valor));
       })(state.profile.specialty);
       setVal('fldSpecialty', state.profile.specialty);
+      setVal('fldDisplayTitle', state.profile.displayTitle);
       setVal('fldLicense', state.profile.license);
       setVal('fldExperience', state.profile.experience);
       setVal('fldAdminRole', state.profile.adminRole);

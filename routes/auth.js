@@ -116,7 +116,14 @@ router.post('/login', async (req, res) => {
   }
 
   const token = await abrirSesion(user, req, res);
-  res.json({ token, role: user.role, clinic_id: user.clinic_id });
+  res.json({
+    token,
+    role: user.role,
+    clinic_id: user.clinic_id,
+    // Clave puesta por el administrador: la app abre igual (hay que poder
+    // entrar para cambiarla) pero no deja guardar nada hasta que se cambie.
+    must_change_password: !!user.must_change_password,
+  });
 });
 
 // ── Alta de cuenta (registro público de doctores) ──
@@ -369,7 +376,8 @@ router.get('/me', authenticate, async (req, res) => {
     // dinero de la app se formatea con esa moneda —public/monedas.js la lee de
     // esta respuesta—, así que pedirla aparte habría significado una segunda
     // petición antes de poder pintar un solo importe.
-    `SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.specialty, u.phone,
+    `SELECT u.id, u.email, u.role, u.name, u.clinic_id, u.specialty, u.display_title, u.phone,
+            COALESCE(u.must_change_password, FALSE) AS must_change_password,
             u.photo_url, c.name as clinic_name, c.currency as clinic_currency,
             c.country as clinic_country
        FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id
@@ -412,9 +420,19 @@ router.post('/change-password', authenticate, async (req, res) => {
   if (!ok) {
     return res.status(401).json({ error: 'La contraseña actual es incorrecta.' });
   }
+  // Repetir la que ya tenía dejaría en pie una clave temporal que el
+  // administrador conoce, con la marca borrada y la app desbloqueada.
+  if (current === new_password) {
+    return res.status(400).json({ error: 'La contraseña nueva tiene que ser distinta de la actual.' });
+  }
 
   const hash = await bcrypt.hash(new_password, 10);
-  await query('UPDATE users SET password = $1 WHERE id = $2', [hash, req.user.id]);
+  await query(
+    `UPDATE users SET password = $1, must_change_password = FALSE,
+                      password_set_at = CURRENT_TIMESTAMP
+      WHERE id = $2`,
+    [hash, req.user.id],
+  );
   // Revocar todas las otras sesiones — si cambian la contraseña, asumir compromiso de las demás
   await query(
     `UPDATE user_sessions SET revoked_at = CURRENT_TIMESTAMP

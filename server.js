@@ -627,6 +627,12 @@ app.use('/api', require('./middleware/subscription').gate);
 // montado una sola vez sobre /api para que ninguna ruta futura se escape.
 app.use('/api', require('./middleware/legal').gate);
 
+// Guardián de clave temporal: quien entró con una clave puesta por el
+// administrador puede leer, pero no guarda nada hasta cambiarla (409). Va
+// junto a los otros dos y por el mismo motivo: cubrir de una vez toda ruta
+// presente y futura.
+app.use('/api', require('./middleware/password-change').gate);
+
 // ── Handlers async: que un error no se lleve por delante el proceso ──
 // Express 4 no recoge las promesas rechazadas de un handler `async`, y Node mata
 // el proceso ante una promesa rechazada sin dueño. Sin esto, CUALQUIER error de
