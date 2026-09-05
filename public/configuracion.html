@@ -1306,6 +1306,23 @@
         <section class="settings-panel" data-panel="preferences" data-roles="doctor clinic_admin receptionist">
           <div class="glass-card">
             <div class="card-head">
+              <div class="icon-box"><span data-icon="sparkles" data-size="20"></span></div>
+              <div>
+                <h2>Ayuda en pantalla</h2>
+                <p>Explicaciones breves sobre los campos, para el que está aprendiendo la plataforma.</p>
+              </div>
+            </div>
+            <div class="switch-row">
+              <div class="switch-text">
+                <div class="switch-title">Modo Guía</div>
+                <div class="switch-desc">Muestra una tarjeta de ayuda al pasar el mouse sobre los campos de consultas, pacientes y citas. Apágalo cuando ya no lo necesites y la interfaz queda limpia.</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="swGuia"><span class="slider"></span></label>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="card-head">
               <div class="icon-box"><span data-icon="settings" data-size="20"></span></div>
               <div>
                 <h2>Preferencias de plataforma</h2>
@@ -2990,6 +3007,22 @@
       cargar();
       cargarCierre();
     })();
-  </script>
+  
+// ── Modo Guía ──
+// El estado vive en public/guia.js (localStorage). Aquí solo se refleja y se le
+// avisa al cambiar, para que cualquier otro mando del ajuste quede al día.
+(function () {
+  var sw = document.getElementById('swGuia');
+  if (!sw) return;
+  var sincronizar = function () { sw.checked = !window.SDGuia || window.SDGuia.activo(); };
+  sincronizar();
+  // guia.js se carga en diferido; se vuelve a leer cuando ya esté.
+  setTimeout(sincronizar, 400);
+  sw.addEventListener('change', function () {
+    if (window.SDGuia) window.SDGuia.fijar(sw.checked);
+  });
+  window.addEventListener('sdguia:cambio', function (e) { sw.checked = e.detail.activo; });
+})();
+</script>
 </body>
 </html>

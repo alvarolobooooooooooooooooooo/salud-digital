@@ -224,7 +224,7 @@
       <aside class="mobile-sidebar" id="mobileSidebar">
         <div class="mobile-sidebar-header">
           <h2 class="mobile-sidebar-title">Menú</h2>
-          <button class="mobile-sidebar-close" id="closeSidebarBtn"></button>
+          <button class="mobile-sidebar-close" id="closeSidebarBtn" aria-label="Cerrar el menú"></button>
         </div>
 
         <div class="mobile-sidebar-content">
@@ -1818,4 +1818,30 @@
       });
     })
     .catch(function () { /* sin red: el servidor lo exigirá en la próxima escritura */ });
+})();
+
+// ── Modo Guía (public/guia.js) ──
+//
+// Las ayudas flotantes van en todas las pantallas de la app, así que se cargan
+// desde aquí en vez de repetir un <script> en cada HTML.
+//
+// Se carga con la versión del despliegue pegada, por lo mismo que legal-consent.js:
+// un script inyectado por JS no pasa por la reescritura de ?v=<commit> del
+// servidor y se quedaría cacheado un día entero.
+(function () {
+  var SIN_GUIA = [
+    '/login.html', '/registro.html', '/landing.html', '/accept-invitation.html',
+    '/legal.html', '/', '/index.html', '/offline.html'
+  ];
+  if (SIN_GUIA.indexOf(window.location.pathname) !== -1) return;
+
+  var el = document.querySelector('script[src*="?v="], link[href*="?v="]');
+  var v = '';
+  if (el) {
+    var m = /[?&]v=([^&#]+)/.exec(el.getAttribute('src') || el.getAttribute('href') || '');
+    if (m) v = m[1];
+  }
+  var s = document.createElement('script');
+  s.src = '/guia.js' + (v ? '?v=' + encodeURIComponent(v) : '');
+  document.head.appendChild(s);
 })();
