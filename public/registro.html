@@ -1,37 +1,39 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<!-- El alta de cuenta va SOLO en claro, igual que el login: data-theme-lock lo
+     fija en theme.js antes del primer pintado, por encima de la preferencia
+     guardada y del tema del sistema, y sin tocar esa preferencia para el resto
+     del portal. -->
+<html lang="es" data-theme-lock="light">
 <head>
   <script src="/theme.js"></script>
-  <script>
-    /* Hermana del login: pantalla oscura por diseño. Se re-fija data-theme tras
-       la resolución automática de theme.js para que un sistema en claro no se
-       cuele en una UI pensada en negro. */
-    document.documentElement.setAttribute('data-theme', 'dark');
-  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#050507">
-  <meta name="color-scheme" content="dark">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#f8fafc">
+  <meta name="color-scheme" content="light">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>SaludDigital — Crear cuenta</title>
   <style>
     :root {
-      --primary: #06b6d4;
-      --primary-hover: #0891b2;
-      --accent: #22d3ee;
-      --bg-base: #050507;
-      --surface: rgba(20, 20, 22, 0.78);
-      --surface-2: rgba(28, 28, 30, 0.85);
-      --border: rgba(255, 255, 255, 0.09);
-      --border-soft: rgba(255, 255, 255, 0.055);
-      --border-strong: rgba(255, 255, 255, 0.14);
-      --text: #f1f5f9;
-      --text-soft: #cbd5e1;
-      --text-muted: #94a3b8;
+      --primary: #0891b2;
+      --primary-hover: #0e7490;
+      /* En claro el cian brillante (#22d3ee) no llega al contraste mínimo sobre
+         blanco: el acento de texto e iconos baja un par de pasos. */
+      --accent: #0891b2;
+      --bg-base: #f8fafc;
+      --surface: rgba(255, 255, 255, 0.82);
+      --surface-2: rgba(255, 255, 255, 0.92);
+      --border: rgba(15, 23, 42, 0.10);
+      --border-soft: rgba(15, 23, 42, 0.07);
+      --border-strong: rgba(15, 23, 42, 0.12);
+      --text: #0f172a;
+      --text-soft: #334155;
+      /* Sobre blanco, #94a3b8 se queda en 2.7:1: los grises de apoyo bajan un
+         escalón cada uno para llegar al mínimo de contraste. */
+      --text-muted: #475569;
       --text-faint: #64748b;
-      --danger: #f87171;
-      --ok: #34d399;
+      --danger: #dc2626;
+      --ok: #059669;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,7 +53,7 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
       background: var(--bg-base);
-      background-image: linear-gradient(180deg, #050507 0%, #08080a 100%);
+      background-image: linear-gradient(180deg, #ffffff 0%, #eef4f8 100%);
       color: var(--text);
       min-height: 100vh;
       min-height: 100dvh;
@@ -92,21 +94,21 @@
     .safe-top {
       position: fixed; top: 0; left: 0; right: 0; z-index: 5;
       height: env(safe-area-inset-top, 0px);
-      background: #050507;
+      background: #ffffff;
       pointer-events: none;
     }
     /* El desvanecido va DEBAJO de la banda, no dentro: dentro dejaba asomar el
        borde de la tarjeta justo en la zona del notch. */
     .safe-top::after {
       content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 14px;
-      background: linear-gradient(180deg, #050507 0%, rgba(5, 5, 7, 0) 100%);
+      background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
     }
 
     .grid-overlay {
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background-image:
-        linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+        linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
       background-size: 60px 60px;
       mask-image: radial-gradient(ellipse at center, black 25%, transparent 75%);
       -webkit-mask-image: radial-gradient(ellipse at center, black 25%, transparent 75%);
@@ -122,7 +124,7 @@
       border: 1px solid var(--border);
       border-radius: 22px;
       padding: 1.9rem 1.75rem 1.6rem;
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.05);
     }
 
     .brand { display: flex; align-items: center; gap: .7rem; margin-bottom: 1.5rem; }
@@ -141,7 +143,7 @@
     .progress-track { display: flex; gap: 5px; }
     .progress-seg {
       height: 3px; flex: 1; border-radius: 3px;
-      background: rgba(255, 255, 255, 0.075);
+      background: rgba(15, 23, 42, 0.08);
       transition: background .35s ease;
     }
     .progress-seg.done { background: var(--primary); }
@@ -191,7 +193,7 @@
     .field input, .field select {
       width: 100%;
       padding: .78rem .9rem;
-      background: rgba(12, 12, 14, 0.6);
+      background: rgba(255, 255, 255, 0.9);
       border: 1px solid var(--border);
       border-radius: 11px;
       color: var(--text);
@@ -202,10 +204,13 @@
     .field input::placeholder { color: var(--text-faint); }
     .field input:focus, .field select:focus {
       outline: none;
-      border-color: rgba(6, 182, 212, 0.55);
-      background: rgba(16, 16, 19, 0.8);
+      border-color: rgba(8, 145, 178, 0.55);
+      /* Al enfocar, el campo se ACLARA (antes se oscurecía, que era lo correcto
+         sobre negro). Con el halo cian se sigue viendo cuál está activo. */
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.12);
     }
-    .field.invalid input { border-color: rgba(248, 113, 113, .6); }
+    .field.invalid input { border-color: rgba(220, 38, 38, .55); }
     .field .hint { display: block; font-size: .72rem; color: var(--text-faint); margin-top: .4rem; line-height: 1.45; }
     .field-error { font-size: .74rem; color: var(--danger); margin-top: .4rem; display: none; }
     .field.invalid .field-error { display: block; }
@@ -222,7 +227,7 @@
     .meter { display: flex; gap: 4px; margin-top: .55rem; }
     .meter i {
       height: 3px; flex: 1; border-radius: 3px;
-      background: rgba(255, 255, 255, 0.08); transition: background .25s ease;
+      background: rgba(15, 23, 42, 0.08); transition: background .25s ease;
     }
     .meter.l1 i:nth-child(1) { background: #f87171; }
     .meter.l2 i:nth-child(-n+2) { background: #fbbf24; }
@@ -236,7 +241,7 @@
     .spec {
       display: flex; align-items: center; gap: .6rem;
       padding: .72rem .8rem;
-      background: rgba(12, 12, 14, 0.55);
+      background: rgba(255, 255, 255, 0.75);
       border: 1px solid var(--border);
       border-radius: 12px;
       cursor: pointer; text-align: left;
@@ -247,7 +252,7 @@
     .spec:hover { border-color: var(--border-strong); color: var(--text); }
     .spec .tick {
       width: 15px; height: 15px; border-radius: 50%; flex: none;
-      border: 1.5px solid rgba(255, 255, 255, 0.18);
+      border: 1.5px solid rgba(15, 23, 42, 0.18);
       display: flex; align-items: center; justify-content: center;
       transition: border-color .18s ease, background .18s ease;
     }
@@ -265,7 +270,7 @@
     .loc-action {
       display: inline-flex; align-items: center; gap: .4rem;
       padding: .6rem .8rem; border-radius: 11px;
-      background: rgba(12, 12, 14, 0.55);
+      background: rgba(255, 255, 255, 0.75);
       border: 1px solid var(--border);
       color: var(--text-soft);
       font: inherit; font-size: .8rem; font-weight: 500;
@@ -277,7 +282,7 @@
 
     .loc-results {
       border: 1px solid var(--border); border-radius: 12px;
-      background: rgba(12, 12, 14, 0.7);
+      background: rgba(255, 255, 255, 0.92);
       overflow: hidden; margin-bottom: .75rem;
       max-height: 190px; overflow-y: auto;
     }
@@ -295,11 +300,12 @@
        sin perder legibilidad de calles y etiquetas. */
     .loc-map {
       height: 240px; border-radius: 14px; overflow: hidden;
-      border: 1px solid var(--border); background: #111114;
+      border: 1px solid var(--border); background: #eef4f8;
       position: relative; z-index: 0; isolation: isolate;
     }
-    .loc-map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.92); }
-    .loc-map .leaflet-control-zoom a { background: #16161a; color: #e2e8f0; border-color: rgba(255,255,255,.12); }
+    /* Sin filtro: los tiles de OSM ya son claros y ahora la pantalla también.
+       El invert(1) de antes existía solo para oscurecerlos. */
+    .loc-map .leaflet-control-zoom a { background: #ffffff; color: #334155; border-color: rgba(15,23,42,.12); }
 
     .loc-status { font-size: .76rem; color: var(--text-faint); margin-top: .5rem; line-height: 1.45; }
     .loc-status.ok { color: var(--ok); }
@@ -344,7 +350,7 @@
     .btn-next {
       flex: 1;
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
-      border: 0; color: #04191e;
+      border: 0; color: #ffffff;
     }
     .btn-next:hover { filter: brightness(1.07); }
     .btn-next:disabled { opacity: .55; cursor: not-allowed; filter: none; }
@@ -360,9 +366,11 @@
 
     .form-error {
       display: none; margin-top: 1rem; padding: .75rem .9rem;
-      background: rgba(248, 113, 113, 0.08);
-      border: 1px solid rgba(248, 113, 113, 0.22);
-      border-radius: 11px; color: #fca5a5; font-size: .8rem; line-height: 1.5;
+      background: rgba(220, 38, 38, 0.06);
+      border: 1px solid rgba(220, 38, 38, 0.22);
+      /* Antes era #fca5a5: un rojo claro pensado para leerse sobre negro. Sobre
+         blanco se queda en 2:1 y no se lee. */
+      border-radius: 11px; color: var(--danger); font-size: .8rem; line-height: 1.5;
     }
     .form-error.show { display: block; }
 
