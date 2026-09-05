@@ -4,7 +4,6 @@
    ========================================================= */
 
 /* --- Webfonts (substitutions — see README) ---------------- */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
   /* ====== BRAND CORE =====================================
@@ -79,12 +78,11 @@
   --border-focus:   var(--sd-blue-600);
 
   /* ====== TYPOGRAPHY =====================================
-     Manrope: display / wordmark substitute (rounded geometric).
-     Plus Jakarta Sans: body / UI (humanist sans).
-     JetBrains Mono: data, IDs, codes.                    */
-  --font-display: 'Manrope', 'Nunito Sans', system-ui, sans-serif;
-  --font-body:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-mono:    'JetBrains Mono', 'SF Mono', Menlo, monospace;
+     System font (San Francisco on Apple): display + body / UI.
+     System monospace (SF Mono on Apple): data, IDs, codes.  */
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  --font-body:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
 
   /* Scale (1.200 — minor third) */
   --t-12: 0.75rem;

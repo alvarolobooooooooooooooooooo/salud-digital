@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="es">
+<!-- Esta ficha solo se ve incrustada en la portada, que va SOLO en claro: el
+     candado la fija igual (theme.js lo aplica antes del primer pintado). Sin
+     él seguiría el tema del sistema y se vería una pantalla negra dentro del
+     marco claro de la portada. -->
+<html lang="es" data-theme-lock="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- El mismo arranque de tema que usa la app. Como el iframe es del mismo
-     origen que la landing, lee el MISMO localStorage (sd_theme) y aplica el
-     MISMO data-theme: la ficha se ve clara o en modo oscuro exactamente igual
-     que la página que la contiene, sin que nadie tenga que sincronizar nada. -->
 <script src="/theme.js"></script>
 
 <!-- Fondo del PRIMER frame. Va aquí, antes de cualquier <link>, porque el
@@ -71,7 +71,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { width: 100%; margin: 0; padding: 0; overflow-x: visible; }
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #ecf9fc 100%);
       color: var(--pod-text);
       position: relative;

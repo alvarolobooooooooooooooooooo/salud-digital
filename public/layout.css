@@ -1,5 +1,4 @@
 /* ── Layout CSS — Sidebar + Header Global ── */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 @import url('/theme-dark.css');
 
 :root {
@@ -27,7 +26,7 @@
 }
 
 html, body {
-  font-family: 'Poppins', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
   background: var(--bg);
   margin: 0;
@@ -652,6 +651,7 @@ nav.old-nav {
   font-family: inherit;
   font-size: 0.68rem;
   font-weight: 600;
+  /* Mismo gris de reposo que .sb-item en el sidebar. */
   color: #475569;
   text-decoration: none;
   background: transparent;
@@ -672,38 +672,41 @@ nav.old-nav {
   background: transparent;
 }
 
-/* Press: faint teal tap-feedback + springy squish. */
+/* Al pulsar: el mismo tinte que el hover de .sb-item, más el hundido. */
 .mobile-nav-item:active,
 .mobile-nav-hamburger:active {
   transform: scale(0.93);
-  color: var(--primary);
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.10), rgba(6, 182, 212, 0.08));
+  color: var(--primary-hover);
+  background: rgba(8, 145, 178, 0.06);
 }
 
-/* Active tab: the bright glass pill — the only highlighted tab in the row. */
+/* Pestaña activa: exactamente la misma pastilla que .sb-item.active en el
+   sidebar —mismo degradado de dos paradas, mismo borde, mismo reflejo
+   interior— para que "estás aquí" se diga igual en PC y en celular. Antes
+   llevaba cuatro capas de degradado, un borde más marcado y una sombra cian:
+   pesaba más que la fila equivalente del menú de escritorio. */
 .mobile-nav-item.active {
-  color: var(--primary);
-  font-weight: 700;
-  background:
-    linear-gradient(180deg,
-      rgba(255, 255, 255, 0.45) 0%,
-      rgba(255, 255, 255, 0.0) 40%),
-    linear-gradient(135deg,
-      rgba(8, 145, 178, 0.18) 0%,
-      rgba(6, 182, 212, 0.14) 55%,
-      rgba(56, 189, 248, 0.14) 100%);
-  border: 1px solid rgba(8, 145, 178, 0.28);
+  color: var(--primary-hover);
+  font-weight: 600;
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.12) 0%, rgba(14, 165, 233, 0.10) 100%);
+  border: 1px solid rgba(8, 145, 178, 0.16);
   border-radius: 13px;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.85) inset,
-    0 4px 12px rgba(8, 145, 178, 0.14);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
 }
 
-/* Teal→cyan gradient on the SVG icons (mirrors the page heading style). */
+/* En el sidebar el icono de cada fila va del color de la fila: gris en reposo
+   y cian en la activa. La barra móvil hacía lo contrario —degradado teal→cyan
+   fijo en las cinco pestañas— así que el icono se veía igual estuvieras donde
+   estuvieras. Ahora sigue a su pestaña, como en PC.
+
+   El degradado se queda donde sí era decorativo: el cajón y la campana. */
 .mobile-nav-item .mobile-icon svg,
 .mobile-nav-item .mobile-icon svg *,
 .mobile-nav-hamburger svg,
-.mobile-nav-hamburger svg *,
+.mobile-nav-hamburger svg * {
+  stroke: currentColor;
+}
+
 .sidebar-menu-link svg,
 .sidebar-menu-link svg *,
 #notificationIcon svg,
@@ -1186,27 +1189,60 @@ nav.old-nav {
     margin: 0;
     border-radius: 20px;
 
-    /* Vidrio translúcido + desenfoque del contenido que pasa por detrás.
-       Veladura en el MISMO gris-azulado claro de la página (no blanco puro) y
-       con menos opacidad/saturación → el blur deja pasar el tono real del fondo,
-       así el header lee como "la misma superficie esmerilada" y deja de
-       recortarse como una tarjeta blanca sobre el fondo (--bg #f1f5f9). */
-    background: rgba(244, 248, 251, 0.62);
-    -webkit-backdrop-filter: saturate(135%) blur(20px);
-    backdrop-filter: saturate(135%) blur(20px);
-    /* Sin borde ni reflejo blanco arriba: solo sombra difusa para el flotado.
-       Sombra ASENTADA: poco offset + blur corto + baja opacidad → la isla flota
-       apenas lo justo sin "saltar" ni leerse despegada de la pantalla. */
-    border: none;
+    /* MISMO material que #sidebar. La barra y el sidebar no son dos cosas
+       parecidas: son EL MISMO componente —la navegación— en dos formatos, así
+       que comparten receta: tinte cian que entra por la esquina superior
+       izquierda y muere antes de la mitad, un segundo tinte muy leve por la
+       esquina opuesta, base blanca con desenfoque de lo que pasa por detrás, y
+       la sombra con halo cian.
+
+       Lo único que se adapta es la geometría: el sidebar es alto y estrecho y
+       sus radiales van en vertical; aquí van tumbados para recorrer una isla
+       ancha y baja. Las opacidades bajan un punto (0.96/0.92 frente a
+       0.98/0.95) porque esta barra flota SOBRE el contenido, no contra el
+       borde de la pantalla, y tiene que dejar ver que hay algo debajo. */
+    background:
+      radial-gradient(150% 140% at 4% -34%, rgba(14, 165, 233, 0.16) 0%, rgba(14, 165, 233, 0.055) 42%, transparent 76%),
+      radial-gradient(120% 96% at 97% 134%, rgba(8, 145, 178, 0.10), transparent 74%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(240, 249, 255, 0.92) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+            backdrop-filter: saturate(160%) blur(14px);
     box-shadow:
-      0 4px 14px -8px rgba(15, 23, 42, 0.16),     /* sombra suave, cercana */
-      0 1px 3px rgba(15, 23, 42, 0.05);           /* contacto sutil al borde */
+      0 0 60px rgba(8, 145, 178, 0.10),
+      0 10px 28px -10px rgba(15, 23, 42, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 -1px 0 rgba(8, 145, 178, 0.05);
+  }
+
+  /* Filo de cristal: el mismo hairline enmascarado del sidebar. Allí va a
+     155deg porque el panel es vertical; aquí a 105deg para que el brillo
+     recorra la isla de esquina a esquina en lugar de cruzarla de arriba abajo. */
+  #mobileNav::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(105deg,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.4) 26%,
+      rgba(8, 145, 178, 0.12) 58%,
+      transparent 84%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
   }
 
   /* Sin backdrop-filter: subir opacidad para que las etiquetas sigan legibles. */
   @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
     #mobileNav {
-      background: rgba(244, 248, 251, 0.96);
+      background:
+        radial-gradient(150% 140% at 4% -34%, rgba(14, 165, 233, 0.14) 0%, transparent 76%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.99) 0%, rgba(240, 249, 255, 0.99) 100%);
     }
   }
 

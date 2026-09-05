@@ -33,7 +33,7 @@
   --lx-warn: #f59e0b;
   --lx-bad: #ef4444;
   --lx-r: 18px;
-  --lx-font: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --lx-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

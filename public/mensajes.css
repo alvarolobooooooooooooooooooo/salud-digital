@@ -1,7 +1,7 @@
 /* ============================================================
    Salud Digital · Mensajería clínica — estilos de la página
    Diseño "Chat Clínico" adaptado al sistema de la plataforma:
-   tipografía Poppins, acento cyan (--primary) y shell nativo
+   tipografía del sistema (San Francisco en Apple), acento cyan (--primary) y shell nativo
    (usa el sidebar global; sin riel navy ni lienzo escalado).
    Prefijo sd- propio del chat; no colisiona con .sd-notif-*.
    ============================================================ */
@@ -72,12 +72,12 @@
   --border-strong:  var(--sd-ink-300);
   --border-focus:   var(--sd-blue-600);
 
-  /* ====== TIPOGRAFÍA: todo Poppins (como la plataforma) ======
-     --font-mono también apunta a Poppins: los datos (CURP, signos
+  /* ====== TIPOGRAFÍA: la del sistema (como toda la plataforma) ======
+     --font-mono también apunta a la fuente de texto: los datos (CURP, signos
      vitales, duraciones, fechas) usan la misma fuente que el resto. */
-  --font-display: 'Poppins', system-ui, -apple-system, sans-serif;
-  --font-body:    'Poppins', system-ui, -apple-system, sans-serif;
-  --font-mono:    'Poppins', system-ui, -apple-system, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  --font-body:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
 
   /* ====== RADII ====== */
   --r-xs:  4px;  --r-sm:  6px;  --r-md: 10px;

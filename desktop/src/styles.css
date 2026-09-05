@@ -1,5 +1,5 @@
 /* Splash / pantalla offline de Salud Digital.
-   Paleta y tipografía alineadas con la plataforma (Poppins, cian #0891b2). */
+   Paleta y tipografía alineadas con la plataforma (tipografía del sistema, cian #0891b2). */
 
 :root {
   --bg: #f7f9fc;
@@ -29,7 +29,7 @@ html, body {
 }
 
 body {
-  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
   color: var(--fg);
   -webkit-font-smoothing: antialiased;

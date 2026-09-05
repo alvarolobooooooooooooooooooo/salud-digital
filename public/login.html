@@ -1,38 +1,40 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="dark">
+<!-- El login va SOLO en claro: data-theme-lock lo fija en theme.js antes del
+     primer pintado, por encima de la preferencia guardada y del tema del
+     sistema, y sin tocar esa preferencia para el resto del portal. -->
+<html lang="es" data-theme-lock="light">
 <head>
   <script src="/theme.js"></script>
-  <script>
-    /* Login is dark-only — re-pin data-theme after theme.js's auto resolution
-       so a light-mode system doesn't bleed into the hardcoded dark UI. */
-    document.documentElement.setAttribute('data-theme', 'dark');
-  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <!-- Login UI is dark-only by design — keep meta tags forced dark
-       so iOS chrome matches even when the system is in light mode. -->
-  <meta name="theme-color" content="#050507">
-  <meta name="color-scheme" content="dark">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- Pantalla clara por diseño: el cromo del sistema se fija en claro aunque
+       el móvil esté en modo oscuro. -->
+  <meta name="theme-color" content="#f8fafc">
+  <meta name="color-scheme" content="light">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>SaludDigital — Acceder</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap">
   <style>
+    html { color-scheme: light; }
+
     :root {
-      --primary: #06b6d4;
-      --primary-hover: #0891b2;
-      --accent: #22d3ee;
-      --bg-base: #050507;
-      --surface: rgba(20, 20, 22, 0.78);
-      --surface-2: rgba(28, 28, 30, 0.85);
-      --border: rgba(255, 255, 255, 0.09);
-      --border-soft: rgba(255, 255, 255, 0.055);
-      --border-strong: rgba(255, 255, 255, 0.14);
-      --text: #f1f5f9;
-      --text-soft: #cbd5e1;
-      --text-muted: #94a3b8;
+      --primary: #0891b2;
+      --primary-hover: #0e7490;
+      /* En claro el cian brillante (#22d3ee) no llega al contraste mínimo
+         sobre blanco: el acento de texto e iconos baja un par de pasos. */
+      --accent: #0891b2;
+      --accent-strong: #0e7490;
+      --bg-base: #f8fafc;
+      --surface: rgba(255, 255, 255, 0.82);
+      --surface-2: rgba(255, 255, 255, 0.92);
+      --border: rgba(15, 23, 42, 0.10);
+      --border-soft: rgba(15, 23, 42, 0.07);
+      --border-strong: rgba(15, 23, 42, 0.12);
+      --text: #0f172a;
+      --text-soft: #334155;
+      /* Sobre blanco, #94a3b8 se queda en 2.7:1 y no llega al mínimo de
+         contraste: los grises de apoyo bajan un escalón cada uno. */
+      --text-muted: #475569;
       --text-faint: #64748b;
     }
 
@@ -53,9 +55,9 @@
          inalcanzable— cuando la tarjeta es más alta que la pantalla (por
          ejemplo con el campo de 2FA desplegado en un móvil pequeño). */
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
       background: var(--bg-base);
-      background-image: linear-gradient(180deg, #050507 0%, #08080a 100%);
+      background-image: linear-gradient(180deg, #ffffff 0%, #eef4f8 100%);
       color: var(--text);
       min-height: 100vh;
       min-height: 100dvh;
@@ -76,29 +78,29 @@
     .safe-top {
       position: fixed; top: 0; left: 0; right: 0; z-index: 5;
       height: env(safe-area-inset-top, 0px);
-      background: #050507;
+      background: #ffffff;
       pointer-events: none;
     }
     .safe-top::after {
       content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 14px;
-      background: linear-gradient(180deg, #050507 0%, rgba(5, 5, 7, 0) 100%);
+      background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
     }
 
     /* Loader de verificación de sesión: cubre todo hasta saber si hay sesión. */
     .auth-loader {
       position: fixed; inset: 0; z-index: 9999;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
-      background: #050507;
-      background-image: linear-gradient(180deg, #050507 0%, #08080a 100%);
+      background: #f8fafc;
+      background-image: linear-gradient(180deg, #ffffff 0%, #eef4f8 100%);
       transition: opacity .35s ease;
     }
     .auth-loader.hidden { opacity: 0; pointer-events: none; }
     .auth-loader-spinner {
       width: 46px; height: 46px; border-radius: 50%;
-      border: 3px solid rgba(6, 182, 212, 0.18); border-top-color: #06b6d4;
+      border: 3px solid rgba(8, 145, 178, 0.18); border-top-color: #0891b2;
       animation: authspin .8s linear infinite;
     }
-    .auth-loader-text { font-size: 14px; font-weight: 500; color: rgba(255, 255, 255, 0.55); letter-spacing: .01em; }
+    .auth-loader-text { font-size: 14px; font-weight: 500; color: var(--text-muted); letter-spacing: .01em; }
     @keyframes authspin { to { transform: rotate(360deg); } }
 
     /* ── Animated background blobs ── */
@@ -106,7 +108,7 @@
       content: '';
       position: fixed;
       width: 1100px; height: 1100px;
-      background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.22) 0%, transparent 70%);
       top: -350px; right: -350px;
       border-radius: 50%;
       z-index: 0;
@@ -118,7 +120,7 @@
       content: '';
       position: fixed;
       width: 900px; height: 900px;
-      background: radial-gradient(circle, rgba(8, 145, 178, 0.09) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.16) 0%, transparent 70%);
       bottom: -300px; left: -300px;
       border-radius: 50%;
       z-index: 0;
@@ -136,8 +138,8 @@
       position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+        linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
       background-size: 60px 60px;
       mask-image: radial-gradient(ellipse at center, black 25%, transparent 75%);
       -webkit-mask-image: radial-gradient(ellipse at center, black 25%, transparent 75%);
@@ -158,8 +160,8 @@
       width: 3px;
       height: 3px;
       border-radius: 50%;
-      background: rgba(6, 182, 212, 0.6);
-      box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+      background: rgba(8, 145, 178, 0.55);
+      box-shadow: 0 0 8px rgba(6, 182, 212, 0.35);
       animation: drift linear infinite;
     }
     @keyframes drift {
@@ -185,7 +187,7 @@
       width: 760px;
       height: 760px;
       transform: translate(-50%, -50%);
-      border: 1px dashed rgba(6, 182, 212, 0.18);
+      border: 1px dashed rgba(6, 182, 212, 0.30);
       border-radius: 50%;
       pointer-events: none;
       animation: spin 60s linear infinite;
@@ -196,11 +198,11 @@
       position: absolute;
       width: 8px; height: 8px;
       border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 14px rgba(6, 182, 212, 0.9);
+      background: #06b6d4;
+      box-shadow: 0 0 14px rgba(6, 182, 212, 0.55);
     }
     .orbit-ring::before { top: -4px; left: 50%; transform: translateX(-50%); }
-    .orbit-ring::after { bottom: -4px; left: 50%; transform: translateX(-50%); background: #34d399; box-shadow: 0 0 14px rgba(52, 211, 153, 0.9); }
+    .orbit-ring::after { bottom: -4px; left: 50%; transform: translateX(-50%); background: #10b981; box-shadow: 0 0 14px rgba(16, 185, 129, 0.55); }
 
     .orbit-ring-2 {
       position: absolute;
@@ -209,7 +211,7 @@
       width: 920px;
       height: 920px;
       transform: translate(-50%, -50%);
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(15, 23, 42, 0.07);
       border-radius: 50%;
       pointer-events: none;
       animation: spin 90s linear infinite reverse;
@@ -221,8 +223,8 @@
       top: 50%; right: -3px;
       transform: translateY(-50%);
       border-radius: 50%;
-      background: #fbbf24;
-      box-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
+      background: #f59e0b;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
     }
     @keyframes spin {
       from { transform: translate(-50%, -50%) rotate(0deg); }
@@ -233,12 +235,12 @@
     .float-card {
       position: absolute;
       padding: 0.75rem 0.95rem;
-      background: rgba(28, 28, 30, 0.92);
+      background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--border-strong);
       border-radius: 14px;
-      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 18px 44px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.05);
       display: flex;
       align-items: center;
       gap: 0.65rem;
@@ -255,7 +257,7 @@
       display: flex; align-items: center; justify-content: center;
       color: #fff;
     }
-    .float-card .fc-ico.green { background: linear-gradient(135deg, #15803d, #22c55e); box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35); }
+    .float-card .fc-ico.green { background: linear-gradient(135deg, #15803d, #22c55e); box-shadow: 0 4px 12px rgba(34, 197, 94, 0.30); }
     .float-card .fc-ico.cyan { background: linear-gradient(135deg, #0891b2, #06b6d4); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4); }
     .float-card .fc-ico.violet { background: linear-gradient(135deg, #7c3aed, #a78bfa); box-shadow: 0 4px 12px rgba(167, 139, 250, 0.35); }
     .float-card .fc-meta {
@@ -286,7 +288,7 @@
     .card-glow {
       position: absolute;
       inset: -2px;
-      background: linear-gradient(135deg, rgba(6, 182, 212, 0.55), rgba(8, 145, 178, 0.15) 50%, rgba(6, 182, 212, 0.55));
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.45), rgba(14, 165, 233, 0.12) 50%, rgba(6, 182, 212, 0.45));
       border-radius: 24px;
       filter: blur(28px);
       opacity: 0.4;
@@ -298,36 +300,34 @@
       50% { opacity: 0.5; }
     }
 
-    /* ── Liquid glass login card ──
-       Translucent frosted surface: lets the colored blobs / grid refract through,
-       bright specular highlight along the top + edge, soft inner glow.
-       Frosting lives in the background layers (behind content) so text stays crisp,
-       and nothing animates over backdrop-filter (WKWebView perf). */
+    /* ── Liquid glass login card (claro) ──
+       Vidrio esmerilado blanco: deja pasar el cian de los blobs y la rejilla,
+       con un filo brillante arriba y sombra difusa abajo. El esmerilado vive en
+       las capas de fondo (detrás del contenido) para que el texto quede nítido,
+       y nada se anima por encima del backdrop-filter (rendimiento en WKWebView). */
     .card {
       position: relative;
       background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.04) 34%, rgba(255, 255, 255, 0.02) 60%, rgba(255, 255, 255, 0.07) 100%),
-        radial-gradient(140% 120% at 50% -10%, rgba(34, 211, 238, 0.10) 0%, transparent 55%),
-        rgba(15, 18, 24, 0.40);
+        linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.78) 40%, rgba(255, 255, 255, 0.72) 65%, rgba(255, 255, 255, 0.88) 100%),
+        radial-gradient(140% 120% at 50% -10%, rgba(6, 182, 212, 0.10) 0%, transparent 55%);
       backdrop-filter: blur(40px) saturate(180%);
       -webkit-backdrop-filter: blur(40px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.85);
       border-radius: 24px;
       padding: 2.25rem 2.25rem 1.75rem;
       box-shadow:
-        0 30px 70px rgba(0, 0, 0, 0.55),
-        0 4px 14px rgba(0, 0, 0, 0.30),
-        inset 0 1px 0 rgba(255, 255, 255, 0.30),
-        inset 0 -1px 1px rgba(255, 255, 255, 0.05),
-        inset 0 0 60px rgba(255, 255, 255, 0.02);
+        0 30px 70px rgba(15, 23, 42, 0.13),
+        0 4px 14px rgba(15, 23, 42, 0.06),
+        0 0 0 1px rgba(15, 23, 42, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
     }
-    /* Specular sheen along the top edge */
+    /* Filo especular en el borde superior */
     .card::before {
       content: '';
       position: absolute;
       top: 0; left: 14%; right: 14%;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
       pointer-events: none;
     }
 
@@ -359,7 +359,7 @@
       color: var(--text);
     }
     .brand-name .accent {
-      background: linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%);
+      background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -427,29 +427,28 @@
     input {
       width: 100%;
       padding: 0.95rem 1rem 0.95rem 2.85rem;
-      border: 1px solid rgba(255, 255, 255, 0.10);
+      border: 1px solid rgba(15, 23, 42, 0.12);
       border-radius: 12px;
       font-size: 0.95rem;
       font-family: inherit;
       transition: all 0.25s ease;
-      background: rgba(255, 255, 255, 0.045);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
       color: var(--text);
       font-weight: 500;
     }
     input::placeholder { color: var(--text-faint); font-weight: 400; }
     input:hover {
-      border-color: rgba(255, 255, 255, 0.18);
-      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(15, 23, 42, 0.20);
+      background: #ffffff;
     }
     input:focus {
       outline: none;
-      border-color: rgba(6, 182, 212, 0.55);
-      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(6, 182, 212, 0.75);
+      background: #ffffff;
       box-shadow:
-        0 0 0 4px rgba(6, 182, 212, 0.12),
-        0 8px 24px rgba(6, 182, 212, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        0 0 0 4px rgba(6, 182, 212, 0.14),
+        0 8px 24px rgba(6, 182, 212, 0.12);
     }
     .field-wrapper:focus-within .field-icon { color: var(--accent); }
     input[type="password"] { padding-right: 2.85rem; }
@@ -470,7 +469,7 @@
       user-select: none;
       font-weight: 500;
     }
-    /* Custom dark-theme checkbox */
+    /* Casilla propia (el control nativo no acepta el radio ni el cian) */
     .remember input[type="checkbox"] {
       appearance: none;
       -webkit-appearance: none;
@@ -478,9 +477,9 @@
       height: 18px;
       padding: 0;
       margin: 0;
-      border: 1.5px solid rgba(255, 255, 255, 0.18);
+      border: 1.5px solid rgba(15, 23, 42, 0.22);
       border-radius: 5px;
-      background: rgba(18, 18, 20, 0.55);
+      background: #ffffff;
       cursor: pointer;
       position: relative;
       transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
@@ -488,8 +487,8 @@
       box-shadow: none;
     }
     .remember input[type="checkbox"]:hover {
-      border-color: rgba(6, 182, 212, 0.45);
-      background: rgba(22, 22, 24, 0.75);
+      border-color: rgba(6, 182, 212, 0.60);
+      background: #f0fbfe;
     }
     .remember input[type="checkbox"]:checked {
       background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
@@ -513,11 +512,12 @@
     }
 
     /* Safari / iOS — autofill key + strong-password buttons (Apple Keychain) */
+    /* Sobre fondo claro los iconos nativos ya se ven: no se invierten, solo
+       se atenúan para que no compitan con el campo. */
     input::-webkit-credentials-auto-fill-button,
     input::-webkit-strong-password-auto-fill-button,
     input::-webkit-contacts-auto-fill-button {
-      filter: invert(1) brightness(0.78) hue-rotate(155deg) saturate(0.6);
-      opacity: 0.55;
+      opacity: 0.6;
       margin-right: 0.35rem;
       transition: opacity 0.2s ease;
     }
@@ -532,7 +532,7 @@
       font-weight: 600;
       transition: color 0.2s ease;
     }
-    .forgot:hover { color: #67e8f9; }
+    .forgot:hover { color: var(--accent-strong); }
 
     button.submit {
       width: 100%;
@@ -599,10 +599,10 @@
       width: 100%;
       text-decoration: none;
       padding: 0.85rem 1rem;
-      background: rgba(255, 255, 255, 0.05);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.75);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(15, 23, 42, 0.04);
       color: var(--text-soft);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(15, 23, 42, 0.12);
       border-radius: 12px;
       font-size: 0.85rem;
       font-family: inherit;
@@ -615,8 +615,8 @@
       gap: 0.5rem;
     }
     .signup-btn:hover {
-      background: rgba(255, 255, 255, 0.09);
-      border-color: rgba(255, 255, 255, 0.2);
+      background: #ffffff;
+      border-color: rgba(6, 182, 212, 0.35);
       color: var(--text);
       transform: translateY(-1px);
     }
@@ -626,7 +626,7 @@
       margin-top: 0.85rem;
       font-size: 0.85rem;
       line-height: 1.4;
-      color: #fca5a5;
+      color: #dc2626;
       font-weight: 500;
     }
     /* Una cuenta en revisión no es un fallo del usuario: no hay nada que
@@ -634,8 +634,8 @@
        (cian, con su tarjeta) y no como el rojo de "contraseña incorrecta". */
     .error.aviso {
       color: var(--text);
-      background: rgba(6, 182, 212, 0.09);
-      border: 1px solid rgba(6, 182, 212, 0.28);
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.35);
       border-radius: 12px;
       padding: 0.8rem 0.95rem;
     }
@@ -791,7 +791,7 @@
             <div class="field-wrapper">
               <input type="text" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" style="padding-left:1rem;letter-spacing:.4em;text-align:center;font-size:1.15rem;font-weight:700;">
             </div>
-            <div style="font-size:.78rem;color:#94a3b8;margin-top:.5rem;">Ingresa el código de 6 dígitos de tu app autenticadora.</div>
+            <div style="font-size:.78rem;color:#64748b;margin-top:.5rem;">Ingresa el código de 6 dígitos de tu app autenticadora.</div>
           </div>
 
           <div class="row-options">

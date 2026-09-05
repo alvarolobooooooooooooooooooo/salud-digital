@@ -4,7 +4,6 @@
    ========================================================= */
 
 /* --- Webfonts (substitutions — see README) ---------------- */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   /* ====== BRAND CORE =====================================
@@ -82,9 +81,9 @@
      Manrope: display / wordmark substitute (rounded geometric).
      Plus Jakarta Sans: body / UI (humanist sans).
      JetBrains Mono: data, IDs, codes.                    */
-  --font-display: 'Poppins', system-ui, sans-serif;
-  --font-body:    'Poppins', sans-serif;
-  --font-mono:    'Poppins', Menlo, monospace;
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  --font-body:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
 
   /* Scale (1.200 — minor third) */
   --t-12: 0.75rem;

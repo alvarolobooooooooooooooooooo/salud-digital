@@ -89,7 +89,7 @@ window.HorarioEditor = (function () {
         --accent: #0891b2;
         --accent-ink: #155e75;
         --radius-lg: 14px;
-        font-family: 'Poppins', sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
         color: var(--ink);
         font-size: 14px;
         display: grid;
@@ -213,7 +213,7 @@ window.HorarioEditor = (function () {
         position: fixed; inset: 0;
         background: rgba(15, 23, 42, 0.45);
         display: none; align-items: center; justify-content: center;
-        z-index: 2100; font-family: 'Poppins', sans-serif;
+        z-index: 2100; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
       }
       .hz-tp.active { display: flex; }
       .hz-tp-card {

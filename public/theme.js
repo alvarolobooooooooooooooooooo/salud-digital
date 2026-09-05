@@ -3,19 +3,30 @@
 // "white flash → dark" flicker. Reads sd_theme from localStorage and
 // applies data-theme to <html>.
 (function () {
+  // ── Páginas con tema fijo ──
+  // Las públicas (portada y login) se pintan SOLO en claro: llevan
+  // data-theme-lock="light" en <html> y aquí manda ese candado, por encima de
+  // la preferencia guardada y del tema del sistema. La preferencia del usuario
+  // no se toca: el resto del portal sigue respetándola.
+  var lock = document.documentElement.getAttribute('data-theme-lock');
+  if (lock !== 'light' && lock !== 'dark') lock = null;
+
   var effective;
+  var stored = 'auto';
   try {
-    var stored = localStorage.getItem('sd_theme') || 'auto';
+    stored = localStorage.getItem('sd_theme') || 'auto';
     effective = stored;
     if (stored === 'auto') {
       effective = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
     }
-    document.documentElement.setAttribute('data-theme', effective);
-    document.documentElement.setAttribute('data-theme-preference', stored);
   } catch (_) {
+    // Sin localStorage (Safari privado, cookies bloqueadas) se cae al oscuro,
+    // que es el tema por defecto del portal.
     effective = 'dark';
-    document.documentElement.setAttribute('data-theme', 'dark');
   }
+  if (lock) effective = lock;
+  document.documentElement.setAttribute('data-theme', effective);
+  document.documentElement.setAttribute('data-theme-preference', lock ? lock : stored);
 
   // ── Mobile safe-area + status bar tint ──
   // Without these, iPhone notch/home-indicator areas render in the system
@@ -83,6 +94,9 @@
       if (pref === 'auto') {
         eff = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
       }
+      // En una página con candado la preferencia se guarda para el resto del
+      // portal, pero esta pantalla no cambia de color.
+      if (lock) eff = lock;
       document.documentElement.setAttribute('data-theme', eff);
       document.documentElement.setAttribute('data-theme-preference', pref);
       applyMobileMeta(eff);
@@ -94,6 +108,7 @@
   if (window.matchMedia) {
     var mq = window.matchMedia('(prefers-color-scheme: dark)');
     var onChange = function () {
+      if (lock) return;
       if ((localStorage.getItem('sd_theme') || 'auto') === 'auto') {
         var eff = mq.matches ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', eff);

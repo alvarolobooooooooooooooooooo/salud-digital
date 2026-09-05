@@ -303,22 +303,13 @@ html[data-theme="dark"] body::after {
   border-color: rgba(6, 182, 212, 0.28) !important;
 }
 
-/* Active pill — saturated cyan glass with bright specular + glow + crisp rim. */
+/* Pestaña activa: la misma pastilla de dos paradas que .sb-item.active en el
+   sidebar oscuro, no una versión más cargada. */
 [data-theme="dark"] .mobile-nav-item.active {
   color: #67e8f9 !important;
-  background:
-    linear-gradient(180deg,
-      rgba(178, 240, 255, 0.18) 0%,
-      rgba(255, 255, 255, 0.0) 40%),
-    linear-gradient(135deg,
-      rgba(6, 182, 212, 0.30) 0%,
-      rgba(14, 165, 233, 0.22) 55%,
-      rgba(56, 189, 248, 0.20) 100%) !important;
-  border: 1px solid rgba(56, 189, 248, 0.42) !important;
-  box-shadow:
-    0 1px 0 rgba(178, 240, 255, 0.30) inset,
-    0 -6px 10px -8px rgba(6, 182, 212, 0.30) inset,
-    0 5px 16px rgba(6, 182, 212, 0.30) !important;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.18) 0%, rgba(14, 165, 233, 0.12) 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.22) !important;
+  box-shadow: 0 1px 0 rgba(178, 240, 255, 0.14) inset !important;
 }
 
 [data-theme="dark"] .mobile-nav-item:focus-visible,
@@ -331,13 +322,21 @@ html[data-theme="dark"] body::after {
     0 4px 12px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Mobile nav icons — bypass the SVG gradient and use solid cyan-500
-   (same color as .stat-icon stroke via var(--primary) → #06b6d4) */
+/* Filo de cristal de la isla: el MISMO token que usa #sidebar::after. En claro
+   el filo va en blanco alto, que sobre el negro se leería como un contorno duro
+   alrededor de toda la barra. */
+[data-theme="dark"] #mobileNav::before {
+  background: var(--sd-glass-rim) !important;
+}
+
+/* Los iconos siguen al color de SU pestaña, igual que las filas del sidebar:
+   apagado en reposo, cian en la activa. Antes iban en cian fijo los cinco, así
+   que el icono no distinguía dónde estabas. */
 [data-theme="dark"] .mobile-nav-item .mobile-icon svg,
 [data-theme="dark"] .mobile-nav-item .mobile-icon svg *,
 [data-theme="dark"] .mobile-nav-hamburger svg,
 [data-theme="dark"] .mobile-nav-hamburger svg * {
-  stroke: #06b6d4 !important;
+  stroke: currentColor !important;
 }
 /* Cajón del menú: lámina opaca de respaldo; el vidrio va tras @supports. */
 [data-theme="dark"] .mobile-sidebar {

@@ -4,11 +4,10 @@
    ========================================================= */
 
 /* --- Webfonts --------------------------------------------
-   Poppins en TODO el sistema — incluido datos tabulares / IDs
+   La tipografía del sistema en TODO — incluido datos tabulares / IDs
    fiscales (CAI, RTN, correlativos, montos). Mismo font que el
    resto de la plataforma Salud Digital (layout.css carga
-   Poppins 300–800). */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+   pesos 300–800). */
 
 :root {
   /* ====== BRAND CORE =====================================
@@ -83,12 +82,12 @@
   --border-focus:   var(--sd-blue-600);
 
   /* ====== TYPOGRAPHY =====================================
-     Poppins en todo: display + body / UI y también los datos
+     Una sola familia: display + body / UI y también los datos
      (montos, RTN, CAI). --font-mono se mantiene como token por
-     compatibilidad, pero ahora apunta a Poppins.            */
-  --font-display: 'Poppins', system-ui, -apple-system, sans-serif;
-  --font-body:    'Poppins', system-ui, -apple-system, sans-serif;
-  --font-mono:    'Poppins', system-ui, -apple-system, sans-serif;
+     compatibilidad, pero apunta a la fuente de texto.  */
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  --font-body:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
 
   /* Scale (1.200 — minor third) */
   --t-12: 0.75rem;
